@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
@@ -94,6 +95,9 @@ class BrowseFileTransferWorker @AssistedInject constructor(
     private suspend fun runTransfer(request: BrowseFileTransferRequest): Result {
         var latestTotalOperationBytes = 0L
         var terminalResult: FileOperationResult? = null
+        // S1226: throttle state - see PROGRESS_MIN_INTERVAL_MS.
+        var lastPublishAtMs = 0L
+        var lastPublishedFile: String? = null
 
         if (request.sources.any { !it.isDirectory }) {
             fileOperationUseCase.executeWithProgress(request.toFileOperation()).collect { progress ->
@@ -103,6 +107,20 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                         latestTotalOperationBytes = progress.totalOperationBytes
                     }
                     is FileOperationProgress.Processing -> {
+                        // S1226: the copy layer reports every buffer chunk (~128 KB), which on a
+                        // 44 GB SFTP transfer measured ~50 events/s. Each one used to rebuild and
+                        // re-post the foreground notification AND write WorkManager's progress row
+                        // to Room - two binder/DB round-trips per chunk, competing with the copy
+                        // itself for the same thread pool. Publishing is now rate-limited; a file
+                        // change still publishes immediately so the notification never names the
+                        // wrong file.
+                        val nowMs = SystemClock.elapsedRealtime()
+                        val fileChanged = progress.currentFile != lastPublishedFile
+                        val dueByTime = nowMs - lastPublishAtMs >= PROGRESS_MIN_INTERVAL_MS
+                        if (!fileChanged && !dueByTime) return@collect
+                        lastPublishAtMs = nowMs
+                        lastPublishedFile = progress.currentFile
+
                         val snapshot = BrowseFileTransferProgressSnapshot(
                             operationType = request.operationType,
                             totalFiles = progress.totalFiles,
@@ -478,6 +496,12 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         private const val MAX_ERROR_DETAILS = 5
         private const val PROGRESS_PERCENT_MAX = 100
         private const val PROGRESS_PERCENT_CAP = 99
+
+        // S1226: minimum gap between published progress updates. The copy layer emits per buffer
+        // chunk (~50/s measured); at 1 s the bar still moves visibly while ~98% of the notification
+        // rebuilds and WorkManager Room writes disappear. Raise it if the transfer thread is still
+        // starved - the cost is only how often the number on screen changes.
+        private const val PROGRESS_MIN_INTERVAL_MS = 1_000L
         private const val PERCENT_SCALE = 100L
         private const val RESULT_ID_MODULO = 100
         private const val REQUEST_CODE_MODULO = 10_000

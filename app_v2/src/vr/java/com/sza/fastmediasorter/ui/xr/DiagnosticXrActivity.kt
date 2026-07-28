@@ -59,6 +59,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.nio.ByteBuffer
@@ -327,6 +328,11 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 hapticBridge.triggerClickFeedback()
                 trackController.cycleSubtitle(step) { refreshTrackRowsAndRepaint() }
             }
+            override fun onCollapseToggled(collapsed: Boolean) {
+                Timber.d("S1228: HUD panel collapsed=$collapsed")
+                hapticBridge.triggerClickFeedback()
+                scheduleHudPanelRepaint()
+            }
         }
         interactionDispatcher = HudInteractionDispatcher(hudRenderer, hudInteractionListener)
 
@@ -351,12 +357,16 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         surfaceView.requestFocus()
         showInitialLoadingOverlay(contentRoot)
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                Timber.d("DiagnosticXrActivity: onBackPressed -> requesting exit")
-                renderThread?.requestExit() ?: returnDispatcher.deliverReturnAndFinish(VrLaunchResult.CancelledByUser)
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    Timber.d("DiagnosticXrActivity: onBackPressed -> requesting exit")
+                    renderThread?.requestExit()
+                        ?: returnDispatcher.deliverReturnAndFinish(VrLaunchResult.CancelledByUser)
+                }
             }
-        })
+        )
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -388,7 +398,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             if (decodeImageToActivityBytes(firstFile)) return true
             if (launchInput.launchMode == VrLaunchMode.FILE_URI) {
                 Timber.w("Failed to decode initial launch image ${firstFile.name}, returning DecoderFailed")
-                returnDispatcher.deliverReturnAndFinish(VrLaunchResult.Unavailable(VrLaunchUnavailableReason.DecoderFailed))
+                returnDispatcher.deliverReturnAndFinish(
+                    VrLaunchResult.Unavailable(VrLaunchUnavailableReason.DecoderFailed)
+                )
                 return false
             }
             Timber.w("Failed to decode initial image ${firstFile.name}, falling back to bundled")
@@ -465,7 +477,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 val launchFile = resolveSingleLaunchFile(launchInput)
                 if (launchFile == null) {
                     Timber.w("DiagnosticXrActivity: invalid launch fileUriString=%s", launchInput.fileUriString)
-                    returnDispatcher.deliverReturnAndFinish(VrLaunchResult.Unavailable(VrLaunchUnavailableReason.InvalidUri))
+                    returnDispatcher.deliverReturnAndFinish(
+                        VrLaunchResult.Unavailable(VrLaunchUnavailableReason.InvalidUri)
+                    )
                     return false
                 }
                 listOf(launchFile)
@@ -474,7 +488,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // here. Reject defensively rather than scanning the diagnostic test folder.
             VrLaunchMode.RESOURCE_BROWSE -> {
                 Timber.w("DiagnosticXrActivity: RESOURCE_BROWSE not handled by the diagnostic host")
-                returnDispatcher.deliverReturnAndFinish(VrLaunchResult.Unavailable(VrLaunchUnavailableReason.NotYetSupported))
+                returnDispatcher.deliverReturnAndFinish(
+                    VrLaunchResult.Unavailable(VrLaunchUnavailableReason.NotYetSupported)
+                )
                 return false
             }
         }
@@ -584,7 +600,11 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         if (isPanelHudMode()) {
             renderPanelHud()
         } else {
-            hudBanner.queueFilename("vr_diagnostic_360_mono.jpg (bundled)", ProjectionType.SPHERE_360, StereoLayout.MONO)
+            hudBanner.queueFilename(
+                "vr_diagnostic_360_mono.jpg (bundled)",
+                ProjectionType.SPHERE_360,
+                StereoLayout.MONO
+            )
         }
 
         // S0382 Phase 04 / ADR-1: decode and the large RGBA copy run on Dispatchers.IO (VrTextureDecoder)
@@ -654,11 +674,25 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // S0960 graceful path: a null decode keeps the previous slide instead of crashing.
             lifecycleScope.launch(Dispatchers.IO) {
                 val decoded = textureDecoder.decodeFile(file)
+                Timber.d("S1221: decode ${file.name} -> ${if (decoded != null) "ok" else "failed"}")
                 if (decoded != null) {
                     runtime.queueFrame(decoded.bytes, decoded.width, decoded.height)
                     Timber.d("Loaded and queued image: ${file.name} at ${decoded.width}x${decoded.height}")
                 } else {
-                    Timber.w("Failed to decode image ${file.name}; keeping previous frame")
+                    // S1221: the banner, the resolved layout and the playlist index have all already
+                    // advanced to this file, so simply returning left the PREVIOUS slide on the quad
+                    // wearing the new file's label. That is what got reported as broken stereo
+                    // detection and cost a session's diagnosis. The banner must never describe a
+                    // frame that is not there.
+                    Timber.w("Failed to decode image ${file.name}; surfacing the failure")
+                    if (isPanelHudMode()) {
+                        withContext(Dispatchers.Main) {
+                            hudRenderer.currentFilename = "$DECODE_FAILED_LABEL ${file.name}"
+                            refreshTrackRowsAndRepaint()
+                        }
+                    } else {
+                        hudBanner.queueError(file.name, DECODE_FAILED_LABEL)
+                    }
                 }
             }
         } else {
@@ -847,9 +881,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // process, so EVERY mode must (re)assert its own size here - a diagnostic launch after
             // a VR Cinema one would otherwise stretch the banner onto the panel-sized quad.
             if (isPanelHudMode()) {
-                runtime.setHudQuadSize(PANEL_QUAD_WIDTH_M, PANEL_QUAD_HEIGHT_M)
+                Timber.d("S1228: panel quad ${PANEL_QUAD_WIDTH_M}x${PANEL_QUAD_HEIGHT_M}m dy=$PANEL_QUAD_OFFSET_Y_M")
+                runtime.setHudQuadSize(PANEL_QUAD_WIDTH_M, PANEL_QUAD_HEIGHT_M, PANEL_QUAD_OFFSET_Y_M)
             } else {
-                runtime.setHudQuadSize(BANNER_QUAD_WIDTH_M, BANNER_QUAD_HEIGHT_M)
+                runtime.setHudQuadSize(BANNER_QUAD_WIDTH_M, BANNER_QUAD_HEIGHT_M, BANNER_QUAD_OFFSET_Y_M)
                 hudBanner.queueFilename(file.name, config.projection, config.layout)
             }
             if (isVideoFilename(file.name)) {
@@ -883,16 +918,33 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         const val PAUSE_SHUTDOWN_TIMEOUT_MS = 2_000L
         private const val REQUEST_CODE_HAND_TRACKING = 1001
 
+        // S1221: shown instead of leaving the previous slide on the quad under the new file's name.
+        // English literal like the neighbouring "Playback Start Failed" - the immersive HUD is a
+        // diagnostic surface and is not localized.
+        private const val DECODE_FAILED_LABEL = "Decode Failed"
+
         // S0960: bytes per ARGB_8888 / RGBA pixel for buffer sizing (panel HUD copy buffer).
         private const val RGBA_BYTES_PER_PIXEL = 4
 
         // S0964: world-space HUD quad sizes per mode. Banner values mirror the native defaults
-        // (S0291 owner decision); the panel quad matches the 1024x640 texture aspect (1.6:1) at
-        // -1.5 m so text stays legible without dominating the film. Owner review on device.
+        // (S0291 owner decision). The panel quad matched the 1024x640 texture aspect until S1228
+        // reshaped it - see below.
         private const val BANNER_QUAD_WIDTH_M = 0.3f
         private const val BANNER_QUAD_HEIGHT_M = 0.113f
-        private const val PANEL_QUAD_WIDTH_M = 0.48f
-        private const val PANEL_QUAD_HEIGHT_M = 0.30f
+
+        // S1228 (owner, in-headset 2026-07-27): 0.48x0.30 m block -> 1.40x0.197 m strip, matching
+        // the 2560x360 canvas. The text was ~0.015 m tall at the 1.5 m watch distance and unreadable;
+        // the wider quad puts it at ~0.028 m while the flatter shape stops covering the film.
+        private const val PANEL_QUAD_WIDTH_M = 1.40f
+        private const val PANEL_QUAD_HEIGHT_M = 0.197f
+
+        // S1228: drop the strip below the gaze ray so it stops covering the film. It clears the
+        // S0986 subtitle quad, which spans -0.5625..-0.4375 m: the strip spans -0.3985..-0.2015 m.
+        private const val PANEL_QUAD_OFFSET_Y_M = -0.30f
+
+        // The diagnostic banner keeps the S0290 round-3 centring - it is meant to land on the
+        // owner's screenshots without a head tilt.
+        private const val BANNER_QUAD_OFFSET_Y_M = 0.0f
 
         // S0964: coalesce repaint bursts (slider drags) into one queueHud per window.
         private const val HUD_REPAINT_DEBOUNCE_MS = 100L

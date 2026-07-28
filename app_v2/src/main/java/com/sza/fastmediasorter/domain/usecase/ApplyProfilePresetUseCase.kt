@@ -25,7 +25,16 @@ class ApplyProfilePresetUseCase @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val profileRepository: DeviceProfileRepository,
     private val vrProfileSettingsSync: VrProfileSettingsSync,
+    private val countProfilePresetOverridesUseCase: CountProfilePresetOverridesUseCase,
 ) {
+    /**
+     * S1216: how many settings [apply] would overwrite for [profileType]. Exposed here so a caller
+     * that already holds this use case can name the number in a confirmation without taking a
+     * second dependency, and so both call sites read the one implementation.
+     */
+    suspend fun overrideCount(profileType: DeviceProfileType): Int =
+        countProfilePresetOverridesUseCase(profileType)
+
     suspend fun apply(profileType: DeviceProfileType, presetVersion: Int = 1): Result<Unit> {
         Timber.i("ApplyProfilePresetUseCase: Applying preset for $profileType (v$presetVersion)")
         return try {

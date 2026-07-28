@@ -32,10 +32,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
 import java.nio.ByteBuffer
 import javax.inject.Inject
-import timber.log.Timber
 
 /**
  * S0963 (Pillar 2): immersive file browser. Reads a resource through the domain layer, renders a
@@ -47,9 +47,13 @@ import timber.log.Timber
 class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     @Inject lateinit var runtime: DiagnosticXrRuntime
+
     @Inject lateinit var payloadHolder: VrLaunchPayloadHolder
+
     @Inject lateinit var contentLoader: ImmersiveBrowseContentLoader
+
     @Inject lateinit var thumbnailDecoder: ImmersiveThumbnailDecoder
+
     @Inject lateinit var playbackController: ImmersiveBrowsePlaybackController
 
     private enum class BrowseState { BROWSE, PLAYBACK }
@@ -137,9 +141,12 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
         setContentView(FrameLayout(this).apply { addView(surfaceView) })
         surfaceView.requestFocus()
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() = onBackRequested()
-        })
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() = onBackRequested()
+            }
+        )
 
         loadContent(currentPath = null)
     }
@@ -240,9 +247,9 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
         state = BrowseState.PLAYBACK
         blankGrid()
         if (cell.mediaType == VrMediaType.VIDEO) {
-            playbackController.playVideo(toUri(path))
+            playbackController.playVideo(toUri(path), cell.label)
         } else {
-            lifecycleScope.launch { playbackController.playImage(toLocalFile(path)) }
+            lifecycleScope.launch { playbackController.playImage(toLocalFile(path), cell.label) }
         }
     }
 
@@ -268,7 +275,7 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
         playbackController.stop()
         state = BrowseState.BROWSE
         // Re-assert the browse quad: playback used the media quad, and the runtime is process-wide.
-        runtime.setHudQuadSize(BROWSE_QUAD_WIDTH_M, BROWSE_QUAD_HEIGHT_M)
+        runtime.setHudQuadSize(BROWSE_QUAD_WIDTH_M, BROWSE_QUAD_HEIGHT_M, BROWSE_QUAD_OFFSET_Y_M)
         drawAndPushGrid()
     }
 
@@ -319,7 +326,7 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
     private fun onSessionReady() {
         // The XR runtime is a process singleton, so the browser must assert its own HUD quad size or
         // it inherits whatever the previous mode left (the tiny banner) - the "micro-browser" (S1116).
-        runtime.setHudQuadSize(BROWSE_QUAD_WIDTH_M, BROWSE_QUAD_HEIGHT_M)
+        runtime.setHudQuadSize(BROWSE_QUAD_WIDTH_M, BROWSE_QUAD_HEIGHT_M, BROWSE_QUAD_OFFSET_Y_M)
         Timber.d("S1116: browse HUD quad ${BROWSE_QUAD_WIDTH_M}x${BROWSE_QUAD_HEIGHT_M}m")
         if (state == BrowseState.BROWSE) drawAndPushGrid()
     }
@@ -355,11 +362,16 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
         const val RGBA_BYTES_PER_PIXEL = 4
         const val ALPHA_OFFSET = 3
         const val CELL_THUMB_PX = 384
-        // S1116: browse HUD quad in metres (2:1, matches the panel). The banner default is
-        // 0.30x0.113 m; DiagnosticXrActivity's interactive panel is 0.48x0.30 m - the browser needs a
-        // larger, readable surface, so it asserts its own on session-ready.
+
+        // S1116: browse HUD quad in metres (2:1). The banner default is 0.30x0.113 m and the player
+        // panel is a wide strip since S1228 - the browser needs its own large readable surface, so
+        // it asserts this size on session-ready.
         const val BROWSE_QUAD_WIDTH_M = 0.80f
         const val BROWSE_QUAD_HEIGHT_M = 0.40f
+
+        // S1228: the browser is the content being read, not an overlay on it, so it stays centred
+        // in view. Only the player strip takes a negative offset.
+        const val BROWSE_QUAD_OFFSET_Y_M = 0.0f
         const val INIT_TEXTURE_DIM = 64
         const val NO_RESOURCE = -1L
         const val BACKDROP_RED: Byte = 12

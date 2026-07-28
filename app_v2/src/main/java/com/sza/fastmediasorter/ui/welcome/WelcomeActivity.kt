@@ -148,16 +148,28 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         collectOnLifecycle(viewModel.events) { event ->
             when (event) {
                 is WelcomeEvent.ConfirmProfilePresetReapply ->
-                    showProfilePresetReapplyWarning(event.type)
+                    showProfilePresetReapplyWarning(event.type, event.overrideCount)
             }
         }
     }
 
     /** Re-entry from Settings changed the profile: warn before the preset overwrites tuned settings
-     *  (mirrors the Settings device-profile picker warning). Confirm reapplies; cancel keeps settings. */
-    private fun showProfilePresetReapplyWarning(type: DeviceProfileType) {
+     *  (mirrors the Settings device-profile picker warning). Confirm reapplies; cancel keeps settings.
+     *  S1216: [overrideCount] is resolved by the ViewModel and names how many settings are at stake;
+     *  a profile that overrides nothing is applied without a dialog, same as the Settings picker. */
+    private fun showProfilePresetReapplyWarning(type: DeviceProfileType, overrideCount: Int) {
+        if (overrideCount == 0) {
+            viewModel.confirmProfilePresetReapply(type)
+            return
+        }
         MaterialAlertDialogBuilder(this)
-            .setMessage(R.string.settings_profile_warning)
+            .setMessage(
+                resources.getQuantityString(
+                    R.plurals.settings_profile_warning_count,
+                    overrideCount,
+                    overrideCount
+                )
+            )
             .setPositiveButton(R.string.profile_picker_select) { _, _ ->
                 viewModel.confirmProfilePresetReapply(type)
             }
@@ -484,6 +496,9 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
      * so the Welcome page no longer caps the choice at the three languages a button strip could hold.
      */
     private fun showWelcomeLanguagePicker() {
+        // A second tap while the picker is already up would stack a duplicate whose callback closes over
+        // a stale current-language value.
+        if (supportFragmentManager.findFragmentByTag(SearchableLanguagePickerDialog.TAG) != null) return
         val currentCode = LocaleHelper.getLanguage(this)
         SearchableLanguagePickerDialog.newInstanceForUiLanguage(currentCode) { language ->
             if (language.code != currentCode) {

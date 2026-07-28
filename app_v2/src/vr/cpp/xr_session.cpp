@@ -1320,7 +1320,10 @@ void main() {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, eye.images[imgIdx].image.image, 0);
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, eye.depthRb);
             glViewport(0, 0, eye.width, eye.height);
-            glClearColor(0.05f, 0.05f, 0.08f, 1.0f);
+            // S1231 (owner, in-headset 2026-07-27): void black, not a tinted near-black. The
+            // previous {0.05, 0.05, 0.08} reads as blue-grey against a film - the blue channel
+            // being highest made it a visible haze rather than absence of light.
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             float proj[16];
@@ -1698,11 +1701,11 @@ void main() {
         g.parallaxShift = (clamped - 0.5f) * 0.04f;
     }
 
-    void xr_session_set_hud_quad_size(float widthMeters, float heightMeters)
+    void xr_session_set_hud_quad_size(float widthMeters, float heightMeters, float verticalOffsetMeters)
     {
         // S0964: thin forwarder keeps the JNI surface uniform (everything goes through
         // xr_session_*); sizing logic lives with the quad state in xr_hud_world.
-        xr_hud_set_quad_size(widthMeters, heightMeters);
+        xr_hud_set_quad_size(widthMeters, heightMeters, verticalOffsetMeters);
     }
 
     void xr_session_queue_hud(const uint8_t *rgba, int width, int height)

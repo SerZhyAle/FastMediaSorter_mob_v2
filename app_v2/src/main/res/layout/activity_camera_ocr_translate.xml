@@ -329,7 +329,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="horizontal"
-            android:padding="16dp">
+            android:padding="8dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCropRetry"

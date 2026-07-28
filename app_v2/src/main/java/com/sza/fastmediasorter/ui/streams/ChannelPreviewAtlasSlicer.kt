@@ -60,9 +60,16 @@ class ChannelPreviewAtlasSlicer(
     suspend fun tileFor(index: Int): Bitmap? = withContext(Dispatchers.IO) {
         if (index < 0) return@withContext null
         val activeDecoder = decoder() ?: return@withContext null
-        if (!isInBounds(index, activeDecoder.width, activeDecoder.height)) return@withContext null
+        // S1220: decoder() releases the mutex before returning, so invalidate() can recycle this
+        // reference at any moment and EVERY member access then throws - width/height as much as
+        // decodeRegion. Keep every one of them inside this try; the bounds check used to sit above
+        // it and killed the process on navigate-away.
         try {
-            activeDecoder.decodeRegion(rectFor(index), BitmapFactory.Options())
+            if (!isInBounds(index, activeDecoder.width, activeDecoder.height)) {
+                null
+            } else {
+                activeDecoder.decodeRegion(rectFor(index), BitmapFactory.Options())
+            }
         } catch (e: IllegalArgumentException) {
             // A region outside the sheet yields no tile rather than a crash.
             Timber.i(e, "Channel-preview atlas region decode rejected for index=$index")

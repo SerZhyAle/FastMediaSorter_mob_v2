@@ -13,4 +13,10 @@ When recording a capability in `docs/ALL_FEATURES.jsonl`, derive `flavors` from 
 
 Sibling records are not a shortcut: for the same streams panel, S0777 records `standard,legacy,noLegal` while S0782 records `standard,legacy,noLegal,vr`. At least one is wrong, so copying either spreads the error.
 
+Repeated twice more on 2026-07-28, both times by reasoning about the feature instead of reading the gate, both caught only by reading the record back:
+- S1220: the slicers live in `src/main`, so I wrote all five flavors. `SUPPORT_STREAMS` is false in `lite`/`photos` and true in `vr` - "lives in `src/main`" does **not** mean "every flavor ships it".
+- S1229: stereo detection sounds VR-only, and `SUPPORT_VR_PLAYER` is true only in `noLegal`, so I wrote a narrow list. `AppSettings.kt` says the opposite in a comment right above the fields: "Detection-source flags below are flavor-independent (flat stereo exists on every flavor)" - the answer was **all six**.
+
+So the gate is not always a `BuildConfig` field. It can be a comment stating the intended scope next to the setting, or the capability wrapper the code actually calls. Find the one that governs *this* code path.
+
 **How to apply:** before writing any capability record, grep the gate (`grep -n SUPPORT_<X> app_v2/build.gradle.kts`, or find the `BuildConfig.` read behind the capability wrapper) and map the flag to flavor names. If the code sits in `src/main` with no gate, every flavor compiling `src/main` ships it. Then read the written record back - `grep '"spec":"Sxxxx"' docs/ALL_FEATURES.jsonl` - and check `area`, `name` and `flavors` with your own eyes. See [[project_functionality_log]].

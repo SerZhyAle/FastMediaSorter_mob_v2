@@ -33,7 +33,7 @@ On the very first launch, right under the language picker, the welcome screen as
 
 - 🎯 **Recommended badge:** the app guesses a likely profile for your device and marks it **(Recommended)**. If it guessed right, you barely have to do anything.
 - ⏭️ **Skip:** in a hurry? **Skip** simply applies the recommended profile. No wrong answer here.
-- ⚙️ **Change it later:** **Settings → General → Device profile**. Switching there shows a quick **warning** - the new profile overwrites some settings with its own defaults - and asks you to confirm. Nothing changes until you say yes.
+- ⚙️ **Change it later:** **Settings → General → Device profile**. Switching there shows a quick **warning** that names exactly how many settings the new profile will overwrite, and asks you to confirm. Nothing changes until you say yes. A profile that would overwrite nothing is applied without asking.
 - 🧩 **Other / Custom:** keeps your current settings exactly as they are. No preset applied - handy if you like tuning things by hand.
 - ⬆️ **Upgrading from an older version?** Your profile shows as **Other** and your previous settings are kept untouched - no preset was auto-applied. Want one anyway? Pick a profile in Settings.
 - 🎚️ **Next - pick what the app does:** after the profile, a quick screen lets you switch capabilities on or off (file manager, audio, video, documents, text recognition, translation). Optional parts download right there and turn on the moment they finish - all changeable later in Settings.

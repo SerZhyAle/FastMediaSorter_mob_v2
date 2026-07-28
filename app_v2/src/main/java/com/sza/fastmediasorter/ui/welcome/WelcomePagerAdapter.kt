@@ -199,8 +199,9 @@ class WelcomePagerAdapter(
             // S1190: language wiring. The control only reports the tap - the Activity owns the picker,
             // because choosing a language recreates it and an adapter cannot survive that.
             if (page.showLanguagePicker) {
+                val currentLanguage = LocaleHelper.getLanguage(context)
                 binding.btnWelcomeLanguage.visibility = View.VISIBLE
-                binding.btnWelcomeLanguage.text = UiLanguagePickerItems.label(context, LocaleHelper.getLanguage(context))
+                binding.btnWelcomeLanguage.text = UiLanguagePickerItems.label(context, currentLanguage)
                 binding.btnWelcomeLanguage.setOnClickListener { page.onLanguagePickerRequested?.invoke() }
             } else {
                 binding.btnWelcomeLanguage.visibility = View.GONE

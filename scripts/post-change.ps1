@@ -528,6 +528,15 @@ else {
     Skip-Step "script-cheatsheet-sync-gate" "not applicable - touched file is not a repo script or the script cheatsheet"
 }
 
+# S1216: device-profile preset matrix vs AppSettings, the non-presettable registry and the applier
+# branches. Runs on every change because the drift it catches is introduced by adding a settings
+# field, which can land under several ChangeTypes. Advisory under -ScopeToFile like the other
+# project-wide gates: it reads the whole matrix, so another ticket's settings WIP on a dirty tree
+# would otherwise block this ticket's closure. Strict on a full run.
+& $ratchetRunner "device-profile-matrix-gate" {
+    & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-device-profile-matrix.ps1") -Gate -Quiet
+}
+
 # S0848 Phase 02: join the detekt job started before the lexical gates. Preserves the old
 # inline verdict surface (failing rule lines printed, fatal on FAIL). Nulling $detektJob right
 # after the drain keeps the finally cleanup a no-op once the job has already been received.

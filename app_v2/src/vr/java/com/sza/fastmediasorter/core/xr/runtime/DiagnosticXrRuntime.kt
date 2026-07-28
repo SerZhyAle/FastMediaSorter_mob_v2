@@ -79,7 +79,7 @@ interface DiagnosticXrRuntime {
      * 0.3x0.113 m; the interactive panel needs a taller quad matching its texture aspect. The
      * value persists across sessions in native state - callers set it per launch mode.
      */
-    fun setHudQuadSize(widthMeters: Float, heightMeters: Float)
+    fun setHudQuadSize(widthMeters: Float, heightMeters: Float, verticalOffsetMeters: Float)
 
     /** JNI Pathway: stream interaction data from C++ render loop up to JVM */
     fun onNativeRayInteraction(uvX: Float, uvY: Float, isHover: Boolean, isClick: Boolean)

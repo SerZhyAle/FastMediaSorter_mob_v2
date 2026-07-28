@@ -61,6 +61,10 @@ $gates = [ordered]@{
     # S1075: dev/TECH_REQUIREMENTS.md pins vs Gradle truth. Static parse of build files
     # + one doc; no gradle daemon. Catches a dependency bump that forgot the doc.
     'assert-doc-pin-drift.ps1'                  = @('-Quiet')
+    # S1216: device-profile preset matrix vs AppSettings, the non-presettable registry and the
+    # applier branches. Data-file parse like the gate above, no gradle daemon. Catches a new
+    # setting that never reached the matrix - the drift that left 40 fields uncovered.
+    'assert-device-profile-matrix.ps1'          = @('-Quiet')
 }
 
 $results = [System.Collections.Generic.List[object]]::new()

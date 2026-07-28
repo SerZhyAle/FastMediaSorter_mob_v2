@@ -427,7 +427,11 @@ class ScreenGestureOverlayManager(
                 hideHint()
                 selection = null
                 if (chosen == null) return false
-                onGestureMatched(zone, chosen)
+                // Let WindowManager commit the hint removal before an immediate accessibility capture.
+                view.postOnAnimation {
+                    Timber.d("S1242: gesture hint removed before capture")
+                    onGestureMatched(zone, chosen)
+                }
                 view.performClick()
                 return true
             }

@@ -70,17 +70,22 @@ class GeneralSettingsViewSetupHelper(
     // S0567: raw Spinner -> SettingsDropdownRow. S1190: -> SettingsSelectionRow, because the interface
     // language set is now whatever locales_config.xml declares and no longer fits an inline dropdown.
     private fun setupLanguageRow() {
-        binding.rowLanguage.setValue(UiLanguagePickerItems.label(fragment.requireContext(), currentLanguageSelectionCode()))
+        val current = currentLanguageSelectionCode()
+        binding.rowLanguage.setValue(UiLanguagePickerItems.label(fragment.requireContext(), current))
         binding.rowLanguage.setOnRowClickListener { showLanguagePicker() }
     }
 
     private fun showLanguagePicker() {
+        val manager = fragment.childFragmentManager
+        // A second tap while the picker is already up would stack a duplicate whose callback closes over
+        // a stale current-language value.
+        if (manager.findFragmentByTag(SearchableLanguagePickerDialog.TAG) != null) return
         val currentLanguageCode = currentLanguageSelectionCode()
         SearchableLanguagePickerDialog.newInstanceForUiLanguage(currentLanguageCode) { language ->
             if (language.code != currentLanguageCode) {
                 showRestartDialog(language.code)
             }
-        }.show(fragment.childFragmentManager, SearchableLanguagePickerDialog.TAG)
+        }.show(manager, SearchableLanguagePickerDialog.TAG)
     }
 
     private fun setupSwitches() {
@@ -572,7 +577,8 @@ class GeneralSettingsViewSetupHelper(
                 else -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO.html"
             }, "No browser found to open documentation")
         }
-        // S0994: PC-side companion publish-folders guide, shown only when companion import is available (lite/vr hide it).
+        // S0994: PC-side companion publish-folders guide, shown only when companion import is
+        // available (lite/vr hide it).
         binding.btnCompanionPublishGuide.isVisible = viewModel.isCompanionImportAvailable
         binding.btnCompanionPublishGuide.setOnClickListener {
             openUrl(

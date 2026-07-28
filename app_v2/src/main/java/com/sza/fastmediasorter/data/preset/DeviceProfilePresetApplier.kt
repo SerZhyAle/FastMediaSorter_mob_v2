@@ -2,13 +2,18 @@ package com.sza.fastmediasorter.data.preset
 
 import android.content.Context
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.domain.model.StreamDefaultSort
+import com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter
+import com.sza.fastmediasorter.domain.model.StreamTrackLanguage
 import com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode
+import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -24,7 +29,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class DeviceProfilePresetApplier @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    private val launcherMode: LauncherModeContract
 ) {
 
     /**
@@ -44,6 +50,10 @@ class DeviceProfilePresetApplier @Inject constructor(
             "isCacheSizeUserModified" -> settings.copy(isCacheSizeUserModified = raw.toBool())
             "enableBackgroundSync" -> settings.copy(enableBackgroundSync = raw.toBool())
             "enableStreams" -> settings.copy(enableStreams = raw.toBool())
+            "streamsSmartBuffering" -> {
+                Timber.d("S1215: preset smart-buffering cell raw=%s", raw)
+                settings.copy(streamsSmartBuffering = raw.toBool())
+            }
             "allFiles" -> settings.copy(allFiles = raw.toBool())
             "showHiddenFiles" -> settings.copy(showHiddenFiles = raw.toBool())
             "showSubfoldersAsItems" -> settings.copy(showSubfoldersAsItems = raw.toBool())
@@ -207,16 +217,110 @@ class DeviceProfilePresetApplier @Inject constructor(
             "backgroundAudioExitBehavior" ->
                 runCatching { BackgroundAudioExitBehavior.valueOf(raw.trim()) }.getOrNull()
                     ?.let { settings.copy(backgroundAudioExitBehavior = it) } ?: skip(field, raw, settings)
-            // S0847: legacy preset keys map onto the LEFT_TOP band (the pre-S0847 single left strip).
-            "screenshotGestureActionDown" ->
+            "streamsDefaultSort" ->
+                runCatching { StreamDefaultSort.valueOf(raw.trim()) }.getOrNull()
+                    ?.let { settings.copy(streamsDefaultSort = it) } ?: skip(field, raw, settings)
+            "streamsDefaultMediaFilter" ->
+                runCatching { StreamMediaTypeFilter.valueOf(raw.trim()) }.getOrNull()
+                    ?.let { settings.copy(streamsDefaultMediaFilter = it) } ?: skip(field, raw, settings)
+            "streamsCatalogRefreshPolicy" ->
+                runCatching { StreamsCatalogRefreshPolicy.valueOf(raw.trim()) }.getOrNull()
+                    ?.let { settings.copy(streamsCatalogRefreshPolicy = it) } ?: skip(field, raw, settings)
+            "streamsDefaultAudioLanguage" ->
+                runCatching { StreamTrackLanguage.valueOf(raw.trim()) }.getOrNull()
+                    ?.let { settings.copy(streamsDefaultAudioLanguage = it) } ?: skip(field, raw, settings)
+            "streamsDefaultSubtitleLanguage" ->
+                runCatching { StreamTrackLanguage.valueOf(raw.trim()) }.getOrNull()
+                    ?.let { settings.copy(streamsDefaultSubtitleLanguage = it) } ?: skip(field, raw, settings)
+
+            // ── S0847 capture bands: per-zone action, one branch per zone/direction ───
+            "screenshotGestureLeftTopDown" ->
                 raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftTopDown = it) }
                     ?: skip(field, raw, settings)
-            "screenshotGestureActionRight" ->
+            "screenshotGestureLeftTopRight" ->
                 raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftTopRight = it) }
                     ?: skip(field, raw, settings)
-            "screenshotGestureActionUp" ->
+            "screenshotGestureLeftTopUp" ->
                 raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftTopUp = it) }
                     ?: skip(field, raw, settings)
+            "screenshotGestureLeftBottomDown" ->
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftBottomDown = it) }
+                    ?: skip(field, raw, settings)
+            "screenshotGestureLeftBottomRight" ->
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftBottomRight = it) }
+                    ?: skip(field, raw, settings)
+            "screenshotGestureLeftBottomUp" ->
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftBottomUp = it) }
+                    ?: skip(field, raw, settings)
+            "screenshotGestureRightTopDown" ->
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureRightTopDown = it) }
+                    ?: skip(field, raw, settings)
+            "screenshotGestureRightTopRight" ->
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureRightTopRight = it) }
+                    ?: skip(field, raw, settings)
+            "screenshotGestureRightTopUp" ->
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureRightTopUp = it) }
+                    ?: skip(field, raw, settings)
+            "screenshotGestureRightBottomDown" ->
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureRightBottomDown = it) }
+                    ?: skip(field, raw, settings)
+            "screenshotGestureRightBottomRight" ->
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureRightBottomRight = it) }
+                    ?: skip(field, raw, settings)
+            "screenshotGestureRightBottomUp" ->
+                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureRightBottomUp = it) }
+                    ?: skip(field, raw, settings)
+
+            // ── S1216 Booleans: capture bands, main-window panels, initial panel state ───
+            "screenshotGestureZoneLeftTopEnabled" -> settings.copy(screenshotGestureZoneLeftTopEnabled = raw.toBool())
+            "screenshotGestureZoneLeftBottomEnabled" ->
+                settings.copy(screenshotGestureZoneLeftBottomEnabled = raw.toBool())
+            "screenshotGestureZoneRightTopEnabled" ->
+                settings.copy(screenshotGestureZoneRightTopEnabled = raw.toBool())
+            "screenshotGestureZoneRightBottomEnabled" ->
+                settings.copy(screenshotGestureZoneRightBottomEnabled = raw.toBool())
+            "screenshotGestureZoneLeftTopStripVisible" ->
+                settings.copy(screenshotGestureZoneLeftTopStripVisible = raw.toBool())
+            "screenshotGestureZoneLeftBottomStripVisible" ->
+                settings.copy(screenshotGestureZoneLeftBottomStripVisible = raw.toBool())
+            "screenshotGestureZoneRightTopStripVisible" ->
+                settings.copy(screenshotGestureZoneRightTopStripVisible = raw.toBool())
+            "screenshotGestureZoneRightBottomStripVisible" ->
+                settings.copy(screenshotGestureZoneRightBottomStripVisible = raw.toBool())
+            "showProgramsPanelInMainWindow" -> settings.copy(showProgramsPanelInMainWindow = raw.toBool())
+            "showStreamsPanelInMainWindow" -> settings.copy(showStreamsPanelInMainWindow = raw.toBool())
+            "screenRecordingEnabled" -> settings.copy(screenRecordingEnabled = raw.toBool())
+            "resourceTypeTabCollapsed" -> settings.copy(resourceTypeTabCollapsed = raw.toBool())
+            "programsPanelCollapsed" -> settings.copy(programsPanelCollapsed = raw.toBool())
+            "streamsPanelCollapsed" -> settings.copy(streamsPanelCollapsed = raw.toBool())
+            // Strategic 6.2: a profile may set this in BOTH directions - a photo frame or a TV box
+            // may drop the guard because capture is one of its declared functions.
+            "secureSensitiveScreens" -> settings.copy(secureSensitiveScreens = raw.toBool())
+            "cameraAspectRatio" -> raw.toIntOrSkip(field) { settings.copy(cameraAspectRatio = it) } ?: settings
+
+            // ── S1216 Launcher family: applied only where the home surface is compiled in ───
+            "launcherDensityFactor" -> applyLauncherField(field, raw, settings) { s ->
+                raw.trim().toFloatOrNull()?.let { s.copy(launcherDensityFactor = it) }
+            }
+            "launcherTaskbarShowRecents" -> applyLauncherField(field, raw, settings) { s ->
+                s.copy(launcherTaskbarShowRecents = raw.toBool())
+            }
+            "launcherTaskbarShowPinned" -> applyLauncherField(field, raw, settings) { s ->
+                s.copy(launcherTaskbarShowPinned = raw.toBool())
+            }
+            "launcherTaskbarShowTray" -> applyLauncherField(field, raw, settings) { s ->
+                s.copy(launcherTaskbarShowTray = raw.toBool())
+            }
+            "launcherReplaceSystemStatusArea" -> applyLauncherField(field, raw, settings) { s ->
+                s.copy(launcherReplaceSystemStatusArea = raw.toBool())
+            }
+            "launcherDesktopLocked" -> applyLauncherField(field, raw, settings) { s ->
+                s.copy(launcherDesktopLocked = raw.toBool())
+            }
+            "launcherWallpaperMode" -> applyLauncherField(field, raw, settings) { s ->
+                raw.trim().takeIf { it in AppSettings.LAUNCHER_WALLPAPER_MODES }
+                    ?.let { s.copy(launcherWallpaperMode = it) }
+            }
 
             // ── String set fields (delimiter: comma, semicolon or pipe) ───
             "enabledShareTargets" -> settings.copy(enabledShareTargets = raw.toStringSet())
@@ -249,13 +353,30 @@ class DeviceProfilePresetApplier @Inject constructor(
                 settings.copy(allowSeparateWindow = value)
             }
 
-            // ── Unknown field name, or a state/credential/pointer field ───
-            // State/credential/pointer fields (defaultUser, defaultPassword, *ResourceId,
-            // slideshowMusicUri, lastUsedResourceId, lastSelectedLocalFolder, scheduledOperationsPaused,
-            // enableStatistics) intentionally have no branch: even with a non-empty CSV cell a profile
-            // apply must never overwrite credentials, session state, or silently enable data collection.
+            // ── Unknown field name, or a deliberately non-presettable field ───
+            // Credentials, pointers, consents, session state and one-shot hints intentionally have no
+            // branch: even with a non-empty CSV cell a profile apply must never overwrite them. Since
+            // S1216 that intent is also data - docs/settings/device-profile-nonpresettable.json - so the
+            // coverage gate can tell a forbidden field from a forgotten one. This branch stays the last
+            // line of defence at runtime; the registry is what makes the rule checkable.
             else -> skip(field, raw, settings)
         }
+    }
+
+    /**
+     * Applies a launcher row only where the build ships the home surface (strategic ADR-5).
+     * Without the seam check a flavor without the launcher would persist values for a screen the
+     * user can never open, and the divergence would surface only on a device.
+     * [set] returns null when the raw cell does not parse, which is treated as a skip.
+     */
+    private fun applyLauncherField(
+        field: String,
+        raw: String,
+        settings: AppSettings,
+        set: (AppSettings) -> AppSettings?
+    ): AppSettings {
+        if (!launcherMode.isAvailableInBuild) return skip(field, raw, settings)
+        return set(settings) ?: skip(field, raw, settings)
     }
 
     private fun applySizeField(

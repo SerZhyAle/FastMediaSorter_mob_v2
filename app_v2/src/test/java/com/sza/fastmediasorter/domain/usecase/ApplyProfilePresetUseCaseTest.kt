@@ -5,7 +5,10 @@ import com.sza.fastmediasorter.core.xr.VrProfileSettingsSync
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.data.preset.DeviceProfilePresetApplier
 import com.sza.fastmediasorter.data.preset.DeviceProfilePresetCsvDataSource
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
+import com.sza.fastmediasorter.domain.model.StreamDefaultSort
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import io.mockk.coEvery
@@ -28,7 +31,15 @@ class ApplyProfilePresetUseCaseTest {
 
     // Real applier with a relaxed Context: the coercion paths exercised here never touch the
     // PackageManager (only the `true_if_capable` branch does).
-    private val applier = DeviceProfilePresetApplier(mockk<Context>(relaxed = true))
+    // S1216: the launcher seam reports available, so launcher rows are exercised; the
+    // unavailable-build case builds its own applier below.
+    private val launcherMode = mockk<LauncherModeContract> { every { isAvailableInBuild } returns true }
+    private val applier = DeviceProfilePresetApplier(mockk<Context>(relaxed = true), launcherMode)
+
+    private fun applierWithoutLauncher(): DeviceProfilePresetApplier {
+        val seam = mockk<LauncherModeContract> { every { isAvailableInBuild } returns false }
+        return DeviceProfilePresetApplier(mockk<Context>(relaxed = true), seam)
+    }
 
     private lateinit var useCase: ApplyProfilePresetUseCase
 
@@ -40,6 +51,9 @@ class ApplyProfilePresetUseCaseTest {
             settingsRepository,
             profileRepository,
             vrProfileSettingsSync,
+            // S1216: real counter over the same mocked data source, so overrideCount() and apply()
+            // are proven to read one map rather than two.
+            CountProfilePresetOverridesUseCase(dataSource),
         )
         coEvery { vrProfileSettingsSync.align(any(), any()) } answers { secondArg() }
     }
@@ -87,7 +101,9 @@ class ApplyProfilePresetUseCaseTest {
                 "gestureOverlayEnabled" to "TRUE",
                 "playerFollowSystemRotation" to "TRUE",
                 "copyScreenshotToClipboard" to "TRUE",
-                "screenshotGestureActionDown" to "OPEN_IN_PLAYER",
+                // S1216: the pre-S0847 alias `screenshotGestureActionDown` was removed with its
+                // dead branch (ADR-3); the band is now addressed by its own field name.
+                "screenshotGestureLeftTopDown" to "OPEN_IN_PLAYER",
                 "enabledShareTargets" to "email;telegram",
                 "disabledShareTargets" to "print",
                 "videoSnapshotFormat" to "PNG"
@@ -107,10 +123,7 @@ class ApplyProfilePresetUseCaseTest {
         assertTrue(saved.gestureOverlayEnabled)
         assertTrue(saved.playerFollowSystemRotation)
         assertTrue(saved.copyScreenshotToClipboard)
-        assertEquals(
-            com.sza.fastmediasorter.domain.model.ScreenshotGestureAction.OPEN_IN_PLAYER,
-            saved.screenshotGestureLeftTopDown
-        )
+        assertEquals(ScreenshotGestureAction.OPEN_IN_PLAYER, saved.screenshotGestureLeftTopDown)
         assertEquals(setOf("email", "telegram"), saved.enabledShareTargets)
         assertEquals(setOf("print"), saved.disabledShareTargets)
         assertEquals("PNG", saved.videoSnapshotFormat)
@@ -169,7 +182,9 @@ class ApplyProfilePresetUseCaseTest {
         val defaults = AppSettings()
         every { dataSource.load() } returns mapOf(
             DeviceProfileType.HOME_TABLET to linkedMapOf(
-                "screenshotGestureActionDown" to "NOT_A_REAL_ACTION"
+                // S1216: must name a field that still has a branch, otherwise this would pass as an
+                // unknown-field skip and stop testing the unparseable-value path it is named for.
+                "screenshotGestureLeftTopDown" to "NOT_A_REAL_ACTION"
             )
         )
         coEvery { profileRepository.updatePresetApplied(1) } returns Result.success(Unit)
@@ -226,5 +241,83 @@ class ApplyProfilePresetUseCaseTest {
         assertTrue(saved.disable3dVr)
         coVerify(exactly = 1) { settingsRepository.updateSettings(any<suspend (AppSettings) -> AppSettings>()) }
         coVerify(exactly = 0) { profileRepository.updatePresetApplied(any()) }
+    }
+
+    // ── S1216: branches added for the preset matrix coverage gate ───────────────
+
+    @Test
+    fun `override count equals the number of non-empty cells the apply would write`() = runTest {
+        every { dataSource.load() } returns mapOf(
+            DeviceProfileType.HOME_TABLET to linkedMapOf(
+                "preventSleep" to "TRUE",
+                "smbEnabled" to "FALSE",
+                "colorTheme" to ""
+            )
+        )
+
+        assertEquals(2, useCase.overrideCount(DeviceProfileType.HOME_TABLET))
+        assertEquals(0, useCase.overrideCount(DeviceProfileType.CAR_HEAD_UNIT))
+    }
+
+    @Test
+    fun `enum branch keeps the current value on an unknown name`() {
+        val current = AppSettings(streamsDefaultSort = StreamDefaultSort.RECENT)
+
+        val result = applier.applyOverride(current, "streamsDefaultSort", "NOT_AN_ENUM_CONSTANT")
+
+        assertEquals(StreamDefaultSort.RECENT, result.streamsDefaultSort)
+    }
+
+    @Test
+    fun `enum branch applies a known name`() {
+        val result = applier.applyOverride(AppSettings(), "streamsCatalogRefreshPolicy", "MANUAL")
+
+        assertEquals("MANUAL", result.streamsCatalogRefreshPolicy.name)
+    }
+
+    @Test
+    fun `launcher field applies when the home surface is compiled in`() {
+        val result = applier.applyOverride(AppSettings(), "launcherDesktopLocked", "TRUE")
+
+        assertTrue(result.launcherDesktopLocked)
+    }
+
+    @Test
+    fun `launcher field is ignored when the build has no home surface`() {
+        val result = applierWithoutLauncher().applyOverride(AppSettings(), "launcherDesktopLocked", "TRUE")
+
+        assertEquals(AppSettings().launcherDesktopLocked, result.launcherDesktopLocked)
+    }
+
+    @Test
+    fun `launcher wallpaper mode rejects a token outside the known set`() {
+        val result = applier.applyOverride(AppSettings(), "launcherWallpaperMode", "NEON_GRADIENT")
+
+        assertEquals(AppSettings().launcherWallpaperMode, result.launcherWallpaperMode)
+    }
+
+    @Test
+    fun `secureSensitiveScreens applies in both directions`() {
+        val off = applier.applyOverride(AppSettings(secureSensitiveScreens = true), "secureSensitiveScreens", "FALSE")
+        val on = applier.applyOverride(AppSettings(secureSensitiveScreens = false), "secureSensitiveScreens", "TRUE")
+
+        assertEquals(false, off.secureSensitiveScreens)
+        assertEquals(true, on.secureSensitiveScreens)
+    }
+
+    @Test
+    fun `per-zone gesture action applies to its own band`() {
+        val result = applier.applyOverride(AppSettings(), "screenshotGestureRightBottomUp", "DO_NOT_USE")
+
+        assertEquals(ScreenshotGestureAction.DO_NOT_USE, result.screenshotGestureRightBottomUp)
+    }
+
+    @Test
+    fun `gesture payload cell is skipped - it is a registered non-presettable pointer`() {
+        val current = AppSettings(screenshotGesturePayloadLeftTopDown = "kept")
+
+        val result = applier.applyOverride(current, "screenshotGesturePayloadLeftTopDown", "com.example/Activity")
+
+        assertEquals("kept", result.screenshotGesturePayloadLeftTopDown)
     }
 }

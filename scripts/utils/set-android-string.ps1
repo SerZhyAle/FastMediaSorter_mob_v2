@@ -95,7 +95,8 @@ param(
 
     [string]$Module = 'app_v2',
 
-    [ValidateSet('en', 'ru', 'uk')]
+    # Validated at runtime against locales_config.xml, not by a ValidateSet: the declared set is data
+    # (S1190) and a literal list here would pin the tool back to three languages.
     [string]$Locale,
 
     [string]$Key,
@@ -106,6 +107,10 @@ param(
     [string]$En,
     [string]$Ru,
     [string]$Uk,
+
+    # Optional per-locale values for the declared languages outside the strict trio, e.g.
+    # -Translations @{ de = 'Abbrechen'; it = 'Annulla' }. A locale absent here is not an error.
+    [hashtable]$Translations,
     [string]$NewKey,
     [string]$File = 'strings.xml',
 
@@ -131,12 +136,60 @@ if (-not (Test-Path $resDir)) {
     throw "Resource dir not found for module '$Module': $resDir"
 }
 
+# S1190: the locale set is read from locales_config.xml. Two tiers, per strategic ADR-6:
+#   $locales         - the strict trio, kept in lockstep. Every action that must not lose a key in a
+#                      hand-authored language (add/move/rename parity) iterates exactly this set, so
+#                      declaring a new language cannot start failing moves for a language nobody has
+#                      translated yet.
+#   $optionalLocales - declared languages beyond the trio whose values-XX directory already exists.
+#                      Best-effort: written when a value is supplied, swept on remove/rename so a
+#                      deleted key leaves no orphan behind.
+. (Join-Path $PSScriptRoot 'locale-set.ps1')
+
+$declaredLocaleTags = Get-SupportedLocales
+$strictValueByTag = @{ en = $En; ru = $Ru; uk = $Uk }
+
 $locales = @(
-    @{ Tag = 'EN'; Dir = 'values';    Value = $En },
-    @{ Tag = 'RU'; Dir = 'values-ru'; Value = $Ru },
-    @{ Tag = 'UK'; Dir = 'values-uk'; Value = $Uk }
+    Get-StrictLocales | ForEach-Object {
+        @{
+            Tag   = $_.ToUpperInvariant()
+            Code  = $_
+            Dir   = (Get-LocaleResourceDir -Tag $_)
+            Value = $strictValueByTag[$_]
+        }
+    }
 )
-$localeDirByTag = @{ en = 'values'; ru = 'values-ru'; uk = 'values-uk' }
+
+$optionalLocales = @(
+    $declaredLocaleTags |
+    Where-Object { -not (Test-StrictLocale -Tag $_) } |
+    ForEach-Object {
+        @{
+            Tag   = $_.ToUpperInvariant()
+            Code  = $_
+            Dir   = (Get-LocaleResourceDir -Tag $_)
+            Value = $(if ($Translations) { $Translations[$_] } else { $null })
+        }
+    } |
+    Where-Object { Test-Path (Join-Path $resDir $_.Dir) }
+)
+
+# Every locale that actually has a directory on disk - the sweep set for read and delete actions.
+$allLocales = @($locales + $optionalLocales)
+
+$localeDirByTag = @{}
+foreach ($tag in $declaredLocaleTags) { $localeDirByTag[$tag] = Get-LocaleResourceDir -Tag $tag }
+
+if ($Locale) {
+    # Resolve case-insensitively so '-Locale zh-hans' still finds the declared 'zh-Hans'.
+    # Select-Object, not [0]: StrictMode turns indexing an empty result into an index-out-of-bounds
+    # error that would mask the real "unknown locale" message.
+    $resolvedLocale = $declaredLocaleTags | Where-Object { $_ -ieq $Locale.Trim() } | Select-Object -First 1
+    if (-not $resolvedLocale) {
+        throw "Unknown locale '$Locale'. Declared locales: $($declaredLocaleTags -join ', ')."
+    }
+    $Locale = $resolvedLocale
+}
 
 function Test-KeySyntax([string]$k) {
     if ($k -notmatch '^[A-Za-z0-9_.]+$') {
@@ -409,7 +462,7 @@ function Invoke-Move {
 }
 
 function Invoke-Audit {
-    foreach ($loc in $locales) {
+    foreach ($loc in $allLocales) {
         $dir = Get-LocaleDir $loc.Dir
         $keys = New-Object System.Collections.Generic.List[string]
         foreach ($f in Get-StringFiles $dir) {
@@ -434,7 +487,7 @@ switch ($Action) {
     'audit' { Invoke-Audit }
 
     'list' {
-        foreach ($loc in $locales) {
+        foreach ($loc in $allLocales) {
             $dir = Get-LocaleDir $loc.Dir
             Write-Host ''
             Write-Host "[$($loc.Tag)] $dir" -ForegroundColor Cyan
@@ -450,13 +503,22 @@ switch ($Action) {
         if (-not $Key) { throw "get requires -Key." }
         Write-Host ''
         $anyMiss = $false
-        foreach ($loc in $locales) {
+        foreach ($loc in $allLocales) {
             $hit = Find-Key (Get-LocaleDir $loc.Dir) $Key
+            $strict = Test-StrictLocale -Tag $loc.Code
             if ($hit) {
                 Write-Host ("[{0}] {1}" -f $loc.Tag, $hit.File.Name) -ForegroundColor Green
                 Write-Host ("      {0}" -f (ConvertFrom-XmlText $hit.Raw))
             }
-            else { $anyMiss = $true; Write-Host ("[{0}] MISSING" -f $loc.Tag) -ForegroundColor Red }
+            elseif ($strict) {
+                # Only a hand-authored locale makes a lookup fail; a machine-translated one is a gap,
+                # not an error (strategic ADR-6).
+                $anyMiss = $true
+                Write-Host ("[{0}] MISSING" -f $loc.Tag) -ForegroundColor Red
+            }
+            else {
+                Write-Host ("[{0}] not translated" -f $loc.Tag) -ForegroundColor DarkGray
+            }
         }
         if ($anyMiss) { exit 1 } else { exit 0 }
     }
@@ -467,15 +529,25 @@ switch ($Action) {
         if (($null -eq $En) -or ($null -eq $Ru) -or ($null -eq $Uk)) {
             throw "add requires -En, -Ru and -Uk (locale parity is mandatory)."
         }
-        foreach ($loc in $locales) {
-            Assert-FormatValue -LocaleTag $loc.Tag -Text $loc.Value
+        foreach ($loc in $allLocales) {
+            if (Test-StrictLocale -Tag $loc.Code) { Assert-FormatValue -LocaleTag $loc.Tag -Text $loc.Value }
             $existing = Find-Key (Get-LocaleDir $loc.Dir) $Key
             if ($existing) { throw "Key '$Key' already exists in [$($loc.Tag)] $($existing.File.Name) - aborting." }
         }
         Assert-FormatParity -KeyName $Key -ValuesByLocale @{ EN = $En; RU = $Ru; UK = $Uk }
-        foreach ($loc in $locales) {
+        # Optional locales are best-effort: a supplied value is written, a missing one is silently
+        # skipped, and a locale whose thematic file does not exist yet is reported rather than fatal.
+        $suppliedOptional = @($optionalLocales | Where-Object { $_.Value })
+        foreach ($loc in $suppliedOptional) {
+            Assert-FormatValue -LocaleTag $loc.Tag -Text $loc.Value
+        }
+        foreach ($loc in ($locales + $suppliedOptional)) {
             $target = Join-Path (Get-LocaleDir $loc.Dir) $File
-            if (-not (Test-Path $target)) { throw "Target file not found: $target" }
+            if (-not (Test-Path $target)) {
+                if (Test-StrictLocale -Tag $loc.Code) { throw "Target file not found: $target" }
+                Write-Host "[$($loc.Tag)] skipped - $File does not exist yet" -ForegroundColor Yellow
+                continue
+            }
             $content = [System.IO.File]::ReadAllText($target)
             $newline = if ($content.Contains("`r`n")) { "`r`n" } else { "`n" }
             $escaped = ConvertTo-XmlText $loc.Value
@@ -502,8 +574,10 @@ switch ($Action) {
         if (-not $Key) { throw "remove requires -Key." }
         $esc = [regex]::Escape($Key)
         $rx = "(?m)^[ \t]*<string\b(?=[^>]*\bname\s*=\s*`"$esc`")(?:[^>]*)>(?s:.*?)</string>[ \t]*\r?\n"
+        # Sweeps every locale that exists on disk, not just the strict trio: a key deleted only from
+        # en/ru/uk would leave an orphan entry in every translated locale.
         $removed = $false
-        foreach ($loc in $locales) {
+        foreach ($loc in $allLocales) {
             foreach ($f in Get-StringFiles (Get-LocaleDir $loc.Dir)) {
                 $content = [System.IO.File]::ReadAllText($f.FullName)
                 if ($content -match $rx) {
@@ -524,14 +598,15 @@ switch ($Action) {
         if (-not $Key) { throw "rename requires -Key." }
         if (-not $NewKey) { throw "rename requires -NewKey." }
         Test-KeySyntax $NewKey
-        foreach ($loc in $locales) {
+        foreach ($loc in $allLocales) {
             $clash = Find-Key (Get-LocaleDir $loc.Dir) $NewKey
             if ($clash) { throw "Target key '$NewKey' already exists in [$($loc.Tag)] $($clash.File.Name) - aborting." }
         }
         $esc = [regex]::Escape($Key)
         $rx = "(<string\b[^>]*\bname\s*=\s*`")$esc(`")"
         $renamed = $false
-        foreach ($loc in $locales) {
+        # Every locale on disk, for the same reason as remove - a half-renamed key is a missing string.
+        foreach ($loc in $allLocales) {
             foreach ($f in Get-StringFiles (Get-LocaleDir $loc.Dir)) {
                 $content = [System.IO.File]::ReadAllText($f.FullName)
                 if ($content -match $rx) {

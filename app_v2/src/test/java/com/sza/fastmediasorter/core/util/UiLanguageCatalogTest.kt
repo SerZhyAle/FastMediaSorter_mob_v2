@@ -55,5 +55,4 @@ class UiLanguageCatalogTest {
             assertTrue("blank display name for $tag", UiLanguageCatalog.displayName(tag).isNotBlank())
         }
     }
-
 }

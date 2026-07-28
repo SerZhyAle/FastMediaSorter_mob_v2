@@ -1,0 +1,57 @@
+{
+  "$comment": "S1216 - AppSettings fields a device profile must never preset. Read by scripts/check_device_profile_presets.ps1: a field listed here needs no row value in app_v2/src/main/assets/device_profile_presets.csv, and carrying a non-empty value for one of them is an error. Developer tooling data - never shipped inside the APK.",
+  "fields": [
+    { "field": "defaultUser", "reason": "credential - belongs to the user, never to a device profile" },
+    { "field": "defaultPassword", "reason": "credential - belongs to the user, never to a device profile" },
+
+    { "field": "lastUsedResourceId", "reason": "pointer to a resource row that exists only on this install" },
+    { "field": "lastSelectedLocalFolder", "reason": "pointer to a folder that exists only on this install" },
+    { "field": "audioBackgroundPhotosResourceId", "reason": "pointer to a resource row that exists only on this install" },
+    { "field": "slideshowMusicResourceId", "reason": "pointer to a resource row that exists only on this install" },
+    { "field": "slideshowMusicUri", "reason": "pointer to a document URI granted on this install" },
+    { "field": "videoRecordingDestinationResourceId", "reason": "pointer to a resource row that exists only on this install" },
+    { "field": "micRecordingDestinationResourceId", "reason": "pointer to a resource row that exists only on this install" },
+    { "field": "cameraPhotosDestinationResourceId", "reason": "pointer to a resource row that exists only on this install" },
+    { "field": "screenshotDestinationResourceId", "reason": "pointer to a resource row that exists only on this install" },
+    { "field": "screenRecordingDestinationResourceId", "reason": "pointer to a resource row that exists only on this install" },
+    { "field": "videoSnapshotResourceId", "reason": "pointer to a resource row that exists only on this install" },
+    { "field": "linkAutoDownloadResourceId", "reason": "pointer to a resource row that exists only on this install" },
+    { "field": "launcherWallpaperImagePath", "reason": "pointer to a wallpaper file that exists only on this install" },
+
+    { "field": "screenCaptureDisclosureAccepted", "reason": "consent - only the user can give it" },
+    { "field": "screenRecordingDisclosureAccepted", "reason": "consent - only the user can give it" },
+    { "field": "enableStatistics", "reason": "consent - data collection is opted into by the user, never by a profile" },
+    { "field": "cameraGeotagEnabled", "reason": "consent - writing location into photos is the user's decision" },
+
+    { "field": "scheduledOperationsPaused", "reason": "session state - reflects a running queue, not a preference" },
+    { "field": "isCacheSizeUserModified", "reason": "session state - records that the user overrode the cache budget" },
+    { "field": "isPrimaryMediaPlayer", "reason": "session state - derived from the role this install holds on the device" },
+
+    { "field": "fileOpsOverflowMenuHintShown", "reason": "one-shot hint state - presetting it would hide a hint never shown" },
+    { "field": "showPlayerHintOnFirstRun", "reason": "one-shot hint state - presetting it would hide a hint never shown" },
+    { "field": "vrPlayerEntryPromptDismissed", "reason": "one-shot hint state - presetting it would hide a hint never shown" },
+    { "field": "launcherRotationHintShown", "reason": "one-shot hint state - presetting it would hide a hint never shown" },
+
+    { "field": "rendererMigrationEnabled", "reason": "migration flag - owned by the upgrade path, not by a profile" },
+
+    { "field": "language", "reason": "owned by the first-run language step (strategic 3.2 Localization)" },
+    { "field": "translationSourceLanguage", "reason": "derived from the device locale, not from a device profile" },
+    { "field": "translationTargetLanguage", "reason": "derived from the device locale, not from a device profile" },
+
+    { "field": "ocrEngineType", "reason": "flavor-gated engine choice - a profile may not enable an engine the build omits" },
+    { "field": "paddleOcrModel", "reason": "flavor-gated engine choice - a profile may not enable a model the build omits" },
+
+    { "field": "screenshotGesturePayloadLeftTopDown", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "screenshotGesturePayloadLeftTopRight", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "screenshotGesturePayloadLeftTopUp", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "screenshotGesturePayloadLeftBottomDown", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "screenshotGesturePayloadLeftBottomRight", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "screenshotGesturePayloadLeftBottomUp", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "screenshotGesturePayloadRightTopDown", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "screenshotGesturePayloadRightTopRight", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "screenshotGesturePayloadRightTopUp", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "screenshotGesturePayloadRightBottomDown", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "screenshotGesturePayloadRightBottomRight", "reason": "gesture payload - a target path or package meaningful only on this install" },
+    { "field": "screenshotGesturePayloadRightBottomUp", "reason": "gesture payload - a target path or package meaningful only on this install" }
+  ]
+}

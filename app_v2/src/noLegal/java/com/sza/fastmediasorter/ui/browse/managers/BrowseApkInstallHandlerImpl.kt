@@ -13,11 +13,14 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.withStarted
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.domain.model.MediaFile
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -150,7 +153,7 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
         val cacheApkDir = File(context.cacheDir, "apk_install").apply { mkdirs() }
         val cacheApkFile = File(cacheApkDir, file.name)
 
-        act.lifecycleScope.launchWhenStarted {
+        act.lifecycleScope.launch {
             val downloaded = withContext(Dispatchers.IO) {
                 runCatching {
                     cloudFileOperationHandler.downloadFromCloudToPublic(
@@ -159,15 +162,22 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
                         fileName = file.name,
                     )
                 }.getOrElse { e ->
+                    // S1212: leaving the screen cancels this scope - normal teardown, not a download
+                    // failure. Swallowing it logged an E-level stack and degraded to `false`, which
+                    // then reported "install failed" for an operation the user simply walked away from.
+                    if (e is CancellationException) throw e
                     Timber.e(e, "cloud APK download threw")
                     false
                 }
             }
-            if (downloaded && cacheApkFile.exists() && cacheApkFile.length() > 0L) {
-                launchSystemInstaller(cacheApkFile, file.name)
-            } else {
-                Timber.w("cloud APK download reported failure for ${file.name}")
-                Toast.makeText(act, R.string.s0183_apk_install_failed, Toast.LENGTH_SHORT).show()
+            // The installer is an activity start, so it must not fire while the host is stopped.
+            act.lifecycle.withStarted {
+                if (downloaded && cacheApkFile.exists() && cacheApkFile.length() > 0L) {
+                    launchSystemInstaller(cacheApkFile, file.name)
+                } else {
+                    Timber.w("cloud APK download reported failure for ${file.name}")
+                    Toast.makeText(act, R.string.s0183_apk_install_failed, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

@@ -212,18 +212,26 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
 
     private fun setupLanguageSelectors() {
         binding.spinnerTranslationSourceLanguage.setOnClickListener {
-            showLanguagePicker(SearchableLanguagePickerDialog.Mode.SOURCE)
+            showTranslationLanguagePicker(isSource = true)
         }
         binding.spinnerTranslationTargetLanguage.setOnClickListener {
-            showLanguagePicker(SearchableLanguagePickerDialog.Mode.TARGET)
+            showTranslationLanguagePicker(isSource = false)
         }
     }
 
-    private fun showLanguagePicker(mode: SearchableLanguagePickerDialog.Mode) {
+    // Takes a flag rather than the dialog's Mode: that enum also carries the app's interface language
+    // (S1190), which this screen must never offer as a translation direction.
+    private fun showTranslationLanguagePicker(isSource: Boolean) {
         val settings = viewModel.settings.value
-        val selectedCode = when (mode) {
-            SearchableLanguagePickerDialog.Mode.SOURCE -> settings.translationSourceLanguage
-            SearchableLanguagePickerDialog.Mode.TARGET -> settings.translationTargetLanguage
+        val mode = if (isSource) {
+            SearchableLanguagePickerDialog.Mode.SOURCE
+        } else {
+            SearchableLanguagePickerDialog.Mode.TARGET
+        }
+        val selectedCode = if (isSource) {
+            settings.translationSourceLanguage
+        } else {
+            settings.translationTargetLanguage
         }
         val tag = "${SearchableLanguagePickerDialog.TAG}_${mode.name}"
         if (childFragmentManager.findFragmentByTag(tag) != null) return
@@ -234,11 +242,10 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
             interfaceLanguage = settings.language
         ) { language ->
             val current = viewModel.settings.value
-            val updated = when (mode) {
-                SearchableLanguagePickerDialog.Mode.SOURCE ->
-                    current.copy(translationSourceLanguage = language.code)
-                SearchableLanguagePickerDialog.Mode.TARGET ->
-                    current.copy(translationTargetLanguage = language.code)
+            val updated = if (isSource) {
+                current.copy(translationSourceLanguage = language.code)
+            } else {
+                current.copy(translationTargetLanguage = language.code)
             }
             viewModel.updateSettings(updated)
         }.show(childFragmentManager, tag)

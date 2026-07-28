@@ -149,7 +149,10 @@ void xr_hud_init() {
     
     // S0290 (owner round 3 2026-05-22): HUD centered in front of head so screenshots
     // show the filename + stereo type banner clearly. Was {0, -0.2, -1.5} (below center).
-    g_hudState.quad.center = {0.0f, 0.0f, -1.5f};
+    // S1228 (owner, in-headset 2026-07-27): that centring still holds for the diagnostic banner,
+    // but the player panel must not sit on the film - it now asks for a negative offset via
+    // xr_hud_set_quad_size. Default stays 0.0 so the banner placement is unchanged.
+    g_hudState.quad.center = {0.0f, g_hudState.overrideVerticalOffset, -1.5f};
     g_hudState.quad.rot = {0.0f, 0.0f, 0.0f, 1.0f};
     
     g_hudState.targetCenter = g_hudState.quad.center;
@@ -165,16 +168,17 @@ void xr_hud_init() {
 
 // S0964: requested from the JNI bridge (any thread). Floats are written whole; the render
 // thread picks the new size up next frame - no lock needed for this tear-safe pair.
-void xr_hud_set_quad_size(float widthMeters, float heightMeters) {
+void xr_hud_set_quad_size(float widthMeters, float heightMeters, float verticalOffsetMeters) {
     if (widthMeters <= 0.0f || heightMeters <= 0.0f) {
         LOGE("xr_hud_set_quad_size REJECTED: w=%.3f h=%.3f", widthMeters, heightMeters);
         return;
     }
     g_hudState.overrideWidth = widthMeters;
     g_hudState.overrideHeight = heightMeters;
+    g_hudState.overrideVerticalOffset = verticalOffsetMeters;
     g_hudState.quad.width = widthMeters;
     g_hudState.quad.height = heightMeters;
-    LOGD("xr_hud_set_quad_size: %.3fx%.3f m", widthMeters, heightMeters);
+    LOGD("xr_hud_set_quad_size: %.3fx%.3f m dy=%.3f", widthMeters, heightMeters, verticalOffsetMeters);
 }
 
 void xr_hud_update(const XrPosef& headPose, float deltaTime) {
@@ -183,7 +187,11 @@ void xr_hud_update(const XrPosef& headPose, float deltaTime) {
     
     // S0290 (owner round 3): HUD centered in front of head (y=0) instead of below (y=-0.15)
     // so the filename banner is visible directly on the user's screenshots without head tilt.
-    XrVector3f ergonomicOffset = rotate_vector(headPose.orientation, {0.0f, 0.0f, -1.5f});
+    // S1228: the offset is now per-mode (see xr_hud_set_quad_size). It rides inside the rotated
+    // vector so the strip stays below the gaze ray when the user looks up or down, rather than
+    // hanging at a fixed world height.
+    XrVector3f ergonomicOffset = rotate_vector(
+        headPose.orientation, {0.0f, g_hudState.overrideVerticalOffset, -1.5f});
     
     XrVector3f idealCenter{
         headPose.position.x + ergonomicOffset.x,

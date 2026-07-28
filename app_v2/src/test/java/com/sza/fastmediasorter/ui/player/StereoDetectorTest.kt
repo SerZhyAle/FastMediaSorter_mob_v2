@@ -483,7 +483,78 @@ class StereoDetectorTest {
         assertEquals(StereoMode.VR180_FISHEYE_SBS, detector.detectFromFilename("CLIP_VR180.MP4"))
     }
 
+    // ── S1229: ambiguity best-guess bands ────────────────────────────────
+
+    @Test
+    fun `best guess leaves an ordinary 16x9 film undecided rather than SBS_FULL`() {
+        // The S1229 bug in one case: 1920x1080 is 1.78, the old threshold was 1.6, so every
+        // ordinary film played as side-by-side stereo.
+        assertEquals(
+            StereoMode.UNKNOWN,
+            detector.detectForVideo("plain-film.mkv", buildFormatWithoutTag(1920, 1080), bestGuessOnly),
+        )
+    }
+
+    @Test
+    fun `best guess still resolves true full SBS`() {
+        assertEquals(
+            StereoMode.SBS_FULL,
+            detector.detectForVideo("packed.mkv", buildFormatWithoutTag(3840, 1080), bestGuessOnly),
+        )
+    }
+
+    @Test
+    fun `best guess resolves full OU of a 16x9 source - the case the old band missed`() {
+        // 1920x2160 is 0.89. The old rules were `<= 0.7` or `0.9..1.1`, so the most common real
+        // OU value fell in the hole between them.
+        assertEquals(
+            StereoMode.OU,
+            detector.detectForVideo("stacked.mkv", buildFormatWithoutTag(1920, 2160), bestGuessOnly),
+        )
+    }
+
+    @Test
+    fun `best guess leaves portrait phone video undecided`() {
+        // 1080x1920 is 0.5625. The old `aspect <= 0.7` rule claimed it as over-under.
+        assertEquals(
+            StereoMode.UNKNOWN,
+            detector.detectForVideo("phone.mp4", buildFormatWithoutTag(1080, 1920), bestGuessOnly),
+        )
+    }
+
+    @Test
+    fun `best guess leaves the widest ordinary cinema aspect undecided`() {
+        // 2560x1080 is 2.37. This is the case the 2.5 threshold was chosen to sit above: the
+        // widest normal cinema framing must stay below the "two frames side by side" band.
+        assertEquals(
+            StereoMode.UNKNOWN,
+            detector.detectForVideo("scope.mkv", buildFormatWithoutTag(2560, 1080), bestGuessOnly),
+        )
+    }
+
+    @Test
+    fun `best guess ignores content below the minimum width`() {
+        // 640x720 is 0.89 - inside the OU band by aspect alone, but too small to be packed stereo.
+        assertEquals(
+            StereoMode.UNKNOWN,
+            detector.detectForVideo("thumb.mkv", buildFormatWithoutTag(640, 720), bestGuessOnly),
+        )
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────
+
+    /**
+     * Isolates the last-resort guess: every conservative source is off, so `detectForVideo` cannot
+     * return before reaching `aggressiveDimensionGuess`. With `trustAspectRatio` ON the strict
+     * heuristic answers first and the guess never runs.
+     */
+    private val bestGuessOnly = StereoDetectionConfig(
+        autoDetectEnabled = true,
+        trustFilename = false,
+        trustMetadata = false,
+        trustAspectRatio = false,
+        ambiguityBestGuess = true,
+    )
 
     /**
      * Build a minimal [Format] with a [Bundle] carrying a fake Matroska stereo tag.

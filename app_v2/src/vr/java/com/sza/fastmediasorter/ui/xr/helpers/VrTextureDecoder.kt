@@ -171,7 +171,7 @@ class VrTextureDecoder(private val context: Context) {
             inSampleSize = preflightSample
         }
         try {
-            BitmapFactory.decodeFile(file.absolutePath, opts)
+            BitmapFactory.decodeFile(file.absolutePath, opts) ?: retryWithoutPool(file, opts)
         } catch (oom: OutOfMemoryError) {
             Timber.w(oom, "decodeFilePooled: ${file.name} OOM with inBitmap; retry inSampleSize=${preflightSample * 2}")
             opts.inBitmap = null
@@ -183,18 +183,35 @@ class VrTextureDecoder(private val context: Context) {
                 null
             }
         } catch (iae: IllegalArgumentException) {
-            // BitmapFactory throws IllegalArgumentException ("Problem decoding into existing bitmap")
-            // when the pool-supplied inBitmap is incompatible with the actual decoded dimensions or
-            // config (e.g. moraine_lake_flat_mono.jpg 7742x5327 after inSampleSize may require a
-            // different stride). Retry without inBitmap so the decoder allocates a fresh buffer.
-            Timber.w(iae, "decodeFilePooled: ${file.name} inBitmap incompatible; retry without pool reuse")
-            opts.inBitmap = null
-            try {
-                BitmapFactory.decodeFile(file.absolutePath, opts)
-            } catch (oom3: OutOfMemoryError) {
-                Timber.e(oom3, "decodeFilePooled: ${file.name} OOM on inBitmap-free retry; giving up")
-                null
-            }
+            // S1221: kept as a backstop only. decodeFile wraps the decode in `catch (Exception)`,
+            // logs "Unable to decode stream" under its own tag and returns null, so an incompatible
+            // inBitmap never reaches here - the null path above is the one that fires. This branch
+            // survives in case a future platform version stops swallowing it.
+            Timber.w(iae, "decodeFilePooled: ${file.name} inBitmap rejected as an exception; retry without pool")
+            retryWithoutPool(file, opts)
+        }
+    }
+
+    /**
+     * S1221: second attempt with pool reuse switched off, after the pooled decode came back empty.
+     *
+     * A rejected `inBitmap` is reported as a null return, not an exception - `BitmapFactory.decodeFile`
+     * catches everything and logs it itself. Keying the recovery off the exception left it unreachable,
+     * so a pool entry 15 KB short of the new decode was fatal and the previous slide stayed on screen.
+     *
+     * `inSampleSize` is deliberately carried over unchanged: it was chosen against the byte budget by
+     * the bounds preflight and is not what failed. Only the reuse is dropped.
+     */
+    private fun retryWithoutPool(file: File, opts: BitmapFactory.Options): Bitmap? {
+        if (opts.inBitmap == null) return null
+        Timber.d("S1221: pool reuse rejected for ${file.name}; retrying without inBitmap")
+        Timber.w("decodeFilePooled: ${file.name} pooled decode returned null; retry without pool reuse")
+        opts.inBitmap = null
+        return try {
+            BitmapFactory.decodeFile(file.absolutePath, opts)
+        } catch (oom: OutOfMemoryError) {
+            Timber.e(oom, "decodeFilePooled: ${file.name} OOM on inBitmap-free retry; giving up")
+            null
         }
     }
 

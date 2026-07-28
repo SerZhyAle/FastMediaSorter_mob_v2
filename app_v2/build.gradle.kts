@@ -695,6 +695,13 @@ android {
             // Forward the doc-export toggles (S0440 settings manifest, S0815 icon inventory) to the
             // test JVM; Gradle does not propagate -D system properties to test workers by default.
             all {
+                // S1244: the test worker is a SEPARATE process. It inherits neither
+                // org.gradle.jvmargs (-Xmx6g, the daemon) nor kotlin.daemon.jvm.options (-Xmx4g,
+                // the compile daemon) - with nothing set here it ran on Gradle's 512 MB default.
+                // ~200 Robolectric classes in one 512 MB JVM exhausted the heap around
+                // `data.remote.ftp.*`, killing the worker; Gradle still printed a normal-looking
+                // "N tests completed" line, so the `domain`/`ui`/`util` packages silently never ran.
+                it.maxHeapSize = "2g"
                 it.systemProperty(
                     "settings.manifest.generate",
                     System.getProperty("settings.manifest.generate") ?: "false"

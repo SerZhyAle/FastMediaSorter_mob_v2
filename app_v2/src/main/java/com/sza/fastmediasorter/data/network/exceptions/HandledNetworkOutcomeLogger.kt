@@ -14,8 +14,7 @@ object HandledNetworkOutcomeLogger {
         throwable: Throwable
     ) {
         val result = NetworkErrorClassifier.classifyDetailedSilently(throwable)
-        val failureClass = failureClassOf(result.exception)
-        val prefix = "[scope=$scope resource=$resourceLabel failureClass=$failureClass]"
+        val prefix = prefixOf(scope, resourceLabel, result.exception)
 
         when {
             isPolicyOutcome(result.exception) -> {
@@ -29,6 +28,32 @@ object HandledNetworkOutcomeLogger {
             }
         }
     }
+
+    /**
+     * Interactive (user-triggered) connection-test outcome. A precondition the user configured -
+     * Wi-Fi-only transport, denied local-network permission - is not a defect: NetworkReachabilityGate
+     * already recorded the refusal once at warning level, so repeating it at error level with a full
+     * coroutine stack turns an expected outcome into the only red lines in the log. Every other
+     * outcome keeps the error-level stack it had before.
+     */
+    fun logConnectionTestFailure(
+        scope: String,
+        resourceLabel: String,
+        throwable: Throwable,
+        message: String
+    ) {
+        val classified = NetworkErrorClassifier.classifyDetailedSilently(throwable).exception
+        val prefix = prefixOf(scope, resourceLabel, classified)
+
+        if (isPolicyOutcome(classified)) {
+            Timber.d("$prefix $message - skipped by network policy")
+        } else {
+            Timber.e(throwable, "$prefix $message")
+        }
+    }
+
+    private fun prefixOf(scope: String, resourceLabel: String, exception: NetworkException): String =
+        "[scope=$scope resource=$resourceLabel failureClass=${failureClassOf(exception)}]"
 
     private fun isPolicyOutcome(exception: NetworkException): Boolean {
         return exception is WifiRequiredException ||

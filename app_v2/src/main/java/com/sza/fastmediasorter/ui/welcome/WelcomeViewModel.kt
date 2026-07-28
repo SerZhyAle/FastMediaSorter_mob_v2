@@ -209,7 +209,14 @@ class WelcomeViewModel @Inject constructor(
                 finalType == previousType ->
                     Timber.i("Welcome re-entry with unchanged profile - preset apply skipped")
                 // Re-entry, profile changed: confirm before overwriting settings (Settings warn parity).
-                else -> sendEvent(WelcomeEvent.ConfirmProfilePresetReapply(finalType))
+                // S1216: the count travels with the event so the dialog names it without the Activity
+                // reaching into a use case itself.
+                else -> sendEvent(
+                    WelcomeEvent.ConfirmProfilePresetReapply(
+                        finalType,
+                        applyProfilePresetUseCase.overrideCount(finalType)
+                    )
+                )
             }
         }
     }
@@ -370,5 +377,8 @@ data class WelcomeState(
 
 sealed class WelcomeEvent {
     /** Re-entry from Settings changed the device profile; ask before overwriting tuned settings. */
-    data class ConfirmProfilePresetReapply(val type: DeviceProfileType) : WelcomeEvent()
+    data class ConfirmProfilePresetReapply(
+        val type: DeviceProfileType,
+        val overrideCount: Int
+    ) : WelcomeEvent()
 }

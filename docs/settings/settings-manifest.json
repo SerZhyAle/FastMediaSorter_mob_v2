@@ -1291,6 +1291,16 @@
       "titleUk": "Не показувати команди на ескізах"
     },
     {
+      "key": "rowLanguage",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Language/Язык/Мова",
+      "titleRu": "Language/Язык/Мова",
+      "titleUk": "Language/Язык/Мова"
+    },
+    {
       "key": "rowLauncherModeEnabled",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1439,16 +1449,6 @@
       "titleEn": "Color theme",
       "titleRu": "Цветовая тема",
       "titleUk": "Колірна тема"
-    },
-    {
-      "key": "spinnerLanguage",
-      "sectionId": "general",
-      "destination": "GENERAL",
-      "layout": "fragment_settings_general",
-      "kind": "DROPDOWN_ROW",
-      "titleEn": "Language/Язык/Мова",
-      "titleRu": "Language/Язык/Мова",
-      "titleUk": "Language/Язык/Мова"
     },
     {
       "key": "btnSelectMusicSource",

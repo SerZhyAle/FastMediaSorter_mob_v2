@@ -146,13 +146,14 @@ scripts/catalog_sync.ps1
 ```
 
 ### check_device_profile_presets.ps1
-Consistency guard for the device-profile preset matrix CSV (S0327).
 
 ```
 scripts/check_device_profile_presets.ps1
-  Consistency guard for the device-profile preset matrix CSV (S0327).
   Params:
     -AddMissing         [SwitchParameter]
+    -Gate               [SwitchParameter]
+    -Quiet              [SwitchParameter]
+  Exit: 0 OK - every rule above holds, or -AddMissing completed.; 1 INCONSISTENT - at least one rule is violated, or a required input is missing/unparseable.
 ```
 
 ### check_docs_freshness.ps1
@@ -165,15 +166,16 @@ scripts/check_docs_freshness.ps1
 ```
 
 ### check_strings_localized.ps1
-Checks that string keys matching a prefix exist in all locale files (EN/RU/UK).
+Checks that string keys exist in every declared locale, at two levels of strictness.
 
 ```
 scripts/check_strings_localized.ps1
-  Checks that string keys matching a prefix exist in all locale files (EN/RU/UK).
+  Checks that string keys exist in every declared locale, at two levels of strictness.
   Params:
-    -KeyPrefix  (req)  [String]
+    -KeyPrefix         [String]
     -Module            [String] = "app_v2"
     -SourceSet         [String] = "main"
+  Exit: 0 - every key present in en/ru/uk (gaps in the other declared locales are reported only).; 1 - at least one key missing from en, ru or uk, or the resource directory does not exist.
 ```
 
 ### check-doc-vs-gradle.ps1
@@ -1276,6 +1278,16 @@ scripts/quality/assert-detekt.ps1
   Exit: 0 PASS - no new findings, or none in -ChangedFiles, or non-gate mode.; 1 FAIL - -Gate and detekt reported a new finding (in -ChangedFiles when diff-scoped).; 2 Cannot verify - gradlew.bat missing, or -ChangedFiles given but a run module's
 ```
 
+### assert-device-profile-matrix.ps1
+
+```
+scripts/quality/assert-device-profile-matrix.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 PASS - matrix, registry and applier agree.; 1 FAIL - at least one coverage rule is violated, or the underlying check is missing.
+```
+
 ### assert-dialog-cancel-style.ps1
 
 ```
@@ -1619,6 +1631,13 @@ scripts/quality/reindex-settings.ps1
 ```
 
 ## scripts\quality.tests
+
+### check-device-profile-presets.Tests.ps1
+
+```
+scripts/quality.tests/check-device-profile-presets.Tests.ps1
+  (no param block)
+```
 
 ### Run-Tests.ps1
 
@@ -2368,6 +2387,16 @@ scripts/utils/Install_release_on_adb_connected_device.ps1
     -Flavor            [String] = "standard"
 ```
 
+### locale-set.ps1
+S1190: single reader for the app's declared interface locales.
+
+```
+scripts/utils/locale-set.ps1
+  S1190: single reader for the app's declared interface locales.
+  (no param block)
+  Exit: 0 - not used; the script defines functions and returns.; 3 - locales_config.xml missing or declaring no locale.
+```
+
 ### lock-status.ps1
 Fast, read-only check of temp/BUILD.LOCK or temp/CODE.LOCK - existence, age, holder.
 
@@ -2467,12 +2496,13 @@ scripts/utils/set-android-string.ps1
   Params:
     -Action                   [String] = 'set'  {set|add|get|remove|rename|list|move|audit}
     -Module                   [String] = 'app_v2'
-    -Locale                   [String]  {en|ru|uk}
+    -Locale                   [String]
     -Key                      [String]
     -Value                    [String]
     -En                       [String]
     -Ru                       [String]
     -Uk                       [String]
+    -Translations             [Hashtable]
     -NewKey                   [String]
     -File                     [String] = 'strings.xml'
     -Prefix                   [String]

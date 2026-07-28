@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 
 /**
@@ -61,10 +62,28 @@ class FaviconAtlasSlicer(
     suspend fun tileFor(index: Int): Bitmap? = withContext(Dispatchers.IO) {
         if (index < 0) return@withContext null
         val atlas = atlas() ?: return@withContext null
-        if (!isInBounds(index, atlas.width, atlas.height)) return@withContext null
-        val rect = rectFor(index)
-        // createBitmap copies the sub-region, so cropping does not mutate the cached atlas.
-        Bitmap.createBitmap(atlas, rect.left, rect.top, TILE, TILE)
+        // S1220: atlas() releases the mutex before returning, so invalidate() can recycle this bitmap
+        // at any moment - the same race that crashed the two decoder slicers, and this path had no
+        // guard at all. A recycled source is rejected by createBitmap, but which exception carries
+        // that rejection has varied across platform versions, so both are caught rather than betting
+        // on one. Every access to the bitmap belongs inside this try.
+        try {
+            if (!isInBounds(index, atlas.width, atlas.height)) {
+                null
+            } else {
+                val rect = rectFor(index)
+                // createBitmap copies the sub-region, so cropping does not mutate the cached atlas.
+                Bitmap.createBitmap(atlas, rect.left, rect.top, TILE, TILE)
+            }
+        } catch (e: IllegalStateException) {
+            // The cached atlas was recycled mid-read - no tile rather than a crash.
+            Timber.i(e, "Favicon atlas bitmap unusable for index=$index")
+            null
+        } catch (e: IllegalArgumentException) {
+            // A rect outside a re-downloaded, smaller sheet yields no tile rather than a crash.
+            Timber.i(e, "Favicon atlas region rejected for index=$index")
+            null
+        }
     }
 
     /** Drops the cached atlas so the next [tileFor] re-reads [atlasFileProvider] (post-import refresh). */

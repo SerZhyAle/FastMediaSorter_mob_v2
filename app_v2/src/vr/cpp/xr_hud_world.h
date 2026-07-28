@@ -27,6 +27,11 @@ struct HUDWorldState {
     float overrideWidth{0.0f};
     float overrideHeight{0.0f};
 
+    // S1228: caller-requested vertical offset in meters from the gaze ray; 0 = centred in view
+    // (the S0290 banner placement). The player panel asks for a negative value so the strip sits
+    // below the film instead of on top of it. Persisted across sessions like the size above.
+    float overrideVerticalOffset{0.0f};
+
     // Gaze-kept target states
     XrVector3f targetCenter;
     XrQuaternionf targetRot;
@@ -44,7 +49,9 @@ extern HUDWorldState g_hudState;
 void xr_hud_init();
 
 // S0964: request a HUD quad size in meters; takes effect immediately and survives re-entry.
-void xr_hud_set_quad_size(float widthMeters, float heightMeters);
+// S1228: verticalOffsetMeters places the quad relative to the gaze ray (0 = centred, negative =
+// below). Size and placement travel together so a caller cannot set one and forget the other.
+void xr_hud_set_quad_size(float widthMeters, float heightMeters, float verticalOffsetMeters);
 
 // Smoothly interpolate HUD position using exponential gaze lazy-follow
 void xr_hud_update(const XrPosef& headPose, float deltaTime);

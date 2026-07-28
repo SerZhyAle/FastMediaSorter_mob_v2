@@ -11,9 +11,12 @@
 -keep class com.sza.fastmediasorter.data.model.TrashMetadata { *; }
 -keep class com.sza.fastmediasorter.domain.game.** { *; }
 
-# The startup settings dump reflects every AppSettings field for support diagnostics. Retain fields
-# and their names while allowing R8 to optimize them; the class and its methods remain shrinkable.
--keepclassmembers,allowoptimization class com.sza.fastmediasorter.domain.model.AppSettings {
+# The startup settings dump reflects every AppSettings field for support diagnostics. Keep the
+# reflective fields, then retain only their names; the class name remains obfuscatable.
+-keep,allowoptimization,allowobfuscation class com.sza.fastmediasorter.domain.model.AppSettings {
+    <fields>;
+}
+-keepclassmembernames class com.sza.fastmediasorter.domain.model.AppSettings {
     <fields>;
 }
 
