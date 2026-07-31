@@ -56,4 +56,28 @@
     <string name="vr_hud_next">ВПЕРЕД</string>
     <string name="vr_hud_volume_label">ГУЧНІСТЬ</string>
     <string name="vr_hud_depth_label">ГЛИБИНА СТЕРЕО</string>
+    <string name="vr_hud_hide">СХОВАТИ</string>
+    <string name="vr_hud_exit">ВИХІД</string>
+    <string name="vr_hud_help">ДОВІДКА</string>
+
+    <!-- S1223: разова підказка щодо керування всередині шолома. Кожен рядок - ввід і його дія;
+         набір збігається з тим, що справді прив'язано в S1232 та S1240. -->
+    <string name="vr_legend_title">Керування</string>
+    <string name="vr_legend_input_trigger">Курок</string>
+    <string name="vr_legend_action_click">Натиснути елемент, на який дивиться промінь</string>
+    <string name="vr_legend_input_trigger_hidden">Курок, панель схована</string>
+    <string name="vr_legend_action_summon">Повернути панель</string>
+    <string name="vr_legend_input_stick_x">Стік ліворуч / праворуч</string>
+    <string name="vr_legend_action_seek">Перемотування на 10 секунд</string>
+    <string name="vr_legend_input_grip_stick_x">Хват + стік ліворуч / праворуч</string>
+    <string name="vr_legend_action_file_step">Попередній / наступний файл</string>
+    <string name="vr_legend_input_stick_y">Стік вгору / вниз</string>
+    <string name="vr_legend_action_zoom">Масштаб зображення</string>
+    <string name="vr_legend_input_grip">Хват, утримувати</string>
+    <string name="vr_legend_action_move_panel">Перемістити панель</string>
+    <string name="vr_legend_input_ax">A або X</string>
+    <string name="vr_legend_action_exit">Вийти з іммерсивного режиму</string>
+    <string name="vr_legend_input_panel_buttons">СХОВАТИ / ВИХІД на панелі</string>
+    <string name="vr_legend_action_panel_buttons">Ті самі дві дії кнопками</string>
+    <string name="vr_legend_footer">Натисніть курок, щоб продовжити. Кнопка ДОВІДКА на панелі покаже це знову.</string>
 </resources>

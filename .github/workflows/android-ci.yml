@@ -56,8 +56,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Lint + unit tests + standard debug build (single invocation)
-        run: ./gradlew lintStandardDebug testStandardDebugUnitTest assembleStandardDebug --continue --stacktrace
+      # One invocation so lint, the unit suite, the detector suite and assemble share a single
+      # configuration + compile; separate steps would each pay a cold Gradle setup.
+      # S1195: :lint-rules:test belongs in THIS job, not a separate one - the custom detectors are
+      # what lintStandardDebug enforces, so a detector regression must fail the same job that runs
+      # lint. Before S1195 the suite was reachable from no job and no script and had never run.
+      - name: Lint + unit tests + detector tests + standard debug build (single invocation)
+        run: ./gradlew lintStandardDebug testStandardDebugUnitTest assembleStandardDebug :lint-rules:test --continue --stacktrace
         env:
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
 
@@ -77,6 +82,7 @@ jobs:
           path: |
             app_v2/build/reports/tests/
             app_v2/build/test-results/
+            lint-rules/build/reports/tests/
           retention-days: 14
 
       - name: Publish test report summary

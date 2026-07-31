@@ -373,59 +373,56 @@ class CalculatorEngine {
         return applyOperation(left, right, operator)
     }
 
-    private fun applyOperation(left: BigDecimal, right: BigDecimal, operator: Operator): Boolean {
-        val result = when (operator) {
+    /**
+     * S1241: what "=" would show right now, or null when there is nothing to preview.
+     *
+     * Side-effect free by contract - it must never touch [display], [accumulator] or [error]. That
+     * is the whole point: typing `1000 ÷ 0` on the way to `1000 ÷ 0.1` returns null rather than
+     * raising the division-by-zero error, which stays where the owner asked for it, on "=".
+     */
+    fun previewResult(): String? {
+        // startNewInput means the right operand has not been typed yet, so any "preview" would just
+        // be the left operand restated.
+        val editingRightOperand = error == null && !startNewInput
+        val operator = pendingOperator
+        if (!editingRightOperand || operator == null) return null
+        val left = accumulator
+        val right = display.toBigDecimalOrNull()
+        return if (left == null || right == null) null else computeOrNull(left, right, operator)?.let(::format)
+    }
+
+    /**
+     * S1241: the arithmetic, with no state attached. Null means "this operation has no answer" -
+     * a zero divisor, or a power that leaves the real domain. Shared by [previewResult], which
+     * renders nothing for a null, and [applyOperation], which turns the same null into an error.
+     */
+    private fun computeOrNull(left: BigDecimal, right: BigDecimal, operator: Operator): BigDecimal? {
+        if (operator in DIVIDING_OPERATORS && right.compareTo(BigDecimal.ZERO) == 0) return null
+        return when (operator) {
             Operator.ADD -> left.add(right)
             Operator.SUBTRACT -> left.subtract(right)
             Operator.MULTIPLY -> left.multiply(right)
-            Operator.DIVIDE -> {
-                if (right.compareTo(BigDecimal.ZERO) == 0) {
-                    error = CalculatorError.DIVISION_BY_ZERO
-                    display = ZERO
-                    accumulator = null
-                    repeatOperator = null
-                    repeatOperand = null
-                    startNewInput = true
-                    return false
-                }
-                left.divide(right, DIVIDE_SCALE, RoundingMode.HALF_UP)
+            Operator.DIVIDE -> left.divide(right, DIVIDE_SCALE, RoundingMode.HALF_UP)
+            Operator.INTEGER_DIVIDE -> left.divideToIntegralValue(right)
+            Operator.MODULO -> left.remainder(right)
+            Operator.POWER -> power(left, right)
+        }
+    }
+
+    private fun applyOperation(left: BigDecimal, right: BigDecimal, operator: Operator): Boolean {
+        val result = computeOrNull(left, right, operator)
+        if (result == null) {
+            error = if (operator in DIVIDING_OPERATORS) {
+                CalculatorError.DIVISION_BY_ZERO
+            } else {
+                CalculatorError.MATH_DOMAIN
             }
-            Operator.INTEGER_DIVIDE -> {
-                if (right.compareTo(BigDecimal.ZERO) == 0) {
-                    error = CalculatorError.DIVISION_BY_ZERO
-                    display = ZERO
-                    accumulator = null
-                    repeatOperator = null
-                    repeatOperand = null
-                    startNewInput = true
-                    return false
-                }
-                left.divideToIntegralValue(right)
-            }
-            Operator.POWER -> {
-                val powered = power(left, right) ?: run {
-                    error = CalculatorError.MATH_DOMAIN
-                    display = ZERO
-                    accumulator = null
-                    repeatOperator = null
-                    repeatOperand = null
-                    startNewInput = true
-                    return false
-                }
-                powered
-            }
-            Operator.MODULO -> {
-                if (right.compareTo(BigDecimal.ZERO) == 0) {
-                    error = CalculatorError.DIVISION_BY_ZERO
-                    display = ZERO
-                    accumulator = null
-                    repeatOperator = null
-                    repeatOperand = null
-                    startNewInput = true
-                    return false
-                }
-                left.remainder(right)
-            }
+            display = ZERO
+            accumulator = null
+            repeatOperator = null
+            repeatOperand = null
+            startNewInput = true
+            return false
         }
         accumulator = result
         display = format(result)
@@ -527,6 +524,9 @@ class CalculatorEngine {
     private fun formatForHistory(value: BigDecimal): String = format(value)
 
     private companion object {
+        /** S1241: the three operators a zero right operand has no answer for. */
+        val DIVIDING_OPERATORS = setOf(Operator.DIVIDE, Operator.INTEGER_DIVIDE, Operator.MODULO)
+
         const val ZERO = "0"
         const val NEGATIVE_ZERO = "-0"
         const val DIVIDE_SCALE = 10

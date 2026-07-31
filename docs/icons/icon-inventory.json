@@ -26,7 +26,7 @@
   {
     "surface": "player-command",
     "key": "COPY_TEXT",
-    "feature": "copy",
+    "feature": "copy_to_clipboard",
     "drawable": "ic_menu_save",
     "assetFormat": "framework",
     "public": true
@@ -155,7 +155,7 @@
     "surface": "player-command",
     "key": "LYRICS",
     "feature": "lyrics",
-    "drawable": "ic_microphone",
+    "drawable": "ic_book",
     "assetFormat": "vector",
     "public": true
   },
@@ -285,6 +285,14 @@
     "feature": "reopen_with_encoding",
     "drawable": "ic_menu_sort_alphabetically",
     "assetFormat": "framework",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "ROTATE_CONTENT",
+    "feature": "rotate_content_90_title",
+    "drawable": "ic_rotate_90",
+    "assetFormat": "vector",
     "public": true
   },
   {
@@ -505,6 +513,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "app_launch_panel",
+    "feature": "app_launch_panel_route_launch_panel",
+    "drawable": "ic_view_grid",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "auto_rotate",
     "feature": "app_launch_panel_os_auto_rotate",
     "drawable": "ic_screen_rotation",
@@ -540,6 +556,30 @@
     "key": "calculator",
     "feature": "app_launch_panel_route_calculator",
     "drawable": "ic_calculator",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "camera_launch",
+    "feature": "widget_camera_launch_label",
+    "drawable": "ic_widget_camera_launch_accent",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "camera_photos",
+    "feature": "widget_camera_photos_label",
+    "drawable": "ic_widget_camera_photos",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "continue_reading",
+    "feature": "widget_continue_reading_label",
+    "drawable": "ic_widget_continue_reading",
     "assetFormat": "vector",
     "public": true
   },
@@ -633,6 +673,22 @@
   },
   {
     "surface": "program-nav",
+    "key": "random_music",
+    "feature": "widget_random_music_label",
+    "drawable": "ic_widget_random_music",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "scheduled_tasks",
+    "feature": "widget_scheduled_tasks_label",
+    "drawable": "ic_widget_scheduled_tasks",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "screen_recording",
     "feature": "screen_recording_menu_label",
     "drawable": "ic_display",
@@ -657,6 +713,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "start_video_recording",
+    "feature": "screenshot_gesture_action_start_video_recording",
+    "drawable": "ic_video",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "storage",
     "feature": "app_launch_panel_os_storage",
     "drawable": "ic_storage",
@@ -668,6 +732,30 @@
     "key": "streams",
     "feature": "app_launch_panel_route_streams",
     "drawable": "ic_cast",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "take_photo_edit",
+    "feature": "screenshot_gesture_action_take_photo_edit",
+    "drawable": "ic_edit_20",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "take_photo_ocr_translate",
+    "feature": "screenshot_gesture_action_take_photo_ocr_translate",
+    "drawable": "ic_camera_ocr_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "take_photo_send_to",
+    "feature": "screenshot_gesture_action_take_photo_send_to",
+    "drawable": "ic_camera_send_to",
     "assetFormat": "vector",
     "public": true
   },
@@ -737,6 +825,14 @@
   },
   {
     "surface": "send-to",
+    "key": "messenger",
+    "feature": "share_target_title_app",
+    "drawable": "ic_send_bolt_chat",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
     "key": "open_in",
     "feature": "share_target_title_open_in",
     "drawable": "ic_open_in_browse",
@@ -769,6 +865,22 @@
   },
   {
     "surface": "send-to",
+    "key": "tiktok",
+    "feature": "share_target_title_app",
+    "drawable": "ic_send_music_note",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
+    "key": "viber",
+    "feature": "share_target_title_app",
+    "drawable": "ic_send_phone_chat",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "send-to",
     "key": "whatsapp",
     "feature": "share_target_title_app",
     "drawable": "ic_send_chat",
@@ -785,9 +897,25 @@
   },
   {
     "surface": "settings-header",
+    "key": "headerAppData",
+    "feature": "settings_category_app_data",
+    "drawable": "ic_cloud_upload",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
     "key": "headerAudio",
     "feature": "settings_category_audio",
     "drawable": "ic_audio",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerAuthorization",
+    "feature": "settings_category_authorization",
+    "drawable": "ic_google_account",
     "assetFormat": "vector",
     "public": true
   },
@@ -804,6 +932,14 @@
     "key": "headerCameraPhotos",
     "feature": "settings_group_photography",
     "drawable": "ic_camera_capture",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerDestinations",
+    "feature": "destinations_list_header",
+    "drawable": "ic_app_logo",
     "assetFormat": "vector",
     "public": true
   },
@@ -841,9 +977,25 @@
   },
   {
     "surface": "settings-header",
+    "key": "headerOther",
+    "feature": "settings_category_other",
+    "drawable": "ic_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
     "key": "headerRemoteSources",
     "feature": "settings_remote_sources_title",
     "drawable": "ic_wifi",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerSafety",
+    "feature": "settings_category_safety",
+    "drawable": "ic_delete",
     "assetFormat": "vector",
     "public": true
   },
@@ -884,6 +1036,14 @@
     "key": "headerStreams",
     "feature": "settings_streams_section",
     "drawable": "ic_cast",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerSystemApps",
+    "feature": "setting_group_system_apps_title",
+    "drawable": "ic_android",
     "assetFormat": "vector",
     "public": true
   },

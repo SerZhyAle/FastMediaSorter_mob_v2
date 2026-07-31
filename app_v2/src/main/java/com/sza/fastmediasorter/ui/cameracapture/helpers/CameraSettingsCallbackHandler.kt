@@ -31,14 +31,14 @@ class CameraSettingsCallbackHandler(
             initialSettings = CameraSettingsDialogFragment.CameraSettingsState(
                 selfTimerSeconds = flowManager.selfTimerSeconds,
                 gridEnabled = flowManager.gridEnabled,
-                aspectRatio = sessionManager.currentAspectRatio(),
-                resolution = sessionManager.currentResolution(),
-                exposureCompensationIndex = sessionManager.currentExposureCompensationIndex(),
-                whiteBalanceMode = sessionManager.currentWhiteBalanceMode() ?: CameraMetadata.CONTROL_AWB_MODE_AUTO,
-                manualSensorEnabled = sessionManager.currentManualIso() != null &&
-                    sessionManager.currentManualShutterNs() != null,
-                manualIso = sessionManager.currentManualIso(),
-                manualShutterNs = sessionManager.currentManualShutterNs(),
+                aspectRatio = sessionManager.currentAspectRatio,
+                resolution = sessionManager.currentResolution,
+                exposureCompensationIndex = sessionManager.currentExposureCompensationIndex,
+                whiteBalanceMode = sessionManager.currentWhiteBalanceMode ?: CameraMetadata.CONTROL_AWB_MODE_AUTO,
+                manualSensorEnabled = sessionManager.currentManualIso != null &&
+                    sessionManager.currentManualShutterNs != null,
+                manualIso = sessionManager.currentManualIso,
+                manualShutterNs = sessionManager.currentManualShutterNs,
                 hdrEnabled = sessionManager.hdrEnabled,
             )
         }.show(fragmentManager, CameraSettingsDialogFragment.TAG)

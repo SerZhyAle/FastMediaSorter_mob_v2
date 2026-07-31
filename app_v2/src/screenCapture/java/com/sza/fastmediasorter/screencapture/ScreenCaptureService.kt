@@ -25,6 +25,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
+import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
@@ -366,7 +367,7 @@ class ScreenCaptureService : Service() {
         const val EXTRA_GESTURE_ZONE = "gesture_zone"
 
         private const val CHANNEL_ID = "screen_capture_service"
-        private const val NOTIFICATION_ID = 0x4053
+        private const val NOTIFICATION_ID = NotificationIds.SCREEN_CAPTURE
         private const val VIRTUAL_DISPLAY_NAME = "screen_capture_service"
 
         fun start(

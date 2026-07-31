@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S0404: one shortcut cell on the launcher desktop - icon over a label, with an optional badge
-     marking which view mode a resource shortcut opens in. Mirrors item_app_launch_panel_tile.xml
-     (same focus/ripple/stroke treatment) so both grids feel identical. Orientation-neutral: the
-     cell is square in both layouts, so there is deliberately no layout-land counterpart. -->
+<!-- S0404/S1173: one shortcut cell on the launcher desktop - icon over a label, with an optional badge
+     marking which view mode a resource shortcut opens in. The cell is transparent at rest so the
+     desktop wallpaper shows through it; contrast lives in the icon's and the caption's own contour, not
+     in a card behind them. The whole cell stays the touch target. Edit mode restores the card look from
+     the binder, because that is what makes cell boundaries and drop targets visible while arranging.
+     Orientation-neutral: the cell is square in both layouts, so there is deliberately no layout-land
+     counterpart. -->
 <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -12,9 +15,9 @@
     android:layout_margin="4dp"
     android:clickable="true"
     android:focusable="true"
-    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardBackgroundColor="@android:color/transparent"
     app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
+    app:cardElevation="0dp"
     app:rippleColor="?attr/colorControlHighlight"
     app:strokeColor="?attr/colorOutline"
     app:strokeWidth="1dp">
@@ -35,12 +38,32 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
-            <ImageView
+            <!-- The padding is what gives the contour room: OutlinedImageView draws it inside its own
+                 bounds, so without the inset the outermost pass is clipped at the icon's edge. -->
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedImageView
                 android:id="@+id/cellIcon"
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:importantForAccessibility="no"
+                android:padding="@dimen/launcher_cell_outline_width"
+                app:oiv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:src="@drawable/ic_folder" />
+
+            <!-- S1176: a contact cell shows the person's initials where every other cell shows a glyph.
+                 It occupies the icon's own 44dp box rather than sitting beside it - the two are
+                 alternatives, never both, so the cell keeps its exact geometry either way. -->
+            <TextView
+                android:id="@+id/cellMonogram"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_contact_monogram"
+                android:gravity="center"
+                android:importantForAccessibility="no"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="IP"
+                tools:visibility="visible" />
 
             <!-- No focus background here: the badge is not focusable, clickable or hoverable, so the
                  selector could never leave its transparent default state - it drew nothing (Rule 20). -->
@@ -57,7 +80,7 @@
 
         </FrameLayout>
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/cellLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -67,6 +90,7 @@
             android:maxLines="1"
             android:textColor="?attr/colorOnSurface"
             android:textSize="12sp"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Photos" />
 
     </LinearLayout>

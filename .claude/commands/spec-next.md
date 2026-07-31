@@ -23,7 +23,9 @@ Two output shapes:
 /spec-next --reset-skips   # clear temp/spec-next-skip-cache.json before running
 ```
 
-No positional arguments. Selection derived from `PLAN/spec-catalog.jsonl` plus `temp/spec-next-skip-cache.json` (auto-pruned, 7-day TTL).
+No positional arguments. Selection derived from `PLAN/RELEASE_QUEUE.md` (order) plus `PLAN/spec-catalog.jsonl` (status) and `temp/spec-next-skip-cache.json` (auto-pruned, 7-day TTL).
+
+**`PLAN/RELEASE_QUEUE.md` is the selection authority.** It holds the owner's release assignment and hand-kept order; the catalog holds only status. The preflight ranker sorts by that file - release package ascending, then line order inside the package - and uses catalog priority only to break ties for a ticket the file does not list. The buckets after the numbered packages, in order: finished content awaiting its audit (`Implemented` rows in `PLAN/RELEASE_READY.md`), then queue lines parked at `--`, then anything in neither file. Never re-derive a pick from raw priority. Deviating from the order needs a stated reason in the round verdict; a silent deviation is a defect. The same authority governs any plain-language "what should I work on next" answer - quote the package and the line, do not invent an order.
 
 ---
 
@@ -75,7 +77,7 @@ pwsh -NoProfile -File scripts/spec_catalog/spec-next-preflight.ps1 -Exclude <pro
 
 One read-only call replaces previous `search.ps1` + manual rank + `skip-cache.ps1 -Action list` + per-candidate `preview.ps1` + `drift-check.ps1` chain. Returns single JSON blob:
 
-- `ranked[]` - eligible set (statuses above), already sorted `priority` desc -> `updated` desc -> `id` asc, with active persistent skip-cache and `-Exclude` round-memory set already removed.
+- `ranked[]` - eligible set (statuses above), already sorted by the release plan: queue package asc -> queue line order asc -> `priority` desc -> `updated` desc -> `id` asc, with active persistent skip-cache and `-Exclude` round-memory set already removed. Each row carries `release` (its package, `--` when parked, `null` when in neither file) and `side` (`queue` = work left, `ready` = finished content awaiting audit). `order_source` and `current_release` are echoed at the top of the payload - quote them when reporting the pick.
 - `skip_cache` / `skip_cached_ids` - active persistent skips and which ranked ids they removed (informational; no action needed).
 - `auto_skipped[]` - candidates preflight previewed and rejected while walking down to selection. Each `{ id, reason, detail }`, `reason ∈ { tier-5-epic | owner-gate | blocker-not-verified }`. These are structural / human gates only; preflight never auto-skips a `Draft`/`Approved` for a heavy research section - `research_open_count` stays informational.
 - `selected` - chosen ticket's full `preview.ps1` payload (`status`, `frontmatter`, `sections`, `tactical_folder`, `last_audit_present`, `timber_tags_kt`, `depends_on`) plus `drift` (`drift-check.ps1` verdict object) and `status_mismatch` (`{catalog,file}` or `null`). `null` when eligible set exhausted.
@@ -229,7 +231,7 @@ Thread any flavor argument operator passed (`/spec-next --plan --flavors "..."`)
 
 Phases generator produces (status → command map is fixed):
 
-- **A - Implementation** (`Draft`→`/spec-all`; `Approved`→`/spec-tech`+`/spec-dev`; `Tactical`/`In Progress`→`/spec-dev`; `Partial`/`Broken`→`/spec-fix`+`/spec-check`) for specs with no in-plan prerequisite. Priority-ordered. Trailing command of each pair is prior skill's own auto-chain (`/spec-tech`→`/spec-dev`, `/spec-fix`→`/spec-check`), kept explicit so sequence stays complete on PRIMITIVE / blocked / `--dry-run` branches where chain does not fire.
+- **A - Implementation** (`Draft`→`/spec-all`; `Approved`→`/spec-tech`+`/spec-dev`; `Tactical`/`In Progress`→`/spec-dev`; `Partial`/`Broken`→`/spec-fix`+`/spec-check`) for specs with no in-plan prerequisite. Ordered by `PLAN/RELEASE_QUEUE.md` (package, then line order), priority only as a tiebreak. Trailing command of each pair is prior skill's own auto-chain (`/spec-tech`→`/spec-dev`, `/spec-fix`→`/spec-check`), kept explicit so sequence stays complete on PRIMITIVE / blocked / `--dry-run` branches where chain does not fire.
 - **B - Dependency chains** - any `BlockByOtherTask` spec, plus any impl spec whose `statusNote` names an in-plan blocker. Ordered after blocker (annotated `(after Sxxxx)`) in same global topological order as Phase A, so a blocker always precedes its dependent across A/B boundary. `BlockByOtherTask` rows emit `unblock first` comment (`update.ps1 -Id <id> -Status <pre-block>`): `/spec-tech` and `/spec-dev` both hard-abort while status is `Block*`, so restore must run before listed commands.
 - **C - Verification** (`BlockNeedUserTest` collapsed into ONE `/spec-sweep`; each `Implemented`→`/spec-test-device`+`/spec-check` - device step needs device online, else skip to static `/spec-check`).
 - **D - Release** (`/spec-prerelease` → `/skill-release`). Run from a `DEBUG-v00N` branch.
@@ -241,6 +243,7 @@ Skip Stages 1..6 entirely in this mode - no preflight, no skip-cache, no loop, n
 
 ## Hard rules
 
+- **The queue owns the order.** Selection follows `PLAN/RELEASE_QUEUE.md` (package, then line order) as returned by preflight. Never reorder by priority, never skip a higher line to reach a more interesting one, and never edit `rel` or the line order of that file from this skill - it is the owner's column. A justified deviation is reported in the round verdict; an unreported one is a defect.
 - **Never edit `PLAN/spec-catalog.jsonl` directly** - only via `update.ps1`, `select.ps1`, `search.ps1`, `spec-next-preflight.ps1` (read-only).
 - **Do not duplicate `/spec-all` logic** - every progress decision delegates to it. This skill's responsibility is *selection*, not *execution*.
 - **No user prompts in loop mode.** A stage detecting unresolvable ambiguity -> skip spec via round memory + persistent skip-cache, continue loop. Final report names all skipped specs. `AskUserQuestion` MUST NOT be invoked from any stage of `/spec-next` - preflight's auto-skip predicates replace every previous owner-gate / tier-5 / VR-child prompt.

@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.cloud.helpers
 
+import com.sza.fastmediasorter.core.network.HttpTimeouts
+import com.sza.fastmediasorter.core.network.applyTimeouts
 import com.sza.fastmediasorter.data.cloud.TransferProgress
 import org.json.JSONArray
 import org.json.JSONObject
@@ -28,6 +30,7 @@ internal object GoogleDriveMultipartUploader {
         val boundary = "----FastMediaSorterBoundary${System.currentTimeMillis()}"
         val url = URL("$driveUploadBase/files?uploadType=multipart")
         val connection = url.openConnection() as HttpURLConnection
+        connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
         connection.requestMethod = "POST"
         connection.setRequestProperty("Authorization", "Bearer $token")
         connection.setRequestProperty("Content-Type", "multipart/related; boundary=$boundary")

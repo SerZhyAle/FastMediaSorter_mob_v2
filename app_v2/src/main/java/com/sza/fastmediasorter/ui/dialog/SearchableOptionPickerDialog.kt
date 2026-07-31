@@ -51,6 +51,7 @@ class SearchableOptionPickerDialog : DialogFragment() {
     private var selectedId: String? = null
     private var options: List<Option> = emptyList()
     private var onPicked: ((Option?) -> Unit)? = null
+
     // S0947: streams uses a leading "All" reset row that maps to a null pick; general single-choice
     // pickers migrated onto this component opt out so there is no spurious clear row.
     private var includeResetRow: Boolean = true
@@ -69,6 +70,9 @@ class SearchableOptionPickerDialog : DialogFragment() {
         } else {
             null
         }
+        // S1286: cap only - the MaterialAlertDialog frame already supplies the surface, so this host must
+        // not gain the picker card on top of it.
+        SearchableOptionPickerWindow.applyHeightCap(binding)
         SearchableOptionPickerController.attach(binding, options, selectedId, resetRow) { picked ->
             onPicked?.invoke(picked)
             dismiss()

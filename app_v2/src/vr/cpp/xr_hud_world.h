@@ -53,6 +53,11 @@ void xr_hud_init();
 // below). Size and placement travel together so a caller cannot set one and forget the other.
 void xr_hud_set_quad_size(float widthMeters, float heightMeters, float verticalOffsetMeters);
 
+// S1232: show or hide the HUD quad. Hidden means fully hidden - the quad, the laser lines and
+// the cursor dots stop drawing, and ray processing stops with them, so an invisible panel can
+// neither be hit-tested nor grip-dragged. xr_hud_init restores visibility on every entry.
+void xr_hud_set_visible(bool visible);
+
 // Smoothly interpolate HUD position using exponential gaze lazy-follow
 void xr_hud_update(const XrPosef& headPose, float deltaTime);
 

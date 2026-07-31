@@ -59,6 +59,7 @@ import com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentOpenManager
 import com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerHost
 import com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerOutcome
 import com.sza.fastmediasorter.ui.player.helpers.OfficeDocumentViewerProviderFactory
+import com.sza.fastmediasorter.ui.player.helpers.PdfPageSwipeDetector
 import com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneFileOperationsHandler
@@ -627,12 +628,12 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
         // visibility owned by the viewer manager per settings).
         binding.btnOcrPdfCmd.setOnClickListener { pdfViewerManager.extractTextFromCurrentPage() }
         binding.btnGoogleLensPdfCmd.setOnClickListener { pdfViewerManager.shareCurrentPageToGoogleLens() }
-        // S0951: touch parity with the in-app player - vertical swipe pages the PDF. Uses PhotoView's
-        // native single-fling callback (not setOnTouchListener, which would replace the attacher and
-        // break pinch/pan). handlePdfFling owns the scroll-mode + zoom guards, so no extra checks here.
+        // S0951: touch parity with the in-app player. Uses PhotoView's native single-fling callback,
+        // which after S1273 only carries the horizontal zoom step - page turns come from the touch
+        // listener below. handlePdfFling owns the scroll-mode guard, so no extra checks here.
         binding.photoView.setOnSingleFlingListener(
-            OnSingleFlingListener { e1, e2, velocityX, velocityY ->
-                pdfViewerManager.handlePdfFling(e1, e2, velocityX, velocityY)
+            OnSingleFlingListener { e1, e2, velocityX, _ ->
+                pdfViewerManager.handlePdfFling(e1, e2, velocityX)
             }
         )
         // S0953: full PDF touch parity with the in-app player (PlayerGestureSetupManager reference) -
@@ -648,14 +649,22 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
 
             override fun onDoubleTapEvent(e: MotionEvent): Boolean = false
         })
-        val pdfAttacher = binding.photoView.attacher
-        binding.photoView.setOnTouchListener { v, ev ->
-            if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+        // S1273: same page-turn gesture as the in-app player - PhotoView never delivers a two-finger
+        // or slow swipe to a fling listener, so it is detected on the raw stream ahead of the attacher.
+        PdfPageSwipeDetector.install(
+            binding.photoView,
+            object : PdfPageSwipeDetector.Host {
+                override fun isPageSwipeEnabled(): Boolean = pdfViewerManager.isPageSwipeEnabled()
+
+                override fun currentScale(): Float = binding.photoView.scale
+
+                override fun turnPage(next: Boolean) = pdfViewerManager.turnPage(next)
+            },
+            onDown = { ev ->
                 lastPdfDownX = ev.x
                 lastPdfDownY = ev.y
             }
-            pdfAttacher.onTouch(v, ev)
-        }
+        )
         binding.photoView.setOnLongClickListener {
             pdfViewerManager.handlePdfLongPress(lastPdfDownX, lastPdfDownY)
         }

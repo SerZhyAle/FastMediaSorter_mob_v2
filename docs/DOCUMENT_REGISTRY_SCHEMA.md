@@ -19,6 +19,7 @@ Optional fields:
 
 - `url` - canonical public URL path, beginning with `/`.
 - `languages` - maintained language codes.
+- `localized_urls` - map of language code to public URL path for records whose translations are separate pages. Every key must appear in `languages`, and every value must begin with `/`. When present, `sitemap.xml` emits one entry per language, each carrying the full `hreflang` cluster; without it a single entry is emitted from `url`. List only translations that actually exist as pages - a sitemap entry pointing at a missing page is worse than an omitted one.
 - `mirrors` - expected repository-relative language mirror paths.
 - `notes` - concise ownership or exclusion detail.
 

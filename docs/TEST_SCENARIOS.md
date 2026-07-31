@@ -235,6 +235,26 @@ Paste log in response with label: "LOG SCENARIO 4 - MIXED"
 
 ---
 
+## Not a Defect: Screen Capture on Secure Screens
+
+A screenshot of a secure screen comes back black, or as a zero-byte file, on every device. This is `FLAG_SECURE` working, not a rendering bug. `BaseActivity.applySecureFlagIfEnabled` sets it whenever `isSensitiveScreen()` is true and the `secureSensitiveScreens` setting is on, which it is by default (S1045). Settings, Add Resource and Resource Editor all declare themselves sensitive.
+
+Recognise it before spending a session on it (S1284 cost one):
+
+- The capture is black but `uiautomator dump` returns correct text and bounds, and taps at those coordinates work.
+- System dialogs and the status bar appear normally in the same capture - they are separate, unprotected windows.
+- logcat has no exceptions and HWUI keeps reporting frames.
+
+Confirm in one command, and read the window's own flags rather than guessing:
+
+```powershell
+adb -s <device> shell "dumpsys window windows | grep -A 6 '<ActivityName>'"
+```
+
+`SECURE` in the `fl=` line settles it. To capture such a screen for a report, turn the `secureSensitiveScreens` setting off first, then back on.
+
+---
+
 ## Log Analysis Keywords
 
 When reviewing logs, look for:

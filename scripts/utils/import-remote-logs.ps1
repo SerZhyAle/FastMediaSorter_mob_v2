@@ -20,12 +20,11 @@
     Open each candidate as a zip (central-directory read only - cheap even for a large unrelated
     .zip elsewhere in the folder) and take the first one containing at least one *.log entry.
 
-    Extraction into DestDir is additive and dedup-aware: an entry already present with the same
-    byte length is left untouched and reported as "unchanged" (the export re-bundles the
-    device's full on-device log history every time, so most entries in any given drop have
-    already been imported and analysed in a prior run). Missing or size-different entries are
-    (re)written and reported as new/updated - callers should feed only that set to further
-    analysis (e.g. /log-reader), not the full archive.
+    Extraction into DestDir is additive and content-deduped: an entry whose SHA-256 is already
+    present is left untouched and reported as "unchanged". A same-name entry with different
+    content is retained under a SHA-256 suffix instead of overwriting the earlier session.
+    Callers should feed only newly extracted paths to further analysis (e.g. /log-reader), not
+    the full archive.
 
 .PARAMETER SourceDir
     Drop folder to scan for the archive. Default: C:\GD\temp
@@ -124,6 +123,33 @@ function Test-LogArchive {
     return $zipArchive
 }
 
+function Get-Sha256FromStream {
+    param([System.IO.Stream]$Stream)
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return ([Convert]::ToHexString($sha256.ComputeHash($Stream))).ToLowerInvariant()
+    } finally {
+        $sha256.Dispose()
+    }
+}
+
+function Get-ZipEntrySha256 {
+    param([System.IO.Compression.ZipArchiveEntry]$Entry)
+    $stream = $Entry.Open()
+    try {
+        return Get-Sha256FromStream -Stream $stream
+    } finally {
+        $stream.Dispose()
+    }
+}
+
+function Get-CollisionFileName {
+    param([string]$EntryName, [string]$Sha256)
+    $stem = [System.IO.Path]::GetFileNameWithoutExtension($EntryName)
+    $extension = [System.IO.Path]::GetExtension($EntryName)
+    return "$stem--$Sha256$extension"
+}
+
 # ---------- resolve archive ----------
 
 $zip = $null
@@ -168,6 +194,14 @@ if (-not (Test-Path -LiteralPath $DestDir)) {
 $destFull = (Get-Item -LiteralPath $DestDir).FullName
 $script:result.destDir = $destFull
 
+$knownContent = @{}
+Get-ChildItem -LiteralPath $destFull -Filter '*.log' -File | ForEach-Object {
+    $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+    if (-not $knownContent.ContainsKey($hash)) {
+        $knownContent[$hash] = $_.Name
+    }
+}
+
 $newFiles = @()
 $updatedFiles = @()
 $unchangedFiles = @()
@@ -175,19 +209,22 @@ $unchangedFiles = @()
 try {
     foreach ($entry in $zip.Entries) {
         if ($entry.Name -notlike '*.log') { continue }
-        $destPath = Join-Path $destFull $entry.Name
-        $exists = Test-Path -LiteralPath $destPath -PathType Leaf
-        if ($exists) {
-            $existingLength = (Get-Item -LiteralPath $destPath).Length
-            if ($existingLength -eq $entry.Length) {
-                $unchangedFiles += $entry.Name
-                continue
-            }
-            $updatedFiles += $entry.Name
-        } else {
-            $newFiles += $entry.Name
+        $entryHash = Get-ZipEntrySha256 -Entry $entry
+        if ($knownContent.ContainsKey($entryHash)) {
+            $unchangedFiles += $knownContent[$entryHash]
+            continue
         }
+
+        $destName = $entry.Name
+        $destPath = Join-Path $destFull $destName
+        if (Test-Path -LiteralPath $destPath -PathType Leaf) {
+            $destName = Get-CollisionFileName -EntryName $entry.Name -Sha256 $entryHash
+            $destPath = Join-Path $destFull $destName
+        }
+
         [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $destPath, $true)
+        $knownContent[$entryHash] = $destName
+        $newFiles += $destName
     }
 } catch {
     $zip.Dispose()

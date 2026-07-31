@@ -30,4 +30,13 @@
     <!-- S0427: floor width of the quick-actions popup. A desktop cell can be ~63dp across, and a popup
          that narrow would ellipsize every action label to two words. -->
     <dimen name="launcher_shortcut_popup_width">220dp</dimen>
+
+    <!-- S1173: contour width for a shortcut cell's icon and caption, overriding the shared 2dp default.
+         That default is sized for large camera overlay labels; on a 12sp caption it thickens the glyph
+         into a blob. -->
+    <dimen name="launcher_cell_outline_width">1dp</dimen>
+
+    <!-- S1173: lift restored on a shortcut cell while the desktop is being edited. Matches the gadget
+         card's own elevation, so both kinds read as the same surface while arranging. -->
+    <dimen name="launcher_cell_edit_elevation">2dp</dimen>
 </resources>

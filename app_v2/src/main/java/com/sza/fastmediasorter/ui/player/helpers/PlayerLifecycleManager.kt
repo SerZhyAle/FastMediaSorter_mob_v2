@@ -464,13 +464,12 @@ class PlayerLifecycleManager(
         }
 
         val audioPlayer = activity.audioServiceController?.player
-        when (
-            AudioExitBehaviorResolver.resolve(
-                serviceAudioActive = true,
-                player = audioPlayer,
-                behavior = viewModel.state.value.backgroundAudioExitBehavior,
-            )
-        ) {
+        val action = AudioExitBehaviorResolver.resolve(
+            serviceAudioActive = true,
+            player = audioPlayer,
+            behavior = viewModel.state.value.backgroundAudioExitBehavior,
+        )
+        when (action) {
             AudioExitAction.FINISH -> doFinish(withTransition)
             AudioExitAction.STOP_AND_FINISH -> {
                 audioPlayer?.stop()

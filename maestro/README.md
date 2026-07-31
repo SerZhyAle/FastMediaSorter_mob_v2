@@ -86,9 +86,12 @@ operation resources and the file-operation menu is known tappable on that device
 
 Run against `standard-debug` (`com.sza.fastmediasorter.debug`). The capability flows expect:
 
-- **Russian app locale** - flows locate tabs and built-in resources by their RU labels
-  (`Локальные`, `Загрузки`, `Все изображения`, sort labels, crash prompt). Set it once with
+- **Russian app locale** - flows locate tabs and localized controls by their RU labels
+  (`Локальные`, `Загрузки`, sort labels, crash prompt). Set it once with
   `adb shell cmd locale set-app-locales com.sza.fastmediasorter.debug --locales ru`.
+- The persisted `All Images` virtual-resource name can retain English or Russian from the locale
+  active at provisioning. Flows that open it use `_shared/open_all_images.yaml`, which accepts
+  either exact label.
 - **Media permissions granted** and the welcome screen completed (first run done).
 - **Seeded test media** under `/storage/emulated/0/Download/FastMediaSorter_Test/` via
   `scripts/utils/setup_test_media.ps1`.

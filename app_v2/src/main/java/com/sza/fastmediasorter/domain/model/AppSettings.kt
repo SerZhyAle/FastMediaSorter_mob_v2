@@ -33,6 +33,8 @@ data class AppSettings(
     // OFF (no behaviour change on upgrade); when ON the top three-dots button is hidden (panel replaces it).
     val showProgramsPanelInMainWindow: Boolean = false,
     val defaultUser: String = "",
+    // S1254: rename-proof mask marker for the startup settings dump (see SensitiveSetting).
+    @field:SensitiveSetting
     val defaultPassword: String = "",
     val networkParallelism: Int = 4, // Parallel threads for network operations (1, 2, 4, 8, 12, 24)
     val cacheSizeMb: Int = 2048, // Glide disk cache size in MB (512, 1024, 2048, 4096, 8192, 16384) - Default: 2GB after installation
@@ -61,7 +63,9 @@ data class AppSettings(
     val imageSizeMin: Long = 1024L, // 1KB
     val imageSizeMax: Long = 10485760L, // 10MB
     val loadFullSizeImages: Boolean = true, // Load full resolution images (for zoom support)
-    val cropImagesToFullscreen: Boolean = true, // Crop images to fill screen when orientations match (fullscreen & slideshow)
+    // Off by default on every device profile (owner call, 2026-07-29): cropping silently discards
+    // picture edges, so the app never does it until the user asks for it.
+    val cropImagesToFullscreen: Boolean = false,
     val supportGifs: Boolean = true,
     val supportVideos: Boolean = true,
     val videoSizeMin: Long = 1048576L, // 1MB

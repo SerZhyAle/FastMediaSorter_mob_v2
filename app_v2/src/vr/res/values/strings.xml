@@ -61,4 +61,28 @@
     <string name="vr_hud_next">NEXT</string>
     <string name="vr_hud_volume_label">VOLUME</string>
     <string name="vr_hud_depth_label">STEREO DEPTH</string>
+    <string name="vr_hud_hide">HIDE</string>
+    <string name="vr_hud_exit">EXIT</string>
+    <string name="vr_hud_help">HELP</string>
+
+    <!-- S1223: one-time in-headset controls legend. Each row is an input paired with what it does;
+         the set matches what S1232 and S1240 actually wired, so nothing here names an unbound key. -->
+    <string name="vr_legend_title">Controls</string>
+    <string name="vr_legend_input_trigger">Trigger</string>
+    <string name="vr_legend_action_click">Press the control the ray points at</string>
+    <string name="vr_legend_input_trigger_hidden">Trigger, panel hidden</string>
+    <string name="vr_legend_action_summon">Bring the panel back</string>
+    <string name="vr_legend_input_stick_x">Thumbstick left / right</string>
+    <string name="vr_legend_action_seek">Seek 10 seconds</string>
+    <string name="vr_legend_input_grip_stick_x">Grip + thumbstick left / right</string>
+    <string name="vr_legend_action_file_step">Previous / next file</string>
+    <string name="vr_legend_input_stick_y">Thumbstick up / down</string>
+    <string name="vr_legend_action_zoom">Zoom the image</string>
+    <string name="vr_legend_input_grip">Grip, hold</string>
+    <string name="vr_legend_action_move_panel">Move the panel</string>
+    <string name="vr_legend_input_ax">A or X</string>
+    <string name="vr_legend_action_exit">Leave the immersive view</string>
+    <string name="vr_legend_input_panel_buttons">HIDE / EXIT on the panel</string>
+    <string name="vr_legend_action_panel_buttons">The same two actions as buttons</string>
+    <string name="vr_legend_footer">Pull the trigger to continue. The HELP button on the panel shows this again.</string>
 </resources>

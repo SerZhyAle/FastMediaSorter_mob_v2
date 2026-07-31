@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.delivery.BundledDeliverableSets
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSetContributor
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dalvik.system.BaseDexClassLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -35,7 +36,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class DeliveredNativeLibraryLoader @Inject constructor(
-    private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val verifier: PayloadIntegrityVerifier,
     private val bundledSets: BundledDeliverableSets,
     private val contributors: Set<@JvmSuppressWildcards DeliverableSetContributor>,

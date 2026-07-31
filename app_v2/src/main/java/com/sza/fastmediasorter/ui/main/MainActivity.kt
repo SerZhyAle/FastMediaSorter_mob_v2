@@ -45,10 +45,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
-import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
-import com.sza.fastmediasorter.domain.usecase.streams.ObservePinnedStreamSourcesUseCase
-import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorAprilFoolsPrankManager
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
@@ -227,9 +224,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     lateinit var screenRecordingStateController: ScreenRecordingStateController
 
     @Inject
-    lateinit var saveCapturedMedia: SaveCapturedMediaUseCase
-
-    @Inject
     lateinit var localDestinationClassifier: LocalDestinationClassifier
 
     @Inject
@@ -263,19 +257,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     @Inject
     lateinit var resourceShortcutPinManager: ResourceShortcutPinManager
 
-    // S0756: pinned channels + favicon atlas for the main-window streams panel.
-    @Inject
-    lateinit var observePinnedStreamSources: ObservePinnedStreamSourcesUseCase
-
+    // S0756: favicon atlas for the main-window streams panel.
     @Inject
     lateinit var faviconAtlasStore: FaviconAtlasStore
 
     @Inject
     lateinit var networkContextAnalyzer: NetworkContextAnalyzer
-
-    // S0770: "Remove" on a streams-panel channel chip drops its pin (channel leaves the panel, row kept).
-    @Inject
-    lateinit var unpinStreamSource: UnpinStreamSourceUseCase
 
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
@@ -773,7 +760,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             },
         )
         cameraCaptureManager = MainCameraCaptureManager(
-            this, lifecycleScope, saveCapturedMedia, quickCaptureCameraLauncher,
+            this, lifecycleScope, viewModel::saveCapturedMedia, quickCaptureCameraLauncher,
         )
         quickCaptureMenuManager = MainQuickCaptureMenuManager(
             onVoice = { voiceCaptureManager.start() },
@@ -808,7 +795,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         panelItemActions = MainPanelItemActionsManager(
             activity = this,
             settingsRepository = settingsRepository,
-            unpinStreamSource = unpinStreamSource,
+            unpinStreamSource = viewModel::unpinStreamSource,
             currentSettings = { latestSettings },
             resourceVrCinema = resourceVrCinemaLaunchManager,
         )
@@ -855,7 +842,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             panel = binding.mainStreamsPanel,
             lifecycleOwner = this,
             scope = lifecycleScope,
-            observePinnedStreamSources = observePinnedStreamSources,
+            observePinnedStreamSources = viewModel::pinnedStreamSources,
             faviconAtlasStore = faviconAtlasStore,
             onOpenStreams = { startActivity(Intent(this, StreamsActivity::class.java)) },
             // S0777: AUDIO taps play inline (this coordinator drives the bottom now-playing control); a

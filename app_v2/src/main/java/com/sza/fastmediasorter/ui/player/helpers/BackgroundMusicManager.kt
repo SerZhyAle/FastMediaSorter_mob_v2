@@ -93,6 +93,10 @@ class BackgroundMusicManager @Inject constructor(
         this.onMusicErrorListener = listener
     }
 
+    /**
+     * Acquire this singleton for one host (PlayerActivity). Every call must be paired with exactly
+     * one [release] - internal rebuilds go through [ensurePlayer] instead, which does not count.
+     */
     fun initialize() {
         // ExoPlayer MUST be created on Main thread
         if (Looper.myLooper() != Looper.getMainLooper()) {
@@ -103,11 +107,24 @@ class BackgroundMusicManager @Inject constructor(
             initializeInternal()
         }
     }
-    
+
     private fun initializeInternal() {
         // S0896: counts acquire calls regardless of whether the player already existed, so a
         // matching release() (see below) always sees the correct number of active hosts.
         activeHostCount++
+        ensurePlayer()
+    }
+
+    /**
+     * Build the player if it is missing, without claiming a host slot.
+     *
+     * S1293: the error-recovery and lazy-playback paths used to call [initialize], inflating
+     * activeHostCount with no matching release. One such rebuild wedged the count above zero
+     * forever, so release() early-returned for every later host: the ExoPlayer was never released,
+     * the 60 s health-check kept running, and the listener lambdas kept the destroyed
+     * PlayerActivity reachable for the rest of the process lifetime.
+     */
+    private fun ensurePlayer() {
         if (musicPlayer == null) {
             val audioAttributes = AudioAttributes.Builder()
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -196,8 +213,9 @@ class BackgroundMusicManager @Inject constructor(
                         this@BackgroundMusicManager.releaseMusicPlayerInstance()
                         this@BackgroundMusicManager.isPlaying = false
 
-                        // Reinitialize
-                        this@BackgroundMusicManager.initialize()
+                        // S1293: rebuild without claiming a host slot - this is a recovery, not a
+                        // new owner, and initialize() here permanently wedged activeHostCount.
+                        this@BackgroundMusicManager.ensurePlayer()
 
                         this@BackgroundMusicManager.onMusicErrorListener?.invoke(
                             context.getString(R.string.music_restarted_after_error)
@@ -266,8 +284,10 @@ class BackgroundMusicManager @Inject constructor(
 
         // 3. Apply playback state
         if (shouldPlay) {
-            // Lazy initialization only when needed
-            if (musicPlayer == null) initialize()
+            // Lazy build only when needed. S1293: ensurePlayer(), not initialize() - playback
+            // starting is not a new host acquiring the singleton. The host guard keeps a late
+            // state emission (after the last host released) from building an unowned player.
+            if (activeHostCount > 0) ensurePlayer()
             
             // ExoPlayer MUST be accessed from Main thread
             scope.launch(Dispatchers.Main) {

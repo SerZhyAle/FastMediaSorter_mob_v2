@@ -212,6 +212,18 @@ Rules:
 - Type-specific buttons are the only per-host variation; everything before Rename and the trailing Overflow are fixed.
 - Keep `layout/` and `layout-land/` in the same order (Rule 11).
 
+## Directory Operations Subsystem
+
+Create, rename, delete, copy and move a whole folder, for every resource type. Architectural boundaries:
+
+- **Dispatch**: `UnifiedFileOperationHandler` is the only entry point (`executeCreateDirectory` / `executeRenameDirectory` / `executeDeleteDirectory` / `executeCopyDirectory` / `executeMoveDirectory`). Nothing calls a strategy's directory method directly.
+- **Pre-flight refusal**: every copy/move passes `refuseUnsafeDirectoryOperation` before a strategy is resolved, so a refused operation never creates a partial structure. It rejects a destination inside the source, a destination that resolves to the source itself (a same-parent copy would overwrite its own input), and a document-tree URI, which the path-based local strategy cannot address. The reason travels as `DirectoryOperationRefusal.Reason` and becomes a user-facing message through `ui/browse/helpers/DirectoryRefusalMessages.kt` - one table, used by the background worker and the folder picker alike.
+- **Same protocol**: handled by the per-protocol `FileOperationStrategy` implementation (local, SMB, SFTP, FTP, cloud), each of which owns its own recursive walk. The local walk is cycle-guarded by canonical path and depth-capped.
+- **Different protocols**: `DirectoryTreeTransferManager` streams the tree - one directory listing in memory at a time, never the whole tree - creating each destination directory through the destination strategy and transferring each entry through the same per-file path a single file uses. Remote to a different remote goes through one temp file per entry. A move deletes a source entry only after that entry's copy is confirmed.
+- **Listing**: `FileOperationStrategy.listEntries` returns `DirectoryEntry` (path, name, isDirectory, size). The interface default is built from `listFiles` plus a per-entry `isDirectory` probe; local and SMB override it from a listing that already carries the type.
+- **Progress and cancellation**: `BrowseFileTransferWorker` passes a per-entry callback into the directory operations, rate-limited through the same `TransferProgressReporter` the file path uses; the callback also checks the job, so a cancelled transfer stops at the entry in flight. Already-written entries stay at the destination and the message says so - folder transfers have no undo (S1326).
+- **Item applicability**: `BrowseItemOperationPolicy` answers whether a browse row supports an operation. Row binding, the row menu and the action buttons read that answer instead of testing `isDirectory` inline - the split that let "select all" reach a state the user could not reach by hand.
+
 ## Internet Streams Subsystem
 
 Dedicated screen for internet audio/video/RTSP sources. Architectural boundaries:

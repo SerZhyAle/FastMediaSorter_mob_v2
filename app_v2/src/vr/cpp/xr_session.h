@@ -111,6 +111,10 @@ void xr_session_queue_subtitle(const uint8_t* rgba, int width, int height);
 // S1228: verticalOffsetMeters places it relative to the gaze ray (0 = centred, negative = below).
 void xr_session_set_hud_quad_size(float widthMeters, float heightMeters, float verticalOffsetMeters);
 
+// S1232: show or hide the HUD quad. While hidden the trigger summons the strip back instead of
+// acting as the ray click, and the press that summons is consumed rather than dispatched.
+void xr_session_set_hud_visible(bool visible);
+
 // Stage 5: blocking frame loop. Returns Ok when the loop exits cleanly (user requested exit
 // or runtime asked the session to stop), or an error code if the loop aborted on a hard
 // failure. The render thread should call this once per session.

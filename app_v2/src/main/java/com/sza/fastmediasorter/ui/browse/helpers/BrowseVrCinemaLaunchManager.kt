@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.xr.StartVrPlaybackRequest
 import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.VrLaunchMode
+import com.sza.fastmediasorter.core.xr.VrLaunchPlaylistFactory
 import com.sza.fastmediasorter.core.xr.VrLaunchPoint
 import com.sza.fastmediasorter.core.xr.VrMediaType
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
@@ -64,16 +65,21 @@ class BrowseVrCinemaLaunchManager @Inject constructor(
      * availability and URI locality; a non-local (network/cloud) URI resolves to Unavailable and
      * surfaces a short toast rather than opening the flat player.
      */
-    fun launch(file: MediaFile) {
+    fun launch(file: MediaFile, siblings: List<MediaFile> = emptyList()) {
         val owner = context as? LifecycleOwner ?: return
 
         owner.lifecycleScope.launch {
+            // S1233: hand over the surrounding folder in the order Browse is showing it, so the
+            // immersive HUD's PREV/NEXT move through the resource instead of a one-file playlist.
+            val (playlist, playlistIndex) = VrLaunchPlaylistFactory.build(siblings, file)
             val request = StartVrPlaybackRequest(
                 launchMode = VrLaunchMode.FILE_URI,
                 fileUriString = file.toLaunchUriString(),
                 mediaType = VrMediaType.VIDEO,
                 source = VrLaunchPoint.BROWSE_TILE,
                 snapshot = null,
+                playlist = playlist,
+                playlistIndex = playlistIndex,
             )
             when (val result = startVrPlaybackUseCase(request, returnTarget = null)) {
                 StartVrPlaybackUseCase.DispatchResult.Started -> Unit
@@ -92,6 +98,4 @@ class BrowseVrCinemaLaunchManager @Inject constructor(
     private fun toastUnavailable() {
         Toast.makeText(context, R.string.vr_cinema_launch_unavailable, Toast.LENGTH_SHORT).show()
     }
-
-    private fun MediaFile.isLocalPath(): Boolean = path.startsWith("/") || path.startsWith("file://")
 }

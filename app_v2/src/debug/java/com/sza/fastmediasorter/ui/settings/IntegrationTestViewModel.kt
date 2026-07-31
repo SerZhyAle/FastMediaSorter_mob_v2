@@ -9,10 +9,12 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.usecase.IntegrationTestRunner
 import com.sza.fastmediasorter.domain.usecase.IntegrationTestRunner.TestGroup
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
@@ -87,7 +89,9 @@ class IntegrationTestViewModel @Inject constructor(
                 val fileName = "integration_test_log_$timestamp.txt"
                 val file = File(context.getExternalFilesDir(null), fileName)
                 
-                file.writeText(testRunner.getTestLog())
+                // S1195: viewModelScope.launch defaults to Main.immediate, so the write has to be
+                // confined explicitly - the Toast below still needs the main thread.
+                withContext(Dispatchers.IO) { file.writeText(testRunner.getTestLog()) }
                 
                 Toast.makeText(context, "Log saved to ${file.absolutePath}", Toast.LENGTH_LONG).show()
                 Timber.d("Log saved to: ${file.absolutePath}")

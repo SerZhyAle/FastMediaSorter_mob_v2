@@ -15,12 +15,7 @@ appId: com.sza.fastmediasorter.debug
 - tapOn:
     text: "Локальные"
     index: 0
-- scrollUntilVisible:
-    element:
-      text: "Все изображения"
-    timeout: 10000
-- tapOn:
-    text: "Все изображения"
+- runFlow: ../../_shared/open_all_images.yaml
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"

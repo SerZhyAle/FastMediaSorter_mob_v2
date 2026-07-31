@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.VrLaunchInput
 import com.sza.fastmediasorter.core.xr.VrLaunchMode
 import com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
+import com.sza.fastmediasorter.core.xr.VrLaunchPlaylistFactory
 import com.sza.fastmediasorter.core.xr.VrLaunchPoint
 import com.sza.fastmediasorter.core.xr.VrLaunchResult
 import com.sza.fastmediasorter.core.xr.VrLaunchUnavailableReason
@@ -174,12 +175,19 @@ internal class PlayerVrLaunchManager(
             VrMediaType.VIDEO,
             VrMediaType.GIF -> currentFile.toLaunchUriString()
         }
+        // S1233: the ordered list the immersive HUD's PREV/NEXT walk - see VrLaunchPlaylistFactory.
+        val (playlist, playlistIndex) = VrLaunchPlaylistFactory.build(
+            files = viewModel.state.value.files,
+            current = currentFile,
+        )
         return com.sza.fastmediasorter.core.xr.StartVrPlaybackRequest(
             launchMode = VrLaunchMode.FILE_URI,
             fileUriString = fileUriString,
             mediaType = mediaType,
             source = source,
             snapshot = snapshot,
+            playlist = playlist,
+            playlistIndex = playlistIndex,
         )
     }
 

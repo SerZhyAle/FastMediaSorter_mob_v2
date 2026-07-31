@@ -198,6 +198,12 @@ Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSet
     fms::xr::xr_session_set_hud_quad_size(widthMeters, heightMeters, verticalOffsetMeters);
 }
 
+JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSetHudVisible(
+        JNIEnv* /*env*/, jobject /*thiz*/, jboolean visible) {
+    fms::xr::xr_session_set_hud_visible(visible == JNI_TRUE);
+}
+
 JNIEXPORT jboolean JNICALL
 Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeIsRunning(
         JNIEnv* /*env*/, jobject /*thiz*/) {
@@ -208,12 +214,6 @@ JNIEXPORT jboolean JNICALL
 Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeIsInitialized(
         JNIEnv* /*env*/, jobject /*thiz*/) {
     return fms::xr::xr_session_is_initialized() ? JNI_TRUE : JNI_FALSE;
-}
-
-JNIEXPORT void JNICALL
-Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_onNativeRayInteraction(
-        JNIEnv* /*env*/, jobject /*thiz*/, jfloat /*uvX*/, jfloat /*uvY*/, jboolean /*isHover*/, jboolean /*isClick*/) {
-    // validation grep target
 }
 
 JNIEXPORT void JNICALL

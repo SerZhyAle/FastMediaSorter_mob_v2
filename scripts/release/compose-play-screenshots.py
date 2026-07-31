@@ -2,8 +2,9 @@
 """Compose localized caption overlays onto raw store screenshots (S0497 Phase 03).
 
 For each locale folder in play/listing/ and each slot in play/listing/captions.json, load the raw
-shot temp/play-shots/<slot-id>.png, pad it onto a brand-color canvas constrained to a 2:1 aspect
-bound, draw the localized caption as a top band, and write the result to
+shot temp/play-shots/<locale>/<slot-id>.png (falling back to temp/play-shots/<slot-id>.png when the
+locale has no own capture), pad it onto a brand-color canvas constrained to a 2:1 aspect bound, draw
+the localized caption as a top band, and write the result to
 play/listing/<locale-folder>/images/phoneScreenshots/<NN>.png (NN ordered over present slots).
 
 Play asset constraints enforced: PNG output, each side in [320, 3840], aspect ratio <= 2:1.
@@ -44,6 +45,15 @@ def resolve_font(size):
             return ImageFont.truetype(path, size)
     raise FileNotFoundError(
         "No Cyrillic-capable TTF found. Tried: " + "; ".join(FONT_CANDIDATES))
+
+
+def resolve_shot(locale, slot_id):
+    """Locale-specific raw shot wins; the flat path stays as a shared fallback."""
+    for candidate in (os.path.join(SHOTS_DIR, locale, f"{slot_id}.png"),
+                      os.path.join(SHOTS_DIR, f"{slot_id}.png")):
+        if os.path.exists(candidate):
+            return candidate
+    return None
 
 
 def fit_to_aspect(img):
@@ -111,10 +121,9 @@ def main():
             if caption is None:
                 print(f"ERROR: {locale}/{slot_id}: missing caption")
                 sys.exit(1)
-            shot = os.path.join(SHOTS_DIR, f"{slot_id}.png")
-            if not os.path.exists(shot):
-                if locale == locales[0]:
-                    missing.append(slot_id)
+            shot = resolve_shot(locale, slot_id)
+            if shot is None:
+                missing.append(f"{locale}/{slot_id}")
                 continue
             index += 1
             with Image.open(shot) as raw:

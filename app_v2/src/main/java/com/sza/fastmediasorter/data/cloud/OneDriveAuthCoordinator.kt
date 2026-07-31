@@ -12,6 +12,7 @@ import com.microsoft.identity.client.SilentAuthenticationCallback
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException
 import com.microsoft.identity.client.exception.MsalException
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.network.applyTimeouts
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -407,6 +408,7 @@ class OneDriveAuthCoordinator(
         var connection: HttpURLConnection? = null
         try {
             connection = url.openConnection() as HttpURLConnection
+            connection.applyTimeouts()
             connection.requestMethod = method
             connection.setRequestProperty("Authorization", "Bearer $token")
             connection.setRequestProperty("Accept", "application/json")

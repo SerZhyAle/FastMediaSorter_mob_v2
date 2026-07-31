@@ -124,7 +124,8 @@ object SmbErrorClassifier {
     }
 
     /**
-     * Fast TCP pre-check before a full SMBJ connect.
+     * Fast TCP pre-check before a full SMBJ connect. Protocol-agnostic - SFTP and FTP callers
+     * (and the S1025 transfer pre-flight) reuse it, so the log line below must not name SMB.
      * @return `true` if the TCP socket connect to [host]:[port] succeeded within [timeoutMs];
      *   `false` if the host is unreachable / refused / timed out at the TCP layer.
      */
@@ -137,7 +138,9 @@ object SmbErrorClassifier {
         } catch (e: Exception) {
             // S1027: log the real cause (refused / no-route / timeout) instead of a fixed
             // "after Nms" text that misleads when the failure is an immediate active refusal.
-            Timber.w("SMB connectivity check failed to $host:$port: ${e.javaClass.simpleName}: ${e.message}")
+            // S1320: said "SMB connectivity check" for every protocol, which sent a log reader
+            // hunting an SMB defect while the failing destination was SFTP.
+            Timber.w("TCP connectivity check failed to $host:$port: ${e.javaClass.simpleName}: ${e.message}")
             false
         }
     }

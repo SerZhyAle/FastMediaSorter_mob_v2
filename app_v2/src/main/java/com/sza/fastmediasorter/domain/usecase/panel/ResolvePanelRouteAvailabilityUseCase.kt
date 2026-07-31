@@ -49,9 +49,10 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
         }
     }
 
-    // S0912: every route's availability lives in this one branch, so a future route cannot silently
+    // S0912: every route's availability lives in this one chain, so a future route cannot silently
     // drift into "insufficient": either it declares its own availableInBuild/enabledAtRuntime pair
-    // here, or the `else` below reports it unavailable - there is no second toggle to forget.
+    // here or in [resolveWidgetMirrorRoute], or the single default at the end of that chain reports it
+    // unavailable - there is no second toggle to forget.
     private fun resolve(routeKey: String, settings: AppSettings): Availability =
         when (routeKey) {
             // S1103: the quick-access panel exists in every launcher build and has no runtime toggle.
@@ -102,6 +103,37 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                     availableInBuild = mediaCapabilities.supportsVideo,
                     enabledAtRuntime = !settings.disableVideoCapture,
                 )
+            else -> resolveWidgetMirrorRoute(routeKey, settings)
+        }
+
+    /**
+     * S1170: the five routes that exist to mirror a home-screen widget's own tap destination.
+     *
+     * Split out of [resolve] only to stay under detekt's cyclomatic ceiling - the closed-set contract
+     * above is unchanged, because this function ends in the same "an unknown route is unavailable"
+     * default that [resolve] used to hold. Each gate is the one its widget provider already applies, so
+     * a desktop cell and the same widget on the Android home screen agree on when the destination is
+     * dead. Without these branches the default would swallow all five and every launcher gadget built on
+     * them would silently do nothing.
+     */
+    private fun resolveWidgetMirrorRoute(routeKey: String, settings: AppSettings): Availability =
+        when (routeKey) {
+            InternalRouteCatalog.KEY_CAMERA_PHOTOS ->
+                Availability(availableInBuild = mediaCapabilities.supportsImages, enabledAtRuntime = true)
+            // The camera-launch trampoline opens whichever of photo/video is live, so it is dead only when
+            // BOTH are - hence the disjunction rather than the images-only gate its siblings use.
+            InternalRouteCatalog.KEY_CAMERA_LAUNCH ->
+                Availability(
+                    availableInBuild = mediaCapabilities.supportsImages || mediaCapabilities.supportsVideo,
+                    enabledAtRuntime = (mediaCapabilities.supportsImages && !settings.disableCameraCapture) ||
+                        (mediaCapabilities.supportsVideo && !settings.disableVideoCapture),
+                )
+            InternalRouteCatalog.KEY_CONTINUE_READING ->
+                Availability(availableInBuild = true, enabledAtRuntime = true)
+            InternalRouteCatalog.KEY_RANDOM_MUSIC ->
+                Availability(availableInBuild = mediaCapabilities.supportsAudio, enabledAtRuntime = true)
+            InternalRouteCatalog.KEY_SCHEDULED_TASKS ->
+                Availability(availableInBuild = true, enabledAtRuntime = settings.enableScheduledOperations)
             else -> Availability(availableInBuild = false, enabledAtRuntime = false)
         }
 }

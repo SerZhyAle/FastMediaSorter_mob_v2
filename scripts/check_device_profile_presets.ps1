@@ -136,17 +136,44 @@ function Get-FilledCells($row) {
 # --- Value sanity: what each Settings screen actually accepts -------------------------------
 # Data-driven on purpose: a newly constrained field is one line here, not a new code path.
 $allowedValues = @{
-    'linkDownloadMaxResolution' = @('480p', '720p', '1080p', 'best')
-    'textReaderTheme'           = @('SYSTEM', 'LIGHT', 'DARK', 'SEPIA')
-    'pdfColorMode'              = @('NORMAL', 'NIGHT', 'SEPIA')
-    'colorTheme'                = @('AUTO', 'LIGHT', 'DARK', 'BLACK')
+    'linkDownloadMaxResolution'   = @('480p', '720p', '1080p', 'best')
+    'textReaderTheme'             = @('SYSTEM', 'LIGHT', 'DARK', 'SEPIA')
+    'pdfColorMode'                = @('NORMAL', 'NIGHT', 'SEPIA')
+    'colorTheme'                  = @('AUTO', 'LIGHT', 'DARK', 'BLACK')
+    'streamsDefaultSort'          = @('NAME', 'TOPIC', 'LANGUAGE', 'COUNTRY', 'RECENT')
+    'streamsDefaultMediaFilter'   = @('ALL', 'AUDIO', 'VIDEO')
+    'streamsCatalogRefreshPolicy' = @('MANUAL', 'ON_OPEN', 'PERIODIC_WIFI')
+    'streamsDefaultAudioLanguage' = @('DEFAULT', 'ENGLISH', 'RUSSIAN', 'UKRAINIAN')
+    'streamsDefaultSubtitleLanguage' = @('DEFAULT', 'ENGLISH', 'RUSSIAN', 'UKRAINIAN')
+    'launcherWallpaperMode'       = @('BRANDED', 'NONE', 'IMAGE')
+    # AppSettings.LAUNCHER_DENSITY_OPTIONS - the launcher settings row resolves the stored value by
+    # indexOf(), so an off-list factor leaves the row showing nothing.
+    'launcherDensityFactor'       = @('0.75', '1.0', '1.25', '1.5')
 }
 # Fields constrained by a rule rather than an enumeration. A value off the slider step is stored
 # but never displayed, so the screen silently falls back - the defect this rule exists to catch.
 $valueRules = @{
-    'defaultIconSize' = @{
+    'defaultIconSize'      = @{
         Description = 'must satisfy 32 + 8*N (icon-size slider step)'
         Test        = { param($v) ($v -match '^\d+$') -and ([int]$v -ge 32) -and ((([int]$v) - 32) % 8 -eq 0) }
+    }
+    # dialog_epub_reader_settings.xml: valueFrom 1.0, valueTo 3.0, stepSize 0.2. Material Slider
+    # rejects an off-step value outright, so the reader dialog would fail to open.
+    'epubLineHeight'       = @{
+        Description = 'must be 1.0..3.0 on the 0.2 slider step'
+        Test        = {
+            param($v)
+            if ($v -notmatch '^\d+(\.\d+)?$') { return $false }
+            $d = [double]$v
+            if ($d -lt 1.0 -or $d -gt 3.0) { return $false }
+            $steps = [math]::Round(($d - 1.0) / 0.2, 4)
+            return [math]::Abs($steps - [math]::Round($steps, 0)) -lt 0.0001
+        }
+    }
+    # dialog_epub_reader_settings.xml: valueFrom 0, valueTo 48, stepSize 4.
+    'epubHorizontalMargin' = @{
+        Description = 'must be 0..48 on the 4 px slider step'
+        Test        = { param($v) ($v -match '^\d+$') -and ([int]$v -le 48) -and ((([int]$v) % 4) -eq 0) }
     }
 }
 

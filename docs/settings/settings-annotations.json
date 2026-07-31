@@ -299,6 +299,11 @@
     "ru": "Открывает выбор виджетов для добавления виджета приложения на домашний экран.",
     "uk": "Відкриває вибір віджетів для додавання віджету застосунку на головний екран."
   },
+  "buttonAddLauncherWidget": {
+    "en": "Launches the same widget picker, but puts the chosen widget on the launcher's own desktop instead of the Android home screen. Shown only while launcher mode is on.",
+    "ru": "Открывает тот же список виджетов, но кладёт выбранный на собственный рабочий стол лаунчера, а не на домашний экран Android. Видна только при включённом режиме лаунчера.",
+    "uk": "Відкриває той самий список віджетів, але кладе вибраний на власний робочий стіл лаунчера, а не на домашній екран Android. Показується лише за увімкненого режиму лаунчера."
+  },
   "etIconSize": {
     "en": "Sets the thumbnail icon size in pixels for grid view.",
     "ru": "Задаёт размер иконок-миниатюр в пикселях для режима отображения сеткой.",
@@ -719,6 +724,11 @@
     "ru": "Не даёт экрану отключаться во время работы медиаплеера.",
     "uk": "Не дає екрану вимкнутися під час роботи медіаплеєра."
   },
+  "rowLanguage": {
+    "en": "Selects the language used for the app interface.",
+    "ru": "Выбирает язык интерфейса приложения.",
+    "uk": "Вибирає мову інтерфейсу застосунку."
+  },
   "rowLauncherModeEnabled": {
     "en": "Makes the app the device home screen, so the Home button opens your own desktop.",
     "ru": "Делает приложение домашним экраном устройства - кнопка «Домой» открывает ваш рабочий стол.",
@@ -1013,11 +1023,6 @@
     "en": "Selects the color theme applied across the app interface.",
     "ru": "Выбирает цветовую тему интерфейса приложения.",
     "uk": "Вибирає колірну тему інтерфейсу застосунку."
-  },
-  "rowLanguage": {
-    "en": "Selects the language used for the app interface.",
-    "ru": "Выбирает язык интерфейса приложения.",
-    "uk": "Вибирає мову інтерфейсу застосунку."
   },
   "spinnerSortMode": {
     "en": "Sets the default order in which files are sorted when a folder opens.",

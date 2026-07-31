@@ -55,10 +55,9 @@ class BrowseFileListMutationManager(
 
         val resource = stateFlow.value.resource
         if (resource?.rememberFileList == true) {
+            // S1307: one decompress/recompress for the whole batch instead of one per path.
             scope.launch(ioDispatcher) {
-                pathsSet.forEach { path ->
-                    cachedFileListRepository.deleteFile(resource.id, path)
-                }
+                cachedFileListRepository.deleteFiles(resource.id, pathsSet)
             }
         }
 
@@ -120,9 +119,7 @@ class BrowseFileListMutationManager(
             val resource = stateFlow.value.resource
             if (resource?.rememberFileList == true) {
                 scope.launch(ioDispatcher) {
-                    paths.forEach { path ->
-                        cachedFileListRepository.deleteFile(resource.id, path)
-                    }
+                    cachedFileListRepository.deleteFiles(resource.id, paths)
                 }
             }
         }

@@ -1,10 +1,14 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
+import android.Manifest
 import android.app.ActivityManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -16,18 +20,20 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
-import com.sza.fastmediasorter.ui.dialog.DestinationPickerDialog
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensSelectionReporter
 import com.sza.fastmediasorter.ui.common.support.SupportDestination
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
+import com.sza.fastmediasorter.ui.dialog.DestinationPickerDialog
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.math.roundToInt
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 
 class GeneralSettingsLogHelper(
     private val binding: FragmentSettingsGeneralBinding,
@@ -59,7 +65,12 @@ class GeneralSettingsLogHelper(
 
     fun showSystemInfoDialog() {
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            val report = withContext(Dispatchers.IO) { gatherSystemInfoUseCase() }
+            // S1261: the app-side camera view is composed here (UI layer) because it needs the
+            // CameraX provider and a ui/cameracapture helper - the domain use case only renders it.
+            val appContext = fragment.requireContext().applicationContext
+            val report = withContext(Dispatchers.IO) {
+                gatherSystemInfoUseCase(buildCameraAppView(appContext))
+            }
             if (!fragment.isAdded || fragment.view == null) return@launch
             val title = fragment.getString(R.string.settings_system_info_title)
             val context = fragment.requireContext()
@@ -80,6 +91,25 @@ class GeneralSettingsLogHelper(
                     null
                 }
             )
+        }
+    }
+
+    /**
+     * S1261: what the capture screen derived from the platform camera tree, or why it could not.
+     * Values stay technical-English on purpose - the section is pasted back verbatim in reports.
+     * Never throws and never hangs: CameraX init gets a bounded wait and degrades to an error line.
+     */
+    private fun buildCameraAppView(context: Context): List<String> {
+        val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+        if (!granted) return listOf("camera permission not granted")
+        return runCatching {
+            val provider = ProcessCameraProvider.getInstance(context)
+                .get(CAMERA_APP_VIEW_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            CameraLensSelectionReporter().report(provider)
+        }.getOrElse { error ->
+            Timber.w(error, "System info: camera app view unavailable")
+            listOf("unavailable: ${error.javaClass.simpleName}")
         }
     }
 
@@ -288,5 +318,10 @@ class GeneralSettingsLogHelper(
         val stamp = SimpleDateFormat("yy-MM-dd_HH-mm-ss", Locale.US).format(Date())
         val prefix = if (fullLog) "app_log" else "session_log"
         return "${prefix}_$stamp.txt"
+    }
+
+    private companion object {
+        /** S1261: bounded wait for CameraX init on the report path - degrade, never hang the dialog. */
+        const val CAMERA_APP_VIEW_TIMEOUT_SECONDS = 3L
     }
 }

@@ -66,7 +66,7 @@ data class BackupSettings(
     val imageSizeMin: Long = 1024L,
     val imageSizeMax: Long = 10485760L,
     val loadFullSizeImages: Boolean = true,
-    val cropImagesToFullscreen: Boolean = true,
+    val cropImagesToFullscreen: Boolean = false,
     val supportGifs: Boolean = true,
     val supportVideos: Boolean = true,
     val videoSizeMin: Long = 1048576L,

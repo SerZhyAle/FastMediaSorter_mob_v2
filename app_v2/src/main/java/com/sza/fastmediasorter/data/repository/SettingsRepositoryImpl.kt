@@ -347,7 +347,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     imageSizeMin = mediaSize.imageSizeMin,
                     imageSizeMax = mediaSize.imageSizeMax,
                     loadFullSizeImages = preferences[KEY_LOAD_FULL_SIZE_IMAGES] ?: true,
-                    cropImagesToFullscreen = preferences[KEY_CROP_IMAGES_TO_FULLSCREEN] ?: true,
+                    cropImagesToFullscreen = preferences[KEY_CROP_IMAGES_TO_FULLSCREEN] ?: false,
                     supportGifs = preferences[KEY_SUPPORT_GIFS] ?: true,
                     supportVideos = preferences[KEY_SUPPORT_VIDEOS] ?: true,
                     videoSizeMin = mediaSize.videoSizeMin,

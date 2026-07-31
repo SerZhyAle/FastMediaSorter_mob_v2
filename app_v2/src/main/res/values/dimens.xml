@@ -50,6 +50,9 @@
     <dimen name="margin_minimal">2dp</dimen>
     <dimen name="stroke_width_normal">2dp</dimen>
     <dimen name="margin_medium">12dp</dimen>
+    <!-- S1173: default contour width for OutlinedTextView/OutlinedImageView. Sized for large overlay
+         labels; small captions must override it or the contour swallows the glyph. -->
+    <dimen name="outline_text_stroke_width">2dp</dimen>
 
     <!-- UI Elements -->
     <dimen name="button_height">48dp</dimen>
@@ -99,6 +102,8 @@
     <dimen name="welcome_feature_card_padding">12dp</dimen>
     <dimen name="welcome_feature_card_margin">6dp</dimen>
     <dimen name="welcome_content_max_width">600dp</dimen>
+    <!-- S1234: corner of the translucent panel that carries the welcome copy over the brand animation -->
+    <dimen name="welcome_content_panel_corner">16dp</dimen>
     <!-- Wider cap for the landscape two-column functionality page (S0400) so both toggle columns breathe -->
     <dimen name="welcome_functionality_max_width_land">920dp</dimen>
     <!-- Gutter between the two toggle columns on the landscape functionality page -->
@@ -192,6 +197,10 @@
     <dimen name="player_close_button_margin">8dp</dimen>
     <dimen name="player_pdf_button_size">44dp</dimen>
     <dimen name="player_pdf_button_margin">4dp</dimen>
+    <!-- S1275: the PDF/EPUB "to begin" button sits next to the page-back arrow, and losing your
+         place in a 240-page document is not undoable. Its own gap so the cheap neighbour can be
+         mis-tapped without hitting it, without moving every other control in the row. -->
+    <dimen name="player_reader_home_gap">16dp</dimen>
     <dimen name="player_pdf_controls_padding_vertical">8dp</dimen>
     <dimen name="player_pdf_controls_padding_horizontal">2dp</dimen>
     <dimen name="player_text_viewer_padding">16dp</dimen>

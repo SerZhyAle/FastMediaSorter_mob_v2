@@ -20,6 +20,8 @@ How to device-test the screen-capture / edge-gesture family (S0672 strip, S0724 
 - The TYPE_APPLICATION_OVERLAY edge strip is FLAG_NOT_FOCUSABLE; `adb input swipe` does not reach it, so swipe -> capture can't be driven on emulator.
 - Net: emulator verifies the QS-tile path + the shared capture engine + build contents + (static) the FGS-start guard; the overlay-strip enable/recolour/swipe need a real Android-15 device.
 
+**screencap dies while the display is rotated (2026-07-28, sdk_gphone64_x86_64 API 33):** with `user_rotation=1` every capture path returns a zero-byte file and `screencap -p` prints its usage text - `adb.ps1 shot`, `exec-out screencap`, and screencap-to-file alike. At rotation 0 the same AVD needs an explicit `-d <id>` from `dumpsys SurfaceFlinger --display-id` (`adb.ps1 shot` now falls back to that automatically). Net: **never rotate the AVD to test landscape - reshape the display instead** (`wm size 2400x1080`, or `wm size 1024x600` + `wm density 160` for an in-car head unit), which keeps rotation 0 and capture alive while still selecting the landscape/w600dp resource bucket.
+
 **Display-aspect tricks (reused for S0670/S0693):** `adb shell wm size WxH; wm density N` then relaunch to fake a tall phone (1080x2400@400 ~ 432dp) or a narrow phone (<600dp) without booting another AVD - the current sdk_gphone AVD is near-square (~852dp wide), so it already triggers wide-layout paths. Reset with `wm size reset; wm density reset`.
 
 Related: [[project_play_release_in_review]], [[project_screencapture_nolegal_only]], [[reference_emulator_mediaprojection_capture]], [[feedback_bottomsheet_menu_untappable_emulator]].

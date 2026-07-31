@@ -206,7 +206,10 @@ class SmbConnectionManager @Inject constructor(
         }
     }
 
-    /** Get or create medium-tier SMB client (transaction timeout = 10 s). Used for connections where speed test confirmed 10-100 Mbps. */
+    /**
+     * Get or create medium-tier SMB client (transaction timeout = 10 s).
+     * Used for connections where the speed test confirmed 10-100 Mbps.
+     */
     private fun getMediumClient(): SMBClient {
         return mediumClient ?: synchronized(this) {
             mediumClient ?: SMBClient(mediumConfig).also { mediumClient = it }
@@ -415,7 +418,10 @@ class SmbConnectionManager @Inject constructor(
         val pwdLen = connectionInfo.password.length
         Timber.d("SMB Auth: user='${connectionInfo.username}', hasDomain=${!finalDomain.isNullOrBlank()}, pwdLen=$pwdLen")
         if (connectionInfo.username.isNotEmpty() && pwdLen == 0) {
-            Timber.e("SMB Auth: password is EMPTY for non-anonymous user '${connectionInfo.username}' - possible Keystore decryption failure")
+            Timber.e(
+                "SMB Auth: password EMPTY for non-anonymous user '%s' - possible Keystore decrypt failure",
+                connectionInfo.username
+            )
         }
 
         val authContext = if (connectionInfo.username.isEmpty()) {
@@ -931,6 +937,26 @@ class SmbConnectionManager @Inject constructor(
             }
         }
         throw IOException("Failed to connect to SMB: ${lastException?.message}", lastException)
+    }
+
+    /**
+     * S1295: refresh the idle timer of a transport that is actively feeding ExoPlayer.
+     *
+     * A PLAYER pool entry keeps usageCount at 0 and playback streams for minutes without
+     * re-entering this manager, so the 30 s idle timeout used to close share/session/connection
+     * under the running player - the next read hit "DiskShare has already been closed" and
+     * reconnected, repeating for the whole film. Mirrors SftpClient.touchPlaybackTransport:
+     * the DataSource beats the timer while bytes keep flowing.
+     */
+    fun touchPlaybackTransport(connectionInfo: SmbConnectionInfo) {
+        val key = ConnectionKey(
+            server = connectionInfo.server,
+            port = connectionInfo.port,
+            shareName = connectionInfo.shareName,
+            username = connectionInfo.username,
+            domain = connectionInfo.domain
+        )
+        idleDisconnectPolicy.touch(transportKey(key))
     }
 
     /** Handle network reconnection (e.g., WiFi reconnect with new IP). Invalidates all pooled connections as they may be broken. */

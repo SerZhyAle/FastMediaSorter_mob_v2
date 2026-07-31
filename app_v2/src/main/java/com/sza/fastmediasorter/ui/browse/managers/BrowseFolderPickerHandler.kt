@@ -5,12 +5,14 @@ import android.net.Uri
 import android.widget.Toast
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
+import com.sza.fastmediasorter.data.transfer.DirectoryOperationRefusal
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.browse.helpers.refusalMessageRes
 import com.sza.fastmediasorter.utils.SafHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -152,29 +154,41 @@ class BrowseFolderPickerHandler(
         )
 
         if (op.dirItems.isNotEmpty()) {
-            coroutineScope.launch {
-                var dirSucceeded = 0
-                var dirFailed = 0
-                for (dir in op.dirItems) {
-                    val result = when (op.operationType) {
-                        FileOperationType.COPY -> unifiedFileOperationHandler.executeCopyDirectory(dir.path, destinationPath)
-                        FileOperationType.MOVE -> unifiedFileOperationHandler.executeMoveDirectory(dir.path, destinationPath)
-                        else -> Result.failure(IllegalArgumentException("Unsupported dir op: ${op.operationType}"))
-                    }
-                    result.onSuccess { dirSucceeded++ }
-                        .onFailure { e ->
-                            Timber.e(e, "folderPickerLauncher: dir op failed for ${dir.path}")
-                            dirFailed++
-                        }
-                }
-                if (dirFailed > 0) {
-                    Toast.makeText(
-                        activity,
-                        activity.getString(R.string.error_some_operations_failed, dirFailed, dirSucceeded + dirFailed),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+            coroutineScope.launch { transferPickedDirectories(op, destinationPath) }
+        }
+    }
+
+    /**
+     * S1325: the folder half of a picked-destination operation. Extracted from [onFolderPicked] so
+     * that method keeps one job - resolving the destination - and this one owns the outcome message.
+     */
+    private suspend fun transferPickedDirectories(op: PendingFolderPickerOp, destinationPath: String) {
+        var dirSucceeded = 0
+        var dirFailed = 0
+        var refusal: DirectoryOperationRefusal? = null
+        for (dir in op.dirItems) {
+            val result = when (op.operationType) {
+                FileOperationType.COPY -> unifiedFileOperationHandler.executeCopyDirectory(dir.path, destinationPath)
+                FileOperationType.MOVE -> unifiedFileOperationHandler.executeMoveDirectory(dir.path, destinationPath)
+                else -> Result.failure(IllegalArgumentException("Unsupported dir op: ${op.operationType}"))
             }
+            result.onSuccess { dirSucceeded++ }
+                .onFailure { e ->
+                    Timber.e(e, "folderPickerLauncher: dir op failed for ${dir.path}")
+                    dirFailed++
+                    if (refusal == null && e is DirectoryOperationRefusal) refusal = e
+                }
+        }
+        // A destination the tree layer cannot address is a different fact from "some operations
+        // failed" - the user has to choose another destination, not retry the same one.
+        val refusalMessage = refusal?.let { activity.getString(refusalMessageRes(it.reason)) }
+        when {
+            refusalMessage != null -> Toast.makeText(activity, refusalMessage, Toast.LENGTH_LONG).show()
+            dirFailed > 0 -> Toast.makeText(
+                activity,
+                activity.getString(R.string.error_some_operations_failed, dirFailed, dirSucceeded + dirFailed),
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 }

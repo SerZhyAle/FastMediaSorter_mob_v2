@@ -4,13 +4,12 @@ import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
-import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -38,7 +37,12 @@ class BrowseLoadingManager(
      */
     interface LoadingCallbacks {
         suspend fun updateLoadingProgress(progress: Int)
-        suspend fun updateState(mediaFiles: List<MediaFile>, loadingProgress: Int, totalFileCount: Int, isScanCancellable: Boolean)
+        suspend fun updateState(
+            mediaFiles: List<MediaFile>,
+            loadingProgress: Int,
+            totalFileCount: Int,
+            isScanCancellable: Boolean
+        )
         fun setLoading(loading: Boolean)
         suspend fun handleLoadingError(resource: MediaResource, error: Throwable)
         suspend fun updateResourceMetadata(resource: MediaResource, fileCount: Int, subfolderCount: Int)
@@ -55,7 +59,6 @@ class BrowseLoadingManager(
      * @param sortMode Current sort mode for file ordering
      * @param sizeFilter Size filters for different media types
      * @param shouldStopScan Flag to gracefully stop scanning
-     * @param progressJob Job to cancel when loading completes
      * @param showHiddenFiles Whether to show hidden files
      * @param currentPath Current subfolder path (null for root)
      * @param isSubfolderMode Whether subfolder navigation mode is active
@@ -66,7 +69,6 @@ class BrowseLoadingManager(
         sortMode: SortMode,
         sizeFilter: SizeFilter,
         shouldStopScan: AtomicBoolean,
-        progressJob: Job?,
         showHiddenFiles: Boolean,
         currentPath: String? = null,
         isSubfolderMode: Boolean = false,
@@ -141,7 +143,6 @@ class BrowseLoadingManager(
         )
             .catch { e ->
                 Timber.e(e, "BrowseLoadingManager: ERROR in flow - Exception (after ${System.currentTimeMillis() - flowStartTime}ms)")
-                progressJob?.cancel()
                 callbacks.setLoading(false)
                 callbacks.handleLoadingError(resource, e)
             }
@@ -153,7 +154,12 @@ class BrowseLoadingManager(
                 // Show every intermediate emission immediately so the user sees
                 // files as soon as possible. Final post-processing (favorites,
                 // caching, metadata update) happens after the flow completes.
-                callbacks.updateState(files, loadingProgress = files.size, totalFileCount = files.size, isScanCancellable = true)
+                callbacks.updateState(
+                    files,
+                    loadingProgress = files.size,
+                    totalFileCount = files.size,
+                    isScanCancellable = true
+                )
                 callbacks.updateLoadingProgress(files.size)
             }
         
@@ -163,8 +169,12 @@ class BrowseLoadingManager(
         Timber.d("BrowseLoadingManager: Flow COMPLETE after ${totalElapsed}ms - final batch: ${files.size} files")
         
         if (files.isEmpty()) {
-            callbacks.updateState(emptyList(), loadingProgress = 0, totalFileCount = 0, isScanCancellable = false)
-            progressJob?.cancel()
+            callbacks.updateState(
+                emptyList(),
+                loadingProgress = 0,
+                totalFileCount = 0,
+                isScanCancellable = false
+            )
             callbacks.setLoading(false)
             return
         }
@@ -205,22 +215,35 @@ class BrowseLoadingManager(
             Timber.d(
                 "BrowseLoadingManager: Single-phase render (latency=${favoritesLookupDuration}ms, files=${finalFiles.size})"
             )
-            callbacks.updateState(finalFiles, loadingProgress = 0, totalFileCount = finalFiles.size, isScanCancellable = false)
-            progressJob?.cancel()
+            callbacks.updateState(
+                finalFiles,
+                loadingProgress = 0,
+                totalFileCount = finalFiles.size,
+                isScanCancellable = false
+            )
             callbacks.setLoading(false)
             MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
         } else {
             Timber.d(
                 "BrowseLoadingManager: Batch favorites latency ${favoritesLookupDuration}ms exceeds target, two-phase fallback"
             )
-            callbacks.updateState(sortedFiles, loadingProgress = 0, totalFileCount = sortedFiles.size, isScanCancellable = false)
-            progressJob?.cancel()
+            callbacks.updateState(
+                sortedFiles,
+                loadingProgress = 0,
+                totalFileCount = sortedFiles.size,
+                isScanCancellable = false
+            )
             callbacks.setLoading(false)
 
             viewModelScope.launch(ioDispatcher) {
                 MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
                 if (hasFavoriteFlags) {
-                    callbacks.updateState(finalFiles, loadingProgress = 0, totalFileCount = finalFiles.size, isScanCancellable = false)
+                    callbacks.updateState(
+                        finalFiles,
+                        loadingProgress = 0,
+                        totalFileCount = finalFiles.size,
+                        isScanCancellable = false
+                    )
                 }
             }
         }

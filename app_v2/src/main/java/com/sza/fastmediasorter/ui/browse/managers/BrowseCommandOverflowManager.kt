@@ -118,6 +118,9 @@ class BrowseCommandOverflowManager(
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         )
         val measured = view.measuredWidth + margins
+        // S1258: the probe poisons measuredHeight (TextView centers text against it while icons
+        // use the real height). Dirty the view so the next real layout pass re-measures it.
+        view.forceLayout()
         if (measured > 0) widthCache[view.id] = measured
         return measured
     }

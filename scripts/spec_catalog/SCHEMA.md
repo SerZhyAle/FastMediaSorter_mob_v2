@@ -109,6 +109,27 @@ All fields below are optional. Absence in any record - old or new - is valid and
 - Backward compatible: if the archive journal is absent, behaviour is identical to a single-journal catalog.
 - One-time migration: `migrate-archive-split.ps1` relocates pre-existing `Archived` records (idempotent).
 
+## Release plan (`PLAN/RELEASE_QUEUE.md` + `PLAN/RELEASE_READY.md`)
+
+The catalog knows a ticket's **status**; it cannot know the owner's **intent** - which release package a ticket belongs to and in what order the work should happen. That lives in two companion plain-text files the owner edits by hand.
+
+The split is by one question: *is there work left on this ticket?*
+
+- **`RELEASE_QUEUE.md`** - work remaining, the sorting surface. Every status below `Implemented`, including `BlockByOtherTask`, `BlockQuestions` and `BlockExternal`: blocked work still has to be planned around, so the owner wants it visible.
+- **`RELEASE_READY.md`** - the release's finished content. `Implemented`, `Verified`, and `BlockNeedUserTest`. That last one is deliberate: some flows are very hard to verify and may sit unchecked for months; the owner treats them as shipped rather than as pending work. If one later proves broken it is simply reopened and rides the next package.
+
+Shared mechanics:
+
+- Line shape: `rel  ticket  changed  status`. `rel` = release package number (matches the `DEBUG-v0NN` branch), `--` = not scheduled. `ticket` = the spec file name without its extension. `changed` = the date the STATUS last moved, not the date the spec text was edited.
+- Selection authority: the queue also decides **what gets worked on next**. `spec-next-preflight.ps1` and `release-plan.ps1` rank by release package ascending, then the owner's line order inside the package, then the ready side (`Implemented` rows in `RELEASE_READY.md`, finished content awaiting its audit), then `--` parked lines, then anything in neither file. Catalog `priority` is a tiebreak for unlisted tickets only. With no queue file present the ranking degrades to the old priority order, so a fresh checkout still works.
+- Ownership split: the catalog owns `status`, these files own `rel` and line order. **A script may add a ticket, refresh its status/date, move a line to the sibling file, or drop one that left the active journal - it must never reorder lines or rewrite `rel`.** A ticket keeps its package when it crosses between files.
+- Reconciliation is automatic: `Write-Catalog` calls `Sync-ReleaseQueue`, so every mutation path (insert / update / complete / archive / delete / bulk-update) keeps both files current without any skill knowing they exist. Crossing the ready boundary moves the line - in either direction, so a failed device test or a reopened bug lands back in the queue. `$env:FMS_SKIP_RELEASE_QUEUE` disables the hook (tests, alternate-catalog runs); a missing queue file is a no-op, never an error.
+- A ready ticket present in neither file is never auto-added: it shipped in an earlier package.
+- A new ticket is unfinished by definition, so it lands in the queue, at the end of the block named by the `current-next-release:` marker (falling back to the `DEBUG-v0NN` branch name, then `--`).
+- Operator CLI: `release-queue.ps1 -Reconcile | -Validate | -List [-Ready] [-Release N] | -SetCurrent N | -Ship -Release N [-Version X] [-DryRun]`.
+- Shipping: `-Ship` moves the READY block for that package to `PLAN/RELEASE_QUEUE_DONE.md` (newest first) and advances the marker. Unfinished queue lines still assigned to that package are reported, never shipped and never auto-moved - re-sorting them is the owner's call. `/skill-release` Step 12c runs the ship **before** the archive sweep: archiving first flips records to `Archived`, which drops those lines and loses the record of what shipped.
+- All three files live under gitignored `PLAN/`, like the journal itself: working artifacts of this checkout, not tracked documents.
+
 ## Why JSONL
 
 - Append-friendly; one record = one line.

@@ -23,6 +23,22 @@ enum class VrMediaType : Serializable {
     GIF,
 }
 
+/**
+ * S1233: one navigable item of the ordered list handed to the immersive host.
+ *
+ * The type travels with the entry instead of being sniffed from the extension, because the caller
+ * reads it off the domain model and the host would otherwise have to guess - its current guess
+ * (`extension in {jpg,jpeg,png}`, everything else to ExoPlayer) is wrong for webp/heic.
+ */
+data class VrPlaylistEntry(
+    val fileUriString: String,
+    val mediaType: VrMediaType,
+) : Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1L
+    }
+}
+
 enum class VrLaunchPoint : Serializable {
     PLAYER_BADGE,
     OVERFLOW_MENU,
@@ -80,6 +96,10 @@ data class StartVrPlaybackRequest(
     val snapshot: PlayerStateSnapshot? = null,
     val deliveryMode: VrLaunchDeliveryMode = VrLaunchDeliveryMode.ACTIVITY_RESULT,
     val resourceId: Long? = null,
+    // S1233: the surrounding ordered list, so the HUD's PREV/NEXT have somewhere to go. Empty means
+    // "navigate nothing" and the host falls back to the single fileUriString.
+    val playlist: List<VrPlaylistEntry> = emptyList(),
+    val playlistIndex: Int = -1,
 ) : Serializable {
 
     companion object {
@@ -116,6 +136,9 @@ data class VrLaunchInput(
     val deliveryMode: VrLaunchDeliveryMode = VrLaunchDeliveryMode.ACTIVITY_RESULT,
     val snapshot: PlayerStateSnapshot? = null,
     val resourceId: Long? = null,
+    // S1233: see StartVrPlaybackRequest.playlist - carried through unchanged.
+    val playlist: List<VrPlaylistEntry> = emptyList(),
+    val playlistIndex: Int = -1,
 ) : Serializable {
 
     fun requireFileUriString(): String = requireNotNull(fileUriString) {
@@ -144,6 +167,8 @@ data class VrLaunchInput(
             deliveryMode = request.deliveryMode,
             snapshot = request.snapshot,
             resourceId = request.resourceId,
+            playlist = request.playlist,
+            playlistIndex = request.playlistIndex,
         )
     }
 }

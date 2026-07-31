@@ -38,7 +38,7 @@ So I built FastMediaSorter over the last two years - an app where SMB/NAS is a f
 - No DLNA
 - Equalizer is system-level only
 
-**Platform requirements:** Android 8.0+ (most flavors), Android 6.0+ (Legacy flavor, same features minus cloud)
+**Platform requirements:** Android 8.0+ (most flavors), Android 6.0+ (Legacy flavor, same feature set including cloud and network shares)
 
 **Links:**
 - Google Play: https://play.google.com/store/apps/details?id=com.sza.fastmediasorter

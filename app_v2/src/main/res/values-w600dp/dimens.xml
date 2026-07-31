@@ -1,32 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!--  Landscape-specific dimensions for better use of horizontal space -->
+    <!-- Available width >= 600dp. This is NOT a landscape qualifier: it also matches a tablet
+         or an unfolded foldable held in portrait, which is why the keys below reach portrait
+         devices the values-land file never touched. S1282 removed the eleven keys that a
+         smallestWidth bucket always outranked; the fate of the remaining thirteen is the open
+         question in strategic §6.1. -->
 
-    <!-- Slightly reduce vertical padding/margins to maximize content area -->
-    <dimen name="empty_state_padding">24dp</dimen>
-    <dimen name="dialog_padding_large">20dp</dimen>
-
-    <!-- Player controls - more compact vertically in landscape -->
-    <dimen name="player_controls_padding">6dp</dimen>
+    <!-- Player controls - more compact vertically -->
     <dimen name="player_cmd_padding_vertical">0dp</dimen>
     <dimen name="player_cmd_padding_top">24dp</dimen>
-
-    <!-- Item layouts - reduce vertical padding -->
-    <dimen name="item_padding_vertical">8dp</dimen>
-
-    <!-- Welcome screen landscape - compact sizes so all content fits vertically -->
-    <dimen name="padding_xxlarge">16dp</dimen>
-    <dimen name="welcome_page_padding">16dp</dimen>
-    <dimen name="welcome_icon_size">31dp</dimen>
-    <dimen name="welcome_icon_margin_top">4dp</dimen>
-    <dimen name="welcome_title_margin_top">6dp</dimen>
-    <dimen name="welcome_title_text_size">20sp</dimen>
-    <dimen name="welcome_description_margin_top">4dp</dimen>
 
     <!-- Dialogs -->
     <dimen name="dialog_file_info_min_width">560dp</dimen>
 
-    <!-- Settings landscape compaction -->
+    <!-- Settings compaction -->
     <dimen name="settings_fragment_padding">2dp</dimen>
     <dimen name="settings_item_min_height">32dp</dimen>
     <dimen name="settings_item_margin_bottom">1dp</dimen>

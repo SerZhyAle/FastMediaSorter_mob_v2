@@ -104,6 +104,7 @@ class PdfTextSelectionManager(
         val progressLayout = view.findViewById<LinearLayout>(R.id.pdfTextExtractionProgress)
         val scrollView   = view.findViewById<ScrollView>(R.id.pdfTextSelectionScrollView)
         val tvText       = view.findViewById<TextView>(R.id.tvPdfSelectableText)
+        val tvNotice     = view.findViewById<TextView>(R.id.tvPdfSelectionNotice)
         val btnClose     = view.findViewById<View>(R.id.btnClosePdfTextSelection)
 
         progressLayout.isVisible = true
@@ -112,9 +113,10 @@ class PdfTextSelectionManager(
         btnClose.setOnClickListener { exitTextSelectionMode() }
 
         coroutineScope.launch(Dispatchers.Main) {
-            val pageText = withContext(Dispatchers.IO) {
+            val page = withContext(Dispatchers.IO) {
                 extractPageText(pageIndex, currentBitmap, pdfRenderer)
             }
+            val pageText = page.text
 
             progressLayout.isVisible = false
 
@@ -149,9 +151,16 @@ class PdfTextSelectionManager(
                     onReadAloud    = onReadAloud
                 )
 
-                // Pre-select the word under the long-press point (approximate, OCR word boxes).
+                // Pre-select the text under the long-press point. Exact on the native path (S1276),
+                // approximate on the OCR one.
                 if (selectionViewPoint != null && currentBitmap != null) {
-                    preselectWordAt(selectionViewPoint, currentBitmap, tvText, pageText)
+                    val selected =
+                        preselectWordAt(selectionViewPoint, currentBitmap, tvText, pageText, page.nativeLayout)
+                    // S1276: a silent overlay with nothing selected reads as the gesture being ignored.
+                    if (!selected) {
+                        tvNotice.setText(R.string.pdf_text_selection_word_not_found)
+                        tvNotice.isVisible = true
+                    }
                 }
             }
 
@@ -160,30 +169,56 @@ class PdfTextSelectionManager(
     }
 
     /**
-     * Map the long-press [viewPoint] (PhotoView view coordinates) to a word in [pageText] and
-     * select it in [tvText] so native handles + floating Copy appear on it. No-op when the word
-     * cannot be resolved (the overlay simply opens without a pre-selection).
+     * Map the long-press [viewPoint] (PhotoView view coordinates) onto [pageText] and select that
+     * text in [tvText] so the native handles and the floating Copy appear on it. Returns false when
+     * nothing could be resolved, so the caller can say so instead of opening a blank-looking overlay.
      */
     private suspend fun preselectWordAt(
         viewPoint: PointF,
         bitmap: Bitmap,
         tvText: TextView,
-        pageText: String
-    ) {
+        pageText: String,
+        nativeLayout: PdfNativeTextLayout?
+    ): Boolean {
+        val range = resolveSelectionRange(viewPoint, bitmap, pageText, nativeLayout) ?: return false
+        return applySelection(tvText, range)
+    }
+
+    private suspend fun resolveSelectionRange(
+        viewPoint: PointF,
+        bitmap: Bitmap,
+        pageText: String,
+        nativeLayout: PdfNativeTextLayout?
+    ): IntRange? {
         val bitmapPoint = PdfSelectionCoordinateMapper.viewToBitmap(
             safeViews.photoView, viewPoint.x, viewPoint.y
-        ) ?: return
+        ) ?: return null
+        // S1276: with a native layout the geometry is already in hand, so this branch runs no OCR -
+        // that second full-page pass was the wait between the long-press and the handles. OCR stays
+        // for API < 35 and for scanned pages, which have no text layer to read at any API level.
+        val nativeRange = nativeLayout?.charRangeForPoint(bitmapPoint.x, bitmapPoint.y)
+        val range = nativeRange ?: ocrCharRange(bitmapPoint, bitmap, pageText)
+        val words = nativeLayout?.items?.size ?: -1
+        Timber.d("S1276: resolved native=${nativeRange != null} words=$words range=${range?.first}-${range?.last}")
+        return range
+    }
+
+    private suspend fun ocrCharRange(point: PointF, bitmap: Bitmap, pageText: String): IntRange? {
         val words = withContext(Dispatchers.IO) {
             translationManager.recognizeTextBlocksForSelection(bitmap)
-        } ?: return
-        val range = PdfSelectionCoordinateMapper.charRangeForPoint(bitmapPoint, words, pageText)
-            ?: return
-        val spannable = tvText.text as? Spannable ?: return
+        } ?: return null
+        return PdfSelectionCoordinateMapper.charRangeForPoint(point, words, pageText)
+    }
+
+    private fun applySelection(tvText: TextView, range: IntRange): Boolean {
+        val spannable = tvText.text as? Spannable ?: return false
         val end = range.last + 1
-        if (range.first in 0..spannable.length && end in range.first..spannable.length) {
+        val valid = range.first in 0..spannable.length && end in range.first..spannable.length
+        if (valid) {
             Selection.setSelection(spannable, range.first, end)
             tvText.requestFocus()
         }
+        return valid
     }
 
     /** Hide the text selection overlay and reset state. */
@@ -206,36 +241,60 @@ class PdfTextSelectionManager(
         pageIndex: Int,
         bitmap: Bitmap?,
         pdfRenderer: PdfRenderer?
-    ): String = extractPageText(pageIndex, bitmap, pdfRenderer)
+    ): String = extractPageText(pageIndex, bitmap, pdfRenderer).text
+
+    /**
+     * S1276: the native route yields the page geometry alongside the text; the OCR route yields text
+     * only. Carrying both together is what lets the long-press skip a second full-page pass.
+     */
+    private data class PageText(val text: String, val nativeLayout: PdfNativeTextLayout?)
 
     private suspend fun extractPageText(
         pageIndex: Int,
         bitmap: Bitmap?,
         pdfRenderer: PdfRenderer?
-    ): String {
-        return if (Build.VERSION.SDK_INT >= 35 && pdfRenderer != null) {
-            val native = extractTextNative(pageIndex, pdfRenderer)
-            if (native.isNotBlank()) native
-            else if (bitmap != null) extractTextOcr(bitmap) else ""
-        } else {
-            if (bitmap != null) extractTextOcr(bitmap) else ""
+    ): PageText {
+        if (Build.VERSION.SDK_INT >= PdfNativeTextLayout.API_NATIVE_PDF_TEXT && pdfRenderer != null) {
+            val native = extractTextNative(pageIndex, pdfRenderer, bitmap)
+            if (native.text.isNotBlank()) {
+                return native
+            }
         }
+        // A scanned page carries no text layer at any API level, so OCR remains the fallback.
+        return PageText(if (bitmap != null) extractTextOcr(bitmap) else "", null)
     }
 
-    @RequiresApi(35)
-    private suspend fun extractTextNative(pageIndex: Int, pdfRenderer: PdfRenderer): String {
+    @RequiresApi(PdfNativeTextLayout.API_NATIVE_PDF_TEXT)
+    private suspend fun extractTextNative(
+        pageIndex: Int,
+        pdfRenderer: PdfRenderer,
+        bitmap: Bitmap?
+    ): PageText {
         return withContext(pdfDispatcher) {
             try {
                 val page = pdfRenderer.openPage(pageIndex)
                 try {
                     @Suppress("NewApi")
-                    page.getTextContents().joinToString(" ") { it.text }
+                    val contents = page.getTextContents()
+                    if (bitmap == null) {
+                        // TXT-button path: no render to map onto, so text only.
+                        PageText(contents.joinToString(" ") { it.text }, null)
+                    } else {
+                        val layout = PdfNativeTextLayout.from(
+                            contents = contents,
+                            pageWidth = page.width,
+                            pageHeight = page.height,
+                            bitmapWidth = bitmap.width,
+                            bitmapHeight = bitmap.height,
+                        )
+                        PageText(layout.text, layout.takeIf { it.items.isNotEmpty() })
+                    }
                 } finally {
                     page.close()
                 }
             } catch (e: Exception) {
                 Timber.e(e, "PdfTextSelectionManager: native text extraction failed for page $pageIndex")
-                ""
+                PageText("", null)
             }
         }
     }

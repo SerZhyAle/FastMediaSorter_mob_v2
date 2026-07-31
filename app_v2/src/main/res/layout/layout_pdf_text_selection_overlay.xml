@@ -56,6 +56,23 @@
             android:background="@android:color/transparent" />
     </ScrollView>
 
+    <!-- S1276: shown when the long-press could not be resolved to a word. Without it the overlay
+         opens with nothing selected and no explanation, which reads as the gesture being ignored.
+         No background of its own - the overlay scrim behind it already carries the contrast. -->
+    <TextView
+        android:id="@+id/tvPdfSelectionNotice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="6dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginEnd="56dp"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
+        android:textColor="@color/white"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
     <!-- Close button -->
     <ImageButton
         android:id="@+id/btnClosePdfTextSelection"

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -31,10 +32,10 @@ class BrowseFileTransferCoordinator @Inject constructor(
         val terminalFallback: BrowseFileTransferTerminalEvent? = null,
     ) {
         val isActive: Boolean
-            get() = state == WorkInfo.State.ENQUEUED || state == WorkInfo.State.RUNNING || state == WorkInfo.State.BLOCKED
+            get() = state != null && !state.isFinished
 
         val isTerminal: Boolean
-            get() = state == WorkInfo.State.SUCCEEDED || state == WorkInfo.State.FAILED || state == WorkInfo.State.CANCELLED
+            get() = state?.isFinished == true
     }
 
     sealed interface EnqueueResult {
@@ -44,29 +45,45 @@ class BrowseFileTransferCoordinator @Inject constructor(
 
     private val workManager = WorkManager.getInstance(context)
     private val prefs = context.getSharedPreferences("browse_file_transfer", Context.MODE_PRIVATE)
-    private val _terminalEvents = MutableSharedFlow<BrowseFileTransferTerminalEvent>(replay = 1, extraBufferCapacity = 2)
+    private val _terminalEvents = MutableSharedFlow<BrowseFileTransferTerminalEvent>(
+        replay = 1,
+        extraBufferCapacity = 2,
+    )
     val terminalEvents: SharedFlow<BrowseFileTransferTerminalEvent> = _terminalEvents.asSharedFlow()
 
     fun activeTransferFlow(): Flow<TransferWorkState> {
+        // S1230: the stored request is immutable for the lifetime of one work id, yet this map
+        // used to re-read the JSON store (file read + Gson parse) on EVERY progress emission,
+        // and on the collector's main thread - one StrictMode DiskReadViolation per tick. Cache
+        // the request per work id and run the map upstream on IO so the single real read (and
+        // the progress decode) never touches the UI thread. Non-finished == ENQUEUED, RUNNING
+        // or BLOCKED; finished == SUCCEEDED, FAILED or CANCELLED - same sets as before.
+        var cachedWorkId: String? = null
+        var cachedRequest: BrowseFileTransferRequest? = null
         return workManager.getWorkInfosForUniqueWorkFlow(WORK_NAME).map { infos ->
             val workInfo = infos.firstOrNull() ?: return@map TransferWorkState()
             val progress = BrowseFileTransferProgressCodec.decodeProgress(workInfo.progress)
+            val workId = workInfo.id.toString()
             TransferWorkState(
-                workId = workInfo.id.toString(),
+                workId = workId,
                 state = workInfo.state,
-                request = if (workInfo.state == WorkInfo.State.ENQUEUED || workInfo.state == WorkInfo.State.RUNNING || workInfo.state == WorkInfo.State.BLOCKED) {
-                    requestStore.readActiveRequest()
-                } else {
+                request = if (workInfo.state.isFinished) {
                     null
+                } else {
+                    if (cachedWorkId != workId) {
+                        cachedRequest = requestStore.readActiveRequest()
+                        cachedWorkId = workId
+                    }
+                    cachedRequest
                 },
                 progress = progress,
-                terminalFallback = if (workInfo.state == WorkInfo.State.SUCCEEDED || workInfo.state == WorkInfo.State.FAILED || workInfo.state == WorkInfo.State.CANCELLED) {
+                terminalFallback = if (workInfo.state.isFinished) {
                     BrowseFileTransferProgressCodec.decodeTerminalFallback(workInfo.outputData)
                 } else {
                     null
                 },
             )
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
     suspend fun enqueueIfIdle(request: BrowseFileTransferRequest): EnqueueResult = withContext(Dispatchers.IO) {
@@ -84,9 +101,7 @@ class BrowseFileTransferCoordinator @Inject constructor(
 
     suspend fun hasActiveTransfer(): Boolean = withContext(Dispatchers.IO) {
         runCatching {
-            workManager.getWorkInfosForUniqueWork(WORK_NAME).get().any {
-                it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.BLOCKED
-            }
+            workManager.getWorkInfosForUniqueWork(WORK_NAME).get().any { !it.state.isFinished }
         }.getOrDefault(false)
     }
 

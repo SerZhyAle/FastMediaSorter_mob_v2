@@ -193,7 +193,12 @@ class CalculatorInputManager(
         if (currentOperation.isNotBlank()) {
             val completedCurrentOperation = "$currentOperation${engine.display}"
             if (entries.lastOrNull() != completedCurrentOperation) {
-                entries += currentOperation
+                // S1241: while the right operand is being typed, show what "=" would give. The
+                // engine returns null for an operation with no answer yet - typing `1000 ÷ 0` on the
+                // way to `1000 ÷ 0.1` - so the line simply stays as it was rather than flashing an
+                // error the user has not asked for.
+                val preview = engine.previewResult()
+                entries += if (preview != null) "$currentOperation = $preview" else currentOperation
             }
         }
         return entries.joinToString(separator = "\n")

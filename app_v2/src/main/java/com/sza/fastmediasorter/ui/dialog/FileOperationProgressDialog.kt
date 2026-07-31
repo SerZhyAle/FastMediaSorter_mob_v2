@@ -9,6 +9,8 @@ import android.widget.TextView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.usecase.FileOperationProgress
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferProgressSnapshot
+import com.sza.fastmediasorter.ui.browse.transfer.transferBytePercentOrNull
+import com.sza.fastmediasorter.ui.browse.transfer.transferOverallPercent
 import timber.log.Timber
 import java.text.DecimalFormat
 
@@ -42,6 +44,7 @@ class FileOperationProgressDialog(
     private var startTime: Long = 0
     private var lastUpdateTime: Long = 0
     private var isStarted: Boolean = false
+
     // S1027: only log Processing when the file changes, not on every byte-progress tick.
     private var lastLoggedIndex: Int = -1
     private val SHOW_DELAY_MS = 2000L
@@ -115,9 +118,6 @@ class FileOperationProgressDialog(
         showHandler.removeCallbacks(showRunnable)
         super.dismiss()
     }
-
-    private val speedSamples = ArrayDeque<Long>(10)
-    private val MAX_SPEED_SAMPLES = 10
 
     // Cache last received progress so we can apply it when dialog finally shows
     private var pendingProgress: FileOperationProgress.Processing? = null
@@ -198,22 +198,23 @@ class FileOperationProgressDialog(
             Timber.d("FileOpProgress: Processing ${progress.currentFile} ($fileNo/${progress.totalFiles})")
         }
 
-        if (progress.speedBytesPerSecond > 0) {
-            speedSamples.addLast(progress.speedBytesPerSecond)
-            if (speedSamples.size > MAX_SPEED_SAMPLES) speedSamples.removeFirst()
-        }
+        val overallPercent = transferBytePercentOrNull(progress.completedOperationBytes, totalOperationBytes)
 
-        val overallPercent = if (totalOperationBytes > 0L) {
-            (progress.completedOperationBytes * 100L / totalOperationBytes).toInt().coerceIn(0, 99)
-        } else null
-
-        val avgSpeed = if (speedSamples.isNotEmpty()) speedSamples.average().toLong() else 0L
         val remainingBytes = if (totalOperationBytes > 0L) totalOperationBytes - progress.completedOperationBytes else 0L
-        val etaSeconds = if (avgSpeed > 0L && remainingBytes > 0L) remainingBytes / avgSpeed else -1L
+        val etaSeconds = if (progress.speedBytesPerSecond > 0L && remainingBytes > 0L) {
+            remainingBytes / progress.speedBytesPerSecond
+        } else {
+            -1L
+        }
 
         progressBar.isIndeterminate = false
         progressBar.max = 100
-        progressBar.progress = overallPercent ?: (progress.currentIndex * 100 / progress.totalFiles.coerceAtLeast(1))
+        progressBar.progress = transferOverallPercent(
+            completedOperationBytes = progress.completedOperationBytes,
+            totalOperationBytes = totalOperationBytes,
+            currentIndex = progress.currentIndex,
+            totalFiles = progress.totalFiles,
+        )
 
         tvProgress.text = "${progress.currentIndex + 1} / ${progress.totalFiles}"
         tvCurrentFile.text = progress.currentFile

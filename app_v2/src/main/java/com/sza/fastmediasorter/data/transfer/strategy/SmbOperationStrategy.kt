@@ -261,6 +261,39 @@ class SmbOperationStrategy @Inject constructor(
         }
     }
 
+    /** The SMB listing already reports type and size, so the default's per-entry probe is skipped. */
+    override suspend fun listEntries(
+        path: String
+    ): Result<List<com.sza.fastmediasorter.data.transfer.DirectoryEntry>> = withContext(Dispatchers.IO) {
+        try {
+            if (!path.startsWith("smb:", ignoreCase = true)) {
+                return@withContext Result.failure(IllegalArgumentException("Not an SMB path"))
+            }
+            val pathInfo = SmbPathUtils.parseSmbPath(path)
+                ?: return@withContext Result.failure(Exception("Failed to parse SMB path: $path"))
+            val connectionInfo = getConnectionInfo(pathInfo)
+            when (val result = smbClient.listFiles(connectionInfo, pathInfo.remotePath)) {
+                is SmbResult.Success -> {
+                    val baseUrl = "smb://${connectionInfo.server}/${connectionInfo.shareName}"
+                    Result.success(
+                        result.data.map { info ->
+                            com.sza.fastmediasorter.data.transfer.DirectoryEntry(
+                                path = "$baseUrl/${info.path}",
+                                name = info.name,
+                                isDirectory = info.isDirectory,
+                                size = info.size,
+                            )
+                        }
+                    )
+                }
+                is SmbResult.Error -> Result.failure(Exception(result.message))
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "SmbOperationStrategy: listEntries failed - $path")
+            Result.failure(e)
+        }
+    }
+
     override fun supportsProtocol(path: String): Boolean {
         // Accept smb: prefix (File() normalizes smb:// to smb:/)
         return path.startsWith("smb:", ignoreCase = true)

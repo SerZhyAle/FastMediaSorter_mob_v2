@@ -24,8 +24,6 @@ import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.cache.BrowseCacheManager
 import com.sza.fastmediasorter.ui.browse.loading.BrowseLoadingManager
 import dagger.Lazy
-import kotlin.coroutines.CoroutineContext
-import kotlin.LazyThreadSafetyMode
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -34,6 +32,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.LazyThreadSafetyMode
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Manages the main resource and media-file loading pipeline in the Browse screen.
@@ -297,15 +297,10 @@ class BrowseResourceLoadManager(
         shouldStopScanRef.set(false)
         updateState { it.copy(loadingProgress = 0, isScanCancellable = showStopImmediately) }
 
-        var lastProgressUpdate = 0
-        val progressJob = scope.launch(ioDispatcher) {
-            while (true) {
-                delay(2000)
-                val p = stateFlow.value.loadingProgress
-                if (p > 0 && p != lastProgressUpdate) lastProgressUpdate = p
-            }
-        }
-
+        // S1301: a while(true) progress ticker used to be launched here as a sibling of filesJob. Its
+        // body only wrote a captured local (leftover from removed progress logging), and cancelling
+        // the scan - STOP, onStop, or a superseding navigation - never cancelled it, so every
+        // cancelled scan orphaned a 2 s ticker on viewModelScope until the screen died.
         val filesJob = scope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             shouldStopScanRef.set(false)
@@ -356,12 +351,11 @@ class BrowseResourceLoadManager(
             }
 
             try {
-                loadMediaFilesStandard(resourceForScan, sizeFilter, progressJob)
+                loadMediaFilesStandard(resourceForScan, sizeFilter)
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
                 Timber.e(e, "BrowseResourceLoadManager.loadMediaFiles: error")
-                progressJob.cancel()
-                loadMediaFilesStandard(resourceForScan, sizeFilter, progressJob)
+                loadMediaFilesStandard(resourceForScan, sizeFilter)
             } finally {
                 stopTimerJob?.cancel()
             }
@@ -434,8 +428,7 @@ class BrowseResourceLoadManager(
 
     private suspend fun loadMediaFilesStandard(
         resource: MediaResource,
-        sizeFilter: SizeFilter,
-        progressJob: Job? = null
+        sizeFilter: SizeFilter
     ) {
         val settings = getSettings()
         val showHiddenFiles = settings.showHiddenFiles || resource.showHiddenFiles
@@ -485,12 +478,10 @@ class BrowseResourceLoadManager(
             sortMode = currentState.sortMode,
             sizeFilter = sizeFilter,
             shouldStopScan = shouldStopScanRef,
-            progressJob = progressJob,
             showHiddenFiles = showHiddenFiles,
             currentPath = currentState.currentPath,
             isSubfolderMode = currentState.isSubfolderMode,
             callbacks = callbacks
         )
     }
-
 }

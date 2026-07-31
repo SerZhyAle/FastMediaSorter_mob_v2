@@ -446,10 +446,30 @@ class LocalOperationStrategy @Inject constructor(
         }
     }
     
-    private fun collectAllFiles(dir: File, result: MutableList<File>) {
+    /**
+     * S1325: a symlink pointing at an ancestor turns this walk into an endless recursion, so a
+     * directory is entered once per canonical path and the descent stops at [MAX_DIRECTORY_DEPTH].
+     * Hitting either limit is logged - a silently truncated tree would report a successful copy of
+     * a folder that is missing entries.
+     */
+    private fun collectAllFiles(
+        dir: File,
+        result: MutableList<File>,
+        visited: MutableSet<String> = mutableSetOf(),
+        depth: Int = 0,
+    ) {
+        if (depth > MAX_DIRECTORY_DEPTH) {
+            Timber.w("LocalOperationStrategy: depth limit reached at ${dir.absolutePath}")
+            return
+        }
+        val canonicalPath = runCatching { dir.canonicalPath }.getOrDefault(dir.absolutePath)
+        if (!visited.add(canonicalPath)) {
+            Timber.w("LocalOperationStrategy: cycle skipped at ${dir.absolutePath}")
+            return
+        }
         dir.listFiles()?.forEach { file ->
             if (file.isDirectory) {
-                collectAllFiles(file, result)
+                collectAllFiles(file, result, visited, depth + 1)
             }
             result.add(file)
         }
@@ -536,6 +556,30 @@ class LocalOperationStrategy @Inject constructor(
         }
     }
     
+    /** One `File.listFiles()` pass already knows type and size, so the default's per-entry probe is skipped. */
+    override suspend fun listEntries(
+        path: String
+    ): Result<List<com.sza.fastmediasorter.data.transfer.DirectoryEntry>> = withContext(Dispatchers.IO) {
+        try {
+            val dir = File(path)
+            if (!dir.exists() || !dir.isDirectory) {
+                return@withContext Result.failure(java.io.FileNotFoundException("Directory not found: $path"))
+            }
+            val entries = dir.listFiles()?.map { child ->
+                com.sza.fastmediasorter.data.transfer.DirectoryEntry(
+                    path = child.absolutePath,
+                    name = child.name,
+                    isDirectory = child.isDirectory,
+                    size = if (child.isFile) child.length() else 0L,
+                )
+            } ?: emptyList()
+            Result.success(entries)
+        } catch (e: Exception) {
+            Timber.e(e, "LocalOperationStrategy: listEntries failed - $path")
+            Result.failure(e)
+        }
+    }
+
     override suspend fun isDirectory(path: String): Result<Boolean> =
         safeIo("LocalOperationStrategy.isDirectory($path)") { File(path).let { it.exists() && it.isDirectory } }
     
@@ -588,6 +632,11 @@ class LocalOperationStrategy @Inject constructor(
     private fun canDeleteDirectly(): Boolean {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S && hasManageMediaPermission()) return true
         return hasAllFilesAccess()
+    }
+
+    companion object {
+        /** Deepest directory level the recursive walk descends into before it gives up. */
+        private const val MAX_DIRECTORY_DEPTH = 64
     }
 
     /** Direct File.delete() plus a best-effort MediaStore index cleanup. Caller must hold a direct-delete permission. */

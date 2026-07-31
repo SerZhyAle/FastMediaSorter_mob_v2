@@ -12,6 +12,7 @@ import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIds
 import timber.log.Timber
 
 /**
@@ -30,7 +31,7 @@ import timber.log.Timber
 object MediaNotificationManager {
 
     const val NOTIFICATION_CHANNEL_ID = "fastmediasorter_audio_playback"
-    const val NOTIFICATION_ID = 1001
+    const val NOTIFICATION_ID = NotificationIds.MEDIA_PLAYBACK
 
     /**
      * Creates the notification channel for audio playback (Android 8+).

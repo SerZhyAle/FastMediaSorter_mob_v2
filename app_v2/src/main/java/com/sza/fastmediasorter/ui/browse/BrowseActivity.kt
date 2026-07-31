@@ -678,12 +678,16 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     override fun onStop() {
-        super.onStop()
+        // S1302: stop inline playback BEFORE super.onStop(). The adapter learns about it through a
+        // repeatOnLifecycle(STARTED) collector, which super.onStop() cancels - so the old ordering
+        // emitted the idle state into a dead collector, the row never rebound, and its INFINITE
+        // spin animator kept pumping frames for the whole time the screen was in the background.
         if (!isChangingConfigurations) {
             // S0120: emit BRW-sort SUMMARY and schedule cooldown on genuine browse exit
             MemoryEnduranceTracker.endScenario()
             viewModel.inlineStop()
         }
+        super.onStop()
         if (!isFinishing) {
             viewModel.cancelScan(forceCancel = true)
             viewModel.cancelBackgroundThumbnailLoading()

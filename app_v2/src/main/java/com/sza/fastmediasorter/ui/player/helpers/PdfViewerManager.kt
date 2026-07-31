@@ -891,15 +891,26 @@ class PdfViewerManager(
     fun isPdfActive(): Boolean = pdfRenderer != null
 
     /**
-     * Handle a PDF fling: vertical swipe pages, horizontal swipe zooms (S0949).
+     * S1273: whether a swipe may currently turn a page. False in scroll mode, where the RecyclerView
+     * owns vertical movement and a page-turn gesture would fight it.
+     */
+    fun isPageSwipeEnabled(): Boolean = pdfRenderer != null && !isScrollMode
+
+    /** S1273: turn one page in [next] direction. Entry point for gesture-driven paging. */
+    fun turnPage(next: Boolean) {
+        if (next) showNextPage() else showPreviousPage()
+    }
+
+    /**
+     * Handle a PDF fling: a horizontal swipe steps the zoom (S0949).
+     *
+     * S1273 moved page turns to [PdfPageSwipeDetector]. PhotoView withholds this callback above
+     * scale 1.0, for multi-touch, and below the platform fling velocity, so it can never see the
+     * gestures that turn a page - only the unzoomed horizontal flick that survives those guards.
      * Wired from each host's PhotoView single-fling listener; returns true if handled.
      */
-    fun handlePdfFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-        // Guards: PDF active, not scroll mode (RecyclerView owns vertical scroll), and not zoomed-in.
-        // PhotoView's single-fling listener only fires at scale <= fit, so the horizontal-zoom branch
-        // also lives here; the > threshold check keeps a zoomed page in pan mode.
-        val blocked = isScrollMode || safeViews.photoView.scale > PDF_NAV_ZOOM_THRESHOLD
-        if (pdfRenderer == null || e1 == null || blocked) {
+    fun handlePdfFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float): Boolean {
+        if (pdfRenderer == null || e1 == null || isScrollMode) {
             return false
         }
 
@@ -908,13 +919,9 @@ class PdfViewerManager(
         val swipeThreshold = (root.width * PDF_SWIPE_THRESHOLD_FRACTION).toInt()
             .coerceAtLeast(PDF_MIN_SWIPE_THRESHOLD_PX)
         var handled = false
-        if (abs(diffY) > abs(diffX)) {
-            // Vertical swipe = page navigation (down = previous, up = next).
-            if (abs(diffY) > swipeThreshold && abs(velocityY) > PDF_SWIPE_VELOCITY_THRESHOLD) {
-                if (diffY > 0) showPreviousPage() else showNextPage()
-                handled = true
-            }
-        } else if (abs(diffX) > swipeThreshold && abs(velocityX) > PDF_SWIPE_VELOCITY_THRESHOLD) {
+        if (abs(diffX) > abs(diffY) && abs(diffX) > swipeThreshold &&
+            abs(velocityX) > PDF_SWIPE_VELOCITY_THRESHOLD
+        ) {
             // S0949: horizontal swipe = zoom step (right = in, left = out), clamped to 0.3x..10x.
             stepPdfZoom(zoomIn = diffX > 0)
             handled = true
@@ -1053,8 +1060,6 @@ class PdfViewerManager(
         private const val PDF_MAX_SCALE = 10.0f
         private const val PDF_ZOOM_STEP_FACTOR = 1.5f
 
-        // Above this scale a PDF page is treated as zoomed (pan mode) - fling gestures are ignored.
-        private const val PDF_NAV_ZOOM_THRESHOLD = 1.05f
         private const val PDF_SWIPE_THRESHOLD_FRACTION = 0.05f
         private const val PDF_MIN_SWIPE_THRESHOLD_PX = 50
         private const val PDF_SWIPE_VELOCITY_THRESHOLD = 100

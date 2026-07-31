@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.settings.StreamsSessionStore
@@ -13,8 +14,10 @@ import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.StreamDefaultSort
 import com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter
+import com.sza.fastmediasorter.domain.model.StreamResumeState
 import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
@@ -26,9 +29,11 @@ import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ReorderPinnedStreamUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -80,6 +85,13 @@ class StreamsViewModel @Inject constructor(
     private val networkContextAnalyzer: NetworkContextAnalyzer,
     // S0712: invalidate a channel's persisted last-frame thumbnail when it is removed.
     private val streamFramePersistentStore: StreamFramePersistentStore,
+    // S1144: per-channel audio/subtitle preference, edited from the add/edit channel dialog.
+    private val streamTrackPreferenceUseCase: StreamTrackPreferenceUseCase,
+    // S1152: persists the last active stream so the next cold start can resume it (mirrors media resume).
+    private val streamResumeStateRepository: StreamResumeStateRepository,
+    // S1152: the exit clear must outlive this ViewModel - viewModelScope is already cancelled by the time
+    // the host tears down, so a clear launched there would never reach the prefs.
+    @ApplicationScope private val applicationScope: CoroutineScope,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -227,6 +239,57 @@ class StreamsViewModel @Inject constructor(
         "AUDIO" -> "AUDIO"
         "VIDEO" -> "VIDEO"
         else -> "AUTO"
+    }
+
+    /** S1144: stored track preference for [url], null when the channel has none. */
+    suspend fun readTrackPreference(url: String): StreamTrackPreferenceUseCase.TrackPreference? =
+        streamTrackPreferenceUseCase.read(url)
+
+    /** S1144: persist the audio/subtitle picks the channel dialog produced. */
+    fun writeTrackPreference(
+        url: String,
+        audioIso: String?,
+        subtitleIso: String?,
+        subtitlesEnabled: Boolean?,
+    ) {
+        viewModelScope.launch {
+            streamTrackPreferenceUseCase.writeAudio(url, audioIso)
+            streamTrackPreferenceUseCase.writeSubtitle(url, subtitleIso, subtitlesEnabled)
+        }
+    }
+
+    /**
+     * S1152: record this radio station as the last active stream, so a cold start resumes it. Only
+     * AUDIO is ever recorded: video playback does not survive the process anyway, and recording it
+     * made every later launch reopen this screen for 48 h (owner report 2026-07-26).
+     */
+    fun persistStreamResume(source: StreamSourceEntity) {
+        if (source.mediaKind != "AUDIO") return
+        viewModelScope.launch {
+            streamResumeStateRepository.save(
+                StreamResumeState(
+                    url = source.url,
+                    title = source.title,
+                    mediaKind = source.mediaKind,
+                    wasPlaying = true,
+                    savedAt = System.currentTimeMillis(),
+                ),
+            )
+        }
+    }
+
+    /** S1152: drop the resume record when the user explicitly stops the current stream. */
+    fun clearStreamResume() {
+        viewModelScope.launch { streamResumeStateRepository.clear() }
+    }
+
+    /**
+     * S1152: leaving the screen without anything still playing means there is nothing to resume - drop
+     * the record so the next cold start opens the normal main screen. Runs on the application scope
+     * because viewModelScope is already cancelled by the time the host is torn down.
+     */
+    fun clearStreamResumeOnExit() {
+        applicationScope.launch { streamResumeStateRepository.clear() }
     }
 
     fun onImport(listUrl: String) = viewModelScope.launch {

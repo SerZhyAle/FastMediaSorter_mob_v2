@@ -21,6 +21,7 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.core.content.ContextCompat
+import com.sza.fastmediasorter.core.util.XrDeviceProbe
 import com.sza.fastmediasorter.domain.model.EdgeGestureAxis
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
@@ -358,7 +359,23 @@ class ScreenGestureOverlayManager(
                     WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
             }
         }
-        windowManager.addView(view, params)
+        runCatching { windowManager.addView(view, params) }
+            .onSuccess {
+                Timber.d(
+                    "S1236: band added zone=%s xrDevice=%b type=%d frame=%dx%d at %d,%d",
+                    zone.name,
+                    XrDeviceProbe.isXrDevice(overlayContext),
+                    overlayWindowType,
+                    frame.width,
+                    frame.height,
+                    frame.x,
+                    frame.y
+                )
+            }
+            .onFailure { error ->
+                Timber.d("S1236: band REJECTED zone=%s type=%d - %s", zone.name, overlayWindowType, error)
+                return
+            }
         applyGestureExclusion(view, frame)
         bandViews[zone] = view
     }
@@ -408,6 +425,7 @@ class ScreenGestureOverlayManager(
                 downX = event.rawX
                 downY = event.rawY
                 selection = null
+                Timber.d("S1236: band TOUCHED zone=%s at %.0f,%.0f", zone.name, event.rawX, event.rawY)
                 showHint(zone)
                 return true
             }

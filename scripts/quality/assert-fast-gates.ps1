@@ -65,6 +65,14 @@ $gates = [ordered]@{
     # applier branches. Data-file parse like the gate above, no gradle daemon. Catches a new
     # setting that never reached the matrix - the drift that left 40 fields uncovered.
     'assert-device-profile-matrix.ps1'          = @('-Quiet')
+    # S1259: android:id parity between layout-land and layout-w600dp siblings. w600dp beats
+    # -land on wide landscape devices, so an id missing on one side is a latent findViewById
+    # null (the recording-indicator include NPE). Static regex over 4 shared files, ~ms.
+    'assert-layout-variant-id-parity.ps1'       = @('-Quiet')
+    # S1254: settings-dump secret masking layers - @field:SensitiveSetting on hint-matching
+    # AppSettings fields, the dump's annotation check, and the S1187 keep rules. The keep rule
+    # vanished once and the leak is only visible in logs exported from a stranger's device.
+    'assert-sensitive-settings-annotated.ps1'   = @('-Quiet')
 }
 
 $results = [System.Collections.Generic.List[object]]::new()

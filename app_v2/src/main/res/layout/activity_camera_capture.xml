@@ -89,7 +89,7 @@
             app:iconTint="@android:color/white"
             app:strokeColor="@color/camera_capture_control_stroke" />
 
-        <com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/cameraSaveDestination"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -149,41 +149,22 @@
             app:strokeColor="@color/camera_capture_control_stroke"
             tools:visibility="visible" />
 
-        <!-- S0753: night-mode toggle; shown only when the active lens supports the NIGHT extension (photo). -->
+        <!-- S1262: photo-profile menu, in the slot the standalone night and macro toggles used to
+             share. Icon and description track the active profile; both are set at render time. -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCameraNight"
+            android:id="@+id/btnCameraProfile"
             style="@style/Widget.FastMediaSorter.Camera.OverlayButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginStart="8dp"
-            android:contentDescription="@string/camera_control_night"
+            android:contentDescription="@string/camera_profile_normal"
             android:focusable="true"
             android:minWidth="0dp"
             android:minHeight="0dp"
             android:padding="0dp"
-            android:tooltipText="@string/camera_control_night"
+            android:tooltipText="@string/camera_profile_normal"
             android:visibility="gone"
-            app:icon="@drawable/ic_camera_night_off"
-            app:iconGravity="textStart"
-            app:iconPadding="0dp"
-            app:iconSize="20dp"
-            tools:visibility="visible" />
-
-        <!-- S0753: macro toggle; shown only on a lens that can focus close (photo). -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCameraMacro"
-            style="@style/Widget.FastMediaSorter.Camera.OverlayButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
-            android:contentDescription="@string/camera_control_macro"
-            android:focusable="true"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:padding="0dp"
-            android:tooltipText="@string/camera_control_macro"
-            android:visibility="gone"
-            app:icon="@drawable/ic_camera_macro_off"
+            app:icon="@drawable/ic_tune"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
             app:iconSize="20dp"
@@ -263,7 +244,7 @@
         tools:visibility="visible" />
 
     <!-- S0812: scenario context label (e.g. text recognition); sits above the zoom presets, hidden for generic capture. -->
-    <com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
+    <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
         android:id="@+id/cameraScenarioLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -319,7 +300,7 @@
         tools:visibility="visible" />
 
     <!-- S0753: live zoom readout to the right of the slider. -->
-    <com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
+    <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
         android:id="@+id/cameraZoomValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -357,7 +338,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/tabModePhoto"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -374,7 +355,7 @@
                 android:textColor="@android:color/white"
                 android:textSize="14sp" />
 
-            <com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/tabModeVideo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -512,7 +493,7 @@
             tools:visibility="visible" />
 
         <!-- S0753: active-lens label (e.g. 0.6x / 1x / Front), sits just left of the switch button. -->
-        <com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/cameraLensLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

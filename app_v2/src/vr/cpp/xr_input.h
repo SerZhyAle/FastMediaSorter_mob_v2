@@ -32,6 +32,11 @@ struct HandInputState {
     bool triggerDown{false};      // Current state of trigger/pinch select
     float triggerValue{0.0f};     // Analog click value
     bool gripDown{false};         // Grip button state (used for panel dragging)
+    // S1240: set when a thumbstick deflection fires while this hand's grip is held, which means
+    // the grip was meant as a media-navigation modifier rather than a drag. Latched for the rest
+    // of the hold and cleared on release, so the HUD quad does not follow a hand that was only
+    // reaching for the next file.
+    bool gripIsModifier{false};
     float thumbstickX{0.0f};      // Thumbstick X axis value
     float thumbstickY{0.0f};      // Thumbstick Y axis value
 };

@@ -14,6 +14,25 @@ import com.sza.fastmediasorter.domain.model.AppSettings
  */
 data class HomeWidgetEntry(
     val providerClass: Class<out AppWidgetProvider>,
+    /**
+     * S1170: stable id of the launcher-desktop gadget that mirrors this widget.
+     *
+     * Stored, never derived from `providerClass.simpleName`, because it is persisted verbatim inside a
+     * desktop cell's `target` column. A class rename - or an R8 pass that rewrites the name - would
+     * otherwise orphan every cell the user had already placed, silently and irreversibly. These ids are
+     * a storage format from the moment the first cell is written: do not rename or renumber them.
+     */
+    val gadgetKey: String,
+    /**
+     * S1170: the desktop cell's default footprint, taken from this widget's own `targetCellWidth` /
+     * `targetCellHeight`, so a cell lands the size its twin has on the Android home screen.
+     *
+     * Lives here rather than only on the launcher gadget because the code that PLACES a cell sits in
+     * `src/main` (Settings), while the gadget registry ships only in the launcher source set and is
+     * invisible from there.
+     */
+    val gadgetSpanW: Int,
+    val gadgetSpanH: Int,
     val labelRes: Int,
     val iconRes: Int,
     val descriptionRes: Int,

@@ -200,7 +200,10 @@ class ReceiveShareActivity : AppCompatActivity() {
         }
     }
 
-    private fun extractAndCacheFiles(intent: Intent, streams: List<Uri>): List<File> {
+    // S1195: suspend, not plain - it copies shared streams to disk and is only ever entered from
+    // withContext(Dispatchers.IO). Declaring that makes the confinement checkable at this level
+    // instead of one caller further out.
+    private suspend fun extractAndCacheFiles(intent: Intent, streams: List<Uri>): List<File> {
         return if (streams.isNotEmpty()) {
             cacheStreams(streams)
         } else {

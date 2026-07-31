@@ -6,7 +6,7 @@ permalink: /docs/VR_CONTROLS.html
 
 # VR Immersive Controls
 
-*Last updated: 2026-07-06*
+*Last updated: 2026-07-29*
 
 ## Where things stand today
 
@@ -15,17 +15,35 @@ Today's immersive OpenXR session - opened from the player's VR badge, Browse's
 [VR Edition](VR_EDITION.md), `noLegal` sideload build) - has a deliberately
 small control scheme:
 
-- The controller's aiming ray / trigger (or any native XR action) steps to the
-  **next** or **previous** file.
-- Any other input - any controller button, a paired keyboard key, a mouse
-  click - **exits** the session back to the flat 2D panel. A short grace
-  period right after entry stops the first frame from being dismissed by
-  accident.
-- There is no in-headset volume, seek, zoom, or file-operations control yet,
-  and no clickable on-screen HUD - the fully interactive panel exists in code
-  but isn't visible on screen today (tracked as bug S0961). A small
-  filename/format banner (not interactive) shows briefly whenever a file
-  loads.
+- The controller **trigger** is the ray click: point at the HUD strip and pull to
+  press whatever the ray is crossing.
+- **A** on the right controller or **X** on the left leaves the immersive session
+  immediately, with no confirmation. A short grace period right after entry stops
+  the first frame from being dismissed by accident.
+- A clickable HUD strip **is** on screen: a wide, low panel carrying the file
+  name, a PREV / PLAY / NEXT transport trio, a volume slider, a stereo-depth
+  slider for 3D material, and audio / subtitle rows when the file actually has
+  more than one track to choose from. You point at it with the controller ray
+  and pull the trigger to press a control.
+- The strip's two end buttons are terminal: **HIDE** at the right end takes the
+  panel away completely while playback continues, and **EXIT** at the left end
+  stops playback and returns you to the flat player at the same position. They
+  sit at opposite ends on purpose, so one is never mistaken for the other.
+- Once hidden, the strip is summoned back by **pulling the trigger**. That pull
+  is consumed - it only brings the panel up, it never presses whatever the ray
+  happened to be crossing. While the panel is up the trigger is the ordinary
+  click again.
+- **Thumbstick left / right seeks** the film by 10 seconds a step. To move to
+  the previous or next *file*, hold **grip** and then push the stick - the grip
+  is a modifier, and a grip used that way will not drag the panel along with
+  it. Live sources with no known length ignore the seek instead of jumping
+  somewhere arbitrary.
+- On the **first immersive entry after install** a controls legend appears by
+  itself and lists every binding above. Any controller press closes it, and that
+  press does nothing else. The **HELP** button on the strip, immediately left of
+  HIDE, brings the legend back at any time.
+- Still missing in the headset: the file-operations panel. Zoom is on the
+  thumbstick's up/down axis, not a HUD control.
 
 Everything below this point - the full Touch controller layout, Bluetooth
 keyboard shortcuts, mouse support, file-operations panel, and detailed HUD -
@@ -41,7 +59,9 @@ whichever input you prefer.
 
 A cheatsheet is designed to auto-appear once on the very first immersive entry
 (4 seconds), brought back any time with a long-press of **Y** on the left
-controller or **F1** on the keyboard.
+controller or **F1** on the keyboard. That is the target design and not what
+ships: the legend described above has no timer, waits for a controller press, and
+is recalled with the strip's HELP button rather than with **Y** or **F1**.
 
 ## 1. Touch controllers (target design, not shipped yet)
 
@@ -189,10 +209,10 @@ Auto-dismissing toasts overlaid on the scene provide visual feedback:
 
 ## 6. Troubleshooting (today)
 
-- **Pressing a controller button in immersive does nothing, or exits the
-  session.** That's expected today - only the aiming ray/trigger (next /
-  previous) is wired up; almost everything else exits back to the flat panel.
-  See "Where things stand today" above.
+- **A controller button in immersive does nothing.** Only the inputs listed in
+  "Where things stand today" are wired - trigger, thumbstick, grip, and A/X. B,
+  Y, the menu button and the thumbstick click are deliberately left free. The
+  legend on first entry, or the strip's HELP button, lists the live set.
 - **The on-screen banner is a blank grey rectangle.** Known bug (S0961) - it's
   meant to show the filename and detected 3D format; a fix is in progress.
 - **A Bluetooth keyboard or mouse does not control playback in immersive.**

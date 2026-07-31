@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.text.format.DateUtils
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -33,8 +34,10 @@ import com.sza.fastmediasorter.core.xr.VrLaunchMode
 import com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 import com.sza.fastmediasorter.core.xr.VrLaunchResult
 import com.sza.fastmediasorter.core.xr.VrLaunchUnavailableReason
+import com.sza.fastmediasorter.core.xr.VrLegendPreferences
 import com.sza.fastmediasorter.core.xr.VrMediaType
 import com.sza.fastmediasorter.core.xr.VrPanelReturnTarget
+import com.sza.fastmediasorter.core.xr.VrPlaylistEntry
 import com.sza.fastmediasorter.core.xr.assets.DiagnosticXrAssetProvider
 import com.sza.fastmediasorter.core.xr.input.DiagnosticXrInputExitHandler
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrNativeResult
@@ -43,7 +46,10 @@ import com.sza.fastmediasorter.ui.player.StereoDetector
 import com.sza.fastmediasorter.ui.xr.helpers.HudCanvasRenderer
 import com.sza.fastmediasorter.ui.xr.helpers.HudHapticBridge
 import com.sza.fastmediasorter.ui.xr.helpers.HudInteractionDispatcher
+import com.sza.fastmediasorter.ui.xr.helpers.HudLegendController
+import com.sza.fastmediasorter.ui.xr.helpers.HudLegendRenderer
 import com.sza.fastmediasorter.ui.xr.helpers.HudPlaybackController
+import com.sza.fastmediasorter.ui.xr.helpers.HudSeekProgressTicker
 import com.sza.fastmediasorter.ui.xr.helpers.HudTrackController
 import com.sza.fastmediasorter.ui.xr.helpers.ProjectionType
 import com.sza.fastmediasorter.ui.xr.helpers.RenderConfig
@@ -63,6 +69,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.nio.ByteBuffer
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /** S0282: dedicated OpenXR session host Activity with dynamic playlist. */
@@ -73,6 +80,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     @Inject lateinit var assetProvider: DiagnosticXrAssetProvider
     @Inject lateinit var exitHandler: DiagnosticXrInputExitHandler
     @Inject lateinit var payloadHolder: VrLaunchPayloadHolder
+
+    // S1223: remembers whether the one-time controls legend has already been shown on this install.
+    @Inject lateinit var legendPreferences: VrLegendPreferences
 
     // S0771: the immersive renderer must agree with the 2D panel on stereo layout. Reuse the panel
     // player's shared classifier instead of a second, divergent filename parser (see VrStereoConfigResolver).
@@ -116,7 +126,13 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     // Dynamic Playlist
-    private var mediaPlaylist: List<File> = emptyList()
+    // S1233: an item carries its media type rather than leaving the host to sniff the extension.
+    // Three separate guesses used to disagree: the image branch accepted only jpg/jpeg/png, and
+    // isVideoFilename knows only mp4/mkv, so webp/heic went to ExoPlayer and mov/webm never restarted
+    // on session-ready. The caller reads the type off the domain model, so nothing has to guess.
+    private data class PlaylistItem(val file: File, val mediaType: VrMediaType)
+
+    private var mediaPlaylist: List<PlaylistItem> = emptyList()
     private var currentPlaylistIndex: Int = -1
 
     // S0989: immersive ExoPlayer ownership + teardown extracted to a dedicated controller (not
@@ -138,8 +154,18 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 if (p != null) {
                     hudRenderer.isPlaying = p.playWhenReady
                     hudRenderer.volume = p.volume
+                    // S1239: one hook covers both playback entry points - the fresh start and the
+                    // deferred restart once the native session is ready. Duration is still unset
+                    // this early, so the band appears on the first tick that finds it.
+                    refreshSeekPosition()
+                    seekTicker.start()
                 } else {
                     subtitleController?.submitText("")
+                    seekTicker.stop()
+                    // S1239: release() also runs on the preflight-failure path, which returns from
+                    // onCreate before proceedWithInitialization assigns the HUD - the same reason
+                    // updatePlayer above is guarded.
+                    if (::hudRenderer.isInitialized) hudRenderer.seekRowVisible = false
                 }
             },
         )
@@ -161,6 +187,13 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     // S0964: track rows on the interactive panel (FILE_URI launches only).
     private lateinit var trackController: HudTrackController
 
+    // S1223: Context-free like HudCanvasRenderer, so its captions are injected below.
+    private val legendRenderer = HudLegendRenderer()
+
+    // S1223: created in proceedWithInitialization rather than lazily - the preflight-failure path
+    // returns from onCreate before that point and must not allocate a legend only to release it.
+    private var legendController: HudLegendController? = null
+
     // S0986: renders selected subtitle-track cues onto the lower-third immersive quad.
     private var subtitleController: SubtitleCueController? = null
     private var hudSubsOffLabel: String = ""
@@ -171,6 +204,25 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private val hudRepaintHandler = Handler(Looper.getMainLooper())
     private var hudRepaintScheduled = false
 
+    // S1239: `runtime.setHudVisible` is write-only on the native side, so the seek ticker cannot
+    // ask whether the strip is on screen - the host has to remember.
+    private var hudVisible = true
+
+    // S1239: raised for the length of a ray drag on the seek band. While it is set the ticker
+    // stands down, which is what stops the classic seek-bar race where the periodic position
+    // update yanks the handle back out from under the user's hand.
+    private var isScrubbingSeek = false
+
+    // S1239: the strip's only periodic repaint. Lazy because its predicate reads hudRenderer,
+    // which proceedWithInitialization assigns.
+    private val seekTicker by lazy {
+        HudSeekProgressTicker(
+            handler = hudRepaintHandler,
+            shouldRun = { isPanelHudMode() && hudVisible && hudRenderer.isPlaying && !isScrubbingSeek },
+            onTick = ::refreshSeekPosition,
+        )
+    }
+
     // S0964: the panel copy buffer is deliberately separate from VrTextureDecoder's direct buffer -
     // image decodes use that one from Dispatchers.IO while panel repaints run on main, and the buffer
     // CONTENT is written outside the @Synchronized getter, so sharing would race.
@@ -180,6 +232,11 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     // hudRgbaBytes field from the removed S0290 per-frame path was dead and is gone).
     private var hudBitmap: Bitmap? = null
     private var hudCanvas: Canvas? = null
+
+    // S1239: queueHud takes a ByteArray, so every repaint used to allocate a fresh 3.7 MB one.
+    // Harmless while repaints were state-driven; the seek bar's 1 Hz tick would turn it into
+    // 3.7 MB/s of garbage on a 512 MB-heap headset, so the array is reused like the buffer above.
+    private var reusablePanelHudBytes: ByteArray? = null
 
     private lateinit var launchInput: VrLaunchInput
     private lateinit var returnTarget: VrPanelReturnTarget
@@ -291,11 +348,20 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         hudRenderer.nextLabel = getString(R.string.vr_hud_next)
         hudRenderer.volumeCaption = getString(R.string.vr_hud_volume_label)
         hudRenderer.depthCaption = getString(R.string.vr_hud_depth_label)
+        hudRenderer.hideLabel = getString(R.string.vr_hud_hide)
+        hudRenderer.exitLabel = getString(R.string.vr_hud_exit)
+        hudRenderer.helpLabel = getString(R.string.vr_hud_help)
+        legendRenderer.title = getString(R.string.vr_legend_title)
+        legendRenderer.footer = getString(R.string.vr_legend_footer)
+        legendRenderer.rows = buildLegendRows()
+        legendController = HudLegendController(runtime, legendRenderer, ::restoreStripAfterLegend)
         val hudInteractionListener = object : HudInteractionDispatcher.InteractionListener {
             override fun onPlayPauseClick() {
                 hapticBridge.triggerClickFeedback()
                 hudRenderer.isPlaying = !hudRenderer.isPlaying
                 if (hudRenderer.isPlaying) playbackController.play() else playbackController.pause()
+                // S1239: a paused film has nothing to advance, so the tick stands down until play.
+                if (hudRenderer.isPlaying) seekTicker.start() else seekTicker.stop()
                 scheduleHudPanelRepaint()
             }
             override fun onNextClick() {
@@ -328,10 +394,46 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 hapticBridge.triggerClickFeedback()
                 trackController.cycleSubtitle(step) { refreshTrackRowsAndRepaint() }
             }
-            override fun onCollapseToggled(collapsed: Boolean) {
-                Timber.d("S1228: HUD panel collapsed=$collapsed")
-                hapticBridge.triggerClickFeedback()
+            override fun onSeekPreview(fraction: Float) {
+                // S1239: preview only - the label follows the handle, the player does not move yet.
+                isScrubbingSeek = true
+                val position = playbackController.positionOrNull() ?: return
+                hudRenderer.timeLabel =
+                    seekTimeLabel((position.durationMs * fraction).toLong(), position.durationMs)
                 scheduleHudPanelRepaint()
+            }
+
+            override fun onSeekCommit(fraction: Float) {
+                Timber.d("S1239: seek committed at fraction=%.3f", fraction)
+                isScrubbingSeek = false
+                hapticBridge.triggerClickFeedback()
+                playbackController.seekToFraction(fraction)
+                seekTicker.start()
+            }
+
+            override fun onHideClick() {
+                Timber.d("S1232: HUD hide button pressed")
+                hapticBridge.triggerClickFeedback()
+                // S1232: the quad stops drawing and stops reacting natively. Nothing is repainted -
+                // there is no pill to leave behind, and the trigger is what brings it back.
+                runtime.setHudVisible(false)
+                // S1239: an invisible strip has no bar to advance; repainting it would be pure cost.
+                hudVisible = false
+                seekTicker.stop()
+            }
+            override fun onHelpClick() {
+                Timber.d("S1223: HUD help button pressed")
+                hapticBridge.triggerClickFeedback()
+                showLegend()
+            }
+            override fun onExitClick() {
+                Timber.d("S1232: HUD exit button pressed")
+                hapticBridge.triggerClickFeedback()
+                // S1232: must go through the render thread, not straight to the return dispatcher.
+                // Finishing the Activity while the native session still runs skips the EGL/OpenXR
+                // teardown and the next entry fails as AlreadyRunning. requestExit unwinds the
+                // frame loop; onRenderThreadExit then delivers the return.
+                renderThread?.requestExit()
             }
         }
         interactionDispatcher = HudInteractionDispatcher(hudRenderer, hudInteractionListener)
@@ -393,8 +495,13 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
      * return result and finished the Activity, so the caller must not start the render thread.
      */
     private suspend fun prepareInitialFrame(): Boolean {
-        val firstFile = mediaPlaylist.firstOrNull()
-        if (firstFile != null && firstFile.extension.lowercase() in setOf("jpg", "jpeg", "png")) {
+        // S1233: the launched item is the one at currentPlaylistIndex, not the head of the list -
+        // entering immersive on the tenth file of a folder used to decode the first one instead.
+        // The image/video decision now comes from the carried type rather than an extension whitelist
+        // that rejected webp and heic.
+        val firstItem = mediaPlaylist.getOrNull(currentPlaylistIndex)
+        if (firstItem != null && firstItem.mediaType == VrMediaType.IMAGE) {
+            val firstFile = firstItem.file
             if (decodeImageToActivityBytes(firstFile)) return true
             if (launchInput.launchMode == VrLaunchMode.FILE_URI) {
                 Timber.w("Failed to decode initial launch image ${firstFile.name}, returning DecoderFailed")
@@ -471,8 +578,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             )
             return false
         }
-        mediaPlaylist = when (launchInput.launchMode) {
-            VrLaunchMode.DIAGNOSTIC_PLAYLIST -> scanMediaFiles()
+        // S1233: the launched item is no longer always index 0, so the list and the starting index
+        // are decided together rather than the index being assumed afterwards.
+        val prepared: Pair<List<PlaylistItem>, Int> = when (launchInput.launchMode) {
+            VrLaunchMode.DIAGNOSTIC_PLAYLIST -> scanMediaFiles() to 0
             VrLaunchMode.FILE_URI -> {
                 val launchFile = resolveSingleLaunchFile(launchInput)
                 if (launchFile == null) {
@@ -482,7 +591,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                     )
                     return false
                 }
-                listOf(launchFile)
+                // S1233: the caller may hand over the surrounding resource list so PREV/NEXT have
+                // somewhere to go. Absent or unusable, this stays the single-element list it was.
+                resolveCarriedPlaylist(launchInput)
+                    ?: (listOf(PlaylistItem(launchFile, launchInput.mediaType)) to 0)
             }
             // S0963: RESOURCE_BROWSE is owned by ImmersiveBrowseActivity; the gateway never routes it
             // here. Reject defensively rather than scanning the diagnostic test folder.
@@ -494,8 +606,48 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 return false
             }
         }
-        currentPlaylistIndex = if (mediaPlaylist.isNotEmpty()) 0 else -1
+        mediaPlaylist = prepared.first
+        currentPlaylistIndex = if (mediaPlaylist.isEmpty()) -1 else prepared.second
         return true
+    }
+
+    /**
+     * S1233: turn the caller's ordered entries into openable items, paired with the launched item's
+     * index inside the surviving list. Null means "no usable list" - the caller either sent none, sent
+     * one too short to navigate, or the launched entry itself does not resolve here.
+     *
+     * Resolution is deliberately narrower than [resolveSingleLaunchFile]: it never materialises a
+     * `content://` entry, because doing that for a whole list would copy the entire folder into the
+     * cache at launch. [PlayerVrLaunchManager] only hands over local paths, so nothing is lost.
+     */
+    private fun resolveCarriedPlaylist(input: VrLaunchInput): Pair<List<PlaylistItem>, Int>? {
+        if (input.playlist.size < MIN_NAVIGABLE_PLAYLIST_SIZE) return null
+        val items = mutableListOf<PlaylistItem>()
+        var launchedIndex = -1
+        input.playlist.forEachIndexed { index, entry ->
+            val file = resolvePlaylistEntryFile(entry) ?: return@forEachIndexed
+            if (index == input.playlistIndex) launchedIndex = items.size
+            items += PlaylistItem(file, entry.mediaType)
+        }
+        // A list whose launched entry vanished (deleted between launch and here) would start playback
+        // on an unrelated file, which is worse than not navigating at all.
+        val usable = launchedIndex >= 0 && items.size >= MIN_NAVIGABLE_PLAYLIST_SIZE
+        if (usable) {
+            Timber.d("S1233: playlist resolved size=${items.size} index=$launchedIndex")
+        } else {
+            Timber.w("Carried playlist unusable (resolved=${items.size}, launchedIndex=$launchedIndex)")
+        }
+        return if (usable) items to launchedIndex else null
+    }
+
+    private fun resolvePlaylistEntryFile(entry: VrPlaylistEntry): File? {
+        val uri = Uri.parse(entry.fileUriString)
+        val file = when {
+            uri.scheme == "file" -> uri.path?.let(::File)
+            uri.scheme.isNullOrBlank() -> File(entry.fileUriString)
+            else -> null
+        }
+        return file?.takeIf { it.isFile }
     }
 
     private fun resolveSingleLaunchFile(input: VrLaunchInput): File? {
@@ -531,16 +683,22 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         }.getOrNull()
     }
 
-    private fun scanMediaFiles(): List<File> {
+    private fun scanMediaFiles(): List<PlaylistItem> {
         val pictureDir = File("/sdcard/Pictures/FastMediaSorterVrTest")
         val movieDir = File("/sdcard/Movies/FastMediaSorterVrTest")
 
+        // S1233: the scan keeps deriving the type from the filename - a filesystem walk of the test
+        // folder has no typed source to carry, unlike a launch coming from the player.
         val playlist = VR_TEST_MEDIA_ORDER.mapNotNull { filename ->
-            val dir = if (isVideoFilename(filename)) movieDir else pictureDir
-            File(dir, filename).takeIf { file -> file.isFile }
+            val isVideo = isVideoFilename(filename)
+            val dir = if (isVideo) movieDir else pictureDir
+            File(dir, filename).takeIf { file -> file.isFile }?.let { file ->
+                PlaylistItem(file, if (isVideo) VrMediaType.VIDEO else VrMediaType.IMAGE)
+            }
         }
 
-        Timber.d("DiagnosticXrActivity: VR test playlist contains ${playlist.size} files: ${playlist.joinToString { it.name }}")
+        val names = playlist.joinToString { it.file.name }
+        Timber.d("DiagnosticXrActivity: VR test playlist contains ${playlist.size} files: $names")
         return playlist
     }
 
@@ -553,11 +711,55 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private fun isPanelHudMode(): Boolean = launchInput.launchMode == VrLaunchMode.FILE_URI
 
     /**
+     * S1223: the legend lists what S1232 and S1240 actually wired, in the order a newcomer meets
+     * them. The menu-button settings row from S1240's table is deliberately absent - it belongs to
+     * S1271 and is not in this build, and a legend row for an unwired binding is worse than none.
+     */
+    private fun buildLegendRows(): List<HudLegendRenderer.LegendRow> = listOf(
+        row(R.string.vr_legend_input_trigger, R.string.vr_legend_action_click),
+        row(R.string.vr_legend_input_trigger_hidden, R.string.vr_legend_action_summon),
+        row(R.string.vr_legend_input_stick_x, R.string.vr_legend_action_seek),
+        row(R.string.vr_legend_input_grip_stick_x, R.string.vr_legend_action_file_step),
+        row(R.string.vr_legend_input_stick_y, R.string.vr_legend_action_zoom),
+        row(R.string.vr_legend_input_grip, R.string.vr_legend_action_move_panel),
+        row(R.string.vr_legend_input_ax, R.string.vr_legend_action_exit),
+        row(R.string.vr_legend_input_panel_buttons, R.string.vr_legend_action_panel_buttons),
+    )
+
+    private fun row(inputRes: Int, actionRes: Int) =
+        HudLegendRenderer.LegendRow(getString(inputRes), getString(actionRes))
+
+    /**
+     * S1223: the single restore point after the legend hands the HUD channel back. The repaint runs
+     * directly rather than through [scheduleHudPanelRepaint] because the debounce would leave the
+     * legend's texture stretched across the strip-sized quad for the length of the window.
+     */
+    /**
+     * S1223: the seek tick stands down for the length of the legend. The bar cannot be seen while
+     * the legend owns the channel, so a tick would only queue work that [renderPanelHud] drops.
+     */
+    private fun showLegend() {
+        seekTicker.stop()
+        legendController?.show()
+    }
+
+    private fun restoreStripAfterLegend() {
+        runtime.setHudQuadSize(PANEL_QUAD_WIDTH_M, PANEL_QUAD_HEIGHT_M, PANEL_QUAD_OFFSET_Y_M)
+        hudVisible = true
+        renderPanelHud()
+        refreshSeekPosition()
+        seekTicker.start()
+    }
+
+    /**
      * S0964: paint the interactive panel (nav, volume, depth, track rows) into the HUD quad.
      * Called on state changes only - never per frame (S0290). Main thread.
      */
     private fun renderPanelHud() {
-        if (isFinishing || isDestroyed) return
+        // S1223: the legend borrows this same texture channel. Uploading the strip while it is up
+        // would stretch a 2560x360 texture across the legend's quad - one guard at the only queueHud
+        // call site covers every repaint trigger (ticker, track change, slider drag) at once.
+        if (isFinishing || isDestroyed || legendController?.isVisible == true) return
         val bitmap = hudBitmap
         val canvas = hudCanvas
         if (bitmap == null || canvas == null) return
@@ -565,7 +767,8 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         val buf = getReusablePanelHudBuffer()
         bitmap.copyPixelsToBuffer(buf)
         buf.rewind()
-        val bytes = ByteArray(buf.remaining())
+        val bytes = reusablePanelHudBytes?.takeIf { it.size == buf.remaining() }
+            ?: ByteArray(buf.remaining()).also { reusablePanelHudBytes = it }
         buf.get(bytes)
         Timber.d("S0964: panel HUD queued file=${hudRenderer.currentFilename}")
         runtime.queueHud(bytes, HudCanvasRenderer.WIDTH, HudCanvasRenderer.HEIGHT)
@@ -577,11 +780,50 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         hudRenderer.subtitleTrackLabel = trackController.subtitleLabel(hudSubsOffLabel, hudNoTracksLabel)
         hudRenderer.audioRowEnabled = trackController.hasMultipleAudioTracks()
         hudRenderer.subsRowEnabled = trackController.hasSubtitleTracks()
+        Timber.d(
+            "S1238: hud rows audio=${hudRenderer.audioRowEnabled}" +
+                " subs=${hudRenderer.subsRowEnabled} depth=${hudRenderer.depthRowVisible}"
+        )
     }
 
     private fun refreshTrackRowsAndRepaint() {
         refreshTrackRows()
         scheduleHudPanelRepaint()
+    }
+
+    /**
+     * S1239: pull the player's position into the seek band and repaint. Main thread - the ticker
+     * posts on the same handler the debounced repaint uses.
+     *
+     * A null position hides the band rather than freezing it: that is an image, or a source whose
+     * duration is unset, and a handle nailed to zero would invite a drag that cannot go anywhere.
+     */
+    private fun refreshSeekPosition() {
+        val position = playbackController.positionOrNull()
+        val visible = position != null
+        val label = position?.let { seekTimeLabel(it.positionMs, it.durationMs) }.orEmpty()
+        // Repaint only when something a viewer could see moved. The label has one-second
+        // granularity, so this also spares a live source - whose duration never resolves - a
+        // 3.7 MB texture upload every second for a band that stays hidden.
+        if (visible == hudRenderer.seekRowVisible && label == hudRenderer.timeLabel) return
+        if (visible != hudRenderer.seekRowVisible) {
+            Timber.d("S1239: seek band visible=%b label=%s", visible, label)
+        }
+        hudRenderer.seekRowVisible = visible
+        hudRenderer.timeLabel = label
+        hudRenderer.seekProgress =
+            position?.let { it.positionMs.toFloat() / it.durationMs.toFloat() } ?: 0f
+        scheduleHudPanelRepaint()
+    }
+
+    /**
+     * S1239: `DateUtils` already renders M:SS and H:MM:SS, so the immersive HUD does not become the
+     * seventh place in this project carrying its own duration formatter.
+     */
+    private fun seekTimeLabel(positionMs: Long, durationMs: Long): String {
+        val elapsed = DateUtils.formatElapsedTime(TimeUnit.MILLISECONDS.toSeconds(positionMs))
+        val total = DateUtils.formatElapsedTime(TimeUnit.MILLISECONDS.toSeconds(durationMs))
+        return "$elapsed / $total"
     }
 
     /** S0964: debounced panel repaint; no-op on the banner (diagnostic) path. */
@@ -596,6 +838,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private suspend fun decodeBundledAsset(): Boolean {
         runtime.setRenderConfig(ProjectionType.SPHERE_360.value, StereoLayout.MONO.value)
+        hudRenderer.depthRowVisible = false
         hudRenderer.currentFilename = "vr_diagnostic_360_mono.jpg (bundled)"
         if (isPanelHudMode()) {
             renderPanelHud()
@@ -619,6 +862,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private suspend fun decodeImageToActivityBytes(file: File): Boolean {
         val config = stereoConfigResolver.resolve(file.name)
         runtime.setRenderConfig(config.projection.value, config.layout.value)
+        hudRenderer.depthRowVisible = config.layout != StereoLayout.MONO
         hudRenderer.currentFilename = file.name
         if (isPanelHudMode()) {
             renderPanelHud()
@@ -650,9 +894,44 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         loadCurrentMediaItem()
     }
 
+    /**
+     * S1217: a VR file downloaded from a site keeps its descriptive name and loses the layout token,
+     * so the filename scan calls it flat and mono and the film plays that way for its whole run. The
+     * container often still carries `st3d`/`sv3d` boxes. Read them off the main thread and correct
+     * the render config; arriving a beat late is plainly better than never arriving.
+     *
+     * Deliberately one-directional - it only ever turns MONO into stereo. A metadata verdict that
+     * says mono is not allowed to overrule a filename that said 360 or SBS, because the diagnostic
+     * test media is named correctly and would regress on files whose boxes are less complete than
+     * their names.
+     */
+    private fun correctStereoFromMetadata(file: File, current: RenderConfig) {
+        if (current.layout != StereoLayout.MONO) return
+        lifecycleScope.launch(Dispatchers.IO) {
+            val fromBoxes = stereoConfigResolver.resolveFromMetadata(file.absolutePath)
+            if (fromBoxes == null || fromBoxes.layout == StereoLayout.MONO) return@launch
+            withContext(Dispatchers.Main) { applyStereoFromMetadata(fromBoxes, file.name) }
+        }
+    }
+
+    private fun applyStereoFromMetadata(config: RenderConfig, filename: String) {
+        if (isFinishing || isDestroyed) return
+        Timber.d(
+            "VrStereo: container metadata corrected layout to %s projection=%s file=%s",
+            config.layout,
+            config.projection,
+            filename,
+        )
+        runtime.setRenderConfig(config.projection.value, config.layout.value)
+        hudRenderer.depthRowVisible = true
+        if (isPanelHudMode()) scheduleHudPanelRepaint()
+    }
+
     private fun loadCurrentMediaItem() {
-        val file = mediaPlaylist[currentPlaylistIndex]
+        val item = mediaPlaylist[currentPlaylistIndex]
+        val file = item.file
         Timber.d("S0989: loadCurrentMediaItem index=$currentPlaylistIndex file=${file.name}")
+        Timber.d("S1233: nav $currentPlaylistIndex/${mediaPlaylist.size} type=${item.mediaType}")
         Timber.d("Loading media item at index $currentPlaylistIndex: ${file.name}")
 
         hudRenderer.currentFilename = file.name
@@ -660,13 +939,18 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
         val config = stereoConfigResolver.resolve(file.name)
         runtime.setRenderConfig(config.projection.value, config.layout.value)
+        hudRenderer.depthRowVisible = config.layout != StereoLayout.MONO
         if (isPanelHudMode()) {
             refreshTrackRowsAndRepaint()
         } else {
             hudBanner.queueFilename(file.name, config.projection, config.layout)
         }
+        if (item.mediaType == VrMediaType.VIDEO) {
+            correctStereoFromMetadata(file, config)
+        }
 
-        if (file.extension.lowercase() in setOf("jpg", "jpeg", "png")) {
+        // S1233: the carried type decides, not the extension - see the PlaylistItem note.
+        if (item.mediaType == VrMediaType.IMAGE) {
             runtime.setVideoSurfaceEnabled(false)
             // S0290 Phase 11: decode off-main via the Glide pool (VrTextureDecoder). queueFrame stays on
             // Dispatchers.IO - it copies into the native pendingFrameData vector; the decoder returns the
@@ -709,10 +993,42 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     @Keep
     fun onNativeInputEvent(eventType: Int) {
         runOnUiThread {
-            if (isFinishing || isDestroyed || mediaPlaylist.isEmpty()) return@runOnUiThread
+            if (isFinishing || isDestroyed) return@runOnUiThread
+            // S1223: the press that closes the legend does nothing else. A deflection that both
+            // dismissed and seeked would teach the user that the binding they just read about does
+            // something unrelated to what it said.
+            if (legendController?.dismiss() == true) return@runOnUiThread
+            // S1232: summon is checked before the playlist guard below. Bringing the panel back is
+            // valid with an empty playlist - navigation is not - and gating it on media would make
+            // a hidden HUD unrecoverable in exactly the state where the user needs to reach exit.
+            if (eventType == INPUT_EVENT_HUD_SUMMON) {
+                Timber.d("S1232: trigger summon while HUD hidden")
+                runtime.setHudVisible(true)
+                hudVisible = true
+                // S1239: the bar is stale by however long the strip was hidden - refresh before
+                // resuming the tick so the handle is never seen in its pre-hide position.
+                refreshSeekPosition()
+                seekTicker.start()
+                return@runOnUiThread
+            }
+            // S1240: seeking is about the item already playing, so it is not gated on the playlist
+            // the way stepping between files is.
             when (eventType) {
-                1 -> navigateToNextMedia()
-                2 -> navigateToPrevMedia()
+                INPUT_EVENT_SEEK_FORWARD -> {
+                    Timber.d("S1240: stick seek forward")
+                    playbackController.seekBy(SEEK_STEP_MS)
+                    return@runOnUiThread
+                }
+                INPUT_EVENT_SEEK_BACK -> {
+                    Timber.d("S1240: stick seek back")
+                    playbackController.seekBy(-SEEK_STEP_MS)
+                    return@runOnUiThread
+                }
+            }
+            if (mediaPlaylist.isEmpty()) return@runOnUiThread
+            when (eventType) {
+                INPUT_EVENT_NEXT -> navigateToNextMedia()
+                INPUT_EVENT_PREV -> navigateToPrevMedia()
             }
         }
     }
@@ -735,6 +1051,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         // session resume.
         runOnUiThread {
             if (isFinishing || isDestroyed) return@runOnUiThread
+            // S1223: only a real press closes the legend. Dismissing on hover would take it away
+            // the moment the ray crossed it, which is before anyone has read it.
+            if (isClick && legendController?.dismiss() == true) return@runOnUiThread
             interactionDispatcher.dispatch(uvX, uvY, isHover, isClick)
         }
     }
@@ -800,12 +1119,15 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     override fun onPause() {
         super.onPause()
         // S0290 Phase 09 + owner round 3 (2026-05-22): order matters. Release ExoPlayer FIRST so it lets go of the Surface it received from runtime.getVideoSurface(); only then tear down the native side which destroys the underlying SurfaceTexture / GL texture. The reverse order caused VideoFrameReleaseHelper to call Surface.setFrameRate on an already-released Surface (logcat: "Surface has already been released") and MediaCodec.flush on a Released codec at every immersive exit.
+        // S1239: stop the tick before the player goes away, so no repaint outlives it.
+        seekTicker.stop()
         playbackCtrl.release()
         shutdownRenderThreadSync(PAUSE_SHUTDOWN_TIMEOUT_MS)
     }
 
     override fun onDestroy() {
         // onPause normally already tore everything down (Phase 09); this is the belt-and-braces path for the rare process-death-after-pause case where onPause did not get to finish. Same ordering rule: ExoPlayer release before native shutdown.
+        seekTicker.stop()
         playbackCtrl.release()
         shutdownRenderThreadSync(SHUTDOWN_TIMEOUT_MS)
         hudRepaintHandler.removeCallbacksAndMessages(null)
@@ -813,7 +1135,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         subtitleController = null
         textureDecoder.releaseBuffer()
         hudBanner.releaseBuffers()
+        legendController?.release()
+        legendController = null
         reusablePanelHudBuffer = null
+        reusablePanelHudBytes = null
         super.onDestroy()
     }
 
@@ -867,7 +1192,8 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             dismissInitialLoadingOverlay()
             sessionReady = true
             if (mediaPlaylist.isEmpty() || currentPlaylistIndex !in mediaPlaylist.indices) return@runOnUiThread
-            val file = mediaPlaylist[currentPlaylistIndex]
+            val item = mediaPlaylist[currentPlaylistIndex]
+            val file = item.file
             val config = stereoConfigResolver.resolve(file.name)
             // A native session that has just become ready owns a freshly created 1x1 placeholder
             // HUD texture, and the prior session's shutdown cleared any pending HUD bytes. Re-queue
@@ -876,6 +1202,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // items previously relied solely on the one-time onCreate decode path, which is not
             // re-run when a session is recreated, leaving the placeholder visible on re-entry.
             runtime.setRenderConfig(config.projection.value, config.layout.value)
+            hudRenderer.depthRowVisible = config.layout != StereoLayout.MONO
             hudRenderer.currentFilename = file.name
             // S0964: the quad-size override persists in native state across sessions within one
             // process, so EVERY mode must (re)assert its own size here - a diagnostic launch after
@@ -887,7 +1214,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 runtime.setHudQuadSize(BANNER_QUAD_WIDTH_M, BANNER_QUAD_HEIGHT_M, BANNER_QUAD_OFFSET_Y_M)
                 hudBanner.queueFilename(file.name, config.projection, config.layout)
             }
-            if (isVideoFilename(file.name)) {
+            // S1233: was isVideoFilename, which knows only mp4/mkv - a .webm or .mov item silently
+            // never restarted when a recreated session became ready.
+            if (item.mediaType == VrMediaType.VIDEO) {
                 if (!playbackCtrl.start(file)) {
                     hudBanner.queueError(file.name, "Playback Start Failed")
                 }
@@ -897,7 +1226,21 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 // track rows populate later via onTracksChanged.
                 refreshTrackRows()
                 renderPanelHud()
+                maybeShowLegendOnFirstEntry()
             }
+        }
+    }
+
+    /**
+     * S1223: shown once per install. The flag is written after the legend is on screen rather than
+     * before, so a process death between the two does not silently burn the single showing.
+     */
+    private fun maybeShowLegendOnFirstEntry() {
+        lifecycleScope.launch {
+            if (legendPreferences.isShown()) return@launch
+            Timber.d("S1223: legend shown on first immersive entry")
+            showLegend()
+            legendPreferences.markShown()
         }
     }
 
@@ -911,6 +1254,18 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private companion object {
+        // Event codes raised by triggerJniInputCallback in xr_session.cpp - keep both sides in step.
+        private const val INPUT_EVENT_NEXT = 1
+        private const val INPUT_EVENT_PREV = 2
+        private const val INPUT_EVENT_HUD_SUMMON = 3
+        private const val INPUT_EVENT_SEEK_FORWARD = 4
+        private const val INPUT_EVENT_SEEK_BACK = 5
+
+        // S1240: one thumbstick deflection = one 10 s step. The number is not invented - it is what
+        // docs/VR_CONTROLS.md has documented as the intended seek granularity since before the
+        // binding existed.
+        private const val SEEK_STEP_MS = 10_000L
+
         private const val MEDIA_SETTINGS_TAB_INDEX = 1
         const val SHUTDOWN_TIMEOUT_MS = 3_000L
 
@@ -948,6 +1303,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
         // S0964: coalesce repaint bursts (slider drags) into one queueHud per window.
         private const val HUD_REPAINT_DEBOUNCE_MS = 100L
+
+        // S1233: a carried list shorter than this has nothing to navigate, so the host stays on its
+        // single-file path rather than pretending one file is a playlist.
+        private const val MIN_NAVIGABLE_PLAYLIST_SIZE = 2
 
         private val VIDEO_EXTENSIONS = setOf("mp4", "mkv")
 

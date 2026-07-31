@@ -67,6 +67,7 @@
 | `.\a.ps1 fr`   | Fast resources/manifest check |
 | `.\a.ps1 fc`   | Fast code + resources check |
 | `.\a.ps1 fu`   | Fast full unit-test suite |
+| `.\a.ps1 flr`  | Fast lint-rules detector test suite (`:lint-rules:test`); `-Tests <filter>` narrows it |
 | `.\a.ps1 dc`   | Clean + debug build |
 | `.\a.ps1 cls`  | Clean Gradle caches |
 | `.\a.ps1 ss`   | Show unresolved specs (`sca-specs`) |

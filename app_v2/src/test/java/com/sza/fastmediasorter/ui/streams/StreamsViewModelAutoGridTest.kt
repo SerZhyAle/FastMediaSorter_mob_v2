@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCas
 import com.sza.fastmediasorter.testing.MainDispatcherRule
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -51,6 +52,9 @@ class StreamsViewModelAutoGridTest {
             sessionStore = mockk(relaxed = true),
             networkContextAnalyzer = mockk(relaxed = true),
             streamFramePersistentStore = mockk(relaxed = true),
+            streamTrackPreferenceUseCase = mockk(relaxed = true),
+            streamResumeStateRepository = mockk(relaxed = true),
+            applicationScope = CoroutineScope(dispatcherRule.testDispatcher),
         )
     }
 

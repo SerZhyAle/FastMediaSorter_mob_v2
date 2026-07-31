@@ -87,6 +87,19 @@ class SftpConnectionPool {
     // Safe as a plain monitor because every critical section below is synchronous JSch/map work
     // with zero suspension points - no coroutine ever suspends while holding it.
     private val pooledSessions = ConcurrentHashMap<ConnectionKey, PooledConnection>()
+
+    // S1296: per-host creation locks. session.connect() blocks for up to CONNECTION_TIMEOUT, and
+    // running it under the shared pooledSessions monitor made every other host queue behind one
+    // unreachable server. Map mutation still happens on that monitor, so the S0866 TOCTOU
+    // guarantee holds; only the SSH handshake moved out from under it.
+    private val sessionCreationLocks = ConcurrentHashMap<ConnectionKey, Any>()
+
+    // S1296: which pooled session a live PLAYBACK borrow belongs to. Release used to resolve the
+    // owner by scanning pooledSessions, which fails once invalidateSession removes the entry while
+    // the borrow is live - the decrement was skipped and the deferred disconnect never ran, leaking
+    // the JSch session, its socket and its keep-alive thread until process death.
+    private val playbackOwners = ConcurrentHashMap<ChannelSftp, PooledConnection>()
+
     private val connectionSemaphore = Semaphore(MAX_CONCURRENT_CONNECTIONS)
     private val cleanupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     @Volatile
@@ -220,16 +233,19 @@ class SftpConnectionPool {
         info: SftpClient.SftpConnectionInfo
     ): PooledConnection {
         ensurePeriodicSweepRunning()
-        synchronized(pooledSessions) {
-            val existing = pooledSessions[key]
-            if (existing != null && existing.session.isConnected) return existing
+        // S1296: handshake under a per-host lock, map work under the shared monitor.
+        synchronized(creationLock(key)) {
+            synchronized(pooledSessions) {
+                val existing = pooledSessions[key]
+                if (existing != null && existing.session.isConnected) return existing
 
-            if (existing != null) {
-                try {
-                    existing.pooledChannels.forEach { try { it.channel.disconnect() } catch (_: Exception) {} }
-                    existing.session.disconnect()
-                } catch (e: Exception) { Timber.w("Error closing stale session: ${e.message}") }
-                pooledSessions.remove(key)
+                if (existing != null) {
+                    try {
+                        existing.pooledChannels.forEach { try { it.channel.disconnect() } catch (_: Exception) {} }
+                        existing.session.disconnect()
+                    } catch (e: Exception) { Timber.w("Error closing stale session: ${e.message}") }
+                    pooledSessions.remove(key)
+                }
             }
 
             val jsch = JSch()
@@ -247,11 +263,13 @@ class SftpConnectionPool {
             val pooled = PooledConnection(session = session, jsch = jsch)
             val firstCh = openChannelSafe(pooled)
             pooled.pooledChannels.add(PooledChannel(firstCh, Mutex(), ChannelPurpose.FILE_OPS))
-            pooledSessions[key] = pooled
+            synchronized(pooledSessions) { pooledSessions[key] = pooled }
             Timber.d("SFTP new session for ${info.host}")
             return pooled
         }
     }
+
+    private fun creationLock(key: ConnectionKey): Any = sessionCreationLocks.computeIfAbsent(key) { Any() }
 
     suspend fun invalidate(info: SftpClient.SftpConnectionInfo) {
         invalidateSession(ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint))
@@ -368,9 +386,7 @@ class SftpConnectionPool {
                 val existing = pooled.pooledChannels
                     .firstOrNull { it.purpose == ChannelPurpose.PLAYBACK && it.channel.isConnected }
                 if (existing != null) {
-                    pooled.activeBorrowCount.incrementAndGet()
-                    Timber.d("SFTP [PLAYBACK] acquired (reuse) - active=${pooled.activeBorrowCount.get()} host=${connectionInfo.host}")
-                    return ExoPlayerConnection(pooled.session, existing.channel)
+                    return borrowPlayback(pooled, existing.channel, "reuse", connectionInfo.host)
                 }
 
                 val playbackCount = pooled.pooledChannels.count { it.purpose == ChannelPurpose.PLAYBACK }
@@ -379,17 +395,13 @@ class SftpConnectionPool {
                     ch.connect(CONNECTION_TIMEOUT)
                     pooled.pooledChannels.add(PooledChannel(ch, Mutex(), ChannelPurpose.PLAYBACK))
                     Timber.d("SFTP [PLAYBACK] new channel (total=${pooled.pooledChannels.size}/$MAX_CHANNELS_PER_SESSION)")
-                    pooled.activeBorrowCount.incrementAndGet()
-                    Timber.d("SFTP [PLAYBACK] acquired (new channel) - active=${pooled.activeBorrowCount.get()} host=${connectionInfo.host}")
-                    return ExoPlayerConnection(pooled.session, ch)
+                    return borrowPlayback(pooled, ch, "new channel", connectionInfo.host)
                 }
 
                 // All PLAYBACK slots taken - reuse first (caller waits on I/O)
                 val fallback = pooled.pooledChannels.first { it.purpose == ChannelPurpose.PLAYBACK }
                 Timber.d("SFTP [PLAYBACK] all slots busy, reusing first channel")
-                pooled.activeBorrowCount.incrementAndGet()
-                Timber.d("SFTP [PLAYBACK] acquired (fallback) - active=${pooled.activeBorrowCount.get()} host=${connectionInfo.host}")
-                return ExoPlayerConnection(pooled.session, fallback.channel)
+                return borrowPlayback(pooled, fallback.channel, "fallback", connectionInfo.host)
             } finally {
                 pooled.openChannelLock.unlock()
             }
@@ -416,17 +428,21 @@ class SftpConnectionPool {
         info: SftpClient.SftpConnectionInfo
     ): PooledConnection {
         ensurePeriodicSweepRunning()
-        // Synchronized on pooledSessions to avoid TOCTOU on session creation from the blocking path
-        synchronized(pooledSessions) {
-            val existing = pooledSessions[key]
-            if (existing != null && existing.session.isConnected) return existing
+        // S1296: the SSH handshake below can block for CONNECTION_TIMEOUT. Holding the shared
+        // pooledSessions monitor across it froze every other host's lookup behind one dead server,
+        // so only the map read/write stays on that monitor; creation is serialized per host.
+        synchronized(creationLock(key)) {
+            synchronized(pooledSessions) {
+                val existing = pooledSessions[key]
+                if (existing != null && existing.session.isConnected) return existing
 
-            if (existing != null) {
-                try {
-                    existing.pooledChannels.forEach { try { it.channel.disconnect() } catch (_: Exception) {} }
-                    existing.session.disconnect()
-                } catch (e: Exception) { Timber.w("Error closing stale PLAYBACK session: ${e.message}") }
-                pooledSessions.remove(key)
+                if (existing != null) {
+                    try {
+                        existing.pooledChannels.forEach { try { it.channel.disconnect() } catch (_: Exception) {} }
+                        existing.session.disconnect()
+                    } catch (e: Exception) { Timber.w("Error closing stale PLAYBACK session: ${e.message}") }
+                    pooledSessions.remove(key)
+                }
             }
 
             val jsch = JSch()
@@ -441,23 +457,41 @@ class SftpConnectionPool {
             session.setServerAliveCountMax(SERVER_ALIVE_COUNT_MAX)
             session.connect(CONNECTION_TIMEOUT)
             val pooled = PooledConnection(session = session, jsch = jsch)
-            pooledSessions[key] = pooled
+            synchronized(pooledSessions) { pooledSessions[key] = pooled }
             Timber.d("SFTP [PLAYBACK] new unified session created - host=${info.host}")
             return pooled
         }
     }
 
+    /** Register a PLAYBACK borrow so [releaseExoPlayerConnection] can always find its owner (S1296). */
+    private fun borrowPlayback(
+        pooled: PooledConnection,
+        channel: ChannelSftp,
+        how: String,
+        host: String
+    ): ExoPlayerConnection {
+        pooled.activeBorrowCount.incrementAndGet()
+        playbackOwners[channel] = pooled
+        Timber.d("SFTP [PLAYBACK] acquired ($how) - active=${pooled.activeBorrowCount.get()} host=$host")
+        return ExoPlayerConnection(pooled.session, channel)
+    }
+
     fun releaseExoPlayerConnection(channel: ChannelSftp? = null, broken: Boolean = false) {
+        // S1296: the borrow registry survives invalidateSession removing the entry from the map,
+        // so the counter is always decremented and an orphaned session is actually disconnected -
+        // the same deferred-disconnect contract withConnection's finally implements.
+        val owner = channel?.let { ch ->
+            playbackOwners[ch] ?: pooledSessions.values.find { p -> p.pooledChannels.any { it.channel == ch } }
+        } ?: pooledSessions.values.firstOrNull()
+
         // Decrement before eviction so channel can still be found in the pool
-        if (channel != null) {
-            pooledSessions.values
-                .find { pooled -> pooled.pooledChannels.any { it.channel == channel } }
-                ?.activeBorrowCount
-                ?.updateAndGet { maxOf(0, it - 1) }
-        } else {
-            pooledSessions.values.firstOrNull()
-                ?.activeBorrowCount
-                ?.updateAndGet { maxOf(0, it - 1) }
+        val remaining = owner?.activeBorrowCount?.updateAndGet { maxOf(0, it - 1) }
+        if (owner != null && remaining == 0) {
+            channel?.let(playbackOwners::remove)
+            if (!pooledSessions.containsValue(owner)) {
+                Timber.d("SFTP [PLAYBACK] last borrower released an invalidated session - disconnecting")
+                disconnectOrphan(owner)
+            }
         }
         if (broken && channel != null) evictPlaybackChannel(channel)
         connectionSemaphore.release()
@@ -465,6 +499,7 @@ class SftpConnectionPool {
     }
 
     private fun evictPlaybackChannel(channel: ChannelSftp) {
+        playbackOwners.remove(channel)
         pooledSessions.values.forEach { pooled ->
             val target = pooled.pooledChannels.firstOrNull { it.channel == channel } ?: return@forEach
             try { channel.disconnect() } catch (e: Exception) {

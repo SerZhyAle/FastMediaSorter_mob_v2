@@ -124,6 +124,15 @@ object LoggingHelper {
      * RELEASE build: Only warnings and errors (w/e) - no debug spam
      */
     fun initialize(context: Context) {
+        // S1253: Robolectric boots the real Application, which used to plant the FILE tree in
+        // every unit-test class - the "fms-log-io" executor then churned file IO and memory for
+        // thousands of tests and was the thread the JVM's OOM storm named right before the
+        // instrument-agent assertion killed the worker with exit value 10. Unit tests keep the
+        // logcat tree only; devices are unaffected (fingerprint is never "robolectric" there).
+        if (android.os.Build.FINGERPRINT == "robolectric") {
+            Timber.plant(Timber.DebugTree())
+            return
+        }
         if (BuildConfig.DEBUG) {
             // Debug build: log to Logcat with system noise filtering
             Timber.plant(object : Timber.DebugTree() {
@@ -162,8 +171,9 @@ object LoggingHelper {
                 override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
                     // Filter: only WARN and ERROR in release
                     if (priority >= android.util.Log.WARN) {
+                        // S1248: Timber's prepareLog already appended the throwable's stack trace to
+                        // [message]; printing it again doubled every trace in logcat.
                         android.util.Log.println(priority, tag ?: "FastMediaSorter", message)
-                        t?.let { android.util.Log.println(priority, tag ?: "FastMediaSorter", android.util.Log.getStackTraceString(it)) }
                     }
                 }
             })
@@ -172,7 +182,6 @@ object LoggingHelper {
             fileLoggingTree = fileTree
             Timber.plant(fileTree)
         }
-        Timber.d("S1203: file logging planted, writes queued off the calling thread")
     }
     
     /**
@@ -196,6 +205,9 @@ object LoggingHelper {
             "logs"
         )
         private val maxFileSize = 5 * 1024 * 1024L // 5 MB
+
+        /** S1310: hard cap for the debug mirror file, which appends across source-log rotations. */
+        private val debugMirrorMaxBytes = 2 * maxFileSize
         private val maxLogFiles = 5
         private val dateFormat = object : ThreadLocal<SimpleDateFormat>() {
             override fun initialValue() = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
@@ -323,8 +335,13 @@ object LoggingHelper {
             // Use allowDiskIO (not just allowDiskWrites) because we also check file.exists() and file.length()
             StrictModeHelper.allowDiskIO {
                 try {
+                    // S1248: Timber's prepareLog glues the throwable's stack trace onto [message]
+                    // before any tree sees it. This tree renders the trace itself (compacted for
+                    // known-noisy errors, single-line for warnings), so the glued copy must come
+                    // off first - leaving it doubled every ERROR trace in the session file.
+                    val bareMessage = stripTimberAppendedTrace(message, t)
                     // Sanitize message for security
-                    val sanitizedMessage = com.sza.fastmediasorter.core.security.SecretMasker.sanitize(message)
+                    val sanitizedMessage = com.sza.fastmediasorter.core.security.SecretMasker.sanitize(bareMessage)
 
                     // Downgrade "unimportant" errors to WARN
                     var effectivePriority = priority
@@ -483,6 +500,16 @@ object LoggingHelper {
                 if (sourceLength == debugMirrorSourceOffsetBytes) return
 
                 targetFile.parentFile?.mkdirs()
+                // S1310: the mirror only ever appended - across source-log rotations it re-copied
+                // every new file in full, so a long debug session grew it without bound while the
+                // source itself stayed capped at maxFileSize. Restart the mirror at the cap instead.
+                if (targetFile.length() >= debugMirrorMaxBytes) {
+                    val capMb = debugMirrorMaxBytes / 1024 / 1024
+                    FileOutputStream(targetFile, false).use { reset ->
+                        reset.write("=== mirror restarted (cap ${capMb}MB) ===\n".toByteArray())
+                    }
+                    debugMirrorSourceOffsetBytes = maxOf(0L, sourceLength - DEFAULT_BUFFER_SIZE)
+                }
                 RandomAccessFile(sourceFile, "r").use { input ->
                     input.seek(debugMirrorSourceOffsetBytes)
                     FileOutputStream(targetFile, true).use { output ->
@@ -594,4 +621,21 @@ object LoggingHelper {
             const val FLUSH_TIMEOUT_SECONDS = 2L
         }
     }
+}
+
+/**
+ * S1248: undo `Timber.Tree.prepareLog`'s message mutation. When a throwable is passed, Timber
+ * appends `"\n" + Log.getStackTraceString(t)` to the message before calling any tree, while also
+ * handing the tree the throwable itself - a tree that renders the trace from [t] then writes it
+ * twice. Returns the caller's original message text; for a text-less `Timber.e(t)` call (where the
+ * whole message IS the trace) it returns an empty string, leaving the tree's own trace rendering
+ * as the single copy.
+ *
+ * Top-level so the rule is unit-testable without touching the file-writing tree.
+ */
+internal fun stripTimberAppendedTrace(message: String, t: Throwable?): String {
+    val trace = t?.let { android.util.Log.getStackTraceString(it).trimEnd('\n') }.orEmpty()
+    if (trace.isEmpty()) return message
+    val bare = message.trimEnd('\n')
+    return if (bare == trace) "" else bare.removeSuffix("\n" + trace)
 }

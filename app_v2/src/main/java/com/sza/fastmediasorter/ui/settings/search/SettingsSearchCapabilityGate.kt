@@ -106,6 +106,10 @@ class SettingsSearchCapabilityGate @Inject constructor(
         // is not in the search catalog (SettingsSearchLayoutCatalog), so they no longer need a branch here.
         "rowLauncherModeEnabled",
         "rowLauncherSettings" -> launcherModeContract.isAvailableInBuild
+        // S1170: "add a widget to the launcher desktop" is GONE without the launcher surface, and the
+        // owning fragment additionally hides it until launcher mode is actually on. Only the build axis
+        // is mirrored here - the runtime one is a live user toggle, and this gate answers per build.
+        "buttonAddLauncherWidget" -> launcherModeContract.isAvailableInBuild
         else -> true
     }
 }

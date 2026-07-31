@@ -24,16 +24,6 @@ object BrowseEdgeToEdgeHelper {
         val topBarOrigPaddingRight  = binding.layoutControls.paddingRight
         val topBarOrigPaddingBottom = binding.layoutControls.paddingBottom
 
-        val bottomBarOrigPaddingLeft   = binding.layoutOperations.paddingLeft
-        val bottomBarOrigPaddingTop    = binding.layoutOperations.paddingTop
-        val bottomBarOrigPaddingRight  = binding.layoutOperations.paddingRight
-        val bottomBarOrigPaddingBottom = binding.layoutOperations.paddingBottom
-
-        val filterOrigPaddingLeft   = binding.tvFilterWarning.paddingLeft
-        val filterOrigPaddingTop    = binding.tvFilterWarning.paddingTop
-        val filterOrigPaddingRight  = binding.tvFilterWarning.paddingRight
-        val filterOrigPaddingBottom = binding.tvFilterWarning.paddingBottom
-
         val fabOrigBottomMargin = (binding.fabScrollToBottom.layoutParams as? ViewGroup.MarginLayoutParams)
             ?.bottomMargin ?: binding.root.resources.getDimensionPixelSize(R.dimen.margin_small)
 
@@ -48,27 +38,13 @@ object BrowseEdgeToEdgeHelper {
                 topBarOrigPaddingBottom
             )
 
-            binding.layoutOperations.setPadding(
-                bottomBarOrigPaddingLeft,
-                bottomBarOrigPaddingTop,
-                bottomBarOrigPaddingRight,
-                bottomBarOrigPaddingBottom + navBar.bottom
-            )
-
-            binding.tvFilterWarning.setPadding(
-                filterOrigPaddingLeft,
-                filterOrigPaddingTop,
-                filterOrigPaddingRight,
-                filterOrigPaddingBottom + navBar.bottom
-            )
-
             val fabBottomMargin = fabOrigBottomMargin + navBar.bottom
             (binding.fabScrollToBottom.layoutParams as? ViewGroup.MarginLayoutParams)?.let {
                 it.bottomMargin = fabBottomMargin
                 binding.fabScrollToBottom.layoutParams = it
             }
 
-            applyListBottomInset(binding)
+            applyBottomInsets(binding)
 
             insets
         }
@@ -76,17 +52,57 @@ object BrowseEdgeToEdgeHelper {
     }
 
     /**
-     * Reserve navigation-bar height at the bottom of the file list so its last row can scroll clear
-     * of the translucent system nav bar and stay tappable (checkbox / overflow). Applied only while
-     * no opaque bottom bar is shown - when the operations bar or filter warning is visible it already
-     * lifts the list above the nav bar and owns that inset, so a second reservation would leave an
-     * empty band. clipToPadding stays false in XML, so rows still draw under the bar while scrolling.
-     * Owns rvMediaFiles' bottom padding; call after any bottom-bar visibility change.
+     * Settles every navigation-bar inset below the file list: which bottom strip carries it, and how
+     * much height the list itself must reserve. Call after any bottom-bar visibility change - the
+     * insets listener alone does not fire on those.
      */
-    fun applyListBottomInset(binding: ActivityBrowseBinding) {
+    fun applyBottomInsets(binding: ActivityBrowseBinding) {
         val navBottom = ViewCompat.getRootWindowInsets(binding.root)
             ?.getInsets(WindowInsetsCompat.Type.navigationBars())?.bottom ?: 0
-        val bottomBarShown = binding.layoutOperations.isVisible || binding.tvFilterWarning.isVisible
+        applyBottomStripInsets(binding, navBottom)
+        applyListBottomInset(binding, navBottom)
+    }
+
+    /**
+     * Bottom strips stack upward from the parent bottom: filter warning, transfer indicator (S1227),
+     * operations bar. Only the lowest *visible* strip may carry the nav-bar inset - handing it to all
+     * of them leaves a nav-bar-high empty band inside every strip that has another one below it.
+     * Original bottom padding is re-read from the same dimens the layouts declare, so re-applying on
+     * a visibility change never accumulates.
+     */
+    private fun applyBottomStripInsets(binding: ActivityBrowseBinding, navBottom: Int) {
+        val resources = binding.root.resources
+        val stripPadding = resources.getDimensionPixelSize(R.dimen.padding_small)
+        val barPadding = resources.getDimensionPixelSize(R.dimen.control_bar_padding)
+        // Lowest first: the first visible entry owns the inset.
+        val strips = listOf(
+            binding.tvFilterWarning to stripPadding,
+            binding.tvTransferIndicator to stripPadding,
+            binding.layoutOperations to barPadding,
+        )
+        var ownerFound = false
+        strips.forEach { (view, originalBottom) ->
+            val ownsInset = !ownerFound && view.isVisible
+            if (ownsInset) ownerFound = true
+            val target = originalBottom + if (ownsInset) navBottom else 0
+            if (view.paddingBottom != target) {
+                view.updatePadding(bottom = target)
+            }
+        }
+        Timber.d("S1227: strip insets nav=%d indicatorShown=%b", navBottom, binding.tvTransferIndicator.isVisible)
+    }
+
+    /**
+     * Reserve navigation-bar height at the bottom of the file list so its last row can scroll clear
+     * of the translucent system nav bar and stay tappable (checkbox / overflow). Applied only while
+     * no opaque bottom strip is shown - a visible strip already lifts the list above the nav bar and
+     * owns that inset, so a second reservation would leave an empty band. clipToPadding stays false
+     * in XML, so rows still draw under the bar while scrolling. Owns rvMediaFiles' bottom padding.
+     */
+    private fun applyListBottomInset(binding: ActivityBrowseBinding, navBottom: Int) {
+        val bottomBarShown = binding.layoutOperations.isVisible ||
+            binding.tvTransferIndicator.isVisible ||
+            binding.tvFilterWarning.isVisible
         val target = if (bottomBarShown) 0 else navBottom
         if (binding.rvMediaFiles.paddingBottom != target) {
             binding.rvMediaFiles.updatePadding(bottom = target)

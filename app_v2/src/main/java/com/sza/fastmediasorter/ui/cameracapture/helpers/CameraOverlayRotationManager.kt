@@ -10,16 +10,14 @@ import com.sza.fastmediasorter.databinding.ActivityCameraCaptureBinding
  */
 class CameraOverlayRotationManager(binding: ActivityCameraCaptureBinding) {
 
-    // Same 18 controls the Activity used to rotate; built once here (not per-call) since the
-    // view set never changes across the host's lifetime.
+    // Built once here (not per-call) since the view set never changes across the host's lifetime.
     private val views = listOf(
         binding.btnCloseCamera,
         binding.cameraSaveDestination,
         binding.btnCameraSettings,
         binding.toggleCameraMicrophone,
         binding.btnCameraFlash,
-        binding.btnCameraNight,
-        binding.btnCameraMacro,
+        binding.btnCameraProfile,
         binding.cameraRecordingTimer,
         binding.cameraZoomValue,
         binding.tabModePhoto,

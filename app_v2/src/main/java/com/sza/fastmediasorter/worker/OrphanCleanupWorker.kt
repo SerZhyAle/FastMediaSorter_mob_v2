@@ -5,9 +5,11 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.data.local.db.CachedFileListDao
+import com.sza.fastmediasorter.data.local.db.DuplicateHashCacheDao
 import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
+import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
@@ -32,6 +34,8 @@ class OrphanCleanupWorker @AssistedInject constructor(
     private val cachedFileListDao: CachedFileListDao,
     private val networkCredentialsDao: NetworkCredentialsDao,
     private val fileMetadataCacheDao: FileMetadataCacheDao,
+    private val duplicateHashCacheDao: DuplicateHashCacheDao,
+    private val resumeStateRepository: ResumeStateRepository,
     private val audioMetadataCacheRepository: AudioMetadataCacheRepository
 ) : CoroutineWorker(context, workerParams) {
 
@@ -48,6 +52,9 @@ class OrphanCleanupWorker @AssistedInject constructor(
         return try {
             cleanOrphanedCaches(correlationId)
             cleanMetadataCache(correlationId)
+            cleanDuplicateHashCache(correlationId)
+            // S1306: per-window resume-state files outlive their 48 h TTL forever otherwise.
+            resumeStateRepository.sweepStaleWindows()
             cleanAudioMetadataCache(correlationId)
             auditOrphanedCredentials(correlationId)
             Timber.i("[orphan-cleanup/$correlationId] completed successfully")
@@ -91,6 +98,25 @@ class OrphanCleanupWorker @AssistedInject constructor(
             )
         } else {
             Timber.d("[orphan-cleanup/$correlationId] metadata cache is clean (no expired/orphaned entries)")
+        }
+    }
+
+    /**
+     * S1305: purge the duplicate-detection hash cache. Its rows are keyed by
+     * (path, lastModified, fileSize), so an edited or deleted file leaves its row behind forever -
+     * the table had no TTL, no orphan sweep, and no place in the Clear-cache flow.
+     */
+    private suspend fun cleanDuplicateHashCache(correlationId: String) {
+        val cutoff = System.currentTimeMillis() - METADATA_TTL_MS
+        val expired = duplicateHashCacheDao.deleteExpired(cutoff)
+        val orphaned = duplicateHashCacheDao.deleteOrphaned()
+
+        if (expired > 0 || orphaned > 0) {
+            Timber.i(
+                "[orphan-cleanup/$correlationId] duplicate hash cache purge: $expired expired, $orphaned orphaned"
+            )
+        } else {
+            Timber.d("[orphan-cleanup/$correlationId] duplicate hash cache is clean")
         }
     }
 

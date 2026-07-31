@@ -34,6 +34,8 @@ class UnifiedFileOperationHandler @Inject constructor(
     private val operationStrategies: Map<String, @JvmSuppressWildcards FileOperationStrategy>,
     // S0391: source-availability gate; a remote op on a user-disabled source is refused at dispatch.
     private val remoteSourceGate: RemoteSourceAvailabilityGate,
+    // S1325: whole-tree transfer for the source/destination pair no single strategy can serve.
+    private val directoryTreeTransferManager: DirectoryTreeTransferManager,
 ) {
     
     // Providers map (will be populated as providers are created)
@@ -500,19 +502,22 @@ class UnifiedFileOperationHandler @Inject constructor(
         destParentPath: String,
         progressCallback: ((Int, Int, String) -> Unit)? = null
     ): Result<Int> = withContext(Dispatchers.IO) {
+        Timber.d("S1325: copy dir dispatch dest=%s", destParentPath)
+        refuseUnsafeDirectoryOperation(sourcePath, destParentPath, isMove = false)?.let {
+            Timber.w("executeCopyDirectory refused: ${it.reason}")
+            return@withContext Result.failure(it)
+        }
         try {
             val sourceProtocol = getProtocolKey(sourcePath)
             val destProtocol = getProtocolKey(destParentPath)
-            if (sourceProtocol != destProtocol) {
-                Timber.w("executeCopyDirectory: cross-protocol not supported ($sourceProtocol → $destProtocol)")
-                return@withContext Result.failure(
-                    UnsupportedOperationException("Cross-protocol directory copy is not supported")
-                )
-            }
-            val strategy = getStrategy(sourcePath)
             val dirName = sourcePath.trimEnd('/').substringAfterLast('/')
             val destination = if (destParentPath.endsWith('/')) "$destParentPath$dirName" else "$destParentPath/$dirName"
-            strategy.copyDirectory(sourcePath, destination, progressCallback)
+            if (sourceProtocol != destProtocol) {
+                requireSourceEnabled(sourcePath)
+                directoryTreeTransferManager.copyTree(sourcePath, destination, progressCallback)
+            } else {
+                getStrategy(sourcePath).copyDirectory(sourcePath, destination, progressCallback)
+            }
         } catch (e: UnsupportedOperationException) {
             Timber.w(e, "executeCopyDirectory: unsupported operation")
             Result.failure(e)
@@ -534,19 +539,22 @@ class UnifiedFileOperationHandler @Inject constructor(
         destParentPath: String,
         progressCallback: ((Int, Int, String) -> Unit)? = null
     ): Result<Int> = withContext(Dispatchers.IO) {
+        Timber.d("S1325: move dir dispatch dest=%s", destParentPath)
+        refuseUnsafeDirectoryOperation(sourcePath, destParentPath, isMove = true)?.let {
+            Timber.w("executeMoveDirectory refused: ${it.reason}")
+            return@withContext Result.failure(it)
+        }
         try {
             val sourceProtocol = getProtocolKey(sourcePath)
             val destProtocol = getProtocolKey(destParentPath)
-            if (sourceProtocol != destProtocol) {
-                Timber.w("executeMoveDirectory: cross-protocol not supported ($sourceProtocol → $destProtocol)")
-                return@withContext Result.failure(
-                    UnsupportedOperationException("Cross-protocol directory move is not supported")
-                )
-            }
-            val strategy = getStrategy(sourcePath)
             val dirName = sourcePath.trimEnd('/').substringAfterLast('/')
             val destination = if (destParentPath.endsWith('/')) "$destParentPath$dirName" else "$destParentPath/$dirName"
-            strategy.moveDirectory(sourcePath, destination, progressCallback)
+            if (sourceProtocol != destProtocol) {
+                requireSourceEnabled(sourcePath)
+                directoryTreeTransferManager.moveTree(sourcePath, destination, progressCallback)
+            } else {
+                getStrategy(sourcePath).moveDirectory(sourcePath, destination, progressCallback)
+            }
         } catch (e: UnsupportedOperationException) {
             Timber.w(e, "executeMoveDirectory: unsupported operation")
             Result.failure(e)
@@ -556,6 +564,50 @@ class UnifiedFileOperationHandler @Inject constructor(
             Result.failure(Exception(msg, e))
         }
     }
+
+    /**
+     * S1325: pre-flight refusal for a whole-tree operation. Runs before the strategy is resolved,
+     * so a refused operation never creates a partial structure at the destination and the caller
+     * gets a reason it can turn into a specific message instead of a generic failure toast.
+     */
+    private fun refuseUnsafeDirectoryOperation(
+        sourcePath: String,
+        destParentPath: String,
+        isMove: Boolean,
+    ): DirectoryOperationRefusal? = when {
+        isDocumentTreeDestination(destParentPath) -> DirectoryOperationRefusal(
+            DirectoryOperationRefusal.Reason.DESTINATION_NOT_SUPPORTED,
+            "Directory operations cannot address a document-tree destination: $destParentPath",
+        )
+        isDestinationInsideSource(sourcePath, destParentPath) -> DirectoryOperationRefusal(
+            DirectoryOperationRefusal.Reason.DESTINATION_INSIDE_SOURCE,
+            "Destination $destParentPath is the source directory $sourcePath or lives inside it",
+        )
+        // Copy is refused here too, not only move: the tree lands under destination/<name>, which
+        // for the current parent is the source itself - the per-entry copy would overwrite its own
+        // input rather than produce a second copy.
+        isSameParent(sourcePath, destParentPath) -> DirectoryOperationRefusal(
+            DirectoryOperationRefusal.Reason.SAME_LOCATION,
+            "Target $destParentPath already holds the source directory $sourcePath (move=$isMove)",
+        )
+        else -> null
+    }
+
+    /** A document-tree URI has no filesystem path, and the local strategy addresses paths only. */
+    private fun isDocumentTreeDestination(destParentPath: String): Boolean =
+        destParentPath.startsWith("content:")
+
+    private fun isDestinationInsideSource(sourcePath: String, destParentPath: String): Boolean =
+        asDirectoryPrefix(destParentPath).startsWith(asDirectoryPrefix(sourcePath))
+
+    private fun isSameParent(sourcePath: String, destParentPath: String): Boolean {
+        val sourceParent = sourcePath.trimEnd('/').substringBeforeLast('/', missingDelimiterValue = "")
+        return sourceParent.isNotEmpty() &&
+            asDirectoryPrefix(sourceParent) == asDirectoryPrefix(destParentPath)
+    }
+
+    /** Separator-terminated form so a prefix test cannot match a sibling with a longer name. */
+    private fun asDirectoryPrefix(path: String): String = path.trimEnd('/') + "/"
 
     /**
      * Resolve the [FileOperationStrategy] for [path] based on its protocol prefix.
@@ -573,6 +625,21 @@ class UnifiedFileOperationHandler @Inject constructor(
         path.startsWith("ftp://") -> "ftp"
         path.startsWith("cloud://") -> "cloud"
         else -> "local"
+    }
+}
+
+/**
+ * S1325: a directory copy or move refused before it started. [reason] lets the UI pick the message
+ * that names the actual obstacle; the exception message stays technical for the log.
+ */
+class DirectoryOperationRefusal(
+    val reason: Reason,
+    message: String,
+) : Exception(message) {
+    enum class Reason {
+        DESTINATION_INSIDE_SOURCE,
+        SAME_LOCATION,
+        DESTINATION_NOT_SUPPORTED,
     }
 }
 

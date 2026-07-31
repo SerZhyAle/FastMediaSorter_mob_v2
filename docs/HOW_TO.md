@@ -844,6 +844,27 @@ Then use **command panel buttons** instead.
 
 ---
 
+## How to Work with Folders (select, copy, move)
+
+When subfolders are shown as separate items in the list, a folder row behaves like a file row.
+
+**Turn folder rows on:** **Settings** → **General** → **Show subfolders separately**. The same switch exists per resource in the resource editor.
+
+**Steps:**
+
+1. Tap the checkbox on a folder row, or long-press the row, to select a single folder. A short tap still opens the folder.
+2. Use the row's **⋮** menu, or the selection action bar, to choose **Copy**, **Move**, **Rename** or **Delete**.
+3. Pick the destination. Files and folders in the same selection travel together in one operation.
+4. The destination gets the whole structure - every subfolder and file inside the source folder.
+
+**Across resource types:** a folder can be copied or moved between the device, SMB, SFTP, FTP and cloud resources - the structure is recreated on the receiving side.
+
+**What is refused, and why:** a destination inside the folder itself, or the folder's own current location, is rejected before anything is copied; a destination picked through the system folder chooser that has no real file path cannot receive folders. The message names the reason so you can pick another destination.
+
+**Cancelling:** a folder transfer shows progress and can be stopped. Whatever was already written stays at the destination - check the folder before starting again. A move deletes each source item only after its copy succeeded, so nothing is lost in between.
+
+---
+
 ## How to Empty Trash
 
 Deleted files go to `.trash/` folders and stay there until manually emptied.

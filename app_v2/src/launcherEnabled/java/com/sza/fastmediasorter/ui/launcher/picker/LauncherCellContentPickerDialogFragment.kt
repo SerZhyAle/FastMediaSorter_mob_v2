@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.launcher.picker
 
 import android.app.Dialog
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +18,7 @@ import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerController
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
+import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -85,6 +85,7 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         category(CATEGORY_STREAM, R.string.launcher_edit_kind_stream, R.drawable.ic_cast),
         category(CATEGORY_OS, R.string.launcher_edit_kind_os, R.drawable.ic_settings),
         category(CATEGORY_SCHEDULED_OP, R.string.launcher_edit_kind_scheduled_op, R.drawable.ic_schedule),
+        category(CATEGORY_CONTACT, R.string.launcher_edit_kind_contact, R.drawable.ic_contact),
         category(CATEGORY_GADGET, R.string.launcher_edit_kind_gadget, R.drawable.ic_view_grid),
     )
 
@@ -119,16 +120,7 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
 
     override fun onStart() {
         super.onStart()
-        val metrics = resources.displayMetrics
-        val width = minOf(
-            (metrics.widthPixels * DIALOG_WIDTH_FRACTION).toInt(),
-            (metrics.density * DIALOG_MAX_WIDTH_DP).toInt(),
-        )
-        dialog?.window?.apply {
-            setBackgroundDrawableResource(android.R.color.transparent)
-            setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-            setGravity(Gravity.CENTER)
-        }
+        SearchableOptionPickerWindow.apply(dialog, binding)
         dialog?.let { DialogAccessibilityHelper.applyInitialFocus(it) }
         DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
@@ -160,14 +152,13 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         const val CATEGORY_STREAM = "stream"
         const val CATEGORY_OS = "os"
         const val CATEGORY_SCHEDULED_OP = "scheduled_op"
+        const val CATEGORY_CONTACT = "contact"
         const val CATEGORY_GADGET = "gadget"
 
         private const val GADGET_PREFIX = "gadget:"
         private const val ARG_ROW = "arg_row"
         private const val ARG_COL = "arg_col"
         private const val ARG_GADGET_MODE = "arg_gadget_mode"
-        private const val DIALOG_WIDTH_FRACTION = 0.92f
-        private const val DIALOG_MAX_WIDTH_DP = 560f
 
         fun newInstance(row: Int, col: Int): LauncherCellContentPickerDialogFragment =
             LauncherCellContentPickerDialogFragment().apply {

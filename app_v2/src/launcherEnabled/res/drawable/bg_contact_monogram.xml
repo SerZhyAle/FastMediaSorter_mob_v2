@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1176: the disc a contact cell's initials sit on. The colour here is only a resting default - the
+     binder tints it per contact from one of the theme's own container roles, so the same person keeps
+     the same colour and both light and dark themes stay correct without a hand-picked palette. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="?attr/colorSurfaceVariant" />
+</shape>

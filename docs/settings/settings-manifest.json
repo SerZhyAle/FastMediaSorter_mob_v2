@@ -191,6 +191,16 @@
       "titleUk": "Додати віджет на домашній екран Android.."
     },
     {
+      "key": "buttonAddLauncherWidget",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Add a widget to the launcher desktop",
+      "titleRu": "Добавить виджет на рабочий стол лаунчера",
+      "titleUk": "Додати віджет на робочий стіл лаунчера"
+    },
+    {
       "key": "etMaxRecipients",
       "sectionId": "destinations",
       "destination": "OPERATIONS",

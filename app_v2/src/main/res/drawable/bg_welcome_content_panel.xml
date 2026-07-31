@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1234: translucent panel behind the welcome copy. The brand animation owns the page background
+     now, so the text needs its own backing to stay legible; the per-page colour is applied as a
+     tint from WelcomePagePalette, which is what keeps each page recognisable. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@android:color/white" />
+    <corners android:radius="@dimen/welcome_content_panel_corner" />
+</shape>

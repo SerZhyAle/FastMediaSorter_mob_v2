@@ -14,9 +14,20 @@ import timber.log.Timber
  */
 object MediaFilesCacheManager {
 
-    // Calculate cache size: 128MB = 128 * 1024 * 1024 bytes
-    // Average MediaFile size ~500 bytes, so this can hold ~260,000 files across all resources
-    private const val CACHE_SIZE_BYTES = 128 * 1024 * 1024
+    // Average MediaFile size ~500 bytes, so the 128MB ceiling holds ~260,000 files across resources.
+    private const val MAX_CACHE_SIZE_BYTES = 128 * 1024 * 1024
+
+    // S1299: the flat 128MB ceiling ignored the device. On a low-RAM phone (legacy flavor runs from
+    // API 23) the whole Java heap can be ~96-192MB, so the "limit" allowed the cache to dominate the
+    // heap and contribute to OOM in the player. Scale it to the actual heap and keep a sane floor.
+    private const val HEAP_FRACTION = 8
+    private const val MIN_CACHE_SIZE_BYTES = 8 * 1024 * 1024
+
+    private val cacheSizeBytes: Int = run {
+        val heapBudget = (Runtime.getRuntime().maxMemory() / HEAP_FRACTION)
+            .coerceIn(MIN_CACHE_SIZE_BYTES.toLong(), MAX_CACHE_SIZE_BYTES.toLong())
+        heapBudget.toInt()
+    }
 
     // S0729: LruCache.get/put are internally synchronized, but the ArrayList stored as the value is
     // mutated in place (set/add/removeAll) on Main while RandomPhotoFrameWidgetRefresher iterates a
@@ -26,7 +37,7 @@ object MediaFilesCacheManager {
     
     // Cache key = resourceId, value = list of MediaFiles
     // LruCache requires size calculation via sizeOf() override
-    private val cache = object : LruCache<Long, MutableList<MediaFile>>(CACHE_SIZE_BYTES) {
+    private val cache = object : LruCache<Long, MutableList<MediaFile>>(cacheSizeBytes) {
         override fun sizeOf(key: Long, value: MutableList<MediaFile>): Int {
             // Estimate: each MediaFile ~500 bytes (path 200 + metadata 300)
             return value.size * 500
@@ -126,6 +137,7 @@ object MediaFilesCacheManager {
         }
         
         if (removed) {
+            reaccount(resourceId, list)
             Timber.d("MediaFilesCache: Removed file $filePath from resource $resourceId (${list.size} files remaining)")
         } else {
             Timber.w("MediaFilesCache: File not found for removal: $filePath (normalized: $normalizedPath)")
@@ -140,7 +152,17 @@ object MediaFilesCacheManager {
     fun addFile(resourceId: Long, file: MediaFile) = synchronized(lock) {
         val list = cache.get(resourceId) ?: mutableListOf<MediaFile>().also { cache.put(resourceId, it) }
         list.add(file)
+        reaccount(resourceId, list)
         Timber.d("MediaFilesCache: Added file ${file.path} to resource $resourceId (${list.size} files total)")
+    }
+
+    /**
+     * S1299: LruCache charges sizeOf() at put() time only. These lists are mutated in place, so
+     * without a re-put the accounting drifts from reality - files added during a long session were
+     * never charged against the budget and the "bounded" cache silently exceeded it.
+     */
+    private fun reaccount(resourceId: Long, list: MutableList<MediaFile>) {
+        cache.put(resourceId, list)
     }
     
     /**

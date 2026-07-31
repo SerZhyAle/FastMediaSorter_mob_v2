@@ -62,6 +62,15 @@
             android:layout_marginBottom="@dimen/margin_small"
             app:str_title="@string/launcher_settings_show_tray_title" />
 
+        <!-- S1087: sits next to the tray toggle because both decide what the launcher's own top area
+             shows; OFF keeps the Android status bar and drops the duplicate FMS indicators. -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowLauncherReplaceStatusArea"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            app:str_title="@string/launcher_settings_replace_status_area_title" />
+
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
             android:id="@+id/rowLauncherDensity"
             android:layout_width="match_parent"

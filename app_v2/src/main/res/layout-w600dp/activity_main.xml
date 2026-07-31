@@ -630,27 +630,17 @@
          Mirrors the Streams screen control; visibility owned by StreamInlineAudioManager. -->
     <LinearLayout
         android:id="@+id/mainStreamMiniControl"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
+        android:layout_gravity="bottom|start"
         android:minHeight="56dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:background="?attr/colorSurface"
         android:elevation="8dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="8dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="16dp"
         android:visibility="gone">
-
-        <TextView
-            android:id="@+id/tvMainMiniTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:maxLines="2"
-            android:ellipsize="end"
-            android:textAppearance="?attr/textAppearanceBody2"
-            android:textColor="?attr/colorOnSurface" />
 
         <ImageButton
             android:id="@+id/btnMainMiniPlayStop"
@@ -662,6 +652,29 @@
             android:focusable="true"
             android:nextFocusUp="@id/rvResources"
             android:contentDescription="@string/streams_stop" />
+
+        <TextView
+            android:id="@+id/tvMainMiniTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textColor="?attr/colorOnSurface" />
     </LinearLayout>
+
+    <!-- S0774 rework: shared compact recording indicator (screen video recording + voice capture),
+         mounted here so it floats above whichever panel is visible. Top-inset offset applied at
+         runtime by RecordingIndicatorOverlayManager (systemBars/cutout safe bounds, Rule 17). -->
+    <include
+        android:id="@+id/recordingIndicatorContainer"
+        layout="@layout/view_recording_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

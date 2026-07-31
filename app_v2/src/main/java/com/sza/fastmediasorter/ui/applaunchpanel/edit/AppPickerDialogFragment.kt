@@ -3,13 +3,11 @@ package com.sza.fastmediasorter.ui.applaunchpanel.edit
 import android.app.Dialog
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
 import androidx.recyclerview.widget.GridLayoutManager
@@ -21,6 +19,7 @@ import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerController
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
+import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.flow
@@ -68,10 +67,6 @@ class AppPickerDialogFragment : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.tvOptionPickerTitle.text = getString(R.string.app_picker_title)
         binding.tvOptionPickerTitle.isVisible = true
-        // Opaque surface so the title/search read over the darkened desktop; taller list than the shared
-        // compact default. Only this picker; the shared layout stays untouched for the other pickers.
-        binding.root.setBackgroundResource(R.drawable.bg_app_picker_surface)
-        applyListMetrics()
         val columns = currentColumnCount()
         // One-shot package query wrapped as a flow so it is collected lifecycle-safely (the list does
         // not change while the picker is open).
@@ -84,7 +79,11 @@ class AppPickerDialogFragment : DialogFragment() {
                 )
             }
             SearchableOptionPickerController.attach(
-                binding, options, selectedId = null, resetRow = null, columns = columns,
+                binding = binding,
+                options = options,
+                selectedId = null,
+                resetRow = null,
+                columns = columns,
             ) { picked ->
                 picked?.let { onAppPicked(it.id) }
             }
@@ -93,14 +92,14 @@ class AppPickerDialogFragment : DialogFragment() {
 
     override fun onStart() {
         super.onStart()
-        applyDialogWindowMetrics()
+        SearchableOptionPickerWindow.apply(dialog, binding)
         dialog?.let { DialogAccessibilityHelper.applyInitialFocus(it) }
         DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
 
     /**
      * S1095: the desktop host absorbs rotation via android:configChanges, so this dialog is never
-     * recreated and [onViewCreated] - where the column count is derived from screen width - does not run
+     * recreated and [onViewCreated] - where the column count is derived from dialog width - does not run
      * again. Without this the picker keeps the portrait column count on a landscape screen twice as wide.
      *
      * Only the span count and the measurements change; the controller is deliberately not re-attached,
@@ -109,36 +108,15 @@ class AppPickerDialogFragment : DialogFragment() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         if (_binding == null) return
-        applyDialogWindowMetrics()
-        applyListMetrics()
+        SearchableOptionPickerWindow.apply(dialog, binding)
         val columns = currentColumnCount()
         Timber.d("S1095: app picker re-flowed to $columns columns on configuration change")
         (binding.recyclerOptions.layoutManager as? GridLayoutManager)?.spanCount = columns
     }
 
-    private fun applyDialogWindowMetrics() {
-        val metrics = resources.displayMetrics
-        val width = minOf(
-            (metrics.widthPixels * DIALOG_WIDTH_FRACTION).toInt(),
-            (metrics.density * DIALOG_MAX_WIDTH_DP).toInt(),
-        )
-        dialog?.window?.apply {
-            setBackgroundDrawableResource(android.R.color.transparent)
-            setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-            setGravity(Gravity.CENTER)
-        }
-    }
-
-    private fun applyListMetrics() {
-        val metrics = resources.displayMetrics
-        binding.recyclerOptions.updateLayoutParams {
-            height = (metrics.heightPixels * APP_PICKER_HEIGHT_FRACTION).toInt()
-        }
-    }
-
     private fun currentColumnCount(): Int {
         val metrics = resources.displayMetrics
-        val widthDp = metrics.widthPixels / metrics.density
+        val widthDp = SearchableOptionPickerWindow.widthPx(metrics) / metrics.density
         return (widthDp / APP_PICKER_MIN_CELL_DP).toInt().coerceAtLeast(APP_PICKER_MIN_COLUMNS)
     }
 
@@ -167,11 +145,8 @@ class AppPickerDialogFragment : DialogFragment() {
         private const val ARG_SLOT = "arg_slot"
         private const val ARG_REQUEST_KEY = "arg_request_key"
 
-        private const val APP_PICKER_HEIGHT_FRACTION = 0.6f
         private const val APP_PICKER_MIN_CELL_DP = 160f
         private const val APP_PICKER_MIN_COLUMNS = 2
-        private const val DIALOG_WIDTH_FRACTION = 0.92f
-        private const val DIALOG_MAX_WIDTH_DP = 560f
 
         fun newInstance(slotIndex: Int): AppPickerDialogFragment =
             AppPickerDialogFragment().apply { arguments = bundleOf(ARG_SLOT to slotIndex) }

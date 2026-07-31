@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.domain.stats.FileOpAction
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsMediaType
 import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.domain.transfer.TransferProgressReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -25,6 +26,7 @@ import com.sza.fastmediasorter.core.logging.CorrelationContext
 import com.sza.fastmediasorter.core.logging.StructuredLogger
 import timber.log.Timber
 import java.io.File
+import java.util.UUID
 import javax.inject.Inject
 
 sealed class FileOperation {
@@ -105,6 +107,7 @@ class FileOperationUseCase @Inject constructor(
     private val statsSink: StatsSink,
     // S1025: single pre-flight probe of the network destination before the batch loop.
     private val hostReachabilityChecker: HostReachabilityChecker,
+    private val transferProgressReporter: TransferProgressReporter,
 ) {
 
     private var lastOperation: OperationHistory? = null
@@ -151,6 +154,7 @@ class FileOperationUseCase @Inject constructor(
             else -> emptyList()
         }
         val totalOperationBytes = fileSizes.sum()
+        val progressOperationId = UUID.randomUUID().toString()
 
         send(FileOperationProgress.Starting(operation, totalFiles, totalOperationBytes))
 
@@ -167,6 +171,15 @@ class FileOperationUseCase @Inject constructor(
         var completedFileBytes = 0L
         val progressCallback = object : ByteProgressCallback {
             override suspend fun onProgress(bytesTransferred: Long, totalBytes: Long, speedBytesPerSecond: Long) {
+                val completedOperationBytes = completedFileBytes + bytesTransferred
+                val report = transferProgressReporter.report(
+                    operationId = progressOperationId,
+                    bytesTransferred = completedOperationBytes,
+                    totalBytes = totalOperationBytes,
+                    consumerKey = IN_PROCESS_CONSUMER,
+                    minimumPublishIntervalMs = NO_THROTTLE_MS,
+                    forcePublish = true,
+                )
                 // Use trySend to avoid blocking if channel is full
                 trySend(FileOperationProgress.Processing(
                     currentFile = currentFileName,
@@ -174,8 +187,8 @@ class FileOperationUseCase @Inject constructor(
                     totalFiles = totalFiles,
                     bytesTransferred = bytesTransferred,
                     totalBytes = totalBytes,
-                    speedBytesPerSecond = speedBytesPerSecond,
-                    completedOperationBytes = completedFileBytes + bytesTransferred
+                    speedBytesPerSecond = report.speedBytesPerSecond,
+                    completedOperationBytes = completedOperationBytes
                 ))
             }
 
@@ -205,6 +218,7 @@ class FileOperationUseCase @Inject constructor(
         
         // Wait for completion
         resultDeferred.join()
+        transferProgressReporter.clear(progressOperationId)
         }
     }
 
@@ -590,6 +604,8 @@ class FileOperationUseCase @Inject constructor(
     ) : Exception("Batch delete permission required")
 
     private companion object {
+        const val IN_PROCESS_CONSUMER = "file-operation"
+        const val NO_THROTTLE_MS = 0L
         const val SMB_DEFAULT_PORT = 445
         const val SFTP_DEFAULT_PORT = 22
         const val FTP_DEFAULT_PORT = 21

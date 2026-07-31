@@ -101,6 +101,27 @@ interface FileOperationStrategy {
     suspend fun listFiles(path: String): Result<List<String>>
 
     /**
+     * S1325: one level of [path] with the type of each child resolved.
+     *
+     * The default builds the answer from [listFiles] plus one [isDirectory] call per child, which is
+     * correct everywhere but costs a round trip per entry on a remote protocol. Strategies whose
+     * native listing already carries the type override this and answer from that single listing.
+     */
+    suspend fun listEntries(path: String): Result<List<DirectoryEntry>> {
+        val paths = listFiles(path).getOrElse { return Result.failure(it) }
+        return Result.success(
+            paths.map { childPath ->
+                DirectoryEntry(
+                    path = childPath,
+                    name = childPath.trimEnd('/').substringAfterLast('/'),
+                    isDirectory = isDirectory(childPath).getOrDefault(false),
+                    size = 0L,
+                )
+            }
+        )
+    }
+
+    /**
      * Check if this strategy supports the given path protocol.
      * 
      * @param path File path to check
@@ -212,6 +233,17 @@ interface FileOperationStrategy {
         return Result.failure(UnsupportedOperationException("getDirectoryInfo not implemented for ${getProtocolName()}"))
     }
 }
+
+/**
+ * One child of a directory listing. [size] is 0 for a directory and for a strategy whose listing
+ * does not report it - the tree transfer uses it for reporting only, never to decide what to copy.
+ */
+data class DirectoryEntry(
+    val path: String,
+    val name: String,
+    val isDirectory: Boolean,
+    val size: Long,
+)
 
 /**
  * Information about a directory.

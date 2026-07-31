@@ -6,6 +6,7 @@
   current value is obvious. No hardcoded colors - theme attributes only.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/item_row"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -46,7 +47,7 @@
         android:layout_height="24dp"
         android:layout_marginStart="@dimen/margin_large"
         android:src="@drawable/ic_check"
-        android:tint="?attr/colorOnPrimaryContainer"
+        app:tint="?attr/colorOnPrimaryContainer"
         android:visibility="gone"
         android:contentDescription="@null" />
 </LinearLayout>

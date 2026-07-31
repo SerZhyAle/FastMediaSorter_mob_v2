@@ -46,6 +46,15 @@ object InternalRouteCatalog {
     const val KEY_TAKE_PHOTO_OCR_TRANSLATE = "take_photo_ocr_translate"
     const val KEY_START_VIDEO_RECORDING = "start_video_recording"
 
+    // S1170: the destinations the mechanical home-screen widgets fire that no route covered yet, so a
+    // launcher desktop cell can express the same tap. Label and icon are taken from the matching
+    // HomeWidgetCatalog entry rather than minted fresh - the two surfaces must never word it differently.
+    const val KEY_CAMERA_PHOTOS = "camera_photos"
+    const val KEY_CAMERA_LAUNCH = "camera_launch"
+    const val KEY_CONTINUE_READING = "continue_reading"
+    const val KEY_RANDOM_MUSIC = "random_music"
+    const val KEY_SCHEDULED_TASKS = "scheduled_tasks"
+
     private val routes: List<Route> = listOf(
         Route(
             key = KEY_APP_LAUNCH_PANEL,
@@ -135,6 +144,38 @@ object InternalRouteCatalog {
             labelRes = R.string.screenshot_gesture_action_start_video_recording,
             iconRes = R.drawable.ic_video,
             intent = AppLaunchPanelRouteIntents::startVideoRecording,
+        ),
+        // S1170: label and icon are the widget picker's own, so the desktop cell, the picker row and the
+        // Android-home widget all read the same. No new string keys are minted for these five.
+        Route(
+            key = KEY_CAMERA_PHOTOS,
+            labelRes = R.string.widget_camera_photos_label,
+            iconRes = R.drawable.ic_widget_camera_photos,
+            intent = AppLaunchPanelRouteIntents::cameraPhotos,
+        ),
+        Route(
+            key = KEY_CAMERA_LAUNCH,
+            labelRes = R.string.widget_camera_launch_label,
+            iconRes = R.drawable.ic_widget_camera_launch_accent,
+            intent = AppLaunchPanelRouteIntents::cameraLaunch,
+        ),
+        Route(
+            key = KEY_CONTINUE_READING,
+            labelRes = R.string.widget_continue_reading_label,
+            iconRes = R.drawable.ic_widget_continue_reading,
+            intent = AppLaunchPanelRouteIntents::continueReading,
+        ),
+        Route(
+            key = KEY_RANDOM_MUSIC,
+            labelRes = R.string.widget_random_music_label,
+            iconRes = R.drawable.ic_widget_random_music,
+            intent = AppLaunchPanelRouteIntents::randomMusic,
+        ),
+        Route(
+            key = KEY_SCHEDULED_TASKS,
+            labelRes = R.string.widget_scheduled_tasks_label,
+            iconRes = R.drawable.ic_widget_scheduled_tasks,
+            intent = AppLaunchPanelRouteIntents::scheduledTasks,
         ),
     )
 

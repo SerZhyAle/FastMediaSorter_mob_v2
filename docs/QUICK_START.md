@@ -29,7 +29,7 @@ FastMediaSorter v2 is available in **5 main release flavors** for day-to-day use
 
 ## First Launch: Choose Your Device Profile (30 seconds) 🧭
 
-On the very first launch, right under the language picker, the welcome screen asks **how you'll use this device**. Pick a profile and the app starts with sensible defaults for that style - layout, thumbnails, fullscreen, keep-screen-awake, background audio, and delete/move confirmations. It's a one-time starting preset, not a lock - you can change anything afterwards.
+On the very first launch, right under the language picker, the welcome screen asks **how you'll use this device**. Pick a profile and the app starts with sensible defaults for that style - layout, thumbnails, fullscreen, keep-screen-awake, background audio, delete/move confirmations, the reading view, link downloads, player controls, the streams start-up view and, where the launcher is available, the desktop itself. It's a one-time starting preset, not a lock - you can change anything afterwards.
 
 - 🎯 **Recommended badge:** the app guesses a likely profile for your device and marks it **(Recommended)**. If it guessed right, you barely have to do anything.
 - ⏭️ **Skip:** in a hurry? **Skip** simply applies the recommended profile. No wrong answer here.

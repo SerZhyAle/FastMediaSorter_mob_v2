@@ -23,7 +23,12 @@ import java.io.File
  */
 class TextEditorSaveFlow(
     private val context: Context,
-    private val saveTextNoteUseCase: SaveTextNoteUseCase,
+    // S1195: an operation rather than the use case, so an Activity host can route it through its ViewModel.
+    private val saveTextNote: suspend (
+        localFile: File,
+        name: String,
+        content: String,
+    ) -> Result<SaveTextNoteUseCase.SaveOutcome>,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
@@ -49,7 +54,7 @@ class TextEditorSaveFlow(
             defaultName = currentName,
             onConfirm = { chosen ->
                 scope.launch(ioDispatcher) {
-                    val result = saveTextNoteUseCase(currentLocalFile, chosen, currentContent)
+                    val result = saveTextNote(currentLocalFile, chosen, currentContent)
                     withContext(Dispatchers.Main) {
                         result.onSuccess { outcome ->
                             showSuccessToasts(outcome)

@@ -5,6 +5,13 @@ import kotlinx.coroutines.flow.Flow
 
 interface FavoritesRepository {
     fun getAllFavorites(): Flow<List<FavoritesEntity>>
+
+    /**
+     * S1170: the file-only slice, i.e. favourites that have something to open. A live-channel favourite
+     * has no file behind it, so surfaces that render a playable list - the home-screen widget and the
+     * launcher desktop gadget - read this rather than filtering [getAllFavorites] themselves.
+     */
+    fun getFileFavorites(): Flow<List<FavoritesEntity>>
     fun isFavorite(uri: String): Flow<Boolean>
     suspend fun isFavoriteSync(uri: String): Boolean
     suspend fun getFavoritesForPaths(paths: List<String>): Map<String, Boolean>

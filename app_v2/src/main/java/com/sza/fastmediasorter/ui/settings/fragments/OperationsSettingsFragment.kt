@@ -18,11 +18,14 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.util.DeviceCapabilities
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.usecase.launcher.PlaceHomeWidgetOnLauncherDesktopUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
@@ -75,12 +78,27 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     @Inject
     lateinit var homeWidgetPinner: HomeWidgetPinner
 
+    // S1170: the same picker's second destination - the app's own launcher desktop.
+    @Inject
+    lateinit var launcherModeContract: LauncherModeContract
+
+    @Inject
+    lateinit var launcherRoleManager: LauncherRoleManager
+
+    @Inject
+    lateinit var placeHomeWidgetOnLauncherDesktop: PlaceHomeWidgetOnLauncherDesktopUseCase
+
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
     private val destinationsManager by lazy { OperationsDestinationsManager(binding, viewModel, this) }
     private val scheduledManager by lazy {
         OperationsScheduledManager(
-            binding, viewModel, scheduledViewModel, this, mediaCapabilities,
-            notificationsPermissionLauncher, folderPickerLauncher
+            binding,
+            viewModel,
+            scheduledViewModel,
+            this,
+            mediaCapabilities,
+            notificationsPermissionLauncher,
+            folderPickerLauncher,
         ) { isUpdatingFromSettings }
     }
     private val captureManager by lazy {
@@ -354,7 +372,16 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         }
 
         // Home-widget picker launcher (relocated from General into the OS-interaction group).
-        HomeWidgetSettingsHelper(binding.buttonAddHomeWidget, this, homeWidgetCatalog, homeWidgetPinner).setup()
+        HomeWidgetSettingsHelper(
+            button = binding.buttonAddHomeWidget,
+            fragment = this,
+            catalog = homeWidgetCatalog,
+            pinner = homeWidgetPinner,
+            launcherButton = binding.buttonAddLauncherWidget,
+            launcherModeContract = launcherModeContract,
+            launcherRoleManager = launcherRoleManager,
+            placeOnLauncherDesktop = placeHomeWidgetOnLauncherDesktop,
+        ).setup()
 
         // S1035: launcher for the extracted edge-gesture configuration dialog (gated by OperationsGesturesManager).
         binding.btnOpenEdgeGestureConfig.setOnClickListener {

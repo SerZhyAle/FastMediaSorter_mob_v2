@@ -866,9 +866,6 @@ class PlayerActivity :
 
     @Inject lateinit var mergeDrawOverlayUseCase: com.sza.fastmediasorter.domain.usecase.MergeDrawOverlayUseCase
 
-    // S0189 Phase 06: save text note with rename dialog + network upload
-    @Inject lateinit var saveTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase
-
     // S0189: registry for deferred new-note creations (consulted by TextViewerManager on load/cancel)
     @Inject lateinit var textNoteStagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 
@@ -1012,7 +1009,7 @@ class PlayerActivity :
         if (viewModel.state.value.isSlideShowActive && viewModel.state.value.isPaused) {
             viewModel.setPaused(false)
         }
-        navigationManager.navigateNextFromControl(manual = false)
+        navigationManager.skipAfterLoadError()
     }
 
     internal fun releasePlayer() {

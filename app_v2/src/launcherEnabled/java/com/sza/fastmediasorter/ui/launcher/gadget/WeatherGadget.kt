@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.model.weather.WeatherUnit
 import com.sza.fastmediasorter.domain.repository.WeatherResult
 import com.sza.fastmediasorter.domain.usecase.weather.GetLauncherWeatherUseCase
 import com.sza.fastmediasorter.util.resolveActivityCompat
+import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -27,7 +28,7 @@ import javax.inject.Inject
  * S0426: current conditions for one place on the launcher desktop, on keyless Open-Meteo data.
  */
 class WeatherGadget @Inject constructor(
-    private val getWeather: GetLauncherWeatherUseCase,
+    private val getWeather: Lazy<GetLauncherWeatherUseCase>,
 ) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_WEATHER
@@ -40,7 +41,7 @@ class WeatherGadget @Inject constructor(
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        WeatherGadgetView(container.context, param, getWeather)
+        WeatherGadgetView(container.context, param, getWeather.get())
 }
 
 private class WeatherGadgetView(

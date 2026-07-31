@@ -9,6 +9,7 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.view.KeyEvent
 import android.view.View
+import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,30 +19,29 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.SelfManagedScreenOrientation
 import com.sza.fastmediasorter.databinding.ActivityCameraCaptureBinding
-import com.sza.fastmediasorter.domain.repository.ResourceRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureFlowManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureGestureCallbackHandler
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureGestureManager
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureHelperFactory
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureResultManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureSaveDestinationLabelManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureSessionManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLocationProvider
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraOrientationManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraOverlayRotationManager
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraProfilePresentation
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraSettingsCallbackHandler
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraZoomControlsManager
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraScenario
+import com.sza.fastmediasorter.ui.cameracapture.model.PhotoProfile
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -94,20 +94,16 @@ class CameraCaptureActivity :
         private const val TAB_UNSELECTED_ALPHA = 0.5f
 
         private const val COUNTDOWN_TICK_INTERVAL_MS = 1_000L
+
+        /** S1262: one checkable group, so exactly one profile row can carry the tick. */
+        private const val PROFILE_MENU_GROUP = 1
     }
 
-    // S0566: host-side persistence for the stay-open multi-capture session. Reuses the shared
-    // use-case (S0568) so the main entry, the widget and this host save captures identically.
+    // S0566/S0766/S1195: the host's domain access - capture persistence (S0568, shared with the main
+    // entry and the widget), the opt-in geotag flag and the destination lookup - lives behind this
+    // factory so the Activity itself holds no repository or use case (Rule 3).
     @Inject
-    lateinit var saveCapturedMedia: SaveCapturedMediaUseCase
-
-    // S0766: read the opt-in geotag flag; the host owns the location source so every photo path
-    // (including widget launches that route through this activity) inherits geotagging.
-    @Inject
-    lateinit var settingsRepository: SettingsRepository
-
-    @Inject
-    lateinit var resourceRepository: ResourceRepository
+    lateinit var helperFactory: CameraCaptureHelperFactory
 
     @Inject
     lateinit var sendToMenuManager: SendToMenuManager
@@ -129,6 +125,9 @@ class CameraCaptureActivity :
 
     private var captureInFlight = false
     private var autoCaptureFired = false
+
+    /** S1262: the sport trade-off notice is shown once per screen session, not per re-pick. */
+    private var sportNoticeShown = false
     private var recordingPaused = false
     private var recordingFile: File? = null
     private var countdownJob: Job? = null
@@ -196,10 +195,10 @@ class CameraCaptureActivity :
         // S1066: restore the remembered aspect ratio in the same read - photo keeps the full-frame
         // ViewPort so this only toggles the result frame + crop; video rebinds to the ratio.
         lifecycleScope.launch {
-            val settings = settingsRepository.getSettings().first()
+            val settings = helperFactory.currentSettings()
             geotagEnabled = settings.cameraGeotagEnabled
             if (geotagEnabled && hasLocationPermission()) locationProvider.start(this@CameraCaptureActivity)
-            sessionManager.setAspectRatioAndResolution(settings.cameraAspectRatio, sessionManager.currentResolution())
+            sessionManager.setAspectRatioAndResolution(settings.cameraAspectRatio, sessionManager.currentResolution)
             renderResultFrame()
         }
     }
@@ -222,23 +221,25 @@ class CameraCaptureActivity :
                 flowManager.onZoomRatioSelected(preset)
                 syncZoomSelection()
             },
+            onCrossLensFloorSelected = { equivalent ->
+                // S1261: lens switch + zoom in one tap; the rebind redraws the row, then the sync
+                // highlights the landed value like any other pill.
+                flowManager.onCrossLensFloorSelected(equivalent)
+                syncZoomSelection()
+            },
         )
-        resultManager = CameraCaptureResultManager(
+        resultManager = helperFactory.createResultManager(
             activity = this,
             lifecycleScope = lifecycleScope,
             sessionManager = sessionManager,
-            settingsRepository = settingsRepository,
-            saveCapturedMedia = saveCapturedMedia,
             sendToMenuManager = sendToMenuManager,
             galleryThumbnail = binding.btnGalleryThumbnail,
             sendToButton = binding.btnCameraSendTo,
             onError = ::showError,
         )
-        saveDestinationLabelManager = CameraCaptureSaveDestinationLabelManager(
+        saveDestinationLabelManager = helperFactory.createSaveDestinationLabelManager(
             intent = intent,
             flowManager = flowManager,
-            settingsRepository = settingsRepository,
-            resourceRepository = resourceRepository,
             rotationManager = rotationManager,
             destinationLabel = binding.cameraSaveDestination,
             scenarioLabel = binding.cameraScenarioLabel,
@@ -355,21 +356,7 @@ class CameraCaptureActivity :
         binding.cameraLensLabel.visibility =
             if (capabilities.canSwitchLens) View.VISIBLE else View.GONE
         zoomControlsManager.renderLensLabel(capabilities)
-        // S0753: night mode is photo-only and device-gated; hidden where the lens has no NIGHT extension.
-        binding.btnCameraNight.visibility =
-            if (capabilities.supportsNightMode && !flowManager.isVideoMode) View.VISIBLE else View.GONE
-        binding.btnCameraNight.setIconResource(
-            if (flowManager.nightModeEnabled) R.drawable.ic_camera_night_on else R.drawable.ic_camera_night_off,
-        )
-        // S1189: macro is reachable either by locking the active lens or by switching to dedicated
-        // close-focus optics; hiding it unless the ACTIVE lens can lock left the button missing on
-        // exactly the phones that have a real macro lens.
-        val macroReachable = capabilities.supportsMacro || capabilities.macroLensAvailable
-        binding.btnCameraMacro.visibility =
-            if (macroReachable && !flowManager.isVideoMode) View.VISIBLE else View.GONE
-        binding.btnCameraMacro.setIconResource(
-            if (flowManager.macroEnabled) R.drawable.ic_camera_macro_on else R.drawable.ic_camera_macro_off,
-        )
+        renderProfileButton()
 
         // S0566/ADR-5: zoom presets are always visible (no "More" toggle) whenever the lens can zoom.
         if (capabilities.supportsZoom) {
@@ -390,6 +377,55 @@ class CameraCaptureActivity :
 
     // endregion
 
+    /**
+     * S1262: the profile button carries the active profile - icon for a glance, description and
+     * tooltip in words, so the state is not colour-only. Hidden in video mode, and on a device whose
+     * only offer is NORMAL: a menu with one neutral row would be a dead button (ADR-3).
+     */
+    private fun renderProfileButton() {
+        val offered = flowManager.availableProfiles().size > 1 && !flowManager.isVideoMode
+        Timber.d("S1262: button offered=%b available=%s", offered, flowManager.availableProfiles())
+        binding.btnCameraProfile.visibility = if (offered) View.VISIBLE else View.GONE
+        if (!offered) return
+        val profile = flowManager.activeProfile
+        val description = getString(R.string.camera_profile_button, getString(CameraProfilePresentation.labelRes(profile)))
+        binding.btnCameraProfile.setIconResource(CameraProfilePresentation.iconRes(profile))
+        binding.btnCameraProfile.contentDescription = description
+        binding.btnCameraProfile.tooltipText = description
+    }
+
+    /** S1262: the anchored profile menu - one checkable row per profile the bound lens can honour. */
+    private fun showProfileMenu() {
+        val profiles = flowManager.availableProfiles()
+        val popup = PopupMenu(this, binding.btnCameraProfile)
+        profiles.forEachIndexed { index, profile ->
+            popup.menu.add(PROFILE_MENU_GROUP, index, index, CameraProfilePresentation.labelRes(profile))
+        }
+        popup.menu.setGroupCheckable(PROFILE_MENU_GROUP, true, true)
+        profiles.indexOf(flowManager.activeProfile)
+            .takeIf { it >= 0 }
+            ?.let { popup.menu.findItem(it)?.isChecked = true }
+        popup.setOnMenuItemClickListener { item ->
+            val picked = profiles.getOrNull(item.itemId) ?: return@setOnMenuItemClickListener false
+            applyProfile(picked)
+            true
+        }
+        popup.show()
+    }
+
+    private fun applyProfile(profile: PhotoProfile) {
+        Timber.d("S1262: picked=%s active=%s", profile, flowManager.activeProfile)
+        flowManager.onProfileSelected(profile)
+        // The sport recipe trades light for a frozen frame; say so once, not on every re-pick.
+        if (flowManager.activeProfile == PhotoProfile.SPORT && !sportNoticeShown) {
+            sportNoticeShown = true
+            Toast.makeText(this, R.string.camera_profile_sport_notice, Toast.LENGTH_LONG).show()
+        }
+        // A recipe that rebinds re-renders through renderCapabilities; NORMAL and SPORT do not.
+        renderProfileButton()
+        rotationManager.reapply()
+    }
+
     private fun setupCameraControls() {
         binding.btnCameraFlash.setOnClickListener {
             val enabled = flowManager.onFlashToggle()
@@ -397,18 +433,7 @@ class CameraCaptureActivity :
                 if (enabled) R.drawable.ic_camera_flash_on else R.drawable.ic_camera_flash_off,
             )
         }
-        binding.btnCameraNight.setOnClickListener {
-            val on = flowManager.onNightModeToggle()
-            binding.btnCameraNight.setIconResource(
-                if (on) R.drawable.ic_camera_night_on else R.drawable.ic_camera_night_off,
-            )
-        }
-        binding.btnCameraMacro.setOnClickListener {
-            val on = flowManager.onMacroToggle()
-            binding.btnCameraMacro.setIconResource(
-                if (on) R.drawable.ic_camera_macro_on else R.drawable.ic_camera_macro_off,
-            )
-        }
+        binding.btnCameraProfile.setOnClickListener { showProfileMenu() }
         binding.btnCameraLensSwitch.setOnClickListener { flowManager.onLensSwitch() }
         binding.btnCameraPauseResume.setOnClickListener { onPauseResumeClicked() }
         binding.btnGalleryThumbnail.setOnClickListener { resultManager.openLastCapture() }
@@ -444,9 +469,8 @@ class CameraCaptureActivity :
         if (flowManager.isVideoMode) {
             binding.toggleCameraMicrophone.visibility = View.VISIBLE
             updateMicrophoneIcon(flowManager.microphoneEnabled)
-            // S0753: NIGHT and macro are photo-only, so the toggles never show in video mode.
-            binding.btnCameraNight.visibility = View.GONE
-            binding.btnCameraMacro.visibility = View.GONE
+            // S1262: photo profiles are photo-only, so their menu never shows in video mode.
+            binding.btnCameraProfile.visibility = View.GONE
         } else {
             binding.toggleCameraMicrophone.visibility = View.GONE
         }
@@ -716,9 +740,7 @@ class CameraCaptureActivity :
     /** S1066: after the settings dialog applies a ratio, rebuild the result frame and remember the choice. */
     private fun handleAspectRatioApplied() {
         renderResultFrame()
-        val value = sessionManager.currentAspectRatio() ?: 0
-        lifecycleScope.launch {
-            settingsRepository.updateSettings { it.copy(cameraAspectRatio = value) }
-        }
+        val value = sessionManager.currentAspectRatio ?: 0
+        lifecycleScope.launch { helperFactory.rememberAspectRatio(value) }
     }
 }

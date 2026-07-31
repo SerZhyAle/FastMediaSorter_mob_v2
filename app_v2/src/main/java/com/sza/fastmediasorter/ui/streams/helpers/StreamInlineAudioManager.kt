@@ -47,6 +47,7 @@ class StreamInlineAudioManager(
     private val playStopButton: ImageButton,
     private val audioController: AudioServiceController,
     private val onPlayingChanged: (String?) -> Unit,
+    private val onPlaybackStateChanged: (StreamSourceEntity?, Boolean) -> Unit = { _, _ -> },
     // Fired when the inline stream fails to play (no response, dead URL). The Activity surfaces a
     // dialog offering retry / remove-from-list - without this hook the failure only stopped the
     // background service and left the UI silent.
@@ -99,12 +100,23 @@ class StreamInlineAudioManager(
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             // S0593: first transition to actually-playing = the stream works here -> record OK once.
-            if (isPlaying) reportSuccessfulPlayback()
+            if (isPlaying) {
+                markPlaybackHealthy()
+                reportSuccessfulPlayback()
+                onPlaybackStateChanged(currentSource, true)
+            }
+        }
+
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            if (!playWhenReady) onPlaybackStateChanged(null, false)
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             when (playbackState) {
-                Player.STATE_READY -> reportSuccessfulPlayback()
+                Player.STATE_READY -> {
+                    markPlaybackHealthy()
+                    reportSuccessfulPlayback()
+                }
                 Player.STATE_BUFFERING -> if (hasSuccessfulPlayback) scheduleToleranceTimeout()
             }
         }
@@ -189,6 +201,7 @@ class StreamInlineAudioManager(
         scheduleToleranceTimeout()
         nowPlaying.value = null
         miniControl.isVisible = true
+        Timber.d("S1219: mini control shown, width=${miniControl.width}")
         onPlayingChanged(source.id)
         renderTitle()
         Timber.i("StreamInlineAudioManager: inline audio start - %s (bg=%b)", source.url, useBackgroundService)
@@ -270,6 +283,7 @@ class StreamInlineAudioManager(
     }
 
     private fun stopPlaybackKeepingController() {
+        if (currentSource != null) onPlaybackStateChanged(null, false)
         clearRecoveryState()
         player?.removeListener(playerListener)
         val local = localPlayer
@@ -307,13 +321,25 @@ class StreamInlineAudioManager(
         }
     }
 
+    /**
+     * Audio is flowing: drop the pending stall timeout and any "no signal" marker it already raised.
+     * Deliberately separate from [reportSuccessfulPlayback], which is once-per-play (successReported) -
+     * after the first re-buffer that guard made it a no-op, so the marker stayed on screen for the rest
+     * of the session while the stream was audibly fine.
+     */
+    private fun markPlaybackHealthy() {
+        recoveryHandler.removeCallbacks(toleranceRunnable)
+        retryAttempt = 0
+        if (noSignalVisible) {
+            noSignalVisible = false
+            renderTitle()
+        }
+    }
+
     private fun reportSuccessfulPlayback() {
         if (successReported) return
         successReported = true
         hasSuccessfulPlayback = true
-        retryAttempt = 0
-        noSignalVisible = false
-        recoveryHandler.removeCallbacks(toleranceRunnable)
         renderTitle()
         currentSource?.let(onSuccess)
     }
@@ -330,6 +356,12 @@ class StreamInlineAudioManager(
 
     private fun handleToleranceTimeout() {
         val source = currentSource ?: return
+        // Never contradict what the user hears. A player that is still playing means the buffering
+        // event recovered without a further state change, so the timeout is stale - stay silent.
+        if (player?.isPlaying == true) {
+            markPlaybackHealthy()
+            return
+        }
         if (hasSuccessfulPlayback) {
             noSignalVisible = true
             renderTitle()
@@ -339,11 +371,11 @@ class StreamInlineAudioManager(
         }
     }
 
-    private fun canRetry(error: PlaybackException): Boolean =
-        error.errorCode in PlaybackException.ERROR_CODE_IO_UNSPECIFIED..
-            PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE &&
-            (hasSuccessfulPlayback ||
-                elapsedSinceConnectionStart() < RadioStreamBufferConfig.DIALOG_TIMEOUT_MS)
+    private fun canRetry(error: PlaybackException): Boolean {
+        val firstIoCode = PlaybackException.ERROR_CODE_IO_UNSPECIFIED
+        val lastIoCode = PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE
+        return error.errorCode in firstIoCode..lastIoCode && canContinueRetrying()
+    }
 
     private fun scheduleLocalRetry() {
         val delay = (RadioStreamBufferConfig.BASE_RETRY_DELAY_MS shl retryAttempt)

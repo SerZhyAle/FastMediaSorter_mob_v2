@@ -1,10 +1,13 @@
 package com.sza.fastmediasorter.ui.cameracapture.helpers
 
 import android.content.Intent
+import androidx.camera.core.CameraSelector
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
+import com.sza.fastmediasorter.ui.cameracapture.model.PhotoProfile
+import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -74,13 +77,11 @@ class CameraCaptureFlowManager(
     var liveLinearZoom: Float = 0f
         private set
 
-    /** S0753: night-mode UI state, reconciled against the session after each rebind. */
-    var nightModeEnabled: Boolean = false
-        private set
+    /** S1262: single owner of the active photo profile; the capture screen renders its menu from it. */
+    private val profiles = CameraProfileApplyManager(SessionProfileActions())
 
-    /** S0753: macro UI state, reconciled against the session after each rebind. */
-    var macroEnabled: Boolean = false
-        private set
+    /** S1262: the profile the capture screen shows as active. NORMAL on every entry into photo mode. */
+    val activeProfile: PhotoProfile get() = profiles.activeProfile
 
     /** S0754: UI-only self-timer delay, applied by the host before shutter/record start. */
     var selfTimerSeconds: Int = 0
@@ -139,6 +140,9 @@ class CameraCaptureFlowManager(
     fun switchMode(target: CameraCaptureMode): Boolean {
         if (!allowModeSwitch || target == mode) return false
         mode = target
+        // S1262: profiles are photo-only. The session drops their intents itself when it takes the
+        // video pipeline, so the state is released rather than un-applied (ADR-2).
+        if (target == CameraCaptureMode.VIDEO) profiles.releaseWithoutClearing("video mode")
         return true
     }
 
@@ -192,12 +196,9 @@ class CameraCaptureFlowManager(
             capabilities.maxZoomRatio,
         )
         liveLinearZoom = capabilities.currentLinearZoom
-        // S0753: a rebind for a night toggle keeps the icon on; a lens without NIGHT clears it.
-        nightModeEnabled = session.nightMode && capabilities.supportsNightMode
-        // S1189: macro survives a rebind when the device offers it either way - a dedicated
-        // close-focus lens or a focus lock on the active one.
-        macroEnabled = session.macroEnabled &&
-            (capabilities.supportsMacro || capabilities.macroLensAvailable)
+        // S1262: the new lens may not honour the active profile; drop it before the UI renders the
+        // menu, so a ticked entry never survives onto optics that cannot deliver it.
+        profiles.reconcile(capabilities)
         host.renderCapabilities(capabilities)
     }
 
@@ -209,25 +210,37 @@ class CameraCaptureFlowManager(
         return flashEnabled
     }
 
-    /** S0753: toggles the NIGHT extension when the active lens supports it; returns the resulting state. */
-    fun onNightModeToggle(): Boolean {
-        if (!currentCapabilities.supportsNightMode) return false
-        nightModeEnabled = !nightModeEnabled
-        session.applyNightMode(nightModeEnabled)
-        return nightModeEnabled
-    }
+    /** S1262: menu contents for the bound lens - the UI renders from this instead of re-deriving it. */
+    fun availableProfiles(): List<PhotoProfile> = profiles.availableProfiles(currentCapabilities)
 
-    /** S0753: toggles macro (close focus) when the active lens supports it; returns the resulting state. */
-    fun onMacroToggle(): Boolean {
-        if (!currentCapabilities.supportsMacro && !currentCapabilities.macroLensAvailable) return false
-        macroEnabled = !macroEnabled
-        session.applyMacro(macroEnabled)
-        return macroEnabled
+    /** S1262: applies a menu choice; re-picking the active entry returns the camera to NORMAL. */
+    fun onProfileSelected(profile: PhotoProfile) {
+        profiles.apply(profile)
     }
 
     /** Flips to the next lens; capabilities (and control visibility) refresh via the bind callback. */
     fun onLensSwitch() {
-        if (currentCapabilities.canSwitchLens) session.switchCamera()
+        if (!currentCapabilities.canSwitchLens) return
+        // ADR-2: an explicit lens choice outranks the profile. The session clears its own intents on
+        // the rebind, so the profile is released rather than un-applied - un-applying here would
+        // rebind once more and fight the switch the user just asked for.
+        profiles.releaseWithoutClearing("manual lens switch")
+        session.switchCamera()
+    }
+
+    /**
+     * S1261: cross-lens floor pill tap - switch to the lens that reaches the device-wide floor and
+     * land the zoom on it in one action, like the system camera's wide button. Live values are
+     * re-read after the switch because the rebind reset them before the zoom landed.
+     */
+    fun onCrossLensFloorSelected(equivalent: Float) {
+        if (!currentCapabilities.showsCrossLensFloor) return
+        Timber.d("S1261: floor pill tap eq=%.2f", equivalent)
+        // S1262/ADR-2: the pill is an explicit lens choice, same as the switch button.
+        profiles.releaseWithoutClearing("cross-lens floor pill")
+        session.switchCamera(targetEquivalentFloor = equivalent)
+        liveZoomRatio = session.currentZoomRatio()
+        liveLinearZoom = session.currentLinearZoom()
     }
 
     fun onZoomRatioSelected(ratio: Float) {
@@ -317,6 +330,42 @@ class CameraCaptureFlowManager(
         host.finishWithResult(
             CameraCaptureContract.packResult(mode, outputPath = currentOutputFile()?.absolutePath),
         )
+
+    /**
+     * S1262: the session primitives a profile recipe is built from.
+     *
+     * Every adapter is idempotent against the session: a clear sweep for an intent the session never
+     * held must stay a no-op, or leaving a profile would rebind the camera for nothing and, in the
+     * macro case, drag the lens back to wherever the macro primitive last remembered.
+     */
+    private inner class SessionProfileActions : CameraProfileApplyManager.Actions {
+
+        override fun setNightMode(enabled: Boolean) {
+            if (session.nightMode == enabled) return
+            session.applyNightMode(enabled)
+        }
+
+        override fun setBokeh(enabled: Boolean) {
+            session.applyProfileIntents(bokeh = enabled, sport = session.sportEnabled)
+        }
+
+        override fun setSport(enabled: Boolean) {
+            session.applyProfileIntents(bokeh = session.bokehEnabled, sport = enabled)
+        }
+
+        override fun setMacro(enabled: Boolean) {
+            if (session.macroEnabled == enabled) return
+            session.applyMacro(enabled)
+        }
+
+        override fun switchToFrontLens() {
+            session.switchToFacing(CameraSelector.LENS_FACING_FRONT)
+        }
+
+        override fun switchToMainBackLens() {
+            session.switchToFacing(CameraSelector.LENS_FACING_BACK)
+        }
+    }
 
     private fun resolveLegacyOutputFile(): File? {
         CameraCaptureContract.readOutputPath(intent)?.let { return File(it) }

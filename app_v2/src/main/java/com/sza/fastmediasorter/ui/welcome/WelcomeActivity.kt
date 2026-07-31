@@ -19,6 +19,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -43,6 +45,7 @@ import com.sza.fastmediasorter.ui.welcome.helpers.WelcomePermissionsManager
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeRemoteSourcesController
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -93,20 +96,14 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     // Separate field so the restored page is applied once in setupViewPager() without
     // affecting currentPage until the ViewPager is ready.
     private var restoredPage = 0
-    private val pageBackgrounds = mutableListOf(
-        R.color.welcome_page_1_background,
-        R.color.welcome_page_2_background,
-        R.color.welcome_page_3_background,
-        R.color.welcome_page_4_background,
-        R.color.welcome_page_5_background,
-        R.color.welcome_page_6_background,
-        R.color.welcome_page_7_background
-    )
+    // S1234: the per-page palette moved to WelcomePagePalette - the brand animation owns the page
+    // background now, and the colour tints the translucent panel behind each page's copy instead.
 
     override fun getViewBinding(): ActivityWelcomeBinding =
         ActivityWelcomeBinding.inflate(layoutInflater)
 
     override fun setupViews() {
+        observeBrandBackdrop()
         // WelcomeActivity is the root task at this point, so Back minimises instead of exiting.
         onBackPressedDispatcher.addCallback(
             this,
@@ -193,6 +190,25 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         outState.putInt(KEY_CURRENT_PAGE, currentPage)
         permissionsManager.onSaveInstanceState(outState)
         enableAllManager.onSaveInstanceState(outState)
+    }
+
+    /**
+     * S1234: the brand backdrop runs only while onboarding is on screen, so a backgrounded welcome
+     * never keeps a 60 fps animator alive - the same contract the launcher desktop uses for this
+     * view. A lifecycle observer rather than onStart/onStop overrides: this class already sits on
+     * detekt's 40-function ceiling, and the pair belongs together anyway.
+     */
+    private fun observeBrandBackdrop() {
+        lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStart(owner: LifecycleOwner) {
+                Timber.d("S1234: welcome brand animation start")
+                binding.brandAnimation.startAnimation()
+            }
+
+            override fun onStop(owner: LifecycleOwner) {
+                binding.brandAnimation.pauseAnimation()
+            }
+        })
     }
 
     private fun applyEdgeToEdgeInsets() {
@@ -466,7 +482,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     }
 
     private fun updateUI() {
-        applyPageBackground()
         updateIndicators()
 
         val isLastPage = currentPage == pagerAdapter.itemCount - 1
@@ -484,11 +499,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             binding.btnNext.visibility = View.VISIBLE
             binding.btnFinish.visibility = View.GONE
         }
-    }
-
-    private fun applyPageBackground() {
-        val backgroundIndex = currentPage.coerceIn(0, pageBackgrounds.lastIndex)
-        binding.root.setBackgroundResource(pageBackgrounds[backgroundIndex])
     }
 
     /**

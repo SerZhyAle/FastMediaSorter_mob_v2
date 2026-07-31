@@ -4,12 +4,13 @@ import android.content.Context
 import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryLoader
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class MlKitTextTranslationFacadeFactory @Inject constructor(
-    private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val capabilityRepository: DeliverableCapabilityRepository,
     private val libraryLoader: DeliveredNativeLibraryLoader

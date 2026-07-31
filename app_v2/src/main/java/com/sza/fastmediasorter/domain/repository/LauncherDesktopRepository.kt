@@ -26,6 +26,23 @@ interface LauncherDesktopRepository {
      */
     suspend fun addCell(cell: LauncherCell): Long?
 
+    /**
+     * Places [cell] wherever it fits instead of at the anchor it carries: scans row-major from the top
+     * and takes the first anchor whose whole `spanW x spanH` footprint is clear, appending a new row
+     * below the last occupied one when no existing row has room. The caller therefore never names a
+     * row or a column - the entry point that needs this (adding a widget from Settings) has no grid on
+     * screen to point at.
+     *
+     * [columns] is a parameter rather than repository state for the same reason [addCell] does not
+     * enforce the right edge: the column count belongs to the screen currently rendering the desktop,
+     * not to the stored desktop, and the two orientations resolve it differently.
+     *
+     * Returns null like [addCell], but here null means "could not place at all", not "the requested
+     * anchor was taken" - with the append-a-row fallback that is only reachable on a non-positive
+     * [columns].
+     */
+    suspend fun addCellInFirstFreeSlot(cell: LauncherCell, columns: Int): Long?
+
     suspend fun removeCell(id: Long)
 
     /**

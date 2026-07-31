@@ -11,6 +11,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 class ResumeStateRepositoryImpl @Inject constructor(
@@ -82,5 +83,39 @@ class ResumeStateRepositoryImpl @Inject constructor(
     override suspend fun clearState(windowId: String) = withContext(Dispatchers.IO) {
         Timber.d("ResumeStateRepository[$windowId]: clearState")
         prefs(windowId).edit().clear().apply()
+    }
+
+    /**
+     * S1306: every window id got its own `resume_state_prefs_<uuid>.xml`, and nothing ever deleted
+     * them - a file (plus its .bak) accumulated per window for the life of the install, none of it
+     * readable again once its state passed the 48 h TTL. Sweep the leftovers on a background pass.
+     *
+     * Files younger than the TTL are kept: their window may still be restorable.
+     */
+    override suspend fun sweepStaleWindows(): Int = withContext(Dispatchers.IO) {
+        val prefsDir = File(context.applicationInfo.dataDir, "shared_prefs")
+        val files = prefsDir.listFiles() ?: return@withContext 0
+        val cutoff = System.currentTimeMillis() - RESUME_TTL_MS
+        var deleted = 0
+
+        files.asSequence()
+            .filter { it.name.startsWith("${PREFS_NAME_PREFIX}_") && it.name.endsWith(".xml") }
+            .filter { it.lastModified() < cutoff }
+            .forEach { file ->
+                // Drop through SharedPreferences so any in-memory instance is invalidated too.
+                val prefsName = file.name.removeSuffix(".xml")
+                val removed = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    context.deleteSharedPreferences(prefsName)
+                } else {
+                    context.getSharedPreferences(prefsName, Context.MODE_PRIVATE).edit().clear().commit()
+                    file.delete()
+                }
+                if (removed) deleted++
+            }
+
+        if (deleted > 0) {
+            Timber.i("ResumeStateRepository: swept $deleted stale window state file(s)")
+        }
+        deleted
     }
 }

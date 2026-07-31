@@ -23,13 +23,29 @@ play/listing/
     short_description.txt          # <= 80 chars
     full_description.txt           # <= 4000 chars
     images/
-      phoneScreenshots/<NN>.png    # composed by scripts/release/compose-play-screenshots.py
-      featureGraphic.png           # optional
+      phoneScreenshots/<NN>.png        # composed by scripts/release/compose-play-screenshots.py
+      sevenInchScreenshots/<NN>.png    # optional, own Play slot
+      tenInchScreenshots/<NN>.png      # optional, own Play slot
+      featureGraphic.png               # optional
   captions.json                    # localized screenshot caption strings
   README.md
 ```
 
-## Publishing
+## Capturing screenshots
+
+```
+pwsh -NoProfile -File scripts/release/capture-play-screenshots.ps1 -List
+pwsh -NoProfile -File scripts/release/capture-play-screenshots.ps1 -Locale ru-RU -SetAppLocale -Launch -Slot browse
+python scripts/release/compose-play-screenshots.py
+```
+
+Navigate the app to the target screen yourself, then snap it into a slot. Raw shots land in
+`temp/play-shots/<locale>/<slot>.png`; compose falls back to `temp/play-shots/<slot>.png` when a
+locale has no own capture, so a shared set and per-locale sets can coexist.
+
+`-SetAppLocale` applies the Android 13+ per-app locale override, which needs no reboot but does
+recreate the running activity - run it once before a locale batch, never between navigating and
+capturing.
 
 ```
 pwsh -NoProfile -File scripts/release/publish-play-listing.ps1 -Mode validate   # no commit, validates payload
@@ -38,3 +54,6 @@ pwsh -NoProfile -File scripts/release/publish-play-listing.ps1 -Mode commit     
 
 `validate` never commits; it confirms auth + payload. `commit` publishes the listing (Play may route it
 through review). The live `commit` is an owner-gated operational step.
+
+A screenshot type whose local folder is missing or empty is skipped, and its live set on Play is left
+alone - so a phone-only refresh cannot wipe the tablet screenshots already published.

@@ -35,11 +35,13 @@ Build the release picture before touching anything. Do not change code in this s
 1. Confirm branch + tree:
    - `git branch --show-current` - must be `DEBUG-v0NN` (not `main`).
    - `git status --porcelain` - note uncommitted WIP (it will be committed in Step 1 or by `/skill-release` Step 1b, not lost).
-2. Inventory outstanding spec work:
-   - `.\a.ps1 ss` - unresolved specs.
-   - List specs in `In Progress`, `Partial`, `Broken`, `Block*` via `scripts/spec_catalog/select.ps1` - these are candidates to finish or consciously defer.
-   - List `BlockNeedUserTest` tickets - they need on-device confirmation before they can be called done.
-3. Decide release scope: which pending tickets ship this release, which are deferred to the next DEBUG cycle. Record the decision.
+2. Read the release plan - it already carries the owner's decision, so do not re-derive the scope from the catalog:
+   - `release-queue.ps1 -List -Release <N>` - **what is still left to do** in this package (`N` = the number in `current-next-release:` at the top of `PLAN/RELEASE_QUEUE.md`, matching the `DEBUG-v0NN` branch). This is the work that gates the release.
+   - `release-queue.ps1 -List -Ready -Release <N>` - **what already counts as shipped content** (`Implemented` / `Verified` / `BlockNeedUserTest`). Do not re-plan these; an unverified device check is treated as shipped by design.
+   - `release-queue.ps1 -Validate` - must be clean; drift means the files and the catalog disagree (`-Reconcile` fixes it).
+   - Lines marked `--` are explicitly NOT in this release; never pull one in without the owner saying so.
+3. Inventory readiness: `.\a.ps1 ss` for unresolved specs. Every queue line in the package is either finished before the release or moved by the owner to a later package (`N+1`) or to `--`.
+4. Confirm the scope with the owner only where it differs from the queue: propose moving a line to `--` or to `N+1` rather than silently shipping or dropping it. The queue file, not this report, is where the decision lives.
 
 `--assess` stops here with a one-paragraph situation report.
 
@@ -118,7 +120,8 @@ Complete the channels `/skill-release` cannot fully automate - work its final re
 
 ## Checklist - nothing forgotten
 
-- [ ] On a `DEBUG-v0NN` branch, situation assessed, release scope decided (Step 0).
+- [ ] On a `DEBUG-v0NN` branch, situation assessed, release scope read from `PLAN/RELEASE_QUEUE.md` and agreed (Step 0).
+- [ ] `release-queue.ps1 -Validate` clean before publishing; the shipped block moved to `RELEASE_QUEUE_DONE.md` by Step 5 (`/skill-release` Step 12c).
 - [ ] All in-scope tickets `Verified` / `Implemented`; deferred ones recorded; tree builds + pushed (Step 1).
 - [ ] `/spec-prerelease` verdict PASS, log audit clean or triaged (Step 2-3).
 - [ ] No release-coverage regression vs previous release (Step 3).

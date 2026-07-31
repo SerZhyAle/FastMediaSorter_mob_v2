@@ -7,9 +7,10 @@ metadata:
 
 Owner runs on a 5-hour rolling session limit shared by the main loop AND every subagent/workflow agent. Default to LOW parallelism: a handful of agents, staged, cheapest-first. Even a "moderate" ~14-agent run (7 critics + 7 verifiers) drew a correction - the realistic risk is agents burning the whole window and never completing.
 
-**Why:** two incidents.
+**Why:** three incidents.
 - 2026-07-02 mass audit: 101 agents / 3.66M tokens hit the limit mid-run - all 75 verify skeptics failed, zero confirmed findings for the full 5h budget. Auto-resume started re-burning the fresh window; owner stopped it: "сжигает за один раз мой 5-ти часовой лимит без результата".
 - 2026-07-02 UAK site review: 7 critics + 7 verifiers launched under ultracode; owner mid-run: "поменьше параллелизма - огромный шанс, что твои агенты потратят все токены и так и не завершатся". Ultracode ON does NOT lift this constraint on this subscription.
+- 2026-07-30 long-run audit: 21-agent workflow (10 finders + 10 verifiers + critic) hit the limit at 01:52 with only 2 finders done; the overnight window was lost until the owner's morning "resume". Silver lining: after the reset, re-invoking with resumeFromRunId replayed the 2 cached finders free and the rest completed cleanly (3.1M subagent tokens total) - resume-after-reset is reliable, but the ceiling rule would have avoided the stall entirely.
 
 **How to apply:**
 - Hard default ceiling: ~6-8 agents per workflow run, few concurrent. Anything above -> state agent count + rough token estimate (agents x ~30-60k) in chat and get explicit owner GO first.

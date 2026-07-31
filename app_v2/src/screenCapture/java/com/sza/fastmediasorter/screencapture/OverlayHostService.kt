@@ -14,6 +14,7 @@ import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
@@ -183,7 +184,7 @@ class OverlayHostService : Service() {
         private const val ACTION_START = "com.sza.fastmediasorter.action.OVERLAY_HOST_START"
         private const val ACTION_STOP = "com.sza.fastmediasorter.action.OVERLAY_HOST_STOP"
         private const val CHANNEL_ID = "screen_capture_overlay_host"
-        private const val NOTIFICATION_ID = 0x4054
+        private const val NOTIFICATION_ID = NotificationIds.GESTURE_OVERLAY_HOST
 
         // S1008: enabled + strip-visible zones are resolved inside onStartCommand off the persisted
         // settings, so a plain (re-)start refreshes both the band set and the per-zone strip colour.

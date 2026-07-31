@@ -19,8 +19,6 @@ import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.databinding.FragmentLauncherStartMenuBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
-import com.sza.fastmediasorter.domain.usecase.launcher.QueryAppShortcutsUseCase
-import com.sza.fastmediasorter.domain.usecase.launcher.StartAppShortcutUseCase
 import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.ResourcePickerDialogFragment
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
@@ -47,12 +45,6 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
 
     @Inject
     lateinit var roleManager: LauncherRoleManager
-
-    @Inject
-    lateinit var queryAppShortcuts: QueryAppShortcutsUseCase
-
-    @Inject
-    lateinit var startAppShortcut: StartAppShortcutUseCase
 
     private val viewModel: LauncherHomeViewModel by activityViewModels()
 
@@ -84,7 +76,11 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
 
     // AppItem.id is the package name, so the grid needs no extra lookup to reach the app's shortcuts.
     private val shortcutMenuManager by lazy {
-        LauncherAppShortcutMenuManager(lifecycleScope, queryAppShortcuts, startAppShortcut)
+        LauncherAppShortcutMenuManager(
+            lifecycleScope,
+            { packageName -> viewModel.appShortcutsOf(packageName) },
+            { shortcut, bounds -> viewModel.launchAppShortcut(shortcut, bounds) },
+        )
     }
 
     override fun onCreateView(

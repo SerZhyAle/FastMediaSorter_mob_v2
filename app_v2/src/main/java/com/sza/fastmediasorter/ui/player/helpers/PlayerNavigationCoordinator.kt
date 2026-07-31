@@ -33,6 +33,9 @@ class PlayerNavigationCoordinator(
 
     private var saveLastViewedFileJob: Job? = null
 
+    /** S1279: entries taken out optimistically, keyed by the source path the queue reports back. */
+    private val pendingRemovals = mutableMapOf<String, RemovedFile>()
+
     fun syncAudioServiceIndex(serviceIndex: Int) {
         val files = stateFlow.value.files
         if (serviceIndex < 0 || serviceIndex >= files.size) return
@@ -62,6 +65,121 @@ class PlayerNavigationCoordinator(
             saveLastViewedFileDebounced(currentState.files[index].path)
         }
     }
+
+    /**
+     * S1279: take the current entry out of the navigated list after a player-initiated delete or
+     * move, reporting what was removed so the caller can put it back if the queued operation later
+     * fails.
+     *
+     * This REPLACES the advance those flows used to perform, it does not accompany it. Removing
+     * the entry at `currentIndex` leaves that same index pointing at the following file, so calling
+     * [nextFile] on top would step twice and silently skip a file after every sort action.
+     *
+     * An emptied list is deliberately left for `PlayerFileOperationEvent.Drained` to finish the
+     * Activity, as it already does - finishing here would close the player before the queued
+     * operation is known to have succeeded.
+     */
+    fun dropCurrentFile(sourcePath: String): Boolean {
+        val currentState = stateFlow.value
+        val index = currentState.currentIndex
+        val file = currentState.files.getOrNull(index) ?: return false
+
+        val updatedFiles = currentState.files.toMutableList().apply { removeAt(index) }
+        // Wrap like the pre-queue delete path did: dropping the last entry lands on the first.
+        val newIndex = if (index >= updatedFiles.size) 0 else index
+        updateState {
+            it.copy(
+                files = updatedFiles,
+                currentIndex = newIndex,
+                shuffleIndices = shuffleIndicesWithout(it.shuffleIndices, index)
+            )
+        }
+        if (updatedFiles.isNotEmpty()) saveResumeState()
+        pendingRemovals[sourcePath] = RemovedFile(file, index)
+        Timber.d("dropCurrentFile: removed $index, ${currentState.files.size} -> ${updatedFiles.size}, now $newIndex")
+        return true
+    }
+
+    /** S1279: the queued operation succeeded, so there is nothing left to put back. */
+    fun forgetDroppedFile(sourcePath: String) {
+        pendingRemovals.remove(sourcePath)
+    }
+
+    /**
+     * S1279: undo [dropCurrentFile] when the queued operation reports failure, so an operation
+     * that never happened does not silently shrink the list.
+     *
+     * The viewer stays on whatever is on screen now rather than being yanked back to the restored
+     * file - the user has already moved on, and the failure is reported by its own snackbar.
+     */
+    fun restoreDroppedFile(sourcePath: String) {
+        val removed = pendingRemovals.remove(sourcePath) ?: return
+        val currentState = stateFlow.value
+        if (currentState.files.any { it.path == removed.file.path }) return
+
+        val index = removed.index.coerceIn(0, currentState.files.size)
+        val restored = currentState.files.toMutableList().apply { add(index, removed.file) }
+        val shiftedIndex = if (currentState.currentIndex >= index) {
+            currentState.currentIndex + 1
+        } else {
+            currentState.currentIndex
+        }
+        updateState {
+            it.copy(
+                files = restored,
+                currentIndex = shiftedIndex.coerceIn(0, restored.size - 1),
+                // Cleared rather than remapped: there is no defensible position for a re-inserted
+                // file in an existing shuffle order, and nextFile rebuilds the order when it finds
+                // the current index missing from it.
+                shuffleIndices = emptyList()
+            )
+        }
+        Timber.d("restoreDroppedFile: re-inserted ${removed.file.name} at $index")
+    }
+
+    /**
+     * S1279: enforce the invariant that a source path a delete/move reported as succeeded is not
+     * in the navigation list. [dropCurrentFile] normally got there first; this closes the case
+     * where a failed operation was restored and then retried from the snackbar, which re-enqueues
+     * without going through the optimistic path again.
+     */
+    fun removeFileByPath(path: String) {
+        val currentState = stateFlow.value
+        val index = currentState.files.indexOfFirst { it.path == path }
+        if (index < 0) return
+
+        val updatedFiles = currentState.files.toMutableList().apply { removeAt(index) }
+        val newIndex = when {
+            currentState.currentIndex > index -> currentState.currentIndex - 1
+            currentState.currentIndex >= updatedFiles.size -> 0
+            else -> currentState.currentIndex
+        }
+        updateState {
+            it.copy(
+                files = updatedFiles,
+                currentIndex = newIndex.coerceAtLeast(0),
+                shuffleIndices = shuffleIndicesWithout(it.shuffleIndices, index)
+            )
+        }
+        Timber.d("removeFileByPath: removed $index, ${currentState.files.size} -> ${updatedFiles.size}")
+    }
+
+    /**
+     * Shuffle order holds positions into `files`, so removing one entry leaves every higher
+     * position off by one and able to point past the end. Drop the removed one, close the gap.
+     */
+    private fun shuffleIndicesWithout(indices: List<Int>, removedIndex: Int): List<Int> =
+        indices.asSequence()
+            .filter { it != removedIndex }
+            .map { if (it > removedIndex) it - 1 else it }
+            .toList()
+
+    /**
+     * S1279: what [dropCurrentFile] took out, enough for [restoreDroppedFile] to put it back.
+     * Kept here rather than handed to the caller so the whole API is path-keyed - the bookkeeping
+     * belongs with the list it describes, and callers never have to name this type.
+     */
+    private data class RemovedFile(val file: MediaFile, val index: Int)
 
     fun nextFile(skipDocuments: Boolean = false, manual: Boolean = false) {
         if (BuildConfig.DEBUG) {

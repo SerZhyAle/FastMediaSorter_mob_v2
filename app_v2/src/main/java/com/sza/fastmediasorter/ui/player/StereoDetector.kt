@@ -122,6 +122,13 @@ class StereoDetector @javax.inject.Inject constructor() {
         private const val GUESS_OU_AR_MAX = 1.25f
         private const val GUESS_MIN_WIDTH = 1024
 
+        // S1249: the OU floor for an explicit user tap. Zero, i.e. no floor - the pre-S1229 rule on
+        // this path was `aspect <= 0.7 -> OU` with nothing below it, and narrowing it was collateral
+        // from tuning the passive band. Anything taller than GUESS_OU_AR_MAX is OU when the user
+        // pointed at it: an OU-packed portrait frame lands at 0.28 (9:16 halved) and a square-eye
+        // pair at 0.5, both of which a floor derived from landscape sources would reject.
+        private const val GUESS_OU_AR_MIN_TAP = 0f
+
         // Matroska StereoMode values (EBML element 0x53B8)
         // https://www.matroska.org/technical/elements.html#StereoMode
         private const val MATROSKA_STEREO_MONO       = "0"
@@ -339,7 +346,7 @@ class StereoDetector @javax.inject.Inject constructor() {
 
         // Best-guess path: explicit user tap (userInitiated) OR the ambiguity-best-guess setting.
         if (userInitiated || config.ambiguityBestGuess) {
-            val aggressive = aggressiveDimensionGuess(width, height)
+            val aggressive = aggressiveDimensionGuess(width, height, userInitiated)
             if (userInitiated) {
                 if (aggressive != StereoMode.MONO) {
                     Timber.d(
@@ -412,13 +419,25 @@ class StereoDetector @javax.inject.Inject constructor() {
      * - aspect ≥ [GUESS_SBS_AR_MIN] and width ≥ [GUESS_MIN_WIDTH] → SBS_FULL
      * - aspect in [GUESS_OU_AR_MIN]..[GUESS_OU_AR_MAX] and width ≥ [GUESS_MIN_WIDTH] → OU
      * - everything else (including null dimensions) → MONO
+     *
+     * S1249: [userInitiated] drops the OU band's lower bound, because the two callers have opposite
+     * priors and one set of thresholds cannot serve both. The passive caller is guessing about an
+     * arbitrary library, where a false positive plays an ordinary film as 3D. An explicit tap on
+     * *this* image is ~95% stereo intent, so a false negative there discards an instruction the user
+     * gave, while a false positive costs one tap to undo. The upper bound stays shared - it is what
+     * keeps an ordinary 4:3 DSLR frame (1.33) MONO on either path.
      */
-    private fun aggressiveDimensionGuess(width: Int?, height: Int?): StereoMode {
+    private fun aggressiveDimensionGuess(
+        width: Int?,
+        height: Int?,
+        userInitiated: Boolean = false,
+    ): StereoMode {
         if (width == null || height == null || width <= 0 || height <= 0) return StereoMode.MONO
         val aspect = width.toFloat() / height.toFloat()
+        val ouMin = if (userInitiated) GUESS_OU_AR_MIN_TAP else GUESS_OU_AR_MIN
         return when {
             aspect >= GUESS_SBS_AR_MIN && width >= GUESS_MIN_WIDTH -> StereoMode.SBS_FULL
-            aspect in GUESS_OU_AR_MIN..GUESS_OU_AR_MAX && width >= GUESS_MIN_WIDTH -> StereoMode.OU
+            aspect in ouMin..GUESS_OU_AR_MAX && width >= GUESS_MIN_WIDTH -> StereoMode.OU
             else -> StereoMode.MONO
         }
     }

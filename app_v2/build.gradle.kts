@@ -702,6 +702,13 @@ android {
                 // `data.remote.ftp.*`, killing the worker; Gradle still printed a normal-looking
                 // "N tests completed" line, so the `domain`/`ui`/`util` packages silently never ran.
                 it.maxHeapSize = "2g"
+                // S1253: bound the worker's lifetime, not just its heap. Robolectric keeps a
+                // sandbox classloader per test class (metaspace + native, invisible to -Xmx);
+                // past ~350 of 409 classes in one process the peak exceeds what the host can
+                // commit whenever emulators or a sibling build are live, and the JVM aborts
+                // natively - exit value 10, no Java-level OOM, truncated suite. Recycling the
+                // worker every 100 classes caps that peak; cost is a few JVM warmups per run.
+                it.forkEvery = 100L
                 it.systemProperty(
                     "settings.manifest.generate",
                     System.getProperty("settings.manifest.generate") ?: "false"
@@ -933,14 +940,8 @@ android {
         abortOnError = true
         checkReleaseBuilds = false
         disable += "InvalidPackage"
-        // S1193: measured, not assumed. Enabling MissingTranslation yields 27 findings, ALL of them in
-        // src/debug/res/values/strings_debug.xml - the debug menu, deliberately English-only and never
-        // shipped. Zero findings in any shipping source set. It also cannot act as a gate today:
-        // lintStandardDebug already fails on ~72 unbaselined errors unrelated to translations (first
-        // failure is MissingPermission), so nobody can run it green. Re-enable together with S1195,
-        // after marking the debug strings translatable="false". Parity is enforced meanwhile by
-        // post-change.ps1's strings-audit, which sweeps every key when no -KeyPrefix is given.
-        disable += "MissingTranslation"
+        // MissingTranslation is on: debug-only strings carry translatable="false", and post-change.ps1's
+        // strings audit sweeps locale parity on every key.
         disable += "NewApi"
         disable += "UnsafeOptInUsageError"
         // False positive: 0dp with layout_weight in LinearLayout or as ConstraintLayout child

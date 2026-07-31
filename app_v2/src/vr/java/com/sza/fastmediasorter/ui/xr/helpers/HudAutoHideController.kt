@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.xr.helpers
 
 import android.os.Handler
-import timber.log.Timber
 
 /**
  * S1232: keeps the immersive HUD strip out of the way without making it unreachable.
@@ -25,7 +24,6 @@ class HudAutoHideController(
 
     private val collapseRunnable = Runnable {
         armed = false
-        Timber.d("S1232: HUD auto-hide fired after ${TIMEOUT_MS}ms idle")
         onCollapse()
     }
 

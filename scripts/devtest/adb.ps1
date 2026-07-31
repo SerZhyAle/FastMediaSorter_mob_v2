@@ -382,7 +382,17 @@ switch ($Verb.ToLowerInvariant()) {
         $remote = '/sdcard/_fms_shot.png'
         # screencap-then-pull keeps the PNG bytes intact (a `>` redirect of exec-out
         # corrupts binary on Windows pipelines).
-        Invoke-Adb $id @('shell', 'screencap', '-p', $remote) | Out-Null
+        # Some emulator images cannot resolve their own default display and answer a bare
+        # `screencap -p` with the usage text plus a zero-byte file; naming the display id
+        # explicitly succeeds there, so fall back to it instead of reporting a dead capture.
+        Invoke-Adb $id @('shell', 'screencap', '-p', $remote) -AllowFail | Out-Null
+        $remoteSize = (Invoke-Adb $id @('shell', 'stat', '-c', '%s', $remote) -AllowFail) -join ''
+        if ($remoteSize.Trim() -notmatch '^[1-9][0-9]*$') {
+            $displayRaw = (Invoke-Adb $id @('shell', 'dumpsys', 'SurfaceFlinger', '--display-id') -AllowFail) -join "`n"
+            if ($displayRaw -match 'Display\s+(\d+)') {
+                Invoke-Adb $id @('shell', 'screencap', '-p', '-d', $Matches[1], $remote) | Out-Null
+            }
+        }
         Invoke-Adb $id @('pull', $remote, $local) | Out-Null
         Invoke-Adb $id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
         if (-not (Test-Path -Path $local -PathType Leaf)) { Fail 7 "screenshot pull produced no file" }

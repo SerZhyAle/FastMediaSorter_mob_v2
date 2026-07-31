@@ -177,7 +177,11 @@ class SlideshowController(
         
         isPaused = true
         handler.removeCallbacks(slideShowRunnable)
-        countdownHandler.removeCallbacks(countdownRunnable)
+        // S1308: scheduleNextSlide() also posts an untracked showCountdown() lambda. Removing only
+        // countdownRunnable left that lambda pending, so it fired after stop/pause and ticked
+        // 3..2..1 on a dead slideshow - and since the clearing tick 0 lives in the (already removed)
+        // slideShowRunnable, the "1.." badge then stayed on screen.
+        countdownHandler.removeCallbacksAndMessages(null)
         
         slideshowCallback.onSlideshowStateChanged(isActive, isPaused)
     }
@@ -206,7 +210,11 @@ class SlideshowController(
         isActive = false
         isPaused = false
         handler.removeCallbacks(slideShowRunnable)
-        countdownHandler.removeCallbacks(countdownRunnable)
+        // S1308: scheduleNextSlide() also posts an untracked showCountdown() lambda. Removing only
+        // countdownRunnable left that lambda pending, so it fired after stop/pause and ticked
+        // 3..2..1 on a dead slideshow - and since the clearing tick 0 lives in the (already removed)
+        // slideShowRunnable, the "1.." badge then stayed on screen.
+        countdownHandler.removeCallbacksAndMessages(null)
         
         // D.8: Restore screen-on to global setting
         slideshowCallback.setKeepScreenAwake(false)
@@ -222,8 +230,10 @@ class SlideshowController(
         intervalMs = intervalSeconds * 1000L
         
         if (isActive && !isPaused) {
-            // Reschedule with new interval
+            // Reschedule with new interval. S1308: drop the pending countdown lambda too, otherwise
+            // the old interval's countdown keeps ticking alongside the new schedule.
             handler.removeCallbacks(slideShowRunnable)
+            countdownHandler.removeCallbacksAndMessages(null)
             scheduleNextSlide()
         }
     }

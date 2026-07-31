@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.welcome
 
+import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,6 +9,8 @@ import android.view.animation.AnimationUtils
 import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
@@ -26,6 +30,7 @@ import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.welcome.holders.FunctionalityPageViewHolder
 import com.sza.fastmediasorter.ui.welcome.holders.PermissionsPageViewHolder
 import com.sza.fastmediasorter.ui.welcome.holders.ProfilesPageViewHolder
+import timber.log.Timber
 
 class WelcomePagerAdapter(
     private val pages: List<WelcomePage>,
@@ -40,6 +45,9 @@ class WelcomePagerAdapter(
         private const val VIEW_TYPE_DEFAULT_PLAYER = 4
         private const val VIEW_TYPE_NETWORKS = 5
         private const val VIEW_TYPE_PERMISSIONS = 6
+
+        /** Opaque end of the 8-bit alpha channel, for turning [WelcomePagePalette.PANEL_ALPHA] into a colour. */
+        private const val MAX_ALPHA = 255
     }
 
     /** The currently-bound device-profile page holder, kept so the Activity can refresh the grid
@@ -96,6 +104,7 @@ class WelcomePagerAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        applyContentPanel(holder.itemView, position)
         when (holder) {
             is ProfilesPageViewHolder -> {
                 profilesHolder = holder
@@ -114,6 +123,20 @@ class WelcomePagerAdapter(
     }
 
     override fun getItemCount(): Int = pages.size
+
+    /**
+     * S1234: gives the page copy a translucent backing tinted with this page's colour, so it stays
+     * legible over the brand animation while the pages remain visually distinct. Applied here, for
+     * every view type at once, because the container id is shared across all page layouts - doing it
+     * per view holder would mean seven copies of the same three lines.
+     */
+    private fun applyContentPanel(itemView: View, position: Int) {
+        val panel = itemView.findViewById<View>(R.id.layoutContent) ?: return
+        val base = ContextCompat.getColor(itemView.context, WelcomePagePalette.colorResFor(position))
+        val alpha = (WelcomePagePalette.PANEL_ALPHA * MAX_ALPHA).toInt()
+        panel.setBackgroundResource(R.drawable.bg_welcome_content_panel)
+        panel.backgroundTintList = ColorStateList.valueOf(ColorUtils.setAlphaComponent(base, alpha))
+    }
 
     class WelcomeViewHolder(
         private val binding: PageWelcomeBinding
@@ -159,6 +182,14 @@ class WelcomePagerAdapter(
             binding.tvHint?.text = HtmlCompat.fromHtml(
                 binding.root.context.getString(com.sza.fastmediasorter.R.string.welcome_default_player_hint),
                 HtmlCompat.FROM_HTML_MODE_LEGACY
+            )
+
+            val res = binding.root.context.resources
+            Timber.d(
+                "S1237: default player page bound, swDp=%d, landscape=%b, capPx=%d",
+                res.configuration.smallestScreenWidthDp,
+                res.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE,
+                res.getDimensionPixelSize(R.dimen.welcome_content_max_width)
             )
 
             animateEntrance(binding.ivIcon, 0L)

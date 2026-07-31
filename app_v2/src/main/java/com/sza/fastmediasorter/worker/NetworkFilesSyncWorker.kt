@@ -14,11 +14,12 @@ import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.core.notification.NotificationIds
+import com.sza.fastmediasorter.data.network.exceptions.HandledNetworkOutcomeLogger
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
-import com.sza.fastmediasorter.data.network.exceptions.HandledNetworkOutcomeLogger
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
@@ -187,6 +188,9 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
     companion object {
         const val WORK_NAME = "network_files_sync"
         const val NOTIFICATION_CHANNEL_ID = "network_sync_channel"
-        private const val NOTIFICATION_ID = 4201
+
+        // S1292: was 4201, which WorkManager removed on completion - taking the S0710 permission
+        // advisory (same id) with it, so the user never saw why scheduled ops kept failing.
+        private const val NOTIFICATION_ID = NotificationIds.NETWORK_FILES_SYNC
     }
 }

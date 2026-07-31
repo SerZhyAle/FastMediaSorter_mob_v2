@@ -172,10 +172,11 @@ Checks that string keys exist in every declared locale, at two levels of strictn
 scripts/check_strings_localized.ps1
   Checks that string keys exist in every declared locale, at two levels of strictness.
   Params:
-    -KeyPrefix         [String]
-    -Module            [String] = "app_v2"
-    -SourceSet         [String] = "main"
-  Exit: 0 - every key present in en/ru/uk (gaps in the other declared locales are reported only).; 1 - at least one key missing from en, ru or uk, or the resource directory does not exist.
+    -KeyPrefix             [String]
+    -Module                [String] = "app_v2"
+    -SourceSet             [String] = "main"
+    -AllSourceSets         [SwitchParameter]
+  Exit: 0 - every key present in en/ru/uk (gaps in the other declared locales are reported only).; 1 - at least one key missing from en, ru or uk, or the resource directory does not exist.; 3 - an explicitly given -KeyPrefix matched no keys in any audited source set. Silent success
 ```
 
 ### check-doc-vs-gradle.ps1
@@ -613,6 +614,16 @@ scripts/builders/build-wear-debug.PS1
 ```
 scripts/builders/build-wear-release.PS1
   (no param block)
+```
+
+### check-lint-rules.ps1
+
+```
+scripts/builders/check-lint-rules.ps1
+  Params:
+    -Tests         [String]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - the suite ran and passed.; 2 - the run reported success but produced no test-result XML, so nothing was actually
 ```
 
 ### check-standard-fast.ps1
@@ -1436,6 +1447,15 @@ scripts/quality/assert-layout-hardcoded-colors.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-layout-variant-id-parity.ps1
+
+```
+scripts/quality/assert-layout-variant-id-parity.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+```
+
 ### assert-listener-symmetry.ps1
 
 ```
@@ -1520,6 +1540,15 @@ scripts/quality/assert-script-cheatsheet-sync.ps1
   Exit: 0 in sync.; 1 stale - regenerate with `pwsh -NoProfile -File scripts/utils/help.ps1 -Generate`.; 2 the gate itself cannot run (scripts/utils/help.ps1 missing).
 ```
 
+### assert-sensitive-settings-annotated.ps1
+
+```
+scripts/quality/assert-sensitive-settings-annotated.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+```
+
 ### assert-settings-catalog-complete.ps1
 S0440 Phase 04 - assert the settings-search layout catalog is complete.
 
@@ -1563,6 +1592,18 @@ scripts/quality/assert-stub-todo.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+```
+
+### assert-test-suite-complete.ps1
+Fails when a unit-test run covered fewer test classes than the source set contains.
+
+```
+scripts/quality/assert-test-suite-complete.ps1
+  Fails when a unit-test run covered fewer test classes than the source set contains.
+  Params:
+    -Module                   [String] = "app_v2"
+    -TaskDir                  [String] = "testStandardDebugUnitTest"
+    -MinCoverageRatio         [Double] = 0.85
 ```
 
 ### assert-trivial-comments.ps1
@@ -1725,10 +1766,12 @@ Capture raw store screenshots into temp/play-shots/<id>.png for S0497 Phase 03.
 scripts/release/capture-play-screenshots.ps1
   Capture raw store screenshots into temp/play-shots/<id>.png for S0497 Phase 03.
   Params:
-    -Slot             [String]
-    -DeviceId         [String]
-    -Launch           [SwitchParameter]
-    -List             [SwitchParameter]
+    -Slot                 [String]
+    -DeviceId             [String]
+    -Locale               [String]
+    -SetAppLocale         [SwitchParameter]
+    -Launch               [SwitchParameter]
+    -List                 [SwitchParameter]
 ```
 
 ### extract-release-notes.ps1
@@ -1818,6 +1861,19 @@ scripts/release/standard-surface-snapshot.ps1
     -Json                     [SwitchParameter]
     -CheckRegressions         [SwitchParameter]
   Exit: 0 - snapshot emitted (default) / no regression candidates (-CheckRegressions); 1 - regression candidate(s) found (only with -CheckRegressions); 2 - infrastructure abort (source files missing / unreadable)
+```
+
+## scripts\site
+
+### ping-indexnow.ps1
+Notify IndexNow-participating search engines that the site changed.
+
+```
+scripts/site/ping-indexnow.ps1
+  Notify IndexNow-participating search engines that the site changed.
+  Params:
+    -Url         [String[]]
+  Exit: 2 = invalid invocation or unreadable sitemap.
 ```
 
 ## scripts\spec_catalog
@@ -1972,6 +2028,23 @@ scripts/spec_catalog/release-plan.ps1
     -Format              [String] = 'text'  {text|json}
     -Flavors             [String] = ''
     -CatalogFile         [String] = ''
+```
+
+### release-queue.ps1
+
+```
+scripts/spec_catalog/release-queue.ps1
+  Params:
+    -Reconcile          [SwitchParameter]
+    -Validate           [SwitchParameter]
+    -List               [SwitchParameter]
+    -Ready              [SwitchParameter]
+    -SetCurrent  (req)  [Int32]
+    -Ship        (req)  [SwitchParameter]
+    -Release     (req)  [String] = ''
+    -Version            [String] = ''
+    -DryRun             [SwitchParameter]
+  Exit: 0 success (for -Validate: no drift).; 1 error, or -Validate found drift.; 2 cannot verify - PLAN/RELEASE_QUEUE.md is missing (seed it before using the queue).
 ```
 
 ### sca-specs.ps1

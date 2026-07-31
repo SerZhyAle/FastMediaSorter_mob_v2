@@ -46,13 +46,65 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             if (blocker != null) {
                 Timber.i(
                     "Launcher desktop: not adding at %d,%d - cell %d already covers it",
-                    candidate.rowIndex, candidate.colIndex, blocker.id,
+                    candidate.rowIndex,
+                    candidate.colIndex,
+                    blocker.id,
                 )
                 return@withTransaction null
             }
             cellDao.upsert(candidate.toEntity())
         }
     }
+
+    override suspend fun addCellInFirstFreeSlot(cell: LauncherCell, columns: Int): Long? =
+        withContext(Dispatchers.IO) {
+            if (columns < MIN_SPAN) {
+                Timber.w("Launcher desktop: cannot place a cell on a %d-column grid", columns)
+                return@withContext null
+            }
+            // Widen-past-the-edge is the one span correction the stored desktop may not keep: unlike a
+            // row or column index, a footprint wider than the screen can never be rendered anywhere.
+            val normalized = cell.normalized()
+            val candidate = normalized.copy(spanW = normalized.spanW.coerceAtMost(columns))
+            // Scan and insert share one transaction for the same reason addCell's check does: two
+            // concurrent placements that both saw the same square free would otherwise both land on it.
+            db.withTransaction {
+                val anchor = findFreeAnchor(candidate, columns) ?: return@withTransaction null
+                Timber.d("S1170: free slot %d,%d of %d columns", anchor.row, anchor.col, columns)
+                Timber.i("Launcher desktop: placing new cell at %d,%d", anchor.row, anchor.col)
+                cellDao.upsert(candidate.copy(rowIndex = anchor.row, colIndex = anchor.col).toEntity())
+            }
+        }
+
+    /**
+     * Row-major scan for the first anchor whose whole footprint is clear (owner decision, strategic §4
+     * item 2).
+     *
+     * The upper bound is the empty band under the desktop rather than an arbitrary ceiling: that row
+     * overlaps nothing by construction and every column in it is free, so a candidate that fits the grid
+     * width at all is guaranteed to be placed there at the latest. That makes "append a new row below the
+     * last occupied one" fall out of the same loop instead of needing a second code path, and it makes an
+     * empty desktop terminate on the very first probe.
+     */
+    private suspend fun findFreeAnchor(candidate: LauncherCell, columns: Int): GridAnchor? {
+        val lastRow = cellDao.firstRowBelowAll(candidate.orientation.name)
+        for (row in 0..lastRow) {
+            for (col in 0..columns - candidate.spanW) {
+                val blocker = cellDao.findOverlapping(
+                    orientation = candidate.orientation.name,
+                    rowIndex = row,
+                    colIndex = col,
+                    spanW = candidate.spanW,
+                    spanH = candidate.spanH,
+                    excludeId = candidate.id,
+                )
+                if (blocker == null) return GridAnchor(row, col)
+            }
+        }
+        return null
+    }
+
+    private data class GridAnchor(val row: Int, val col: Int)
 
     override suspend fun removeCell(id: Long) = withContext(Dispatchers.IO) {
         cellDao.deleteById(id)

@@ -6,15 +6,14 @@ import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.google.zxing.WriterException
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityCompanionQrShareBinding
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
-import javax.inject.Inject
 import kotlin.math.min
 
 /**
@@ -28,8 +27,9 @@ import kotlin.math.min
 class CompanionQrShareActivity : AppCompatActivity() {
 
     // S1045: this screen does not extend BaseActivity (pure rendering, no ViewBinding generics), so it
-    // reads the setting directly instead of via BaseActivity.isSensitiveScreen().
-    @Inject lateinit var settingsRepository: SettingsRepository
+    // cannot use BaseActivity.isSensitiveScreen(). S1195: the setting now arrives through this ViewModel
+    // rather than a repository injected into the Activity.
+    private val viewModel: CompanionQrShareViewModel by viewModels()
 
     private lateinit var binding: ActivityCompanionQrShareBinding
 
@@ -41,8 +41,8 @@ class CompanionQrShareActivity : AppCompatActivity() {
         binding = ActivityCompanionQrShareBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
-            if (settings.secureSensitiveScreens) {
+        collectOnLifecycle(viewModel.secureSensitiveScreens) { secureSensitiveScreens ->
+            if (secureSensitiveScreens) {
                 window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
             } else {
                 window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)

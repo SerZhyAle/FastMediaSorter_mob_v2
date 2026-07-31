@@ -1,17 +1,20 @@
 package com.sza.fastmediasorter.ui.launcher.grid
 
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemLauncherCellGadgetBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherCellShortcutBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
+import timber.log.Timber
 
 /**
  * S0404: fills [LauncherDesktopLayout] with cell views. Shortcuts draw an icon + label here, gadgets
@@ -58,6 +61,7 @@ class LauncherCellViewBinder(
     ) {
         if (lastBound == Triple(cells, columns, editMode)) return
         lastBound = Triple(cells, columns, editMode)
+        Timber.d("S1173: desktop render cells=%d editMode=%b", cells.size, editMode)
         container.removeAllViews()
         container.columns = columns
         container.rows = rowsToShow(cells, editMode)
@@ -67,7 +71,7 @@ class LauncherCellViewBinder(
                 LauncherCellKind.SHORTCUT -> bindShortcut(inflater, container, item)
                 LauncherCellKind.GADGET -> bindGadget(inflater, container, item)
             }
-            applyRestingOutline(view, editMode)
+            applyCellSurface(view, item, editMode)
             if (editMode) decorateForEdit(inflater, view, item)
             container.addView(
                 view,
@@ -83,14 +87,32 @@ class LauncherCellViewBinder(
     }
 
     /**
-     * S1100: the cell outline is an editing affordance, not a permanent decoration. At rest the desktop
-     * reads cleaner without it (owner, 2026-07-18), so the stroke is zeroed for every shortcut and gadget
-     * cell - both share a MaterialCardView root. Edit mode keeps the inflated 1dp stroke so cell
-     * boundaries and drop targets stay visible while arranging.
+     * S1100/S1173: the card look is an editing affordance, not a permanent decoration. At rest the
+     * desktop reads cleaner without it (owner, 2026-07-18), and since S1173 a shortcut is fully
+     * transparent so the wallpaper shows through it (owner, 2026-07-29) - contrast lives in the icon's
+     * and caption's own contour instead. Edit mode brings the card back for both kinds, because the
+     * surface, stroke and elevation are what make cell boundaries and drop targets visible while
+     * arranging.
+     *
+     * One switch owns the whole resting-versus-editing appearance on purpose: when the stroke lived here
+     * and the background in the layout, the two could disagree about which mode the cell was in.
+     *
+     * A gadget keeps its surface in both modes - it renders its own content, which needs something
+     * behind it (strategic §2 non-goals).
      */
-    private fun applyRestingOutline(view: android.view.View, editMode: Boolean) {
-        if (editMode) return
-        (view as? MaterialCardView)?.strokeWidth = 0
+    private fun applyCellSurface(view: View, item: LauncherCellUi, editMode: Boolean) {
+        val card = view as? MaterialCardView ?: return
+        if (!editMode) {
+            card.strokeWidth = 0
+        } else if (item.cell.kind == LauncherCellKind.SHORTCUT) {
+            // A gadget's own layout already carries the surface, stroke and lift in both modes, and the
+            // inflated 1dp stroke is intact here because a mode change re-inflates every cell. So only a
+            // shortcut - transparent at rest since S1173 - needs the card look put back for arranging.
+            card.setCardBackgroundColor(
+                MaterialColors.getColor(card, com.google.android.material.R.attr.colorSurface),
+            )
+            card.cardElevation = card.resources.getDimension(R.dimen.launcher_cell_edit_elevation)
+        }
     }
 
     /**
@@ -207,21 +229,26 @@ class LauncherCellViewBinder(
     ): android.view.View {
         val binding = ItemLauncherCellShortcutBinding.inflate(inflater, container, false)
         val visual = item.visual
+        // S1173: the dim goes on the icon and the caption, never on the root. With no card behind them
+        // the root's alpha would fade their contour too, and an unavailable cell would stop being
+        // readable over a busy wallpaper - which is the one case where the user most needs to read it.
+        val contentAlpha = if (visual == null) UNAVAILABLE_ALPHA else FULL_ALPHA
+        binding.cellIcon.alpha = contentAlpha
+        binding.cellLabel.alpha = contentAlpha
         if (visual == null) {
             // Only a SHORTCUT can be "unavailable" this way: LauncherCellUi.visual is null for every
             // GADGET by contract, so this check must never gate the gadget path.
             binding.cellLabel.setText(R.string.launcher_home_cell_unavailable)
             binding.cellIcon.setImageResource(R.drawable.ic_launcher_mode)
-            binding.root.alpha = UNAVAILABLE_ALPHA
         } else {
             binding.cellLabel.text = visual.label
-            binding.root.alpha = FULL_ALPHA
             if (visual.iconDrawable != null) {
                 binding.cellIcon.setImageDrawable(visual.iconDrawable)
             } else {
                 binding.cellIcon.setImageResource(visual.iconRes ?: R.drawable.ic_launcher_mode)
             }
         }
+        bindMonogram(binding, visual?.monogramSeed)
         bindModeBadge(binding, item.modeBadge)
         binding.root.contentDescription = describe(binding, item)
         binding.root.setOnClickListener { onCellClick(item) }
@@ -240,11 +267,47 @@ class LauncherCellViewBinder(
     }
 
     /**
+     * S1176: a person is drawn as their initials over a colour, because a shared glyph would make every
+     * contact cell look identical and the name under it is one line of small text.
+     *
+     * The colour is picked from the theme's own container roles rather than a hand-written palette, so
+     * it stays legible in light and dark alike; the seed decides which role, so the same person keeps
+     * the same colour across restarts, devices and a later rename.
+     *
+     * Colour is never the sole difference between two contacts - the name is always under the disc, and
+     * the initials themselves are on it (strategic §3.2, accessibility).
+     */
+    private fun bindMonogram(binding: ItemLauncherCellShortcutBinding, seed: String?) {
+        binding.cellMonogram.isVisible = seed != null
+        // The icon and the disc share the same 44dp box: showing both would stack a glyph on initials.
+        binding.cellIcon.isVisible = seed == null
+        if (seed == null) return
+        val view = binding.cellMonogram
+        // Rem-mapped rather than absolute: hashCode() can be Int.MIN_VALUE, whose absolute value is
+        // still negative, and that would index off the front of the list.
+        val role = MONOGRAM_ROLES[((seed.hashCode() % MONOGRAM_ROLES.size) + MONOGRAM_ROLES.size) % MONOGRAM_ROLES.size]
+        view.backgroundTintList = ColorStateList.valueOf(MaterialColors.getColor(view, role.first))
+        view.setTextColor(MaterialColors.getColor(view, role.second))
+        view.text = initialsOf(binding.cellLabel.text)
+    }
+
+    /**
+     * First letters of the first two words. A number-only contact has digits for a label and gets its
+     * leading digits, which is still a stable, distinguishing mark - better than a shared placeholder.
+     */
+    private fun initialsOf(label: CharSequence): String = label.toString().trim()
+        .split(WHITESPACE)
+        .filter { it.isNotEmpty() }
+        .take(MONOGRAM_LETTERS)
+        .joinToString("") { it.first().uppercaseChar().toString() }
+
+    /**
      * The badge is the only thing telling two cells for the same resource apart, so it has to be
      * spoken - a purely visual badge would make them identical to a screen reader.
      */
     private fun describe(binding: ItemLauncherCellShortcutBinding, item: LauncherCellUi): CharSequence {
-        val label = binding.cellLabel.text
+        // A contact cell says what tapping it does, not just whose name is on it (strategic §11.5).
+        val label = item.visual?.spokenLabel ?: binding.cellLabel.text
         val modeRes = item.modeBadge?.let { modeLabelRes(it) } ?: return label
         val context = binding.root.context
         return context.getString(R.string.launcher_home_cell_with_mode, label, context.getString(modeRes))
@@ -283,5 +346,26 @@ class LauncherCellViewBinder(
 
         /** Packs (row, col) into one Long key; a desktop never approaches 2^20 columns. */
         private const val KEY_SHIFT = 20
+
+        /** S1176: how many leading words of a name become initials. */
+        private const val MONOGRAM_LETTERS = 2
+
+        private val WHITESPACE = Regex("\\s+")
+
+        /**
+         * Container / on-container pairs from the theme itself, so a monogram is readable in light and
+         * dark without anyone maintaining a palette. Four is enough to tell neighbouring cells apart;
+         * more would start pairing colours the theme never intended to sit side by side.
+         */
+        private val MONOGRAM_ROLES = listOf(
+            com.google.android.material.R.attr.colorPrimaryContainer to
+                com.google.android.material.R.attr.colorOnPrimaryContainer,
+            com.google.android.material.R.attr.colorSecondaryContainer to
+                com.google.android.material.R.attr.colorOnSecondaryContainer,
+            com.google.android.material.R.attr.colorTertiaryContainer to
+                com.google.android.material.R.attr.colorOnTertiaryContainer,
+            com.google.android.material.R.attr.colorSurfaceVariant to
+                com.google.android.material.R.attr.colorOnSurfaceVariant,
+        )
     }
 }

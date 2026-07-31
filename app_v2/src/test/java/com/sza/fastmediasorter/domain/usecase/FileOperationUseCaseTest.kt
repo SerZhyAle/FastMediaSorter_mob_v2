@@ -41,7 +41,7 @@ class FileOperationUseCaseTest {
         coEvery { reachabilityChecker.isReachable(any(), any(), any()) } returns true
         useCase = FileOperationUseCase(
             context, smbHandler, sftpHandler, ftpHandler, cloudHandler, localStrategy,
-            mockk(relaxed = true), reachabilityChecker,
+            mockk(relaxed = true), reachabilityChecker, mockk(relaxed = true),
         )
     }
 

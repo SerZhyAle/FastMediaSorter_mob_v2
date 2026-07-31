@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.launcher.picker
 
 import android.app.Dialog
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +19,7 @@ import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerController
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
+import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -92,16 +92,7 @@ class LauncherScheduledOpPickerDialogFragment : DialogFragment() {
 
     override fun onStart() {
         super.onStart()
-        val metrics = resources.displayMetrics
-        val width = minOf(
-            (metrics.widthPixels * DIALOG_WIDTH_FRACTION).toInt(),
-            (metrics.density * DIALOG_MAX_WIDTH_DP).toInt(),
-        )
-        dialog?.window?.apply {
-            setBackgroundDrawableResource(android.R.color.transparent)
-            setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-            setGravity(Gravity.CENTER)
-        }
+        SearchableOptionPickerWindow.apply(dialog, binding)
         dialog?.let { DialogAccessibilityHelper.applyInitialFocus(it) }
         DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
@@ -118,9 +109,6 @@ class LauncherScheduledOpPickerDialogFragment : DialogFragment() {
         const val TAG = "LauncherScheduledOpPicker"
         const val RESULT_KEY = "launcher_scheduled_op_picker_result"
         const val RESULT_OPERATION_ID = "result_operation_id"
-
-        private const val DIALOG_WIDTH_FRACTION = 0.92f
-        private const val DIALOG_MAX_WIDTH_DP = 560f
 
         fun newInstance(): LauncherScheduledOpPickerDialogFragment = LauncherScheduledOpPickerDialogFragment()
     }

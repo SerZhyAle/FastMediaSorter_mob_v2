@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.data.cloud
 
 import android.content.Context
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.network.HttpTimeouts
+import com.sza.fastmediasorter.core.network.applyTimeouts
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveHttpClient
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
@@ -407,6 +409,7 @@ class GoogleDriveRestClient @Inject constructor(
                 // Download file content
                 val url = URL("$DRIVE_API_BASE/files/$actualFileId?alt=media")
                 val connection = url.openConnection() as HttpURLConnection
+                connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Authorization", "Bearer $token")
 
@@ -828,6 +831,7 @@ class GoogleDriveRestClient @Inject constructor(
                 // Download thumbnail
                 val url = URL(thumbnailLink)
                 val connection = url.openConnection() as HttpURLConnection
+                connection.applyTimeouts()
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Authorization", "Bearer $token")
 

@@ -13,12 +13,15 @@ import com.microsoft.identity.client.SilentAuthenticationCallback
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException
 import com.microsoft.identity.client.exception.MsalException
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.network.HttpTimeouts
+import com.sza.fastmediasorter.core.network.applyTimeouts
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationEntity
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import com.sza.fastmediasorter.core.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -39,7 +42,6 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 /** CloudStorageClient for OneDrive via Microsoft Graph REST API v1.0 (MSAL 6.0.1). */
-import kotlinx.coroutines.DelicateCoroutinesApi
 
 @Singleton
 class OneDriveRestClient @Inject constructor(
@@ -284,6 +286,7 @@ class OneDriveRestClient @Inject constructor(
                 
                 if (downloadUrl.isEmpty()) return@withContext CloudResult.Error(oneDriveDownloadFailedMessage())
                 val connection = URL(downloadUrl).openConnection() as HttpURLConnection
+                connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
                 connection.requestMethod = "GET"
                 
                 try {
@@ -334,6 +337,7 @@ class OneDriveRestClient @Inject constructor(
                 
                 val url = URL(endpoint)
                 val connection = url.openConnection() as HttpURLConnection
+                connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
                 connection.requestMethod = "PUT"
                 connection.setRequestProperty("Authorization", "Bearer $token")
                 connection.setRequestProperty("Content-Type", mimeType)
@@ -620,9 +624,10 @@ class OneDriveRestClient @Inject constructor(
                 
                 val url = URL("$GRAPH_API_BASE/me/drive/items/$fileId/thumbnails/0/$thumbnailSize/content")
                 val connection = url.openConnection() as HttpURLConnection
+                connection.applyTimeouts()
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Authorization", "Bearer $token")
-                
+
                 try {
                     val responseCode = connection.responseCode
                     if (responseCode in 200..299) {
@@ -653,6 +658,7 @@ class OneDriveRestClient @Inject constructor(
             Timber.d("OneDrive.getFileInputStream: fileId='$fileId', pos=$position, len=$length")
             val url = URL("${buildItemUrlFromReference(fileId)}/content")
             val connection = url.openConnection() as HttpURLConnection
+            connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
             connection.setRequestProperty("Authorization", "Bearer $token")
             // Range header for streaming seek support
             if (position > 0 || length != -1L) {

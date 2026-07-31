@@ -15,40 +15,41 @@ import android.widget.CompoundButton
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.Priority
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.Priority
-import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.util.AudioMetadataLoader
-import com.sza.fastmediasorter.core.util.formatMediaDuration
 import com.sza.fastmediasorter.core.util.HeifSupportUtils
+import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.core.util.PathUtils
-import timber.log.Timber
+import com.sza.fastmediasorter.core.util.formatMediaDuration
+import com.sza.fastmediasorter.data.cloud.CloudProvider
+import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
+import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailData
+import com.sza.fastmediasorter.data.network.glide.NetworkFileData
+import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.databinding.ItemMediaFileBinding
 import com.sza.fastmediasorter.databinding.ItemMediaFileGridBinding
 import com.sza.fastmediasorter.databinding.ItemMediaFileGridNoThumbBinding
-import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
-import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailData
-import com.sza.fastmediasorter.data.cloud.CloudProvider
-import com.sza.fastmediasorter.data.network.glide.NetworkFileData
-import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
-import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.ui.browse.helpers.BrowseItemOperation
+import com.sza.fastmediasorter.ui.browse.helpers.BrowseItemOperationPolicy
 import com.sza.fastmediasorter.ui.browse.managers.BrowseApkTileBadgeBinder
 import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
 import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
+import timber.log.Timber
 import java.io.File
 import java.util.Date
 
@@ -540,7 +541,8 @@ class MediaFileAdapter(
         }
         private val selectionCheckedChangeListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
             val file = getItemByPosition() ?: return@OnCheckedChangeListener
-            if (!file.isDirectory) {
+            if (BrowseItemOperationPolicy.isSelectable(file)) {
+                Timber.d("S1325: row selection dir=%s checked=%s", file.isDirectory, isChecked)
                 onSelectionChanged(file, isChecked)
             }
         }
@@ -561,14 +563,14 @@ class MediaFileAdapter(
             binding.root.bindRightClickContextMenu(getFile)
             binding.root.setOnLongClickListener {
                 val file = getFile() ?: return@setOnLongClickListener false
-                if (!file.isDirectory) onFileLongClick(file)
+                if (BrowseItemOperationPolicy.isSelectable(file)) onFileLongClick(file)
                 true
             }
             // The clickable thumbnail otherwise swallows the long press (firing its open-player
             // click); give it the same range-select long-click as the row root.
             binding.ivThumbnail.setOnLongClickListener {
                 val file = getFile() ?: return@setOnLongClickListener false
-                if (!file.isDirectory) onFileLongClick(file)
+                if (BrowseItemOperationPolicy.isSelectable(file)) onFileLongClick(file)
                 true
             }
             binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
@@ -801,7 +803,9 @@ class MediaFileAdapter(
 
                 // Favorite button (hide for folders; hidden in no-thumbnail mode where it lives in
                 // the overflow menu only - S0419).
-                btnFavorite.isVisible = showFavoriteButton && !isFolder && !this@MediaFileAdapter.disableThumbnails
+                btnFavorite.isVisible = showFavoriteButton &&
+                    BrowseItemOperationPolicy.supports(BrowseItemOperation.FAVORITE, file) &&
+                    !this@MediaFileAdapter.disableThumbnails
                 btnFavorite.setImageResource(
                     if (file.isFavorite) R.drawable.ic_star_filled
                     else R.drawable.ic_star_outline
@@ -809,8 +813,11 @@ class MediaFileAdapter(
 
                 // Setup operation buttons with visibility checks
                 // HIDE buttons if: (It's Grid Mode AND HideGridActions is ON) OR it's a folder
-                val shouldHideActions = (isGridMode && hideGridActionButtons) || isFolder
-                val useOverflow = fileOpsInOverflowMenu && !isFolder
+                // S1325: a folder row keeps the transfer actions; only the single-file ones drop out,
+                // and which is which is the policy's answer, not an inline isDirectory test.
+                val supportsRowOps = BrowseItemOperationPolicy.supports(BrowseItemOperation.COPY, file)
+                val shouldHideActions = (isGridMode && hideGridActionButtons) || !supportsRowOps
+                val useOverflow = fileOpsInOverflowMenu
                 // Overflow button
                 binding.btnOverflowMenu.isVisible = useOverflow
                 // Direct op buttons - hide when overflow mode OR standard shouldHideActions rule applies
@@ -820,7 +827,9 @@ class MediaFileAdapter(
                 btnDeleteItem.isVisible = isWritable && !shouldHideActions && !useOverflow
 
                 // Inline play button: visible for any audio file, suppressed by hideGridActionButtons in grid mode
-                val showPlayButton = file.type == MediaType.AUDIO && !isFolder && !(isGridMode && hideGridActionButtons)
+                val showPlayButton = file.type == MediaType.AUDIO &&
+                    BrowseItemOperationPolicy.supports(BrowseItemOperation.OPEN_IN_PLAYER, file) &&
+                    !(isGridMode && hideGridActionButtons)
                 if (showPlayButton) {
                     updatePlaybackState(file)
                 } else {
@@ -830,7 +839,8 @@ class MediaFileAdapter(
                 }
 
                 // Drag handle: visible only in MANUAL sort mode (set via showDragHandles)
-                ivDragHandle.isVisible = dragController.showHandles && !isFolder
+                ivDragHandle.isVisible = dragController.showHandles &&
+                    BrowseItemOperationPolicy.supports(BrowseItemOperation.REORDER, file)
 
                 // Flavor-specific tile chrome must bind after the holder's own visibility state is stable.
                 apkTileBadgeBinder.bind(root, file)
@@ -849,10 +859,14 @@ class MediaFileAdapter(
         fun applySelectionVisual(file: MediaFile, selectedPaths: Set<String>) {
             val isSelected = file.path in selectedPaths
             val isFolder = file.isDirectory
-            binding.cbSelect.isVisible = !isFolder
-            if (!isFolder) {
+            binding.cbSelect.isVisible = BrowseItemOperationPolicy.isSelectable(file)
+            if (binding.cbSelect.isVisible) {
                 binding.cbSelect.setOnCheckedChangeListener(null)
                 binding.cbSelect.isChecked = isSelected
+                binding.cbSelect.contentDescription = binding.root.context.getString(
+                    if (isFolder) R.string.browse_row_folder_checkbox else R.string.browse_row_file_checkbox,
+                    file.name,
+                )
                 binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
             }
             val context = binding.root.context
@@ -907,7 +921,7 @@ class MediaFileAdapter(
         private var btnDeleteItem: android.widget.ImageButton? = null
         private val selectionCheckedChangeListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
             val file = getItemByPosition() ?: return@OnCheckedChangeListener
-            if (!file.isDirectory) {
+            if (BrowseItemOperationPolicy.isSelectable(file)) {
                 onSelectionChanged(file, isChecked)
             }
         }
@@ -957,7 +971,9 @@ class MediaFileAdapter(
             binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
             binding.cbSelect.setOnLongClickListener {
                 val file = getFile() ?: return@setOnLongClickListener false
-                if (!file.isDirectory && !binding.cbSelect.isChecked) onSelectionRangeRequested(file)
+                if (BrowseItemOperationPolicy.isSelectable(file) && !binding.cbSelect.isChecked) {
+                    onSelectionRangeRequested(file)
+                }
                 true
             }
             binding.btnFavorite.bindFileClick(getFile, onFavoriteClick)
@@ -1055,14 +1071,15 @@ class MediaFileAdapter(
                 }
 
                 // Favorite button (folders are navigation items, not favorite targets)
-                btnFavorite.isVisible = showFavoriteButton && !isFolder
+                btnFavorite.isVisible = showFavoriteButton &&
+                    BrowseItemOperationPolicy.supports(BrowseItemOperation.FAVORITE, file)
                 btnFavorite.setImageResource(
                     if (file.isFavorite) R.drawable.ic_star_filled
                     else R.drawable.ic_star_outline
                 )
 
                 // Setup operation buttons with visibility
-                val useOverflow = fileOpsInOverflowMenu && !isFolder
+                val useOverflow = fileOpsInOverflowMenu
                 binding.btnOverflowMenu.isVisible = useOverflow
                 if (!useOverflow) {
                     val shouldShowAnyOperation = true // Copy is always available (select folder option)
@@ -1088,10 +1105,14 @@ class MediaFileAdapter(
         fun applySelectionVisual(file: MediaFile, selectedPaths: Set<String>) {
             val isSelected = file.path in selectedPaths
             val isFolder = file.isDirectory
-            binding.cbSelect.isVisible = !isFolder
-            if (!isFolder) {
+            binding.cbSelect.isVisible = BrowseItemOperationPolicy.isSelectable(file)
+            if (binding.cbSelect.isVisible) {
                 binding.cbSelect.setOnCheckedChangeListener(null)
                 binding.cbSelect.isChecked = isSelected
+                binding.cbSelect.contentDescription = binding.root.context.getString(
+                    if (isFolder) R.string.browse_row_folder_checkbox else R.string.browse_row_file_checkbox,
+                    file.name,
+                )
                 binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
             }
             binding.cvCard.setCardBackgroundColor(
@@ -1125,7 +1146,7 @@ class MediaFileAdapter(
         private var btnDeleteItem: android.widget.ImageButton? = null
         private val selectionCheckedChangeListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
             val file = getItemByPosition() ?: return@OnCheckedChangeListener
-            if (!file.isDirectory) {
+            if (BrowseItemOperationPolicy.isSelectable(file)) {
                 onSelectionChanged(file, isChecked)
             }
         }
@@ -1177,7 +1198,9 @@ class MediaFileAdapter(
             binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
             binding.cbSelect.setOnLongClickListener {
                 val file = getFile() ?: return@setOnLongClickListener false
-                if (!file.isDirectory && !binding.cbSelect.isChecked) onSelectionRangeRequested(file)
+                if (BrowseItemOperationPolicy.isSelectable(file) && !binding.cbSelect.isChecked) {
+                    onSelectionRangeRequested(file)
+                }
                 true
             }
             binding.btnOverflowMenu.setOnClickListener {
@@ -1244,7 +1267,7 @@ class MediaFileAdapter(
                 }
 
                 // Setup operation buttons with visibility
-                val useOverflow = fileOpsInOverflowMenu && !isFolder
+                val useOverflow = fileOpsInOverflowMenu
                 binding.btnOverflowMenu.isVisible = useOverflow
                 if (!useOverflow) {
                     ensureOperationsInflated()
@@ -1269,10 +1292,14 @@ class MediaFileAdapter(
         fun applySelectionVisual(file: MediaFile, selectedPaths: Set<String>) {
             val isSelected = file.path in selectedPaths
             val isFolder = file.isDirectory
-            binding.cbSelect.isVisible = !isFolder
-            if (!isFolder) {
+            binding.cbSelect.isVisible = BrowseItemOperationPolicy.isSelectable(file)
+            if (binding.cbSelect.isVisible) {
                 binding.cbSelect.setOnCheckedChangeListener(null)
                 binding.cbSelect.isChecked = isSelected
+                binding.cbSelect.contentDescription = binding.root.context.getString(
+                    if (isFolder) R.string.browse_row_folder_checkbox else R.string.browse_row_file_checkbox,
+                    file.name,
+                )
                 binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
             }
             binding.cvCard.setCardBackgroundColor(

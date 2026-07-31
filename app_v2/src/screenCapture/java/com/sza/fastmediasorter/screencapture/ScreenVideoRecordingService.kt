@@ -25,6 +25,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
@@ -235,7 +236,7 @@ class ScreenVideoRecordingService : Service() {
         }
         isPaused = true
         stateController.markPaused()
-        NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildNotification(paused = true))
+        refreshNotification(paused = true)
     }
 
     private fun resumeRecording() {
@@ -248,7 +249,21 @@ class ScreenVideoRecordingService : Service() {
         }
         isPaused = false
         stateController.markResumed()
-        NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildNotification(paused = false))
+        refreshNotification(paused = false)
+    }
+
+    /**
+     * S1195: repaints the ongoing-recording notification after a pause/resume. POST_NOTIFICATIONS is
+     * requested by the launcher before recording starts, but the user can revoke it mid-session; the
+     * recording itself is unaffected, so a stale pause badge is the correct degradation rather than a
+     * SecurityException killing a foreground service.
+     */
+    private fun refreshNotification(paused: Boolean) {
+        try {
+            NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildNotification(paused))
+        } catch (e: SecurityException) {
+            Timber.i(e, "ScreenVideoRecordingService: notification refresh skipped - POST_NOTIFICATIONS revoked")
+        }
     }
 
     // Spans settings read + Room resource lookup + device write - each throws a different exception
@@ -494,7 +509,10 @@ class ScreenVideoRecordingService : Service() {
         const val ACTION_RESUME = "com.sza.fastmediasorter.screencapture.action.RESUME_SCREEN_RECORDING"
 
         private const val CHANNEL_ID = "screen_recording_service"
-        private const val NOTIFICATION_ID = 0x4054
+
+        // S1292: was 0x4054, the same id OverlayHostService re-posts on every process foreground -
+        // which replaced this recording notification (losing Pause/Stop) while recording continued.
+        private const val NOTIFICATION_ID = NotificationIds.SCREEN_VIDEO_RECORDING
         private const val VIRTUAL_DISPLAY_NAME = "screen_video_recording_service"
         private const val VIDEO_FRAME_RATE = 30
         private const val BITRATE_MOTION_FACTOR = 0.15

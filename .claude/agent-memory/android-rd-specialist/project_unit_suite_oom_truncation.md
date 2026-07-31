@@ -1,16 +1,23 @@
 ---
 name: unit-suite-oom-truncation
-description: .\a.ps1 fu dies of OutOfMemoryError mid-run and still prints a complete-looking "N tests completed" line - the ui/domain/util packages never execute
+description: Fixed 2026-07-28 (S1244) - the unit suite used to die of OOM at 32% and print a complete-looking summary; a.ps1 fu now self-checks coverage, but the worker still dies intermittently (S1253)
 metadata:
   type: project
 ---
 
-As of 2026-07-28, `.\a.ps1 fu` (`testStandardDebugUnitTest`) cannot complete. Its worker JVM exhausts the heap around `com.sza.fastmediasorter.data.remote.ftp.*` and loses the daemon connection, so everything alphabetically after that - the whole `domain.*`, `ui.*`, `util.*` space - never runs. Ticketed as **S1244**.
+**Fixed on 2026-07-28 by S1244.** Kept because the failure mode is worth recognising again, and because any run from before that date is untrustworthy.
 
-**Why this is dangerous rather than merely annoying:** the run still prints `946 tests completed, 1 failed, 7 skipped` and fails the build on whatever unrelated assertion it happened to reach. That summary reads exactly like a complete run with one known-red test - the signal everyone is trained to shrug at. The OOM is visible only as a stack trace mid-log.
+`testStandardDebugUnitTest` used to run on Gradle's default **512 MB** worker heap. The test worker is a separate process and inherits neither `org.gradle.jvmargs` (-Xmx6g, the Gradle daemon) nor `kotlin.daemon.jvm.options` (-Xmx4g, the Kotlin daemon) - both of which are set generously in `gradle.properties`, which is why the gap looked like a well-tuned config.
+
+The worker died around `com.sza.fastmediasorter.data.remote.ftp.*`, so `domain.*`, `ui.*` and `util.*` never ran - **and Gradle still printed `946 tests completed, 1 failed`**, indistinguishable from a finished run. After `maxHeapSize = "2g"`: 2960 tests, 409 class reports, zero OOM, and *faster* (4m21s vs 8m59s - the dying worker had been thrashing).
+
+**Why it still matters:** the truncation hid 7 of 8 failures, including a regression introduced the same day by S1229 in `ui.player` (parked as S1249). Every step of that ticket looked done - new tests written, suite run, build red for an unrelated reason.
+
+**Still not fixed: the worker dies intermittently anyway.** Re-audited 2026-07-28 - two back-to-back `fu` runs gave 381 reports (`exit value 10`, reset socket, **zero** OOM) and then 409 (`ratio 1`, PASS). Different mechanism from the heap starvation, parked as **S1253**. So a single green full run is not proof the suite is reliable; the same eight failures printed in both, which is why the truncated one looked normal.
 
 **How to apply:**
-- Never treat `fu` exit 0 (or its summary line) as evidence about a test in the second half of the alphabet. Confirm coverage: `ls app_v2/build/test-results/testStandardDebugUnitTest/ | grep "<your.package>"` - absent means it never ran, not that it passed.
-- To verify specific classes, run them filtered: `pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "*YourTest"`, then read `tests=/failures=/errors=` off the JUnit XML.
-- All reports in that directory carry the current run's timestamp, so a mixed-age directory is not the explanation - check the *set* of classes, not their mtimes. Compare with [[stale-test-results-xml]], which is the different trap.
-- Known unrelated reds meanwhile: `CameraCaptureSaverTest` (S1246), `StreamLogoAtlasSlicerTest` (S1245, asserts a retired grid). See [[build-pre-existing-test-failures]] for the standing policy on those.
+- `.\a.ps1 fu` now self-checks - `check-standard-fast.ps1` runs `assert-test-suite-complete.ps1` on every unfiltered unit run, so you no longer invoke it by hand. It sits *before* the exit-code bail-out on purpose: a truncated run always exits non-zero, so a check placed after it would never see the case it exists for.
+- Read the `assert-test-suite-complete: .. (ratio N)` line before believing any `fu` result. `TRUNCATED` means the run is not a result at all, whatever the test counts say.
+- Never read a Gradle "<N> tests completed" line as proof the suite ran. It is printed whatever happened.
+- 2 GB is a floor with headroom, not a measurement. A growing suite can find it again - the gate above is what will say so.
+- To verify specific classes: `check-standard-fast.ps1 -Mode Unit -Tests "*YourTest"`, then read `tests=/failures=/errors=` off the XML. See [[stale-test-results-xml]] and [[build-pre-existing-test-failures]].

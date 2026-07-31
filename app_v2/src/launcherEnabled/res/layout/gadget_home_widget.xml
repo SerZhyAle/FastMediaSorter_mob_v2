@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1170: shared face for every mechanical home-screen widget placed on the launcher desktop - icon
+     over a label, one tap target. Nine catalog widgets render through this single layout, so their
+     desktop cells cannot drift apart from each other the way nine near-copies would.
+
+     Outlined icon and caption, transparent background: a desktop cell sits directly on the wallpaper,
+     so contrast has to come from each element's own contour rather than from a card behind it - the
+     same choice item_launcher_cell_shortcut.xml makes, and the reason the two read as one surface.
+
+     Orientation-neutral, hence no layout-land counterpart: the launcher stores spans per orientation
+     and LauncherDesktopLayout measures the cell exactly, so the layout itself never sees an orientation. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingStart="4dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="4dp"
+        android:paddingBottom="10dp">
+
+        <!-- The padding is what gives the contour room: OutlinedImageView draws it inside its own
+             bounds, so without the inset the outermost pass is clipped at the icon's edge. -->
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedImageView
+            android:id="@+id/gadgetHomeWidgetIcon"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:importantForAccessibility="no"
+            android:padding="@dimen/launcher_cell_outline_width"
+            app:oiv_outlineWidth="@dimen/launcher_cell_outline_width"
+            tools:src="@drawable/ic_widget_camera_photos" />
+
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+            android:id="@+id/gadgetHomeWidgetLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="2"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="12sp"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+            tools:text="Camera photos" />
+
+    </LinearLayout>
+
+</merge>

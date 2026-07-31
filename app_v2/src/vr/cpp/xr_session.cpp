@@ -1198,6 +1198,13 @@ void main() {
             out[15] = 1.0f;
         }
 
+        // Event types accepted by DiagnosticXrActivity.onNativeInputEvent - keep both sides in step.
+        constexpr int kInputEventNext = 1;
+        constexpr int kInputEventPrev = 2;
+        constexpr int kInputEventHudSummon = 3;
+        constexpr int kInputEventSeekForward = 4;
+        constexpr int kInputEventSeekBack = 5;
+
         void triggerJniInputCallback(int eventType)
         {
             if (!g.vm || !g.activity)
@@ -1476,18 +1483,22 @@ void main() {
                     if (raceGuardOk)
                     {
                         g_lastNavigateActionTime[hand] = predictedTime;
-                        if (newState > 0)
+                        // S1240 decision 1: the bare axis now seeks; grip is the modifier that
+                        // turns it back into media navigation. Latching gripIsModifier suppresses
+                        // this hand's HUD drag for the rest of the hold - reaching for the next
+                        // file must not also drag the panel across the room (spec 7.2).
+                        const bool gripAsModifier = g_handInputStates[hand].gripDown;
+                        if (gripAsModifier)
                         {
-                            LOGD("hand=%d thumbstick deflect right -> navigating next (count=%d, x=%.2f)",
-                                 hand, ++g_navigateCounter[hand], x);
-                            triggerJniInputCallback(1); // 1 = Next
+                            g_handInputStates[hand].gripIsModifier = true;
                         }
-                        else
-                        {
-                            LOGD("hand=%d thumbstick deflect left -> navigating prev (count=%d, x=%.2f)",
-                                 hand, ++g_navigateCounter[hand], x);
-                            triggerJniInputCallback(2); // 2 = Previous
-                        }
+                        const int event = gripAsModifier
+                            ? (newState > 0 ? kInputEventNext : kInputEventPrev)
+                            : (newState > 0 ? kInputEventSeekForward : kInputEventSeekBack);
+                        LOGD("hand=%d stick deflect %s grip=%d -> event %d (count=%d, x=%.2f)",
+                             hand, newState > 0 ? "right" : "left", gripAsModifier ? 1 : 0,
+                             event, ++g_navigateCounter[hand], x);
+                        triggerJniInputCallback(event);
                     }
                 }
                 g_prevStickState[hand] = newState;
@@ -1708,6 +1719,13 @@ void main() {
         xr_hud_set_quad_size(widthMeters, heightMeters, verticalOffsetMeters);
     }
 
+    void xr_session_set_hud_visible(bool visible)
+    {
+        // S1232: thin forwarder keeps the JNI surface uniform (everything goes through
+        // xr_session_*); the visibility state lives with the quad in xr_hud_world.
+        xr_hud_set_visible(visible);
+    }
+
     void xr_session_queue_hud(const uint8_t *rgba, int width, int height)
     {
         if (!rgba || width <= 0 || height <= 0)
@@ -1856,26 +1874,45 @@ void main() {
                         xr_subtitle_update(views[0].pose);
                         xr_hud_process_rays(g.localSpace, fs.predictedDisplayTime);
 
-                        // Step 03.1: Stream interaction data from C++ render loop up to JVM
-                        bool anyHover = false;
-                        float targetUvX = 0.5f;
-                        float targetUvY = 0.5f;
-                        bool anyClick = false;
-                        for (int i = 0; i < 2; i++)
+                        if (!g_hudState.visible)
                         {
-                            if (g_hudState.hasIntersection[i])
+                            // S1232: while the strip is hidden the trigger is a summon, not a
+                            // ray click. triggerClicked is the rising edge (xr_input.cpp), so a
+                            // held trigger summons once. Nothing is dispatched to Kotlin as a
+                            // hover or click, which is what "the summoning pull is consumed"
+                            // means: calling the panel back cannot also press a widget on it.
+                            for (int i = 0; i < 2; i++)
                             {
-                                anyHover = true;
-                                targetUvX = g_hudState.smoothedUv[i].x;
-                                targetUvY = g_hudState.smoothedUv[i].y;
-                                if (g_handInputStates[i].triggerDown)
+                                if (g_handInputStates[i].triggerClicked)
                                 {
-                                    anyClick = true;
+                                    triggerJniInputCallback(kInputEventHudSummon);
+                                    break;
                                 }
-                                break;
                             }
                         }
-                        triggerJniRayInteraction(targetUvX, targetUvY, anyHover, anyClick);
+                        else
+                        {
+                            // Step 03.1: Stream interaction data from C++ render loop up to JVM
+                            bool anyHover = false;
+                            float targetUvX = 0.5f;
+                            float targetUvY = 0.5f;
+                            bool anyClick = false;
+                            for (int i = 0; i < 2; i++)
+                            {
+                                if (g_hudState.hasIntersection[i])
+                                {
+                                    anyHover = true;
+                                    targetUvX = g_hudState.smoothedUv[i].x;
+                                    targetUvY = g_hudState.smoothedUv[i].y;
+                                    if (g_handInputStates[i].triggerDown)
+                                    {
+                                        anyClick = true;
+                                    }
+                                    break;
+                                }
+                            }
+                            triggerJniRayInteraction(targetUvX, targetUvY, anyHover, anyClick);
+                        }
                     }
                     layerViews.resize(viewCount);
                     updateVideoTextureIfNeeded();

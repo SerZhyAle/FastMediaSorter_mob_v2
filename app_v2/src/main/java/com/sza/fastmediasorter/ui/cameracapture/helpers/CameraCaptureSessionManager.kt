@@ -71,9 +71,6 @@ class CameraCaptureSessionManager(
 
     private val lensEnumeration = CameraLensEnumerationManager()
 
-    /** Focal length of the main back lens, the 1x reference for equivalent-zoom labels (S0753). */
-    private var referenceFocal = 0f
-
     /** When true the session binds a video pipeline instead of image capture. Set before [bind]. */
     var videoMode: Boolean = false
 
@@ -98,6 +95,17 @@ class CameraCaptureSessionManager(
     /** S0753: macro (close-focus) intent for the active lens; applied live via Camera2 capture options. */
     var macroEnabled: Boolean = false
         private set
+
+    /** S1262: portrait intent; applied by rebinding to the BOKEH extension selector when available. */
+    var bokehEnabled: Boolean = false
+        private set
+
+    /** S1262: sport intent; applied live via [SportExposureOptionsFactory]'s Camera2 capture options. */
+    var sportEnabled: Boolean = false
+        private set
+
+    /** S1262: BOKEH availability on the bound lens, refreshed on every bind like its NIGHT/HDR siblings. */
+    private var bokehExtensionAvailable: Boolean = false
 
     /**
      * S1189: the lens active before macro switched to dedicated close-focus optics; null while macro
@@ -160,11 +168,11 @@ class CameraCaptureSessionManager(
                     val provider = providerFuture.get()
                     cameraProvider = provider
                     availableLenses = lensEnumeration.select(lensEnumeration.expand(provider))
-                    // Start on the first back camera (the device's main wide), front cameras come last.
-                    activeCameraIndex =
-                        availableLenses.indexOfFirst { it.lensFacing == CameraSelector.LENS_FACING_BACK }
-                            .coerceAtLeast(0)
-                    referenceFocal = probe.mainBackFocalLength(availableLenses)
+                    // S1261 (defect D1): start on the MAIN back lens, not the widest - the list is
+                    // sorted widest-first, so "first back" used to open on the ultra-wide entry whose
+                    // own floor is 1.0, and the sub-1x pill vanished from the zoom row.
+                    activeCameraIndex = lensEnumeration.initialLensIndex(availableLenses)
+                    Timber.d("S1261: initial lens %s", availableLenses.getOrNull(activeCameraIndex)?.id)
                     Timber.i(
                         "CameraCapture: %d lens(es) offered, %d of them physical sub-lenses",
                         availableLenses.size,
@@ -196,17 +204,66 @@ class CameraCaptureSessionManager(
         )
     }
 
-    /** Cycles to the next camera CameraX exposes and rebinds; no-op when only one camera exists. */
+    /**
+     * Cycles to the next camera CameraX exposes and rebinds; no-op when only one camera exists.
+     *
+     * S1261: [targetEquivalentFloor] switches instead to the lens that reaches that equivalent zoom
+     * (preferring a sub-1x logical camera, so the platform swaps optics itself) and lands the zoom
+     * on it in the same action - the cross-lens floor pill's contract. Ignored when null.
+     */
     @SuppressLint("MissingPermission")
-    fun switchCamera() {
+    fun switchCamera(targetEquivalentFloor: Float? = null) {
         val provider = cameraProvider
         val preview = previewView
         if (provider == null || preview == null || availableLenses.size < 2) return
-        activeCameraIndex = (activeCameraIndex + 1) % availableLenses.size
-        // A different physical lens has its own capabilities, so drop stale night/macro intents.
+        val target = targetEquivalentFloor?.let { lensReaching(availableLenses, it) }
+        if (targetEquivalentFloor != null && target == null) return
+        val targetIndex = target?.let { t -> availableLenses.indexOfFirst { it.id == t.id } }
+        val nativeRatio = targetEquivalentFloor?.let { floor ->
+            target?.takeIf { it.equivalentMultiplier > 0f }?.let { floor / it.equivalentMultiplier }
+        }
+        bindLens(provider, preview, targetIndex ?: ((activeCameraIndex + 1) % availableLenses.size))
+        // Already on the reaching lens: no rebind flicker, just land the zoom.
+        nativeRatio?.let(::setZoomRatio)
+    }
+
+    /**
+     * S1262: moves to a lens with the given [facing] in one action. [switchCamera] cycles, which
+     * lands on the wrong optics on a device with several back lenses - a profile names the lens it
+     * wants. BACK resolves to the MAIN back lens (S1261 defect D1), not the widest one the sorted
+     * list starts with. No-op when the device offers no lens of that facing.
+     */
+    @SuppressLint("MissingPermission")
+    fun switchToFacing(facing: Int) {
+        val provider = cameraProvider
+        val preview = previewView
+        if (provider == null || preview == null) return
+        val targetIndex = if (facing == CameraSelector.LENS_FACING_BACK) {
+            lensEnumeration.initialLensIndex(availableLenses)
+        } else {
+            availableLenses.indexOfFirst { it.lensFacing == facing }
+        }
+        if (availableLenses.getOrNull(targetIndex)?.lensFacing != facing) return
+        bindLens(provider, preview, targetIndex)
+    }
+
+    /**
+     * Binds [targetIndex] as the active lens, or does nothing when it is already bound.
+     *
+     * A different physical lens has its own capabilities, so every per-lens intent is dropped first -
+     * night/HDR/macro and, since S1262, the profile intents too: BOKEH availability and the usable
+     * shutter range are both per-lens, so carrying them across would promise a profile the new lens
+     * may not have.
+     */
+    @SuppressLint("MissingPermission")
+    private fun bindLens(provider: ProcessCameraProvider, preview: PreviewView, targetIndex: Int) {
+        if (targetIndex == activeCameraIndex) return
+        activeCameraIndex = targetIndex
         nightMode = false
         hdrEnabled = false
         macroEnabled = false
+        bokehEnabled = false
+        sportEnabled = false
         whiteBalanceMode = null
         manualIso = null
         manualShutterNs = null
@@ -226,8 +283,13 @@ class CameraCaptureSessionManager(
         if (this.videoMode == videoMode) return
         this.videoMode = videoMode
         // S0753: night mode is photo-only, so leaving photo mode drops the night intent.
-        if (videoMode) nightMode = false
-        if (videoMode) hdrEnabled = false
+        // S1262: the profile intents are photo-only for the same reason.
+        if (videoMode) {
+            nightMode = false
+            hdrEnabled = false
+            bokehEnabled = false
+            sportEnabled = false
+        }
         val provider = cameraProvider
         val preview = previewView
         if (provider == null || preview == null) return
@@ -267,6 +329,30 @@ class CameraCaptureSessionManager(
         if (provider == null || preview == null) return
         runCatching { bindToLifecycle(provider, preview) }
             .onFailure { Timber.e(it, "CameraCaptureSessionManager: HDR switch failed") }
+    }
+
+    /**
+     * S1262: sets both photo-profile intents in one call. BOKEH binds a CameraX extension, so a
+     * change to it needs a rebind; sport is pure Camera2 capture options and only needs those
+     * re-applied. An unchanged pair is a no-op, which is what keeps the profile manager's clear
+     * sweep from rebinding the session for an intent it never turned on.
+     */
+    @SuppressLint("MissingPermission")
+    fun applyProfileIntents(bokeh: Boolean, sport: Boolean) {
+        val wantBokeh = bokeh && !videoMode
+        val wantSport = sport && !videoMode
+        if (bokehEnabled == wantBokeh && sportEnabled == wantSport) return
+        val bokehChanged = bokehEnabled != wantBokeh
+        bokehEnabled = wantBokeh
+        sportEnabled = wantSport
+        val provider = cameraProvider
+        val preview = previewView
+        if (!bokehChanged || provider == null || preview == null) {
+            applyCamera2Options()
+            return
+        }
+        runCatching { bindToLifecycle(provider, preview) }
+            .onFailure { Timber.e(it, "CameraCaptureSessionManager: bokeh switch failed") }
     }
 
     private fun applyExposureCompensationForNight() {
@@ -366,17 +452,20 @@ class CameraCaptureSessionManager(
             .onFailure { Timber.e(it, "CameraCaptureSessionManager: output format switch failed") }
     }
 
-    fun currentExposureCompensationIndex(): Int = exposureCompensationIndex
+    // Read-only mirrors of the private setting state. Properties rather than getters on purpose:
+    // this class sits on detekt's TooManyFunctions ceiling, and property accessors do not count
+    // toward it, which is what leaves room for the session primitives features actually need.
+    val currentExposureCompensationIndex: Int get() = exposureCompensationIndex
 
-    fun currentWhiteBalanceMode(): Int? = whiteBalanceMode
+    val currentWhiteBalanceMode: Int? get() = whiteBalanceMode
 
-    fun currentManualIso(): Int? = manualIso
+    val currentManualIso: Int? get() = manualIso
 
-    fun currentManualShutterNs(): Long? = manualShutterNs
+    val currentManualShutterNs: Long? get() = manualShutterNs
 
-    fun currentAspectRatio(): Int? = selectedAspectRatio
+    val currentAspectRatio: Int? get() = selectedAspectRatio
 
-    fun currentResolution(): Size? = selectedResolution
+    val currentResolution: Size? get() = selectedResolution
 
     fun setTargetRotation(rotation: Int) {
         targetRotation = rotation
@@ -669,15 +758,17 @@ class CameraCaptureSessionManager(
             extensionsManager?.isExtensionAvailable(baseSelector, ExtensionMode.NIGHT) == true
         hdrExtensionAvailable = !videoMode &&
             extensionsManager?.isExtensionAvailable(baseSelector, ExtensionMode.HDR) == true
-        val selector = when {
-            hdrEnabled && hdrExtensionAvailable ->
-                extensionsManager!!.getExtensionEnabledCameraSelector(baseSelector, ExtensionMode.HDR)
-            nightMode && nightExtensionAvailable ->
-                extensionsManager!!.getExtensionEnabledCameraSelector(baseSelector, ExtensionMode.NIGHT)
-            else -> {
-                baseSelector
-            }
-        }
+        // S1262: BOKEH is photo-only and per-device like NIGHT, and is what makes portrait offerable.
+        bokehExtensionAvailable = !videoMode &&
+            extensionsManager?.isExtensionAvailable(baseSelector, ExtensionMode.BOKEH) == true
+        // S1262: exactly one extension binds; the ranking lives in CameraExtensionSelector.
+        val wanted = CameraExtensionSelector.Intents(hdrEnabled, nightMode, bokehEnabled)
+        val offered = CameraExtensionSelector.Intents(
+            hdrExtensionAvailable,
+            nightExtensionAvailable,
+            bokehExtensionAvailable,
+        )
+        val selector = CameraExtensionSelector.resolve(extensionsManager, baseSelector, wanted, offered)
         provider.unbindAll()
         val boundCamera = runCatching {
             provider.bindToLifecycle(lifecycleOwner, selector, useCases.group)
@@ -703,16 +794,16 @@ class CameraCaptureSessionManager(
         resetDigitalZoom()
         val probed = probe.probe(
             boundCamera,
-            activeLens.lensFacing,
+            activeLens,
             availableLenses.map { it.lensFacing },
-            referenceFocal,
         )
         // Night mode is offered when either the OEM extension or exposure compensation can deliver it.
         val supportsNight = nightExtensionAvailable || probed.supportsExposureCompensation
         capabilities = probed.copy(
             supportsNightMode = supportsNight,
             supportsHdrExtension = hdrExtensionAvailable,
-            minEquivalentZoomRatio = probe.minEquivalentZoom(availableLenses, referenceFocal),
+            supportsBokehExtension = bokehExtensionAvailable,
+            minEquivalentZoomRatio = probe.minEquivalentZoom(availableLenses),
             macroLensAvailable = probe.macroLensFor(availableLenses, activeLens.lensFacing) != null,
             activeLensIsWidest = isWidestOfFacing(activeLens, availableLenses),
             activeLensIsMacro = probe.macroLensFor(availableLenses, activeLens.lensFacing)?.id == activeLens.id,
@@ -760,6 +851,24 @@ class CameraCaptureSessionManager(
                     .setCaptureRequestOption(CaptureRequest.LENS_FOCUS_DISTANCE, capabilities.macroFocusDistance)
                 hasOptions = true
             }
+            // S1262: sport freezes the exposure short and lets ISO rise to pay for it, with autofocus
+            // left running because the subject moves. Gated on `manualIso == null` so an explicit
+            // manual exposure - a deliberate choice - outranks a profile preset rather than fighting it.
+            val sportApplies = sportEnabled && manualIso == null &&
+                SportExposureOptionsFactory.isApplicable(capabilities)
+            val sportExposureNs = SportExposureOptionsFactory.resolvedExposureNs(capabilities)
+            val sportIso = SportExposureOptionsFactory.resolvedIso(capabilities)
+            if (sportApplies && sportExposureNs != null && sportIso != null) {
+                builder
+                    .setCaptureRequestOption(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_OFF)
+                    .setCaptureRequestOption(CaptureRequest.SENSOR_EXPOSURE_TIME, sportExposureNs)
+                    .setCaptureRequestOption(CaptureRequest.SENSOR_SENSITIVITY, sportIso)
+                    .setCaptureRequestOption(
+                        CaptureRequest.CONTROL_AF_MODE,
+                        CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE,
+                    )
+                hasOptions = true
+            }
             whiteBalanceMode?.let {
                 builder.setCaptureRequestOption(CaptureRequest.CONTROL_AWB_MODE, it)
                 hasOptions = true
@@ -787,6 +896,27 @@ class CameraCaptureSessionManager(
  */
 private fun prefersHighResolution(selected: Size?, highResolution: List<Size>): Boolean =
     selected != null && selected in highResolution
+
+/**
+ * S1261: the lens a cross-lens floor tap binds - a back lens whose reachable equivalent floor
+ * (`minZoomRatio * equivalentMultiplier`) covers [equivalent], preferring a logical camera whose
+ * own floor is below 1 (the platform then switches optics itself, exactly like the system camera)
+ * and a logical entry over a physical sub-lens. Lives outside the session class because it is a
+ * pure question about a list, and the class sits on detekt's 40-function ceiling.
+ */
+private fun lensReaching(lenses: List<CameraLensEntry>, equivalent: Float): CameraLensEntry? =
+    lenses
+        .filter {
+            it.lensFacing == CameraSelector.LENS_FACING_BACK &&
+                it.minZoomRatio * it.equivalentMultiplier <=
+                equivalent + CameraRuntimeCapabilities.ZOOM_EPSILON
+        }
+        .minWithOrNull(
+            compareBy(
+                { it.parentLogicalMinZoom >= CameraRuntimeCapabilities.DEFAULT_ZOOM },
+                { it.isPhysicalSubLens },
+            ),
+        )
 
 /**
  * S1189: true when [lens] is the widest of several lenses facing the same way. A device with a

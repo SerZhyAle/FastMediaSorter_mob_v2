@@ -221,6 +221,7 @@ _Available in: Standard, Legacy_
 | Select resource.. | Selects the destination resource where screen recordings are saved. |
 | Select resource.. | Selects the destination resource where video recordings are saved. |
 | Add widget to the Android home screen.. | Launches the widget picker so you can add an app widget to the home screen. |
+| Add a widget to the launcher desktop | Launches the same widget picker, but puts the chosen widget on the launcher's own desktop instead of the Android home screen. Shown only while launcher mode is on. |
 | Max recipients (1-30) | Sets the maximum number of recipients (1-30) when sharing files. |
 | Additional programs and scenarios | Settings for supplementary programs and scenarios: camera text translation, the calculator, and the mini-game. |
 | App behavior and operating rules | Settings that control how the app behaves and what operations are allowed. |

@@ -54,6 +54,14 @@ interface LauncherCellDao {
     suspend fun getById(id: Long): LauncherCellEntity?
 
     /**
+     * The first row index strictly below every cell in [orientation] - i.e. the top of the empty band
+     * under the desktop, and 0 when the desktop is empty. A free-slot scan uses it as its upper bound:
+     * that row overlaps nothing by construction, so the search is guaranteed to terminate there.
+     */
+    @Query("SELECT COALESCE(MAX(rowIndex + spanH), 0) FROM launcher_cells WHERE orientation = :orientation")
+    suspend fun firstRowBelowAll(orientation: String): Int
+
+    /**
      * The first cell whose footprint overlaps the rect at ([rowIndex], [colIndex]) sized
      * [spanW] x [spanH], ignoring [excludeId] (the cell being moved).
      *

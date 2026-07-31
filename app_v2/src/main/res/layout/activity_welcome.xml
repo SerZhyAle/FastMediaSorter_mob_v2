@@ -2,6 +2,10 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/welcome_page_1_background">
 
+    <!-- S1234: brand waves-and-particles backdrop, the same view the audio player and the launcher
+         desktop use. First child so it sits behind the pager; never focusable or announced. -->
+    <com.sza.fastmediasorter.ui.player.helpers.AudioWaveParticleView android:id="@+id/brandAnimation" android:layout_width="@dimen/match_constraint" android:layout_height="0dp" android:clickable="false" android:focusable="false" android:contentDescription="@null" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- ViewPager2 for Welcome Pages -->
     <androidx.viewpager2.widget.ViewPager2 android:id="@+id/viewPager" android:layout_width="@dimen/match_constraint" android:layout_height="0dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toTopOf="@id/layoutBottomNav" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
 

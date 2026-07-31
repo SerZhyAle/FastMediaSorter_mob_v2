@@ -44,10 +44,15 @@ object CacheStatusHelper {
                 Timber.i("Newest file: $newestFile")
                 Timber.i("===========================================")
             } else {
-                Timber.w("=== GLIDE DISK CACHE STATUS AT STARTUP ===")
-                Timber.w("Cache directory does NOT exist: ${glideCacheDir.absolutePath}")
-                Timber.w("This means no thumbnails were cached from previous sessions!")
-                Timber.w("===========================================")
+                // S1322: absence here is not evidence of a lost cache. Glide creates this directory
+                // during its lazy init, on the first image load - and this check runs from the
+                // deferred startup worker, which routinely wins that race. The old text claimed
+                // "no thumbnails were cached from previous sessions", which sent a log reader
+                // hunting a cache-persistence defect that did not exist.
+                Timber.i("=== GLIDE DISK CACHE STATUS AT STARTUP ===")
+                Timber.i("Cache directory not created yet: ${glideCacheDir.absolutePath}")
+                Timber.i("Glide creates it lazily on first image load - not a cache-loss signal.")
+                Timber.i("===========================================")
             }
         } catch (e: Exception) {
             Timber.e(e, "Failed to check Glide disk cache status")

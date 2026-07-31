@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.applaunchpanel.edit
 
 import android.app.Dialog
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +18,7 @@ import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerController
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
+import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.flow
@@ -94,13 +94,7 @@ class InternalRoutePickerDialogFragment : DialogFragment() {
 
     override fun onStart() {
         super.onStart()
-        val metrics = resources.displayMetrics
-        val width = minOf((metrics.widthPixels * 0.92f).toInt(), (metrics.density * 560f).toInt())
-        dialog?.window?.apply {
-            setBackgroundDrawableResource(android.R.color.transparent)
-            setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-            setGravity(Gravity.CENTER)
-        }
+        SearchableOptionPickerWindow.apply(dialog, binding)
         dialog?.let { DialogAccessibilityHelper.applyInitialFocus(it) }
         DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }

@@ -136,7 +136,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
     fun createTextViewerManager(): TextViewerManager {
         val saveFlow = com.sza.fastmediasorter.ui.player.helpers.TextEditorSaveFlow(
             context = activity,
-            saveTextNoteUseCase = activity.saveTextNoteUseCase,
+            saveTextNote = activity.viewModel::saveTextNote,
             scope = activity.lifecycleScope
         )
         return TextViewerManager(

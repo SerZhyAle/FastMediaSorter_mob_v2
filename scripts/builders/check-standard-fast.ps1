@@ -66,9 +66,29 @@ Write-Host "Command: .\\gradlew.bat $($gradleArgs -join ' ')" -ForegroundColor D
     Write-Host $line
 }
 
-if ($LASTEXITCODE -ne 0) {
+$gradleExit = $LASTEXITCODE
+
+# S1244: a truncated unit run ALWAYS ends non-zero - the worker process dies. So the completeness
+# check has to run BEFORE the exit-code bail-out below; placed after it, the one run it exists to
+# catch would exit first and never reach it. Skipped for a --tests filter, where a handful of
+# reports is the correct outcome rather than a truncation.
+if ($Mode -eq "Unit" -and -not $Tests) {
+    & "$PSScriptRoot\..\quality\assert-test-suite-complete.ps1" -TaskDir "test${Flavor}DebugUnitTest"
+    $gateExit = $LASTEXITCODE
+    if ($gateExit -eq 1) {
+        Write-Host "`nFast check failed - the unit run did not cover the whole suite." -ForegroundColor Red
+        exit 1
+    }
+    # Exit 2 is "could not check" (no reports yet). Say so, but let a real Gradle failure below own
+    # the verdict rather than masking it with a missing-reports message.
+    if ($gateExit -eq 2) {
+        Write-Host "Suite-completeness check could not run; coverage is unverified." -ForegroundColor Yellow
+    }
+}
+
+if ($gradleExit -ne 0) {
     Write-Host "`nFast check failed." -ForegroundColor Red
-    exit $LASTEXITCODE
+    exit $gradleExit
 }
 
 Write-Host "`nFast check passed." -ForegroundColor Green

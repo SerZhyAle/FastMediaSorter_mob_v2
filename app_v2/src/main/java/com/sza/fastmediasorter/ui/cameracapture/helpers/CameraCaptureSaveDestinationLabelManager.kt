@@ -5,7 +5,7 @@ import android.view.View
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
-import com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
+import com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,13 +53,13 @@ class CameraCaptureSaveDestinationLabelManager(
         }
     }
 
-    private suspend fun resolveSaveDestinationName(): String? {
-        // S0754: a caller that already knows the real save target (Browse, quick-capture widget)
-        // passes it explicitly - the scratch output file's parent folder name is not the destination
-        // (e.g. an app-private "Pictures" staging dir while the shot actually lands in "Downloads").
-        CameraCaptureContract.readDestinationLabel(intent)?.let {
-            return it
-        }
+    // S0754: a caller that already knows the real save target (Browse, quick-capture widget) passes it
+    // explicitly - the scratch output file's parent folder name is not the destination (e.g. an
+    // app-private "Pictures" staging dir while the shot actually lands in "Downloads").
+    private suspend fun resolveSaveDestinationName(): String? =
+        CameraCaptureContract.readDestinationLabel(intent) ?: resolveDestinationNameFromFlow()
+
+    private suspend fun resolveDestinationNameFromFlow(): String? {
         val fixedOutputParent = flowManager.currentOutputFile()?.parentFile?.name
         if (!flowManager.multiCapture) return fixedOutputParent
         val settings = settingsRepository.getSettings().first()

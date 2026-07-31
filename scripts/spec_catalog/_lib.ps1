@@ -12,6 +12,13 @@ $script:CatalogPath = Join-Path $repoRoot 'PLAN\spec-catalog.jsonl'
 # Archived records live in a separate journal so the hot read path scans only
 # active tickets. See PLAN/S0454_spec-catalog-journal-compaction.md.
 $script:ArchivePath = Join-Path $repoRoot 'PLAN\spec-catalog-archive.jsonl'
+# Owner-facing release queue: which release package each open ticket belongs to, in the
+# owner's hand-kept order. The catalog stays the source of truth for STATUS; the queue owns
+# ORDER and RELEASE ASSIGNMENT, which no script may reshuffle. See PLAN/RELEASE_QUEUE.md.
+$script:ReleaseQueuePath     = Join-Path $repoRoot 'PLAN\RELEASE_QUEUE.md'
+$script:ReleaseReadyPath     = Join-Path $repoRoot 'PLAN\RELEASE_READY.md'
+$script:ReleaseQueueDonePath = Join-Path $repoRoot 'PLAN\RELEASE_QUEUE_DONE.md'
+$script:ReleaseQueueBacklog  = '--'
 
 $script:RequiredFields = @('id', 'name', 'status', 'priority', 'file', 'created', 'updated')
 $script:StatusEnum = @(
@@ -163,6 +170,231 @@ function Write-Catalog {
     param([Parameter(Mandatory)][object[]] $Records)
     $lines = Format-CatalogLines -Records $Records
     Write-JsonlFile -Path $script:CatalogPath -Lines $lines
+    # Single choke point for every catalog mutation (insert/update/complete/archive/delete/
+    # bulk-update), so the release queue follows along without any skill knowing about it.
+    Sync-ReleaseQueue -Records $Records
+}
+
+# ── Release queue (PLAN/RELEASE_QUEUE.md) ────────────────────────────────────────────────────
+
+function Get-ReleaseQueuePath { return $script:ReleaseQueuePath }
+
+function Get-ReleaseReadyPath { return $script:ReleaseReadyPath }
+
+function Get-ReleaseQueueDonePath { return $script:ReleaseQueueDonePath }
+
+function Get-TicketBaseName {
+    # 'PLAN/S1291_slug.md' -> 'S1291_slug'. The queue shows the spec FILE name, so one column
+    # carries both the id and the human-readable slug.
+    param([Parameter(Mandatory)][string] $File)
+    return [System.IO.Path]::GetFileNameWithoutExtension($File)
+}
+
+function Format-ReleaseQueueLine {
+    param(
+        [Parameter(Mandatory)][string] $Release,
+        [Parameter(Mandatory)][string] $Ticket,
+        [Parameter(Mandatory)][string] $Changed,
+        [Parameter(Mandatory)][string] $Status
+    )
+    return ('{0,-4} {1,-62} {2,-11} {3}' -f $Release, $Ticket, $Changed, $Status).TrimEnd()
+}
+
+function Read-ReleaseQueue { return ,(Read-ReleaseFile -Path $script:ReleaseQueuePath) }
+
+function Read-ReleaseReady { return ,(Read-ReleaseFile -Path $script:ReleaseReadyPath) }
+
+function Read-ReleaseFile {
+    # Returns the file as an ordered list of line objects. Data lines are parsed; everything
+    # else (heading, prose, blanks, the owner's own notes) is carried through verbatim so a
+    # reconcile never rewrites anything the owner typed.
+    param([Parameter(Mandatory)][string] $Path)
+    $result = New-Object System.Collections.Generic.List[object]
+    if (-not (Test-Path $Path)) { return ,$result }
+    $raw = Get-Content -LiteralPath $Path -Encoding UTF8 -ErrorAction Stop
+    foreach ($line in @($raw)) {
+        # A data line is: <release> <Sxxxx_slug> <yyyy-MM-dd> <Status>. Anchoring on the id
+        # shape keeps prose and the column header from ever being mistaken for data.
+        if ("$line" -match '^\s*(\d+|--)\s+(S\d{4}_\S*)\s+(\d{4}-\d{2}-\d{2})\s+(\S.*?)\s*$') {
+            $result.Add([pscustomobject]@{
+                Kind    = 'ticket'
+                Release = $Matches[1]
+                Ticket  = $Matches[2]
+                Changed = $Matches[3]
+                Status  = $Matches[4]
+                Id      = $Matches[2].Substring(0, 5)
+            })
+        } else {
+            $result.Add([pscustomobject]@{ Kind = 'verbatim'; Text = "$line" })
+        }
+    }
+    return ,$result
+}
+
+function Write-ReleaseQueue {
+    param([Parameter(Mandatory)][AllowEmptyCollection()] $Lines)
+    Write-ReleaseFile -Path $script:ReleaseQueuePath -Lines $Lines
+}
+
+function Write-ReleaseFile {
+    param(
+        [Parameter(Mandatory)][string] $Path,
+        [Parameter(Mandatory)][AllowEmptyCollection()] $Lines
+    )
+    $out = New-Object System.Collections.Generic.List[string]
+    # Iterate the List directly: @(..) around a List[object] of PSCustomObject throws
+    # "Argument types do not match" (the array subexpression cannot build the PSObject[] copy).
+    foreach ($l in $Lines) {
+        if ($l.Kind -eq 'ticket') {
+            $out.Add((Format-ReleaseQueueLine -Release $l.Release -Ticket $l.Ticket -Changed $l.Changed -Status $l.Status))
+        } else {
+            $out.Add($l.Text)
+        }
+    }
+    $payload = [string]::Join("`r`n", $out.ToArray())
+    if ($payload.Length -gt 0) { $payload += "`r`n" }
+    $tmp = "$Path.tmp"
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($tmp, $payload, $utf8NoBom)
+    Move-Item -LiteralPath $tmp -Destination $Path -Force
+}
+
+function Get-CurrentRelease {
+    # Authority order: the queue's own header marker, then the DEBUG-v0NN branch name, then
+    # the backlog bucket. The marker wins so the queue keeps working with no git available.
+    foreach ($line in (Read-ReleaseQueue)) {
+        if ($line.Kind -eq 'verbatim' -and $line.Text -match '^\s*current-(?:next-)?release:\s*(\d+)\s*$') {
+            return $Matches[1]
+        }
+    }
+    try {
+        $branch = (& git rev-parse --abbrev-ref HEAD 2>$null)
+        if ($LASTEXITCODE -eq 0 -and "$branch" -match 'DEBUG-v0*(\d+)') { return $Matches[1] }
+    } catch {
+        # git absent or not a repo - fall through to the backlog bucket.
+    }
+    return $script:ReleaseQueueBacklog
+}
+
+function Test-ReleaseReadyStatus {
+    # Ready = the ticket's code is done as far as this release is concerned. Implemented and
+    # Verified are self-evident; BlockNeedUserTest counts too, because some flows are very hard
+    # to verify and the owner treats a long-pending device check as shipped - if it later turns
+    # out broken it simply comes back as fresh work in a later package.
+    param([Parameter(Mandatory)][string] $Status)
+    return $Status -in @('Implemented', 'Verified', 'BlockNeedUserTest')
+}
+
+function Sync-ReleaseQueue {
+    # Reconcile BOTH release files against the catalog and move tickets between them by status.
+    #
+    #   RELEASE_QUEUE.md  - work still to do before the release: everything below Implemented,
+    #                       including tickets blocked on another ticket / a question / an
+    #                       external party (the owner wants those visible and sortable).
+    #   RELEASE_READY.md  - the release's finished content: Implemented, Verified,
+    #                       BlockNeedUserTest. Not something to plan around any more.
+    #
+    # Invariants:
+    #   - never reorders existing lines (the order is the owner's plan),
+    #   - never rewrites the `rel` column - a ticket keeps its package when it moves file,
+    #   - updates the changed-date ONLY when the status actually moved,
+    #   - a status change across the ready boundary moves the line to the other file,
+    #   - drops a line whose ticket left the active journal (archived or deleted),
+    #   - never ADDS a ready ticket that is in neither file: it shipped in an earlier package.
+    param([Parameter(Mandatory)][AllowEmptyCollection()][object[]] $Records)
+
+    if ($env:FMS_SKIP_RELEASE_QUEUE) { return }
+    if (-not (Test-Path $script:ReleaseQueuePath)) { return }
+
+    $byId = @{}
+    foreach ($r in $Records) { $byId[$r.id] = $r }
+
+    $today = Get-Today
+    $seen = @{}
+    $toReady = New-Object System.Collections.Generic.List[object]
+    $toQueue = New-Object System.Collections.Generic.List[object]
+
+    # One pass per file: keep what still belongs, collect what crossed the boundary.
+    $keptQueue = Select-ReleaseLines -Path $script:ReleaseQueuePath -ById $byId -Seen $seen `
+        -Today $today -WantReady $false -Moved $toReady
+    $keptReady = Select-ReleaseLines -Path $script:ReleaseReadyPath -ById $byId -Seen $seen `
+        -Today $today -WantReady $true -Moved $toQueue
+
+    # A brand-new ticket is unfinished by definition, so it lands in the queue only.
+    $current = Get-CurrentRelease
+    foreach ($r in ($Records | Sort-Object -Property id)) {
+        if ($seen.ContainsKey($r.id)) { continue }
+        if (Test-ReleaseReadyStatus -Status $r.status) { continue }
+        $changed = if ("$($r.updated)".Length -ge 10) { "$($r.updated)".Substring(0, 10) } else { $today }
+        $toQueue.Add([pscustomobject]@{
+            Kind    = 'ticket'
+            Release = $current
+            Ticket  = (Get-TicketBaseName -File $r.file)
+            Changed = $changed
+            Status  = $r.status
+            Id      = $r.id
+        })
+    }
+
+    Add-ReleaseLines -Target $keptQueue -Additions $toQueue
+    Add-ReleaseLines -Target $keptReady -Additions $toReady
+
+    Write-ReleaseFile -Path $script:ReleaseQueuePath -Lines $keptQueue
+    if (Test-Path $script:ReleaseReadyPath) {
+        Write-ReleaseFile -Path $script:ReleaseReadyPath -Lines $keptReady
+    }
+}
+
+function Select-ReleaseLines {
+    # Walk one release file: refresh each ticket from the catalog, keep the ones that still
+    # belong here, and hand the rest to [$Moved] for the sibling file.
+    param(
+        [Parameter(Mandatory)][string] $Path,
+        [Parameter(Mandatory)][hashtable] $ById,
+        [Parameter(Mandatory)][hashtable] $Seen,
+        [Parameter(Mandatory)][string] $Today,
+        [Parameter(Mandatory)][bool] $WantReady,
+        [Parameter(Mandatory)] $Moved
+    )
+    # ,$kept on every exit: a bare `return $list` unrolls into a fixed-size object[], and the
+    # caller's later .Insert() would fail with "Collection was of a fixed size".
+    $kept = New-Object System.Collections.Generic.List[object]
+    if (-not (Test-Path $Path)) { return ,$kept }
+
+    foreach ($line in (Read-ReleaseFile -Path $Path)) {
+        if ($line.Kind -ne 'ticket') { $kept.Add($line); continue }
+        if (-not $ById.ContainsKey($line.Id)) { continue }   # archived / deleted
+
+        $rec = $ById[$line.Id]
+        $Seen[$line.Id] = $true
+        $changed = if ($line.Status -ne $rec.status) { $Today } else { $line.Changed }
+        $row = [pscustomobject]@{
+            Kind    = 'ticket'
+            Release = $line.Release                      # the owner's package assignment survives
+            Ticket  = (Get-TicketBaseName -File $rec.file)
+            Changed = $changed
+            Status  = $rec.status
+            Id      = $line.Id
+        }
+        if ((Test-ReleaseReadyStatus -Status $rec.status) -eq $WantReady) { $kept.Add($row) } else { $Moved.Add($row) }
+    }
+    return ,$kept
+}
+
+function Add-ReleaseLines {
+    # Append each addition after the last line of its own release block, so blocks stay grouped
+    # and nothing jumps above work the owner already ordered.
+    param(
+        [Parameter(Mandatory)] $Target,
+        [Parameter(Mandatory)] $Additions
+    )
+    foreach ($add in $Additions) {
+        $insertAt = -1
+        for ($i = 0; $i -lt $Target.Count; $i++) {
+            if ($Target[$i].Kind -eq 'ticket' -and $Target[$i].Release -eq $add.Release) { $insertAt = $i }
+        }
+        if ($insertAt -ge 0) { $Target.Insert($insertAt + 1, $add) } else { $Target.Add($add) }
+    }
 }
 
 function Write-ArchiveCatalog {

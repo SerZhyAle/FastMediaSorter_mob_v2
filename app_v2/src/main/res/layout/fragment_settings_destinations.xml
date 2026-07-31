@@ -976,6 +976,22 @@
                         app:icon="@drawable/ic_add"
                         app:iconGravity="start" />
 
+                    <!-- S1170: same picker, other destination - the launcher's own desktop instead of the
+                         Android home screen. Hidden unless launcher mode is on, via the injected
+                         LauncherModeContract (never a BuildConfig flavor guard - this file is src/main). -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonAddLauncherWidget"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Tonal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/settings_add_launcher_widget"
+                        android:visibility="gone"
+                        app:icon="@drawable/ic_add"
+                        app:iconGravity="start" />
+
                     <!-- S0880: launcher for the default-player registration dialog (DefaultAppsDialogFragment); gated by supportsDefaultPlayer. -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnOpenDefaultAppsDialog"

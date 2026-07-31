@@ -101,9 +101,9 @@ class BrowseStateUiUpdater(
         Timber.d("S1019: write-gate type=${resource?.type} readOnly=${resource?.isReadOnly} canWrite=$canWrite")
 
         binding.layoutOperations.isVisible = hasSelection || state.lastOperation != null
-        // Re-reserve (or release) the nav-bar inset under the list now that the bottom bar visibility
-        // is settled, so the last row stays reachable when no bottom bar lifts the list above it.
-        BrowseEdgeToEdgeHelper.applyListBottomInset(binding)
+        // Re-settle the nav-bar insets now that the bottom bar visibility is decided: which strip
+        // carries the inset, and whether the list must reserve it itself.
+        BrowseEdgeToEdgeHelper.applyBottomInsets(binding)
 
         binding.btnCopy.isVisible = hasSelection
         binding.btnMove.isVisible = hasSelection && canWrite

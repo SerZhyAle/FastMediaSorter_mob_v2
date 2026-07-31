@@ -34,6 +34,7 @@ class UnifiedFileOperationHandlerTest {
     private val progressTracker = mockk<ProgressTracker>(relaxed = true)
     private val errorHandler = mockk<FileOperationErrorHandler>()
     private val localStrategy = mockk<FileOperationStrategy>(relaxed = true)
+    private val treeTransferManager = mockk<DirectoryTreeTransferManager>(relaxed = true)
 
     private lateinit var handler: UnifiedFileOperationHandler
 
@@ -52,6 +53,7 @@ class UnifiedFileOperationHandlerTest {
                 every { isEnabled(any<RemoteSourceId>()) } returns true
                 every { anyCloudEnabled() } returns true
             },
+            directoryTreeTransferManager = treeTransferManager,
         )
     }
 
@@ -166,18 +168,25 @@ class UnifiedFileOperationHandlerTest {
         assertEquals("/dir/n.txt", result.getOrNull())
     }
 
+    // S1325: cross-protocol directory work is routed to the tree transfer manager, not refused.
     @Test
-    fun `executeCopyDirectory rejects cross-protocol`() = runBlocking {
+    fun `executeCopyDirectory routes cross-protocol to the tree transfer manager`() = runBlocking {
+        coEvery { treeTransferManager.copyTree("/local/dir", "smb://server/share/x/dir", any()) } returns
+            Result.success(3)
+
         val result = handler.executeCopyDirectory("/local/dir", "smb://server/share/x")
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is UnsupportedOperationException)
+
+        assertEquals(3, result.getOrNull())
     }
 
     @Test
-    fun `executeMoveDirectory rejects cross-protocol`() = runBlocking {
+    fun `executeMoveDirectory routes cross-protocol to the tree transfer manager`() = runBlocking {
+        coEvery { treeTransferManager.moveTree("smb://s/share/d", "/local/dest/d", any()) } returns
+            Result.success(6)
+
         val result = handler.executeMoveDirectory("smb://s/share/d", "/local/dest")
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is UnsupportedOperationException)
+
+        assertEquals(6, result.getOrNull())
     }
 
     @Test

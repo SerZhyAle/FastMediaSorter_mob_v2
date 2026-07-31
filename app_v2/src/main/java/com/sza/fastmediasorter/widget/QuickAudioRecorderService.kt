@@ -19,6 +19,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.core.save.SaveFallbackNotifier
 import com.sza.fastmediasorter.data.capture.MicRecordingSaver
 import com.sza.fastmediasorter.data.transfer.strategies.LocalToFtpStrategy
@@ -63,6 +64,7 @@ class QuickAudioRecorderService : Service() {
     @Inject lateinit var localToSmbStrategy: LocalToSmbStrategy
     @Inject lateinit var localToSftpStrategy: LocalToSftpStrategy
     @Inject lateinit var cloudOperationStrategy: CloudOperationStrategy
+
     // S0930: empty on flavors without the draw-over-apps permission - degrades to the existing
     // notification Stop action and the S0796 repeat-gesture toggle when no controller is bound.
     @Inject lateinit var indicatorControllers: Set<@JvmSuppressWildcards QuickRecorderIndicatorController>
@@ -388,7 +390,7 @@ class QuickAudioRecorderService : Service() {
         const val ACTION_STOP = "com.sza.fastmediasorter.action.QUICK_RECORDER_STOP"
 
         private const val CHANNEL_ID = "quick_audio_recorder"
-        private const val NOTIFICATION_ID = 0xA349
+        private const val NOTIFICATION_ID = NotificationIds.QUICK_AUDIO_RECORDER
 
         fun start(context: Context) {
             val intent = Intent(context, QuickAudioRecorderService::class.java).apply {

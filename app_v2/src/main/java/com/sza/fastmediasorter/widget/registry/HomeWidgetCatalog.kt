@@ -15,8 +15,8 @@ import com.sza.fastmediasorter.widget.ContinueReadingWidgetProvider
 import com.sza.fastmediasorter.widget.FavoritesWidgetProvider
 import com.sza.fastmediasorter.widget.GameLaunchWidgetProvider
 import com.sza.fastmediasorter.widget.QuickAudioRecorderWidgetProvider
-import com.sza.fastmediasorter.widget.RandomPhotoFrameWidgetProvider
 import com.sza.fastmediasorter.widget.RandomMusicWidgetProvider
+import com.sza.fastmediasorter.widget.RandomPhotoFrameWidgetProvider
 import com.sza.fastmediasorter.widget.ScheduledTasksWidgetProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
@@ -45,6 +45,9 @@ class HomeWidgetCatalog @Inject constructor(
     private val allEntries: List<HomeWidgetEntry> = listOf(
         HomeWidgetEntry(
             providerClass = CalculatorWidgetProvider::class.java,
+            gadgetKey = "calculator",
+            gadgetSpanW = 1,
+            gadgetSpanH = 1,
             labelRes = R.string.widget_calculator_label,
             // S1165: the plain glyph is white-filled (invisible on the light picker dialog); the accent
             // variant (#4F46E5) is the one the system shows on the home screen, so the row matches it.
@@ -53,6 +56,9 @@ class HomeWidgetCatalog @Inject constructor(
         ),
         HomeWidgetEntry(
             providerClass = CameraOcrTranslateWidgetProvider::class.java,
+            gadgetKey = "camera_ocr_translate",
+            gadgetSpanW = 1,
+            gadgetSpanH = 1,
             labelRes = R.string.widget_camera_ocr_translate_label,
             iconRes = R.drawable.ic_camera_ocr_translate,
             descriptionRes = R.string.widget_camera_ocr_translate_description,
@@ -61,24 +67,36 @@ class HomeWidgetCatalog @Inject constructor(
             // Removed via manifest tools:node="remove" in lite/photos (ENABLE_TRANSLATION=false);
             // the installedProviders gate hides it there without a compile-time flavor flag.
             providerClass = CaptureOcrPanelWidgetProvider::class.java,
+            gadgetKey = "capture_ocr_panel",
+            gadgetSpanW = 2,
+            gadgetSpanH = 2,
             labelRes = R.string.widget_capture_ocr_panel_label,
             iconRes = R.drawable.ic_camera_ocr_translate,
             descriptionRes = R.string.widget_capture_ocr_panel_description,
         ),
         HomeWidgetEntry(
             providerClass = CameraLaunchWidgetProvider::class.java,
+            gadgetKey = "camera_launch",
+            gadgetSpanW = 1,
+            gadgetSpanH = 1,
             labelRes = R.string.widget_camera_launch_label,
             iconRes = R.drawable.ic_widget_camera_launch_accent,
             descriptionRes = R.string.widget_camera_launch_description,
         ),
         HomeWidgetEntry(
             providerClass = CameraPhotosWidgetProvider::class.java,
+            gadgetKey = "camera_photos",
+            gadgetSpanW = 1,
+            gadgetSpanH = 1,
             labelRes = R.string.widget_camera_photos_label,
             iconRes = R.drawable.ic_widget_camera_photos,
             descriptionRes = R.string.widget_camera_photos_description,
         ),
         HomeWidgetEntry(
             providerClass = CameraQuickCaptureWidgetProvider::class.java,
+            gadgetKey = "camera_quick_capture",
+            gadgetSpanW = 1,
+            gadgetSpanH = 1,
             labelRes = R.string.widget_camera_quick_capture_label,
             iconRes = R.drawable.ic_widget_camera_quick_capture,
             descriptionRes = R.string.widget_camera_quick_capture_description,
@@ -88,12 +106,18 @@ class HomeWidgetCatalog @Inject constructor(
         ),
         HomeWidgetEntry(
             providerClass = ContinueReadingWidgetProvider::class.java,
+            gadgetKey = "continue_reading",
+            gadgetSpanW = 1,
+            gadgetSpanH = 1,
             labelRes = R.string.widget_continue_reading_label,
             iconRes = R.drawable.ic_widget_continue_reading,
             descriptionRes = R.string.widget_continue_reading_description,
         ),
         HomeWidgetEntry(
             providerClass = GameLaunchWidgetProvider::class.java,
+            gadgetKey = "game_launch",
+            gadgetSpanW = 1,
+            gadgetSpanH = 1,
             labelRes = R.string.game_widget_label,
             iconRes = R.drawable.ic_game_kryvavitsa,
             descriptionRes = R.string.game_widget_description,
@@ -101,30 +125,45 @@ class HomeWidgetCatalog @Inject constructor(
         ),
         HomeWidgetEntry(
             providerClass = RandomPhotoFrameWidgetProvider::class.java,
+            gadgetKey = "random_photo_frame",
+            gadgetSpanW = 2,
+            gadgetSpanH = 2,
             labelRes = R.string.widget_random_photo_frame_label,
             iconRes = R.drawable.ic_widget_camera_photos,
             descriptionRes = R.string.widget_random_photo_frame_description,
         ),
         HomeWidgetEntry(
             providerClass = RandomMusicWidgetProvider::class.java,
+            gadgetKey = "random_music",
+            gadgetSpanW = 1,
+            gadgetSpanH = 1,
             labelRes = R.string.widget_random_music_label,
             iconRes = R.drawable.ic_widget_random_music,
             descriptionRes = R.string.widget_random_music_description,
         ),
         HomeWidgetEntry(
             providerClass = AudioNowPlayingWidgetProvider::class.java,
+            gadgetKey = "audio_now_playing",
+            gadgetSpanW = 2,
+            gadgetSpanH = 1,
             labelRes = R.string.widget_audio_now_playing_label,
             iconRes = R.drawable.ic_widget_random_music,
             descriptionRes = R.string.widget_audio_now_playing_description,
         ),
         HomeWidgetEntry(
             providerClass = QuickAudioRecorderWidgetProvider::class.java,
+            gadgetKey = "quick_audio_recorder",
+            gadgetSpanW = 1,
+            gadgetSpanH = 1,
             labelRes = R.string.widget_quick_audio_recorder_label,
             iconRes = R.drawable.ic_widget_quick_audio_recorder,
             descriptionRes = R.string.widget_quick_audio_recorder_description,
         ),
         HomeWidgetEntry(
             providerClass = FavoritesWidgetProvider::class.java,
+            gadgetKey = "favorites",
+            gadgetSpanW = 3,
+            gadgetSpanH = 3,
             labelRes = R.string.widget_favorites_label,
             iconRes = R.drawable.ic_widget_favorites,
             descriptionRes = R.string.widget_favorites_description,
@@ -132,12 +171,22 @@ class HomeWidgetCatalog @Inject constructor(
         ),
         HomeWidgetEntry(
             providerClass = ScheduledTasksWidgetProvider::class.java,
+            gadgetKey = "scheduled_tasks",
+            gadgetSpanW = 2,
+            gadgetSpanH = 1,
             labelRes = R.string.widget_scheduled_tasks_label,
             iconRes = R.drawable.ic_widget_scheduled_tasks,
             descriptionRes = R.string.widget_scheduled_tasks_description,
             settingGate = { it.enableScheduledOperations },
         ),
     )
+
+    /**
+     * S1170: every catalog entry, ungated. Only for code that needs the static table itself - the
+     * launcher-gadget span parity check, and anything mapping a `gadgetKey` back to its entry. Anything
+     * offering widgets to the user must use [availableEntries] instead, which applies both gates.
+     */
+    fun entries(): List<HomeWidgetEntry> = allEntries
 
     /**
      * Widgets pinnable in this build right now: present in the merged manifest (flavor gate) and

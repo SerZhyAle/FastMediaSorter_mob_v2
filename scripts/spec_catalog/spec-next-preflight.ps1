@@ -3,7 +3,10 @@
 # Collapses the per-round boilerplate that /spec-next used to run as 4+ separate
 # calls (search.ps1 rank + skip-cache list + preview.ps1 per candidate + drift-check.ps1)
 # into a single read-only invocation that returns:
-#   - the full ranked eligible list (priority desc, updated desc, id asc),
+#   - the full ranked eligible list, ordered by the owner's release plan
+#     (PLAN/RELEASE_QUEUE.md: package asc, then line order inside the package),
+#     with catalog priority desc / updated desc / id asc only as the fallback for a
+#     ticket the queue does not list,
 #   - the active persistent skip-cache and which ranked ids it removed,
 #   - candidates auto-skipped while walking down the list (the skill persists
 #     these to skip-cache itself - this script never mutates),
@@ -69,8 +72,50 @@ foreach ($id in $excludeSet.Keys | Sort-Object) {
 $all = Read-Catalog
 $eligible = @($all | Where-Object { $eligibleStatuses -contains $_.status })
 
-# 2. Rank: priority desc, updated desc, id asc
+# 2. Rank by the owner's release plan first. The catalog knows priority but not intent:
+# PLAN/RELEASE_QUEUE.md says which package a ticket ships in and in what order inside it,
+# and that decision outranks priority. Priority survives only as the fallback ordering for
+# a ticket the queue does not list (and for a queue-less checkout, where the map is empty).
+$queueRank = @{}
+$queueRel = @{}
+$queueSide = @{}
+$queueSeq = 0
+foreach ($line in (Read-ReleaseQueue)) {
+    if ($line.Kind -ne 'ticket') { continue }
+    if ($queueRank.ContainsKey($line.Id)) { continue }
+    $queueRank[$line.Id] = $queueSeq++
+    $queueRel[$line.Id] = [string]$line.Release
+    $queueSide[$line.Id] = 'queue'
+}
+# The ready side (RELEASE_READY.md) holds finished content - an `Implemented` row there still
+# needs its audit, but it is not planned work, so it sorts after every numbered package.
+foreach ($line in (Read-ReleaseReady)) {
+    if ($line.Kind -ne 'ticket') { continue }
+    if ($queueSide.ContainsKey($line.Id)) { continue }
+    $queueRank[$line.Id] = $queueSeq++
+    $queueRel[$line.Id] = [string]$line.Release
+    $queueSide[$line.Id] = 'ready'
+}
+# Buckets past the last real package, so numbered work always precedes them.
+$relReadySide = 9000     # finished content awaiting its audit - valuable, but not planned work
+$relParked = 9100        # `--` in the queue: drive it only when nothing in a package is eligible
+$relOffQueue = 9500      # in neither file: nothing was sorted, fall back to priority
+function Get-QueueRelBucket {
+    param([Parameter(Mandatory)][string] $Id)
+    if (-not $queueRel.ContainsKey($Id)) { return $relOffQueue }
+    if ($queueSide[$Id] -eq 'ready') { return $relReadySide }
+    $rel = $queueRel[$Id]
+    if ($rel -match '^\d+$') { return [int]$rel }
+    return $relParked
+}
+function Get-QueueLineOrder {
+    param([Parameter(Mandatory)][string] $Id)
+    if ($queueRank.ContainsKey($Id)) { return $queueRank[$Id] }
+    return [int]::MaxValue
+}
 $ranked = @($eligible | Sort-Object `
+    @{ Expression = { Get-QueueRelBucket -Id $_.id }; Descending = $false }, `
+    @{ Expression = { Get-QueueLineOrder -Id $_.id }; Descending = $false }, `
     @{ Expression = { [int]$_.priority }; Descending = $true }, `
     @{ Expression = { [string]$_.updated }; Descending = $true }, `
     @{ Expression = { [string]$_.id }; Descending = $false })
@@ -157,6 +202,11 @@ $rankedOut = @($rankedLive | ForEach-Object {
         status   = $_.status
         priority = [int]$_.priority
         updated  = [string]$_.updated
+        # release = the package this ticket belongs to ('--' parked, null = in neither file).
+        # side    = 'queue' (work left), 'ready' (finished content awaiting audit), null.
+        release  = $(if ($queueRel.ContainsKey($_.id)) { $queueRel[$_.id] } else { $null })
+        side     = $(if ($queueSide.ContainsKey($_.id)) { $queueSide[$_.id] } else { $null })
+        queue_order = $(if ($queueRank.ContainsKey($_.id)) { $queueRank[$_.id] } else { $null })
     }
 })
 
@@ -168,6 +218,8 @@ foreach ($k in $skipCache.Keys) {
 $result = [PSCustomObject]@{
     total          = $all.Count
     eligible_count = $eligible.Count
+    order_source   = 'PLAN/RELEASE_QUEUE.md (release package, then line order); catalog priority is the fallback'
+    current_release = (Get-CurrentRelease)
     ranked         = $rankedOut
     skip_cache     = $skipCacheOut
     skip_cached_ids = @($skipCachedIds)
@@ -182,6 +234,7 @@ if ($Format -eq 'json') {
 } else {
     Write-Host "spec-next preflight" -ForegroundColor Cyan
     Write-Host "  eligible: $($eligible.Count) / total: $($all.Count) | live ranked: $($rankedOut.Count)" -ForegroundColor DarkGray
+    Write-Host "  order: PLAN/RELEASE_QUEUE.md (package, then line order) | current release: $(Get-CurrentRelease)" -ForegroundColor DarkGray
     if ($skipCachedIds.Count -gt 0) {
         Write-Host "  skip-cached out: $($skipCachedIds -join ', ')" -ForegroundColor DarkGray
     }
@@ -192,7 +245,8 @@ if ($Format -eq 'json') {
         Write-Host "  malformed (preview failed): $($malformed -join ', ')" -ForegroundColor Red
     }
     if ($selected) {
-        Write-Host "  SELECTED: $($selected.id) ($($selected.status), pri $($selected.priority), tier $($selected.tier)) - $($selected.name)" -ForegroundColor Green
+        $selRel = if ($queueRel.ContainsKey($selected.id)) { $queueRel[$selected.id] } else { 'not in queue' }
+        Write-Host "  SELECTED: $($selected.id) (rel $selRel, $($selected.status), pri $($selected.priority), tier $($selected.tier)) - $($selected.name)" -ForegroundColor Green
         if ($selected.status_mismatch) {
             Write-Host "    status mismatch: catalog=$($selected.status_mismatch.catalog) file=$($selected.status_mismatch.file) (file authoritative)" -ForegroundColor Yellow
         }

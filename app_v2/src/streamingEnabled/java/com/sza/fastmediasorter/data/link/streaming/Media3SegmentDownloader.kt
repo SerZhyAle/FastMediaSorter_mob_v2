@@ -10,14 +10,15 @@ import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.dash.offline.DashDownloader
 import androidx.media3.exoplayer.hls.offline.HlsDownloader
-import androidx.media3.exoplayer.offline.Downloader
 import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.Downloader
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
 import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
 import com.sza.fastmediasorter.domain.model.link.MediaQualityPreference
 import com.sza.fastmediasorter.domain.model.link.StreamingManifest
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
@@ -97,9 +98,14 @@ class Media3SegmentDownloader @Inject constructor(
             )
 
             // Media3 Downloader.download() blocks on a worker thread; we already moved to IO.
-            downloader.download { contentLength, bytesDownloaded, percentDownloaded ->
-                val total = if (contentLength > 0) contentLength else null
-                onProgress(bytesDownloaded, total)
+            // S1303: run it interruptibly - a plain blocking call ignores coroutine cancellation, so
+            // closing the screen left the downloader pulling segments (and burning data) until the
+            // whole manifest finished. Media3 downloaders abort on thread interrupt.
+            runInterruptible {
+                downloader.download { contentLength, bytesDownloaded, percentDownloaded ->
+                    val total = if (contentLength > 0) contentLength else null
+                    onProgress(bytesDownloaded, total)
+                }
             }
 
             val segmentFiles = sessionDir.walkTopDown()
