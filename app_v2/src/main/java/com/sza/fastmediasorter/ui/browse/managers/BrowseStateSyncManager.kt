@@ -2,9 +2,6 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.MediaFile
-import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
-import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
-import com.sza.fastmediasorter.domain.usecase.MaterializeFavoritesUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -16,7 +13,7 @@ import timber.log.Timber
  * Browse-side state synchroniser. Two responsibilities only:
  * - Load the virtual Favorites resource into [BrowseState].
  * - Detect resource setting changes from the database on `onResume` and trigger a reload
- *   when the user has edited supportedMediaTypes / scanSubdirectories in
+ *   when the user has edited supportedMediaTypes / scanSubdirectories / showSubfoldersAsItems in
  *   `ResourceEditorActivity` while Browse was paused.
  *
  * S0242 Phase 03 - the structural-equality cache-comparison fast-path was removed.
@@ -27,9 +24,7 @@ import timber.log.Timber
  * changes the journal cannot represent.
  */
 class BrowseStateSyncManager(
-    private val favoritesUseCase: FavoritesUseCase,
-    private val materializeFavoritesUseCase: MaterializeFavoritesUseCase,
-    private val getResourcesUseCase: GetResourcesUseCase,
+    private val useCases: BrowseStateSyncUseCases,
     private val resourceId: Long,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
@@ -44,11 +39,11 @@ class BrowseStateSyncManager(
 
         scope.launch(ioDispatcher) {
             setLoading(true)
-            favoritesUseCase.getAllFavorites().collect { favorites ->
+            useCases.favoritesUseCase.getAllFavorites().collect { favorites ->
                 Timber.d("BrowseStateSyncManager.loadFavorites: Received ${favorites.size} favorites")
 
                 // S0783: STREAM rows get their display name from the live catalog (MaterializeFavoritesUseCase).
-                val mediaFiles = materializeFavoritesUseCase.toMediaFiles(favorites)
+                val mediaFiles = useCases.materializeFavoritesUseCase.toMediaFiles(favorites)
 
                 MediaFilesCacheManager.setCachedList(FAVORITES_RESOURCE_ID, mediaFiles)
 
@@ -78,7 +73,7 @@ class BrowseStateSyncManager(
         }
 
         scope.launch(ioDispatcher) {
-            val updatedResource = getResourcesUseCase.getById(resourceId)
+            val updatedResource = useCases.getResourcesUseCase.getById(resourceId)
             if (updatedResource == null) {
                 Timber.w("BrowseStateSyncManager.checkAndReloadIfResourceChanged: resource not found")
                 return@launch
@@ -86,8 +81,14 @@ class BrowseStateSyncManager(
 
             val typesChanged = currentResource.supportedMediaTypes != updatedResource.supportedMediaTypes
             val subfoldersChanged = currentResource.scanSubdirectories != updatedResource.scanSubdirectories
+            // S1315: a resource edited from Main is opened with a plain startActivity, so no result
+            // ever reaches Browse and this resume-time comparison is the only thing that notices the
+            // change. It has to cover every setting that reshapes the list, not just the first two.
+            val showAsItemsChanged =
+                currentResource.showSubfoldersAsItems != updatedResource.showSubfoldersAsItems
+            Timber.d("S1315: resume diff types=$typesChanged scan=$subfoldersChanged show=$showAsItemsChanged")
 
-            if (typesChanged || subfoldersChanged) {
+            if (typesChanged || subfoldersChanged || showAsItemsChanged) {
                 Timber.d("BrowseStateSyncManager.checkAndReloadIfResourceChanged: settings changed, reloading")
                 Timber.d("  supportedMediaTypes: ${currentResource.supportedMediaTypes} -> ${updatedResource.supportedMediaTypes}")
                 Timber.d("  scanSubdirectories: ${currentResource.scanSubdirectories} -> ${updatedResource.scanSubdirectories}")

@@ -18,4 +18,4 @@ The product's north star: FastMediaSorter is for ordinary non-technical people, 
 - Robustness on the real-world path the persona lives in: weak WiFi, screen lock, headset, connection drops - graceful, no crashes; sane lock-screen media controls.
 - Use this lens when scoping features, choosing defaults, and reviewing UI copy: if a step would stop the grandma or the gym-goer, it's a defect, not an edge case.
 
-Related: [[feedback_writing_style]], [[about_me]].
+Related: [[writing-style-dashes-yo-ellipsis]], [[about-me]].

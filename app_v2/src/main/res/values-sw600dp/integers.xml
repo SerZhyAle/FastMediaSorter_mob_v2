@@ -2,9 +2,7 @@
 <resources>
     <!-- Tablet grid column counts (7"+ tablets) -->
     <integer name="grid_column_count">4</integer>
-    <integer name="welcome_feature_grid_columns">4</integer>
     <integer name="grid_column_count_landscape">5</integer>
-    <integer name="grid_column_count_list">3</integer>
     <integer name="resource_grid_column_count">2</integer>
     <integer name="destinations_column_count">2</integer>
 

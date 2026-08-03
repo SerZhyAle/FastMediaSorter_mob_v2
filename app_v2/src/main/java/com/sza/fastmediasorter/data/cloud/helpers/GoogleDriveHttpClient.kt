@@ -5,6 +5,7 @@ import androidx.annotation.Keep
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.network.HttpTimeouts
 import com.sza.fastmediasorter.core.network.applyTimeouts
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -74,6 +75,7 @@ class GoogleDriveHttpClient @Inject constructor(
                     ApiResponse(isSuccess = false, data = null, errorMessage = error, httpCode = responseCode)
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Request failed: $method $url")
                 ApiResponse(isSuccess = false, data = null, errorMessage = e.message, httpCode = null)
             } finally {
@@ -145,6 +147,7 @@ class GoogleDriveHttpClient @Inject constructor(
                     return@withContext StreamResult.Error(downloadFailedMessage(), responseCode)
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to get input stream for fileId='$fileId'")
                 StreamResult.Error(downloadFailedMessage(), null)
             }
@@ -184,6 +187,7 @@ class GoogleDriveHttpClient @Inject constructor(
                     CloudResult.Error(downloadFailedMessage())
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to download file as stream")
                 CloudResult.Error(downloadFailedMessage(), e)
             }

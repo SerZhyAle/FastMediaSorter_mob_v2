@@ -13,4 +13,4 @@ Widget-only / gesture-only features (e.g. Quick Audio Recorder S0349, its trampo
 - Place the widget via the launcher widget picker, then tap it. Prior runs that "gave up" on this are beatable.
 - Reliable widget placement on Pixel launcher: open picker (long-press home -> Widgets), use its Search field to find the app, tap the app row to expand, then `adb shell input draganddrop <srcX> <srcY> <dstX> <dstY> 2500` from the widget preview center to an empty home cell. A plain `input swipe` just scrolls the list - it does not pick up the widget; `draganddrop` dwells at the source long enough to satisfy the long-press pickup.
 - After placing, dismiss the resize frame (tap empty area), then tap the widget container (`id/widget_quick_audio_recorder_container`) to fire the toggle.
-- Related: [[reference_emulator_mediaprojection_capture]], [[feedback_bottomsheet_menu_untappable_emulator]].
+- Related: [[emulator-verifies-mediaprojection-screenshot]], [[bottomsheet-menu-untappable-emulator]].

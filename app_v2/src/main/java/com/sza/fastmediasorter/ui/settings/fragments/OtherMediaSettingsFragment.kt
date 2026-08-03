@@ -211,11 +211,30 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun setupLanguageSelectors() {
+        listenForLanguagePick(REQ_SOURCE_LANGUAGE, isSource = true)
+        listenForLanguagePick(REQ_TARGET_LANGUAGE, isSource = false)
         binding.spinnerTranslationSourceLanguage.setOnClickListener {
             showTranslationLanguagePicker(isSource = true)
         }
         binding.spinnerTranslationTargetLanguage.setOnClickListener {
             showTranslationLanguagePicker(isSource = false)
+        }
+    }
+
+    // S1214: registered on every view creation, not on the tap that opens the picker - a picker
+    // restored after host recreation must still find a listener for its key.
+    private fun listenForLanguagePick(requestKey: String, isSource: Boolean) {
+        childFragmentManager.setFragmentResultListener(requestKey, viewLifecycleOwner) { _, bundle ->
+            Timber.d("S1214: translation language result key=$requestKey")
+            val code = bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)
+                ?: return@setFragmentResultListener
+            val current = viewModel.settings.value
+            val updated = if (isSource) {
+                current.copy(translationSourceLanguage = code)
+            } else {
+                current.copy(translationTargetLanguage = code)
+            }
+            viewModel.updateSettings(updated)
         }
     }
 
@@ -239,16 +258,9 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         SearchableLanguagePickerDialog.newInstance(
             selectedCode = selectedCode,
             mode = mode,
-            interfaceLanguage = settings.language
-        ) { language ->
-            val current = viewModel.settings.value
-            val updated = if (isSource) {
-                current.copy(translationSourceLanguage = language.code)
-            } else {
-                current.copy(translationTargetLanguage = language.code)
-            }
-            viewModel.updateSettings(updated)
-        }.show(childFragmentManager, tag)
+            interfaceLanguage = settings.language,
+            requestKey = if (isSource) REQ_SOURCE_LANGUAGE else REQ_TARGET_LANGUAGE
+        ).show(childFragmentManager, tag)
     }
 
     private fun updateLanguageSelectors(settings: AppSettings) {
@@ -470,5 +482,10 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        private const val REQ_SOURCE_LANGUAGE = "other_media_source_language"
+        private const val REQ_TARGET_LANGUAGE = "other_media_target_language"
     }
 }

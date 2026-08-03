@@ -14,4 +14,4 @@ MSAL BrowserTabActivity intent-filter requires one `<data android:path="/<Base64
 2. Add a new `<intent-filter>` to `BrowserTabActivity` in `src/main/AndroidManifest.xml` with the computed hash as `android:path="/<hash>"`.
 3. Register the new redirect URI in the OneDrive Azure App Registration (Microsoft Entra portal) - manifest alone is not sufficient; Azure must accept the callback too.
 
-Related: [[s0232]] tracks the active fix; the same pattern must be considered for any future signing config addition.
+Related: S0232 (unified-application-id-cloud-flavors, Archived) tracked the fix; the same pattern must be considered for any future signing config addition.

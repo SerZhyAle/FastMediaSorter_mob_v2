@@ -19,4 +19,4 @@ Do NOT touch / migrate these (intentionally custom, graphical, or already consis
 
 **Why:** owner dislikes the visual heterogeneity from value pickers implemented 3+ different ways across the app; S0646 (dialogs) + S0648/S0644 (rows) unified them onto these components. Reinventing the component was an explicit non-goal.
 
-**How to apply:** when adding or reviewing a settings value selector, wire a `SettingsSelectionRow` trigger to `ListSelectionDialog<T>`/`SimpleValueChoiceDialog`; preserve side effects (dependent-row visibility, on-demand delivery gates) in a wrapper around `onSelected`. See also [[feedback_reuse_existing_settings]].
+**How to apply:** when adding or reviewing a settings value selector, wire a `SettingsSelectionRow` trigger to `ListSelectionDialog<T>`/`SimpleValueChoiceDialog`; preserve side effects (dependent-row visibility, on-demand delivery gates) in a wrapper around `onSelected`. See also [[reuse-existing-settings-toggles]].

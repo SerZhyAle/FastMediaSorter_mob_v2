@@ -1,6 +1,8 @@
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)][string] $Id,
+    # Not [Parameter(Mandatory)]: a mandatory parameter makes the host prompt before the
+    # body runs, so -Help could never print. Absence is reported explicitly below instead.
+    [string] $Id,
     [ValidateSet('Draft','Approved','Tactical','In Progress',
         'Implemented','Verified','Partial','Broken',
         'BlockByOtherTask','BlockNeedUserTest','BlockQuestions','BlockExternal',
@@ -10,8 +12,18 @@ param(
     [string] $File,
     [int]    $Tier = -1,
     [int]    $Priority = -1,
-    [string] $StatusNote = $null   # non-empty: set note; empty '': clear note; $null/omit: preserve
+    [string] $StatusNote = $null,  # non-empty: set note; empty '': clear note; $null/omit: preserve
+    [switch] $Help
 )
+
+if ($Help) {
+    & (Join-Path $PSScriptRoot '..\utils\help.ps1') -Name 'scripts/spec_catalog/update.ps1'
+    exit $LASTEXITCODE
+}
+if (-not $Id) {
+    Write-Error 'update.ps1 requires -Id <Sxxxx>. Run with -Help for the parameter list.' -ErrorAction Continue
+    exit 1
+}
 
 # Convert terminating errors (Write-Error, throw, provider errors) into
 # the documented `exit 1` so callers can rely on $LASTEXITCODE.

@@ -6,39 +6,42 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.view.KeyEvent
-import android.webkit.MimeTypeMap
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ContextThemeWrapper
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.sza.fastmediasorter.worker.LinkDownloadProgressCodec
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
+import com.sza.fastmediasorter.data.browser.CctUnavailableException
+import com.sza.fastmediasorter.data.browser.GoogleDomainBrowserLauncher
+import com.sza.fastmediasorter.data.browser.GoogleDomainMatcher
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResource
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.ui.share.helpers.AccountSelectionManager
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
-import com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
-import com.sza.fastmediasorter.data.browser.CctUnavailableException
-import com.sza.fastmediasorter.data.browser.GoogleDomainBrowserLauncher
-import com.sza.fastmediasorter.data.browser.GoogleDomainMatcher
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
+import com.sza.fastmediasorter.ui.share.helpers.AccountSelectionManager
+import com.sza.fastmediasorter.worker.LinkDownloadProgressCodec
 import com.sza.fastmediasorter.worker.LinkDownloadWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -70,6 +73,13 @@ class ReceiveShareActivity : AppCompatActivity() {
     @Inject lateinit var resultPresenter: LinkAutoDownloadResultPresenter
     @Inject lateinit var googleDomainBrowserLauncher: GoogleDomainBrowserLauncher
     @Inject lateinit var cctChecker: CctAvailabilityChecker
+
+    @Inject lateinit var browseTransferCoordinator: BrowseFileTransferCoordinator
+
+    // S0901 pattern: application-lifetime scope so temp-file cleanup survives this Activity.
+    @Inject
+    @ApplicationScope
+    lateinit var applicationScope: kotlinx.coroutines.CoroutineScope
 
     private lateinit var accountSelectionManager: AccountSelectionManager
 
@@ -104,6 +114,16 @@ class ReceiveShareActivity : AppCompatActivity() {
     private var cachedFiles: List<File> = emptyList()
     private var isFinishTriggered = false
     private var folderPickerActive = false
+
+    // S1370: set once the staged files have been handed to the background transfer work, which then
+    // owns their deletion. Leaving it false keeps the pre-existing cleanup for every path that never
+    // enqueued - a cancelled pick, a failed permission grab, a share with no destination chosen.
+    private var stagedSourcesHandedOff = false
+
+    // S1370: an order is being placed. The destination dialog dismisses itself as soon as it hands the
+    // destination back, and its dismiss listener would otherwise finish the screen - and delete the
+    // staged sources - before the work is enqueued.
+    private var backgroundOrderInFlight = false
 
     // This Activity runs under the translucent Theme.FastMediaSorter.Transparent. Route every spawned
     // dialog through an explicit Material-themed context instead of the raw host theme chain so the
@@ -302,11 +322,14 @@ class ReceiveShareActivity : AppCompatActivity() {
             val resolvedName = existing?.displayName?.trim()?.takeIf { it.isNotBlank() }
             Timber.d(
                 "ReceiveShareActivity.offerAuthThenDownload resolvedName=%s host=%s",
-                resolvedName ?: "<none>", host,
+                resolvedName ?: "<none>",
+                host,
             )
             Timber.i(
                 "auth dialog shown: type=%s account=%s host=%s",
-                dialogType, resolvedName ?: "none", host,
+                dialogType,
+                resolvedName ?: "none",
+                host,
             )
             val title: String
             val message: String
@@ -616,54 +639,126 @@ class ReceiveShareActivity : AppCompatActivity() {
             onSelectFolderClicked = { _, _, _ ->
                 folderPickerActive = true
                 folderPickerLauncher.launch(null)
+            },
+            onOperationRequested = { destination ->
+                enqueueBackgroundCopy(destination.path, destination.name)
             }
         ).apply {
             setOnDismissListener {
-                // Guard: when "Select Folder" was clicked, the picker is active - skip cleanup here
-                if (!folderPickerActive) cleanupAndFinish()
+                // Guard: when "Select Folder" was clicked, the picker is active - skip cleanup here.
+                // S1370: the dialog also dismisses itself the moment it hands the destination back, so
+                // a background order in flight must keep the screen alive until the order is accepted.
+                if (!folderPickerActive && !backgroundOrderInFlight) cleanupAndFinish()
             }
             show()
+        }
+    }
+
+    // ── Background copy handoff ──────────────────────────────────────────────
+
+    /**
+     * S1370: the single order path for both destination branches. The screen finishes as soon as the
+     * work is enqueued, so the staged files must not be deleted here - the worker owns them from this
+     * point on and purges them on every terminal outcome.
+     */
+    private fun enqueueBackgroundCopy(destinationPath: String, destinationName: String) {
+        val files = cachedFiles
+        if (files.isEmpty()) {
+            cleanupAndFinish()
+            return
+        }
+        val request = BrowseFileTransferRequest(
+            operationType = FileOperationType.COPY,
+            sourceResourceId = -1L,
+            sourceResourceName = getString(R.string.receive_share_source_name),
+            sourceCredentialsId = null,
+            currentBrowsePath = null,
+            destinationPath = destinationPath,
+            destinationName = destinationName,
+            overwriteFiles = false,
+            sources = files.map {
+                BrowseFileTransferSource(
+                    path = it.absolutePath,
+                    displayName = it.name,
+                    size = it.length(),
+                    isDirectory = false,
+                )
+            },
+            sourcesOwnedByOperation = true,
+            stagingDirectoryPath = tempDir.absolutePath,
+        )
+        Timber.d("S1370: share copy ordered to %s files=%d", destinationName, files.size)
+        backgroundOrderInFlight = true
+        // Claimed before the enqueue, not after it: Back during the in-flight window reaches onDestroy,
+        // whose best-effort cleanup would otherwise delete the sources the accepted work is about to read.
+        stagedSourcesHandedOff = true
+        // The application scope, not lifecycleScope: the enqueue must complete even if the user leaves
+        // while WorkManager is still writing the request.
+        applicationScope.launch(Dispatchers.IO) {
+            val result = browseTransferCoordinator.enqueueIfIdle(request)
+            withContext(Dispatchers.Main) {
+                backgroundOrderInFlight = false
+                when (result) {
+                    is BrowseFileTransferCoordinator.EnqueueResult.Enqueued -> {
+                        Timber.i("ReceiveShareActivity: background copy enqueued workId=%s", result.workId)
+                        cleanupAndFinish()
+                    }
+                    is BrowseFileTransferCoordinator.EnqueueResult.ActiveAlreadyRunning -> {
+                        // Ownership was never transferred, so this screen owns the staged files again.
+                        stagedSourcesHandedOff = false
+                        if (isFinishing || isDestroyed) {
+                            // The user already left, so nobody will retry - drop the staging directory
+                            // rather than leave an ownerless copy of the shared files in the cache.
+                            deleteCachedFilesAsync("order-refused")
+                            return@withContext
+                        }
+                        // Keep the screen alive: the accepted files are only reachable from here, so
+                        // finishing on a refused order would drop them with nothing to retry from.
+                        Toast.makeText(
+                            this@ReceiveShareActivity,
+                            R.string.browse_transfer_already_running,
+                            Toast.LENGTH_LONG,
+                        ).show()
+                        showDestinationDialog()
+                    }
+                }
+            }
         }
     }
 
     // ── SAF folder copy ──────────────────────────────────────────────────────
 
     private fun copyToSafFolder(treeUri: Uri) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                contentResolver.takePersistableUriPermission(
-                    treeUri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                )
-                val rootDoc = DocumentFile.fromTreeUri(this@ReceiveShareActivity, treeUri)
-                    ?: throw IllegalStateException("Cannot access selected folder")
-
-                cachedFiles.forEach { file ->
-                    val mime = MimeTypeMap.getSingleton()
-                        .getMimeTypeFromExtension(file.extension.lowercase())
-                        ?: "application/octet-stream"
-                    val newDoc = rootDoc.createFile(mime, file.name)
-                        ?: throw IllegalStateException("Cannot create ${file.name} in selected folder")
-                    contentResolver.openOutputStream(newDoc.uri)?.use { out ->
-                        file.inputStream().use { it.copyTo(out) }
-                    }
-                }
-
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@ReceiveShareActivity, R.string.receive_share_copied_to_folder, Toast.LENGTH_SHORT).show()
-                    cleanupAndFinish()
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "ReceiveShareActivity: SAF copy failed")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        this@ReceiveShareActivity,
-                        getString(R.string.receive_share_copy_to_folder_failed),
-                        Toast.LENGTH_LONG
-                    ).show()
-                    cleanupAndFinish()
-                }
+        Timber.d("S1370: picked-folder branch entered")
+        lifecycleScope.launch {
+            // Taking the persistable grant and resolving the tree are binder + provider calls, so they
+            // stay off the main thread even though the copy itself has moved to the worker.
+            val folderName = withContext(Dispatchers.IO) {
+                runCatching {
+                    contentResolver.takePersistableUriPermission(
+                        treeUri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    )
+                    val tree = DocumentFile.fromTreeUri(this@ReceiveShareActivity, treeUri)
+                        ?: error("Cannot access selected folder")
+                    tree.name.orEmpty()
+                }.onFailure { Timber.e(it, "ReceiveShareActivity: SAF folder not usable") }.getOrNull()
             }
+
+            if (folderName == null) {
+                Toast.makeText(
+                    this@ReceiveShareActivity,
+                    getString(R.string.receive_share_copy_to_folder_failed),
+                    Toast.LENGTH_LONG
+                ).show()
+                cleanupAndFinish()
+                return@launch
+            }
+
+            enqueueBackgroundCopy(
+                destinationPath = treeUri.toString(),
+                destinationName = folderName.ifBlank { getString(R.string.receive_share_source_name) },
+            )
         }
     }
 
@@ -679,9 +774,33 @@ class ReceiveShareActivity : AppCompatActivity() {
     private fun cleanupAndFinish() {
         if (isFinishTriggered) return
         isFinishTriggered = true
-        cachedFiles.forEach { it.delete() }
-        tempDir.delete()
+        deleteCachedFilesAsync("finish")
         finish()
+    }
+
+    /**
+     * The deletes must outlive this Activity: [cleanupAndFinish] calls `finish()` immediately after,
+     * and [onDestroy] runs past `super.onDestroy()`, which has already cancelled `lifecycleScope`.
+     * The explicit dispatcher is redundant at runtime - the application scope is already IO-backed -
+     * but MainThreadIoDetector only recognises confinement from a resolvable dispatcher argument.
+     * Snapshotting into locals keeps the coroutine from retaining the destroyed Activity, and the
+     * empty check keeps the lazy `tempDir` from creating a directory just to delete it.
+     */
+    private fun deleteCachedFilesAsync(reason: String) {
+        // S1370: once the transfer work owns the staged files, deleting them here would pull the
+        // sources out from under a copy that is still running.
+        if (stagedSourcesHandedOff) {
+            Timber.d("S1324: share temp cleanup skipped reason=%s - owned by transfer work", reason)
+            return
+        }
+        val files = cachedFiles
+        if (files.isEmpty()) return
+        val dir = tempDir
+        Timber.d("S1324: share temp cleanup reason=%s files=%d", reason, files.size)
+        applicationScope.launch(Dispatchers.IO) {
+            files.forEach { it.delete() }
+            dir.delete()
+        }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -692,10 +811,7 @@ class ReceiveShareActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         // Best-effort cleanup if Activity is killed before cleanupAndFinish() runs
-        if (!isFinishTriggered) {
-            cachedFiles.forEach { it.delete() }
-            tempDir.delete()
-        }
+        if (!isFinishTriggered) deleteCachedFilesAsync("destroy")
     }
 
     /**

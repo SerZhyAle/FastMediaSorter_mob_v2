@@ -3253,4 +3253,7 @@
     <string name="camera_profile_macro">Макро</string>
     <string name="camera_profile_sport">Спорт</string>
     <string name="camera_profile_sport_notice">Спорт заморожує рух короткою витримкою - у темряві кадри виходять темнішими.</string>
+    <string name="perm_group_contacts">Контакти</string>
+    <string name="perm_title_read_contacts">Доступ до контактів</string>
+    <string name="perm_desc_read_contacts">Показувати ім\'я та фото контакту, коли ви закріплюєте його на робочому столі, і дозволяти зв\'язуватися з ним прямо із закріпленої комірки.</string>
 </resources>

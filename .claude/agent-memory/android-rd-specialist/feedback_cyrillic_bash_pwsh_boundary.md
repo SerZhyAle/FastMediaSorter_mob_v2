@@ -13,4 +13,4 @@ Passing Cyrillic (RU/UK) text as a `-Ru`/`-Uk`/`-En` argument to a pwsh script t
 - Never pass Cyrillic literals as pwsh CLI args from the Bash tool. Instead, author a temp `.ps1` with the **Write tool** (writes clean UTF-8 without BOM; pwsh parses scripts as UTF-8) that contains the Cyrillic literals in single-quoted strings, then run `pwsh -NoProfile -File temp/<x>.ps1`. Batch all string adds into one such script.
 - In that script use single quotes for values so `%1$s` placeholders are literal.
 - Verify the result with the **Grep/Read tool** (they decode UTF-8), not by eyeballing console output.
-- Same caution applies to any tool that takes Cyrillic via args (commit messages, log descriptions) - prefer here-strings/script files. Related: [[reference_strings_tool]], [[feedback_pwsh_bash_dollar_escape_trap]].
+- Same caution applies to any tool that takes Cyrillic via args (commit messages, log descriptions) - prefer here-strings/script files. Related: [[strings-tool-mutator]], [[pwsh-bash-dollar-escape-trap]].

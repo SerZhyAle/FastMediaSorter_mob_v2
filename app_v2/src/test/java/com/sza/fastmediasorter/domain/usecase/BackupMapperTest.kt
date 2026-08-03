@@ -217,7 +217,7 @@ class BackupMapperTest {
             disable3dVr = null,
         )
 
-        val restored = BackupMapper.toAppSettings(backup, current)
+        val restored = BackupMapper.toAppSettings(backup, current, BackupPayload.CURRENT_VERSION)
 
         assertEquals(current.linkAutoDownloadEnabled, restored.linkAutoDownloadEnabled)
         assertEquals(current.linkAutoDownloadOpenInPlayer, restored.linkAutoDownloadOpenInPlayer)
@@ -230,9 +230,35 @@ class BackupMapperTest {
     fun `settings round-trip preserves language and sort mode`() {
         val current = createAppSettings(language = "ru", defaultSortMode = SortMode.DATE_DESC)
 
-        val restored = BackupMapper.toAppSettings(BackupMapper.toBackupSettings(current), current)
+        val restored = BackupMapper.toAppSettings(
+            BackupMapper.toBackupSettings(current),
+            current,
+            BackupPayload.CURRENT_VERSION
+        )
 
         assertEquals("ru", restored.language)
         assertEquals(SortMode.DATE_DESC, restored.defaultSortMode)
+    }
+
+    // --- S1346: pre-S0981 backup restore must not re-enable open-in-player ---
+
+    @Test
+    fun `pre-S0981 backup (version 5) forces linkAutoDownloadOpenInPlayer off even when backup value is true`() {
+        val current = createAppSettings() // AppSettings default: linkAutoDownloadOpenInPlayer = false
+        val backup = BackupMapper.toBackupSettings(current).copy(linkAutoDownloadOpenInPlayer = true)
+
+        val restored = BackupMapper.toAppSettings(backup, current, payloadVersion = 5)
+
+        assertEquals(false, restored.linkAutoDownloadOpenInPlayer)
+    }
+
+    @Test
+    fun `post-S0981 backup (version 6) honors an explicit linkAutoDownloadOpenInPlayer true`() {
+        val current = createAppSettings() // AppSettings default: linkAutoDownloadOpenInPlayer = false
+        val backup = BackupMapper.toBackupSettings(current).copy(linkAutoDownloadOpenInPlayer = true)
+
+        val restored = BackupMapper.toAppSettings(backup, current, payloadVersion = 6)
+
+        assertEquals(true, restored.linkAutoDownloadOpenInPlayer)
     }
 }

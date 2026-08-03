@@ -1,6 +1,5 @@
 ---
 description: "Use for a very minor fix with no spec/build/doc/git - a design tweak, a typo, one string, a colour or padding, a single-locale rename. Triggers: 'quick fix', 'just fix this typo/colour/string'."
-model: sonnet
 ---
 
 # Quick Fix
@@ -40,7 +39,7 @@ Examples:
 - Многофайловых рефакторингов (>3 файлов или >50 LOC суммарно).
 - Любого изменения UI-поведения, видимости, ориентации, состояний, оверфлоу. Понятный багфикс → `/skill-fix`; нужны UI-решения → `/ui-clarify` + `/spec`.
 - Формулировок «хочу фичу», «добавь возможность», «сделай чтобы можно было».
-- Любой правки в `src/main/java/**`, добавляющей `BuildConfig.IS_NO_LEGAL_FLAVOR`, `BuildConfig.SUPPORT_VR_PLAYER`, `BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED` или другой `BuildConfig.SUPPORT_*` / `ENABLE_*` / `IS_*` flavor-гейт - нарушает CLAUDE.md Rule 15 и `dev/FLAVOR_DEVELOPMENT_RULES.md`. Это всегда `/spec` (interface в main + impl в `src/<flavor>/java/` + flavor-specific Hilt module).
+- Любой правки в `src/main/java/**`, добавляющей `BuildConfig.IS_NO_LEGAL_FLAVOR`, `BuildConfig.SUPPORT_VR_PLAYER`, `BuildConfig.VR_UI_COMPOSITION_LAYER_ENABLED` или другой `BuildConfig.SUPPORT_*` / `ENABLE_*` / `IS_*` flavor-гейт. Per CLAUDE.md Rule 14 (flavor isolation) - obey it as written; see also `dev/FLAVOR_DEVELOPMENT_RULES.md`. Это всегда `/spec`.
 - Любого нового файла в `src/main/java/com/sza/fastmediasorter/vr/**` или с flavor-семантикой (`*Vr*`, `*NoLegal*` в имени класса) - должен лежать в `src/<flavor>/java/`, не в main.
 
 При срабатывании любого признака - **отказать и предложить `/skill-fix` (узкий багфикс) либо `/spec` / `/spec-all` (шире)**, не выполнять.
@@ -64,11 +63,11 @@ Author style: `..` не `...`, `ё`/`Ё` в русских строках. Ан�
 
 > **⚠ COMMUNICATION_POLICY:** правка пользовательского текста (toast, dialog, empty state, error, snackbar, CTA) - сверить с `docs/COMMUNICATION_POLICY.md` §2 (формулы) и §6 (чек-лист тона). Не проходит → переформулировать.
 
-> **⚠ LAYOUT_ORIENTATION:** правка `res/layout/*.xml` - **сразу проверить** `res/layout-land/<тот же файл>.xml`. Есть → эквивалентная правка туда же в рамках того же `/quick`. Нет, а экран двуориентационный → это не «очень незначительная» правка: отказать, предложить `/spec`.
+> **⚠ LAYOUT_ORIENTATION:** per CLAUDE.md Rule 11 (layout-land parity) - obey it as written; парная правка делается в рамках того же `/quick`. `/quick`-специфика: если land-варианта нет, а экран двуориентационный → это не «очень незначительная» правка: отказать, предложить `/spec`.
 
 > **⚠ STRINGS:** правки `<string>` через `pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Action set -Locale en|ru|uk -Key <key> -Value <text>` (байт-сохраняюще, `-ExpectedOldValue` для защиты), не ручным редактированием `strings.xml`. Ручная правка - только `plurals`, `string-array`, комментарии, перегруппировка.
 
-> **⚠ NEUROSLOP (CLAUDE.md Rule 20):** даже мелкая правка не порождает AI-слоп - не добавлять тривиальные комментарии-пересказы, пустые/широкие глотающие `catch`, захардкоженные `="#hex"` в `res/layout*` (только `?attr/`/`@color/`), сырые `lifecycleScope.launch { flow.collect { } }` на view-bound Flow (только `collectOnLifecycle`). При `ChangeType Kotlin|Xml|Mixed` гейт `neuroslop-gate` в `post-change.ps1` отклонит регресс.
+> **⚠ NEUROSLOP:** per CLAUDE.md Rule 19 (neuroslop avoidance, detekt-clean-first) - obey it as written. `/quick`-специфика: размер правки не даёт поблажки, и при `ChangeType Kotlin|Xml|Mixed` гейт `neuroslop-gate` в `post-change.ps1` отклонит регресс.
 
 **Step 4 - Закрыть правку через `scripts/post-change.ps1`** (обязательно, одной командой):
 ```powershell
@@ -100,7 +99,7 @@ Skip (тихо), если:
 Сомневаешься - лог.
 
 **Step 4b - On-device проверка (только при `--verify-device`).** Сразу после `post-change.ps1`:
-1. Pre-flight: `pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -Json`. Exit ≠ 0 → залогировать причину в чат, пропустить шаг (не блокировать `/quick`).
+1. Pre-flight: `pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -Json`. Скрипт всегда завершается 0, когда состояние определено - смотри `ready` / `state` в JSON. `ready: false` → залогировать `reason` в чат, пропустить шаг (не блокировать `/quick`).
 2. `/verify` без аргументов (default smoke: launch + screenshot home + crash scan). Артефакты в `temp/scratch/verify_*` - `/quick` их не трогает.
 3. В отчёт хвост: `verify: PASS/FAIL, errors N`.
 

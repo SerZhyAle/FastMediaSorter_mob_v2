@@ -21,4 +21,4 @@ metadata:
 
 **Why:** owner (Serhii) asked why I wasn't leveraging his class/function library when starting tasks. Root cause was two -Search defects (now fixed) plus the empty semantic layer - not a missing memory. Duplicating catalog data into agent-memory was rejected: it would go stale (working tree = truth) and cannot fit the 200-line MEMORY.md budget.
 
-**How to apply:** for "where does feature X live", run `query.ps1 -Module app_v2 -Search "<word or phrase>"` FIRST (multi-word now works). Treat a miss as a possible vocabulary gap (try the code's term), not proof the feature is absent. Roles decay/grow as the catalog evolves - re-verify the 66% figure before relying on it. See [[project_catalog_scan_source_sets]].
+**How to apply:** for "where does feature X live", run `query.ps1 -Module app_v2 -Search "<word or phrase>"` FIRST (multi-word now works). Treat a miss as a possible vocabulary gap (try the code's term), not proof the feature is absent. Roles decay/grow as the catalog evolves - re-verify the 66% figure before relying on it. See [[catalog-scan-source-sets]].

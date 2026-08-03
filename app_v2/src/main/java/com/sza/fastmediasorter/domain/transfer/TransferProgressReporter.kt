@@ -6,8 +6,12 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Percent is deliberately absent: the rendered figure needs a running ceiling and a file-count
+ * fallback, so it stays in the single UI-side helper every consumer already calls rather than
+ * existing here as a second formula.
+ */
 data class TransferProgressReport(
-    val percent: Int?,
     val speedBytesPerSecond: Long,
     val shouldPublish: Boolean,
 )
@@ -21,9 +25,8 @@ class TransferProgressReporter(
     constructor() : this(SystemClock::elapsedRealtime)
 
     private companion object {
-        const val PERCENT_SCALE = 100L
-        const val PERCENT_MAX = 100
         const val RATE_WINDOW_MS = 3_000L
+        const val MILLIS_PER_SECOND = 1_000L
     }
 
     private val operationStates = ConcurrentHashMap<String, OperationState>()
@@ -50,9 +53,6 @@ class TransferProgressReporter(
                 state.recordPublication(consumerKey, nowMs)
             }
             val report = TransferProgressReport(
-                percent = totalBytes.takeIf { it > 0L }?.let {
-                    (bytesTransferred * PERCENT_SCALE / it).toInt().coerceIn(0, PERCENT_MAX)
-                },
                 speedBytesPerSecond = state.speedBytesPerSecond(),
                 shouldPublish = shouldPublish,
             )
@@ -92,10 +92,16 @@ class TransferProgressReporter(
 
         fun speedBytesPerSecond(): Long {
             val first = samples.firstOrNull() ?: return 0L
-            val last = samples.lastOrNull() ?: return 0L
+            val last = samples.last()
             val elapsedMs = last.timeMs - first.timeMs
-            if (elapsedMs <= 0L) return 0L
-            return (last.bytesTransferred - first.bytesTransferred) * 1_000L / elapsedMs
+            // A restarted file, or a path that reports a fresh byte counter under the same operation
+            // id, makes the window run backwards; a negative rate must never reach a consumer as one.
+            return if (elapsedMs > 0L) {
+                ((last.bytesTransferred - first.bytesTransferred) * MILLIS_PER_SECOND / elapsedMs)
+                    .coerceAtLeast(0L)
+            } else {
+                0L
+            }
         }
     }
 

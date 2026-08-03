@@ -19,7 +19,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
@@ -34,8 +33,8 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableInventory
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
-import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.model.StreamTrackLanguage
+import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
@@ -49,7 +48,9 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamHealthProbeManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioCallbacks
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioViews
 import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager
@@ -93,6 +94,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // S1154: routes the post-import atlas-download offer through the real WorkManager delivery path.
     @Inject
     lateinit var deliverableInventory: DeliverableInventory
+
+    // S1373: the compile-time "does this build ship background audio" axis has one sanctioned reader
+    // (CLAUDE.md Rule 14). Reading the build flag here instead is what the rule forbids in shared code.
+    @Inject
+    lateinit var capabilityAvailability: com.sza.fastmediasorter.core.capability.CapabilityAvailability
 
     // S0675: in-memory TTL cache of captured live-stream frames, shared between the snapshot engine
     // (writer) and the grid adapter (reader).
@@ -338,29 +344,34 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     override fun setupViews() {
         inlineAudio = StreamInlineAudioManager(
             lifecycleOwner = this,
-            miniControl = binding.streamMiniControl,
-            titleView = binding.tvMiniTitle,
-            playStopButton = binding.btnMiniPlayStop,
+            views = StreamInlineAudioViews(
+                miniControl = binding.streamMiniControl,
+                titleView = binding.tvMiniTitle,
+                playStopButton = binding.btnMiniPlayStop,
+            ),
             audioController = AudioServiceController(this),
-            // S1141: a channel is pinned XOR unpinned, so the now-playing note must be pushed to both list
-            // adapters - only the section holding it repaints, the other no-ops. S1142: the grid adapters
-            // now also carry the active tile's now-playing track, so a new play/stop resets it there too.
-            onPlayingChanged = { id ->
-                adapter.setPlayingId(id); pinnedAdapter.setPlayingId(id)
-                gridAdapter.setNowPlaying(id, null); pinnedGridAdapter.setNowPlaying(id, null)
-            },
-            onPlaybackStateChanged = { source, isPlaying ->
-                if (isPlaying) source?.let(::persistStreamResume) else clearStreamResume()
-            },
-            onError = ::showStreamUnavailable,
-            onSuccess = { viewModel.recordStreamOutcome(it.id, ok = true) },
-            // S1142: mirror the live now-playing track onto the active channel's grid tile. The id comes
-            // from the manager itself - reading it back via inlineAudio here crashed on the init-time emit
-            // (the lateinit is not yet assigned while the constructor runs).
-            onNowPlayingChanged = { id, track ->
-                gridAdapter.setNowPlaying(id, track)
-                pinnedGridAdapter.setNowPlaying(id, track)
-            },
+            callbacks = StreamInlineAudioCallbacks(
+                // S1141: a channel is pinned XOR unpinned, so the now-playing note must be pushed to both
+                // list adapters - only the section holding it repaints, the other no-ops. S1142: the grid
+                // adapters now also carry the active tile's now-playing track, so a new play/stop resets
+                // it there too.
+                onPlayingChanged = { id ->
+                    adapter.setPlayingId(id); pinnedAdapter.setPlayingId(id)
+                    gridAdapter.setNowPlaying(id, null); pinnedGridAdapter.setNowPlaying(id, null)
+                },
+                onPlaybackStateChanged = { source, isPlaying ->
+                    if (isPlaying) source?.let(::persistStreamResume) else clearStreamResume()
+                },
+                onError = ::showStreamUnavailable,
+                onSuccess = { viewModel.recordStreamOutcome(it.id, ok = true) },
+                // S1142: mirror the live now-playing track onto the active channel's grid tile. The id
+                // comes from the manager itself - reading it back via inlineAudio here crashed on the
+                // init-time emit (the lateinit is not yet assigned while the constructor runs).
+                onNowPlayingChanged = { id, track ->
+                    gridAdapter.setNowPlaying(id, track)
+                    pinnedGridAdapter.setNowPlaying(id, track)
+                },
+            ),
         )
         // S0778: keep the bottom mini-control above the navigation bar / side cutout under edge-to-edge.
         inlineAudio.applyWindowInsets()
@@ -1116,7 +1127,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     /** S0577: background streaming uses the foreground service only when the user enabled it and the flavor supports it. */
     private fun isBackgroundAudioEnabled(): Boolean =
-        viewModel.settings.value.enablePersistentAudioPlayback && BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
+        viewModel.settings.value.enablePersistentAudioPlayback &&
+            capabilityAvailability.isPersistentAudioPlaybackAvailable()
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)

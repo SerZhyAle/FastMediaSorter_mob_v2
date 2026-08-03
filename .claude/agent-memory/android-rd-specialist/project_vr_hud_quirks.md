@@ -36,4 +36,4 @@ If any of these are missing or `EARLY RETURN`, HUD is broken - diagnose using th
 7. **Quad size is runtime-settable**: `runtime.setHudQuadSize(w,h)` -> `xr_hud_set_quad_size` (override persists across sessions in-process; `xr_hud_init` re-applies it). Each mode must set its own size explicitly on session ready (panel 0.48x0.30, banner 0.3x0.113) - relying on defaults breaks after a mode switch within one process.
 8. **Panel repaints are debounced (~100 ms) and state-driven** (play/pause, volume, tracks changed, cycle clicks). Volume slider drag fires per ray-tick - never wire it straight to `queueHud`.
 
-See also [[user_author_style]], [[project_functionality_log]].
+See also [[writing-style-dashes-yo-ellipsis]], [[capability-inventory-all-features]].

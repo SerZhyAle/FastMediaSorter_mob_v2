@@ -36,6 +36,34 @@
     ],
     "defaultMode": "acceptEdits"
   },
+  "statusLine": {
+    "type": "command",
+    "command": "pwsh -NoProfile -File .claude/statusline.ps1",
+    "padding": 0
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/reset-catalog-touch-marker.ps1\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-catalog-before-kt-search.ps1\""
+          }
+        ]
+      }
+    ]
+  },
   "agent": "android-rd-specialist",
   "enabledPlugins": {
     "telegram@claude-plugins-official": true

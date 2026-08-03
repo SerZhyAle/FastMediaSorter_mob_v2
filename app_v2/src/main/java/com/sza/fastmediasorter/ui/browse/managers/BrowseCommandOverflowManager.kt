@@ -19,6 +19,10 @@ import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
  * refresh, toggle-view, select/deselect, play) participate unconditionally. Eligibility is held
  * authoritatively here rather than inferred from view visibility, which our own overflow hiding
  * would otherwise contaminate.
+ *
+ * btnPath (S1316) is a reserved anchor rather than an overflow candidate: it is the only way back
+ * up the folder tree, so it must never be pushed into the "⋮" menu. Its width is subtracted from
+ * the bar budget while it is visible, exactly like the btnResourceOps anchor.
  */
 class BrowseCommandOverflowManager(
     private val binding: ActivityBrowseBinding
@@ -70,7 +74,12 @@ class BrowseCommandOverflowManager(
         val available = binding.layoutControls.let {
             it.width - it.paddingStart - it.paddingEnd
         }
-        val reserved = binding.btnResourceOps?.let { measuredWidthOf(it) } ?: 0
+        val anchorWidth = binding.btnResourceOps?.let { measuredWidthOf(it) } ?: 0
+        // Probe btnPath only while it is on the bar: measuredWidthOf would otherwise hand back its
+        // cached width for a GONE button and shrink the budget at resource root for nothing, and on
+        // a cold cache the force-measure fallback would poison measuredHeight (S1258 note below).
+        val pathWidth = if (binding.btnPath.isVisible) measuredWidthOf(binding.btnPath) else 0
+        val reserved = anchorWidth + pathWidth
 
         val slots = eligible.map { c ->
             CommandSlot(
@@ -127,7 +136,8 @@ class BrowseCommandOverflowManager(
 
     /**
      * Priority-ordered candidate commands (index 0 = highest priority, overflows last).
-     * btnResourceOps is excluded: it is the always-present overflow anchor (its width is reserved).
+     * btnResourceOps and btnPath are excluded: both are reserved anchors, never overflow candidates
+     * (their widths are subtracted from the bar budget in [applyPartition] instead).
      */
     private fun candidates(): List<Candidate> {
         val filterCell = binding.btnFilter.parent as? View

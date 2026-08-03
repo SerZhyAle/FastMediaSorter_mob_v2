@@ -4,35 +4,39 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.core.util.DestinationColors
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.DeviceStorageState
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.TranslationModelPrewarmStatus
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.model.DeviceStorageState
-import com.sza.fastmediasorter.domain.model.TranslationModelPrewarmStatus
 import com.sza.fastmediasorter.domain.translation.TranslationModelPrewarmer
+import com.sza.fastmediasorter.domain.usecase.CheckLocalFolderWritableUseCase
+import com.sza.fastmediasorter.domain.usecase.CleanupHiddenResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.CleanupTrashFoldersUseCase
-import com.sza.fastmediasorter.domain.usecase.launcher.LauncherWallpaperImport
-import com.sza.fastmediasorter.domain.usecase.launcher.StoreLauncherWallpaperUseCase
-import com.sza.fastmediasorter.domain.usecase.streams.ClearStreamPlayOutcomesUseCase
 import com.sza.fastmediasorter.domain.usecase.ExportSettingsUseCase
-import com.sza.fastmediasorter.domain.usecase.GetDeviceStorageUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.domain.usecase.GetDeviceStorageUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.ResetSmbConnectionsUseCase
+import com.sza.fastmediasorter.domain.usecase.ResolveLocalFolderResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.SetStatisticsCollectionEnabledUseCase
 import com.sza.fastmediasorter.domain.usecase.SyncNetworkResourcesUseCase
-import com.sza.fastmediasorter.worker.WorkManagerScheduler
-import com.sza.fastmediasorter.widget.GameLaunchWidgetProvider
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.LauncherWallpaperImport
+import com.sza.fastmediasorter.domain.usecase.launcher.StoreLauncherWallpaperUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ClearStreamPlayOutcomesUseCase
 import com.sza.fastmediasorter.ui.settings.helpers.SzaResourcesImporter
+import com.sza.fastmediasorter.widget.GameLaunchWidgetProvider
+import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +53,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.sza.fastmediasorter.R
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -84,7 +87,10 @@ class SettingsViewModel @Inject constructor(
     private val setStatisticsCollectionEnabledUseCase: SetStatisticsCollectionEnabledUseCase,
     private val clearStreamPlayOutcomesUseCase: ClearStreamPlayOutcomesUseCase,
     private val remoteSourceGate: RemoteSourceAvailabilityGate,
-    private val storeLauncherWallpaperUseCase: StoreLauncherWallpaperUseCase
+    private val storeLauncherWallpaperUseCase: StoreLauncherWallpaperUseCase,
+    private val checkLocalFolderWritableUseCase: CheckLocalFolderWritableUseCase,
+    private val resolveLocalFolderResourceUseCase: ResolveLocalFolderResourceUseCase,
+    private val cleanupHiddenResourceUseCase: CleanupHiddenResourceUseCase
 ) : ViewModel() {
 
     /** S0994: companion import (SFTP) availability gates the publish-folders help link in settings. */
@@ -739,6 +745,22 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
+
+    /** S1010: write-check for an ad-hoc local folder picked as a write receiver in settings. */
+    suspend fun isLocalFolderWritable(path: String): Boolean = checkLocalFolderWritableUseCase(path)
+
+    /**
+     * S1010: persist a picked local folder as a hidden resource (or reuse a matching visible one) and
+     * return it, so the caller can assign it to a destination setting without it appearing in the list.
+     */
+    suspend fun resolveLocalFolderResource(path: String, name: String, isWritable: Boolean): MediaResource? {
+        val id = resolveLocalFolderResourceUseCase(path, name, isWritable)
+        return resourceRepository.getResourceById(id)
+    }
+
+    /** S1010: drop the hidden resource a destination setting no longer points at (1:1 ownership). */
+    suspend fun cleanupPreviousHiddenDestination(previousResourceId: Long?) =
+        cleanupHiddenResourceUseCase(previousResourceId)
 
     // Methods for importing test credentials/resources
     fun addCredentials(credentials: com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity) {

@@ -1,48 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One tile in the Welcome "Powerful Extras" feature grid: tinted icon + ≤2-line label.
-     Inflated by WelcomePagerAdapter.populateFeatureGrid(); the tile's contentDescription is
-     set to the label text at bind time. -->
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- One row in the Welcome feature list: icon in a tinted circle, bold title, one short benefit line.
+     Inflated by WelcomePagerAdapter.populateFeatureGrid(); the row's contentDescription is set to
+     "title. detail" at bind time. Deliberately background-less and non-interactive - the previous
+     MaterialCardView read as a button and invited taps the row does not answer. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
     android:clickable="false"
     android:focusable="false"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="0dp"
-    app:strokeWidth="0dp"
-    app:rippleColor="@android:color/transparent"
-    app:cardBackgroundColor="?attr/colorSurfaceVariant">
+    android:paddingTop="@dimen/welcome_feature_row_padding"
+    android:paddingBottom="@dimen/welcome_feature_row_padding">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:minHeight="72dp"
-        android:padding="@dimen/welcome_feature_card_padding">
+    <!-- Top-aligned, not centred: in a two-column layout the detail wraps to three lines and a
+         centred badge drifts down beside the wrapped text instead of anchoring the title. -->
+    <FrameLayout
+        android:layout_width="@dimen/welcome_feature_row_badge_size"
+        android:layout_height="@dimen/welcome_feature_row_badge_size"
+        android:layout_gravity="top"
+        android:background="@drawable/bg_welcome_feature_icon_badge"
+        android:backgroundTint="?attr/colorPrimaryContainer"
+        android:importantForAccessibility="no">
 
         <ImageView
             android:id="@+id/ivFeatureTileIcon"
-            android:layout_width="@dimen/welcome_feature_card_icon_size"
-            android:layout_height="@dimen/welcome_feature_card_icon_size"
+            android:layout_width="@dimen/welcome_feature_row_icon_size"
+            android:layout_height="@dimen/welcome_feature_row_icon_size"
+            android:layout_gravity="center"
             android:importantForAccessibility="no"
-            app:tint="?attr/colorPrimary"
-            tools:src="@drawable/ic_ocr" />
+            app:tint="?attr/colorOnPrimaryContainer"
+            tools:src="@drawable/ic_image" />
+
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/welcome_feature_row_icon_gap"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/tvFeatureTileLabel"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:gravity="center"
-            android:textSize="@dimen/welcome_feature_card_text_size"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="@dimen/welcome_feature_row_title_text_size"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"
             android:maxLines="2"
             android:ellipsize="end"
-            tools:text="OCR &amp; Translate" />
+            tools:text="Photos &amp; Video" />
+
+        <TextView
+            android:id="@+id/tvFeatureTileDetail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textSize="@dimen/welcome_feature_row_detail_text_size"
+            android:textColor="?attr/colorOnSurface"
+            android:alpha="0.75"
+            android:lineSpacingMultiplier="1.15"
+            android:maxLines="3"
+            android:ellipsize="end"
+            tools:text="Every photo, video and GIF on the device" />
 
     </LinearLayout>
 
-</com.google.android.material.card.MaterialCardView>
+</LinearLayout>

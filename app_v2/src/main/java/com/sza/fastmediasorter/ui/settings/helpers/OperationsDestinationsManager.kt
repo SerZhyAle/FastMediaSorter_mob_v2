@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import timber.log.Timber
 
 /**
  * Owns the destinations list embedded in the Operations tab: the RecyclerView + adapter, add/remove/
@@ -57,6 +58,31 @@ class OperationsDestinationsManager(
                 R.string.tooltip_destinations_title,
                 R.string.tooltip_destinations_message
             )
+        }
+
+        registerColorPickerResultListener()
+    }
+
+    /**
+     * Registered from [setup] - which the host runs in `onViewCreated` - so a settings screen recreated
+     * behind the open picker re-registers before the restored dialog is resumed. The picker is opened
+     * for every destination row, so the row id rides in the dialog arguments and comes back in the
+     * result bundle: one listener serves them all.
+     */
+    private fun registerColorPickerResultListener() {
+        fragment.parentFragmentManager.setFragmentResultListener(
+            ColorPickerDialog.RESULT_KEY,
+            fragment.viewLifecycleOwner
+        ) { _, bundle ->
+            val subjectId = bundle.getString(ColorPickerDialog.RESULT_SUBJECT_ID).orEmpty()
+            val color = bundle.getInt(ColorPickerDialog.RESULT_COLOR)
+            Timber.d("S1331: color result received subject=%s", subjectId)
+            // Resolved from the StateFlow rather than currentDestinations: after a recreation the
+            // result can arrive before the collector has replayed its first value.
+            val resource = viewModel.destinations.value.firstOrNull { it.id.toString() == subjectId }
+            if (resource != null) {
+                viewModel.updateDestinationColor(resource, color)
+            }
         }
     }
 
@@ -112,10 +138,8 @@ class OperationsDestinationsManager(
     private fun showColorPicker(resource: MediaResource) {
         ColorPickerDialog.newInstance(
             initialColor = resource.destinationColor,
-            onColorSelected = { color ->
-                viewModel.updateDestinationColor(resource, color)
-            }
-        ).show(fragment.parentFragmentManager, "ColorPickerDialog")
+            subjectId = resource.id.toString()
+        ).show(fragment.parentFragmentManager, ColorPickerDialog.TAG)
     }
 
     private suspend fun updateAddDestinationVisibility(hasDestinations: Boolean) {

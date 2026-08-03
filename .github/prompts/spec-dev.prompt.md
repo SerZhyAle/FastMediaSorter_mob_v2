@@ -50,7 +50,7 @@ For each step in plan order:
 
 1. **Re-read the phase file.** If `Status:` is no longer `[ ]`/`[~]` → log "PRE-RESOLVED - skipped".
 2. **Verify dependencies.** `Depends on:` step must be `[x] done` - else abort: "Dependency violation: NN.M depends on NN.K which is not done."
-3. **Read `Prompt for developer:`** + `Files Touched` row(s). For each referenced existing class/method, confirm it exists at the expected path - else abort: "Prompt references `<symbol>` at `<path>`, not found."
+3. **Read `Prompt for developer:` and `Why:`** + `Files Touched` row(s). For each referenced existing class/method, confirm it exists at the expected path - else abort: "Prompt references `<symbol>` at `<path>`, not found." The `Why:` field (S1343, mandatory since 2026-08-02) carries the step's sourced rationale - read it before deciding anything the prompt does not cover, and prefer it to re-opening the strategic spec. `Why:` reading `not stated in strategic spec` is not a defect and not a blocker; it means the rationale was never written down, so an uncovered edge case needs the strategic spec or `/spec-quiz`, not a guess.
 4. **Ambiguity check.** If prompt contains `<TODO>`, `<choose ..>`, `???`, or any unresolved placeholder → abort, request spec update via `/spec-update`. If it requires user input, set spec status to `BlockQuestions` and stop.
 5. **Pre-edit guards:**
    - Read-only zone (`V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`) → abort.

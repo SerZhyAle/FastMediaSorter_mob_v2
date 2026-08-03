@@ -136,6 +136,10 @@ The app requests minimum necessary permissions:
 - `INTERNET`: Connect to network shares and Google Drive
 - `ACCESS_NETWORK_STATE` / `ACCESS_WIFI_STATE`: Check connectivity
 
+### Contacts Permissions
+
+- `READ_CONTACTS`: Optional, used only to show a pinned contact's name and photo on the launcher (Settings > Permissions > Contacts); denying it keeps a plain initial in place of the photo.
+
 ### Other Permissions
 
 - `WAKE_LOCK`: Keep screen on during playback (user-controlled in Settings)  

@@ -83,6 +83,13 @@ object PermissionHelper {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    /** S0766: true when fine OR coarse location is granted; callers silently skip geotagging otherwise. */
+    fun hasLocationPermission(context: Context): Boolean =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+
     /**
      * Request storage permission based on Android version.
      */
@@ -241,7 +248,10 @@ object PermissionHelper {
                     context,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE
                 ) == PackageManager.PERMISSION_GRANTED
-                Timber.d("PermissionHelper: API ${Build.VERSION.SDK_INT} - READ_EXTERNAL_STORAGE=$hasRead, WRITE_EXTERNAL_STORAGE=$hasWrite")
+                Timber.d(
+                    "PermissionHelper: API ${Build.VERSION.SDK_INT} - " +
+                        "READ_EXTERNAL_STORAGE=$hasRead, WRITE_EXTERNAL_STORAGE=$hasWrite",
+                )
                 hasRead && hasWrite
             }
             

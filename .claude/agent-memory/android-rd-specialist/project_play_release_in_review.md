@@ -16,4 +16,4 @@ Durable precedent facts for future Play submissions:
 
 **Why:** what Play review actually accepts for risky FGS types is not derivable from code and saves re-research on the next FGS-affecting submission.
 
-**How to apply:** when adding or altering an FGS type / Play-sensitive permission, reuse the visible-affordance + user-initiated-wording playbook above; check rollout state read-only via [[reference_play_console_api_access]].
+**How to apply:** when adding or altering an FGS type / Play-sensitive permission, reuse the visible-affordance + user-initiated-wording playbook above; check rollout state read-only via [[play-console-api-access]].

@@ -442,7 +442,10 @@ function Invoke-Move {
     if ($Key) {
         Test-KeySyntax $Key
         $ok = Move-OneKey $Key $File
-        if (-not $ok -and -not $DryRun) { exit 1 }
+        if (-not $ok -and -not $DryRun) {
+            Write-Error "move: key '$Key' was not moved into '$File' - see the message above." -ErrorAction Continue
+            exit 1
+        }
         exit 0
     }
     if (-not $Prefix) { throw "move requires -Key or -Prefix." }

@@ -242,10 +242,10 @@
     public *;
 }
 
-# Keep Glide generated API
--keep class com.sza.fastmediasorter.GlideApp { *; }
--keep class com.sza.fastmediasorter.GlideRequest { *; }
--keep class com.sza.fastmediasorter.GlideRequests { *; }
+# Glide's generated facade (GlideApp / GlideRequest / GlideRequests) no longer exists: the KSP
+# processor generates only GeneratedAppGlideModuleImpl, and nothing in this app referenced the
+# facade anyway. The rules that named it were also pointing at the wrong package - kapt had emitted
+# it under .di - so they matched nothing even before the migration (S1338 phase 10).
 
 # ===== ML Kit (Translation & OCR) =====
 -dontwarn com.google.mlkit.**

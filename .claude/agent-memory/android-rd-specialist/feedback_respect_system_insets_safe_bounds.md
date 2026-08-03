@@ -10,7 +10,7 @@ Every NEW window, screen, Activity, Fragment, panel, bottom sheet, dialog, popup
 
 This is the *safe-area / insets* dimension - distinct from [[no-edge-to-edge-ui-elements]], which is the *aesthetic width/height bounding* dimension. CLAUDE.md Rule 17 already mandates this; the point of this memory is that we **regress on it repeatedly** - treat it as a default reflex on every new surface, not an afterthought.
 
-**Why:** recurring incident the owner keeps catching - new windows/panels "не уважают границы экрана и требования новых андроид и перекрываются элементами операционной системы". We step on this rake again and again. Related: [[no-edge-to-edge-ui-elements]], [[no-fullwidth-buttons-landscape]], [[play-setstatusbarcolor-false-positive]] (the Play-console edge-to-edge warnings were the app-side symptom of the same gap).
+**Why:** recurring incident the owner keeps catching - new windows/panels "не уважают границы экрана и требования новых андроид и перекрываются элементами операционной системы". We step on this rake again and again. Related: [[no-edge-to-edge-ui-elements]], [[no-fullwidth-buttons-landscape]], [[play-edge-to-edge-warnings-status]] (the Play-console edge-to-edge warnings were the app-side symptom of the same gap).
 
 **How to apply (reflex on any new surface):**
 - New Activity/screen: apply `ViewCompat.setOnApplyWindowInsetsListener(root)` consuming `WindowInsetsCompat.Type.systemBars() or displayCutout()` (add `ime()` when it has text input) -> translate to root padding; or `fitsSystemWindows` where that idiom is already used. Mirror the project's existing edge-to-edge inset pattern (e.g. `applyEdgeToEdgeInsets()` in MainActivity) rather than inventing a new one.

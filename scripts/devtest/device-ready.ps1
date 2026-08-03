@@ -11,16 +11,23 @@
     4. If -ExpectedVersion is given, the installed package's versionName matches.
     5. If -CheckMcp is set, the mobile-mcp launcher (npx + @mobilenext/mobile-mcp) is resolvable.
 
-  Exit codes are stable; skills use them to decide whether to abort or proceed.
+  This is a STATUS QUERY (S1338 phase 09). "No device attached" is a normal answer to it,
+  not a failure of the query, so the readiness verdict travels in the payload and the
+  process exits 0 whenever the state could be determined. Read `ready` (bool) and `state`
+  (string); `statusCode` carries the legacy numeric code for anything still keyed on it.
+  Pass -StrictExit to restore the old behaviour where the numeric code IS the exit code.
 
   Exit codes:
-    0 - device ready (also writes "OK ..." human line; with -Json writes machine JSON)
-    1 - ADB executable not found
-    2 - no online device
-    3 - multiple online devices and -DeviceId not supplied
-    4 - target package not installed
-    5 - installed versionName mismatch
-    6 - mobile-mcp launcher not resolvable
+    0 - state determined and reported: ready, or not-ready with a `state`/`reason`
+    2 - the probe itself could not run
+
+  With -StrictExit the not-ready states exit with their legacy code instead:
+    1 - ADB executable not found          (state: no-adb)
+    2 - no online device                  (state: no-device)
+    3 - multiple online devices, no -DeviceId (state: multiple-devices)
+    4 - target package not installed      (state: package-not-installed)
+    5 - installed versionName mismatch    (state: version-mismatch)
+    6 - mobile-mcp launcher not resolvable (state: mcp-unavailable)
 
   Human output:  one line per check + final verdict line.
   Machine output (with -Json): single JSON object on stdout, all human noise suppressed.
@@ -41,6 +48,10 @@
 .PARAMETER Json
   Emit a single JSON object instead of human-readable lines.
 
+.PARAMETER StrictExit
+  Legacy fail-fast mode: a not-ready state exits with its numeric code (1..6) instead of 0.
+  Only for a caller that cannot read the payload and must branch on $LASTEXITCODE.
+
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/device-ready.ps1
   Quick sanity: ADB up, one device online.
@@ -59,7 +70,8 @@ param(
     [string]$Package,
     [string]$ExpectedVersion,
     [switch]$CheckMcp,
-    [switch]$Json
+    [switch]$Json,
+    [switch]$StrictExit
 )
 
 $ErrorActionPreference = 'Stop'
@@ -68,7 +80,9 @@ $ErrorActionPreference = 'Stop'
 
 $script:result = [ordered]@{
     ready           = $false
-    exitCode        = 0
+    state           = 'unknown'
+    statusCode      = 0
+    exitCode        = 0   # retained for callers that already read this field; mirrors statusCode
     adbPath         = $null
     devices         = @()
     selectedDevice  = $null
@@ -86,16 +100,21 @@ function Write-Line {
     if (-not $Json) { Write-Host $Text -ForegroundColor $Color }
 }
 
-function Fail {
-    param([int]$Code, [string]$Reason)
-    $script:result.exitCode = $Code
-    $script:result.reason   = $Reason
+function Stop-NotReady {
+    # Reports a determined not-ready state. The query succeeded - it is the device that is
+    # not ready - so this exits 0 unless the caller asked for the legacy fail-fast codes.
+    param([int]$Code, [string]$State, [string]$Reason)
+    $script:result.state      = $State
+    $script:result.statusCode = $Code
+    $script:result.exitCode   = $Code
+    $script:result.reason     = $Reason
     if ($Json) {
         $script:result | ConvertTo-Json -Compress
     } else {
-        Write-Host "FAIL ($Code) - $Reason" -ForegroundColor Red
+        Write-Host "NOT READY ($State) - $Reason" -ForegroundColor Yellow
     }
-    exit $Code
+    if ($StrictExit) { exit $Code }
+    exit 0
 }
 
 function Find-Adb {
@@ -119,7 +138,7 @@ function Find-Adb {
 
 $adb = Find-Adb
 if (-not $adb) {
-    Fail 1 "adb.exe not found (checked ANDROID_HOME, ANDROID_SDK_ROOT, PATH, %LOCALAPPDATA%\Android\Sdk\platform-tools)"
+    Stop-NotReady 1 'no-adb' "adb.exe not found (checked ANDROID_HOME, ANDROID_SDK_ROOT, PATH, %LOCALAPPDATA%\Android\Sdk\platform-tools)"
 }
 $script:result.adbPath = $adb
 Write-Line "OK adb: $adb" 'Green'
@@ -127,7 +146,7 @@ Write-Line "OK adb: $adb" 'Green'
 # ---------- step 2: devices ----------
 
 $raw = & $adb devices 2>$null
-if ($LASTEXITCODE -ne 0) { Fail 1 "adb devices returned exit $LASTEXITCODE" }
+if ($LASTEXITCODE -ne 0) { Stop-NotReady 1 'no-adb' "adb devices returned exit $LASTEXITCODE" }
 
 # parse skipping the "List of devices attached" header
 $lines = $raw -split "`r?`n" | Where-Object { $_ -and $_ -notmatch '^\s*List of devices' }
@@ -141,15 +160,15 @@ $devices = @($devices)
 $script:result.devices = $devices | ForEach-Object { $_.id }
 
 if ($devices.Count -eq 0) {
-    Fail 2 "no online device (boot an emulator or connect a phone, then re-run)"
+    Stop-NotReady 2 'no-device' "no online device (boot an emulator or connect a phone, then re-run)"
 }
 
 $selected = $null
 if ($DeviceId) {
     $selected = $devices | Where-Object { $_.id -eq $DeviceId } | Select-Object -First 1
-    if (-not $selected) { Fail 2 "device '$DeviceId' is not online (online: $($devices.id -join ', '))" }
+    if (-not $selected) { Stop-NotReady 2 'no-device' "device '$DeviceId' is not online (online: $($devices.id -join ', '))" }
 } elseif ($devices.Count -gt 1) {
-    Fail 3 "multiple online devices ($($devices.id -join ', ')); pass -DeviceId"
+    Stop-NotReady 3 'multiple-devices' "multiple online devices ($($devices.id -join ', ')); pass -DeviceId"
 } else {
     $selected = $devices[0]
 }
@@ -167,7 +186,7 @@ if ($Package) {
     }
     $script:result.installed = $installed
     if (-not $installed) {
-        Fail 4 "package '$Package' not installed on $($selected.id)"
+        Stop-NotReady 4 'package-not-installed' "package '$Package' not installed on $($selected.id)"
     }
     Write-Line "OK package: $Package" 'Green'
 
@@ -183,7 +202,7 @@ if ($Package) {
         $script:result.versionName  = $current
         $script:result.versionMatch = ($current -eq $ExpectedVersion)
         if ($current -ne $ExpectedVersion) {
-            Fail 5 "versionName mismatch: installed='$current' expected='$ExpectedVersion'"
+            Stop-NotReady 5 'version-mismatch' "versionName mismatch: installed='$current' expected='$ExpectedVersion'"
         }
         Write-Line "OK version: $current" 'Green'
     }
@@ -212,7 +231,7 @@ function Find-Npx {
 if ($CheckMcp) {
     $npxPath = Find-Npx
     if (-not $npxPath) {
-        Fail 6 "npx not found (PATH, %ProgramFiles%\nodejs, %APPDATA%\npm) - install Node.js to enable mobile-mcp"
+        Stop-NotReady 6 'mcp-unavailable' "npx not found (PATH, %ProgramFiles%\nodejs, %APPDATA%\npm) - install Node.js to enable mobile-mcp"
     }
     # `npm view` exits 0 if the package can be resolved from registry / cache.
     # Use the npm next to the discovered npx so we don't depend on PATH.
@@ -224,7 +243,7 @@ if ($CheckMcp) {
     }
     $null = & $npmPath view '@mobilenext/mobile-mcp' name 2>$null
     if ($LASTEXITCODE -ne 0) {
-        Fail 6 "@mobilenext/mobile-mcp not resolvable via npm (offline or unknown package)"
+        Stop-NotReady 6 'mcp-unavailable' "@mobilenext/mobile-mcp not resolvable via npm (offline or unknown package)"
     }
     $script:result.mcpResolvable = $true
     Write-Line "OK mobile-mcp launcher: $npxPath" 'Green'
@@ -233,6 +252,7 @@ if ($CheckMcp) {
 # ---------- verdict ----------
 
 $script:result.ready = $true
+$script:result.state = 'ready'
 if ($Json) {
     $script:result | ConvertTo-Json -Compress
 } else {

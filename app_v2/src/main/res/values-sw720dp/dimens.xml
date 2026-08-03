@@ -64,10 +64,14 @@
     <dimen name="welcome_title_margin_top">12dp</dimen>
     <dimen name="welcome_description_margin_top">12dp</dimen>
     <dimen name="welcome_page_padding">28dp</dimen>
-    <dimen name="welcome_feature_card_icon_size">56dp</dimen>
-    <dimen name="welcome_feature_card_text_size">18sp</dimen>
-    <dimen name="welcome_feature_card_padding">24dp</dimen>
-    <dimen name="welcome_feature_card_margin">12dp</dimen>
+    <dimen name="welcome_feature_row_icon_size">34dp</dimen>
+    <dimen name="welcome_feature_row_badge_size">56dp</dimen>
+    <dimen name="welcome_feature_row_icon_gap">18dp</dimen>
+    <dimen name="welcome_feature_row_title_text_size">18sp</dimen>
+    <dimen name="welcome_feature_row_detail_text_size">15sp</dimen>
+    <dimen name="welcome_feature_row_padding">10dp</dimen>
+    <dimen name="welcome_feature_row_gutter">18dp</dimen>
+    <dimen name="welcome_feature_row_spacing">4dp</dimen>
     <!-- max content width keeps text readable; centred on TV -->
     <dimen name="welcome_content_max_width">960dp</dimen>
     <!-- D-pad focusable button target size -->

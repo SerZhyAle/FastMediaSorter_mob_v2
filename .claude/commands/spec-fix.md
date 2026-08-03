@@ -113,13 +113,13 @@ After at least one fix applied - immediately invoke `/spec-check <Sxxxx>` to re-
 
 - Never modify application code beyond category table.
 - Never invent translations - only `<!-- TODO translate: <EN text> -->` placeholders.
-- Repo helper script used by auto-fix broken or insufficient → fix the script first instead of working around it.
+- Repo helper script used by auto-fix broken or insufficient: per CLAUDE.md Rule 13 (script ownership) - obey it as written.
 - Prefer `scripts/utils/set-android-string.ps1` when auto-fix updates/inserts Android `<string>` keys; manual XML edits only for structural resource changes.
 - Re-verify every precondition before patching - audit block may be hours old.
 - Dev log entries run last, batch-applied.
 - Never touch `Status:` on specs - only `/spec-check` moves those.
 - Never run build or tests - static edits only.
-- Read-only zones never modified: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
+- Per CLAUDE.md Rule 4 (read-only zones) - obey it as written.
 - Annotations are append-style markers in place - never overwrite or delete prior items in audit block; next `/spec-check` rewrites whole block.
 - **Never create or read `PLAN/Sxxxx_<slug>__audit_*.md` or `__fix_*.md` files.** Abolished.
 - `--dry-run`: print complete plan (auto + manual + skipped), no writes, exit.

@@ -9,7 +9,7 @@ Inside bash, the form `"/c/Program Files/PowerShell/7/pwsh.exe" -NoProfile -Comm
 
 The symptom is exactly what I hit in S0268 F2: chained `update.ps1 -Status Tactical; ./add_to_dev_log.ps1 ...; ./add_to_dev_log.ps1 ...; ...` produced only the first script's output, with no error message and no dev log entries from the later calls.
 
-**Why:** bash double-quote variable expansion happens before PowerShell ever sees the string, and the escape sequence `\$` only means "literal $" in PowerShell parsing - it has no effect on bash. The combination `bash double-quote + PowerShell script block + escaped dollar` collapses to malformed input. [[feedback_pwsh_efficiency.md]] already mandates `-NoProfile` and batching, but its examples are run from PowerShell itself (where `$LASTEXITCODE` works as written); the bash-as-launcher case needs different quoting.
+**Why:** bash double-quote variable expansion happens before PowerShell ever sees the string, and the escape sequence `\$` only means "literal $" in PowerShell parsing - it has no effect on bash. The combination `bash double-quote + PowerShell script block + escaped dollar` collapses to malformed input. [[pwsh-efficiency]] already mandates `-NoProfile` and batching, but its examples are run from PowerShell itself (where `$LASTEXITCODE` works as written); the bash-as-launcher case needs different quoting.
 
 **How to apply:**
 

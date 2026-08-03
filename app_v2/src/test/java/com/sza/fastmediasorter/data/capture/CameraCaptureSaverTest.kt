@@ -50,6 +50,11 @@ class CameraCaptureSaverTest {
         context,
         LocalDestinationClassifier(),
         FilesystemWriter(),
+        LocalCaptureDestinationWriter(
+            context,
+            LocalDestinationClassifier(),
+            FilesystemWriter(),
+        ),
         noOpStatsSink,
         FakeSettingsRepository(),
         ImageClipboardWriter(context),
@@ -153,6 +158,24 @@ class CameraCaptureSaverTest {
         assertEquals(target, uploadedResource)
         // Saved path for a network target is the remote root joined with the file name.
         assertEquals("smb://host/share/net.jpg", (result as SaveResult.Success).savedPath)
+        assertFalse(temp.exists())
+    }
+
+    @Test
+    fun `local SAF resource stays on local writer path`() = runTest {
+        val temp = newTempFile()
+        val target = CameraCaptureTarget.Resource(
+            id = 6L,
+            name = "SAF",
+            path = "content://provider/tree/primary%3AMovies",
+            type = ResourceType.LOCAL,
+        )
+
+        val result = saver.save(temp, "saf.jpg", target) { _, _, _ ->
+            error("upload must not run for a local SAF resource")
+        }
+
+        assertEquals(SaveResult.Failure.Generic, result)
         assertFalse(temp.exists())
     }
 

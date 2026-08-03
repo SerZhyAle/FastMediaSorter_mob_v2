@@ -1,13 +1,16 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
+import android.text.format.DateFormat
 import android.view.View
+import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
+import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.allowsWriteOperations
@@ -21,6 +24,7 @@ import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.clearBadge
 import com.sza.fastmediasorter.utils.setBadgeText
 import timber.log.Timber
+import java.util.Date
 
 /**
  * Applies BrowseState changes to the UI: filter badge, selection panel, display mode,
@@ -82,14 +86,57 @@ class BrowseStateUiUpdater(
             (filter.mediaTypes != null && filter.mediaTypes != resource?.supportedMediaTypes)
         )
 
-        binding.tvFilterWarning.isVisible = false
-
-        if (isUserFilter) {
-            val filterCount = state.filter?.activeFilterCount() ?: 0
-            binding.btnFilter.setBadgeText(filterCount.toString())
+        if (isUserFilter && filter != null) {
+            // S1272: Browse spells the active filter out under the toolbar, the way Main already does.
+            // The badge stays alongside it - a count at a glance, the detail underneath.
+            val summary = describeFilter(filter)
+            Timber.d("S1272: filter strip parts=${summary.length} count=${filter.activeFilterCount()}")
+            binding.tvFilterWarning.text = activity.getString(R.string.filters_active, summary)
+            binding.tvFilterWarning.isVisible = summary.isNotEmpty()
+            binding.btnFilter.setBadgeText(filter.activeFilterCount().toString())
         } else {
+            binding.tvFilterWarning.isVisible = false
             binding.btnFilter.clearBadge()
         }
+    }
+
+    /**
+     * Builds the strip's detail from the filter dialog's own labels rather than the hard-coded English
+     * ones the Main manager uses, so the sentence stays translated on a RU or UK device.
+     */
+    private fun describeFilter(filter: FileFilter): String {
+        val dateFormat = DateFormat.getDateFormat(activity)
+        val parts = mutableListOf<String>()
+        filter.nameContains?.takeIf { it.isNotBlank() }?.let { parts.add("\"$it\"") }
+        filter.minDate?.let { parts.add(label(R.string.min_date, dateFormat.format(Date(it)))) }
+        filter.maxDate?.let { parts.add(label(R.string.max_date, dateFormat.format(Date(it)))) }
+        filter.minSizeMb?.let { parts.add(label(R.string.min_size_mb, it.toString())) }
+        filter.maxSizeMb?.let { parts.add(label(R.string.max_size_mb, it.toString())) }
+        filter.mediaTypes?.takeIf { it.isNotEmpty() }?.let { types ->
+            val names = types.mapNotNull { type -> mediaTypeLabel(type)?.let { activity.getString(it) } }
+            if (names.isNotEmpty()) parts.add(names.sorted().joinToString(", "))
+        }
+        return parts.joinToString(" | ")
+    }
+
+    private fun label(@StringRes titleRes: Int, value: String): String =
+        activity.getString(titleRes) + ": " + value
+
+    /**
+     * Only the eight types the filter dialog can actually select carry a translated name; the binary
+     * ones are not offered there, so they are omitted rather than shown as a raw enum constant.
+     */
+    @StringRes
+    private fun mediaTypeLabel(type: MediaType): Int? = when (type) {
+        MediaType.IMAGE -> R.string.media_type_image
+        MediaType.VIDEO -> R.string.media_type_video
+        MediaType.AUDIO -> R.string.media_type_audio
+        MediaType.GIF -> R.string.media_type_gif
+        MediaType.TEXT -> R.string.media_type_text
+        MediaType.PDF -> R.string.media_type_pdf
+        MediaType.EPUB -> R.string.media_type_epub
+        MediaType.OFFICE_DOCUMENT -> R.string.media_type_office_documents
+        else -> null
     }
 
     private fun updateSelectionPanel(state: BrowseState) {

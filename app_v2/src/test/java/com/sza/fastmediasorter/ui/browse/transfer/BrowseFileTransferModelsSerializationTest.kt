@@ -63,6 +63,72 @@ class BrowseFileTransferModelsSerializationTest {
     }
 
     @Test
+    fun `delete request round-trips with explicit soft delete policy`() {
+        val gson = Gson()
+        val request = BrowseFileTransferRequest(
+            operationType = FileOperationType.DELETE,
+            sourceResourceId = 42L,
+            sourceResourceName = "Remote",
+            sourceCredentialsId = "cred-1",
+            currentBrowsePath = "sftp://host/media",
+            destinationPath = "sftp://host/media",
+            destinationName = "Remote",
+            overwriteFiles = false,
+            sources = listOf(BrowseFileTransferSource("sftp://host/media/a", "a", 100L, false)),
+            softDelete = true,
+        )
+
+        assertEquals(request, gson.fromJson(gson.toJson(request), BrowseFileTransferRequest::class.java))
+    }
+
+    @Test
+    fun `legacy request without soft delete decodes to hard delete`() {
+        val legacyJson = """
+            {"operationType":"DELETE","sourceResourceId":42,"sourceResourceName":"Remote",
+             "sourceCredentialsId":null,"currentBrowsePath":null,"destinationPath":"/remote",
+             "destinationName":"Remote","overwriteFiles":false,"sources":[]}
+        """.trimIndent()
+
+        val decoded = Gson().fromJson(legacyJson, BrowseFileTransferRequest::class.java)
+
+        assertEquals(false, decoded.softDelete)
+    }
+
+    @Test
+    fun `staged request round-trips preserving source ownership`() {
+        val gson = Gson()
+        val request = BrowseFileTransferRequest(
+            operationType = FileOperationType.COPY,
+            sourceResourceId = -1L,
+            sourceResourceName = "Shared",
+            sourceCredentialsId = null,
+            currentBrowsePath = null,
+            destinationPath = "cloud://GOOGLE_DRIVE/root",
+            destinationName = "Drive",
+            overwriteFiles = false,
+            sources = listOf(BrowseFileTransferSource("/cache/temp_share/a.jpg", "a.jpg", 10L, false)),
+            sourcesOwnedByOperation = true,
+            stagingDirectoryPath = "/cache/temp_share",
+        )
+
+        assertEquals(request, gson.fromJson(gson.toJson(request), BrowseFileTransferRequest::class.java))
+    }
+
+    @Test
+    fun `legacy request without source ownership decodes as caller-owned`() {
+        val legacyJson = """
+            {"operationType":"COPY","sourceResourceId":42,"sourceResourceName":"Camera",
+             "sourceCredentialsId":null,"currentBrowsePath":null,"destinationPath":"/backup",
+             "destinationName":"Backup","overwriteFiles":false,"sources":[]}
+        """.trimIndent()
+
+        val decoded = Gson().fromJson(legacyJson, BrowseFileTransferRequest::class.java)
+
+        assertEquals(false, decoded.sourcesOwnedByOperation)
+        assertEquals(null, decoded.stagingDirectoryPath)
+    }
+
+    @Test
     fun `terminal payload round-trips through Gson preserving values`() {
         val gson = Gson()
         val payload = BrowseFileTransferTerminalPayload(

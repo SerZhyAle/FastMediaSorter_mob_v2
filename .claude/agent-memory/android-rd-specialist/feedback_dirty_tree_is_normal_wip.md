@@ -26,7 +26,7 @@ If the working tree is dirty/untracked, that is the **normal** state - report it
 
 **How to apply:**
 - Need to know what a feature does or where it stands → **read the code** (Grep/Read/catalog), never git.
-- Continuing an In-Progress ticket → reconcile against the live files (Grep the spec's symbols, check files exist), not against `git status`. See [[feedback_spec_dev_continue_verify_code_first]].
+- Continuing an In-Progress ticket → reconcile against the live files (Grep the spec's symbols, check files exist), not against `git status`. See [[spec-dev-continue-verify-code-first]].
 - Don't defer/gate work on git state. "Spec X's code isn't committed yet" is NOT a reason to defer a dependent ticket - build on the current files. A legitimate deferral signal is **device-unverified** (a `BlockNeedUserTest` foundation whose behaviour is genuinely unproven), NOT "uncommitted".
 - The only real edit hazard is **truly concurrent** writers (parallel subagents mutating the same files in one run) - simultaneity, not commit state. See [[feedback-parallel-agents-no-git-build]].
 - Commit only when the owner asks (typically pre-release). Otherwise leave the tree as working state.

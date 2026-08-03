@@ -31,7 +31,7 @@ Before any device interaction, run pre-flight:
 pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package <pkg> [-DeviceId <id>] [-CheckMcp] -Json
 ```
 
-`<pkg>`: `com.sza.fastmediasorter.debug` (debug) / `com.sza.fastmediasorter` (release). Exit codes 1..6 = abort signals - see `scripts/devtest/device-ready.ps1` header table.
+`<pkg>`: `com.sza.fastmediasorter.debug` (debug) / `com.sza.fastmediasorter` (release). The script exits 0 whenever it determined the state; any `state` other than `ready` is an abort signal - see `scripts/devtest/device-ready.ps1` header table.
 
 ## Status gate
 
@@ -259,7 +259,7 @@ Then one-line follow-up offer if `/spec-fix` or fresh `/spec` is obvious next st
 - Never click without listing elements first - resolve every target from `mobile_list_elements_on_screen` immediately before click; silent clicks on stale coordinates produce false PASSes.
 - Prefer `mobile_save_screenshot` (writes a file) over `mobile_take_screenshot` (loads image into context) for evidence. Reserve inline `take_screenshot` for step-6 fallback cases - inline images accumulate and re-send every turn, dominating token cost.
 - Never edit `PLAN/spec-catalog.jsonl` directly - only via `update.ps1`.
-- Read-only zones - `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/` - ignored.
+- Read-only zones ignored. Per CLAUDE.md Rule 4 (read-only zones) - obey it as written.
 - Device runs `Android < minSdk` for chosen flavor -> abort with version mismatch.
 - `mobile-mcp` errors mid-run -> dump partial run log to scenario file before re-raising.
 

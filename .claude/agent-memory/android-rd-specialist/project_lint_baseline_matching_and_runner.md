@@ -49,4 +49,4 @@ A full run costs 4-7 minutes cold, but the `lintAnalyze*` tasks stay UP-TO-DATE 
 unchanged - so a re-run that only changes the baseline finishes in seconds. Editing any `.kt`
 invalidates that and buys the full cost again. Sequence baseline experiments before code edits.
 
-Related: [[detekt-baseline-signature-resurface]], [[detekt-baseline-hand-edit-daemon-stale]].
+Related: [[detekt-baseline-signature-resurface]], [[project_detekt_baseline_hand_edit_daemon_stale]].

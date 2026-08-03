@@ -4,13 +4,16 @@ import android.app.PendingIntent
 import android.content.Context
 import android.net.Uri
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
-import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
-import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
-import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
-import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
-import com.sza.fastmediasorter.data.common.MediaTypeUtils
+import com.sza.fastmediasorter.core.logging.CorrelationContext
+import com.sza.fastmediasorter.core.logging.StructuredLogger
 import com.sza.fastmediasorter.core.util.PathUtils
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
+import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
+import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
+import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
+import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.stats.FileOpAction
 import com.sza.fastmediasorter.domain.stats.StatsEvent
@@ -22,8 +25,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.sza.fastmediasorter.core.logging.CorrelationContext
-import com.sza.fastmediasorter.core.logging.StructuredLogger
 import timber.log.Timber
 import java.io.File
 import java.util.UUID
@@ -418,9 +419,11 @@ class FileOperationUseCase @Inject constructor(
             lastOperation = OperationHistory(operation, result)
             return result
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             StructuredLogger.e(e, "EXCEPTION in executeInternal")
             return FileOperationResult.Failure("${e.javaClass.simpleName}: ${e.message}")
         } catch (@Suppress("TooGenericExceptionCaught") t: Throwable) {
+            t.rethrowIfCancellation()
             // S1021: catch(Exception) above never sees an Error (OOM/StackOverflow/..) - it would
             // otherwise escape this use case, the Worker's CancellationException-only catch, and
             // doWork() itself uncaught, silent to Timber and visible only in WorkManager's own log.

@@ -1,17 +1,37 @@
 <#
 .SYNOPSIS
-    S0440 Phase 04 - assert the settings-search layout catalog is complete.
+    S0440 Phase 04 (widened by S1313) - assert every settings-row layout is classified.
 
 .DESCRIPTION
-    Enumerates app_v2/src/main/res/layout/fragment_settings_*.xml and fails
-    (exit 1) if any settings-row layout is absent from
-    SettingsSearchLayoutCatalog.layoutResIds. The tab-host container
-    fragment_settings_media_container is the only allowed exclusion (it has no
-    rows of its own). A layout missing from the catalog would silently drop its
-    settings from both the in-app search and the generated docs, so this closes
-    the documented leak called out in the catalog's KDoc.
+    Recurses every `res/layout*` directory under `app_v2/src` (all flavors, portrait and
+    landscape) and selects each layout whose text contains a real settings-row widget TAG -
+    `<...SettingsToggleRow`, `<...SettingsDropdownRow`, `<...SettingsInputRow` or
+    `<...SettingsSelectionRow` - matched on the opening `<` so a layout that merely MENTIONS
+    one of these class names in a KDoc/XML comment (e.g. the widget's own internal
+    `view_settings_toggle_row.xml`) does not false-positive. Portrait/landscape pairs dedupe by
+    layout base name.
 
-    Exit 0 with a one-line summary when complete.
+    Every discovered layout MUST be classified in exactly one place:
+      - `SettingsSearchLayoutCatalog.layoutResIds` - navigable in-app search index.
+      - `SettingsDocScopeCatalog.surfaces` - documentation-only (S1313); never added to the
+        search index (S1035 SS6.6 already ruled dialog-hosted rows out of live search).
+      - `docs/settings/settings-scope-exclusions.json` - explicitly excluded, with a reason and
+        a category (entity-editor / onboarding / flavor-scoped / row-less-host / session-scoped /
+        unsupported-widget).
+    A layout in none of the three fails the gate (exit 1), naming the layout and all three ways
+    to resolve it. A layout that no longer exists on disk but still has an exclusion entry also
+    fails, so the exclusion list cannot rot into referencing dead layouts.
+
+    This closes the S1313 blind spot mechanically: any FUTURE dialog/page that grows a settings
+    row now forces a classification decision at gate time, instead of silently landing in no
+    catalog at all.
+
+.OUTPUTS
+    Exit codes:
+      0 - every discovered layout is classified; every exclusion entry matches a real layout.
+      1 - at least one discovered layout is unclassified, or an exclusion entry is stale.
+      2 - cannot verify: a required file (either catalog `.kt`, or the exclusions `.json`) is
+          missing or the exclusions file does not parse as JSON.
 #>
 param(
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
@@ -19,26 +39,67 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$layoutDir   = Join-Path $RepoRoot 'app_v2/src/main/res/layout'
-$catalogFile = Join-Path $RepoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/search/SettingsSearchLayoutCatalog.kt'
-$allowedExclusions = @('fragment_settings_media_container')
+$searchDir = Join-Path $RepoRoot 'app_v2/src'
+$searchCatalogFile = Join-Path $RepoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/search/SettingsSearchLayoutCatalog.kt'
+$docScopeCatalogFile = Join-Path $RepoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/search/SettingsDocScopeCatalog.kt'
+$exclusionsFile = Join-Path $RepoRoot 'docs/settings/settings-scope-exclusions.json'
 
-if (-not (Test-Path $catalogFile)) { Write-Host "Catalog not found: $catalogFile" -ForegroundColor Red; exit 1 }
+foreach ($f in @($searchCatalogFile, $docScopeCatalogFile, $exclusionsFile)) {
+    if (-not (Test-Path $f)) {
+        Write-Error "settings catalog: required file not found: $f" -ErrorAction Continue
+        exit 2
+    }
+}
 
-$layoutNames = @(Get-ChildItem -Path $layoutDir -Filter 'fragment_settings_*.xml' |
-    ForEach-Object { $_.BaseName })
+$exclusions = $null
+try {
+    $exclusions = Get-Content $exclusionsFile -Raw | ConvertFrom-Json
+} catch {
+    Write-Error "settings catalog: $exclusionsFile does not parse as JSON - $($_.Exception.Message)" -ErrorAction Continue
+    exit 2
+}
+$excludedNames = @($exclusions.PSObject.Properties.Name)
 
-$catalogText = Get-Content $catalogFile -Raw
-$catalogued = @([regex]::Matches($catalogText, 'R\.layout\.(fragment_settings_\w+)') |
+# --- Discover every layout with a real settings-row widget TAG (not a comment mention) --------
+$widgetTagPattern = '<[\w.]*\b(?:SettingsToggleRow|SettingsDropdownRow|SettingsInputRow|SettingsSelectionRow)\b'
+$layoutFiles = @(Get-ChildItem -Path $searchDir -Recurse -Filter '*.xml' -File |
+    Where-Object { $_.DirectoryName -match '[\\/]res[\\/]layout' })
+$discovered = @($layoutFiles |
+    Where-Object { (Get-Content $_.FullName -Raw) -match $widgetTagPattern } |
+    ForEach-Object { $_.BaseName } |
+    Sort-Object -Unique)
+
+# --- Classified sets from the two Kotlin catalogs (regex-over-source, no gradle needed) -------
+$searchCatalogText = Get-Content $searchCatalogFile -Raw
+$searchScoped = @([regex]::Matches($searchCatalogText, 'R\.layout\.(\w+)') |
     ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
 
-$missing = @($layoutNames | Where-Object { $_ -notin $catalogued -and $_ -notin $allowedExclusions })
+$docScopeCatalogText = Get-Content $docScopeCatalogFile -Raw
+$docScoped = @([regex]::Matches($docScopeCatalogText, 'R\.layout\.(\w+)') |
+    ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
 
-if ($missing.Count) {
-    Write-Host "settings catalog INCOMPLETE - $($missing.Count) layout(s) with rows not in SettingsSearchLayoutCatalog.layoutResIds:" -ForegroundColor Red
-    $missing | ForEach-Object { Write-Host "  $_  (append R.layout.$_ to SettingsSearchLayoutCatalog, or add to allowed exclusions if it is a row-less host)" }
+# --- Every discovered layout must land in exactly one bucket ----------------------------------
+$unclassified = @($discovered | Where-Object {
+    $_ -notin $searchScoped -and $_ -notin $docScoped -and $_ -notin $excludedNames
+})
+
+# --- Exclusion entries must still name a real layout (no rot) ---------------------------------
+$staleExclusions = @($excludedNames | Where-Object { $_ -notin $discovered })
+
+if ($unclassified.Count -or $staleExclusions.Count) {
+    if ($unclassified.Count) {
+        Write-Host "settings catalog INCOMPLETE - $($unclassified.Count) layout(s) with settings rows are unclassified:" -ForegroundColor Red
+        $unclassified | ForEach-Object {
+            Write-Host "  $_  - resolve by ONE of: (1) append R.layout.$_ to SettingsSearchLayoutCatalog.layoutResIds if it must be live-searchable, (2) add a DocScopeSurface to SettingsDocScopeCatalog.surfaces if it is documentation-only, (3) add an entry to docs/settings/settings-scope-exclusions.json with a category and reason if it is deliberately out of scope."
+        }
+    }
+    if ($staleExclusions.Count) {
+        Write-Host "settings-scope-exclusions.json has $($staleExclusions.Count) stale entr(y/ies) naming a layout no longer found with a settings-row widget:" -ForegroundColor Red
+        $staleExclusions | ForEach-Object { Write-Host "  $_  - remove the entry, or the layout was renamed/deleted and the exclusion should follow." }
+    }
+    Write-Error "settings catalog: FAIL" -ErrorAction Continue
     exit 1
 }
 
-Write-Host "settings catalog: OK - $($catalogued.Count) catalogued, $($allowedExclusions.Count) host exclusion(s), 0 missing." -ForegroundColor Green
+Write-Host "settings catalog: OK - $($discovered.Count) layout(s) with settings rows, all classified ($($searchScoped.Count) search-scope, $($docScoped.Count) doc-scope, $($excludedNames.Count) excluded)." -ForegroundColor Green
 exit 0

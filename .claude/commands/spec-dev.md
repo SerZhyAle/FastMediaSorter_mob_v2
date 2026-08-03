@@ -4,7 +4,9 @@ description: "Use to execute a tactical spec step by step, running each step's V
 
 # Specification Developer Executor
 
-Execute a tactical spec step by step. Reads `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files, follows `Prompt for developer:` in dependency order, runs each step's `Verification:` predicate before flipping to `[x] done`.
+Execute a tactical spec step by step. Reads `PLAN/Sxxxx_<short-name>/INDEX.md` + phase files, follows `Prompt for developer:` in dependency order, runs each step's `Verification:` predicate before flipping it to `[x] done`.
+
+Everything needed to run, verify and stop a step is here. Look-ups live in `.claude/reference/spec-dev.md`; each pointer names its section and when to open it.
 
 ## Usage
 
@@ -18,21 +20,13 @@ Execute a tactical spec step by step. Reads `PLAN/Sxxxx_<short-name>/INDEX.md` +
 /spec-dev <Sxxxx-or-slug> --verify-smoke     # after all phases done, run /verify smoke before flipping status
 ```
 
-`--verify-smoke` opt-in: catches a trivial launch-crash before strategic spec recorded `Implemented`/`BlockNeedUserTest`. Runs `/verify --build` once with no scenario (default smoke: launch + screenshot + crash scan). Smoke fails → status flip **aborted**: ticket stays `In Progress`, last phase's `## Step Log` gets a `VERIFY-SMOKE FAIL` line. Safety net, not a replacement for `/spec-test-device` or `/spec-check`.
+`--verify-smoke` runs `/verify --build` once with no scenario (default smoke: launch + screenshot + crash scan). Smoke fails → status flip **aborted**: ticket stays `In Progress`, last phase's `## Step Log` gets a `VERIFY-SMOKE FAIL` line. Rationale, if asked to justify the flag: `.claude/reference/spec-dev.md` §`--verify-smoke` rationale.
 
 ---
 
 ## Status Gate
 
-| Strategic `Status:` | Behavior |
-| --- | --- |
-| `Tactical` | Allowed - advance to `In Progress` on first executed step. |
-| `In Progress` | Allowed - continue. |
-| `Draft` / `Approved` | Abort: no tactical folder. Run `/spec-tech` first. |
-| `Implemented` / `Verified` | Abort: feature closed. |
-| `Partial` / `Broken` | **Auto-fix pass:** run `/spec-fix <Sxxxx>` to apply all mechanical fixes, then re-read status. If still `Partial`/`Broken` after fix pass, list remaining FAIL items and stop - manual resolution. If all resolved, continue. |
-| `BlockNeedUserTest` | Note in chat and stop. User must confirm on-device test result before re-running. |
-| `BlockByOtherTask` / `BlockQuestions` / `BlockExternal` | Abort: blocked. Resolve block first (see §10 of strategic spec), then `update.ps1 -Status <prev>`. |
+Read the strategic `Status:` before touching any step. `Tactical` → allowed, advance to `In Progress` on first executed step. `In Progress` → allowed, continue. **Any other status → look it up in `.claude/reference/spec-dev.md` §Status gate and obey it before touching a step.** Each one aborts, stops for the user, or takes an auto-fix pass first; the table is the authority on which.
 
 ---
 
@@ -40,7 +34,7 @@ Execute a tactical spec step by step. Reads `PLAN/Sxxxx_<short-name>/INDEX.md` +
 
 Fixed order: resolve scope → optional dry-run → execute one step at a time → run that step's verification → update phase/status metadata.
 
-> **Out-of-scope discoveries (CLAUDE.md §3.1):** mid-step you hit a problem unrelated to this ticket and non-trivial (own research + fix) → do NOT fix inline, do NOT expand current step. Park via `/spec-draft` (dedup via `scripts/spec_catalog/search.ps1` first), note `parked: Sxxxx` in step log, continue planned step. Trivial in-scope issues still handled inline.
+> **Out-of-scope discoveries (CLAUDE.md §3.1):** mid-step you hit a problem unrelated to this ticket and non-trivial (own research + fix) → do NOT fix inline, do NOT expand current step. Park via `/spec-draft`, note `parked: Sxxxx` in step log, continue planned step. First discovery of a run → `.claude/reference/spec-dev.md` §Out-of-scope discoveries (dedup step, in-scope exception).
 
 **1 - Parse arguments, load state.**
 
@@ -54,26 +48,26 @@ For each step in plan order:
 
 1. **Re-read phase file.** If `Status:` no longer `[ ]`/`[~]` → log "PRE-RESOLVED - skipped".
 2. **Verify dependencies.** `Depends on:` step must be `[x] done` - else abort: "Dependency violation: NN.M depends on NN.K which is not done."
-3. **Read `Prompt for developer:`** + `Files Touched` row(s). For each referenced existing class/method, confirm it exists at expected path - else abort: "Prompt references `<symbol>` at `<path>`, not found."
+3. **Read `Prompt for developer:` and `Why:`** + `Files Touched` row(s). For each referenced existing class/method, confirm it exists at expected path - else abort: "Prompt references `<symbol>` at `<path>`, not found." The `Why:` field (S1343, mandatory since 2026-08-02) carries the step's sourced rationale - read it before deciding anything the prompt does not cover, and prefer it to re-opening the strategic spec. `Why:` reading `not stated in strategic spec` is not a defect and not a blocker; it means the rationale was never written down, so an uncovered edge case needs the strategic spec or `/spec-quiz`, not a guess.
 4. **Ambiguity check.** Prompt contains `<TODO>`, `<choose ..>`, `???`, or any unresolved placeholder → abort, request spec update via `/spec-update`. If requires user input, set status `BlockQuestions` and stop.
 5. **Pre-edit guards:**
-   - Read-only zone (`V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`) → abort.
-   - File >500 lines and not yet backed up → create timestamped copy under `temp/<Sxxxx>/` first.
-   - Projected post-edit size >1500 lines → abort: "line budget violation, split via Manager pattern."
-   - File in `res/layout/` → **check `res/layout-land/` counterpart**. If landscape variant exists and NOT listed in this step's `Files Touched` → abort: "landscape counterpart `res/layout-land/<file>.xml` not covered in step - update `Files Touched` and prompt before proceeding."
+   - Read-only zone → abort. Per CLAUDE.md Rule 4 (read-only zones) - obey it as written.
+   - Per CLAUDE.md Rule 5 (backup before editing >500 LOC) - obey it as written; put the timestamped copy under `temp/<Sxxxx>/`.
+   - Per CLAUDE.md Rule 2 (1500 LOC file size limit) - obey it as written; a projected post-edit size that crosses it → abort: "line budget violation, split via Manager pattern."
+   - File in `res/layout/` → per CLAUDE.md Rule 11 (layout-land parity) - obey it as written. If the landscape variant exists and is NOT listed in this step's `Files Touched` → abort: "landscape counterpart `res/layout-land/<file>.xml` not covered in step - update `Files Touched` and prompt before proceeding."
    - **Flavor isolation guard:** see Hard Stops #14 - abort on a `src/main/java/**` flavor guard; do not silently rewrite, push back through `/spec-update`.
 6. **Flip step to `[~] in progress`** in phase file.
-6a. **CODE.LOCK (CLAUDE.md Rule 23).** Only when this step touches `app_v2/`/`wear/` source (`.kt`/`.java`/`.xml`/`build.gradle.kts`) - run `pwsh -NoProfile -File scripts/utils/enter-code-lock.ps1 -Reason "/spec-dev <Sxxxx> step <NN.M>"` before the edit. If it warns about a live `BUILD.LOCK`, that's informational only (don't start a build now; editing itself is unaffected). Skip for doc/spec-only steps. Released automatically by `post-change.ps1` at step 10 - no explicit release needed here.
+6a. **CODE.LOCK (CLAUDE.md Rule 23).** Only when this step touches `app_v2/`/`wear/` source (`.kt`/`.java`/`.xml`/`build.gradle.kts`) - run `pwsh -NoProfile -File scripts/utils/enter-code-lock.ps1 -Reason "/spec-dev <Sxxxx> step <NN.M>"` before the edit. Skip for doc/spec-only steps; released automatically by `post-change.ps1` at step 10. It warns → `.claude/reference/spec-dev.md` §CODE.LOCK warnings before reacting.
 7. **Apply the edit** - `Edit` or `Write` per Prompt. Scope strictly to what prompt specifies: no surrounding refactors, no extra comments, no unrelated import cleanup.
 7a. **Communication policy check.** If edit adds/changes user-visible strings, verify against `docs/COMMUNICATION_POLICY.md` §2 and §6 before marking step done.
-7b. **Android string edit shortcut.** For `<string>` work prefer `pwsh -NoProfile -File scripts/utils/set-android-string.ps1` (byte-preserving) over manual XML editing. Update existing value in one locale: `-Action set -Module <module> -Locale en|ru|uk -Key <key> -Value <text>` (add `-ExpectedOldValue` to guard, `-CreateIfMissing` to upsert). New key across all three locales at once: `-Action add -Key <key> -En <text> -Ru <text> -Uk <text>` (parity-enforced, fails if key exists). Lookup/lifecycle across all `strings*.xml`: `-Action get|remove|rename|list`. Use manual edits only for `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
+7b. **Android string edit shortcut.** For `<string>` work prefer `pwsh -NoProfile -File scripts/utils/set-android-string.ps1` (byte-preserving) over manual XML editing. Use manual edits only for `plurals`, `string-array`, comments, regrouping, or bulk rewrites. `-Action set|add|get|remove|rename|list` flags before the first call: `.claude/reference/spec-dev.md` §Android string edit shortcut - never guess them.
 8. **Run `Verification:` predicates** (Glob/Grep/value equality/size checks).
 9. **Outcome:**
    - All predicates PASS → flip to `[x] done`. Append Step Log entry.
    - Any predicate FAIL → leave at `[~] in progress`. Append FAIL note. **Hard stop.**
 10. **Run mechanical post-change closure** for every modified file.
   - `pwsh -NoProfile -File scripts/post-change.ps1 -File "<path>" -Target "<target>" -Description "<short EN description>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>] [-KeyPrefix "<key_prefix>"]`.
-  - Choose `Kotlin` for executable `.kt`/`.java` edits, `Xml` for string/resource changes, `Doc` for spec/doc-only edits, `Mixed` only when one step genuinely spans code plus strings.
+  - Unsure which `-ChangeType` a step's files map to → `.claude/reference/spec-dev.md` §ChangeType selection.
   - Spec status transitions and feature-inventory (`docs/ALL_FEATURES.jsonl`) decisions stay outside this command.
 
 After all planned steps in current phase complete:
@@ -81,57 +75,22 @@ After all planned steps in current phase complete:
 - **Final-phase debug-tag insertion (before the build).** If this is the **last** phase in scope AND strategic spec's acceptance includes on-device verification, insert the `Timber.d("Sxxxx: <entry-point description>")` tags now - one at each changed flow entry across all phases (per CLAUDE.md "Debug Verification Tags": one tag per flow entry, not per modified line). Tags are the **last code edits** and go in **before** the `Project compiles` build below, so a single build validates implementation + tags. Never insert tags after the build - that forces a redundant second build.
 - **Phase Done Criteria check.** For each checkbox:
   - Mechanically verifiable → run check, tick if PASS.
-  - Build required (`Project compiles`) → run `.\build-debug.PS1` automatically via PowerShell (no permission prompt). Exit 0 → tick. Non-zero → append last 30 lines of output, hard stop: "Build FAILED". When final-phase tags just inserted, this is the single build that validates code + tags - schedule no further build for tag validation.
+  - Build required (`Project compiles`) → run `pwsh -NoProfile -File ./a.ps1 dq` automatically via PowerShell (no permission prompt; CLAUDE.md section 9 owns the target list, and per section 6's 120 s threshold a fast check runs in the FOREGROUND). Exit 0 → tick. Non-zero → append last 30 lines of output, hard stop: "Build FAILED". When final-phase tags just inserted, this is the single build that validates code + tags - schedule no further build for tag validation.
   - Manual review required → leave unticked, mark `MANUAL-REQUIRED`.
+- **UI phase refusal (S1338).** A phase whose `Files Touched` names `res/layout*`, an `Activity`/`Fragment`/`*View`/`ui/**` class, or a settings surface **may not be flipped to `✅ Done`** until both hold: (1) the strategic spec carries a recorded placement decision - a `/ui-clarify` record or an owner ruling quoted verbatim - and (2) a screenshot of the changed screen was captured this phase via `pwsh -NoProfile -File scripts/devtest/adb.ps1 shot` (or the `run-fastmediasorter` skill) and its path is written into the phase's Step Log. Missing decision → `/ui-clarify` now, or `BlockQuestions`. No device attached → write `screenshot deferred (no device)` in the Step Log and leave the phase `🚧 In Progress` only if the phase's own Done Criteria demand the shot; otherwise record the deferral and continue. A placement decision must be visible before it ships - 33% of owner corrections are placement, and no gate stood between the guess and the owner.
 - Every criterion ticked → flip phase `Status:` to `✅ Done`, set `Completed:`, update INDEX row + counter.
 - Any criterion unticked → leave `🚧 In Progress`, update step counter only. Hard stop.
-- **Phase-boundary audit (mandatory - CLAUDE.md §13 / `docs/CODE_AUDIT_PROTOCOL.md` "Phase-boundary audits").** Immediately after this phase flips `✅ Done`, before the next phase's first step: self-audit this phase's `Files Touched` against the protocol. Layer 1 (architecture/readability) always; Layer 2 (lifecycle/coroutine/concurrency), Layer 3 (memory/listener ownership), Layer 4 (Room) when the phase touched that surface. Skip entirely when `Files Touched` is empty or doc-only (e.g. `docs-catalog-cleanup`). Tag findings by severity:
-  - **P0/P1 → fix now.** Small scoped edit, re-run the affected step's `Verification:` predicates, run `post-change.ps1` closure, append `AUDIT-FIX: <finding>` to this phase's Step Log. Fixing here costs this phase's rework; leaving it costs every later phase's rework plus the end-of-pipeline `/spec-check` finding it cold.
-  - **P2 → fix if trivial**, else append `AUDIT-P2: <finding>` to Step Log (recurring pattern → flag as mechanical-gate candidate, CLAUDE.md Rule 19/20).
-  - **P3 → fix inline or skip.**
-  - A fix that requires a design decision not derivable from the spec/codebase is an ambiguity → Hard Stop #1 (`BlockQuestions`), same as any other ambiguous prompt - do not guess.
-  - This is a fast self-review scoped to one phase, not a replacement for `/spec-check`'s deeper end-of-pipeline audit.
-- **Write session snapshot (S0268 Agent Continuity Layer).** After phase boundary closes (success or hard-stop), invoke `scripts/agent_continuity/session-snapshot.ps1` with `-Ticket <Sxxxx>` (active spec id), `-Goal "<phase title>"` (just-finished phase title), `-FilesTouched @(<file1>, <file2>, ...)` (from this phase's `Files Touched` table), `-NextStep "<cursor>"` (next step printed in chat, or `phase-complete` when whole phase was the final one). One call per phase boundary; snapshot lands under `temp/sessions/` as resume-layer hand-off for next session.
+- **Phase-boundary audit (mandatory - CLAUDE.md §13 / `docs/CODE_AUDIT_PROTOCOL.md` "Phase-boundary audits").** Immediately after this phase flips `✅ Done`, before the next phase's first step: self-audit this phase's `Files Touched` against the protocol. Layer 1 (architecture/readability) always; Layer 2 (lifecycle/coroutine/concurrency), Layer 3 (memory/listener ownership), Layer 4 (Room) when the phase touched that surface. Skip entirely when `Files Touched` is empty or doc-only (e.g. `docs-catalog-cleanup`). Tag findings by severity. **Audit found something → `.claude/reference/spec-dev.md` §Audit severity handling, follow the P0/P1/P2/P3 branch it names** before editing or deferring anything; P0/P1 are always fixed in this phase, never deferred. A fix that requires a design decision not derivable from the spec/codebase is an ambiguity → Hard Stop #1 (`BlockQuestions`), same as any other ambiguous prompt - do not guess.
+- **Write session snapshot (S0268 Agent Continuity Layer).** After phase boundary closes (success or hard-stop), invoke `scripts/agent_continuity/session-snapshot.ps1`. One call per phase boundary; snapshot lands under `temp/sessions/` as resume-layer hand-off for next session. Its four argument values: `.claude/reference/spec-dev.md` §Session snapshot arguments, read before the call.
 
 After all phases done:
 
-- **Optional verification smoke (only when `--verify-smoke`).** Before flipping strategic status, run `/verify --build` once with no scenario arg. Skill writes artefacts under `temp/scratch/verify_*`; do not touch them. Read single-line verdict:
-  - `verify: ... PASS/SKIPPED ...` with `log errors 0` and `crashes 0` → proceed with status flip below as normal.
-  - Any FAIL row in run table, any `crashes K > 0`, or any `log errors` with fresh exception from package under test → **abort status flip**. Leave ticket at `In Progress`. Append one `VERIFY-SMOKE FAIL` line to last phase's `## Step Log` pointing at scenario path in `temp/scratch/verify_*.md`. Stop with: `<Sxxxx>: verify-smoke FAIL, status not advanced. See temp/scratch/verify_<TS>.md.`
-  - `device-ready.ps1` exit ≠ 0 (no device, mobile-mcp missing) → **do not** abort: log skip in chat (`verify-smoke skipped: <reason>`) and proceed with original status flip. Smoke is a bonus, never a hard gate when no device present.
+- **Optional verification smoke (only when `--verify-smoke`).** Before flipping strategic status, run `/verify --build` once with no scenario arg. Skill writes artefacts under `temp/scratch/verify_*`; do not touch them. **Read `.claude/reference/spec-dev.md` §Verify-smoke verdicts before reading the verdict line** - it holds the strings to match and the literal stop message. The decisions: clean → flip status as normal; any FAIL row, any crash, any fresh exception from the package under test → **abort the status flip**, leave the ticket at `In Progress`, append a `VERIFY-SMOKE FAIL` line to the last phase's `## Step Log`, stop; no usable device (`ready: false`, still exit 0) → skip and flip as normal.
+- **Bugfix repro refusal (S1338).** A ticket whose work is a bugfix - it fixes a reported defect, a crash, or wrong behaviour rather than adding a capability - **may not be flipped to `Implemented`** until the strategic spec carries a before/after repro record: the failing observation with its evidence (logcat excerpt, screenshot, failing test, or the exact reproduction steps and what was seen), and the same observation repeated after the fix showing it gone. "No completion claim without proof" had no gate at the point it matters most, and 39 of 232 active tickets are bugfixes. Escape path, because a requirement the pipeline routes around is worse than none: when the defect cannot be reproduced on demand, write `REPRO: not reproducible on demand - <reason>` into the spec plus whatever indirect evidence exists (the fixed code path, a unit test covering it). A recorded reason is acceptable; silence is not.
 - **No on-device gate** → flip strategic `Status:` to `Implemented`, add `**Implemented date:** <YYYY-MM-DD>`. No debug tags. Per-phase builds already validated compilation.
 - **On-device verification is part of acceptance** → `Timber.d("Sxxxx:")` tags already inserted before final phase's `Project compiles` build (see "Final-phase debug-tag insertion") and validated by that single build. Here just flip journal status to `BlockNeedUserTest` and run a dev log line for each file that gained a tag. Do not insert tags or rebuild at this point.
 - FEATURES / feature-doc updates and rest of finalization run **after** the build - never rebuild after the doc step.
-- **Finalization (batched).** Use `close-and-log.ps1` for journal flip + dev log batch + feature-inventory record + catalog scan/render in one pwsh process:
-
-  ```powershell
-  pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
-      -Id <Sxxxx> `
-      -Status <Implemented|BlockNeedUserTest> `
-      -StatusNote '<For BlockNeedUserTest: what to verify on device. Omit for Implemented.>' `
-      -DevLogs '[{"file":"PLAN/Sxxxx_<slug>.md","target":"spec-dev","desc":"All phases done; status -> <new>"},{"file":"app_v2/src/.../X.kt","target":"spec-dev","desc":"<phase-NN.M edit summary>"}]' `
-      -FuncOp <ADD|CHANGE|DELETE|""> -FuncDesc "<english summary or omit>" `
-      -FeatArea "<inventory area, e.g. Video Player>" `
-      -FeatName "<short capability name, e.g. Trace log outcome label>" `
-      -FeatFlavors "<exact builds that ship it, e.g. standard,vr>" `
-      -CatalogModule app_v2
-  ```
-
-  `-DevLogs` takes ONE string holding a JSON array - one `{file,target,desc}` object per modified source file. Never a PowerShell array literal `@('{..}','{..}')`: `pwsh -File` binds only its first element and the rest become positional args, which `close-and-log.ps1` now rejects at bind time (S1063).
-
-  `-StatusNote` **mandatory** when `-Status BlockNeedUserTest`; omit or leave empty for `Implemented`.
-
-  Feature-inventory block (records delivered capability in `docs/ALL_FEATURES.jsonl`, EN-only developer inventory that replaced `dev/FUNCTIONALITY.log`). `docs/FEATURES*` is curated public showcase, touched ONLY by `/skill-release` from inventory diff - never write a per-spec entry into FEATURES here:
-  - **`ADD`** - spec introduces new user-visible capability (no prior equivalent). Hints: §2 Goals describe a new feature; touched files are new classes / new screens / new menu entries. Pass `-FeatArea`/`-FeatFlavors` so record lands in right area with correct flavor availability.
-  - **`CHANGE`** - spec modifies existing user-visible behaviour. Hints: §2 Goals describe a behaviour change / UX improvement / reordering / visibility change.
-  - **`DELETE`** - spec removes a previously-shipped user-visible capability without archiving the spec. Marks existing record `status: removed` (keeps it for history). Use when §2 Goals remove a feature/menu/screen. (Archiving a capability-removing spec instead uses `/spec-arc --removes-functionality`.)
-  - Pass `-SkipFuncLog` (or omit `-FuncOp`) when spec purely internal (refactor, performance, build/CI plumbing). Document skip in chat output.
-  - Description: concise user-visible summary, reusing spec title or first sentence of §2 Goals. EN-only.
-  - `-FuncOp` requires `-FeatArea`/`-FeatName`/`-FeatFlavors` (S1072); a missing one is exit 2 with nothing mutated. The facade no longer invents them, so the `-FuncOp` shortcut and a direct `add.ps1` call now produce the SAME record - reach for `scripts/all_features/add.ps1 -Id <area>.<feature> -Area -Name -Description -Flavors [-Spec Sxxxx]` only when recording outside a ticket closure.
-  - Read `-FeatFlavors` off the real gate - the `BuildConfig` flag in `app_v2/build.gradle.kts` or the source set the code lives in - never off a sibling record: sibling records for the same screen disagree (S0777 vs S0782), so copying one is how a wrong list spreads.
-
-  Individual-call fallback (`update.ps1 -Status` + `post-change.ps1 -ChangeType ...` × N + `scripts/all_features/add.ps1` + `catalog_sync.ps1` only when a separate catalog repair still needed) remains valid when `close-and-log.ps1` unavailable, but each call is a separate pwsh process.
-
+- **Finalization (batched).** Use `close-and-log.ps1` for journal flip + dev log batch + feature-inventory record + catalog scan/render in one pwsh process. **Open `.claude/reference/spec-dev.md` §Finalization before this call, every time** - exact invocation, `-DevLogs` JSON contract, mandatory `-StatusNote`, `-FuncOp` ADD/CHANGE/DELETE selection, individual-call fallback. Never reconstruct it from memory.
 - **Auto-chain to `/spec-check`:** immediately invoke `/spec-check <Sxxxx>` to audit implementation. Skip only if status flipped to `BlockNeedUserTest` - in that case apply **Device-test gate** below.
 
 - **Device-test gate (on `BlockNeedUserTest`).** When status flipped to `BlockNeedUserTest`, do not just stop - probe for a device and auto-run on-device verification when one attached:
@@ -140,8 +99,7 @@ After all phases done:
   pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -CheckMcp -Json
   ```
 
-  - **Exit 0 (device online):** auto-chain `/spec-test-device <Sxxxx>` (full evidence run) → then `/spec-check <Sxxxx>`. `/spec-check` converts harvested evidence into `Verified` / `Partial` / `Broken` and, on transition out of `BlockNeedUserTest`, removes the `Timber.d("Sxxxx:` tags. Note in chat: `→ Device online: ran /spec-test-device + /spec-check. End status: <new>.`
-  - **Exit 2/1/3/6 (no usable device):** do not run. Note: `→ Awaiting on-device test. Debug tags inserted: N. No device attached - run /spec-sweep (or /spec-test-device <Sxxxx>) when a device is online; /spec-check removes the tags on the Verified transition.` Leave ticket in `BlockNeedUserTest`.
+  Exit 0 (device online) → auto-chain `/spec-test-device <Sxxxx>` then `/spec-check <Sxxxx>`. Exit 2/1/3/6 (no usable device) → do not run, leave the ticket in `BlockNeedUserTest`. Both branches print a fixed chat note - copy it verbatim from `.claude/reference/spec-dev.md` §Device-test gate.
 
 **Chat output:** `<Sxxxx>: N steps done. Cursor: <next step>. [Stop reason if any]. [verify-smoke PASS/SKIPPED/FAIL when --verify-smoke]. → Running /spec-check…`
 
@@ -154,8 +112,8 @@ Stop immediately and report - never guess or recover, never assume missing/ambig
 1. **Ambiguous prompt** - placeholder text, missing class/method name, unspecified Hilt scope, unspecified dispatcher. Set status `BlockQuestions` with `-StatusNote '<which placeholder/field is missing and where>'`.
 2. **Verification FAIL** after edit - step left `[~]`. User investigates.
 3. **Read-only zone touch.**
-4. **Line budget violation** - projected >1500 lines.
-5. **Build FAIL** - `.\build-debug.PS1` returned non-zero after auto-run for Phase Done Criteria. Stop with error excerpt. If the excerpt is a `BUILD.LOCK held` refusal (another agent session mid-build, CLAUDE.md Rule 23), this is not a code regression - note it distinctly, wait/retry once the holder finishes rather than debugging the source.
+4. **Line budget violation** - per CLAUDE.md Rule 2 (1500 LOC file size limit), obey it as written.
+5. **Build FAIL** - `.\a.ps1 dq` returned non-zero after auto-run for Phase Done Criteria. Stop with error excerpt. If the excerpt is a `BUILD.LOCK held` refusal (another agent session mid-build, CLAUDE.md Rule 23), this is not a code regression - note it distinctly, wait/retry once the holder finishes rather than debugging the source.
 6. **Room schema change** - prompt mentions bumping `@Database(version)` or adding `Migration`. Stop only if step does **not** specify new version number and migration class name explicitly. If both named → proceed automatically, note in chat.
 7. **Hilt module graph change** - adds `@Module`, `@Provides`, or modifies Hilt graph beyond a single `@Inject constructor`. Stop only if scope/qualifier not explicit in prompt. If scope named → proceed automatically, note in chat.
 8. **Missing symbol** - prompt names class/method not found at stated path and prompt does not also create it.
@@ -165,7 +123,7 @@ Stop immediately and report - never guess or recover, never assume missing/ambig
 12. **Trilingual gap** - step adds UI string but prompt names <3 `values/` files. Stop, never fabricate translations.
 12a. **Communication policy violation** - step adds/modifies a user-visible string failing §6 tone checklist of `docs/COMMUNICATION_POLICY.md` (raw exception text as primary message, "Are you sure?" without consequence, "operation completed successfully", empty state with no CTA). Rewrite to comply before proceeding; do not commit policy-violating copy.
 13. **External dependency missing** - step needs library version / hardware / third-party state not present. Set status `BlockExternal` with `-StatusNote '<what is missing and what must happen to unblock>'`, stop.
-14. **Flavor leak** - step writes a `BuildConfig.IS_*` / `SUPPORT_*` / `ENABLE_*` flavor guard inside `src/main/java/**`, OR places a flavor-only class (any new file containing `vr.*Activity`, `Vr*Renderer`, `*NoLegal*`, NewPipe/yt-dlp wrappers, OpenXR JNI) under `src/main/java/**` instead of `src/<flavor>/java/**`. Stop: tactical spec is wrong and needs `/spec-update`. Correct pattern is interface in `src/main/` + impl in flavor source set + Hilt module per flavor. See `dev/FLAVOR_DEVELOPMENT_RULES.md` and CLAUDE.md Rule 15. Never compensate by adding the guard "just for this step".
+14. **Flavor leak** - step writes a `BuildConfig.IS_*` / `SUPPORT_*` / `ENABLE_*` flavor guard inside `src/main/java/**`, OR places a flavor-only class (any new file containing `vr.*Activity`, `Vr*Renderer`, `*NoLegal*`, NewPipe/yt-dlp wrappers, OpenXR JNI) under `src/main/java/**` instead of `src/<flavor>/java/**`. Stop: tactical spec is wrong and needs `/spec-update`. Per CLAUDE.md Rule 14 (flavor isolation) - obey it as written; see also `dev/FLAVOR_DEVELOPMENT_RULES.md`. Never compensate by adding the guard "just for this step".
 
 ---
 
@@ -173,15 +131,7 @@ Stop immediately and report - never guess or recover, never assume missing/ambig
 
 Step `Status:` progression: `[ ] not done` → `[~] in progress` → `[x] done`.
 
-Append Step Log on each execution (create on first):
-
-```markdown
-**Status:** `[x] done`
-
-**Step Log:**
-
-- <YYYY-MM-DD> - Verification N/N PASS. Files: path/Foo.kt (+N LOC). Dev log recorded.
-```
+Append Step Log on each execution; when creating it for the first time, copy the literal block from `.claude/reference/spec-dev.md` §Step Log format.
 
 Step Log append-only. Re-executions add new lines, never overwrite.
 
@@ -198,27 +148,20 @@ If user manually set phase to `⛔ Blocked` between runs → stop and ask whethe
 
 ## Constraints
 
-- Command limits: never run `gradle`, `./gradlew`, or `npm` directly. For Phase Done Criteria compile checks, run `.\build-debug.PS1` automatically via PowerShell - do not pause or ask permission. Never run `git commit`, `git push`, `git rebase`.
+- Command limits: never run `gradle`, `./gradlew`, or `npm` directly. For Phase Done Criteria compile checks, run the `a.ps1` target named in CLAUDE.md section 9 (`dq` for a debug build, `fk` for a compile-only symbol change) automatically via PowerShell - do not pause or ask permission. Never run `git commit`, `git push`, `git rebase`.
 - Execution discipline: never skip planned steps, never mark multiple consecutive steps done in one pass, never combine their status updates into one edit. Using a repo helper script to complete the current step is allowed when script is explicitly part of the step or required to perform it safely.
-- Edit scope: never refactor surrounding code, add comments, or adjust unrelated imports. Never choose a name not explicitly stated in prompt. When a comment is genuinely warranted (prompt asks for it, or new logic non-obvious), keep it English-only and explain WHY - cover only non-obvious business logic, a handled edge-case, a workaround, or an invariant the code cannot express; never restate what the code plainly does.
-- Localization: never translate UI strings to RU/UK.
-- Neuroslop avoidance (CLAUDE.md Rule 20): while implementing, do not emit AI-slop - no trivial restating comments, no empty/broad swallowing `catch` (recover, return a safe default, or log a plain-English degradation at the right level), no hardcoded `="#hex"` in `res/layout*` (use `?attr/` or `@color/`), no bare `lifecycleScope.launch { flow.collect { } }` on a view-bound Flow (use `collectOnLifecycle`). The `neuroslop-gate` in `post-change.ps1` rejects regressions.
-- Detekt-clean-first (CLAUDE.md Rule 19 / S0826): write touched `.kt` to pass the detekt gate on the first build - keep log/probe lines `<=120` chars (wrap args or shorten), avoid bare numeric literals (`TimeUnit` / companion `const` / reuse an existing const), and never add `@Suppress` to a method that already has a baselined finding (it shifts the baseline signature and surfaces e.g. `FunctionNaming`). On an always-dirty tree, close via `post-change.ps1 -ScopeToFile` so detekt is diff-scoped and project-wide ratchets go advisory.
-- Dead-weight hygiene (CLAUDE.md Rule 21): when a step replaces or orphans code, resources, or dependencies, delete the dead remnant in the same step - don't leave it for R8 or a later cleanup, and drop any `-keep` rule naming a deleted class. Before deleting a zero-reference artifact, grep `PLAN/` for active-ticket scaffolding (`Partial` / `In Progress` / `Block*`) and do not remove another ticket's in-flight work. For "removed from the build" claims (native libs, `assets/`, jar data-resources, flavor-scoped deps), verify on a `release`/target-variant artifact, not a debug APK.
-- Repo tooling: if a repo helper script in the current step is broken or insufficient, fix the script instead of working around it, then continue the same step. For Android `<string>` edits prefer `scripts/utils/set-android-string.ps1` - see Process step 7b for `-Action set|add|get|remove|rename|list` usage.
+- Edit scope: never refactor surrounding code, add comments, or adjust unrelated imports (Process step 7). Never choose a name not explicitly stated in prompt.
+- Code quality on every `.kt` edit: per CLAUDE.md Rule 19 (neuroslop avoidance, detekt-clean-first), Rule 20 (dead-weight hygiene) and Rule 9 (comment discipline) - obey them as written. **Read `.claude/reference/spec-dev.md` §Implementation constraints before the first `.kt` edit of a phase, and again before deleting anything a step orphans** - it carries the spec-dev detail the CLAUDE.md rules do not.
+- Repo tooling: per CLAUDE.md Rule 13 (script ownership) - obey it as written; fix it inside the current step, then continue that same step rather than deferring.
 - Completion rules: step is `[x] done` only when every Verification predicate returned PASS in the current run - never on intent. Idempotency: running twice with no changes is a no-op on the second run. Never auto-revert a failed edit - user decides from Step Log.
 - Tracking: dev log per file, per step - run immediately after step completion. Cursor recomputed from phase file `Status:` on every invocation - never from memory.
-- **Debug verification tags belong only to `BlockNeedUserTest`.** Insert `Timber.d("Sxxxx: …")` tags as the final code edits before the last phase's `Project compiles` build, only when on-device verification is part of acceptance - never at `Implemented`, never per-step, never after the build. Never remove tags from this skill - that is `/spec-check`'s job on the `Verified` transition (or `/spec-update`'s on a re-open). Reserve the `Sxxxx:` prefix for these temporary probes only; do not put it into persistent `Timber.i/w/e` or long-lived `Timber.d` messages. See CLAUDE.md "Debug Verification Tags".
-- **Landscape parity (MANDATORY):** any step editing `res/layout/*.xml` MUST list the corresponding `res/layout-land/*.xml` in `Files Touched`. If landscape variant exists and is absent from the step → abort (see Pre-edit guards). If landscape variant does not exist but screen supports rotation → add an explicit note in the step or a dedicated sub-step to create it.
+- **Debug verification tags belong only to `BlockNeedUserTest`.** Insert `Timber.d("Sxxxx: …")` tags as the final code edits before the last phase's `Project compiles` build, only when on-device verification is part of acceptance - never at `Implemented`, never per-step, never after the build. Never remove tags from this skill - that is `/spec-check`'s job on the `Verified` transition (or `/spec-update`'s on a re-open). Before writing the first tag of a ticket: `.claude/reference/spec-dev.md` §Debug verification tags (prefix reservation, re-open case).
+- **Landscape parity (MANDATORY):** per CLAUDE.md Rule 11 (layout-land parity) - obey it as written. Execution-time form of it: any step editing `res/layout/*.xml` MUST list the corresponding `res/layout-land/*.xml` in `Files Touched`. If the landscape variant exists and is absent from the step → abort (see Pre-edit guards). If landscape variant does not exist but screen supports rotation → `.claude/reference/spec-dev.md` §Landscape parity.
 
 ---
 
 ## Spec Catalog hooks
 
 - **Argument resolution.** First positional arg is `Sxxxx` (preferred) or a slug. If slug, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json` to obtain id. Read current status the same way before first phase touches code.
-- **Status transitions.**
-  - Before first non-done step started: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status "In Progress"` (skip if already `In Progress` or later).
-  - After every phase has all steps `[x] done` and final dev log written: `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Implemented`.
-  - When flipping to `BlockNeedUserTest` (on-device acceptance): `Timber.d("Sxxxx: …")` debug tags already inserted before final phase's build (see Process - "Final-phase debug-tag insertion"); here just `update.ps1 -Id <Sxxxx> -Status BlockNeedUserTest -StatusNote '<1-2 sentences: what the user must verify on device>'`.
-  - When a hard stop indicates a block: `update.ps1 -Id <Sxxxx> -Status BlockQuestions|BlockExternal|BlockByOtherTask -StatusNote '<reason and what resolves it>'` - note is **mandatory** for every Block* transition.
-- **Forbidden:** never write `PLAN/spec-catalog.jsonl` directly; never set journal status to `Verified` from this skill - that is `/spec-check`'s job.
+- **Status transitions.** Normal closure goes through `close-and-log.ps1` (see Finalization). When flipping a status by hand instead - first step started, a hard stop that blocks, an on-device hand-off - read `.claude/reference/spec-dev.md` §Spec catalog hooks for the exact `update.ps1` command per lifecycle edge. A `-StatusNote` is **mandatory** on every `Block*` transition.
+- **Forbidden:** per CLAUDE.md Rule 12 (spec catalog is script-owned) - obey it as written. Additionally, never set journal status to `Verified` from this skill - that is `/spec-check`'s job.

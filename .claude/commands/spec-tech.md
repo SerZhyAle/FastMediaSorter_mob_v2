@@ -120,9 +120,11 @@ Sole exception: final docs-catalog-cleanup phase. A phase where most steps fail 
 
 Phase shape (unchanged invariants): each phase mergeable as coherent unit; one build-time invariant proving completion; no half-broken state between steps. Target 3–8 phases. >10 → split feature into multiple specs.
 
-**4 - Write `INDEX.md`** using template.
+**4 - Write `INDEX.md`** from `.claude/templates/tactical-index.md` (see "Templates" below).
 
-**5 - Write each `PHASE_NN__<slug>.md`** using phase template. Steps numbered `NN.M`.
+**5 - Write each `PHASE_NN__<slug>.md`** from `.claude/templates/phase-file.md`. Steps numbered `NN.M`.
+
+> **Step form (S1343, adopted 2026-08-02).** Every written step carries a `**Why:**` field between `**Prompt for developer:**` and `**Verification:**` - at least one complete sentence, sourced from the strategic spec, stating what breaks without the step or which constraint it satisfies, never a restatement of the prompt. Source it or write `not stated in strategic spec` verbatim; never invent a reason the strategic spec does not state. `Prompt for developer:` itself drops filler words and redundant turns of phrase ("please", "in order to", restating the step title), but is not otherwise shortened, and causal wording is never compressed. Full rule in `.claude/templates/phase-file.md`'s header.
 
 > **Communication policy gate:** any step adding/rewriting user-visible strings - include in its `Prompt for developer:` a check against `docs/COMMUNICATION_POLICY.md` §2 (message formula for the type) and §6 (tone checklist). Make tone checklist a Verification predicate: `Strings pass COMMUNICATION_POLICY §6 checklist`.
 
@@ -133,6 +135,7 @@ Phase shape (unchanged invariants): each phase mergeable as coherent unit; one b
 - Every `Depends on` matches 3.2 topology; no phase or step references artifact from later phase.
 - No step violates 3.4 real-work filter.
 - Research findings reflected: step contradicting Resolved §6 artifact is planning bug to fix here, not implementation detail to discover later.
+- **UI placement decision recorded (refusal, S1338).** Any phase whose `Files Touched` names `app_v2/src/main/res/layout*`, an `Activity`/`Fragment`/`*View`/`ui/**` class, or a settings surface **fails this self-check** unless the strategic spec carries a recorded placement decision for it: either a `/ui-clarify` record, or an owner ruling quoted verbatim. There is no "decide during implementation" path - guessing placement is the single largest correction class the owner reports (33% of all corrections), while `/ui-clarify` was invoked once in a month. Missing → run `/ui-clarify` now and write its answer into the spec, or mark the ticket `BlockQuestions`; do not write the phase and hope.
 
 Fix findings directly (reorder phases, rewrite steps, renumber), then re-run failed check once. Report in chat: `Plan self-check: PASS - <N> inventory items mapped, <M> reorders applied.` Never skip this pass - phase-order bugs are dominant tactical-plan defect.
 
@@ -159,181 +162,12 @@ If no unchecked Pre-Implementation Blockers in INDEX - immediately invoke `/spec
 
 ---
 
-## `INDEX.md` Template
+## Templates
 
-```markdown
-# Tactical Plan: <Sxxxx> - <short-name>
+Both skeletons live in `.claude/templates/` - one template, many referrers. Read each before writing the first file of its kind in a run.
 
-**Strategic spec:** [`../Sxxxx_<short-name>.md`](../Sxxxx_<short-name>.md)
-**Research inputs:** [`research/<NN>__<topic-slug>.md`](research/<NN>__<topic-slug>.md) <one link per artifact, or "none">
-**Feature:** <feature name>
-**Tier:** <tier label>
-**Priority:** <0..100>
-**Status:** Not started
-**Phases:** 0 / N done
-**Last updated:** <YYYY-MM-DD>
-
-> **Scope:** tactical, English, developer handoff. Every step has verification predicate. Rationale lives in strategic spec.
-
----
-
-## Phase Overview
-
-| # | Phase | Depends on | Status | Steps | File |
-|---|-------|-----------|--------|------:|------|
-| 01 | <slug> | - | ⬜ Not started | 0/N | [PHASE_01__<slug>.md](PHASE_01__<slug>.md) |
-| 02 | <slug> | 01 | ⬜ Not started | 0/N | [PHASE_02__<slug>.md](PHASE_02__<slug>.md) |
-| NN | docs-catalog-cleanup | all | ⬜ Not started | 0/N | [PHASE_NN__docs-catalog-cleanup.md](PHASE_NN__docs-catalog-cleanup.md) |
-
-Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blocked` · `⏭️ Skipped`
-
----
-
-## Pre-Implementation Blockers
-
-<Every §6 research item with `Status: Open` becomes checkbox. Phase 01 must not start while any blocker unchecked.>
-
-- [ ] **Research:** <title> - required before Phase <NN>. See strategic §6.X.
-
----
-
-## Completion Gate
-
-- [ ] All phases show ✅ Done.
-- [ ] `docs/FEATURES.md` + `_RU.md` + `_UK.md` - update only if strategic §8 contains FEATURES sentence (not "Без изменений"); skip otherwise.
-- [ ] `dev/CHANGELOG.md` has entry for every modified file.
-- [ ] `dev/CATALOG/<module>.jsonl` regenerated if public API changed.
-- [ ] `/spec-check <Sxxxx>` returns `Verified`.
-- [ ] Strategic spec `Status:` advanced to `Verified` by `/spec-check`.
-
----
-
-## How to Track Progress
-
-1. Before starting phase: flip row to `🚧 In Progress`. Update `Phases: X/N done`.
-2. During phase: flip step to `[~] in progress` when started, `[x] done` when Verification passes. Never flip `[x]` on intent.
-3. On phase completion: confirm every step `[x]`, confirm Phase Done Criteria, flip row to `✅ Done`, bump counter.
-4. If blocked: flip to `⛔ Blocked`, add bullet to Blockers Log. If whole spec blocked, also set journal status to one of `BlockByOtherTask` / `BlockNeedUserTest` / `BlockQuestions` / `BlockExternal`.
-5. All done: flip `Status:` to `Done`, run `/spec-check <Sxxxx>`.
-
----
-
-## Blockers Log
-
-- <YYYY-MM-DD> - Phase NN blocked: <cause>. Next: <who/what/when>.
-
----
-
-## Change Log
-
-- <YYYY-MM-DD> - Initial tactical plan authored by `/spec-tech`.
-```
-
----
-
-## Phase File Template
-
-```markdown
-# Phase NN - <Phase Title>
-
-**Strategic spec:** [`../Sxxxx_<short-name>.md`](../Sxxxx_<short-name>.md)
-**Tactical index:** [`INDEX.md`](INDEX.md)
-**Status:** ⬜ Not started
-**Depends on:** Phase NN-M (or "none - foundation phase")
-**Blocks:** Phase NN+K, Phase NN+L
-**Steps done:** 0 / N
-**Started:** -
-**Completed:** -
-
----
-
-## Objective
-
-<One sentence. What this phase produces. Example: "Introduce `InputBindingRepository` with Room persistence and Hilt wiring; no UI or dispatch changes yet.">
-
----
-
-## Prerequisites
-
-- [ ] All phases in "Depends on" are ✅ Done.
-- [ ] Strategic §6 research items blocking this phase are Resolved.
-- [ ] Working tree is clean or on a feature branch.
-- [ ] <any phase-specific precondition>
-
----
-
-## Files Touched
-
-| File | New / Modified | Line budget |
-|------|:--------------:|------------:|
-| `app_v2/src/main/java/com/sza/fastmediasorter/<path>/<File>.kt` | New | ≤ 250 |
-| `app_v2/src/main/java/com/sza/fastmediasorter/<path>/<Existing>.kt` | Modified | ≤ 500 |
-
-> Backup / split thresholds: see Constraints (>500 LOC → backup step, >1500 LOC → split via Manager pattern).
->
-> **Flavor placement.** Flavor-only classes (vr / vrUnlicensed / noLegal / lite / photos / legacy) MUST be listed under `app_v2/src/<flavor>/java/...` - not under `src/main/java/`. Shared contract interface and No-Op fallback stay in `src/main/java/`. Hilt binding modules for real impl go under `src/<flavor>/java/.../di/`. See `dev/FLAVOR_DEVELOPMENT_RULES.md`.
-
----
-
-## Steps
-
-### Step NN.1 - <Imperative title>
-
-**Files:** `path/to/File.kt`
-**Depends on:** - start of phase
-
-**Prompt for developer:**
-
-> <Self-contained imperative, 1–4 sentences. Reader must not need to open strategic spec.>
-
-**Verification:**
-
-- `Glob` - `path/to/File.kt` exists.
-- `Grep` - `class <ClassName>` matches exactly once in that file (declaration line, not comment).
-- `Grep` - `<ExpectedMethodSignature>` present.
-
-**Status:** `[ ]` not done
-
----
-
-### Step NN.2 - <Imperative title>
-
-**Files:** ..
-**Depends on:** Step NN.1
-
-**Prompt for developer:**
-
-> ..
-
-**Verification:**
-
-- ..
-
-**Status:** `[ ]` not done
-
----
-
-## Phase Done Criteria
-
-- [ ] Every `Step NN.*` above is `[x] done`.
-- [ ] Project compiles - run `/build` (do not invoke gradle directly).
-- [ ] `Grep` for `TODO(phase-<NN>)` returns zero hits.
-- [ ] Dev log entry added for every file in "Files Touched" via `.\scripts\add_to_dev_log.ps1`.
-- [ ] If public API changed: `dev/CATALOG/<module>.jsonl` regenerated via `pwsh -NoProfile -File dev/CATALOG/scripts/scan.ps1 -Module <app_v2|wear>`.
-- [ ] Phase-boundary audit run - no unresolved P0/P1 findings (CLAUDE.md §13 / `docs/CODE_AUDIT_PROTOCOL.md` "Phase-boundary audits"; see `/spec-dev` "Phase-boundary audit" step).
-
----
-
-## Handoff Notes to Next Phase
-
-<Invariants this phase established. If final phase - "Final phase - see INDEX.md Completion Gate.">
-
----
-
-## Rollback Plan
-
-<If risk warrants: which commits to revert, config to restore. Low-risk: "Revert phase commit(s) - no data migration or user-facing surface changed.">
-```
+- `INDEX.md` (step 4): write it from `.claude/templates/tactical-index.md` - substitute `<Sxxxx>`, `<short-name>`, the feature/tier/priority frontmatter, one Phase Overview row per phase and the `Research inputs:` links.
+- `PHASE_NN__<slug>.md` (step 5): write it from `.claude/templates/phase-file.md` - substitute `<Sxxxx>`, `<short-name>`, the phase number `NN`, the phase slug and title, the `Depends on` / `Blocks` phases and the step numbers `NN.M`.
 
 ---
 
@@ -341,21 +175,22 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 - One step = one atomic unit: committable in isolation without breaking build.
 - Every step Verification must be static (Glob/Grep/value equality) - no "works correctly".
-- No step references read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
-- File >500 lines after edit → backup step required. File >1500 lines → refuse; split via Manager pattern first.
-- Naming: `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
+- No step references a read-only zone: per CLAUDE.md Rule 4 (read-only zones) - obey it as written.
+- Per CLAUDE.md Rule 5 (backup before editing >500 LOC) - obey it as written; a step crossing that line carries an explicit backup sub-step.
+- Per CLAUDE.md Rule 2 (1500 LOC file size limit) - obey it as written; a step that would cross it is refused at planning time, not at impl time.
+- Per CLAUDE.md Rule 6 (class naming suffixes) - obey it as written.
 - Room schema change: bump `@Database(version)`, add `Migration`, never rename prior migrations. One phase per schema change.
 - Hilt bindings: every new `@Inject`/`@Provides` names the `@Module` file in step body.
 - Trilingual strings: one step covering all three `values/strings.xml` files with three Grep verifications; step body should use `scripts/utils/set-android-string.ps1 -Action add -Key -En -Ru -Uk` (one lockstep call, parity-enforced) rather than three manual edits.
-- Timber only: `Grep -n "Log\.d\("` returning zero hits mandatory for any file the step modifies.
-- Neuroslop avoidance (CLAUDE.md Rule 20): phase `Prompt for developer:` text must not invite AI-slop; code-adding steps implement clean - no trivial restating comments, no empty/broad swallowing `catch`, no hardcoded `="#hex"` in `res/layout*` (use `?attr/`/`@color/`), no bare `lifecycleScope.launch { flow.collect { } }` on view-bound Flows (use `collectOnLifecycle`). `post-change.ps1`'s `neuroslop-gate` enforces at impl time.
+- Per CLAUDE.md section 8 "Project Structure & Tech Stack" on logging - obey it as written; the step's Verification states it as `Grep -n "Log\.d\("` returning zero hits for any file the step modifies.
+- Per CLAUDE.md Rule 19 (neuroslop avoidance, detekt-clean-first) - obey it as written. The planning-time addition: phase `Prompt for developer:` text must not invite AI-slop in the first place. `post-change.ps1`'s `neuroslop-gate` enforces at impl time.
 - Final phase always `PHASE_NN__docs-catalog-cleanup.md`.
-- Do not duplicate strategic content - tactical says *what*, not *why*.
+- Do not duplicate strategic content - tactical says *what*. The one exception is each step's `**Why:**` field (step 5), which carries one sentence of sourced rationale so `/spec-dev` does not have to open the strategic spec to judge an uncovered edge case; it quotes the reason, it does not restate the section.
 - Never write phase steps that create audit / fix files in `PLAN/` - abolished.
 - Research artifacts under `PLAN/Sxxxx_<short-name>/research/` are mandatory planning input: read all before step 3, list in INDEX `Research inputs:`.
 - Real-work filter (step 3.4) binds every step, not just planning pass: no step whose primary action edits `PLAN/**` text, outside final cleanup phase.
-- **Landscape parity (MANDATORY):** any step editing `res/layout/*.xml` MUST list `res/layout-land/<file>.xml` in `Files Touched` (if landscape variant exists) or include explicit note: "landscape variant absent - not needed / to be created in step NN.M". Never produce a phase file with portrait-only layout step when landscape counterpart exists.
-- **Flavor source-set discipline (MANDATORY).** If strategic §3.2 names a non-`standard` flavor target (`vr`, `vrUnlicensed`, `noLegal`, `lite`, `photos`, `legacy`) - or differentiates behavior between flavors - every flavor-specific file in `Files Touched` MUST live under `src/<flavor>/java/` (or `src/<flavor>/res/`, `src/<flavor>/AndroidManifest.xml`), never under `src/main/`. Contract interface and No-Op fallback go to `src/main/java/`; real impl to target flavor source set; binding in flavor-local Hilt `@Module` under `src/<flavor>/java/.../di/`. Phase steps writing `BuildConfig.IS_*` / `SUPPORT_*` / `ENABLE_*` flavor guards into `src/main/java/**` are forbidden - `/spec-dev` hard-stops on them. Reference layout: `dev/FLAVOR_DEVELOPMENT_RULES.md` §3–§4. Correct patterns on disk: `src/vr/java/.../vr/di/VrModule.kt` (binds `FullscreenCommandOverride` / `BrowsePassthroughCaptureProvider` / `VrLayerFactory`), `src/noLegal/java/.../di/NoLegalLinkDownloadModule.kt` (multibinding `@IntoSet` for link extraction strategies).
+- **Landscape parity (MANDATORY):** per CLAUDE.md Rule 11 (layout-land parity) - obey it as written. Planning-time form of it: any step editing `res/layout/*.xml` MUST list `res/layout-land/<file>.xml` in `Files Touched` when the landscape variant exists, or carry the explicit note "landscape variant absent - not needed / to be created in step NN.M".
+- **Flavor source-set discipline (MANDATORY).** Per CLAUDE.md Rule 14 (flavor isolation) - obey it as written; `/spec-dev` hard-stops on a violation. Planning-time form of it: if strategic §3.2 names a non-`standard` flavor target (`vr`, `vrUnlicensed`, `noLegal`, `lite`, `photos`, `legacy`) - or differentiates behavior between flavors - every flavor-specific file in `Files Touched` MUST live under `src/<flavor>/java/` (or `src/<flavor>/res/`, `src/<flavor>/AndroidManifest.xml`), with the contract interface and No-Op fallback in `src/main/java/` and the binding in a flavor-local Hilt `@Module` under `src/<flavor>/java/.../di/`. Reference layout: `dev/FLAVOR_DEVELOPMENT_RULES.md` §3-§4. Correct patterns on disk: `src/vr/java/.../vr/di/VrModule.kt` (binds `FullscreenCommandOverride` / `BrowsePassthroughCaptureProvider` / `VrLayerFactory`), `src/noLegal/java/.../di/NoLegalLinkDownloadModule.kt` (multibinding `@IntoSet` for link extraction strategies).
 - **Catalog hint for flavor-only classes.** A phase introducing flavor-only class under `src/<flavor>/java/` SHOULD include sub-step in `PHASE_NN__docs-catalog-cleanup` to call `set.ps1 -NoFlavors "<other flavors>"` - e.g. vr-only class declares `-NoFlavors "standard,lite,photos,legacy,noLegal"`. Source-set placement governs physical isolation; catalog hint makes intent searchable.
 
 ---
@@ -365,4 +200,4 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 - **Argument resolution.** First positional arg is `Sxxxx` (preferred) or slug. If slug, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Name "<slug>" -Format json` to obtain id.
 - **File / folder names.** Strategic spec at `PLAN/<Sxxxx>_<slug>.md`. Tactical folder `PLAN/<Sxxxx>_<slug>/`. Phase files follow `PHASE_NN__<topic>.md` (no per-phase `Sxxxx` prefix). `_spec_` segment forbidden anywhere.
 - **Status transition.** After tactical folder fully written, run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Tactical`. For any `Block*` transition include `-StatusNote '<reason and what resolves it>'` - mandatory per CLAUDE.md §4.
-- **Forbidden:** never write `PLAN/spec-catalog.jsonl` directly; never create tactical folder at `PLAN/<Sxxxx>_spec_<slug>/` or `PLAN/spec_<slug>/`.
+- **Forbidden:** per CLAUDE.md Rule 12 (spec catalog is script-owned) - obey it as written. Additionally, never create a tactical folder at `PLAN/<Sxxxx>_spec_<slug>/` or `PLAN/spec_<slug>/`.

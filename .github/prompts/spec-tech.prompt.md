@@ -113,6 +113,8 @@ Target 3–8 phases. >10 → split the feature into multiple specs.
 
 **5 - Write each `PHASE_NN__<slug>.md`** using the phase template. Steps numbered `NN.M`.
 
+> **Step form (S1343, adopted 2026-08-02).** Every written step carries a `**Why:**` field between `**Prompt for developer:**` and `**Verification:**` - at least one complete sentence, sourced from the strategic spec, stating what breaks without the step or which constraint it satisfies, never a restatement of the prompt. Source it or write `not stated in strategic spec` verbatim; never invent a reason the strategic spec does not state. `Prompt for developer:` itself drops filler words and redundant turns of phrase ("please", "in order to", restating the step title), but is not otherwise shortened, and causal wording is never compressed.
+
 > **Communication policy gate:** For any step that adds or rewrites user-visible strings, include in its `Prompt for developer:` a check against `docs/COMMUNICATION_POLICY.md` §2 (message formula for the relevant type) and §6 (tone checklist). Make the tone checklist a Verification predicate: `Strings pass COMMUNICATION_POLICY §6 checklist`.
 
 **6 - Update strategic spec.** Flip `Status:` to `Tactical`. Add:
@@ -260,7 +262,11 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 
 **Prompt for developer:**
 
-> <Self-contained imperative, 1–4 sentences. Reader must not need to open the strategic spec.>
+> <Self-contained imperative, 1-4 sentences, filler removed. Reader must not need to open the strategic spec.>
+
+**Why:**
+
+<At least one complete sentence, sourced from the strategic spec. The reason this step exists: what breaks without it, or which constraint it satisfies. Never a restatement of the prompt. Not compressed. No reason in the strategic spec -> `not stated in strategic spec` verbatim.>
 
 **Verification:**
 
@@ -280,6 +286,10 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 **Prompt for developer:**
 
 > ..
+
+**Why:**
+
+<..>
 
 **Verification:**
 
@@ -324,7 +334,7 @@ Status legend: `⬜ Not started` · `🚧 In Progress` · `✅ Done` · `⛔ Blo
 - Trilingual strings: one step covering all three `values/strings.xml` files with three Grep verifications.
 - Timber only: `Grep -n "Log\.d\("` returning zero hits mandatory for any file the step modifies.
 - Final phase always `PHASE_NN__docs-catalog-cleanup.md`.
-- Do not duplicate strategic content - tactical says *what*, not *why*.
+- Do not duplicate strategic content - tactical says *what*. The one exception is each step's `**Why:**` field (step 5), which carries one sentence of sourced rationale so `/spec-dev` does not have to open the strategic spec to judge an uncovered edge case; it quotes the reason, it does not restate the section.
 - Never write phase steps that create audit / fix files in `PLAN/` - those are abolished.
 - **Landscape parity (MANDATORY):** any step that edits `res/layout/*.xml` MUST list `res/layout-land/<file>.xml` in `Files Touched` (if the landscape variant exists) or include an explicit note: "landscape variant absent - not needed / to be created in step NN.M". Never produce a phase file with a portrait-only layout step when a landscape counterpart exists.
 - **Lazy optimization (MANDATORY):** any step introducing an optional feature (guarded by `AppSettings`), a heavy DI dependency (e.g. network/cloud client), or a heavy UI overlay must explicitly plan for lazy loading. Heavy injected dependencies must use `dagger.Lazy<T>`, optional UI views must be loaded via `<ViewStub>`, and player/decoder allocations must run on-demand and release immediately when inactive.

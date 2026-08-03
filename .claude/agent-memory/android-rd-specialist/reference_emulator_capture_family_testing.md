@@ -24,4 +24,4 @@ How to device-test the screen-capture / edge-gesture family (S0672 strip, S0724 
 
 **Display-aspect tricks (reused for S0670/S0693):** `adb shell wm size WxH; wm density N` then relaunch to fake a tall phone (1080x2400@400 ~ 432dp) or a narrow phone (<600dp) without booting another AVD - the current sdk_gphone AVD is near-square (~852dp wide), so it already triggers wide-layout paths. Reset with `wm size reset; wm density reset`.
 
-Related: [[project_play_release_in_review]], [[project_screencapture_nolegal_only]], [[reference_emulator_mediaprojection_capture]], [[feedback_bottomsheet_menu_untappable_emulator]].
+Related: [[play-capture-family-status]], [[screencapture-split-standard-vs-nolegal]], [[emulator-verifies-mediaprojection-screenshot]], [[bottomsheet-menu-untappable-emulator]].

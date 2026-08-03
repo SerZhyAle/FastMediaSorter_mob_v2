@@ -9,7 +9,7 @@ The owner sometimes drops a voice note into the chat instead of typing (e.g. `@C
 
 Working setup, installed 2026-07-29 into the project venv `.venv\Scripts\python.exe`:
 
-- `faster-whisper` (CTranslate2, CPU, int8). Fully offline after the first run; model weights cache under the user profile. No API key, so it satisfies [[no-paid-or-key-services]].
+- `faster-whisper` (CTranslate2, CPU, int8). Fully offline after the first run; model weights cache under the user profile. No API key, so it satisfies [[no-paid-or-key-third-party-services]].
 - Helper script pattern: `WhisperModel(size, device="cpu", compute_type="int8")` then `model.transcribe(audio, beam_size=5, vad_filter=True)`. `small` handled a 97-second Russian note accurately (language auto-detected, prob 0.99) in about a minute.
 
 **How to apply:** when a voice note arrives, transcribe it first, then work from the transcript - do not ask the owner to retype. Persist both the audio and the transcript as spec attachments (`PLAN/Sxxxx_<slug>/attachments/`) so §0 raw capture stays verifiable, and quote the owner verbatim in the spec rather than paraphrasing.

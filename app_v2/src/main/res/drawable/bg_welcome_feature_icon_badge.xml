@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Circular backing for a Welcome feature-row icon. Solid white on purpose: the row tints it from
+     the theme (colorPrimaryContainer), the same trick bg_welcome_content_panel uses, so the badge
+     follows the user's colour theme instead of pinning a colour here. A circle, not a rounded box,
+     is what keeps the row reading as a list bullet rather than a button. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@android:color/white" />
+</shape>

@@ -359,6 +359,7 @@ class CloudOperationStrategy @Inject constructor(
                     fileName = targetName,
                     mimeType = mimeType,
                     parentFolderId = parentId.ifBlank { null },
+                    fileSize = localFile.length(),
                     // S0730: throttle via the shared adapter (see downloadCloudToLocal) rather than a
                     // raw coroutine per progress tick.
                     progressCallback = adaptCloudProgress(progressCallback, progressScope)

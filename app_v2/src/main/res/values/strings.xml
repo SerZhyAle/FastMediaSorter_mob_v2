@@ -3302,4 +3302,7 @@ Close the player and try again.</string>
     <string name="camera_profile_macro">Macro</string>
     <string name="camera_profile_sport">Sport</string>
     <string name="camera_profile_sport_notice">Sport freezes motion with a short exposure - frames get darker in low light.</string>
+    <string name="perm_group_contacts">Contacts</string>
+    <string name="perm_title_read_contacts">Contacts access</string>
+    <string name="perm_desc_read_contacts">Show a contact\'s name and photo when you pin them to your launcher, and let you reach them directly from the pinned cell.</string>
 </resources>

@@ -8,7 +8,7 @@
 ## 2. Communication
 - Language and tone: one home, canon `rules/AUTHOR.md` "Language" + "Working style". Nothing about it is repo-specific here.
 - House text style and its scope: one home, canon `rules/DOCUMENTATION_CONCEPT.md` section 5 "House text style". Repo extension past that scope: long dashes are banned in `.kt` too (CLAUDE.md Rule 19, gate `scripts/quality/assert-neuroslop.ps1`).
-- Timestamps: Always accompany replies with a timestamp (HH:mm:ss based on the current local time provided in prompt metadata).
+- Timestamps: see `CLAUDE.md` §1.
 
 ## 3. Core Rules
 - Stack: Android, Kotlin 1.9+, Java 17, Hilt, Room, Media3, Timber.
@@ -24,17 +24,18 @@
 - UI changes: run `/ui-clarify` before implementation.
 - WindowInsets: systemBars + displayCutout safe bounds (fitsSystemWindows not enough).
 - Dialog action pair (S0538/S0684): confirm/cancel in any dialog/bottom-sheet/custom layout uses the named styles - confirm = `DialogConfirm` (green, wide), cancel = `DialogCancel` (soft-pink tonal, shorter/narrower), destructive = `DialogDestructive` (red). Never a one-off cancel button. Gate: `scripts/quality/assert-dialog-cancel-style.ps1`.
+- Settings docs sync (CLAUDE.md Rule 22): any change to a setting, including one hosted in a dialog/bottom-sheet/wizard page, must regenerate `docs/settings/settings-manifest.json` + `docs/SETTINGS_REFERENCE*.md` and update `docs/settings/settings-annotations.json`. A non-screen surface registers in `SettingsDocScopeCatalog`, never in `SettingsSearchLayoutCatalog` (S1035/S1313). Gate: `scripts/quality/assert-settings-doc-sync.ps1`.
 
 ## 4. Research Order
 1. `dev/PROJECT_OPERATIONS_INDEX.md`
 2. Specs: `scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`
 3. Kotlin classes: `dev/CATALOG/scripts/query.ps1` before global grep.
 4. Docs: `docs/ARCHITECTURE.md`, `docs/DEV_OPS.md`, `dev/TECH_REQUIREMENTS.md`, `dev/FLAVOR_DEVELOPMENT_RULES.md`.
-5. Every agent iteration: at task start, material scope change, phase boundary, and before final response, query `docs/DOCUMENT_REGISTRY.jsonl` through `scripts/document_registry/query.ps1` by product area and change trigger, then read the returned records. State affected records and reasons for unchanged matches. Run `validate.ps1` and `generate.ps1 -Check` when a registered document, page, or registry record changes.
+5. Document-registry loop: mandatory at task start, material scope change, phase boundary, and before final response - see `.claude/skills/document-registry/SKILL.md`.
 
 ## 5. Skill Routing (Load `.github/prompts/*.prompt.md`)
 - `/quick`: tiny fix (design, typo, 1 string), skip spec/build.
-- `/skill-fix`: fast bug/UI fix, skip doc/git/build/dev-log.
+- `/skill-fix`: fast bug/UI fix, and the doc/config/script tweak that needs no gradle; skip doc/git/build/dev-log.
 - `/spec*`: spec lifecycle (`/spec`, `/spec-all`, `/spec-tech`, `/spec-update`, `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-arc`, `/spec-test-device`, `/spec-sweep`).
 - `/ui-clarify`: resolve UI ambiguity before coding.
 - `/catalog`: class/feature queries, sync catalog.
@@ -54,7 +55,7 @@
 - PowerShell: Always `-NoProfile`. Batch: `& { cmd1; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; cmd2 }`. Use literal `$LASTEXITCODE`. Use project wrappers.
 - PowerShell exit codes (S1070): under `$ErrorActionPreference = 'Stop'` a bare `Write-Error` throws and the `exit N` after it never runs, so the code collapses to 1 while the message still prints. Use `Write-Error $msg -ErrorAction Continue` before `exit N` (N != 1); a header must list the codes actually returned. Gate: `scripts/quality/assert-exit-contract.ps1`.
 - Cost discipline: follow `docs/AGENT_COST_PLAYBOOK.md` - inline over subagent for single-fact lookups (<=3 tool calls), `/compact` at task boundaries, `/clear` on task switch, offload raw artifacts to `temp/Sxxxx/` (or `temp/scratch/`), restrict `mobile-mcp` to exploratory UI walks (`adb.ps1`/Maestro first).
-- Subagent MCP isolation: When defining a subagent, always set `enable_mcp_tools` to `false` unless the subagent strictly requires driving the UI/emulator (exploratory walkthroughs). This prevents duplicate Node/MCP server instances.
+- Subagent MCP isolation: When defining a subagent, always give it an explicit `tools:` frontmatter allowlist that omits every MCP tool name, unless the subagent strictly requires driving the UI/emulator (exploratory walkthroughs) - omitting `tools:` entirely grants the full set the parent session has, MCP-registered tools included. This prevents duplicate Node/MCP server instances. (S1348: `enable_mcp_tools` is not a real Claude Code option - do not use it.)
 
 ## 7. Validation
 - Follow `CLAUDE.md` validation ladder. Record `expected: X | actual: Y`.

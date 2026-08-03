@@ -32,13 +32,18 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Right column: scrollable (title + summary + language picker + feature grid + details) -->
+        <!-- Right column: scrollable (title + summary + language picker + feature grid + details).
+             S1380: the column is longer than its viewport, so the line sitting on the bottom edge was
+             cut through the middle of its glyphs. The fading edge makes that read as "more below"
+             instead of as a rendering fault. Keep in sync with the portrait variant. -->
         <ScrollView
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="@dimen/margin_large"
             android:fillViewport="true"
             android:clipToPadding="false"
+            android:requiresFadingEdge="vertical"
+            android:fadingEdgeLength="@dimen/welcome_body_fading_edge"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/ivIcon"

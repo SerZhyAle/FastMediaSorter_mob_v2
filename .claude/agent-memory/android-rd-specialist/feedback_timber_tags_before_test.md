@@ -1,5 +1,5 @@
 ---
-name: Never remove Timber.d("Sxxxx:") while spec is still BlockNeedUserTest
+name: timber-tags-before-test
 description: Debug tags are bound to BlockNeedUserTest status - removal happens only as a side effect of leaving that status, never speculatively
 type: feedback
 ---

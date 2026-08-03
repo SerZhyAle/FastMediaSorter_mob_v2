@@ -319,9 +319,10 @@ private fun bindDetails(view: TextView, page: WelcomePage) {
 }
 
 /**
- * Fill [grid] with one tile per [cards] entry (tinted icon + ≤2-line label). The column count
- * comes from @integer/welcome_feature_grid_columns (adapts per screen-width / orientation); cells
- * share the row width evenly via column weight. Collapses the grid when [cards] is empty.
+ * Fill [grid] with one row per [cards] entry (badged icon + bold title + one short detail line).
+ * The column count comes from @integer/welcome_feature_grid_columns - one column on a phone so the
+ * rows read as a list, two on a tablet or in landscape; cells share the row width evenly via column
+ * weight. Collapses the grid when [cards] is empty.
  */
 private fun populateFeatureGrid(grid: GridLayout, cards: List<FeatureCard>) {
     grid.removeAllViews()
@@ -333,22 +334,26 @@ private fun populateFeatureGrid(grid: GridLayout, cards: List<FeatureCard>) {
     val context = grid.context
     val columns = context.resources.getInteger(R.integer.welcome_feature_grid_columns).coerceAtLeast(1)
     grid.columnCount = columns
-    val margin = context.resources.getDimensionPixelSize(R.dimen.welcome_feature_card_margin)
+    val gutter = context.resources.getDimensionPixelSize(R.dimen.welcome_feature_row_gutter)
+    val spacing = context.resources.getDimensionPixelSize(R.dimen.welcome_feature_row_spacing)
     val inflater = LayoutInflater.from(context)
     cards.forEachIndexed { index, card ->
-        val tile = inflater.inflate(R.layout.item_welcome_feature_tile, grid, false)
-        tile.findViewById<ImageView>(R.id.ivFeatureTileIcon).setImageResource(card.iconRes)
+        val row = inflater.inflate(R.layout.item_welcome_feature_tile, grid, false)
+        row.findViewById<ImageView>(R.id.ivFeatureTileIcon).setImageResource(card.iconRes)
         val label = context.getString(card.labelRes)
-        tile.findViewById<TextView>(R.id.tvFeatureTileLabel).text = label
-        tile.contentDescription = label
+        val detail = context.getString(card.detailRes)
+        row.findViewById<TextView>(R.id.tvFeatureTileLabel).text = label
+        row.findViewById<TextView>(R.id.tvFeatureTileDetail).text = detail
+        // Two TextViews would otherwise be announced as two separate items; the row is one idea.
+        row.contentDescription = "$label. $detail"
         val params = GridLayout.LayoutParams(
             GridLayout.spec(index / columns),
             GridLayout.spec(index % columns, 1, GridLayout.FILL, 1f)
         )
         params.width = 0
-        params.setMargins(margin, margin, margin, margin)
-        tile.layoutParams = params
-        grid.addView(tile)
+        params.setMargins(gutter, spacing, gutter, spacing)
+        row.layoutParams = params
+        grid.addView(row)
     }
 }
 
@@ -404,5 +409,7 @@ data class WelcomePage(
 
 data class FeatureCard(
     val iconRes: Int,
-    val labelRes: Int
+    val labelRes: Int,
+    /** One-line benefit shown under the title - what this capability buys the user, not what it is. */
+    val detailRes: Int
 )

@@ -8269,17 +8269,6 @@
 
     <issue
         id="UnusedResources"
-        message="The resource `R.dimen.activity_browse_spaceAfterBack_layout_height` appears to be unused"
-        errorLine1="    &lt;dimen name=&quot;activity_browse_spaceAfterBack_layout_height&quot;>@dimen/layout_dimension_min&lt;/dimen>"
-        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/dimens.xml"
-            line="557"
-            column="12"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
         message="The resource `R.dimen.activity_browse_tvEmptyStateHint_layout_marginTop` appears to be unused"
         errorLine1="    &lt;dimen name=&quot;activity_browse_tvEmptyStateHint_layout_marginTop&quot;>@dimen/layout_spacing_normal&lt;/dimen>"
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -26389,55 +26378,7 @@
       SlideshowResourceAvailabilityManager must keep observing while the Activity is STOPPED for
       background-capable audio slideshow.
 
-      MainThreadIo x4, ReceiveShareActivity - the temp-file deletes in cleanupAndFinish() and
-      onDestroy() are genuine main-thread I/O, not a detector artefact. Fixing them needs a scope
-      that outlives the Activity, because lifecycleScope is already cancelled by onDestroy, which is
-      a design decision on a file S1195 does not otherwise touch. Tracked as S1324.
     -->
-
-    <issue
-        id="MainThreadIo"
-        message="Blocking I/O operation reachable on the main thread in a UI or ViewModel class. Wrap it in withContext(Dispatchers.IO)."
-        errorLine1="        cachedFiles.forEach { it.delete() }"
-        errorLine2="                              ~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt"
-            line="682"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="MainThreadIo"
-        message="Blocking I/O operation reachable on the main thread in a UI or ViewModel class. Wrap it in withContext(Dispatchers.IO)."
-        errorLine1="        tempDir.delete()"
-        errorLine2="        ~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt"
-            line="683"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="MainThreadIo"
-        message="Blocking I/O operation reachable on the main thread in a UI or ViewModel class. Wrap it in withContext(Dispatchers.IO)."
-        errorLine1="            cachedFiles.forEach { it.delete() }"
-        errorLine2="                                  ~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt"
-            line="696"
-            column="35"/>
-    </issue>
-
-    <issue
-        id="MainThreadIo"
-        message="Blocking I/O operation reachable on the main thread in a UI or ViewModel class. Wrap it in withContext(Dispatchers.IO)."
-        errorLine1="            tempDir.delete()"
-        errorLine2="            ~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt"
-            line="697"
-            column="13"/>
-    </issue>
 
     <!--
       RepeatOnLifecycleWrongUsage x2 - called from onStart but registered once. An idempotency guard

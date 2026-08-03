@@ -77,4 +77,6 @@ $failCount = @($records | Where-Object { $_.Status -in @('FAIL','INCONSISTENT','
 if ($AsBootstrapWarning) {
     exit 0
 }
-if ($failCount -eq 0) { exit 0 } else { exit 1 }
+if ($failCount -eq 0) { exit 0 }
+Write-Error ("check-doc-vs-gradle: {0} pin(s) FAIL/INCONSISTENT/MISSING - see the rows above and align the doc with build.gradle.kts." -f $failCount) -ErrorAction Continue
+exit 1

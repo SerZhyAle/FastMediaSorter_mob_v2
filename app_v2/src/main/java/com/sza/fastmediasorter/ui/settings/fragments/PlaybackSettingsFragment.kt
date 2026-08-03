@@ -19,7 +19,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareTarget
 import com.sza.fastmediasorter.core.share.ShareTargetAvailabilityResolver
@@ -49,6 +48,11 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
     private var _binding: FragmentSettingsPlaybackBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
+
+    // S1379: the compile-time "does this build ship background audio" axis has one sanctioned reader
+    // (CLAUDE.md Rule 14) - this screen used to read the build flag itself, which is what the
+    // contract's own KDoc already claimed it did not.
+    @Inject lateinit var capabilityAvailability: com.sza.fastmediasorter.core.capability.CapabilityAvailability
 
     @Inject lateinit var shareTargetRegistry: ShareTargetRegistry
     @Inject lateinit var shareTargetAvailabilityResolver: ShareTargetAvailabilityResolver
@@ -523,7 +527,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
                     }
 
                     // S0577: background-audio block (moved from Media/Audio).
-                    if (BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) {
+                    if (capabilityAvailability.isPersistentAudioPlaybackAvailable()) {
                         if (binding.rowEnablePersistentAudioPlayback.isChecked != settings.enablePersistentAudioPlayback) {
                             binding.rowEnablePersistentAudioPlayback.setCheckedSilently(settings.enablePersistentAudioPlayback)
                         }
@@ -570,7 +574,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
     // ── S0577: Background Audio Section (moved from AudioSettingsFragment) ──
 
     private fun setupBackgroundAudioSection() {
-        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) {
+        if (!capabilityAvailability.isPersistentAudioPlaybackAvailable()) {
             // No background audio on lite/photos - hide the whole group.
             binding.cardBackgroundAudio.isVisible = false
             return
@@ -623,7 +627,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun updateExitBehaviorVisibility() {
-        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) return
+        if (!capabilityAvailability.isPersistentAudioPlaybackAvailable()) return
         binding.layoutExitBehaviorSection.isVisible = binding.rowEnablePersistentAudioPlayback.isChecked
     }
 
@@ -639,7 +643,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun updateNotificationPermissionButtonVisibility() {
-        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) return
+        if (!capabilityAvailability.isPersistentAudioPlaybackAvailable()) return
         binding.btnNotificationPermission.isVisible =
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 !isNotificationPermissionGranted() &&

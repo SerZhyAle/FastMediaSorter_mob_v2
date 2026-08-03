@@ -1,5 +1,5 @@
 ---
-name: Build gotchas - Gradle daemon stop, catalog gitignored, Chaquopy variant gate
+name: build-gotchas
 description: build-debug.PS1 daemon stop (retry); dev/CATALOG/*.jsonl + *.md gitignored; Chaquopy gate disables all non-noLegal variants when local.properties has chaquopy.enabled=true
 type: project
 ---

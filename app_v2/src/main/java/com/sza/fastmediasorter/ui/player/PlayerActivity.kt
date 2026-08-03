@@ -370,6 +370,10 @@ class PlayerActivity :
 
     @Inject internal lateinit var googleDriveClientLazy: Lazy<GoogleDriveRestClient>
 
+    // S1379: the sanctioned reader of the compile-time background-audio axis; the player helpers get
+    // the resolved value from here instead of reading the build flag themselves (CLAUDE.md Rule 14).
+    @Inject lateinit var capabilityAvailability: com.sza.fastmediasorter.core.capability.CapabilityAvailability
+
     @Inject lateinit var networkStateMonitor: NetworkStateMonitor
 
     // S1006: reachable-endpoint resolver forwarded to VideoPlayerManager for multi-path SFTP playback.

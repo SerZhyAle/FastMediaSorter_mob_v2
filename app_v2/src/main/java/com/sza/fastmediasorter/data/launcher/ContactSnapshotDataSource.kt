@@ -21,11 +21,12 @@ import javax.inject.Singleton
  * S1176: the only seam onto `ContactsContract`, and the only place that turns a picked record into the
  * snapshot a desktop cell stores.
  *
- * **This class works without any contacts permission, and that is deliberate - do not "fix" it by
- * adding `READ_CONTACTS`.** Every read here happens on a URI the system contact picker just handed
- * back, under the one-time grant it attached to that single record. The user chose which contact to
- * expose, which is exactly the trade the owner approved (strategic §3.2): the app never sees the
- * address book, and in exchange the cell holds a snapshot that does not follow later edits.
+ * **S1335 registered `READ_CONTACTS` as an optional, request-on-demand permission project-wide** -
+ * this class's own reads are unaffected: every read here still happens on a URI the system contact
+ * picker just handed back, under the one-time grant it attached to that single record, and none of
+ * the flows below need the permission to keep working. The user chose which contact to expose, which
+ * is exactly the trade the owner approved (strategic §3.2): the app never sees the address book by
+ * default, and in exchange the cell holds a snapshot that does not follow later edits.
  *
  * The grant is narrow in a second way that shapes [readMessageChannels]: it covers the picked record,
  * so a provider that refuses the deeper read is an expected outcome, not a defect. Every query

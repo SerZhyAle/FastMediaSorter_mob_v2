@@ -12,6 +12,7 @@
 ### 8.1 RESEARCH PHASE (Исследование)
 - **Action**: Analyze current "AS-IS" state. Launch multiple sub-agents in parallel for independent lookups - always prefer concurrent over sequential.
 - **Parallel pattern**: local catalog/grep agents + `WebSearch`/`WebFetch` agents for the same question run simultaneously in one message; do not wait for one before starting the other.
+- **Catalog before an unnarrowed Kotlin search is mechanical (S1344)**: `dev/CATALOG/scripts/query.ps1 -Sector <name>` maps a product sector across `ui`/`domain`/`data` in one call, and a `PreToolUse` hook refuses a `.kt` `Grep`/`Glob` that names no subtree until the catalog has been queried once in the session. A search already scoped to a directory is never blocked.
 - **Web search is default ON**: use `WebSearch`/`WebFetch` freely for Android API behaviour, library docs, best practices, open bugs - no permission needed, no need to announce it.
 - **Focus**: Collect files, classes, current solutions, exact line numbers, and relevant external references (docs, changelogs, known issues).
 - **Output**: A comprehensive temporary file in `temp/` with the full context.

@@ -13,4 +13,4 @@ When launching implementation subagents **in parallel**, their briefs must expli
 - Every parallel impl-agent prompt: a hard line "NO git, NO gradle build, NO catalog_sync - orchestrator owns these; report your changes and stop."
 - If an agent genuinely needs an isolated compile, give it `isolation: "worktree"` via the Agent tool (its own git worktree), never let it stash in the shared tree.
 - If a subagent reports "an external editor / IDE is reverting my files," first suspect a concurrent agent's git/stash, not a real IDE - verify the actual on-disk state by reading the files (Grep for the expected sentinels) before re-doing work, not via git history.
-- A green central build after all agents return is the authoritative validation; subagent self-reports of "compiles in isolation" are not (their kapt cache and stash games can mislead). See [[feedback_verify_subagent_build_failures]].
+- A green central build after all agents return is the authoritative validation; subagent self-reports of "compiles in isolation" are not (their kapt cache and stash games can mislead). See [[verify-subagent-build-failures]].

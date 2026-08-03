@@ -349,21 +349,25 @@ class BrowseFileOperationsManager(
 
     private fun progressTitleRes(operationType: FileOperationType): Int = when (operationType) {
         FileOperationType.MOVE -> R.string.moving_files
+        FileOperationType.DELETE -> R.string.deleting_files
         else -> R.string.copying_files
     }
 
     private fun doneMessageRes(operationType: FileOperationType): Int = when (operationType) {
         FileOperationType.MOVE -> R.string.moved_n_files
+        FileOperationType.DELETE -> R.string.deleted_n_files
         else -> R.string.copied_n_files
     }
 
     private fun failureMessageRes(operationType: FileOperationType): Int = when (operationType) {
         FileOperationType.MOVE -> R.string.move_failed
+        FileOperationType.DELETE -> R.string.delete_failed
         else -> R.string.copy_failed
     }
 
     private fun cancelledMessageRes(operationType: FileOperationType): Int = when (operationType) {
         FileOperationType.MOVE -> R.string.toast_move_cancelled
+        FileOperationType.DELETE -> R.string.toast_delete_cancelled
         else -> R.string.toast_copy_cancelled
     }
     

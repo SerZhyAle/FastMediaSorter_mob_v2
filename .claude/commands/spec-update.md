@@ -181,7 +181,7 @@ If strategic target and tactical folder both exist: run `consistency` focus betw
 - Never touch `Status:` fields - sole exception is the `BlockNeedUserTest` re-open in step 1b (which also deletes the spec's `Timber.d("Sxxxx:` debug tags from `.kt`). Otherwise only `/spec-check` moves status. Alignment checks may report mismatches, but only the owning status-transition skill changes them.
 - Class names/file paths in strategic specs: auto-fix via ACCEPT (replace with architectural term).
 - Tactical steps with non-static Verification: ACCEPT with Glob/Grep template if obvious; otherwise DISCUSS.
-- Read-only zones never edited: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
+- Per CLAUDE.md Rule 4 (read-only zones) - obey it as written.
 - Never create audit / fix files (`__audit_*.md` / `__fix_*.md`) - abolished.
 - `--review-only`: no writes, no dev log.
 - Revision History is append-only - never rewrite earlier entries.

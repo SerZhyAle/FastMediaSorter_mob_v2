@@ -14,6 +14,8 @@
       - assert-neuroslop             (umbrella over the ratchet detectors)
       - assert-deprecated-pm-flags
       - assert-listener-symmetry
+      - assert-qualifier-shadowing   (values-land key a smallestWidth bucket always outranks)
+      - assert-tactical-step-form    (S1343 Why-field ratchet over PLAN/*/PHASE_*.md)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
@@ -21,7 +23,10 @@
     Modes:
       (default)      Run each gate in -Gate mode; print per-gate PASS/FAIL; exit 1 if any failed.
       -IncludeDetekt Also run the (slow) gradle detekt gate.
-      -ChangedFiles  Passed through to detekt for diff-scoped judgement (see assert-detekt).
+      -ChangedFiles  Diff-scoped judgement. Forwarded to detekt AND to every gate in the
+                     table that accepts the parameter (see $changedFilesAware below).
+                     Omit it - as a release or CI run does - and every gate keeps its
+                     strict project-wide judgement.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-fast-gates.ps1
@@ -48,10 +53,11 @@ else {
 # name -> extra args (beyond -Gate). Order matters: cheapest/most-deterministic first.
 $gates = [ordered]@{
     'assert-no-ticket-logs.ps1'                 = @('-Quiet')
-    'assert-flavor-flags-not-growing.ps1'       = @()
-    'assert-neuroslop.ps1'                       = @()
-    'assert-public-mutable-flow.ps1'            = @()
-    'assert-deprecated-pm-flags.ps1'            = @()
+    # S1338: one entry, twelve lexical rules, ONE walk of the tree. It replaces the five
+    # separate entries that each spawned a pwsh process and each re-walked app_v2/src -
+    # neuroslop (nine rules), flavor-flags, public-mutable-flow and deprecated-pm-flags.
+    # The individual scripts still exist as wrappers for any direct caller.
+    'assert-source-gates.ps1'                   = @()
     'assert-listener-symmetry.ps1'              = @()
     'assert-orientation-implied-feature.ps1'    = @()
     # S1070: guards the tooling itself rather than app sources - a bare Write-Error under
@@ -69,11 +75,37 @@ $gates = [ordered]@{
     # -land on wide landscape devices, so an id missing on one side is a latent findViewById
     # null (the recording-indicator include NPE). Static regex over 4 shared files, ~ms.
     'assert-layout-variant-id-parity.ps1'       = @('-Quiet')
+    # S1282: a values-land / values-w600dp key that values-sw320dp already declares. smallestWidth
+    # outranks orientation and sw320dp matches every device, so the declaration never applies -
+    # invisible to the build and to lint, and it survived a year in dimens.xml. Parses a handful of
+    # small values-*.xml files, no gradle daemon.
+    'assert-qualifier-shadowing.ps1'            = @('-Quiet')
     # S1254: settings-dump secret masking layers - @field:SensitiveSetting on hint-matching
     # AppSettings fields, the dump's annotation check, and the S1187 keep rules. The keep rule
     # vanished once and the leak is only visible in logs exported from a stranger's device.
     'assert-sensitive-settings-annotated.ps1'   = @('-Quiet')
+    # S1338: the agent-memory index is injected into EVERY turn, so its size is billed against
+    # the whole corpus. It was manually compacted twice and both compactions were undone within
+    # a week at ~1.1 KB/day of regrowth - a budget that is not mechanical is not a budget. Ratchet
+    # on one file's length plus two advisory scans over ~220 small .md files, no gradle daemon.
+    'assert-memory-budget.ps1'                  = @()
+    # S1343: the mandatory `**Why:**` field on every tactical step, adopted on the pilot
+    # verdict in dev/spec-form-pilot.jsonl. Count ratchet against a checked-in baseline
+    # rather than a HEAD diff - PLAN/ is gitignored, so no phase file has a HEAD blob and
+    # the diff-scoping every sibling gate uses returns nothing here. Parses ~300 small .md
+    # files, no gradle daemon.
+    'assert-tactical-step-form.ps1'             = @('-Quiet')
 }
+
+# S1338: these five accept -ChangedFiles and used to be invoked with no arguments at
+# all, so every one of them scanned project-wide and went red on another ticket's
+# in-flight drift - a 42% FAIL rate that trained the operator to read gate output as
+# noise. Forwarded only when the caller actually supplied the parameter, so a release
+# or CI run keeps the strict project-wide judgement.
+$changedFilesAware = @(
+    'assert-source-gates.ps1',
+    'assert-listener-symmetry.ps1'
+)
 
 $results = [System.Collections.Generic.List[object]]::new()
 foreach ($entry in $gates.GetEnumerator()) {
@@ -83,6 +115,11 @@ foreach ($entry in $gates.GetEnumerator()) {
         continue
     }
     $extraArgs = @($entry.Value)
+    if ($ChangedFiles -and ($entry.Key -in $changedFilesAware)) {
+        # S1184: comma-joined, never one element per file - `pwsh -File` binds only the
+        # first element to [string[]] and rejects the rest as positional arguments.
+        $extraArgs += @('-ChangedFiles', ($ChangedFiles -join ','))
+    }
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     & $pwshExe -NoProfile -File $path -Gate @extraArgs | Write-Host
     $sw.Stop()
@@ -93,7 +130,7 @@ foreach ($entry in $gates.GetEnumerator()) {
 if ($IncludeDetekt) {
     $detektArgs = @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'assert-detekt.ps1'), '-Gate')
     if ($PSBoundParameters.ContainsKey('Module')) { $detektArgs += @('-Module', $Module) }
-    if ($ChangedFiles) { $detektArgs += '-ChangedFiles'; $detektArgs += $ChangedFiles }
+    if ($ChangedFiles) { $detektArgs += @('-ChangedFiles', ($ChangedFiles -join ',')) }
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     & $pwshExe @detektArgs | Write-Host
     $sw.Stop()

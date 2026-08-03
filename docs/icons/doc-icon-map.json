@@ -12,6 +12,7 @@
     { "title": "Download Organizer", "drawable": "ic_sort" },
     { "title": "Scheduled Camera Backup", "drawable": "ic_camera_capture" },
     { "title": "SMB Network Setup", "drawable": "ic_resource_smb" },
+    { "title": "Windows Folder Share (PC Companion)", "drawable": "ic_resource_sftp" },
     { "title": "Offline Travel Folder", "drawable": "ic_virtual_docs" },
     { "title": "Cloud Documents & EPUB", "drawable": "ic_book" },
     { "title": "OCR Translation", "drawable": "ic_camera_ocr_translate" },

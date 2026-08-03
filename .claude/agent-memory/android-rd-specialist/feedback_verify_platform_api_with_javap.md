@@ -28,4 +28,4 @@ far cheaper than a wrong plan. `javap` ships with the Android Studio JBR, which 
 the full path above. Works for any `android.*` class; the compileSdk in `app_v2/build.gradle.kts`
 decides which platform directory to point at.
 
-Related: [[feedback_verify_full_evidence]], [[feedback_tactical_plan_file_list_may_be_wrong]].
+Related: [[verify-full-evidence]], [[tactical-plan-file-list-may-be-wrong]].

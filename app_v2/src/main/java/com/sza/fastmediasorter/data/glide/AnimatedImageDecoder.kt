@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.data.glide
 
+import android.content.res.Resources
 import android.graphics.ImageDecoder
 import android.graphics.drawable.Animatable
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -16,8 +18,7 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 
 /**
- * Glide decoders that turn ANIMATED WebP / APNG into a platform [android.graphics.drawable.AnimatedImageDrawable]
- * via [ImageDecoder] (API 28+), so the image viewer animates them like GIFs.
+ * Glide decoders that turn animated WebP / APNG into a platform drawable via [ImageDecoder] (API 28+).
  *
  * Scoping: [handles] returns true only when a header sniff detects an *animated* WebP (VP8X
  * animation bit) or APNG (`acTL` chunk). Static WebP/PNG and every other format return false, so
@@ -26,10 +27,11 @@ import java.nio.ByteBuffer
  * files fall back to Glide's static first-frame decode (unchanged).
  */
 @RequiresApi(Build.VERSION_CODES.P)
-internal class AnimatedImageByteBufferDecoder : ResourceDecoder<ByteBuffer, Drawable> {
+internal class AnimatedImageByteBufferDecoder(
+    private val resources: Resources,
+) : ResourceDecoder<ByteBuffer, Drawable> {
 
     override fun handles(source: ByteBuffer, options: Options): Boolean {
-        if (isAnimationDisabled(options)) return false
         val probe = source.duplicate()
         val length = minOf(probe.remaining(), AnimatedImageHeaderSniffer.HEADER_PROBE_BYTES)
         val header = ByteArray(length)
@@ -37,8 +39,13 @@ internal class AnimatedImageByteBufferDecoder : ResourceDecoder<ByteBuffer, Draw
         return AnimatedImageHeaderSniffer.isAnimated(header, length)
     }
 
-    override fun decode(source: ByteBuffer, width: Int, height: Int, options: Options): Resource<Drawable>? =
-        decodeAnimatedDrawable(ImageDecoder.createSource(source), width, height)
+    override fun decode(source: ByteBuffer, width: Int, height: Int, options: Options): Resource<Drawable>? {
+        return if (isAnimationDisabled(options)) {
+            decodeStillFrame(ImageDecoder.createSource(source), width, height, resources)
+        } else {
+            decodeAnimatedDrawable(ImageDecoder.createSource(source), width, height)
+        }
+    }
 }
 
 /**
@@ -46,10 +53,11 @@ internal class AnimatedImageByteBufferDecoder : ResourceDecoder<ByteBuffer, Draw
  * decoder probes, so reading the header in [handles] and the full stream in [decode] is safe.
  */
 @RequiresApi(Build.VERSION_CODES.P)
-internal class AnimatedImageStreamDecoder : ResourceDecoder<InputStream, Drawable> {
+internal class AnimatedImageStreamDecoder(
+    private val resources: Resources,
+) : ResourceDecoder<InputStream, Drawable> {
 
     override fun handles(source: InputStream, options: Options): Boolean {
-        if (isAnimationDisabled(options)) return false
         val header = ByteArray(AnimatedImageHeaderSniffer.HEADER_PROBE_BYTES)
         var read = 0
         while (read < header.size) {
@@ -67,19 +75,47 @@ internal class AnimatedImageStreamDecoder : ResourceDecoder<InputStream, Drawabl
             Timber.w(e, "AnimatedImageStreamDecoder: failed to buffer stream")
             return null
         }
-        return decodeAnimatedDrawable(ImageDecoder.createSource(buffer), width, height)
+        return if (isAnimationDisabled(options)) {
+            decodeStillFrame(ImageDecoder.createSource(buffer), width, height, resources)
+        } else {
+            decodeAnimatedDrawable(ImageDecoder.createSource(buffer), width, height)
+        }
     }
 }
 
 /**
- * S1026: a caller that asked for a still (`dontAnimate()`, which every thumbnail request uses) must
- * not receive an [android.graphics.drawable.AnimatedImageDrawable] - Glide's DrawableToBitmapConverter
- * refuses Animatable drawables outright, so the whole load fails instead of degrading to a first
- * frame. Declining here hands the file back to the built-in downsampler, which decodes that frame.
+ * A caller that asked for a still (`dontAnimate()`, which every thumbnail request uses) must receive
+ * a still-frame resource rather than an animated drawable. The earlier custom decoder must therefore
+ * produce the first frame itself when the request disables animation.
  */
 private fun isAnimationDisabled(options: Options): Boolean {
     return options.get(GifOptions.DISABLE_ANIMATION) == true
 }
+
+@RequiresApi(Build.VERSION_CODES.P)
+private fun decodeStillFrame(
+    imageSource: ImageDecoder.Source,
+    width: Int,
+    height: Int,
+    resources: Resources,
+): Resource<Drawable>? =
+    try {
+        Timber.d("S1317: still-frame decode, req=%dx%d", width, height)
+        val bitmap = ImageDecoder.decodeBitmap(imageSource) { decoder, info, _ ->
+            decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE)
+            val sample = AnimatedImageHeaderSniffer.sampleSize(
+                info.size.width,
+                info.size.height,
+                width,
+                height,
+            )
+            if (sample > 1) decoder.setTargetSampleSize(sample)
+        }
+        BitmapDrawableResource(BitmapDrawable(resources, bitmap))
+    } catch (e: IOException) {
+        Timber.w(e, "AnimatedImageDecoder: decodeBitmap failed")
+        null
+    }
 
 @RequiresApi(Build.VERSION_CODES.P)
 private fun decodeAnimatedDrawable(imageSource: ImageDecoder.Source, width: Int, height: Int): Resource<Drawable>? =
@@ -90,7 +126,10 @@ private fun decodeAnimatedDrawable(imageSource: ImageDecoder.Source, width: Int,
             // Software allocation costs heap but is the only config those steps can copy.
             decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE)
             val sample = AnimatedImageHeaderSniffer.sampleSize(
-                info.size.width, info.size.height, width, height,
+                info.size.width,
+                info.size.height,
+                width,
+                height,
             )
             if (sample > 1) decoder.setTargetSampleSize(sample)
         }
@@ -103,8 +142,27 @@ private fun decodeAnimatedDrawable(imageSource: ImageDecoder.Source, width: Int,
     }
 
 /**
- * [Resource] wrapper reporting resource class [Drawable] so the request's Drawable transcode path
- * resolves regardless of the concrete AnimatedImageDrawable runtime type.
+ * [Resource] wrapper reporting the concrete [BitmapDrawable] class (not [Drawable]) so Glide's own
+ * `BitmapDrawableEncoder` - registered against `BitmapDrawable::class.java` - resolves for this
+ * still-frame result and writes it to the disk cache, same as any other static image.
+ */
+private class BitmapDrawableResource(private val drawable: BitmapDrawable) : Resource<Drawable> {
+
+    @Suppress("UNCHECKED_CAST")
+    override fun getResourceClass(): Class<Drawable> = BitmapDrawable::class.java as Class<Drawable>
+
+    override fun get(): Drawable = drawable
+
+    override fun getSize(): Int = drawable.bitmap?.allocationByteCount ?: 0
+
+    override fun recycle() = Unit
+}
+
+/**
+ * [Resource] wrapper reporting the generic [Drawable] class rather than the concrete
+ * `AnimatedImageDrawable` runtime type - Glide has no encoder for that concrete type, so the
+ * broader [Drawable] registration matches [AnimatedImageDrawableNoOpEncoder] instead, letting the
+ * load complete uncached (see that encoder's KDoc for why a no-op is required here).
  */
 private class AnimatedImageDrawableResource(private val drawable: Drawable) : Resource<Drawable> {
 

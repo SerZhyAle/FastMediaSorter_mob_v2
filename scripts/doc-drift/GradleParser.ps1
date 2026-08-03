@@ -28,6 +28,7 @@ $script:RxNdkVersion    = 'ndkVersion\s*=\s*"(?<v>[\d\.]+)"'
 $script:RxJvmTarget     = 'jvmTarget\s*=\s*(?:org\.jetbrains\.kotlin\.gradle\.dsl\.JvmTarget\.JVM_)?(?:")?(?<v>[\d\.]+)(?:")?'
 $script:RxSourceCompat  = 'sourceCompatibility\s*=\s*JavaVersion\.VERSION_(?<v>\d+)'
 $script:RxDefaultMinSdk = 'minSdk\s*=\s*(?<v>\d+)'
+$script:RxRoomSchemaVersion = '@Database\s*\([\s\S]*?\bversion\s*=\s*(?<v>\d+)'
 
 # Per-flavor minSdk override lives inside create("<flavor>") { ... minSdk = N ... }
 # We approximate by scanning create("<flavor>") blocks for an in-scope minSdk; absence
@@ -105,6 +106,22 @@ function script:Get-LibraryCoords {
     return $result
 }
 
+function script:Get-SharedModulePin {
+    param(
+        [Parameter(Mandatory)][string] $AppText,
+        [Parameter(Mandatory)][string] $WearText,
+        [Parameter(Mandatory)][string] $Pattern,
+        [Parameter(Mandatory)][string] $PinHint
+    )
+    $appValue = Find-FirstCapture -Text $AppText -Pattern $Pattern
+    $wearValue = Find-FirstCapture -Text $WearText -Pattern $Pattern
+    if ($null -eq $appValue -or $null -eq $wearValue) { return $null }
+    if ($appValue -ne $wearValue) {
+        throw "GradleParser: $PinHint differs between app_v2 ($appValue) and wear ($wearValue)"
+    }
+    return $appValue
+}
+
 # --- Public entry ------------------------------------------------------------
 
 function Get-GradlePins {
@@ -116,10 +133,14 @@ function Get-GradlePins {
     $wrapperPath = Join-Path $RepoRoot 'gradle/wrapper/gradle-wrapper.properties'
     $rootBuildPath = Join-Path $RepoRoot 'build.gradle.kts'
     $appBuildPath = Join-Path $RepoRoot 'app_v2/build.gradle.kts'
+    $wearBuildPath = Join-Path $RepoRoot 'wear/build.gradle.kts'
+    $databasePath = Join-Path $RepoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt'
 
     $wrapperText = Read-RequiredText -Path $wrapperPath -PinHint 'gradle.wrapper'
     $rootText    = Read-RequiredText -Path $rootBuildPath -PinHint 'agp'
     $appText     = Read-RequiredText -Path $appBuildPath -PinHint 'compile-sdk'
+    $wearText    = Read-RequiredText -Path $wearBuildPath -PinHint 'compile-sdk'
+    $databaseText = Read-RequiredText -Path $databasePath -PinHint 'room-schema-version'
 
     $pins = [ordered]@{}
 
@@ -136,11 +157,12 @@ function Get-GradlePins {
     $pins['chaquopy']            = Find-FirstCapture -Text $rootText -Pattern $script:RxChaquopy
 
     # --- Class-2 SDK pins ----------------------------------------------------
-    $pins['compile-sdk']  = Find-FirstCapture -Text $appText -Pattern $script:RxCompileSdk
-    $pins['target-sdk']   = Find-FirstCapture -Text $appText -Pattern $script:RxTargetSdk
+    $pins['compile-sdk']  = Get-SharedModulePin -AppText $appText -WearText $wearText -Pattern $script:RxCompileSdk -PinHint 'compile-sdk'
+    $pins['target-sdk']   = Get-SharedModulePin -AppText $appText -WearText $wearText -Pattern $script:RxTargetSdk -PinHint 'target-sdk'
     $pins['ndk-version']  = Find-FirstCapture -Text $appText -Pattern $script:RxNdkVersion
     $pins['jvm-target']   = Find-FirstCapture -Text $appText -Pattern $script:RxJvmTarget
     $pins['source-compat']= Find-FirstCapture -Text $appText -Pattern $script:RxSourceCompat
+    $pins['room-schema-version'] = Find-FirstCapture -Text $databaseText -Pattern $script:RxRoomSchemaVersion
 
     # defaultConfig.minSdk: take first match of minSdk = N (defaultConfig appears before any flavor block)
     $defaultMin = Find-FirstCapture -Text $appText -Pattern $script:RxDefaultMinSdk

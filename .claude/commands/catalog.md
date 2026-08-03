@@ -1,6 +1,5 @@
 ---
 description: "Use when locating a Kotlin class or feature, or refreshing the class-catalog index. Triggers: 'where is class X', 'find the feature', 'run catalog_sync', class/role/injection queries before grep."
-model: sonnet
 ---
 
 # Catalog Guide - File/Class Database

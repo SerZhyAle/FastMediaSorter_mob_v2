@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.domain.models.TranslationSessionSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptorEntryPoint
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
-import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
@@ -31,6 +30,8 @@ import java.util.Locale
  * in-app player passes its apply block; the standalone host omits it and re-reads settings on next use.
  */
 object TranslationSettingsDialog {
+
+    private const val REQ_SETTINGS_LANGUAGE_PREFIX = "translation_settings_language_"
 
     fun show(
         context: Context,
@@ -86,8 +87,8 @@ object TranslationSettingsDialog {
                     selectedCode = selectedSourceLang,
                     mode = SearchableLanguagePickerDialog.Mode.SOURCE,
                     interfaceLanguage = interfaceLang
-                ) { language ->
-                    selectedSourceLang = language.code
+                ) { code ->
+                    selectedSourceLang = code
                     updateLanguageViews()
                 }
             }
@@ -98,8 +99,8 @@ object TranslationSettingsDialog {
                     selectedCode = selectedTargetLang,
                     mode = SearchableLanguagePickerDialog.Mode.TARGET,
                     interfaceLanguage = interfaceLang
-                ) { language ->
-                    selectedTargetLang = language.code
+                ) { code ->
+                    selectedTargetLang = code
                     updateLanguageViews()
                 }
             }
@@ -202,26 +203,38 @@ object TranslationSettingsDialog {
         }
     }
 
+    /**
+     * S1214: the pick comes back through a FragmentResult keyed per [mode], so the source and target
+     * pickers of this dialog never cross. The listener can only be registered here, at open time -
+     * this host is a plain AlertDialog and is not itself restored after host recreation, so a pick
+     * made across a recreation has no dialog left to return to and stays pending until reopened.
+     */
     private fun showLanguagePicker(
         context: Context,
         selectedCode: String,
         mode: SearchableLanguagePickerDialog.Mode,
         interfaceLanguage: String,
-        onSelected: (LanguageItem) -> Unit
+        onSelected: (String) -> Unit
     ) {
         val fragmentActivity = context as? FragmentActivity
         if (fragmentActivity == null) {
             Timber.w("TranslationSettingsDialog: cannot show language picker without FragmentActivity context")
             return
         }
+        val manager = fragmentActivity.supportFragmentManager
         val tag = "${SearchableLanguagePickerDialog.TAG}_settings_${mode.name}"
-        if (fragmentActivity.supportFragmentManager.findFragmentByTag(tag) != null) return
+        if (manager.findFragmentByTag(tag) != null) return
+        val requestKey = "$REQ_SETTINGS_LANGUAGE_PREFIX${mode.name}"
+        manager.setFragmentResultListener(requestKey, fragmentActivity) { _, bundle ->
+            Timber.d("S1214: translation-dialog language result key=$requestKey")
+            bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)?.let(onSelected)
+        }
         SearchableLanguagePickerDialog.newInstance(
             selectedCode = selectedCode,
             mode = mode,
             interfaceLanguage = interfaceLanguage,
-            onLanguageSelected = onSelected
-        ).show(fragmentActivity.supportFragmentManager, tag)
+            requestKey = requestKey
+        ).show(manager, tag)
     }
 
     private fun applyLanguageLabel(

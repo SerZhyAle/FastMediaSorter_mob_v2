@@ -7,6 +7,7 @@ import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.common.api.Scope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
@@ -91,6 +92,7 @@ class GoogleDriveInteractiveSignInCoordinator @Inject constructor(
                 }
             }
         } catch (exception: Exception) {
+            exception.rethrowIfCancellation()
             Timber.e(exception, "Google Drive Credential Manager sign-in threw")
             AuthResult.Error(
                 "Google sign-in failed: ${exception.javaClass.simpleName}: ${exception.message}"

@@ -17,4 +17,4 @@ Editing the guessed file, or trusting "this file is not affected", would have pr
 - Grep for the *view id* or *string key* the step names, not just the file - that is what proves where the UI actually lives.
 - An unlisted gate that the real files trigger (Rule 11 orientation counterpart, Rule 22 settings sync) is part of the phase whether the plan says so or not.
 - Amend the plan before implementing, so the next reader sees the corrected list and the reason.
-- See [[feedback_spec_tech_plan_quality]], [[feedback_spec_dev_continue_verify_code_first]], [[feedback_check_existing_tooling]].
+- See [[spec-tech-plan-quality]], [[spec-dev-continue-verify-code-first]], [[check-existing-tooling-first]].

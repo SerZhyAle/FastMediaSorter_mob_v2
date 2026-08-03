@@ -40,6 +40,11 @@ class LauncherWeatherLocationDialogFragment : DialogFragment() {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NO_TITLE, 0)
         cellId = requireArguments().getLong(ARG_CELL_ID, NO_CELL_ID)
+        // Registered here rather than in showPlaces so a recreated fragment is listening again before
+        // the restored place picker resumes and replays its pick.
+        parentFragmentManager.setFragmentResultListener(KEY_PLACE, this) { _, bundle ->
+            bundle.getString(SearchableOptionPickerDialog.RESULT_OPTION_ID)?.let(::publish)
+        }
     }
 
     override fun onCreateView(
@@ -90,9 +95,8 @@ class LauncherWeatherLocationDialogFragment : DialogFragment() {
             options = options,
             selectedId = null,
             includeResetRow = false,
-        ) { picked ->
-            picked?.id?.let(::publish)
-        }.show(parentFragmentManager, SearchableOptionPickerDialog.TAG)
+            requestKey = KEY_PLACE,
+        ).show(parentFragmentManager, SearchableOptionPickerDialog.TAG)
     }
 
     private fun publish(encodedLocation: String) {
@@ -117,6 +121,9 @@ class LauncherWeatherLocationDialogFragment : DialogFragment() {
 
         private const val ARG_REQUEST_KEY = "arg_request_key"
         private const val ARG_CELL_ID = "arg_cell_id"
+
+        /** Key this dialog consumes, mirroring the [ARG_REQUEST_KEY] it publishes its own result on. */
+        private const val KEY_PLACE = "launcher_weather_place_pick"
 
         fun newInstance(requestKey: String, cellId: Long = NO_CELL_ID): LauncherWeatherLocationDialogFragment =
             LauncherWeatherLocationDialogFragment().apply {

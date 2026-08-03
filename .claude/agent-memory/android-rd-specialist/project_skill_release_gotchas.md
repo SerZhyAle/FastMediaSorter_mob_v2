@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-Operational traps hit while running `/skill-release` (plateau release pipeline). See also [[project_build_gotchas]].
+Operational traps hit while running `/skill-release` (plateau release pipeline). See also [[build-gotchas]].
 
 **1. Version skew: tag/notes version != built artifact version.**
 - `/skill-release` computes `$NEW_VERSION` once at Step 2 (start of pipeline) and uses it for the git tag + WHATS_NEW/README.

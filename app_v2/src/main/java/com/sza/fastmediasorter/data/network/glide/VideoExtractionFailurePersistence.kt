@@ -13,12 +13,21 @@ object VideoExtractionFailurePersistence {
 
     private const val PREFS_NAME = "video_extraction_failures"
     private const val KEY_FAILURES = "failures"
+    private const val KEY_SCHEMA_VERSION = "schema_version"
+    private const val SCHEMA_VERSION = 2
     private const val TTL_MS = 7L * 24 * 60 * 60 * 1000
     private const val MAX_ENTRIES = 500
 
     /** Returns a map of path → timestamp for all non-expired entries. */
     fun loadAll(): Map<String, Long> {
         val prefs = prefs()
+        val storedVersion = prefs.getInt(KEY_SCHEMA_VERSION, 0)
+        if (storedVersion != SCHEMA_VERSION) {
+            val staleEntries = prefs.getStringSet(KEY_FAILURES, emptySet()) ?: emptySet()
+            prefs.edit().remove(KEY_FAILURES).putInt(KEY_SCHEMA_VERSION, SCHEMA_VERSION).apply()
+            Timber.i("VideoExtractionFailurePersistence: purged ${staleEntries.size} stale entries")
+            return emptyMap()
+        }
         val raw = prefs.getStringSet(KEY_FAILURES, emptySet()) ?: emptySet()
         val now = System.currentTimeMillis()
         val result = mutableMapOf<String, Long>()

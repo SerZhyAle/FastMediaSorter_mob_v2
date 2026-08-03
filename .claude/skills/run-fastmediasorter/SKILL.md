@@ -105,7 +105,9 @@ b64=$(printf %s "$xml" | base64 -w0)
 
 ## Troubleshooting
 
-- `device-ready` exit `2` (no online device) → boot an emulator / attach a device, re-run.
-- exit `3` (multiple devices) → pass `-DeviceId <id>`.
-- exit `4` (package not installed) → run `smoke.ps1 -Build`, or the builder script first.
+- `device-ready` state `no-device` → boot an emulator / attach a device, re-run.
+- state `multiple-devices` → pass `-DeviceId <id>`.
+- state `package-not-installed` → run `smoke.ps1 -Build`, or the builder script first.
+- `device-ready` exits 0 for any determined state; `smoke.ps1` passes `-StrictExit` to get the
+  legacy numeric codes (2 / 3 / 4) because it is a fail-fast harness.
 - Builder fails with a transient "daemon stopped" → re-run the builder (known flaky).

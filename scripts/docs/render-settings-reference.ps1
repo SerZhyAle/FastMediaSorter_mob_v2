@@ -59,7 +59,9 @@ $publishedFlavors = @('standard','lite','photos','legacy')
 
 # --- Localized labels ----------------------------------------------------------
 $locales = @('en','ru','uk')
-$sectionOrder = @('general','images','video','audio','documents','streams','other','playback','destinations')
+# S1313: the five documentation-only sections (SettingsDocScopeCatalog) are appended after the
+# nine settings-screen sections, so the published page still opens with the main tabs.
+$sectionOrder = @('general','images','video','audio','documents','streams','other','playback','destinations','launcher','gestures','defaultApps','camera','translation')
 $sectionLabel = @{
     general      = @{ en='General';      ru='Общие';            uk='Загальні' }
     images       = @{ en='Images';       ru='Изображения';      uk='Зображення' }
@@ -70,6 +72,11 @@ $sectionLabel = @{
     other        = @{ en='Other';        ru='Прочее';           uk='Інше' }
     playback     = @{ en='Playback';     ru='Воспроизведение';  uk='Відтворення' }
     destinations = @{ en='Destinations'; ru='Назначения';       uk='Призначення' }
+    launcher     = @{ en='Launcher';     ru='Лаунчер';          uk='Лаунчер' }
+    gestures     = @{ en='Edge gestures';ru='Жесты по краю';    uk='Жести біля краю' }
+    defaultApps  = @{ en='Default apps'; ru='Приложения по умолчанию'; uk='Застосунки за замовчуванням' }
+    camera       = @{ en='Camera capture'; ru='Съёмка камерой'; uk='Зйомка камерою' }
+    translation  = @{ en='On-screen translation'; ru='Перевод на экране'; uk='Переклад на екрані' }
 }
 $pageTitle = @{ en='Settings reference - what is what'; ru='Справочник настроек - что к чему'; uk='Довідник налаштувань - що до чого' }
 $genNote   = @{ en='_Generated from the app. Do not edit by hand._'; ru='_Сгенерировано из приложения. Не редактируйте вручную._'; uk='_Згенеровано з застосунку. Не редагуйте вручну._' }
@@ -77,6 +84,19 @@ $colSetting= @{ en='Setting'; ru='Настройка'; uk='Налаштуван�
 $colDoes   = @{ en='What it does'; ru='Что делает'; uk='Що робить' }
 $availLead = @{ en='Available in:'; ru='Доступно в:'; uk='Доступно у:' }
 $flavorName= @{ standard='Standard'; lite='Lite'; photos='Photos'; legacy='Legacy'; noLegal='noLegal' }
+
+# S1313: "where to find it" line for each documentation-only section - a settings-screen path
+# for a surface with a real entry point (SettingsDocScopeCatalog.hostKey non-empty), or a plain
+# statement of which non-Settings UI hosts it when hostKey is empty. Keyed by sectionId, not
+# derived from hostKey at render time, so the text stays human-authored and reviewable.
+$docScopeSections = @('launcher','gestures','defaultApps','camera','translation')
+$docScopePath = @{
+    launcher    = @{ en='Settings -> General -> System launcher settings'; ru='Настройки -> Общие -> Настройки системного лаунчера'; uk='Налаштування -> Загальні -> Налаштування системного лаунчера' }
+    gestures    = @{ en='Settings -> Destinations -> Configure gestures'; ru='Настройки -> Назначения -> Настроить жесты'; uk='Налаштування -> Призначення -> Налаштувати жести' }
+    defaultApps = @{ en='Settings -> Destinations -> Set as default'; ru='Настройки -> Назначения -> Задать по-умолчанию'; uk='Налаштування -> Призначення -> Задати за замовчуванням' }
+    camera      = @{ en='Reached from the camera capture screen, not from Settings.'; ru='Доступно с экрана съёмки камерой, не из Настроек.'; uk='Доступно з екрана зйомки камерою, не з Налаштувань.' }
+    translation = @{ en='Reached from the on-screen translation overlay, not from Settings.'; ru='Доступно из панели перевода на экране, не из Настроек.'; uk='Доступно з панелі перекладу на екрані, не з Налаштувань.' }
+}
 
 function Escape-Cell([string] $s) { if ($null -eq $s) { return '' } $s -replace '\|', '\|' }
 
@@ -108,6 +128,9 @@ function Render-Doc([string] $locale, [string[]] $flavorScope, [bool] $isNoLegal
             $secIconMd = '<img src="icons/doc/' + $sectionIcon[$sec] + '.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> '
         }
         [void]$sb.Append("`n## $secIconMd$($sectionLabel[$sec][$locale])`n")
+        if ($sec -in $docScopeSections) {
+            [void]$sb.Append("`n_$($docScopePath[$sec][$locale])_`n")
+        }
         if ($sec -in $mediaSections) {
             if ($isNoLegal) {
                 $names = @($flavorName['noLegal'])

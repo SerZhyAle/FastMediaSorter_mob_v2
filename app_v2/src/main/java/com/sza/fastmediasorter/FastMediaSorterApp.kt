@@ -158,7 +158,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    private val firstFrameSignal by lazy(LazyThreadSafetyMode.NONE) { FirstFrameSignal() }
+    private val firstFrameSignal by lazy { FirstFrameSignal() }
     
     // Track if app is in foreground
     @Volatile

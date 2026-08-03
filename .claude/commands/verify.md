@@ -1,6 +1,5 @@
 ---
 description: "Use for a quick on-device sanity check that a change works. Triggers: 'verify', 'does it actually work', a quick smoke test on the connected device."
-model: sonnet
 ---
 
 # Verify - On-Device Sanity Check
@@ -58,17 +57,19 @@ pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package <pkg> [-DeviceId
 
 `<pkg>`: debug variants `com.sza.fastmediasorter.debug`; release variants `com.sza.fastmediasorter`.
 
-Exit codes from `device-ready.ps1`:
+`device-ready.ps1` is a status query: it exits `0` whenever it could determine the state, so
+branch on the JSON payload's `state` (and `ready`), never on the exit code. A non-zero exit
+means the probe itself could not run.
 
-| Code | Meaning | Action |
-|------|---------|--------|
-| 0 | Ready | Continue |
-| 1 | adb missing | Abort, ask user to install platform-tools |
-| 2 | no online device | Abort, ask user to connect device / start AVD |
-| 3 | multiple devices, no `-DeviceId` | Re-run with `--device <id>` |
-| 4 | package not installed | If `--build` not given, suggest `/verify --build`; otherwise proceed (build will install) |
-| 5 | version mismatch | Informational only - continue |
-| 6 | mobile-mcp launcher not resolvable | Abort, point at `.mcp.json` + Node.js |
+| `state` | Meaning | Action |
+|---------|---------|--------|
+| `ready` | Ready | Continue |
+| `no-adb` | adb missing | Abort, ask user to install platform-tools |
+| `no-device` | no online device | Abort, ask user to connect device / start AVD |
+| `multiple-devices` | multiple devices, no `-DeviceId` | Re-run with `--device <id>` |
+| `package-not-installed` | package not installed | If `--build` not given, suggest `/verify --build`; otherwise proceed (build will install) |
+| `version-mismatch` | version mismatch | Informational only - continue |
+| `mcp-unavailable` | mobile-mcp launcher not resolvable | Abort, point at `.mcp.json` + Node.js |
 
 ### 3 - Build + install (only when `--build`)
 
@@ -147,7 +148,7 @@ If the scenario was built from an `Sxxxx` currently `BlockNeedUserTest`, additio
 .\scripts\utils\search-log.ps1 -LogFile "temp/scratch/verify_run_<TS>.log" -Pattern "<Sxxxx>:" -AppOnly
 ```
 
-Each tag hit at `D/` level = "code path exercised". `I`/`W`/`E` lines containing the ticket id are instrumentation bugs (CLAUDE.md "Persistent log lines must not contain Sxxxx") - report them, but do not count as PASS evidence.
+Each tag hit at `D/` level = "code path exercised". `I`/`W`/`E` lines containing the ticket id are instrumentation bugs - per CLAUDE.md section 2 "Debug Verification Tags (Sxxxx)", obey it as written. Report them, but do not count as PASS evidence.
 
 Append `## Log findings` to scenario file: counts per level, top 3 errors with line refs, any exception block.
 
@@ -177,7 +178,7 @@ Recommended next-step (one line, optional):
 - **Never run `gradlew.bat` directly.** Always go through `scripts/builders/build-*-device.ps1`.
 - **Never read full logcat into context** when > 2 MB - use `search-log.ps1`, quote line numbers.
 - **Never hardcode element coordinates** - re-list elements before each click.
-- **Read-only zones** `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/` ignored entirely.
+- **Read-only zones** ignored entirely. Per CLAUDE.md Rule 4 (read-only zones) - obey it as written.
 
 ---
 

@@ -238,8 +238,13 @@ class ResourceEditorUseCase @Inject constructor(
                         )
                     }
                     updateResourceUseCase(model).getOrThrow()
-                    // Invalidate caches if scan depth changed - stale root-only list must not survive
-                    if (existing != null && existing.scanSubdirectories != model.scanSubdirectories) {
+                    // Invalidate caches when the saved settings reshape the list - a stale root-only
+                    // list must not survive a scan-depth change, and a list built in the old
+                    // subfolder mode must not survive a showSubfoldersAsItems change (S1315).
+                    val depthChanged = existing != null && existing.scanSubdirectories != model.scanSubdirectories
+                    val itemModeChanged =
+                        existing != null && existing.showSubfoldersAsItems != model.showSubfoldersAsItems
+                    if (depthChanged || itemModeChanged) {
                         MediaFilesCacheManager.clearCache(existingId)
                         cachedFileListRepository.deleteCachedFiles(existingId)
                     }

@@ -170,4 +170,10 @@
     <string name="welcome_func_gestures_summary">Свайпи від лівого краю: меню, знімок, тихий знімок</string>
     <string name="welcome_networks_companion_note">Медіа на ПК з Windows? Fast Media Sorter for Windows розшарить ці папки сюди за кілька кліків - без налаштування сервера.</string>
     <string name="welcome_networks_companion_button">Завантажити для Windows</string>
+    <string name="welcome_feature_photos_detail">Усі фото, відео та GIF на пристрої</string>
+    <string name="welcome_feature_local_folders_detail">Будь-яка папка у внутрішній пам\'яті або на SD-карті</string>
+    <string name="welcome_feature_network_detail">SMB, FTP і SFTP - як звичайні папки</string>
+    <string name="welcome_feature_cloud_detail">Google Drive, OneDrive і Dropbox у спільному списку</string>
+    <string name="welcome_feature_sorting_detail">Перенести чи скопіювати файл одним дотиком</string>
+    <string name="welcome_feature_slideshow_detail">Перегляд без рук, за бажанням - з музикою</string>
 </resources>

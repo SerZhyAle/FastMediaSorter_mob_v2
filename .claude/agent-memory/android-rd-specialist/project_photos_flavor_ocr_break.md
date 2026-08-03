@@ -11,4 +11,4 @@ RESOLVED (2026-06-10, branch DEBUG-v013). Was: while S0386's `build.gradle.kts` 
 - `src/ocrDisabled/java/` holds `NoOpOfflineOcrEngine.kt` + a same-named `di/OcrModule.kt` providing it; mounted into photos, lite. Needed because `OfflineOcrEngineProvider` (src/main) injects a non-null default `OfflineOcrEngine`.
 - `build.gradle.kts` `sourceSets` mounts + catalog `scan.ps1`/`render.ps1` srcRoots updated.
 
-**Why it matters going forward:** OCR is now flavor-isolated like cloud/streaming/translation. Any new code that touches `TessBaseAPI` or Tesseract symbols must live in `src/ocrEnabled`, never `src/main`. A non-OCR flavor needing a new `OfflineOcrEngine` consumer must have a matching binding in `src/ocrDisabled`. See [[project_s0386_delivery_pause]].
+**Why it matters going forward:** OCR is now flavor-isolated like cloud/streaming/translation. Any new code that touches `TessBaseAPI` or Tesseract symbols must live in `src/ocrEnabled`, never `src/main`. A non-OCR flavor needing a new `OfflineOcrEngine` consumer must have a matching binding in `src/ocrDisabled`. See S0386 (on-demand OCR/translation delivery).

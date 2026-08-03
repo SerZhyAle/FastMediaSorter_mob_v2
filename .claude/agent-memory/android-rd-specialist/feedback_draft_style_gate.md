@@ -13,4 +13,4 @@ Spec writing style hygiene - `..` not `...`, `ё`/`Ё`, lists-over-tables, no ps
 - Drafting / iterating a Draft spec → don't sweat style; don't raise ellipsis/`ё`/table/summary findings; don't run hygiene-only passes.
 - The skill that promotes Draft -> Approved owns cleaning the draft to full style before flipping status. (`/spec` auto-approves in step 6, so it still cleans then.)
 - Global Author Style for chat / UI strings / production docs / `Approved`+ specs is unchanged - still non-negotiable there.
-- Encoded in CLAUDE.md "Author Style" + "Spec Writing Style" sections and in `.claude/commands/spec.md` (Constraints) + `spec-update.md` (language focus area). See [[feedback_strategic_spec_owner_gate]] for the related Approval-gate owner-inputs mechanics.
+- Encoded in CLAUDE.md "Author Style" + "Spec Writing Style" sections and in `.claude/commands/spec.md` (Constraints) + `spec-update.md` (language focus area). See [[strategic-spec-owner-gate]] for the related Approval-gate owner-inputs mechanics.

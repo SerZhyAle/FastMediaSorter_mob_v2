@@ -102,10 +102,14 @@
     <dimen name="welcome_title_margin_top">10dp</dimen>
     <dimen name="welcome_description_margin_top">10dp</dimen>
     <dimen name="welcome_page_padding">24dp</dimen>
-    <dimen name="welcome_feature_card_icon_size">40dp</dimen>
-    <dimen name="welcome_feature_card_text_size">14sp</dimen>
-    <dimen name="welcome_feature_card_padding">16dp</dimen>
-    <dimen name="welcome_feature_card_margin">8dp</dimen>
+    <dimen name="welcome_feature_row_icon_size">30dp</dimen>
+    <dimen name="welcome_feature_row_badge_size">48dp</dimen>
+    <dimen name="welcome_feature_row_icon_gap">16dp</dimen>
+    <dimen name="welcome_feature_row_title_text_size">16sp</dimen>
+    <dimen name="welcome_feature_row_detail_text_size">14sp</dimen>
+    <dimen name="welcome_feature_row_padding">8dp</dimen>
+    <dimen name="welcome_feature_row_gutter">14dp</dimen>
+    <dimen name="welcome_feature_row_spacing">3dp</dimen>
     <dimen name="welcome_content_max_width">800dp</dimen>
 
     <!-- Grid columns for tablets (defined in integers.xml) -->

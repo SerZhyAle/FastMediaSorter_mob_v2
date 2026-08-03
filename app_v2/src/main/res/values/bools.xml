@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <bool name="debug_version_overlay_enabled">false</bool>
     <bool name="is_tab_inline">false</bool>
     <bool name="is_resource_actions_inline">false</bool>
     <!-- S0755: programs panel shows labels strictly by orientation (portrait = icons only). -->

@@ -14,5 +14,5 @@ When working a spec where `testStandardDebugUnitTest` exits non-zero due to **pr
 **How to apply:**
 - For per-step test verification: read the JUnit XML report under `app_v2/build/test-results/testStandardDebugUnitTest/TEST-<fqcn>.xml`. The `tests=N failures=0 errors=0` line on that report's testsuite element is the authoritative PASS signal for the spec's own tests.
 - For Phase Done Criteria "Project compiles" check: prefer `.\scripts\builders\build-debug.PS1 -Task assembleStandardDebug` (compile only, no tests) over running the full test task. Exit 0 means compile is green.
-- Do NOT silently mark a step done while [[debug-tag-invariant]] is broken or while my own test class has a failing case - those are real failures.
+- Do NOT silently mark a step done while the debug-tag invariant (CLAUDE.md "Debug Verification Tags") is broken or while my own test class has a failing case - those are real failures.
 - Document each occurrence in the Step Log: "Pre-existing failures in N classes unrelated to S<id>; own tests <fqcn> XML report: tests=X failures=0 errors=0".

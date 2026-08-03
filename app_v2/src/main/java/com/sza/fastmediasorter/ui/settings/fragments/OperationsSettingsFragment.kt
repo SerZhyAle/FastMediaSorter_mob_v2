@@ -1,10 +1,12 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.isVisible
@@ -37,6 +39,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.gesture.EdgeGestureConfigDialogFragment
 import com.sza.fastmediasorter.ui.settings.helpers.HomeWidgetSettingsHelper
+import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderDestinationPickerManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsCaptureManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsDestinationsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsGesturesManager
@@ -90,6 +93,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
 
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
     private val destinationsManager by lazy { OperationsDestinationsManager(binding, viewModel, this) }
+    private val localFolderDestinationPickerManager by lazy {
+        LocalFolderDestinationPickerManager(this, viewModel, localFolderDestinationPickerLauncher)
+    }
     private val scheduledManager by lazy {
         OperationsScheduledManager(
             binding,
@@ -173,6 +179,13 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     private val folderPickerLauncher: androidx.activity.result.ActivityResultLauncher<android.net.Uri?> =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
             scheduledManager.onFolderPicked(uri)
+        }
+
+    // S1010: separate SAF launcher for the "Local Folder" write-receiver option, kept apart from
+    // S1009's scheduled-op launcher above so the two picks can never resolve into each other.
+    private val localFolderDestinationPickerLauncher: ActivityResultLauncher<Uri?> =
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+            localFolderDestinationPickerManager.onFolderPicked(uri)
         }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -704,7 +717,10 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             ListSelectionConfig(
                 title = getString(R.string.setting_select_destination),
                 lifecycleOwner = viewLifecycleOwner,
-                loader = { destinationsManager.currentDestinations },
+                loader = {
+                    listOf(LocalFolderDestinationPickerManager.sentinelItem(requireContext())) +
+                        destinationsManager.currentDestinations
+                },
                 formatter = object : ListSelectionAdapter.ItemFormatter<MediaResource> {
                     override fun getDisplayName(item: MediaResource): String = item.name
                 },
@@ -713,7 +729,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                 allowClear = true,
                 emptyMessageRes = R.string.no_resources_available,
                 errorMessageRes = R.string.no_resources_available,
-                onSelected = onPicked,
+                onSelected = localFolderDestinationPickerManager.wrapOnSelected(currentResourceId, onPicked),
             ),
         ).show()
     }

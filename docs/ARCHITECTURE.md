@@ -200,6 +200,16 @@ Rules:
 - Exempt by design (do not migrate to this family): player/media `ImageButton` borderless controls, reserved ExoPlayer `@id/exo_*` controls, and the intentionally dark camera/viewfinder surfaces.
 - A new role that none of the five covers is added as a new `Widget.FastMediaSorter.Button.*` style here, not as an ad-hoc layout style.
 
+## Dialog Result Delivery (MANDATORY)
+
+A `DialogFragment` never holds its result callback in a field. `FragmentManager` rebuilds a restored dialog through the no-argument constructor, so any handler the caller assigned after construction is null on the rebuilt instance - the user confirms, nothing happens, and nothing is logged. The recreation does not need a rotation to happen: a theme change, a language change, a font-size change, "don't keep activities" and process death all trigger it, and most hosts here declare `configChanges` for orientation, so rotation is in fact the one trigger that does NOT reproduce it.
+
+The result travels as a `FragmentResult` instead. The dialog declares a `RESULT_KEY`, one payload key per returned value, and a private `ARG_REQUEST_KEY`; `newInstance` takes `requestKey: String = RESULT_KEY` and stores it in `arguments`; `onCreate` reads it back out of `requireArguments()`, so a restored instance recovers it. The confirm path calls `setFragmentResult(requestKey, bundleOf(..))`. The host registers `setFragmentResultListener` in its own `onCreate`/`onViewCreated` - never at the moment the dialog is opened, because a recreated host must have the listener back before the restored dialog resumes. `SearchableLanguagePickerDialog` is the reference implementation (S1214).
+
+Payloads carry Bundle primitives. Where a value is a domain object, put its fields in the bundle and rebuild the object in the host rather than making a domain model `Parcelable`. Where one picker serves many rows, the row id rides in the arguments and comes back in the result bundle, so a single host listener serves them all.
+
+One accepted limitation: when the opening host is a plain `AlertDialog` rather than a `DialogFragment`, the host itself does not survive recreation, so a pick made after recreation is delivered the next time that picker is opened rather than immediately. Making such a host a `DialogFragment` is a separate change per surface.
+
 ## Standalone Player Toolbar Order (MANDATORY)
 
 The four standalone hosts (`PhotoVideoStandaloneActivity`, `TextStandaloneActivity`, `DocumentStandaloneActivity`, `AudioStandaloneActivity`) share ONE top-toolbar button order so a file feels the same whichever host opened it (S0920). Each host declares its own `activity_standalone_*.xml` (portrait + `layout-land/`), so there is no single shared layout to enforce this - a new host or an edit must follow the order by hand.

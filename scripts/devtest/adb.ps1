@@ -23,8 +23,9 @@
     install              install -r -d an APK (-Apk <path>, or newest debug APK for -Flavor)
     uninstall            uninstall the resolved package
     shot                 screenshot to temp/scratch/<device>_<TS>.png (screencap on device, then pull)
-    log                  logcat -d tail for the app: -Tail N (default 200), -Grep <regex>;
-                         full capture also written to temp/scratch/
+    log                  the app's own log lines: every line whose pid belongs to an app
+                         process, plus every line whose text names the package. -Tail N
+                         (default 200), -Grep <regex>; full capture also to temp/scratch/
     tap                  input tap -X <x> -Y <y>
     text                 input text -Text "<string>" (spaces handled)
     key                  input keyevent -Key <name-or-code> (e.g. BACK, 4, KEYCODE_HOME)
@@ -35,6 +36,17 @@
   com.sza.fastmediasorter.debug; -Release switches to com.sza.fastmediasorter; -Package
   overrides explicitly. If the chosen id is not installed, the other variant is tried before
   giving up.
+
+  How `log` decides a line is the app's (S1332): the pid set comes from `pidof <pkg>`, from
+  `ps -A -o PID,NAME` (which also catches any :sub process), and from the `Start proc` lines
+  in the capture itself (which recovers a process that already exited inside the window).
+  A line is kept when its threadtime pid column is in that set, OR when its text names the
+  package - the second arm is what keeps system-side lines such as `ANR in <pkg>` and
+  `AndroidRuntime: Process: <pkg>`, which run under system_server's pid. An empty pid set is
+  a legal state: the filter degrades to text-only matching and the verdict becomes WARN.
+  When -Grep is given and the filter dropped lines the pattern matched, the verdict is WARN
+  with a count. That is deliberately NOT an error and has no exit code of its own - a silent
+  `OK 0 line(s)` was the whole defect, an error would break every caller. Do not add one.
 
   Exit codes (stable; mirror device-ready.ps1 where they overlap):
     0 - OK
@@ -90,6 +102,8 @@ $BASE_PACKAGE   = 'com.sza.fastmediasorter'
 $DEBUG_PACKAGE  = "$BASE_PACKAGE.debug"
 $MAIN_ACTIVITY  = 'com.sza.fastmediasorter.ui.main.MainActivity'
 
+. (Join-Path $PSScriptRoot 'lib/adb-log-filter.ps1')
+
 # ---------- result shape ----------
 
 $script:result = [ordered]@{
@@ -129,22 +143,10 @@ function Fail {
 }
 
 # ---------- adb discovery (parity with device-ready.ps1) ----------
+# S1341: Find-Adb lives in lib/find-adb.ps1 so spec-prerelease.md and other callers
+# share one discovery order instead of hand-rolling their own hardcoded fallback.
 
-function Find-Adb {
-    foreach ($root in @($env:ANDROID_HOME, $env:ANDROID_SDK_ROOT)) {
-        if ($root) {
-            $candidate = Join-Path $root 'platform-tools\adb.exe'
-            if (Test-Path -Path $candidate -PathType Leaf) { return $candidate }
-        }
-    }
-    $onPath = Get-Command adb -ErrorAction SilentlyContinue
-    if ($onPath) { return $onPath.Source }
-
-    $known = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
-    if (Test-Path -Path $known -PathType Leaf) { return $known }
-
-    return $null
-}
+. "$PSScriptRoot/lib/find-adb.ps1"
 
 $adb = Find-Adb
 if (-not $adb) {
@@ -405,18 +407,51 @@ switch ($Verb.ToLowerInvariant()) {
         $id  = Select-Device
         $pkg = Resolve-Package $id
         $script:result.device = $id; $script:result.package = $pkg
-        $raw = Invoke-Adb $id @('logcat', '-d', '-t', "$Tail") -AllowFail
-        # Keep app lines + the project's named tags; logcat does not stamp every line with the pid.
-        $patterns = @([regex]::Escape($pkg), [regex]::Escape($BASE_PACKAGE), 'FastMediaSorter')
-        $lines = $raw -split "`r?`n" | Where-Object {
-            $line = $_
-            ($patterns | Where-Object { $line -match $_ }).Count -gt 0
+        # -v threadtime is already the device default, but pinning it makes the pid-column
+        # parse deterministic instead of dependent on the device's own default.
+        $raw = Invoke-Adb $id @('logcat', '-d', '-v', 'threadtime', '-t', "$Tail") -AllowFail
+        $rawLines = $raw -split "`r?`n"
+
+        # S1332: pid is the ownership signal - the app's own Timber lines carry a bare class
+        # tag and name neither the package nor the project, so text alone never matched them.
+        # The text arm survives as the second arm, for system-side lines about the app.
+        $appPids = @()
+        $pidofOut = (Invoke-Adb $id @('shell', 'pidof', $pkg) -AllowFail) -join ' '
+        $appPids += @($pidofOut -split '\s+' | Where-Object { $_ -match '^\d+$' } | ForEach-Object { [int]$_ })
+        $psOut = (Invoke-Adb $id @('shell', 'ps', '-A', '-o', 'PID,NAME') -AllowFail) -join "`n"
+        foreach ($row in ($psOut -split "`r?`n")) {
+            if ($row -match '^\s*(?<p>\d+)\s+(?<n>\S+)\s*$') {
+                $name = $Matches['n']
+                if ($name -eq $pkg -or $name.StartsWith("${pkg}:")) { $appPids += [int]$Matches['p'] }
+            }
         }
+        $appPids += Get-AppPidsFromLog -Lines $rawLines -BasePackage $BASE_PACKAGE
+        $appPids = @($appPids | Sort-Object -Unique)
+
+        $patterns = @([regex]::Escape($pkg), [regex]::Escape($BASE_PACKAGE), 'FastMediaSorter')
+        $lines = Select-AppLogLines -Lines $rawLines -AppPids $appPids -TextPatterns $patterns
+        $coverage = if ($Grep) { Measure-FilterCoverage -RawLines $rawLines -KeptLines $lines -Pattern $Grep } else { $null }
         if ($Grep) { $lines = $lines | Where-Object { $_ -match $Grep } }
         $logFile = Join-Path (Get-TempDir) "adb_log_$(Get-Stamp).log"
         ($raw -join "`n") | Out-File -FilePath $logFile -Encoding UTF8
-        if ($Json) { Emit-Ok @{ id = $id; package = $pkg; matched = @($lines).Count; file = $logFile } }
+        if ($Json) {
+            Emit-Ok @{
+                id = $id; package = $pkg; matched = @($lines).Count; file = $logFile
+                rawMatched = if ($coverage) { $coverage.rawMatched } else { $null }
+                suppressed = if ($coverage) { $coverage.suppressed } else { 0 }
+                appPids    = $appPids
+            }
+        }
         foreach ($l in $lines) { Write-Host $l }
+        # A filter that swallows matching lines must say so: the old silent OK 0 was
+        # indistinguishable from an honest no-match and produced wrong Broken verdicts.
+        # Never echo the caller's pattern - smoke.ps1 and prerelease-prepare.ps1 match their
+        # own crash regex against this script's whole stdout.
+        if ($coverage -and $coverage.suppressed -gt 0) {
+            Write-Host "WARN $((@($lines)).Count) line(s) (window $Tail); full capture: $logFile" -ForegroundColor Yellow
+            Write-Host "     the filter dropped $($coverage.suppressed) line(s) matching the pattern - read the capture file" -ForegroundColor Yellow
+            exit 0
+        }
         Write-Host "OK $((@($lines)).Count) line(s) (window $Tail); full capture: $logFile" -ForegroundColor Cyan
         exit 0
     }

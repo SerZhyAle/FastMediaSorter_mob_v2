@@ -30,7 +30,10 @@ data class BackupPayload(
     val webAuthSessions: List<BackupWebAuthSession>? = null
 ) {
     companion object {
-        const val CURRENT_VERSION = 5
+        // S1346: v5->v6 - not a payload-shape change but a trust marker for
+        // linkAutoDownloadOpenInPlayer. Pre-v6 backups always persisted `true` (the pre-S0981
+        // default), so BackupMapper must not trust that field from a payload below this version.
+        const val CURRENT_VERSION = 6
     }
 }
 

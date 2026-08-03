@@ -13,6 +13,45 @@ Pick the cheapest proof that matches the risk of the change.
 - Do not default to the full unit suite when one targeted test proves the change.
 - Escalate only when the previous proof level is not sufficient for the changed surface.
 
+## Foreground or background: the 120 s threshold (S1338)
+
+Backgrounding is not free. The harness re-invokes the agent when a background job finishes, so
+every backgrounded command costs one extra turn - and the agent that cannot wait quietly ends up
+hand-polling with `cat` and `sleep`, which is where roughly 1,297 polling turns and 81 minutes of
+literal `sleep` went in one month. Backgrounding a 15 s check is strictly worse than waiting for it.
+
+**The threshold is 120 s** - the Bash tool's foreground timeout, so it is a real boundary rather
+than a round number. Above it a command must be backgrounded, because a foreground call would be
+force-migrated to the background anyway and lose its clean output capture. Below it backgrounding
+is forbidden: wait for the command and read its verdict in the same turn.
+
+Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
+
+| Target | Wall clock | Verdict |
+| --- | ---: | --- |
+| `a.ps1 fg` (fast static gates) | 18.9 s | foreground |
+| `assert-detekt.ps1 -Module app_v2` | 20.3 s | foreground |
+| `a.ps1 fk` | 14.1 s | foreground |
+| `a.ps1 fc` | 18.6 s | foreground |
+| `a.ps1 dq` | 18.4 s | foreground |
+| `a.ps1 d` / `dav` / `r` / `fu` | not measured | background |
+
+Two caveats, recorded rather than smoothed over:
+
+- The `fk` / `fc` / `dq` figures are runs that stopped at a **kapt failure** from another ticket's
+  in-flight Kotlin, so they time the configuration and compile-graph phases but not packaging. A
+  green run of the same targets is longer; the audit measured the compile chain at ~44 s.
+- `d`, `dav`, `r` and `fu` could not be measured in that window for the same reason. They stay
+  background-required on the standing observation that a cold gradle daemon routinely exceeds the
+  120 s foreground timeout, and because `fu` is the full unit suite.
+- S1375 (2026-08-03) turned KSP's incremental bookkeeping off - it crashes on this host's cross-drive
+  layout, see `docs/DEV_OPS.md` "KSP incremental is off on purpose". Every Kotlin source change now
+  pays a full KSP pass. Re-measured green on that date: a no-change run stays `UP-TO-DATE` at ~2 s, a
+  one-file edit runs `fk` in **22-24 s**. Still foreground by a wide margin, and inside the ~44 s
+  green compile-chain figure above, but the 14.1 s row is not reachable for an edit any more.
+
+Re-measure with `pwsh -NoProfile -File temp/S1338/measure-fast-path.ps1` on a green tree.
+
 ## Default command set
 
 Use these commands as the standard local toolbox:
@@ -93,6 +132,20 @@ pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests
 ```
 
 Prefer one class, one package, or one failure-focused test pattern before the full suite.
+
+**`-Tests` is the default, not the exception (S1338).** 163 of 344 fast-check unit runs in one
+month used the full suite while a single-class filter was available - the suite is minutes, one
+class is seconds, and the suite has been observed to OOM part-way through and report a truncated
+pass (S1244). Reach for `-Tests` unless the change is in the list under section 6 below.
+
+```powershell
+# one class
+pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "com.sza.fastmediasorter.SomeClassTest"
+# one package - the wildcard is a gradle --tests pattern
+pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "com.sza.fastmediasorter.ui.*"
+# one failing method
+pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "com.sza.fastmediasorter.SomeClassTest.theOneCase"
+```
 
 ### 6. Broad logic change or shared infrastructure change
 

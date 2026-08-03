@@ -28,8 +28,8 @@ fun transferBytePercentOrNull(completedOperationBytes: Long, totalOperationBytes
  *
  * Single source of truth for the modal progress dialog and the S1227 background strip. The two show
  * the same operation at different moments and must never disagree, so the formula lives in one
- * function rather than being spelled out at each site. S1225 replaces the body when the unified
- * progress component lands.
+ * function rather than being spelled out at each site. The domain-side reporter deliberately does
+ * not repeat it - it owns rate and publish timing only.
  */
 fun transferOverallPercent(
     completedOperationBytes: Long,

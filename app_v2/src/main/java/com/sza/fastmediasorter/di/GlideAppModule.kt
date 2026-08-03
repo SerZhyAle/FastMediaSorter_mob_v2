@@ -19,20 +19,20 @@ import com.bumptech.glide.module.AppGlideModule
 import com.bumptech.glide.request.RequestOptions
 import com.sza.fastmediasorter.core.memory.MemoryProfileCoordinator
 import com.sza.fastmediasorter.core.util.AnimatedImageSupportUtils
-import com.sza.fastmediasorter.data.glide.AnimatedImageByteBufferDecoder
-import com.sza.fastmediasorter.data.glide.AnimatedImageStreamDecoder
-import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailData
-import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailModelLoader
 import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
 import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailModelLoader
+import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailData
+import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailModelLoader
+import com.sza.fastmediasorter.data.glide.AnimatedImageByteBufferDecoder
+import com.sza.fastmediasorter.data.glide.AnimatedImageStreamDecoder
+import com.sza.fastmediasorter.data.glide.EpubCoverDecoder
+import com.sza.fastmediasorter.data.glide.NetworkEpubCoverLoader
+import com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader
+import com.sza.fastmediasorter.data.glide.PdfPageDecoder
 import com.sza.fastmediasorter.data.network.glide.NetworkFileData
+import com.sza.fastmediasorter.data.network.glide.NetworkFileModelLoaderEntryPoint
 import com.sza.fastmediasorter.data.network.glide.NetworkFileModelLoaderFactory
 import com.sza.fastmediasorter.data.network.glide.NetworkVideoFrameDecoder
-import com.sza.fastmediasorter.data.network.glide.NetworkFileModelLoaderEntryPoint
-import com.sza.fastmediasorter.data.glide.PdfPageDecoder
-import com.sza.fastmediasorter.data.glide.EpubCoverDecoder
-import com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader
-import com.sza.fastmediasorter.data.glide.NetworkEpubCoverLoader
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -209,12 +209,12 @@ class GlideAppModule : AppGlideModule() {
             registry.prepend(
                 InputStream::class.java,
                 Drawable::class.java,
-                AnimatedImageStreamDecoder(),
+                AnimatedImageStreamDecoder(context.resources),
             )
             registry.prepend(
                 ByteBuffer::class.java,
                 Drawable::class.java,
-                AnimatedImageByteBufferDecoder(),
+                AnimatedImageByteBufferDecoder(context.resources),
             )
             // S1026: the decoders above emit a plain AnimatedImageDrawable (getResourceClass()=Drawable)
             // that Glide has no ResourceEncoder for, so a RESOURCE/ALL disk-cache strategy throws

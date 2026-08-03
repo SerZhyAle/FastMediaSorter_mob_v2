@@ -11,4 +11,4 @@ metadata:
 
 **How to apply:** Any time a comment names a file *pattern* rather than a concrete file. Highest risk in KDoc that documents where a value came from ("read off `res/xml/*_info.xml`"), which is exactly the kind of provenance comment this repo asks for. Same trap in `//` line comments only if the line continues - but the block-comment case is the one that compiles-breaks.
 
-Related: [[feedback-pwsh-authoring-byte-traps]] for the shell-side equivalent.
+Related: [[pwsh-authoring-byte-traps]] for the shell-side equivalent.

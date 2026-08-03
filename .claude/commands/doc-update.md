@@ -1,6 +1,5 @@
 ---
 description: "Use when syncing documentation after a change - mirrored feature docs, references, settings docs. Triggers: 'update docs', 'doc sync', 'mirror this doc'."
-model: sonnet
 ---
 
 # Documentation Update

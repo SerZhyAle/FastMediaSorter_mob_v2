@@ -5,8 +5,7 @@ type: reference
 ---
 
 `scripts/utils/setup_test_media.ps1` provisions every connected device/emulator with a
-structured media tree for manual + device testing. Pairs with the [[maestro-device-test-engine]]
-S0420 flow: run this first to give a flow real content to drive.
+structured media tree for manual + device testing. Pairs with the Maestro device-test flow (S0420): run this first to give a flow real content to drive.
 
 Run: `pwsh -NoProfile -File scripts/utils/setup_test_media.ps1` (no args; runs on **all**
 connected devices at once).

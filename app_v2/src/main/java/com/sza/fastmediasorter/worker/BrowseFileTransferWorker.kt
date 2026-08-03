@@ -38,6 +38,7 @@ import com.sza.fastmediasorter.ui.browse.transfer.toPayload
 import com.sza.fastmediasorter.ui.browse.transfer.transferBytePercentOrNull
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
@@ -98,6 +99,46 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         } finally {
             transferProgressReporter.clear(id.toString())
             requestStore.clearActiveRequest()
+            withContext(NonCancellable) { purgeStagedSources(request) }
+        }
+    }
+
+    /**
+     * S1370: delete sources the requester staged for this operation alone. Runs on every terminal
+     * outcome - a purge limited to success would let a failed or cancelled share grow the cache
+     * without an owner, because the requester has already finished by then.
+     */
+    private suspend fun purgeStagedSources(request: BrowseFileTransferRequest) {
+        Timber.d("S1370: staged purge check owned=%s", request.sourcesOwnedByOperation)
+        if (!request.sourcesOwnedByOperation) return
+        val stagingPath = request.stagingDirectoryPath
+        if (stagingPath.isNullOrBlank()) {
+            Timber.w("BrowseFileTransferWorker: staged purge refused - no staging dir in request")
+            return
+        }
+        withContext(Dispatchers.IO) {
+            val stagingDir = File(stagingPath)
+            val stagingPrefix = runCatching { stagingDir.canonicalPath }.getOrElse { stagingDir.absolutePath }
+            // Containment guard: a request that names live user files as sources must never be purged,
+            // whatever the flag says - that would turn a copy into a destructive operation.
+            val contained = request.sources.all { source ->
+                val file = File(source.path)
+                val resolved = runCatching { file.canonicalPath }.getOrElse { file.absolutePath }
+                resolved.startsWith(stagingPrefix + File.separator)
+            }
+            if (!contained) {
+                Timber.w(
+                    "BrowseFileTransferWorker: staged purge refused - sources outside staging dir %s",
+                    stagingPrefix,
+                )
+                return@withContext
+            }
+            var deleted = 0
+            request.sources.forEach { source ->
+                if (File(source.path).delete()) deleted++
+            }
+            stagingDir.delete()
+            Timber.i("BrowseFileTransferWorker: purged %d staged source(s) from %s", deleted, stagingPrefix)
         }
     }
 
@@ -274,9 +315,13 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                     directoryOperationHandler.executeCopyDirectory(source.path, request.destinationPath, onEntry)
                 FileOperationType.MOVE ->
                     directoryOperationHandler.executeMoveDirectory(source.path, request.destinationPath, onEntry)
+                FileOperationType.DELETE ->
+                    directoryOperationHandler.executeDeleteDirectory(source.path, onEntry)
                 else -> kotlin.Result.failure(IllegalArgumentException("Unsupported op=${request.operationType}"))
             }
-            result.onSuccess { succeeded++ }
+            result.onSuccess { count ->
+                succeeded += if (request.operationType == FileOperationType.DELETE) count else 1
+            }
                 .onFailure { errors += directoryFailureText(it, source.displayName) }
         }
         return DirectoryOutcome(
@@ -301,6 +346,10 @@ class BrowseFileTransferWorker @AssistedInject constructor(
      * Publishes one directory-walk step. [totalEntries] is 0 when the walk streams and cannot know
      * the total in advance - the notification then shows an indeterminate bar but still names the
      * entry being written.
+     *
+     * A tree of many small files emits entries far faster than a byte copy emits chunks, so this
+     * path shares the byte path's publish gate rather than forcing every entry through - the same
+     * notification/Room cost S1226 removed from the file loop.
      */
     private fun publishDirectoryProgress(
         request: BrowseFileTransferRequest,
@@ -313,9 +362,9 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             totalBytes = 0L,
             consumerKey = WORKER_CONSUMER,
             minimumPublishIntervalMs = PROGRESS_MIN_INTERVAL_MS,
-            forcePublish = true,
         )
         if (!publishReport.shouldPublish) return
+        Timber.d("S1225: dir publish entry=%s", entryName)
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(
@@ -389,6 +438,10 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                 destination = destination,
                 overwrite = overwriteFiles,
                 sourceCredentialsId = sourceCredentialsId,
+            )
+            FileOperationType.DELETE -> FileOperation.Delete(
+                files = sources,
+                softDelete = softDelete,
             )
             else -> throw IllegalArgumentException("Unsupported browse background op: $operationType")
         }
@@ -562,16 +615,19 @@ class BrowseFileTransferWorker @AssistedInject constructor(
 
     private fun notificationTitle(operationType: FileOperationType?): String = when (operationType) {
         FileOperationType.MOVE -> context.getString(R.string.browse_transfer_notif_title_move)
+        FileOperationType.DELETE -> context.getString(R.string.deleting_files)
         else -> context.getString(R.string.browse_transfer_notif_title_copy)
     }
 
     private fun doneMessageRes(operationType: FileOperationType): Int = when (operationType) {
         FileOperationType.MOVE -> R.string.moved_n_files
+        FileOperationType.DELETE -> R.string.deleted_n_files
         else -> R.string.copied_n_files
     }
 
     private fun buildProgressText(snapshot: BrowseFileTransferProgressSnapshot): String {
         val percent = snapshot.percentOrNull()
+        Timber.d("S1225: byte publish speed=%s B/s", snapshot.speedBytesPerSecond)
         return if (percent != null) {
             context.getString(R.string.browse_transfer_notif_text_progress, percent, snapshot.currentFile)
         } else {

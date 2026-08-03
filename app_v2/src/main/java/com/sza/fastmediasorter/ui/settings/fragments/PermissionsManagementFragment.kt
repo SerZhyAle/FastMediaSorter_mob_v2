@@ -21,7 +21,6 @@ import com.sza.fastmediasorter.domain.model.PermissionEntry
 import com.sza.fastmediasorter.domain.model.PermissionStatus
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
 import com.sza.fastmediasorter.domain.usecase.CheckPermissionStatusUseCase
-import com.sza.fastmediasorter.domain.usecase.RequestContextualPermissionUseCase
 import com.sza.fastmediasorter.ui.common.permissions.PermissionDenialHandler
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -37,7 +36,6 @@ class PermissionsManagementFragment : Fragment() {
 
     @Inject lateinit var registry: PermissionRegistryRepository
     @Inject lateinit var checkStatus: CheckPermissionStatusUseCase
-    @Inject lateinit var requestContextual: RequestContextualPermissionUseCase
 
     // These permissions cannot be granted via requestPermission() - each requires a dedicated
     // system settings screen. Batch-requesting them via requestMultiplePermissions() is silently ignored.
@@ -76,15 +74,16 @@ class PermissionsManagementFragment : Fragment() {
     // On API 34+ the predictive back system can deliver a spurious back event to the underlying
     // Activity when a child Activity launched with plain startActivity() finishes - using
     // ActivityResultLauncher prevents that and gives us a reliable return callback.
-    private val specialSettingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
-        refreshAdapter()
-        updateGrantAllVisibility()
-        if (grantAllInProgress) {
-            // Mid "Grant all" run - continue with the next denied special permission. When none
-            // remain, launchNextSpecialPermission() ends the run.
-            launchNextSpecialPermission()
+    private val specialSettingsLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
+            refreshAdapter()
+            updateGrantAllVisibility()
+            if (grantAllInProgress) {
+                // Mid "Grant all" run - continue with the next denied special permission. When none
+                // remain, launchNextSpecialPermission() ends the run.
+                launchNextSpecialPermission()
+            }
         }
-    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         inflater.inflate(R.layout.fragment_permissions_management, container, false)

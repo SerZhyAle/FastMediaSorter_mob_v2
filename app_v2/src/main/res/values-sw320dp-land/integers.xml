@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- smallestWidth outranks orientation in resource matching, so values-sw320dp
-         (resource_grid_column_count=1) silently beats values-land on every phone.
-         This combined bucket restores a 2-column resource list in phone landscape. -->
+         silently beats values-land on every phone. This combined bucket restores a
+         2-column resource list and a 3-column welcome grid in phone landscape. -->
     <integer name="resource_grid_column_count">2</integer>
+    <integer name="welcome_feature_grid_columns">3</integer>
 </resources>

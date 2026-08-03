@@ -40,6 +40,9 @@ import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.GamepadAction
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsSink
@@ -78,6 +81,7 @@ import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.main.helpers.StartupNoticeManager
 import com.sza.fastmediasorter.ui.main.helpers.StreamsPanelMenuActions
+import com.sza.fastmediasorter.ui.main.helpers.VersionOverlayManager
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
@@ -270,6 +274,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        VersionOverlayManager.attachIfEnabled(this)
 
         // S0564: restore the pending quick-capture target if the process was killed while the camera
         // host was foreground. setupViews() (run inside super.onCreate) already constructed the manager,
@@ -475,6 +480,34 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             context = this,
             layoutInflater = layoutInflater
         )
+
+        // The dialog outlives this Activity instance when the screen rotates while it is open, so
+        // the filter arrives as a FragmentResult and the listener belongs to the Activity, not to
+        // the tap that opened the dialog. An enum name unresolvable after an app update is dropped.
+        supportFragmentManager.setFragmentResultListener(
+            FilterResourceDialog.RESULT_KEY,
+            this
+        ) { _, bundle ->
+            val sortModeName = bundle.getString(FilterResourceDialog.RESULT_SORT_MODE)
+            Timber.d("S1331: filter result received sort=%s", sortModeName)
+            viewModel.setSortMode(
+                sortModeName?.let { runCatching { enumValueOf<SortMode>(it) }.getOrNull() }
+                    ?: SortMode.MANUAL
+            )
+            viewModel.setFilterByType(
+                bundle.getStringArrayList(FilterResourceDialog.RESULT_RESOURCE_TYPES)
+                    ?.mapNotNullTo(mutableSetOf()) { name ->
+                        runCatching { enumValueOf<ResourceType>(name) }.getOrNull()
+                    }
+            )
+            viewModel.setFilterByMediaType(
+                bundle.getStringArrayList(FilterResourceDialog.RESULT_MEDIA_TYPES)
+                    ?.mapNotNullTo(mutableSetOf()) { name ->
+                        runCatching { enumValueOf<MediaType>(name) }.getOrNull()
+                    }
+            )
+            viewModel.setFilterByName(bundle.getString(FilterResourceDialog.RESULT_NAME_FILTER))
+        }
 
         // UI setup and resource loading deferred to setupViews() via BaseActivity.onCreate()
     }
@@ -852,6 +885,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 binding = binding,
                 hasNetwork = networkContextAnalyzer::hasAnyNetwork,
                 isPersistentAudioSettingOn = { latestSettings?.enablePersistentAudioPlayback == true },
+                persistentAudioCompiledIn = capabilityAvailability.isPersistentAudioPlaybackAvailable(),
                 onPlayVideo = { channel -> startActivity(StreamsActivity.createPlayIntent(this, channel.url)) },
             ),
             // S0770: per-item menu actions - new-window launches + Remove (unpin) + availability gate.
@@ -1006,13 +1040,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 sortMode = currentState.sortMode,
                 resourceTypes = currentState.filterByType,
                 mediaTypes = currentState.filterByMediaType,
-                nameFilter = currentState.filterByName,
-                onApply = { sortMode, filterByType, filterByMediaType, filterByName ->
-                    viewModel.setSortMode(sortMode)
-                    viewModel.setFilterByType(filterByType)
-                    viewModel.setFilterByMediaType(filterByMediaType)
-                    viewModel.setFilterByName(filterByName)
-                }
+                nameFilter = currentState.filterByName
             ).show(supportFragmentManager, "FilterResourceDialog")
         }
 

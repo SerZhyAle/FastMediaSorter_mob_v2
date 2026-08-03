@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.data.cloud
 
 import android.content.Context
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -15,8 +17,6 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-
-import com.sza.fastmediasorter.data.common.MediaTypeUtils
 
 @Singleton
 class CloudMediaScanner @Inject constructor(
@@ -195,6 +195,7 @@ class CloudMediaScanner @Inject constructor(
                 emptyList()
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error scanning cloud folder")
             emptyList()
         }
@@ -242,6 +243,7 @@ class CloudMediaScanner @Inject constructor(
                 MediaFilePage(emptyList(), false)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error scanning cloud folder paged")
             MediaFilePage(emptyList(), false)
         }

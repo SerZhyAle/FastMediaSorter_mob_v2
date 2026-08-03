@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.cameracapture.helpers
 import android.hardware.camera2.CameraMetadata
 import androidx.fragment.app.FragmentManager
 import com.sza.fastmediasorter.ui.cameracapture.CameraSettingsDialogFragment
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -24,25 +25,30 @@ class CameraSettingsCallbackHandler(
 
     fun show(fragmentManager: FragmentManager) {
         if (fragmentManager.findFragmentByTag(CameraSettingsDialogFragment.TAG) != null) return
-        CameraSettingsDialogFragment().apply {
-            callbacks = this@CameraSettingsCallbackHandler
-            rotationBucketState = rotationBucket
-            capabilities = flowManager.currentCapabilities
-            initialSettings = CameraSettingsDialogFragment.CameraSettingsState(
-                selfTimerSeconds = flowManager.selfTimerSeconds,
-                gridEnabled = flowManager.gridEnabled,
-                aspectRatio = sessionManager.currentAspectRatio,
-                resolution = sessionManager.currentResolution,
-                exposureCompensationIndex = sessionManager.currentExposureCompensationIndex,
-                whiteBalanceMode = sessionManager.currentWhiteBalanceMode ?: CameraMetadata.CONTROL_AWB_MODE_AUTO,
-                manualSensorEnabled = sessionManager.currentManualIso != null &&
-                    sessionManager.currentManualShutterNs != null,
-                manualIso = sessionManager.currentManualIso,
-                manualShutterNs = sessionManager.currentManualShutterNs,
-                hdrEnabled = sessionManager.hdrEnabled,
-            )
-        }.show(fragmentManager, CameraSettingsDialogFragment.TAG)
+        // S1336: no field injection here - the fragment pulls its inputs from this handler via
+        // Callbacks/Host once attached, which is what lets a framework-restored instance (theme,
+        // language, "don't keep activities", process death) reconstruct itself without a crash.
+        CameraSettingsDialogFragment().show(fragmentManager, CameraSettingsDialogFragment.TAG)
     }
+
+    override fun currentCameraCapabilities(): CameraRuntimeCapabilities = flowManager.currentCapabilities
+
+    override fun currentCameraSettingsState(): CameraSettingsDialogFragment.CameraSettingsState =
+        CameraSettingsDialogFragment.CameraSettingsState(
+            selfTimerSeconds = flowManager.selfTimerSeconds,
+            gridEnabled = flowManager.gridEnabled,
+            aspectRatio = sessionManager.currentAspectRatio,
+            resolution = sessionManager.currentResolution,
+            exposureCompensationIndex = sessionManager.currentExposureCompensationIndex,
+            whiteBalanceMode = sessionManager.currentWhiteBalanceMode ?: CameraMetadata.CONTROL_AWB_MODE_AUTO,
+            manualSensorEnabled = sessionManager.currentManualIso != null &&
+                sessionManager.currentManualShutterNs != null,
+            manualIso = sessionManager.currentManualIso,
+            manualShutterNs = sessionManager.currentManualShutterNs,
+            hdrEnabled = sessionManager.hdrEnabled,
+        )
+
+    override fun cameraRotationBucket(): StateFlow<Int> = rotationBucket
 
     override fun onCameraSettingsPreviewChanged(state: CameraSettingsDialogFragment.CameraSettingsState) {
         sessionManager.setExposureCompensation(state.exposureCompensationIndex)

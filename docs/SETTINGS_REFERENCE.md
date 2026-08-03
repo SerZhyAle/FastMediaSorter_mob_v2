@@ -269,3 +269,87 @@ _Available in: Standard, Legacy_
 | Use trash folder (.trash) | Moves deleted files to a .trash folder instead of removing them immediately. |
 | Enable video recording | Enables the built-in video recording feature. |
 | Open recorded video in player | Opens the recorded video in the player immediately after recording stops. |
+
+## Launcher
+
+_Settings -> General -> System launcher settings_
+
+| Setting | What it does |
+|---|---|
+| Grid density | Sets how many icons the launcher desktop grid fits per row and column. |
+| Lock desktop | Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable. |
+| Change home screen | Opens Android's default-launcher chooser to switch the system home screen. |
+| Replace system status area | Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar. |
+| Show pinned apps | Shows pinned apps on the launcher desktop. |
+| Show recent apps | Shows recently used apps on the launcher desktop. |
+| Show clock and status | Shows the clock and status indicators in the launcher's tray area. |
+| Desktop wallpaper | Chooses the launcher desktop's wallpaper. |
+
+## Edge gestures
+
+_Settings -> Destinations -> Configure gestures_
+
+| Setting | What it does |
+|---|---|
+| Edit app panel | Opens the editor for the customizable app-launch panel shown in edge-gesture zones. |
+| Select resource.. | Opens a folder picker for where captured screenshots are saved. |
+| General gesture settings | Section header for the general edge-gesture settings - screenshot destination, clipboard copy, and the app-launch panel editor. |
+| Save screenshots to clipboard | Also copies every captured screenshot to the clipboard, ready to paste. |
+| Down gesture action | Assigns the action triggered by swiping down from the left edge's lower gesture zone. |
+| Right gesture action | Assigns the action triggered by swiping right from the left edge's lower gesture zone. |
+| Up gesture action | Assigns the action triggered by swiping up from the left edge's lower gesture zone. |
+| Down gesture action | Assigns the action triggered by swiping down from the left edge's upper gesture zone. |
+| Right gesture action | Assigns the action triggered by swiping right from the left edge's upper gesture zone. |
+| Up gesture action | Assigns the action triggered by swiping up from the left edge's upper gesture zone. |
+| Down gesture action | Assigns the action triggered by swiping down from the right edge's lower gesture zone. |
+| Right gesture action | Assigns the action triggered by swiping right from the right edge's lower gesture zone. |
+| Up gesture action | Assigns the action triggered by swiping up from the right edge's lower gesture zone. |
+| Down gesture action | Assigns the action triggered by swiping down from the right edge's upper gesture zone. |
+| Right gesture action | Assigns the action triggered by swiping right from the right edge's upper gesture zone. |
+| Up gesture action | Assigns the action triggered by swiping up from the right edge's upper gesture zone. |
+| Left edge - lower band | Enables the edge-gesture zone at the left edge's lower band. |
+| Show the gesture strip | Shows the semi-transparent gesture-strip guide for the left edge's lower zone. |
+| Left edge - upper band | Enables the edge-gesture zone at the left edge's upper band. |
+| Show the gesture strip | Shows the semi-transparent gesture-strip guide for the left edge's upper zone. |
+| Right edge - lower band | Enables the edge-gesture zone at the right edge's lower band. |
+| Show the gesture strip | Shows the semi-transparent gesture-strip guide for the right edge's lower zone. |
+| Right edge - upper band | Enables the edge-gesture zone at the right edge's upper band. |
+| Show the gesture strip | Shows the semi-transparent gesture-strip guide for the right edge's upper zone. |
+
+## Default apps
+
+_Settings -> Destinations -> Set as default_
+
+| Setting | What it does |
+|---|---|
+| Default audio player | Opens Android's default-app chooser to register this app as the default audio player. |
+| Default document viewer | Opens Android's default-app chooser to register this app as the default document viewer. |
+| Default image viewer | Opens Android's default-app chooser to register this app as the default image viewer. |
+| Default video player | Opens Android's default-app chooser to register this app as the default video player. |
+| Accept shared files | Allows the app to receive files shared from other apps. |
+| System media handler | Registers the app as the system media handler, shown in "Open with" and for hardware media buttons. |
+
+## Camera capture
+
+_Reached from the camera capture screen, not from Settings._
+
+| Setting | What it does |
+|---|---|
+| Only OCR (no translation) | Skips the translation step and shows the recognized text as-is. |
+| Aspect ratio | Sets the photo aspect ratio used by the camera capture. |
+| Grid | Shows a composition grid overlay in the camera viewfinder. |
+| HDR | Enables HDR capture for higher dynamic range photos. |
+| Manual ISO and shutter | Enables manual control of ISO and shutter speed instead of automatic exposure. |
+| Resolution | Sets the photo resolution used by the camera capture. |
+| Self-timer | Sets a countdown delay before the camera captures a photo. |
+| White balance | Sets the camera's white balance mode. |
+
+## On-screen translation
+
+_Reached from the on-screen translation overlay, not from Settings._
+
+| Setting | What it does |
+|---|---|
+| Font Family | Chooses the font family used to render translated text. |
+| Font Size | Chooses the font size used to render translated text. |
+| Translation result in blocks | Shows the translation result as opaque blocks over the original text, matching Google Lens style. |

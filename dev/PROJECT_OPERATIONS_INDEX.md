@@ -77,10 +77,13 @@ Dependency version policy:
 - Documentation map: `docs/DOCS_MAP.md`
 - Documentation registry: `docs/DOCUMENT_REGISTRY.jsonl` is the source of truth for maintained documents, site pages, owners, update triggers, and publication state. Query it with `scripts/document_registry/query.ps1`; validate with `scripts/document_registry/validate.ps1`; regenerate/check derived views with `scripts/document_registry/generate.ps1 [-Check]`.
 - **Activity entry points** (navigation anchors, intents, deeplinks): `dev/ACTIVITY_CATALOG/` - query via `pwsh -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module app_v2 -Search "<keyword>"` or browse `app_v2.md` / `wear.md`.
+- **Kotlin classes by named product sector** (S1344): `pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Sectors` lists them, `-Sector <name>` returns the whole sector across `ui`, `domain` and `data` without guessing a search word. A sector composes with every other filter (`-Sector player -Layer ui`). Definitions are hand-authored in `dev/CATALOG/sectors.json` and stamped onto records by `catalog_sync.ps1`; `dev/CATALOG/<module>.jsonl` stays a gitignored generated index.
+- **The catalog-before-grep gate is mechanical, not advisory** (S1344): a `PreToolUse` hook refuses an *unnarrowed* Kotlin search - a `Grep`/`Glob` targeting `.kt` with no `path` and no directory-naming `glob` - until `query.ps1` has run once in the session. A search that already names a subtree is never blocked, and nothing outside `.kt` is in scope. The refusal prints the exact `query.ps1` command to run instead. Hook: `.claude/hooks/guard-catalog-before-kt-search.ps1`, armed each session by `.claude/hooks/reset-catalog-touch-marker.ps1`, proved by `.claude/hooks/tests/run-guard-catalog-cases.ps1`.
 
 ## 8) Quick Start Research Checklist
 1. Confirm target module (`app_v2` or `wear`) and flavor impact.
 2. **Which Activity handles X?** → query `dev/ACTIVITY_CATALOG/` first (`query.ps1 -Search "<keyword>"`), then locate the feature area in `ui/domain/data` path.
+2a. **Which classes make up feature X?** → `dev/CATALOG/scripts/query.ps1 -Sector <name>` (see section 7). A repo-wide `.kt` search before this is refused by the gate, not merely discouraged.
 3. Validate constraints from this file + `.github/copilot-instructions.md`.
 4. Open the one domain-specific doc from section 7.
 5. Only then inspect implementation files.

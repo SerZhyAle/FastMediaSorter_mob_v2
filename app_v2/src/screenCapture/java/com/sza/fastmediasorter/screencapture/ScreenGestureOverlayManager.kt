@@ -447,7 +447,6 @@ class ScreenGestureOverlayManager(
                 if (chosen == null) return false
                 // Let WindowManager commit the hint removal before an immediate accessibility capture.
                 view.postOnAnimation {
-                    Timber.d("S1242: gesture hint removed before capture")
                     onGestureMatched(zone, chosen)
                 }
                 view.performClick()
@@ -509,14 +508,26 @@ class ScreenGestureOverlayManager(
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val windowMetrics = windowManager.currentWindowMetrics
-            val insets = windowMetrics.windowInsets.getInsetsIgnoringVisibility(
-                WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout()
+            val types = WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout()
+            // S1358: two questions, two inset sources. WHICH edge pair the bands take must not
+            // flip when a bar is briefly revealed, so the axis keeps reading the reserved inset
+            // (S1188's reason). HOW FAR from that edge they sit must follow the bar that is
+            // actually on screen: under a fullscreen video the status bar is hidden and the
+            // reserved variant still claims its height, which parked the band a bar-height below
+            // an empty physical edge.
+            val visible = windowMetrics.windowInsets.getInsets(types)
+            val reserved = windowMetrics.windowInsets.getInsetsIgnoringVisibility(types)
+            Timber.d(
+                "S1358: insets visible=${visible.top}/${visible.bottom}/${visible.left}/${visible.right} " +
+                    "reserved=${reserved.top}/${reserved.bottom}/${reserved.left}/${reserved.right}"
             )
             return Geometry(
-                safeTop = insets.top,
-                safeBottom = insets.bottom,
-                safeLeft = insets.left,
-                safeRight = insets.right,
+                safeTop = visible.top,
+                safeBottom = visible.bottom,
+                safeLeft = visible.left,
+                safeRight = visible.right,
+                axisLeft = reserved.left,
+                axisRight = reserved.right,
                 screenWidth = windowMetrics.bounds.width(),
                 screenHeight = windowMetrics.bounds.height(),
                 stripWidth = stripWidth
@@ -530,6 +541,8 @@ class ScreenGestureOverlayManager(
             safeBottom = 0,
             safeLeft = 0,
             safeRight = 0,
+            axisLeft = 0,
+            axisRight = 0,
             screenWidth = metrics.widthPixels,
             screenHeight = metrics.heightPixels,
             stripWidth = stripWidth
@@ -537,10 +550,15 @@ class ScreenGestureOverlayManager(
     }
 
     private data class Geometry(
+        // Live insets: what a bar currently occupies. These place the band.
         val safeTop: Int,
         val safeBottom: Int,
         val safeLeft: Int,
         val safeRight: Int,
+        // S1358: reserved insets, kept separate because they answer a different question - which
+        // edge pair is free - and must stay stable while a bar is hidden and shown again.
+        val axisLeft: Int,
+        val axisRight: Int,
         val screenWidth: Int,
         val screenHeight: Int,
         val stripWidth: Int
@@ -550,7 +568,7 @@ class ScreenGestureOverlayManager(
 
         // S1188: derived rather than passed in, so the placement rule has exactly one definition and
         // the pre-R zeroed-inset fallback resolves through it too.
-        val axis: EdgeGestureAxis get() = EdgeGestureAxis.forInsets(safeLeft, safeRight)
+        val axis: EdgeGestureAxis get() = EdgeGestureAxis.forInsets(axisLeft, axisRight)
     }
 
     private data class BandFrame(val x: Int, val y: Int, val width: Int, val height: Int)

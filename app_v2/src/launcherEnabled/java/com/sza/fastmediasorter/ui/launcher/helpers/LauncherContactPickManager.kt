@@ -55,9 +55,9 @@ class LauncherContactPickManager(
         val options = LauncherContactAction.entries.map { action ->
             SearchableOptionPickerDialog.Option(id = action.name, label = activity.getString(labelOf(action)))
         }
-        showPicker(R.string.launcher_contact_action_title, options, TAG_ACTION) { picked ->
+        showPicker(R.string.launcher_contact_action_title, options, TAG_ACTION, KEY_ACTION) { pickedId ->
             LauncherContactAction.entries
-                .firstOrNull { it.name == picked.id }
+                .firstOrNull { it.name == pickedId }
                 ?.let(::launchSystemPicker)
         }
     }
@@ -108,8 +108,8 @@ class LauncherContactPickManager(
                 label = channel.label,
             )
         }
-        showPicker(R.string.launcher_contact_channel_title, options, TAG_CHANNEL) { picked ->
-            channels.firstOrNull { it.target.messageDataId.toString() == picked.id }
+        showPicker(R.string.launcher_contact_channel_title, options, TAG_CHANNEL, KEY_CHANNEL) { pickedId ->
+            channels.firstOrNull { it.target.messageDataId.toString() == pickedId }
                 ?.let { onTargetPicked(it.target) }
         }
     }
@@ -118,9 +118,16 @@ class LauncherContactPickManager(
         @StringRes titleRes: Int,
         options: List<SearchableOptionPickerDialog.Option>,
         tag: String,
-        onPicked: (SearchableOptionPickerDialog.Option) -> Unit,
+        requestKey: String,
+        handlePick: (String) -> Unit,
     ) {
         val manager = activity.supportFragmentManager
+        // Ahead of the duplicate-open guard on purpose: a picker still up from a rebind has to find a
+        // live listener too, and its pick arrives through the FragmentManager, not the dialog instance.
+        manager.setFragmentResultListener(requestKey, activity) { _, bundle ->
+            Timber.d("S1331: contact picker result key=%s", requestKey)
+            bundle.getString(SearchableOptionPickerDialog.RESULT_OPTION_ID)?.let(handlePick)
+        }
         // A dialog left up on a rebind must not be duplicated by a second tap - same guard the rest of
         // the add-flow uses.
         if (manager.findFragmentByTag(tag) != null) return
@@ -129,7 +136,8 @@ class LauncherContactPickManager(
             options = options,
             selectedId = null,
             includeResetRow = false,
-        ) { picked -> picked?.let(onPicked) }.show(manager, tag)
+            requestKey = requestKey,
+        ).show(manager, tag)
     }
 
     @StringRes
@@ -154,5 +162,9 @@ class LauncherContactPickManager(
     private companion object {
         const val TAG_ACTION = "LauncherContactAction"
         const val TAG_CHANNEL = "LauncherContactChannel"
+
+        // One key per picker this manager can open, so the action pick never lands in the channel step.
+        const val KEY_ACTION = "launcher_contact_action_pick"
+        const val KEY_CHANNEL = "launcher_contact_channel_pick"
     }
 }

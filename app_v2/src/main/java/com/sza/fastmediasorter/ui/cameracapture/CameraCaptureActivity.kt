@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.SelfManagedScreenOrientation
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.databinding.ActivityCameraCaptureBinding
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureFlowManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureGestureCallbackHandler
@@ -42,6 +43,8 @@ import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -62,6 +65,7 @@ import javax.inject.Inject
 class CameraCaptureActivity :
     BaseActivity<ActivityCameraCaptureBinding>(),
     CameraCaptureFlowManager.Host,
+    CameraSettingsDialogFragment.Host,
     SelfManagedScreenOrientation {
 
     companion object {
@@ -89,9 +93,6 @@ class CameraCaptureActivity :
             scenario: CameraScenario,
         ): Intent =
             CameraCaptureContract.createIntent(context, outputUri, outputPath, mode, scenario = scenario)
-
-        private const val TAB_SELECTED_ALPHA = 1f
-        private const val TAB_UNSELECTED_ALPHA = 0.5f
 
         private const val COUNTDOWN_TICK_INTERVAL_MS = 1_000L
 
@@ -197,11 +198,23 @@ class CameraCaptureActivity :
         lifecycleScope.launch {
             val settings = helperFactory.currentSettings()
             geotagEnabled = settings.cameraGeotagEnabled
-            if (geotagEnabled && hasLocationPermission()) locationProvider.start(this@CameraCaptureActivity)
+            if (geotagEnabled && PermissionHelper.hasLocationPermission(this@CameraCaptureActivity)) {
+                locationProvider.start(this@CameraCaptureActivity)
+            }
             sessionManager.setAspectRatioAndResolution(settings.cameraAspectRatio, sessionManager.currentResolution)
             renderResultFrame()
         }
     }
+
+    // S1336: a regular field (not lateinit) so it exists before onCreate ever runs - lets
+    // CameraSettingsDialogFragment.onAttach read this safely even when it fires from a
+    // framework-driven recreation, before initializeHelperManagers() (called from setupViews(),
+    // which BaseActivity defers via post {}) has built settingsCallbackHandler. A property, not a
+    // function - this class already sits at the detekt TooManyFunctions ceiling (CLAUDE.md Rule 19).
+    private val cameraSettingsCallbacksState = MutableStateFlow<CameraSettingsDialogFragment.Callbacks?>(null)
+
+    override val cameraSettingsCallbacksFlow: StateFlow<CameraSettingsDialogFragment.Callbacks?>
+        get() = cameraSettingsCallbacksState
 
     /** S0844: builds every UI-only helper role the Activity delegates to (CLAUDE.md Rule 3). */
     private fun initializeHelperManagers() {
@@ -253,13 +266,6 @@ class CameraCaptureActivity :
             rotationBucket = orientationManager.rotationBucket,
         )
     }
-
-    /** S0766: true when fine OR coarse location is granted; geotag silently skips otherwise. */
-    private fun hasLocationPermission(): Boolean =
-        ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-            PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
-            PackageManager.PERMISSION_GRANTED
 
     override fun observeData() = Unit
 
@@ -347,6 +353,11 @@ class CameraCaptureActivity :
     }
 
     override fun renderCapabilities(capabilities: CameraRuntimeCapabilities) {
+        // S1336: the settings dialog reads flowManager.currentCapabilities (just updated above this
+        // callback, per CameraCaptureFlowManager), not the NONE default a bare handler-exists signal
+        // would have caught mid-recreation - waiting for the first real render also matches the
+        // button's own visibility below, so the dialog can never open before capabilities are known.
+        cameraSettingsCallbacksState.value = settingsCallbackHandler
         binding.btnCameraFlash.visibility = if (capabilities.hasFlashUnit) View.VISIBLE else View.GONE
         binding.btnCameraFlash.setIconResource(R.drawable.ic_camera_flash_off)
         binding.btnCameraSettings.visibility = View.VISIBLE
@@ -388,7 +399,10 @@ class CameraCaptureActivity :
         binding.btnCameraProfile.visibility = if (offered) View.VISIBLE else View.GONE
         if (!offered) return
         val profile = flowManager.activeProfile
-        val description = getString(R.string.camera_profile_button, getString(CameraProfilePresentation.labelRes(profile)))
+        val description = getString(
+            R.string.camera_profile_button,
+            getString(CameraProfilePresentation.labelRes(profile)),
+        )
         binding.btnCameraProfile.setIconResource(CameraProfilePresentation.iconRes(profile))
         binding.btnCameraProfile.contentDescription = description
         binding.btnCameraProfile.tooltipText = description
@@ -507,13 +521,8 @@ class CameraCaptureActivity :
 
     private fun renderModeTabs() {
         val videoActive = flowManager.isVideoMode
-        styleTab(binding.tabModePhoto, selected = !videoActive)
-        styleTab(binding.tabModeVideo, selected = videoActive)
-    }
-
-    private fun styleTab(tab: TextView, selected: Boolean) {
-        tab.alpha = if (selected) TAB_SELECTED_ALPHA else TAB_UNSELECTED_ALPHA
-        tab.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
+        binding.tabModePhoto.styleModeTab(selected = !videoActive)
+        binding.tabModeVideo.styleModeTab(selected = videoActive)
     }
 
     private fun onShutterClicked() {
@@ -667,7 +676,7 @@ class CameraCaptureActivity :
         binding.btnCapturePhoto.isEnabled = false
 
         // S0766: stamp the freshest warmed fix only when opted in + permission held; null = no GPS.
-        val location = if (geotagEnabled && hasLocationPermission()) {
+        val location = if (geotagEnabled && PermissionHelper.hasLocationPermission(this)) {
             locationProvider.lastKnownLocation()
         } else {
             null
@@ -743,4 +752,14 @@ class CameraCaptureActivity :
         val value = sessionManager.currentAspectRatio ?: 0
         lifecycleScope.launch { helperFactory.rememberAspectRatio(value) }
     }
+}
+
+private const val TAB_SELECTED_ALPHA = 1f
+private const val TAB_UNSELECTED_ALPHA = 0.5f
+
+// S1336: top-level, not a class member - a pure TextView styling helper needs no Activity state, and
+// CameraCaptureActivity already sits at the detekt TooManyFunctions ceiling (CLAUDE.md Rule 19).
+private fun TextView.styleModeTab(selected: Boolean) {
+    alpha = if (selected) TAB_SELECTED_ALPHA else TAB_UNSELECTED_ALPHA
+    setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
 }

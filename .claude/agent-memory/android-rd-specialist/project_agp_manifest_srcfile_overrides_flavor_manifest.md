@@ -12,5 +12,5 @@ Symptom: a `<uses-permission>` placed in `src/noLegal/AndroidManifest.xml` is si
 **Why:** S0183 (APK install) added `REQUEST_INSTALL_PACKAGES` to `src/noLegal/AndroidManifest.xml` - the permission never reached the merged manifest because of the srcFile override on the flavor sourceSet. Fix landed in `androidComponents.onVariants { ... variant.sources.manifests.addStaticManifestFile("src/noLegal/AndroidManifest.xml") }` (AGP 8.4+ API).
 
 **How to apply:** Any time noLegal needs a manifest entry that VR does NOT need (or vice versa for any flavor that uses srcFile override), do NOT add it to the file pointed to by srcFile (would leak across flavors) and do NOT add it to the overridden file (would be ignored). Either:
-  1. Use `addStaticManifestFile()` in `androidComponents.onVariants` (preferred - keeps flavor isolation per Rule 15).
+  1. Use `addStaticManifestFile()` in `androidComponents.onVariants` (preferred - keeps flavor isolation per Rule 14).
   2. Use the buildType-variant manifest path: `src/<flavor><BuildType>/AndroidManifest.xml` (auto-detected, not affected by flavor srcFile override).

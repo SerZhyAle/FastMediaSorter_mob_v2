@@ -27,4 +27,4 @@ in the drafting sentence that hardened into a premise two sections later.
   inference is not rediscovered from the same code.
 - The same care applies to `**Why:**` lines in memory and to `## Last Audit` verdicts.
 
-Related: [[feedback_verify_full_evidence]], [[feedback_no_scaffolding_as_done]].
+Related: [[verify-full-evidence]], [[no-scaffolding-as-done]].

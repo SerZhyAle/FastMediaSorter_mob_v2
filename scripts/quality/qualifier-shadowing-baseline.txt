@@ -1,0 +1,1 @@
+# Empty by design: a new entry means a values-land or values-w600dp declaration is unreachable.

@@ -9,7 +9,6 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import com.bumptech.glide.Glide
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
@@ -275,8 +274,10 @@ class PlayerMediaLoaderManager(
         activity.loadingIndicatorCoordinator.showDelayed(LoadingSource.VIDEO_EXOPLAYER)
 
         // Route audio to persistent playback service when enabled
+        // S1379: the compile-time axis comes from the capability contract the host injects, never
+        // from the build flag directly (CLAUDE.md Rule 14).
         val isPersistentAudioEnabled = viewModel.state.value.enablePersistentAudioPlayback
-            && BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
+            && activity.capabilityAvailability.isPersistentAudioPlaybackAvailable()
         if (isAudioFile && isPersistentAudioEnabled && audioServiceController != null) {
             Timber.d("PlayerMediaLoaderManager.playVideo: routing AUDIO through AudioPlaybackService")
             playAudioViaService(path)

@@ -12,5 +12,5 @@ The owner runs FastMediaSorter on an in-car Android head unit and reports UI def
 **How to apply:**
 - Treat low-density wide landscape as a first-class review config for any main-screen or player chrome change, not an edge case.
 - Reproduce it on the AVD with `wm size 1024x600` + `wm density 160` (keep rotation 0 - see [[reference_emulator_capture_family_testing]]), then `wm size reset` + `wm density reset` afterwards.
-- That geometry is 1024dp wide, so it renders `layout-w600dp/*`, the same bucket that wins over `layout-land/*` on landscape phones - see [[project_main_top_panels_width_grid]].
+- That geometry is 1024dp wide, so it renders `layout-w600dp/*`, the same bucket that wins over `layout-land/*` on landscape phones - see [[main-top-panels-width-grid]].
 - When the owner sends a photo instead of a screenshot, he is on the head unit; ask for the defect location rather than guessing from the blurry photo, then reproduce at that geometry and measure in pixels.

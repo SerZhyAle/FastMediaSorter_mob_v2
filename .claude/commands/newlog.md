@@ -1,6 +1,5 @@
 ---
 description: "Use when intaking a fresh remote-diagnostics log bundle for analysis. Triggers: 'new log', remote diagnostics intake, an incoming device log package."
-model: sonnet
 ---
 
 # New Log - Remote Diagnostics Intake

@@ -4,11 +4,13 @@ import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.transfer.AtomicFileOperationStrategy
 import com.sza.fastmediasorter.data.transfer.BaseFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
 import com.sza.fastmediasorter.data.transfer.adaptCloudProgress
@@ -19,21 +21,29 @@ import com.sza.fastmediasorter.data.transfer.strategy.FtpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
-import com.sza.fastmediasorter.data.transfer.AtomicFileOperationStrategy
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
+import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import java.io.File
 import java.io.FileInputStream
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
+
+private const val UPLOAD_RETRY_SHORT_PAUSE_MS = 2_000L
+private const val UPLOAD_RETRY_LONG_PAUSE_MS = 5_000L
+
+/** S1361: one network hiccup used to drop the file from the batch silently; give it two more chances. */
+private val UPLOAD_RETRY_DELAYS_MS = listOf(UPLOAD_RETRY_SHORT_PAUSE_MS, UPLOAD_RETRY_LONG_PAUSE_MS)
+private val UPLOAD_MAX_ATTEMPTS = UPLOAD_RETRY_DELAYS_MS.size + 1
 
 /** Copy/move/delete for cloud resources; supports Cloud<->Local/SMB/SFTP/FTP/Cloud. Cloud paths: cloud://provider/folderId/file.ext */
 @Singleton
@@ -393,6 +403,7 @@ class CloudFileOperationHandler @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             val error = "${operation.file.name}\n  New name: ${operation.newName}\n  Error: ${e.javaClass.simpleName} - ${e.message}"
             Timber.e(e, "Cloud executeRename: EXCEPTION - $error")
             FileOperationResult.Failure(error)
@@ -426,6 +437,7 @@ class CloudFileOperationHandler @Inject constructor(
                     errors.add("Invalid operation: file is local")
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to delete ${file.name}")
                 errors.add("Delete error for ${file.name}: ${e.message}")
             }
@@ -797,6 +809,7 @@ class CloudFileOperationHandler @Inject constructor(
                             }
                             tempFile
                         } catch (e: Exception) {
+                            e.rethrowIfCancellation()
                             Timber.e(e, "uploadToCloudFromPath: Failed to copy SAF content to temp")
                             tempFile?.delete()
                             return null
@@ -923,6 +936,7 @@ class CloudFileOperationHandler @Inject constructor(
                     throw IllegalArgumentException("Cannot upload from an internet stream source: $sourceType")
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "uploadToCloudFromPath: Exception during read from $sourceType: ${e.message}")
             tempFile?.delete()
             return null
@@ -937,16 +951,34 @@ class CloudFileOperationHandler @Inject constructor(
         }
 
         val mimeType = getMimeType(fileName)
+        val uploadSource = sourceFile ?: run {
+            Timber.e("uploadToCloudFromPath: No readable source file for $normalizedSourcePath")
+            tempFile?.delete()
+            return null
+        }
 
         return try {
-            val result = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
-                val resourceKey = "cloud://${pathInfo.provider}"
-                val bufferSize = ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
+            var result: CloudResult<CloudFile>? = null
+            for (attempt in 1..UPLOAD_MAX_ATTEMPTS) {
+                result = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
+                    val resourceKey = "cloud://${pathInfo.provider}"
+                    val bufferSize = ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
 
-                val inputStream = java.io.BufferedInputStream(FileInputStream(sourceFile), bufferSize)
-                val uploadResult = client.uploadFile(inputStream, fileName, mimeType, pathInfo.folderId, null)
-                inputStream.close()
-                uploadResult
+                    java.io.BufferedInputStream(FileInputStream(uploadSource), bufferSize).use { inputStream ->
+                        client.uploadFile(
+                            inputStream = inputStream,
+                            fileName = fileName,
+                            mimeType = mimeType,
+                            parentFolderId = pathInfo.folderId,
+                            fileSize = uploadSource.length(),
+                            progressCallback = null
+                        )
+                    }
+                }
+                Timber.d("S1361: upload attempt $attempt of $UPLOAD_MAX_ATTEMPTS for $fileName")
+                if (!isRetriableUploadFailure(result) || attempt == UPLOAD_MAX_ATTEMPTS) break
+                Timber.w("uploadToCloudFromPath: attempt $attempt/$UPLOAD_MAX_ATTEMPTS failed for $fileName, retrying")
+                delay(UPLOAD_RETRY_DELAYS_MS[attempt - 1])
             }
 
             when (result) {
@@ -967,6 +999,14 @@ class CloudFileOperationHandler @Inject constructor(
             tempFile?.delete()
         }
     }
+
+    /**
+     * S1361: only a transport-level failure earns another attempt. An auth, quota or validation error
+     * repeats identically and would just stall the batch for the retry delays; the clients surface
+     * those as an error with no cause, while a network failure carries its [IOException].
+     */
+    private fun isRetriableUploadFailure(result: CloudResult<CloudFile>?): Boolean =
+        (result as? CloudResult.Error)?.cause is IOException
 
     /** Upload local [localFile] to cloud at [cloudPath]. */
     private suspend fun uploadToCloud(
@@ -991,24 +1031,26 @@ class CloudFileOperationHandler @Inject constructor(
 
         val mimeType = getMimeType(localFile.name)
 
-        return localFile.inputStream().use { inputStream ->
-            val result = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
-                client.uploadFile(inputStream, localFile.name, mimeType, pathInfo.folderId, null)
+        // S1361: the stream is opened inside the lambda because executeWithAutoReauth re-invokes it
+        // after a token refresh, and a stream opened outside is already exhausted by then.
+        val result = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
+            localFile.inputStream().use { inputStream ->
+                client.uploadFile(inputStream, localFile.name, mimeType, pathInfo.folderId, fileSize, null)
             }
+        }
 
-            when (result) {
-                is CloudResult.Success -> {
-                    Timber.i("uploadToCloud: SUCCESS - uploaded ${localFile.name}")
-                    "cloud://${pathInfo.provider}/${result.data.path}"
-                }
-                is CloudResult.Error -> {
-                    Timber.e("uploadToCloud: FAILED - ${result.message}")
-                    null
-                }
-                null -> {
-                    Timber.e("uploadToCloud: Re-authentication failed or cancelled")
-                    null
-                }
+        return when (result) {
+            is CloudResult.Success -> {
+                Timber.i("uploadToCloud: SUCCESS - uploaded ${localFile.name}")
+                "cloud://${pathInfo.provider}/${result.data.path}"
+            }
+            is CloudResult.Error -> {
+                Timber.e("uploadToCloud: FAILED - ${result.message}")
+                null
+            }
+            null -> {
+                Timber.e("uploadToCloud: Re-authentication failed or cancelled")
+                null
             }
         }
     }

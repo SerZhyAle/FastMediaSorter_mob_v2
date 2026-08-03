@@ -13,4 +13,4 @@ type: feedback
   `scripts/quality/assert-detekt.ps1 -Module app_v2 -Gate -ChangedFiles @('path1','path2',..)` and require `PASS [scoped]`.
 - Read the per-file findings from `app_v2/build/reports/detekt/detekt.txt` (grep `<ClassName>.kt:`); the gate prints only file names.
 - Expect a second and third round: fixing a `MaxLineLength` by splitting a line shifts nothing, but extracting a method changes which non-baselined findings surface. Iterate until the gate is green over the full list.
-- See [[feedback_detekt_scoped_gate_surfaces_untouched_debt]], [[feedback_detekt_scoped_gate_line_shift]], [[feedback_verify_full_evidence]].
+- See [[detekt-scoped-gate-surfaces-untouched-debt]], [[detekt-scoped-gate-flags-shifted-preexisting-findings]], [[verify-full-evidence]].

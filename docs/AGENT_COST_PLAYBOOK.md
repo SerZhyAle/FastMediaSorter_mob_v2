@@ -36,6 +36,8 @@ The largest cost axis. Default to inline; spawning is the exception, not the ref
 
 **Subagent MCP isolation:** when defining a subagent via `define_subagent`, always set `enable_mcp_tools` to `false` unless the subagent specifically needs to execute exploratory UI walks on the device (highly rare). This prevents spawning duplicate Node/MCP server processes.
 
+**Command frontmatter does not route (S1341, 2026-08-01).** A `model:` key in a `.claude/commands/*.md` file's frontmatter has no routing effect in this harness - only `.claude/agents/*.md` frontmatter and the Workflow tool's `opts.model` field actually select a model. Evidence: 115 of 115 measured command invocations kept the session model regardless of the command's own frontmatter. 14 command files carried a dead `model: sonnet` line for this reason until S1341 removed it - do not add one back expecting it to route anything.
+
 ---
 
 ## Context hygiene
@@ -46,6 +48,49 @@ Long sessions are more expensive even when cached. Keep context lean:
 - `/clear` when switching to an unrelated task - do not carry a finished task's context into a new one.
 - Offload raw artifacts - build output, logcat dumps, large file contents - to `temp/` and reference the path, instead of holding the raw text in chat. The working tree and `temp/` are the durable store; the chat is not.
 - Close stale session branches rather than letting them accumulate.
+
+### Reading a large file
+
+First touch of a file goes: one `Grep` or `Glob` to locate the region, then **one** `Read` carrying an explicit `limit` (and `offset`) wide enough to cover it. One narrowing step, then one window - iterative probing costs more turns than the whole-file read it replaced.
+
+Measured on the 2026-06-30..2026-07-31 corpus: uncapped first reads of files over 8 KB were 10.7% of all `Read` calls and carried **43.8% of every byte read**, and only 21.7% of them had a `Grep` or `Glob` in the preceding three turns.
+
+Enforcement is `guard-uncapped-read.ps1`, a `PreToolUse` hook on `Read` in the per-machine Claude home (`~/.claude/hooks/`, wired in `~/.claude/settings.json`). It blocks a `Read` that has neither `offset` nor `limit` against a file longer than 200 lines, and allows everything else - including any read that names an explicit `limit`, however large. That escape hatch is unconditional on purpose: reviewing the KDoc of an affected area (Rule 8), auditing an implementation end to end (`/spec-check`) and opening a compliant 1500-LOC Kotlin file are all legitimate whole-file reads.
+
+The same advice already ships in the `Read` tool schema on every turn and gets 22% compliance. That gap - not the byte count - is why this one is a hook and not a line of prose in a command file, where it would sit in the per-turn preamble enforcing nothing.
+
+Counter-metric: partial reads raise the risk of an `old_string` that is unique in the window but not in the file, so watch the failed-`Edit` rate (baseline 249 real failures) alongside the read volume.
+
+---
+
+## Agent-memory hygiene
+
+Three rules, written portably because they hold in any project with a persistent agent memory.
+Enforcement for the size consequence is `scripts/quality/assert-memory-budget.ps1`, in the fast-gate
+batch, ratcheting the index size down and never up.
+
+- **Memory must not restate CLAUDE.md or any always-loaded text.** A rule in the preamble is billed
+  on every turn already; a memory file repeating it is billed a second time and drifts from the
+  original independently.
+- **A memory anchored to a ticket expires with that ticket.** 52% of memory bytes here reference
+  tickets that are Archived or gone from the catalog. The gate reports those files; a memory whose
+  ticket is dead and which no session has re-read is a deletion candidate.
+- **A memory that will not be read is not worth writing.** The corpus is written about 2.3x more
+  often than it is consulted, and only ~20% of sessions perform any recall read at all. Write for
+  the future session that will hit the same trap, not to record that the work happened.
+
+Two facts that shape how the rules are applied here, measured rather than assumed
+(`temp/S1338/memory-usage.json`, `scripts/metrics/mine-memory-usage.py`):
+
+- **Only the index is billed per turn.** `MEMORY.md` is injected into every turn; the other ~220
+  files are read on demand. Deleting a detail file therefore saves nothing that is billed and loses
+  the trap it records. Shrink the index; keep the traps.
+- **"Never read" is rarer than it looks.** 17.4% of bytes were never read by any session, not 40% -
+  the 40% band is "read in at most one session", which is usually just the session that wrote it.
+
+Quality note, not cost: memory once wrote a false architectural claim into strategic spec S1233,
+costing a spec correction plus a compile run to disprove it. The budget is a cost measure; the
+expiry rule and the no-restatement rule are correctness measures.
 
 ---
 

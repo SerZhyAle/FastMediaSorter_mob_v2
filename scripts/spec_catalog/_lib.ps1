@@ -501,10 +501,18 @@ function Sync-SpecHeaderStatus {
             }
         }
 
+        # Splice: everything before the header block + the new block + everything after,
+        # so an unrelated in-flight edit to the body survives verbatim - only the matched
+        # lines are ever replaced.
         $patched = $raw.Substring(0, $m.Index) + $newBlock + $raw.Substring($m.Index + $m.Length)
+        # No-op writes are skipped outright. A rewrite bumps mtime, which invalidates any
+        # open editor/agent read state and produces a stale-file Edit failure - so a header
+        # that already reads the target status must not touch the file at all.
         if ($patched -ne $raw) {
             $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-            [System.IO.File]::WriteAllText($abs, $patched, $utf8NoBom)
+            $tmp = "$abs.tmp"
+            [System.IO.File]::WriteAllText($tmp, $patched, $utf8NoBom)
+            Move-Item -LiteralPath $tmp -Destination $abs -Force
         }
         return $true
     } catch {

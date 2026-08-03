@@ -353,6 +353,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     internal fun restitchBrowseControlChain() {
         val candidates = listOf(
             binding.btnBack,
+            binding.btnPath,
             binding.btnSort,
             binding.btnFilter,
             binding.btnRefresh,

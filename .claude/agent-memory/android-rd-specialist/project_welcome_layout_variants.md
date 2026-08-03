@@ -18,4 +18,4 @@ exactly this - the build surfaced it, not a grep.
 orientation qualifiers), add it to all qualified copies in lockstep, or the binding field is nullable.
 The two `sw*dp` copies use a multi-line element style and `@dimen/welcome_button_min_height` /`36dp`
 for `minHeight`; the base `layout/` copy is single-line per element. Generalizes the landscape-parity
-rule to width qualifiers. Related: [[welcome_redesign]] foundation lives in S0395/S0398/S0399/S0400/S0402.
+rule to width qualifiers. Related: the welcome redesign foundation lives in S0395/S0398/S0399/S0400/S0402.

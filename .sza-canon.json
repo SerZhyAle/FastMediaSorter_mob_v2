@@ -2,9 +2,9 @@
   "$comment": "Overlay B (Android). The `release/` tag prefix is a second clock on the same version and must stay in editionTagPrefixes or the version check misreads the newest tag. Feature source of truth is docs/ALL_FEATURES.jsonl, written through its CLI - never hand-edited.",
 
   "canon": {
-    "version": "2026.07.27",
-    "coreDigest": "sha256:dae220bfd389416d775986ac24913efdf8b0a8b9e881608157c41e5371d23663",
-    "adoptedOn": "2026-07-27",
+    "version": "2026.08.02",
+    "coreDigest": "sha256:6c247452332ac4652680a013cafb117ac88dc5df689804a429bf91944261194e",
+    "adoptedOn": "2026-08-02",
     "model": "reference",
     "contribRecord": "contrib/fastmediasorter_mob_v2.md"
   },

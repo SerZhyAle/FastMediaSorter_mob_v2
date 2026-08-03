@@ -113,6 +113,9 @@ private class FolderPreviewGadgetView(
             // Decode at display size, not at source size (audit protocol Glide ownership).
             .override(size, size)
             .centerCrop()
+            // S1317: still preview tile - a still frame is correct, and it also avoids keeping an
+            // animated-drawable decoder alive behind the home screen.
+            .dontAnimate()
             .placeholder(R.drawable.ic_folder)
             .error(R.drawable.ic_folder)
             .into(thumb)

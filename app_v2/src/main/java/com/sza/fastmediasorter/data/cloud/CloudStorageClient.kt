@@ -156,6 +156,8 @@ interface CloudStorageClient {
      * @param fileName Name for uploaded file
      * @param mimeType MIME type of file
      * @param parentFolderId Parent folder ID (null for root)
+     * @param fileSize Size of the content in bytes, 0 when unknown. S1361: transports need it to
+     *   stream the body without buffering it and to budget the response wait against body size.
      * @param progressCallback Optional progress callback
      * @return CloudFile metadata of uploaded file
      */
@@ -164,6 +166,7 @@ interface CloudStorageClient {
         fileName: String,
         mimeType: String,
         parentFolderId: String? = null,
+        fileSize: Long = 0L,
         progressCallback: ((TransferProgress) -> Unit)? = null
     ): CloudResult<CloudFile>
     

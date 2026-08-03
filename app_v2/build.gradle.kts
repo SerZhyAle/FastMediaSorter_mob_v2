@@ -151,13 +151,13 @@ abstract class VerifyNoPlatformNamesTask : DefaultTask() {
 
 plugins {
     id("com.android.application")
-    id("com.android.legacy-kapt")
+    id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260726210
-val defaultAppVersionName = "2.60.7262.102"
+val defaultAppVersionCode = 260803230
+val defaultAppVersionName = "2.60.8032.303"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -266,6 +266,7 @@ android {
         // Build Time (Current)
         buildConfigField("String", "BUILD_TIME", "\"Unknown\"")
         buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "false")
+        buildConfigField("boolean", "SUPPORT_LAUNCHER", "false")
     }
     
     // Product Flavors: Different app versions for different use cases.
@@ -326,6 +327,7 @@ android {
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             // 16 KB compatible - safe for Google Play.
             buildConfigField("boolean", "SUPPORT_CAST", "true")
+            buildConfigField("boolean", "SUPPORT_LAUNCHER", "true")
         }
 
         // ===== NO-LEGAL (Sideload-only full build: standard + VR + GPL extractors) =====
@@ -399,6 +401,7 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "true")
+            buildConfigField("boolean", "SUPPORT_LAUNCHER", "true")
         }
 
         // ===== LITE (Lightweight, Local Files Only) =====
@@ -1273,7 +1276,7 @@ dependencies {
     
     // Hilt
     implementation("com.google.dagger:hilt-android:2.59")
-    kapt("com.google.dagger:hilt-android-compiler:2.59")
+    ksp("com.google.dagger:hilt-android-compiler:2.59")
     
     // WorkManager - 2.10.x: SystemForegroundService handles Service.onTimeout() for
     // FOREGROUND_SERVICE_TYPE_DATA_SYNC on Android 14+, preventing
@@ -1285,12 +1288,12 @@ dependencies {
     
     // Hilt WorkManager integration
     implementation("androidx.hilt:hilt-work:1.2.0")
-    kapt("androidx.hilt:hilt-compiler:1.2.0")
+    ksp("androidx.hilt:hilt-compiler:1.2.0")
     
     // Room
     implementation("androidx.room:room-runtime:2.7.0")
     implementation("androidx.room:room-ktx:2.7.0")
-    kapt("androidx.room:room-compiler:2.7.0")
+    ksp("androidx.room:room-compiler:2.7.0")
     
     // Paging 3
     implementation("androidx.paging:paging-runtime-ktx:3.2.1")
@@ -1347,7 +1350,7 @@ dependencies {
 
     // Image Loading - Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
-    kapt("com.github.bumptech.glide:compiler:4.16.0")
+    ksp("com.github.bumptech.glide:ksp:4.16.0")
     implementation("com.github.bumptech.glide:okhttp3-integration:4.16.0")
     
     // PhotoView for pinch-to-zoom and rotation support
@@ -1530,7 +1533,7 @@ dependencies {
     androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
     androidTestImplementation("androidx.room:room-testing:2.7.0")
     androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.59")
+    kspAndroidTest("com.google.dagger:hilt-android-compiler:2.59")
 }
 
 // TEMPORARILY DISABLED: BouncyCastle resolutionStrategy (was needed for PDFBox)
@@ -1542,13 +1545,7 @@ dependencies {
 //     }
 // }
 
-kapt {
-    correctErrorTypes = true
-    arguments {
-        // Export Room schema JSON into a committed dir so future migrations are validatable (S0731).
-        arg("room.schemaLocation", "$projectDir/schemas")
-    }
-    javacOptions {
-        option("-Xlint:-processing")
-    }
+ksp {
+    // Export Room schema JSON into a committed dir so future migrations are validatable (S0731).
+    arg("room.schemaLocation", "$projectDir/schemas")
 }

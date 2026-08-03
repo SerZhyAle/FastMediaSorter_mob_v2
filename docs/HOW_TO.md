@@ -956,6 +956,7 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
   - **Swipe DOWN:** Go to Previous page.
   - **Pinch:** Zoom in/out naturally.
   - **Double-tap:** Reset zoom.
+  - **Zoom carries over:** The next page opens at the zoom and position you were reading at; double-tap brings the whole page back.
 - **Pan:** Drag to move around when zoomed in.
 
 ---

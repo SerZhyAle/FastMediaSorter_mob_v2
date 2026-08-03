@@ -8,16 +8,27 @@ $data = $input | Out-String | ConvertFrom-Json
 $model = $data.model.display_name
 if (-not $model) { $model = 'Claude' }
 
-function Bar([int]$pct) {
-    $filled = [math]::Floor($pct / 10)
-    if ($filled -gt 10) { $filled = 10 }
-    if ($filled -lt 0) { $filled = 0 }
-    ('#' * $filled) + ('-' * (10 - $filled))
+# Warning band. Absolute magnitude and window fraction are both reported, and
+# whichever is worse decides the marker: a large window hides an expensive
+# session behind a small percentage, while a 200k-window session would sit
+# permanently unmarked at 75% fill if only the absolute mattered.
+function Band([double]$tokens, $pct) {
+    $byAbs = if ($tokens -ge 250000) { 2 } elseif ($tokens -ge 150000) { 1 } else { 0 }
+    $byPct = 0
+    if ($null -ne $pct) {
+        $byPct = if ($pct -ge 85) { 2 } elseif ($pct -ge 70) { 1 } else { 0 }
+    }
+    switch ([math]::Max($byAbs, $byPct)) {
+        2 { ' [!!]' }
+        1 { ' [!]' }
+        default { '' }
+    }
 }
 
 $parts = @("[$model]")
 
-# Context-window fill: prefer the pre-calculated percentage, else derive it.
+# Context load. Report magnitude first: the operator compacts on how much
+# context is actually carried, not on how full an arbitrary window looks.
 $ctx = $data.context_window
 $ctxPct = $null
 if ($ctx) {
@@ -27,8 +38,15 @@ if ($ctx) {
         $ctxPct = [math]::Round(([double]$ctx.total_input_tokens / [double]$ctx.context_window_size) * 100)
     }
 }
-if ($null -ne $ctxPct) {
-    $parts += "ctx $(Bar $ctxPct) $ctxPct%"
+$ctxTok = [double]$ctx.total_input_tokens
+if ($ctxTok -gt 0) {
+    $k = [math]::Round($ctxTok / 1000)
+    $frac = if ($null -ne $ctxPct) { " ($ctxPct%)" } else { '' }
+    $parts += "ctx ${k}k$frac$(Band $ctxTok $ctxPct)"
+} elseif ($null -ne $ctxPct) {
+    # No token count in the payload - report the fraction alone rather than
+    # printing a misleading 0k.
+    $parts += "ctx $ctxPct%$(Band 0 $ctxPct)"
 }
 
 # Rate-limit quota (Pro/Max only, populated after the first API call of the session).

@@ -32,7 +32,8 @@ data class CommandBarAllocation(
  *
  * @param slots candidate commands (any order); only feature-eligible buttons should be passed.
  * @param availableWidthPx the bar container's inner content width (width minus horizontal padding).
- * @param reservedWidthPx width reserved for the always-present overflow anchor (btnResourceOps).
+ * @param reservedWidthPx width the bar spends on views that are not candidates: the always-present
+ *   overflow anchor (btnResourceOps), plus btnPath while it is visible.
  *
  * Uses a priority cut, not best-fit packing: the visible set is always a stable prefix of the
  * priority ranking, so buttons do not pop in and out unpredictably across recomputes.

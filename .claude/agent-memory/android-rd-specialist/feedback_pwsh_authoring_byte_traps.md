@@ -10,7 +10,7 @@ metadata:
 
 **Why:** S0404 phase 05 wrote nine Android string values as `"%1`$d%%"` (double-quoted, `$` backtick-escaped). The backtick landed in `strings.xml`, so `getString(id, percent)` -> `String.format("%1`$d%%", 86)` threw `UnknownFormatConversionException` on the launcher's tray seed path - crash-looping the declared HOME activity, i.e. a device with no working home screen. Written with `'%1$d%%'` it would have been correct with zero escaping. This survived because **no static gate reads string values**: `check_strings_localized.ps1` only proves a key exists in EN/RU/UK, aapt2's `VerifyJavaStringFormat` only errors on multi-arg non-positional strings, and detekt/lint never look. It took an adversarial audit days later to find it.
 
-**How to apply:** any `-Value` / `-Description` / free text handed to `set-android-string.ps1`, `add_to_dev_log.ps1`, `all_features/add.ps1`, etc. -> single quotes, always, even when nothing looks escapable. After writing a format string, grep the result: `Select-String -Pattern '%[0-9]`\$'` must return 0. Related: [[pwsh-bash-dollar-escape-trap]], [[no-backticks-in-bash-args]], [[cyrillic-bash-pwsh-boundary]].
+**How to apply:** any `-Value` / `-Description` / free text handed to `set-android-string.ps1`, `add_to_dev_log.ps1`, `all_features/add.ps1`, etc. -> single quotes, always, even when nothing looks escapable. After writing a format string, grep the result: `Select-String -Pattern '%[0-9]`\$'` must return 0. Related: [[pwsh-bash-dollar-escape-trap]], [[feedback-no-backticks-in-bash-args]], [[cyrillic-bash-pwsh-boundary]].
 
 ---
 

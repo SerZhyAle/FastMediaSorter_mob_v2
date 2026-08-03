@@ -24,4 +24,4 @@ I CAN query live Play Console state read-only via the Google Play Developer API 
 
 **Why:** I initially (wrongly) told the owner I can't look at Play at all; the androidpublisher key makes track/bundle state fully readable. The publish script `scripts/release/publish-play-release.py` is write-only (upload+commit) but proves the same creds/venv exist.
 
-**How to apply:** When asked "what's the state on Play / which build is on which track" -> run the read-only probe. When asked about FGS/app-content review approval -> the API can't answer; request a console screenshot. Related: [[project_skill_release_gotchas]], S0629/S0628 (FGS declaration), S0214.
+**How to apply:** When asked "what's the state on Play / which build is on which track" -> run the read-only probe. When asked about FGS/app-content review approval -> the API can't answer; request a console screenshot. Related: [[skill-release-gotchas]], S0629/S0628 (FGS declaration), S0214.

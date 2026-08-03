@@ -17,8 +17,17 @@ class TransferProgressReporterTest {
 
         val report = reporter.report("copy", 400L, 1_000L, "ui", 0L)
 
-        assertEquals(40, report.percent)
         assertEquals(200L, report.speedBytesPerSecond)
+    }
+
+    @Test
+    fun `never reports a negative rate when the byte counter restarts`() {
+        reporter.report("copy", 800L, 0L, "ui", 0L)
+        nowMs = 1_000L
+
+        val report = reporter.report("copy", 0L, 0L, "ui", 0L)
+
+        assertEquals(0L, report.speedBytesPerSecond)
     }
 
     @Test

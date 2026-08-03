@@ -1,0 +1,75 @@
+{
+  "_comment": "S1344 - named product sectors over the class catalog. Hand-authored input, version-controlled; dev/CATALOG/<module>.jsonl stays a gitignored generated index. Precedence when stamping a class: overrides, then classMatches, then pathMatches. Patterns are PowerShell -like wildcards matched against the catalog 'class' and 'path' fields. Full coverage is not a goal: a class no sector claims simply gets no sector.",
+  "sectors": [
+    {
+      "name": "player",
+      "description": "Media playback surfaces and the playback state that drives them, across ui, domain and data.",
+      "classMatches": ["*Player*", "*Playback*"],
+      "pathMatches": ["*/player/*", "*/ui/player/*"],
+      "overrides": []
+    },
+    {
+      "name": "settings",
+      "description": "Settings screens, their rows and the preference storage behind them.",
+      "classMatches": ["*Settings*", "*Preference*"],
+      "pathMatches": ["*/settings/*"],
+      "overrides": []
+    },
+    {
+      "name": "cloud",
+      "description": "Cloud provider integrations and the account plumbing they need.",
+      "classMatches": ["*Cloud*", "*Drive*", "*Dropbox*", "*OneDrive*"],
+      "pathMatches": ["*/cloud/*"],
+      "overrides": []
+    },
+    {
+      "name": "browse",
+      "description": "Resource browsing, file listing, selection and the scan pipeline feeding them.",
+      "classMatches": ["*Browse*", "*FileList*"],
+      "pathMatches": ["*/browse/*"],
+      "overrides": []
+    },
+    {
+      "name": "streams",
+      "description": "Live stream catalog, channel metadata and stream playback entry points.",
+      "classMatches": ["*Stream*", "*Channel*"],
+      "pathMatches": ["*/streams/*", "*/stream/*"],
+      "overrides": []
+    },
+    {
+      "name": "launcher",
+      "description": "Launcher mode: home desktop, cells, widgets and third-party shortcuts.",
+      "classMatches": ["*Launcher*", "*HomeWidget*"],
+      "pathMatches": ["*/launcher/*", "*/home/*"],
+      "overrides": []
+    },
+    {
+      "name": "vr",
+      "description": "Immersive and headset surfaces, including the XR session and HUD.",
+      "classMatches": ["*Vr*", "*Xr*", "*Immersive*"],
+      "pathMatches": ["*/vr/*", "*/xr/*"],
+      "overrides": []
+    },
+    {
+      "name": "camera",
+      "description": "Camera capture, capture sessions and the profiles that configure them.",
+      "classMatches": ["*Camera*", "*Capture*"],
+      "pathMatches": ["*/camera/*"],
+      "overrides": []
+    },
+    {
+      "name": "transfer",
+      "description": "Copy, move and upload operations with their progress and cancellation paths.",
+      "classMatches": ["*Transfer*", "*CopyMove*"],
+      "pathMatches": ["*/transfer/*"],
+      "overrides": []
+    },
+    {
+      "name": "network",
+      "description": "Network file protocols - SMB, SFTP, FTP, WebDAV - and their connection pooling.",
+      "classMatches": ["*Smb*", "*Sftp*", "*Ftp*", "*Webdav*"],
+      "pathMatches": ["*/network/*"],
+      "overrides": []
+    }
+  ]
+}

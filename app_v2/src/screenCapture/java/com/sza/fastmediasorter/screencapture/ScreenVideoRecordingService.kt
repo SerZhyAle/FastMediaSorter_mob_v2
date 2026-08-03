@@ -27,8 +27,7 @@ import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
+import com.sza.fastmediasorter.data.capture.LocalCaptureDestinationWriter
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
@@ -67,10 +66,7 @@ class ScreenVideoRecordingService : Service() {
     lateinit var resourceRepository: Lazy<ResourceRepository>
 
     @Inject
-    lateinit var destinationClassifier: Lazy<LocalDestinationClassifier>
-
-    @Inject
-    lateinit var destinationWriter: Lazy<LocalDestinationWriter>
+    lateinit var localCaptureDestinationWriter: Lazy<LocalCaptureDestinationWriter>
 
     @Inject
     lateinit var stateController: ScreenRecordingStateController
@@ -272,6 +268,7 @@ class ScreenVideoRecordingService : Service() {
     // recovers to a "not saved" state with a correct-level log, so a broad catch here is intentional.
     @Suppress("TooGenericExceptionCaught")
     private suspend fun saveRecording(tempFile: File) {
+        Timber.d("S1354: screen recording local destination save")
         var savedName: String? = null
         try {
             val settings = settingsRepository.get().getSettings().first()
@@ -279,8 +276,11 @@ class ScreenVideoRecordingService : Service() {
                 val id = settings.screenRecordingDestinationResourceId ?: return@withContext null
                 resourceRepository.get().getAllResourcesSync().firstOrNull { it.id.toString() == id }
             }
-            val destDir = CaptureDestinationPolicy.resolveScreenRecordingDestination(selected)
-            if (writeToDevice(tempFile, File(destDir, tempFile.name).absolutePath)) {
+            val destinationPath = selected
+                ?.takeIf(CaptureDestinationPolicy::isUsableTarget)
+                ?.path
+                ?: CaptureDestinationPolicy.resolveScreenRecordingDestination(null).absolutePath
+            if (localCaptureDestinationWriter.get().write(tempFile, destinationPath, tempFile.name).isSuccess) {
                 savedName = tempFile.name
             }
         } catch (e: Exception) {
@@ -298,23 +298,6 @@ class ScreenVideoRecordingService : Service() {
             finishService()
         }
     }
-
-    private suspend fun writeToDevice(tempFile: File, absolutePath: String): Boolean =
-        withContext(Dispatchers.IO) {
-            val category = destinationClassifier.get().classify(absolutePath)
-            val sink = destinationWriter.get().open(category, overwrite = true).getOrElse { e ->
-                Timber.e(e, "ScreenVideoRecordingService: writer.open failed for %s", absolutePath)
-                return@withContext false
-            }
-            try {
-                tempFile.inputStream().use { input -> input.copyTo(sink.outputStream) }
-                sink.commit().isSuccess
-            } catch (e: IOException) {
-                Timber.e(e, "ScreenVideoRecordingService: streaming failed for %s", absolutePath)
-                sink.abort()
-                false
-            }
-        }
 
     private fun createTempFile(): File? = try {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())

@@ -51,6 +51,7 @@ class CameraCaptureSaver @Inject constructor(
     // storage / restrictive OEM policy - same fix as S0464 applied to the mic path.
     private val destinationClassifier: LocalDestinationClassifier,
     private val destinationWriter: LocalDestinationWriter,
+    private val localCaptureDestinationWriter: LocalCaptureDestinationWriter,
     // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
     private val statsSink: StatsSink,
     // S0469: optional "copy captured photo to system clipboard" modifier, gated on a settings flag.
@@ -72,6 +73,7 @@ class CameraCaptureSaver @Inject constructor(
         target: CameraCaptureTarget,
         upload: suspend (tempFile: File, name: String, resource: CameraCaptureTarget.Resource) -> Boolean,
     ): SaveResult {
+        Timber.d("S1354: camera capture local destination save")
         var savedPath = resolveSavedPath(target, name)
         Timber.i(
             "CameraCaptureSaver: save ENTRY tempFile=%s name=%s target=%s savedPath=%s",
@@ -94,24 +96,29 @@ class CameraCaptureSaver @Inject constructor(
                 is CameraCaptureTarget.Resource -> {
                     if (isVirtualCameraTarget(target.path)) {
                         saveToDcim(tempFile, name)
-                    } else when (target.type) {
-                        ResourceType.LOCAL -> saveLocal(tempFile, name, target.path)
-                        ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP,
-                        ResourceType.CLOUD -> {
-                            if (upload(tempFile, name, target)) {
-                                true
-                            } else {
-                                // S0522: the network/cloud upload failed (unreachable or write error).
-                                // Save to the local default folder for this media type instead of
-                                // dropping the capture; the caller surfaces the redirect to the user.
-                                fallbackReason = SaveFallbackReason.ResourceWriteFailed
-                                val localOk = saveToLocalFallback(tempFile, name)
-                                if (localOk) savedPath = localFallbackPath(name)
-                                localOk
+                    } else {
+                        when (target.type) {
+                            ResourceType.LOCAL -> {
+                                val localResult = saveLocal(tempFile, name, target.path)
+                                localResult.onSuccess { savedPath = it }.isSuccess
                             }
+                            ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP,
+                            ResourceType.CLOUD -> {
+                                if (upload(tempFile, name, target)) {
+                                    true
+                                } else {
+                                    // S0522: the network/cloud upload failed (unreachable or write error).
+                                    // Save to the local default folder for this media type instead of
+                                    // dropping the capture; the caller surfaces the redirect to the user.
+                                    fallbackReason = SaveFallbackReason.ResourceWriteFailed
+                                    val localOk = saveToLocalFallback(tempFile, name)
+                                    if (localOk) savedPath = localFallbackPath(name)
+                                    localOk
+                                }
+                            }
+                            ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
+                                throw IllegalArgumentException("Cannot save a capture to an internet stream target: ${target.type}")
                         }
-                        ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
-                            throw IllegalArgumentException("Cannot save a capture to an internet stream target: ${target.type}")
                     }
                 }
             }
@@ -160,7 +167,7 @@ class CameraCaptureSaver @Inject constructor(
         is CameraCaptureTarget.CameraFolder -> File(cameraDir(), name).absolutePath
         is CameraCaptureTarget.Resource -> when {
             isVirtualCameraTarget(target.path) -> File(cameraDir(), name).absolutePath
-            target.type == ResourceType.LOCAL -> File(target.path, name).absolutePath
+            target.type == ResourceType.LOCAL -> target.path.trimEnd('/') + '/' + name
             else -> target.path.trimEnd('/') + '/' + name
         }
     }
@@ -184,8 +191,8 @@ class CameraCaptureSaver @Inject constructor(
         return saved
     }
 
-    private suspend fun saveLocal(tempFile: File, name: String, rootPath: String): Boolean =
-        writeToDevice(tempFile, File(rootPath, name).absolutePath)
+    private suspend fun saveLocal(tempFile: File, name: String, rootPath: String): Result<String> =
+        localCaptureDestinationWriter.write(tempFile, rootPath, name)
 
     /**
      * S0465: write [tempFile] to an on-device path through the MediaStore-aware destination writer.

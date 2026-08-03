@@ -170,4 +170,10 @@
     <string name="welcome_func_gestures_summary">Swipe from the left edge: menu, screenshot, silent screenshot</string>
     <string name="welcome_networks_companion_note">Media on a Windows PC? Fast Media Sorter for Windows shares those folders here in a couple of clicks - no server setup needed.</string>
     <string name="welcome_networks_companion_button">Get the Windows app</string>
+    <string name="welcome_feature_photos_detail">Every photo, video and GIF on the device</string>
+    <string name="welcome_feature_local_folders_detail">Any folder on internal storage or an SD card</string>
+    <string name="welcome_feature_network_detail">SMB, FTP and SFTP shares browsed like local ones</string>
+    <string name="welcome_feature_cloud_detail">Google Drive, OneDrive and Dropbox in one list</string>
+    <string name="welcome_feature_sorting_detail">Move or copy a file to its place with one tap</string>
+    <string name="welcome_feature_slideshow_detail">Hands-free playback, with music if you like</string>
 </resources>

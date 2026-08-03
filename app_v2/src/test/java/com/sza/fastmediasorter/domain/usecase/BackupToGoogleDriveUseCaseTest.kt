@@ -54,7 +54,7 @@ class BackupToGoogleDriveUseCaseTest {
         coEvery { driveClient.isAuthenticated() } returns true
         coEvery { driveClient.getAccountEmail() } returns "user@example.com"
         coEvery { driveClient.findFolderByName(any(), any()) } returns CloudResult.Success(cloudFile("folder1"))
-        coEvery { driveClient.uploadFile(any(), any(), any(), any(), any()) } returns
+        coEvery { driveClient.uploadFile(any(), any(), any(), any(), any(), any()) } returns
             CloudResult.Success(CloudFile(id = "f", name = "backup.json", path = "/b", isFolder = false))
 
         val result = useCase()
@@ -72,7 +72,7 @@ class BackupToGoogleDriveUseCaseTest {
         coEvery { driveClient.getAccountEmail() } returns "user@example.com"
         coEvery { driveClient.findFolderByName(any(), any()) } returns CloudResult.Success(null)
         coEvery { driveClient.createFolder(any(), any()) } returns CloudResult.Success(cloudFile("newFolder"))
-        coEvery { driveClient.uploadFile(any(), any(), any(), any(), any()) } returns
+        coEvery { driveClient.uploadFile(any(), any(), any(), any(), any(), any()) } returns
             CloudResult.Success(CloudFile(id = "f", name = "backup.json", path = "/b", isFolder = false))
 
         val result = useCase()
@@ -80,7 +80,7 @@ class BackupToGoogleDriveUseCaseTest {
         assertTrue(result.isSuccess)
         coVerify { driveClient.createFolder(any(), any()) }
         // README upload + backup upload = at least 2 uploads.
-        coVerify(atLeast = 2) { driveClient.uploadFile(any(), any(), any(), any(), any()) }
+        coVerify(atLeast = 2) { driveClient.uploadFile(any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
@@ -100,7 +100,8 @@ class BackupToGoogleDriveUseCaseTest {
         coEvery { driveClient.isAuthenticated() } returns true
         coEvery { driveClient.getAccountEmail() } returns "user@example.com"
         coEvery { driveClient.findFolderByName(any(), any()) } returns CloudResult.Success(cloudFile("folder1"))
-        coEvery { driveClient.uploadFile(any(), any(), any(), any(), any()) } returns CloudResult.Error("offline")
+        coEvery { driveClient.uploadFile(any(), any(), any(), any(), any(), any()) } returns
+            CloudResult.Error("offline")
 
         val result = useCase()
 

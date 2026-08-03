@@ -16,4 +16,4 @@ Every `pwsh` invocation is a fresh process - shell state, modules, variables do 
 - **Independent commands** in the same tool call use `;` not `&&`.
 - **Do NOT invent** background-daemon / long-running-shell workarounds. If overhead remains painful after these rules, raise it as an MCP-server proposal - not a local hack.
 
-Rule lives in CLAUDE.md → "PowerShell Efficiency" section. See also [[no-backticks-in-bash-args]] for related Bash-arg pitfalls.
+Rule lives in CLAUDE.md → "PowerShell Efficiency" section. See also [[feedback-no-backticks-in-bash-args]] for related Bash-arg pitfalls.

@@ -13,4 +13,4 @@ metadata:
 
 **The specific trap that bit:** Kotlin compiles a `List<Foo>` constructor parameter to Java `List<? extends Foo>`, which Dagger keys differently from the `List<Foo>` a module provides. Collection injection points need `List<@JvmSuppressWildcards Foo>` / `Set<@JvmSuppressWildcards Foo>` - the repo already does this in `ResolvePanelRouteAvailabilityUseCase` for `Set<@JvmSuppressWildcards ScreenVideoRecordingController>`. Copy that shape for any injected collection.
 
-Related: [[feedback-verify-subagent-build-failures]], [[feedback-constructor-change-compile-tests]].
+Related: [[verify-subagent-build-failures]], [[constructor-change-compile-tests]].

@@ -10,19 +10,31 @@ play/listing/<locale-folder>/images/phoneScreenshots/<NN>.png (NN ordered over p
 Play asset constraints enforced: PNG output, each side in [320, 3840], aspect ratio <= 2:1.
 Slots whose raw shot is absent are skipped with a warning (manual-pending), not silently swallowed.
 
+--tablet reads the separate temp/play-shots-tablet/ tree and writes tenInchScreenshots instead, so a
+tablet run can never overwrite or shadow a phone raw shot through resolve_shot()'s flat fallback.
+
 Usage:
-    python compose-play-screenshots.py
+    python compose-play-screenshots.py [--tablet]
 """
 import json
 import os
 import sys
 from PIL import Image, ImageDraw, ImageFont
 
+if '--help' in sys.argv or '-h' in sys.argv:
+    print(__doc__)
+    sys.exit(0)
+
+# Sibling scripts in this folder read sys.argv directly rather than pulling in argparse.
+TABLET = '--tablet' in sys.argv
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
 LISTING_ROOT = os.path.join(REPO_ROOT, 'play', 'listing')
 CAPTIONS = os.path.join(LISTING_ROOT, 'captions.json')
-SHOTS_DIR = os.path.join(REPO_ROOT, 'temp', 'play-shots')
+SHOTS_DIR = os.path.join(REPO_ROOT, 'temp',
+                         'play-shots-tablet' if TABLET else 'play-shots')
+OUT_SUBDIR = 'tenInchScreenshots' if TABLET else 'phoneScreenshots'
 
 # Play phone-screenshot bounds.
 MIN_EDGE, MAX_EDGE, MAX_ASPECT = 320, 3840, 2.0
@@ -76,7 +88,10 @@ def draw_caption(img, text):
     """Draw the caption inside a top band sized to the wrapped text."""
     w, h = img.size
     draw = ImageDraw.Draw(img)
-    font = resolve_font(max(28, w // 18))
+    # Sized off the short edge, not the width: on a landscape tablet frame w//18 gives a band
+    # covering a third of the image. For a portrait phone shot the short edge IS the width, so
+    # the phone output is unchanged.
+    font = resolve_font(max(28, min(w, h) // 18))
     lines = text.split('\n')
     spacing = max(6, font.size // 5)
     bbox = draw.multiline_textbbox((0, 0), text, font=font, spacing=spacing, align='center')
@@ -112,7 +127,7 @@ def main():
     missing = []
 
     for locale in locales:
-        out_dir = os.path.join(LISTING_ROOT, locale, 'images', 'phoneScreenshots')
+        out_dir = os.path.join(LISTING_ROOT, locale, 'images', OUT_SUBDIR)
         os.makedirs(out_dir, exist_ok=True)
         index = 0
         for slot in slots:

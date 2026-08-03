@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.cloud
 import android.app.Activity
 import android.content.Intent
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -57,6 +58,7 @@ class DropboxAuthPlugin @Inject constructor(
             Timber.d("DropboxAuthPlugin.onResume: result=$result")
             _results.tryEmit(result)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "DropboxAuthPlugin.onResume: finishAuthentication failed")
             _results.tryEmit(AuthResult.Error("Dropbox authentication failed: ${e.message}"))
         }

@@ -148,6 +148,7 @@ class BrowseManagerInitializer(
     internal lateinit var blackScreenManager: BlackScreenOverlayManager
     // S0374: adaptive priority+overflow controller for the top command bar.
     lateinit var commandOverflowManager: BrowseCommandOverflowManager
+    private val pathMenuManager = BrowsePathMenuManager(activity)
     private lateinit var buttonCallbacks: BrowseButtonSetupHelper.ButtonCallbacks
 
     fun initialize() {
@@ -233,7 +234,7 @@ class BrowseManagerInitializer(
             passwordManager = passwordManager,
             smallControlsManager = BrowseSmallControlsManager(binding),
             onUpdateDisplayMode = { mode -> updateDisplayMode(mode) },
-            onUpdateBreadcrumb = { state -> updateBreadcrumb(state) },
+            onUpdateBreadcrumb = { state -> updatePathButton(state) },
             onBuildResourceInfo = { state -> BrowseUtilityManager(activity).buildResourceInfo(state) },
             onLaunchEditResource = { id -> launchEditResource(id) },
             onUpdateToggleViewAvailability = { disable -> updateToggleViewAvailability(disable) },
@@ -973,15 +974,19 @@ class BrowseManagerInitializer(
         }
     }
 
-    private fun updateBreadcrumb(state: com.sza.fastmediasorter.ui.browse.BrowseState) {
+    private fun updatePathButton(state: com.sza.fastmediasorter.ui.browse.BrowseState) {
         val sub = state.isSubfolderMode && state.currentPath != null
-        binding.breadcrumbView.visibility = if (sub) android.view.View.VISIBLE else android.view.View.GONE
-        binding.spaceAfterBack?.visibility = if (sub) android.view.View.GONE else android.view.View.VISIBLE
+        binding.btnPath.visibility = if (sub) android.view.View.VISIBLE else android.view.View.GONE
         if (sub) {
-            val (resourceName, folders) = viewModel.getBreadcrumbParts()
-            binding.breadcrumbView.setPath(resourceName, folders)
-            binding.breadcrumbView.setOnSegmentClickListener { depth -> viewModel.navigateToDepth(depth) }
-        } else binding.breadcrumbView.clear()
+            // The listener re-reads the path on tap instead of closing over `state`: emissions that
+            // only toggle visibility must not leave the menu showing a path the user has left.
+            binding.btnPath.setOnClickListener {
+                val (resourceName, folders) = viewModel.getBreadcrumbParts()
+                pathMenuManager.showPathMenu(binding.btnPath, resourceName, folders) { depth ->
+                    viewModel.navigateToDepth(depth)
+                }
+            }
+        }
     }
 
     private fun launchEditResource(resourceId: Long) {

@@ -13,4 +13,4 @@ Whenever a change touches user-visible functionality (UI, behaviour, a shipped f
 - On any spec/change that alters visible behaviour, ask "which doc section or site page describes this, and is it now wrong?" before closing.
 - Use existing channels, don't free-hand: `/doc-update` for mirrored docs, `scripts/all_features/add.ps1` for the capability inventory, `/skill-release` owns `docs/FEATURES*.md` + site publish. This habit decides *when* to touch docs; the tooling decides *how*.
 - Website/site copy lives outside per-spec edits - flag it for the release flow rather than editing showcase files per-ticket.
-- See [[sync-docs-site-from-tickets]] context: backfill task S0814 is the one-off catch-up; this memory is the going-forward reflex.
+- Backfill task S0814 was the one-off catch-up for docs/site drift already accumulated; this memory is the going-forward reflex.
