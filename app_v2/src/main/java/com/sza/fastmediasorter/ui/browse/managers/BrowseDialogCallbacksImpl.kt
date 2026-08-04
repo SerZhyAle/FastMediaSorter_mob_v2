@@ -100,7 +100,7 @@ class BrowseDialogCallbacksImpl(
     }
 
     override fun getFileOperationUseCase(): FileOperationUseCase {
-        return viewModel.fileOperationUseCase
+        return viewModel.contentAuthoringUseCases.fileOperationUseCase
     }
 
     override fun getResourceName(): String? {

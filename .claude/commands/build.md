@@ -48,7 +48,7 @@ The order of work for a single local build, so nothing is dropped. None of this 
 4. **Build standard debug.** `.\a.ps1 dq` (fast, quiet) or `.\a.ps1 d` (zipped reusable APK). `.\a.ps1 cd` only when a clean build is genuinely needed.
 4b. **Build noLegal debug.** `.\a.ps1 nd` (`scripts/builders/build-nolegal-debug.ps1`). Run only after Step 4 finishes - never two gradle builds concurrently (daemon OOM); a second attempt while `temp/BUILD.LOCK` is live refuses on its own (see below). noLegal mounts `src/noLegal/` + VR/streaming source sets the standard flavor skips, so it catches flavor-isolation breakage standard cannot.
 5. **Verify locally.** Install + drive on a device/emulator when the change is user-visible (`/run`, `/verify`, or `.\a.ps1 id`). A compile-only change can stop at Step 3.
-6. **Clean up the touched files.** Resolve lint/neuroslop warnings in files you edited; Timber only (no `Log.d`); landscape layout parity if a `res/layout/` file changed.
+6. **Clean up the touched files** before the build is called done. Per CLAUDE.md Rule 7 (fix lint warnings in touched files), Rule 19 (neuroslop avoidance, detekt-clean-first), Rule 11 (layout-land parity) and section 8 "Project Structure & Tech Stack" on logging - obey them as written.
 7. **Record the change.** Dev log per logical change (`scripts/post-change.ps1` facade, or `add_to_dev_log.ps1`); catalog sync once per ticket after `.kt` edits.
 8. **Commit + push to DEBUG.** `.\a.ps1 c "<message>"` - `git add` + commit + push to the current DEBUG branch. Quoted arg = commit subject. Still zero CI.
 
@@ -97,11 +97,11 @@ BUILD.LOCK held - refusing to start a second gradle build.
   Holder PID: 12345  age: 47s  reason: 'build-debug.PS1'  host: MARK
 ```
 
-This is not a guessed timeout - staleness is judged by whether the holder PID is still alive, so a genuinely long build (release AAB, full unit suite, an OOM-recovery cascade) is never force-unlocked out from under it. A dead holder (crashed/killed process) is reclaimed automatically on the next attempt.
+Per CLAUDE.md Rule 23 (build/code locks) - obey it as written; in particular it, not this file, defines how staleness is judged. What that means here in practice: a genuinely long build (release AAB, full unit suite, an OOM-recovery cascade) is never force-unlocked out from under it, and a dead holder is reclaimed on the next attempt.
 
-Check status without trying to build: `pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Build` (exit 0 = free, 1 = held; add `-Json` for machine-readable output). If refused, wait for the holder to finish (or work on something else) rather than retrying in a loop.
+Check status without trying to build: `pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Build`. It is a status query: exit 0 whenever it could answer, with the verdict in the output (`HELD` / `STALE` / `absent (free)`, or `status`/`held` fields under `-Json`); exit 2 only when the lock file cannot be read. Add `-StrictExit` if you need the legacy "held = exit 1". If a build is live, wait for the holder to finish (or work on something else) rather than retrying in a loop.
 
-Before a multi-file source edit, skills also acquire `temp/CODE.LOCK` (`scripts/utils/enter-code-lock.ps1`) - advisory only, so a live build only warns about it, it never refuses.
+`temp/CODE.LOCK` is the other half of the same rule: per CLAUDE.md Rule 23 (build/code locks) - obey it as written.
 
 ---
 
@@ -117,7 +117,7 @@ Before a multi-file source edit, skills also acquire `temp/CODE.LOCK` (`scripts/
 | `vrUnlicensed` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 26 | ADB sideload only (same appId as `vr`) |
 | `noLegal` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 26 | Sideload only (gitignored docs) |
 
-Capability flags gated via `BuildConfig` fields in `app_v2/build.gradle.kts` (source of truth for flavor config). Use only inside flavor source sets - never inside `src/main/java/`.
+Capability flags gated via `BuildConfig` fields in `app_v2/build.gradle.kts` (source of truth for flavor config). Where those flags may be read: per CLAUDE.md Rule 14 (flavor isolation) - obey it as written.
 
 ### Flavor Source Set Discipline
 
@@ -133,12 +133,12 @@ Each flavor has own source set: `app_v2/src/<flavor>/java/`, `.../res/`, `Androi
 | `src/streamingEnabled/java/` | Shared by flavors with HLS/DASH (`standard`, `noLegal`, `legacy`, `vr`, `vrUnlicensed`) | Streaming download pipeline |
 | `src/streamingDisabled/java/` | Shared by flavors without streaming (`lite`, `photos`) | No-Op streaming pipeline |
 
-Rules: `dev/FLAVOR_DEVELOPMENT_RULES.md` + CLAUDE.md Rule 15. New flavor-specific feature recipe:
+Rules: `dev/FLAVOR_DEVELOPMENT_RULES.md`, plus CLAUDE.md Rule 14 (flavor isolation) - obey it as written. New flavor-specific feature recipe:
 
 1. `src/main/java/.../FeatureX.kt` - `interface FeatureX { ... }` + `class NoOpFeatureX : FeatureX` + `@Module class FeatureXMainModule { @Binds fun bind(noOp: NoOpFeatureX): FeatureX }`.
 2. `src/<flavor>/java/.../RealFeatureX.kt` - real impl.
 3. `src/<flavor>/java/.../di/FeatureXFlavorModule.kt` - `@Module class FeatureXFlavorModule { @Binds fun bind(real: RealFeatureX): FeatureX }` + `@TestInstallIn` or replace-strategy as flavor's main module.
-4. Never write `if (BuildConfig.SUPPORT_VR_PLAYER) { startVr() } else { ... }` inside `src/main/java/`.
+4. No flavor guard in the shared source set: per CLAUDE.md Rule 14 (flavor isolation) - obey it as written.
 
 Troubleshooting:
 - `unresolved reference: SomeClass` building flavor X not Y → `src/main/java/` references class living only in `src/<Y>/java/`. Move reference behind interface in main.
@@ -319,19 +319,16 @@ Appends timestamped row to `dev/CHANGELOG.md`. Never edit `CHANGELOG.md` directl
 
 ### SDK & Platform Baseline
 
-| Setting | Value |
-|---------|-------|
-| `compileSdk` | 35 |
-| `minSdk` (standard/lite/photos) | 26 (Android 8.0) |
-| `minSdk` (legacy flavor) | 23 (Android 6.0) |
-| Java | 17 |
-| Kotlin | 2.2.10 |
+Toolchain pins (`compileSdk`, `targetSdk`, `minSdk` per flavor, Kotlin, Room, Media3, Glide): per CLAUDE.md section 8 "Project Structure & Tech Stack" - obey it as written, it is generated from the build files and is the only current copy.
+
+Not pinned there, so recorded here: Java 17.
 
 ---
 
 ### Quality Rules
 
-- Temp artifacts, APK copies, backups → `temp/Sxxxx/` (ticket-bound) or `temp/scratch/` (no ticket), never project root. Fixed infra (locks, `temp/done/`, caches, script-owned digests) stays at `temp/` root - see CLAUDE.md Rule 10.1.
-- File size limit 1500 lines. Files >500 lines need timestamped backup under `temp/Sxxxx/` (or `temp/scratch/`) before modification.
-- Never `Log.d()` - use `Timber` only.
-- Activity/Fragment logic delegated to `helpers/*Manager.kt`.
+- Build artifacts a build leaves behind (APK copies, backups, digests) are scratch: per CLAUDE.md Rule 1 (scratch artifacts under temp/) - obey it as written.
+- Per CLAUDE.md Rule 2 (1500 LOC file size limit) - obey it as written.
+- Per CLAUDE.md Rule 5 (backup before editing >500 LOC) - obey it as written.
+- Per CLAUDE.md section 8 "Project Structure & Tech Stack" on logging - obey it as written.
+- Per CLAUDE.md Rule 3 (no Activity logic) - obey it as written.

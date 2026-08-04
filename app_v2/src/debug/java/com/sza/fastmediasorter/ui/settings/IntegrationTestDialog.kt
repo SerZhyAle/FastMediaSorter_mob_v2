@@ -6,13 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import com.google.android.material.chip.Chip
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.databinding.DialogIntegrationTestBinding
 import com.sza.fastmediasorter.domain.usecase.IntegrationTestRunner.TestGroup
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 /**
  * Dialog for running automated integration tests.
@@ -113,34 +112,28 @@ class IntegrationTestDialog : DialogFragment() {
     }
     
     private fun observeViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.testProgress.collect { progress ->
-                progress?.let {
-                    binding.progressBar.max = it.totalTests
-                    binding.progressBar.progress = it.currentTest
-                    binding.tvProgress.text = "${it.currentTest}/${it.totalTests}: ${it.testName}"
-                    binding.tvStatus.text = it.status
-                }
+        collectOnLifecycle(viewModel.testProgress) { progress ->
+            progress?.let {
+                binding.progressBar.max = it.totalTests
+                binding.progressBar.progress = it.currentTest
+                binding.tvProgress.text = "${it.currentTest}/${it.totalTests}: ${it.testName}"
+                binding.tvStatus.text = it.status
             }
         }
-        
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.testLog.collect { log ->
-                binding.tvLog.text = log
-                // Auto-scroll to bottom
-                binding.scrollView.post {
-                    binding.scrollView.fullScroll(View.FOCUS_DOWN)
-                }
+
+        collectOnLifecycle(viewModel.testLog) { log ->
+            binding.tvLog.text = log
+            // Auto-scroll to bottom
+            binding.scrollView.post {
+                binding.scrollView.fullScroll(View.FOCUS_DOWN)
             }
         }
-        
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.isRunning.collect { isRunning ->
-                // Enable/disable all chips during test run
-                allChips.forEach { chip -> chip.isEnabled = !isRunning }
-                binding.btnClose.isEnabled = !isRunning
-                binding.progressBar.visibility = if (isRunning) View.VISIBLE else View.GONE
-            }
+
+        collectOnLifecycle(viewModel.isRunning) { isRunning ->
+            // Enable/disable all chips during test run
+            allChips.forEach { chip -> chip.isEnabled = !isRunning }
+            binding.btnClose.isEnabled = !isRunning
+            binding.progressBar.visibility = if (isRunning) View.VISIBLE else View.GONE
         }
     }
     

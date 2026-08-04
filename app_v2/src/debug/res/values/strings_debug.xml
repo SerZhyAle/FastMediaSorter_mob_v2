@@ -1,33 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Developer debug menu, present only in the debug build type and never shipped. Every key is
+     translatable="false" on purpose: without it both lint's MissingTranslation and
+     scripts/check_strings_localized.ps1 report 27 phantom RU/UK gaps that nobody should ever fill
+     (S1280). Adding a key here without the attribute re-opens that false report. -->
 <resources>
-    <string name="debug_crash_title">Debug Crash Report</string>
-    <string name="debug_menu_title">Developer Debug Menu</string>
+    <string name="debug_crash_title" translatable="false">Debug Crash Report</string>
+    <string name="debug_menu_title" translatable="false">Developer Debug Menu</string>
 
-    <string name="debug_action_copy">Copy</string>
-    <string name="debug_action_share">Share</string>
-    <string name="debug_action_restart">Restart</string>
-    <string name="debug_action_ignore">Ignore</string>
-    <string name="debug_action_refresh">Refresh</string>
-    <string name="debug_action_apply">Apply</string>
-    <string name="debug_action_clear_logs">Clear logs</string>
-    <string name="debug_action_share_logs">Share logs</string>
-    <string name="debug_action_network">Network inspector</string>
-    <string name="debug_action_clear_cache">Clear Glide cache</string>
-    <string name="debug_action_reset_prefs">Reset preferences</string>
-    <string name="debug_leakcanary_toggle">LeakCanary</string>
+    <string name="debug_action_copy" translatable="false">Copy</string>
+    <string name="debug_action_share" translatable="false">Share</string>
+    <string name="debug_action_restart" translatable="false">Restart</string>
+    <string name="debug_action_ignore" translatable="false">Ignore</string>
+    <string name="debug_action_refresh" translatable="false">Refresh</string>
+    <string name="debug_action_apply" translatable="false">Apply</string>
+    <string name="debug_action_clear_logs" translatable="false">Clear logs</string>
+    <string name="debug_action_share_logs" translatable="false">Share logs</string>
+    <string name="debug_action_network" translatable="false">Network inspector</string>
+    <string name="debug_action_clear_cache" translatable="false">Clear Glide cache</string>
+    <string name="debug_action_reset_prefs" translatable="false">Reset preferences</string>
+    <string name="debug_leakcanary_toggle" translatable="false">LeakCanary</string>
 
-    <string name="debug_share_report">Share crash report</string>
-    <string name="debug_share_logs">Share log file</string>
-    <string name="debug_copy_done">Copied</string>
-    <string name="debug_search_hint">Search text</string>
-    <string name="debug_logs_empty">No log entries</string>
-    <string name="debug_logs_cleared">Logs cleared</string>
-    <string name="debug_glide_cache_cleared">Glide cache cleared</string>
-    <string name="debug_preferences_reset">Preferences reset</string>
-    <string name="debug_network_inspector_unavailable">Network inspector unavailable</string>
-    <string name="debug_leakcanary_enabled">LeakCanary enabled</string>
-    <string name="debug_leakcanary_disabled">LeakCanary disabled</string>
+    <string name="debug_share_report" translatable="false">Share crash report</string>
+    <string name="debug_share_logs" translatable="false">Share log file</string>
+    <string name="debug_copy_done" translatable="false">Copied</string>
+    <string name="debug_search_hint" translatable="false">Search text</string>
+    <string name="debug_logs_empty" translatable="false">No log entries</string>
+    <string name="debug_logs_cleared" translatable="false">Logs cleared</string>
+    <string name="debug_glide_cache_cleared" translatable="false">Glide cache cleared</string>
+    <string name="debug_preferences_reset" translatable="false">Preferences reset</string>
+    <string name="debug_network_inspector_unavailable" translatable="false">Network inspector unavailable</string>
+    <string name="debug_leakcanary_enabled" translatable="false">LeakCanary enabled</string>
+    <string name="debug_leakcanary_disabled" translatable="false">LeakCanary disabled</string>
 
-    <string name="debug_error_prefix">ERROR:</string>
-    <string name="debug_warning_prefix">WARN:</string>
+    <string name="debug_error_prefix" translatable="false">ERROR:</string>
+    <string name="debug_warning_prefix" translatable="false">WARN:</string>
 </resources>

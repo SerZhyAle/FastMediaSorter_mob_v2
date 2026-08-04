@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.domain.model
 
 enum class PermissionGroup {
-    STORAGE, NETWORK, MICROPHONE, NOTIFICATION, CAMERA, LOCATION, SYSTEM, VR
+    STORAGE, NETWORK, MICROPHONE, NOTIFICATION, CAMERA, LOCATION, SYSTEM, VR, CONTACTS
 }
 
 enum class PermissionStatus {

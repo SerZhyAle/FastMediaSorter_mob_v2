@@ -48,9 +48,14 @@ class CapabilityAvailability @Inject constructor(
 
     /**
      * Whether persistent (background) audio playback is compiled into this build. The flag is
-     * declared in every flavor block, so reading it here is variant-safe; this is the single
-     * source of truth behind the runtime gate in `PlaybackSettingsFragment` and the settings-search
-     * suppression of the background-audio rows (S0600).
+     * declared in every flavor block, so reading it here is variant-safe, and this is the only
+     * place shared code may read it (CLAUDE.md Rule 14).
+     *
+     * S1379: the previous wording called this the single source of truth behind the settings gate
+     * while `PlaybackSettingsFragment` was still reading the flag itself - the claim came first and
+     * the callers followed later. Every consumer now asks here; the one remaining direct reader is
+     * the permission registry, which maps a flag NAME arriving as a string and is not a consumer
+     * guard at all.
      */
     fun isPersistentAudioPlaybackAvailable(): Boolean = BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
 

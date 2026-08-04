@@ -32,7 +32,7 @@
         app:tint="@color/activity_player_unified_btnPdfHome_tint"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
-        android:layout_marginStart="@dimen/player_pdf_button_margin"
+        android:layout_marginStart="@dimen/player_reader_home_gap"
         android:contentDescription="@string/to_begin" />
 
     <Space

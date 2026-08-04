@@ -1,17 +1,23 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.provider.ContactsContract
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
+import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
+import com.sza.fastmediasorter.domain.model.launcher.LauncherContactTarget
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
+import com.sza.fastmediasorter.util.resolveActivityCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -35,6 +41,11 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             is LauncherCellCommand.Resource -> launchResource(command)
             is LauncherCellCommand.Stream -> launchStream(command.streamId)
             is LauncherCellCommand.OsShortcut -> launchOsShortcut(command.targetKey)
+            // S1170: mirrors the favourites widget's per-row fill-in intent - the file's own resource,
+            // opened at that file. skipAvailabilityCheck matches the widget: the row was listed from the
+            // favourites table a moment ago, so a second existence probe only delays the open.
+            is LauncherCellCommand.FavoriteFile -> startIntent(favoriteFileIntent(command))
+            is LauncherCellCommand.Contact -> launchContact(command.target)
             // S1103: a scheduled op may modify or delete files, so it is confirmed then run from the
             // launcher UI path (ViewModel), never launched generically here.
             is LauncherCellCommand.ScheduledOp -> false
@@ -81,12 +92,71 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
     }
 
     private fun launchOsShortcut(targetKey: String): Boolean {
-        val target = OsShortcutCatalog.byKey(targetKey) ?: return false
-        if (!OsShortcutCatalog.isResolvable(context, targetKey)) {
-            Timber.i("Launcher: system screen %s is absent on this device", targetKey)
+        val target = OsShortcutCatalog.byKey(targetKey)
+            ?.takeIf { OsShortcutCatalog.isResolvable(context, targetKey) }
+        if (target == null) {
+            Timber.i("Launcher: system screen %s is unknown to this build or absent here", targetKey)
             return false
         }
         return startIntent(target.intent(context))
+    }
+
+    /**
+     * S1176: the three contact outcomes, each resolved before it is started.
+     *
+     * The app holds no contacts permission: everything here rides the one-time grant the system picker
+     * already gave on the picked record, and `DIAL` opens the dialler pre-filled rather than placing the
+     * call (ADR-3) - placing one would need `CALL_PHONE`, which stays undeclared.
+     *
+     * Nothing about the person reaches the log. The name, the number and the lookup key are all user
+     * data that would otherwise sit in a bug report; the action kind is enough to diagnose a dead cell.
+     */
+    private fun launchContact(target: LauncherContactTarget): Boolean {
+        val intent = contactIntent(target)
+            ?.takeIf { context.packageManager.resolveActivityCompat(it) != null }
+        if (intent == null) {
+            // One message for both causes on purpose: from the user's side "the snapshot is incomplete"
+            // and "no app handles this" are the same dead cell, and the action kind is all a bug report
+            // needs. The name, number and lookup key stay out of the log.
+            Timber.i("Launcher: contact action %s cannot run on this device", target.action.name)
+            return false
+        }
+        val started = startIntent(intent)
+        Timber.d("S1176: run action=%s started=%b", target.action.name, started)
+        return started
+    }
+
+    private fun contactIntent(target: LauncherContactTarget): Intent? {
+        if (!target.isUsable) return null
+        return when (target.action) {
+            LauncherContactAction.PROFILE -> Intent(
+                Intent.ACTION_VIEW,
+                Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, target.lookupKey),
+            )
+            LauncherContactAction.DIAL -> Intent(
+                Intent.ACTION_DIAL,
+                Uri.fromParts(TEL_SCHEME, target.phoneNumber, null),
+            )
+            // The picked row addressed through the app that registered it: a messaging data row is
+            // meaningless to any other handler, so the package is part of the target, not a hint.
+            LauncherContactAction.MESSAGE -> Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(
+                    ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, target.messageDataId),
+                    null,
+                )
+                setPackage(target.messagePackage)
+            }
+        }
+    }
+
+    private fun favoriteFileIntent(command: LauncherCellCommand.FavoriteFile): Intent {
+        Timber.d("S1170: favourite row opens resource %d", command.resourceId)
+        return PlayerActivity.createPanelIntent(
+            context = context,
+            resourceId = command.resourceId,
+            skipAvailabilityCheck = true,
+            initialFilePath = command.filePath,
+        )
     }
 
     private fun launchPackage(packageName: String): Boolean {
@@ -96,6 +166,10 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             return false
         }
         return startIntent(intent)
+    }
+
+    private companion object {
+        const val TEL_SCHEME = "tel"
     }
 
     private fun startIntent(intent: Intent): Boolean {

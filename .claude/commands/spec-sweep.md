@@ -1,6 +1,5 @@
 ---
 description: "Use to batch device-test a set of BlockNeedUserTest tickets in one sweep. Triggers: 'spec-sweep', 'test all the pending tickets on device'."
-model: sonnet
 ---
 
 # Spec Sweep - Batch Device-Test of BlockNeedUserTest Tickets
@@ -64,10 +63,11 @@ Uncertain cases go to **review bucket** (listed in report), never silently into 
 pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug [-DeviceId <id>] -CheckMcp -Json
 ```
 
-Exit-code handling (see script header table):
-- `0` -> record device identity (API level, ABI, model, screen, density) into report header; proceed.
-- `2` (no online device) / `1` (adb missing) / `6` (mobile-mcp unresolvable) -> **abort whole sweep** with one line stating reason. No ticket touched.
-- `3` (multiple devices, no `--device`) -> abort, ask user to pass `--device <id>`.
+`device-ready.ps1` exits 0 whenever it determined the state - branch on the payload's `state`,
+not on the exit code (see the script header table):
+- `ready` -> record device identity (API level, ABI, model, screen, density) into report header; proceed.
+- `no-device` / `no-adb` / `mcp-unavailable` -> **abort whole sweep** with one line stating reason. No ticket touched.
+- `multiple-devices` -> abort, ask user to pass `--device <id>`.
 
 ### 4 - Classify each eligible ticket
 
@@ -142,7 +142,7 @@ spec-sweep: device <id>, eligible E, closed N, reopened M, blocked K, excluded V
 - Never collect secrets; never fake a successful OAuth/cloud flow.
 - Never touch VR/3D/headset-only tickets.
 - Never fix defects found during sweep - reopen ticket (`Broken`/`Partial`), leave fix to separate `/spec-fix` / `/spec`.
-- Read-only zones - `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
+- Per CLAUDE.md Rule 4 (read-only zones) - obey it as written.
 - Tag lifecycle: ticket leaving `BlockNeedUserTest` (to any status) must have its `Timber.d("Sxxxx:` tags grep-deleted in same change. Never delete a tag for a ticket that stays in `BlockNeedUserTest`.
 
 ---

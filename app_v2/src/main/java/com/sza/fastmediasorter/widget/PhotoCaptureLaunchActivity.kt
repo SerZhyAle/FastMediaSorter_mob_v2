@@ -7,9 +7,6 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLocationProvider
 import com.sza.fastmediasorter.ui.cameracapture.helpers.HeadlessPhotoCapturer
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,9 +26,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class PhotoCaptureLaunchActivity : AppCompatActivity() {
 
-    @Inject lateinit var settingsRepository: SettingsRepository
-    @Inject lateinit var mediaCapabilities: MediaCapabilities
-    @Inject lateinit var saveCapturedMedia: SaveCapturedMediaUseCase
+    @Inject lateinit var launchManagerFactory: PhotoCaptureLaunchManagerFactory
 
     private lateinit var launchManager: PhotoCaptureLaunchManager
     private val locationProvider = CameraLocationProvider()
@@ -44,11 +39,8 @@ class PhotoCaptureLaunchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         capturer = HeadlessPhotoCapturer(lifecycleOwner = this, context = this)
-        launchManager = PhotoCaptureLaunchManager(
+        launchManager = launchManagerFactory.create(
             activity = this,
-            settingsRepository = settingsRepository,
-            mediaCapabilities = mediaCapabilities,
-            saveCapturedMedia = saveCapturedMedia,
             coroutineScope = lifecycleScope,
             autoAction = intent?.getStringExtra(EXTRA_AUTO_ACTION),
             capturer = capturer,

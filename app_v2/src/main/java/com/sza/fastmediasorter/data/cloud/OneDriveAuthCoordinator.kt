@@ -12,6 +12,8 @@ import com.microsoft.identity.client.SilentAuthenticationCallback
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException
 import com.microsoft.identity.client.exception.MsalException
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.network.applyTimeouts
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -84,6 +86,7 @@ class OneDriveAuthCoordinator(
                 accessToken = null
                 accountEmail = null
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to sign out")
                 onError(e)
             }
@@ -138,6 +141,7 @@ class OneDriveAuthCoordinator(
             // Interactive flow must be initiated from an Activity via signIn(..)
             AuthResult.Error("Interactive sign-in required")
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "OneDrive authentication failed")
             AuthResult.Error("Authentication failed: ${e.message}")
         }
@@ -365,6 +369,7 @@ class OneDriveAuthCoordinator(
                 false
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to initialize OneDrive client")
             false
         }
@@ -407,6 +412,7 @@ class OneDriveAuthCoordinator(
         var connection: HttpURLConnection? = null
         try {
             connection = url.openConnection() as HttpURLConnection
+            connection.applyTimeouts()
             connection.requestMethod = method
             connection.setRequestProperty("Authorization", "Bearer $token")
             connection.setRequestProperty("Accept", "application/json")
@@ -462,6 +468,7 @@ class OneDriveAuthCoordinator(
                 OneDriveRestClientUtils.ApiResponse(isSuccess = false, data = null, errorMessage = error)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Request failed: $method $url")
             return OneDriveRestClientUtils.ApiResponse(isSuccess = false, data = null, errorMessage = e.message)
         } finally {

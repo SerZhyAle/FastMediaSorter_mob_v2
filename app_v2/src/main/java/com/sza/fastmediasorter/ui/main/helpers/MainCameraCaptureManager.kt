@@ -11,7 +11,6 @@ import androidx.fragment.app.FragmentActivity
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.capture.SaveResult
-import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
@@ -36,7 +35,8 @@ import java.util.Locale
 class MainCameraCaptureManager(
     private val activity: FragmentActivity,
     private val coroutineScope: CoroutineScope,
-    private val saveCapturedMedia: SaveCapturedMediaUseCase,
+    // S1195: an operation rather than the use case, so the host Activity routes it through its ViewModel.
+    private val saveCapturedMedia: suspend (captured: File, isVideo: Boolean) -> SaveResult,
     // Owned by the host Activity (registered before STARTED); the host's result callback delegates here.
     private val launcher: ActivityResultLauncher<Intent>,
 ) {

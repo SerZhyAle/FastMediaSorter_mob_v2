@@ -13,6 +13,7 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.domain.model.DuplicateDetectionResult
 import com.sza.fastmediasorter.domain.model.DuplicateScanProgress
 import com.sza.fastmediasorter.domain.model.ScanPhase
@@ -39,7 +40,9 @@ class DuplicateDetectionWorker @AssistedInject constructor(
         const val KEY_FILES_PROCESSED = "files_processed"
         const val KEY_TOTAL_FILES = "total_files"
         const val NOTIFICATION_CHANNEL_ID = "duplicate_scan_channel"
-        private const val NOTIFICATION_ID = 4201
+
+        // S1292: was 4201, shared with the sync worker and the S0710 permission advisory.
+        private const val NOTIFICATION_ID = NotificationIds.DUPLICATE_DETECTION
         const val UNIQUE_WORK_NAME = "duplicate_scan"
     }
 

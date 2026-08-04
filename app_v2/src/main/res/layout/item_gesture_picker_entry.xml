@@ -67,7 +67,7 @@
         android:layout_height="24dp"
         android:layout_marginStart="@dimen/margin_large"
         android:src="@drawable/ic_check"
-        android:tint="?attr/colorOnPrimaryContainer"
+        app:tint="?attr/colorOnPrimaryContainer"
         android:visibility="gone"
         android:contentDescription="@null" />
 

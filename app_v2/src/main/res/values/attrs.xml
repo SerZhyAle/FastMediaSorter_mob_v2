@@ -123,4 +123,18 @@
         <attr name="ahr_helpTitle" format="string|reference" />
         <attr name="ahr_helpMessage" format="string|reference" />
     </declare-styleable>
+
+    <!-- Consumed by OutlinedTextView.kt. All public attrs use the otv_ prefix. -->
+    <declare-styleable name="OutlinedTextView">
+        <attr name="otv_outlineColor" format="color|reference" />
+        <attr name="otv_outlineWidth" format="dimension" />
+    </declare-styleable>
+
+    <!-- Consumed by OutlinedImageView.kt. All public attrs use the oiv_ prefix. Defaults are shared
+         with OutlinedTextView (@color/outline_text_stroke, @dimen/outline_text_stroke_width) - one
+         contour role, one pair of resources. -->
+    <declare-styleable name="OutlinedImageView">
+        <attr name="oiv_outlineColor" format="color|reference" />
+        <attr name="oiv_outlineWidth" format="dimension" />
+    </declare-styleable>
 </resources>

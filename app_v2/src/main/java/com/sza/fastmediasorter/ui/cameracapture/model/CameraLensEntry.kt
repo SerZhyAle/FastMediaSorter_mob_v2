@@ -21,6 +21,16 @@ data class CameraLensEntry(
     val minFocusDistanceDiopters: Float = 0f,
     /** The lens reaches a magnification no sibling of the same facing already covers. */
     val hasOwnMagnification: Boolean = true,
+    /** S1261: sensor physical width in mm for FOV-normalized equivalents; 0 = unknown. */
+    val sensorWidthMm: Float = 0f,
+    /**
+     * S1261: zoom floor of the logical camera this lens binds through - its own floor for a logical
+     * entry, the parent's for a physical sub-lens. Below 1 exactly when the platform fuses a wider
+     * lens behind this camera (the S25 FE 0.57 the raw focal ratio could never produce).
+     */
+    val parentLogicalMinZoom: Float = 0f,
+    /** S1261: native ratio -> equivalent zoom factor; filled by the enumeration post-pass. */
+    val equivalentMultiplier: Float = CameraRuntimeCapabilities.DEFAULT_ZOOM,
 ) {
     /** The entry names a lens inside a logical camera rather than the logical camera itself. */
     val isPhysicalSubLens: Boolean get() = physicalCameraId != null

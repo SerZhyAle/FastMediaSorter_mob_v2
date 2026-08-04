@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.core.util
 
 import android.content.Context
 import android.os.StatFs
+import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,7 +26,7 @@ import kotlin.math.min
  */
 @Singleton
 class DeviceCapabilityProbe @Inject constructor(
-    private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
 
     /**

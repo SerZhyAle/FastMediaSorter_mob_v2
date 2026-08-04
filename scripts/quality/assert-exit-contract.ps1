@@ -25,6 +25,19 @@
     N = 1 is excluded deliberately: the collapse also produces 1, so such a site is
     already delivering its intended code and rewriting it would be noise.
 
+    RULE C - a non-zero exit must carry a reason (S1338 phase 09). 480 recorded agent
+    failures reported nothing but `Exit code 1`, which forces a blind re-run with
+    different arguments just to learn what went wrong. So an `exit N` with N non-zero
+    must be preceded, within a short lookback, by any `Write-*` call carrying an argument
+    (project helpers such as Write-FailLine count), a direct `[Console]::Error.Write*`, a
+    `throw` whose text a trap prints, or (S1368) a pipeline whose tail renders to the
+    success stream - ConvertTo-Json/Csv/Xml, Format-Table/List/Wide, Out-Host/Default/String.
+    Out-Null, Out-File and Set-Content are excluded on purpose: they swallow or divert the
+    output instead of showing it. Block-comment bodies and `#` lines are skipped,
+    and `exit $var` is
+    ignored because its value is not statically known. Rule C ratchets against
+    scripts/quality/exit-reason-baseline.txt: the count may fall, never rise.
+
     KNOWN LIMITATION (accepted, not a bug to file): the scan is line-based, so a
     multi-line `Write-Error (...)` whose `-ErrorAction Continue` sits on a continuation
     line reads as rule 2 and gets flagged although the exit is reachable. It over-blocks,
@@ -34,8 +47,10 @@
     than regex; judged not worth the machinery (ticket raised 2026-07-16 and archived).
 
     Exit codes:
-      0 - no unreachable exit site (or report mode).
-      1 - substantive failure: at least one unreachable exit site found.
+      0 - no unreachable exit site, no silent script, Rule C at or below baseline
+          (or report mode).
+      1 - substantive failure: an unreachable exit site, a silent script, or Rule C
+          above its baseline.
       2 - the gate itself cannot run (scan root missing). Distinct from 1 on purpose -
           this gate must not commit the very sin it audits.
 
@@ -49,6 +64,12 @@
 .PARAMETER Quiet
     Print only the expected/actual summary line.
 
+.PARAMETER ReasonBaseline
+    Override the Rule C ratchet. Without it a repo scan reads
+    scripts/quality/exit-reason-baseline.txt and a -Path fixture probe is report-only
+    (it cannot know which of the repo's baselined sites it is looking at). Pass 0 to make
+    a fixture assert that a reasonless exit is refused.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-exit-contract.ps1 -Gate
 .EXAMPLE
@@ -58,7 +79,8 @@
 param(
     [switch]$Gate,
     [string]$Path = '',
-    [switch]$Quiet
+    [switch]$Quiet,
+    [int]$ReasonBaseline = -1
 )
 
 $ErrorActionPreference = 'Stop'
@@ -96,6 +118,12 @@ $silenceRuleRoots = @(
 # 3 covers the observed shapes (same line; next line; a closing brace between).
 $lookahead = 3
 
+# Rule C: how far BACK from an `exit N` a printed reason still counts as that exit's reason.
+# 4 covers the observed shapes (same line via `;`; the line above; a closing brace or a
+# blank line between the message and the exit).
+$reasonLookback = 4
+$reasonBaselineFile = Join-Path $PSScriptRoot 'exit-reason-baseline.txt'
+
 $files = @(foreach ($root in $scanRoots) {
     if (Test-Path $root -PathType Leaf) {
         Get-Item -LiteralPath $root
@@ -111,9 +139,52 @@ $files = @(foreach ($root in $scanRoots) {
 
 $findings = @()
 $silent = @()
+$reasonless = @()
 foreach ($f in $files) {
     $lines = Get-Content -LiteralPath $f.FullName -ErrorAction SilentlyContinue
     if (-not $lines) { continue }
+
+    # Rule C: an `exit N` (N non-zero) with no message printed just before it. Unlike rules A
+    # and B this one does not depend on $ErrorActionPreference, so it runs over every file.
+    $inBlockComment = $false
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        $line = $lines[$i]
+        # A header's ".NOTES Exit codes:" prose is not code; block comments are skipped whole.
+        if ($inBlockComment) {
+            if ($line -match '#>') { $inBlockComment = $false }
+            continue
+        }
+        if ($line -match '<#') { $inBlockComment = ($line -notmatch '#>'); continue }
+        if ($line -match '^\s*#') { continue }
+        if ($line -notmatch '(^|\s|\}|;)exit\s+([1-9]\d*)\b') { continue }
+        $exitCode = [int]$Matches[2]
+
+        $hasReason = $false
+        $back = [Math]::Max(0, $i - $reasonLookback)
+        for ($k = $i; $k -ge $back; $k--) {
+            $cand = $lines[$k]
+            if ($cand -match '^\s*#') { continue }
+            # Any Write-* call with an argument counts, including project helpers such as
+            # Write-FailLine / Write-Info, plus direct writes to the console streams.
+            if ($cand -match '(Write-[A-Za-z]+\s+\S|\[Console\]::(Error|Out)\.Write)') { $hasReason = $true; break }
+            if ($cand -match '^\s*throw\b') { $hasReason = $true; break }
+            # S1368: a pipeline that renders to the success stream is a printed reason too. The
+            # machine-readable verbs matter most - `-Verb CheckContext` signals its outcome as a
+            # JSON object plus exit 3, and the only "fix" this heuristic used to accept would have
+            # been a Write-Error announcing an expected result and corrupting that JSON. The tail
+            # cmdlet is what decides: Out-Null / Out-File / Set-Content swallow or divert output
+            # and are deliberately absent from the list.
+            if ($cand -match '\|\s*(ConvertTo-(Json|Csv|Xml)|Format-(Table|List|Wide)|Out-(Host|Default|String))\b') { $hasReason = $true; break }
+        }
+        if (-not $hasReason) {
+            $reasonless += [pscustomobject]@{
+                File = $f.FullName.Replace($repoRoot + [IO.Path]::DirectorySeparatorChar, '')
+                Line = $i + 1
+                Code = $exitCode
+                Text = $line.Trim()
+            }
+        }
+    }
 
     # Rule B (S1192): under the roots whose callers read $LASTEXITCODE, a script must state its
     # outcome. Falling off the end leaves the caller's $LASTEXITCODE untouched - on a first iteration
@@ -179,10 +250,28 @@ if (-not $Quiet) {
     }
 }
 
-Write-Host ("assert-exit-contract: expected: 0 | actual: {0} unreachable exit site(s), {1} silent script(s)" -f $findings.Count, $silent.Count)
+# Rule C ratchets on a count. An explicit -Path run is a fixture probe, not the repo scan, so by
+# default it reports without gating - it cannot know which of the repo's baselined sites it sees.
+# -ReasonBaseline 0 turns a fixture into an assertion.
+$reasonBaseline = if ($ReasonBaseline -ge 0) { $ReasonBaseline }
+    elseif ($Path) { $reasonless.Count }
+    elseif (Test-Path -LiteralPath $reasonBaselineFile) {
+        [int]((Get-Content -LiteralPath $reasonBaselineFile -TotalCount 1).Trim())
+    } else { 0 }
 
-if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0)) {
-    Write-Host 'assert-exit-contract: FAIL - a script cannot deliver the exit code it means to send.' -ForegroundColor Red
+if (-not $Quiet -and $reasonless.Count -gt 0) {
+    foreach ($x in $reasonless) {
+        Write-Host ("  {0}:{1}  exit {2} with no reason printed" -f $x.File, $x.Line, $x.Code) -ForegroundColor Red
+        Write-Host ("      {0}" -f $x.Text) -ForegroundColor DarkGray
+    }
+    Write-Host ''
+    Write-Host '  Fix: print why before exiting - Write-Error "<what failed and what fixes it>" -ErrorAction Continue.' -ForegroundColor Yellow
+}
+
+Write-Host ("assert-exit-contract: expected: 0 | actual: {0} unreachable exit site(s), {1} silent script(s), {2} reasonless exit(s) (baseline {3})" -f $findings.Count, $silent.Count, $reasonless.Count, $reasonBaseline)
+
+if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline)) {
+    Write-Host 'assert-exit-contract: FAIL - a script cannot deliver the exit code it means to send, or exits without saying why.' -ForegroundColor Red
     exit 1
 }
 if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0) {

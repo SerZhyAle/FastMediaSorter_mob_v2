@@ -3,7 +3,7 @@
 - [Never remove Timber.d tags while spec is BlockNeedUserTest](feedback_timber_tags_before_test.md) - tag lifecycle is bound to the status; deletion is a side effect of leaving it, never speculative
 - [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) - public FEATURES*.md is for standard/VR builds; noLegal docs live in the gitignored mirror
 - [Timestamp every chat message](feedback_timestamp_in_chat.md) - read injected `Current time:` from context, never spawn `date`/`Get-Date` to fetch it
-- [Flavor isolation: strict source-set discipline](feedback_flavor_isolation_strict.md) - VR/noLegal/lite/photos/legacy code in src/<flavor>/java/; new BuildConfig flavor guards in src/main are forbidden (Rule 15)
+- [Flavor isolation: strict source-set discipline](feedback_flavor_isolation_strict.md) - VR/noLegal/lite/photos/legacy code in src/<flavor>/java/; new BuildConfig flavor guards in src/main are forbidden (Rule 14)
 - [Build gotchas](project_build_gotchas.md) - daemon-stop is a retry, not a failure; dev/CATALOG/*.jsonl+.md are gitignored; chaquopy.enabled gates all non-noLegal variants
 - [detekt baseline not a tracked input](project_detekt_baseline_not_tracked_input.md) - after editing baseline-app_v2.xml, force :app_v2:detekt --rerun-tasks or the scoped gate reads a stale detekt.xml
 - [AGP manifest.srcFile replaces flavor manifest](project_agp_manifest_srcfile_overrides_flavor_manifest.md) - noLegal manifest entries dropped silently; use addStaticManifestFile in onVariants

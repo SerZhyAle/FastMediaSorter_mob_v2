@@ -9,7 +9,6 @@ import androidx.work.PeriodicWorkRequest
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.widget.RandomPhotoFrameWidgetProvider
-import com.sza.fastmediasorter.widget.RandomPhotoFrameWidgetRefresher
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
@@ -46,7 +45,9 @@ class RandomPhotoFrameRefreshWorker(
 
         return try {
             appWidgetIds.forEach { appWidgetId ->
-                RandomPhotoFrameWidgetRefresher.refresh(applicationContext, appWidgetId)
+                // S1309: updateAppWidget() refreshes a configured widget itself, so the separate
+                // refresh() call here ran the whole Room+gzip+thumbnail round-trip twice per tick
+                // and threw the first random pick away.
                 RandomPhotoFrameWidgetProvider.updateAppWidget(
                     applicationContext,
                     appWidgetManager,

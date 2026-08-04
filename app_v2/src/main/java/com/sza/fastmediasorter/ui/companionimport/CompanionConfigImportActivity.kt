@@ -15,16 +15,10 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.companion.CompanionConfigDto
-import com.sza.fastmediasorter.data.companion.CompanionConfigException
-import com.sza.fastmediasorter.data.companion.CompanionConfigParser
-import com.sza.fastmediasorter.domain.usecase.companion.ImportCompanionConfigUseCase
+import com.sza.fastmediasorter.ui.companionimport.helpers.CompanionConfigImportManager
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
 import javax.inject.Inject
 
 /**
@@ -39,10 +33,7 @@ import javax.inject.Inject
 class CompanionConfigImportActivity : AppCompatActivity() {
 
     @Inject
-    lateinit var parser: CompanionConfigParser
-
-    @Inject
-    lateinit var importUseCase: ImportCompanionConfigUseCase
+    lateinit var importManager: CompanionConfigImportManager
 
     // Held so a recreation (or finish) dismisses it instead of leaking the window.
     private var activeDialog: AlertDialog? = null
@@ -77,42 +68,13 @@ class CompanionConfigImportActivity : AppCompatActivity() {
 
     private fun loadAndConfirm(uri: Uri) {
         lifecycleScope.launch {
-            val dto = withContext(Dispatchers.IO) { readConfig(uri) }
+            val dto = importManager.readConfig(contentResolver, uri)
             if (dto == null) {
                 showResultAndFinish(getString(R.string.companion_import_invalid_error))
             } else {
                 showConfirmDialog(dto)
             }
         }
-    }
-
-    // Broad catch is an intentional import-boundary guard: any read/parse failure rejects the file
-    // (transparent host) instead of crashing. (S0988: surfaced by the diff-scoped detekt gate.)
-    @Suppress("TooGenericExceptionCaught")
-    private fun readConfig(uri: Uri): CompanionConfigDto? = try {
-        val bytes = contentResolver.openInputStream(uri)?.use { readCapped(it) }
-        if (bytes == null) null else parser.parse(bytes)
-    } catch (e: CompanionConfigException) {
-        Timber.w(e, "Companion config rejected: ${e.reason}")
-        null
-    } catch (e: Exception) {
-        Timber.w(e, "Companion config read failed")
-        null
-    }
-
-    /** Reads at most [MAX_CONFIG_BYTES]; returns null if the stream is larger (guards this exported entry). */
-    private fun readCapped(input: InputStream): ByteArray? {
-        val buffer = ByteArrayOutputStream()
-        val chunk = ByteArray(READ_CHUNK_BYTES)
-        var total = 0
-        while (true) {
-            val read = input.read(chunk)
-            if (read < 0) break
-            total += read
-            if (total > MAX_CONFIG_BYTES) return null
-            buffer.write(chunk, 0, read)
-        }
-        return buffer.toByteArray()
     }
 
     private fun showConfirmDialog(dto: CompanionConfigDto) {
@@ -155,7 +117,7 @@ class CompanionConfigImportActivity : AppCompatActivity() {
 
     private fun runImport(dto: CompanionConfigDto) {
         lifecycleScope.launch {
-            val message = importUseCase.import(dto).fold(
+            val message = importManager.import(dto).fold(
                 onSuccess = { result ->
                     getString(R.string.companion_import_success, result.resourceNames.joinToString(), result.host)
                 },
@@ -177,10 +139,5 @@ class CompanionConfigImportActivity : AppCompatActivity() {
             .create()
         activeDialog = dialog
         dialog.show()
-    }
-
-    private companion object {
-        const val MAX_CONFIG_BYTES = 64 * 1024
-        const val READ_CHUNK_BYTES = 8 * 1024
     }
 }

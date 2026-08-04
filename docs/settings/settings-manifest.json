@@ -81,6 +81,146 @@
       "titleUk": "Підтримка аудіо"
     },
     {
+      "key": "cbOcrOnly",
+      "sectionId": "camera",
+      "destination": "OPERATIONS",
+      "layout": "dialog_camera_ocr_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Only OCR (no translation)",
+      "titleRu": "Только распознавание",
+      "titleUk": "Тільки розпізнавання"
+    },
+    {
+      "key": "rowCameraAspect",
+      "sectionId": "camera",
+      "destination": "OPERATIONS",
+      "layout": "dialog_camera_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Aspect ratio",
+      "titleRu": "Соотношение сторон",
+      "titleUk": "Співвідношення сторін"
+    },
+    {
+      "key": "rowCameraGrid",
+      "sectionId": "camera",
+      "destination": "OPERATIONS",
+      "layout": "dialog_camera_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Grid",
+      "titleRu": "Сетка",
+      "titleUk": "Сітка"
+    },
+    {
+      "key": "rowCameraHdr",
+      "sectionId": "camera",
+      "destination": "OPERATIONS",
+      "layout": "dialog_camera_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "HDR",
+      "titleRu": "HDR",
+      "titleUk": "HDR"
+    },
+    {
+      "key": "rowCameraManualSensor",
+      "sectionId": "camera",
+      "destination": "OPERATIONS",
+      "layout": "dialog_camera_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Manual ISO and shutter",
+      "titleRu": "Ручные ISO и выдержка",
+      "titleUk": "Ручні ISO та витримка"
+    },
+    {
+      "key": "rowCameraResolution",
+      "sectionId": "camera",
+      "destination": "OPERATIONS",
+      "layout": "dialog_camera_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Resolution",
+      "titleRu": "Разрешение",
+      "titleUk": "Роздільна здатність"
+    },
+    {
+      "key": "rowCameraTimer",
+      "sectionId": "camera",
+      "destination": "OPERATIONS",
+      "layout": "dialog_camera_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Self-timer",
+      "titleRu": "Таймер",
+      "titleUk": "Таймер"
+    },
+    {
+      "key": "rowCameraWhiteBalance",
+      "sectionId": "camera",
+      "destination": "OPERATIONS",
+      "layout": "dialog_camera_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "White balance",
+      "titleRu": "Баланс белого",
+      "titleUk": "Баланс білого"
+    },
+    {
+      "key": "btnSettingsDefaultPlayerAudio",
+      "sectionId": "defaultApps",
+      "destination": "OPERATIONS",
+      "layout": "dialog_default_apps",
+      "kind": "BUTTON",
+      "titleEn": "Default audio player",
+      "titleRu": "Аудиоплеер по умолчанию",
+      "titleUk": "Аудіоплеєр за замовчуванням"
+    },
+    {
+      "key": "btnSettingsDefaultPlayerDocs",
+      "sectionId": "defaultApps",
+      "destination": "OPERATIONS",
+      "layout": "dialog_default_apps",
+      "kind": "BUTTON",
+      "titleEn": "Default document viewer",
+      "titleRu": "Программа для просмотра документов по умолчанию",
+      "titleUk": "Програма для перегляду документів за замовчуванням"
+    },
+    {
+      "key": "btnSettingsDefaultPlayerImages",
+      "sectionId": "defaultApps",
+      "destination": "OPERATIONS",
+      "layout": "dialog_default_apps",
+      "kind": "BUTTON",
+      "titleEn": "Default image viewer",
+      "titleRu": "Просмотр изображений по умолчанию",
+      "titleUk": "Перегляд зображень за замовчуванням"
+    },
+    {
+      "key": "btnSettingsDefaultPlayerVideo",
+      "sectionId": "defaultApps",
+      "destination": "OPERATIONS",
+      "layout": "dialog_default_apps",
+      "kind": "BUTTON",
+      "titleEn": "Default video player",
+      "titleRu": "Видеоплеер по умолчанию",
+      "titleUk": "Відеоплеєр за замовчуванням"
+    },
+    {
+      "key": "rowAcceptSharedFiles",
+      "sectionId": "defaultApps",
+      "destination": "OPERATIONS",
+      "layout": "dialog_default_apps",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Accept shared files",
+      "titleRu": "Принимать общие файлы",
+      "titleUk": "Приймати спільні файли"
+    },
+    {
+      "key": "rowPrimaryMediaPlayer",
+      "sectionId": "defaultApps",
+      "destination": "OPERATIONS",
+      "layout": "dialog_default_apps",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "System media handler",
+      "titleRu": "Системный обработчик медиа",
+      "titleUk": "Системний обробник медіа"
+    },
+    {
       "key": "btnAddDestination",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -189,6 +329,16 @@
       "titleEn": "Add widget to the Android home screen..",
       "titleRu": "Добавить виджет на домашний экран Android..",
       "titleUk": "Додати віджет на домашній екран Android.."
+    },
+    {
+      "key": "buttonAddLauncherWidget",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Add a widget to the launcher desktop",
+      "titleRu": "Добавить виджет на рабочий стол лаунчера",
+      "titleUk": "Додати віджет на робочий стіл лаунчера"
     },
     {
       "key": "etMaxRecipients",
@@ -1211,6 +1361,16 @@
       "titleUk": "Компактні елементи (глобально)"
     },
     {
+      "key": "rowDebugLogMirror",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Mirror log to opened folder",
+      "titleRu": "Зеркалировать лог в открытую папку",
+      "titleUk": "Дублювати лог у відкриту папку"
+    },
+    {
       "key": "rowDefaultGridMode",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1289,6 +1449,16 @@
       "titleEn": "Hide quick action buttons on thumbnails",
       "titleRu": "Не показывать команды на эскизах",
       "titleUk": "Не показувати команди на ескізах"
+    },
+    {
+      "key": "rowLanguage",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Language/Язык/Мова",
+      "titleRu": "Language/Язык/Мова",
+      "titleUk": "Language/Язык/Мова"
     },
     {
       "key": "rowLauncherModeEnabled",
@@ -1441,14 +1611,244 @@
       "titleUk": "Колірна тема"
     },
     {
-      "key": "spinnerLanguage",
-      "sectionId": "general",
-      "destination": "GENERAL",
-      "layout": "fragment_settings_general",
-      "kind": "DROPDOWN_ROW",
-      "titleEn": "Language/Язык/Мова",
-      "titleRu": "Language/Язык/Мова",
-      "titleUk": "Language/Язык/Мова"
+      "key": "btnEditAppPanel",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "BUTTON",
+      "titleEn": "Edit app panel",
+      "titleRu": "Редакция панели программ",
+      "titleUk": "Редакція панелі програм"
+    },
+    {
+      "key": "btnSelectScreenshotDestination",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "BUTTON",
+      "titleEn": "Select resource..",
+      "titleRu": "Выбрать ресурс..",
+      "titleUk": "Вибрати ресурс.."
+    },
+    {
+      "key": "headerEdgeGestureGeneral",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SECTION_HEADER",
+      "titleEn": "General gesture settings",
+      "titleRu": "Общие настройки жестов",
+      "titleUk": "Загальні налаштування жестів"
+    },
+    {
+      "key": "rowCopyScreenshotToClipboard",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Save screenshots to clipboard",
+      "titleRu": "Сохранять скриншоты в буфер обмена",
+      "titleUk": "Зберігати скриншоти в буфер обміну"
+    },
+    {
+      "key": "rowGestureLeftBottomDown",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Down gesture action",
+      "titleRu": "Действие жеста вниз",
+      "titleUk": "Дія жесту вниз"
+    },
+    {
+      "key": "rowGestureLeftBottomRight",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Right gesture action",
+      "titleRu": "Действие жеста вправо",
+      "titleUk": "Дія жесту праворуч"
+    },
+    {
+      "key": "rowGestureLeftBottomUp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Up gesture action",
+      "titleRu": "Действие жеста вверх",
+      "titleUk": "Дія жесту вгору"
+    },
+    {
+      "key": "rowGestureLeftTopDown",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Down gesture action",
+      "titleRu": "Действие жеста вниз",
+      "titleUk": "Дія жесту вниз"
+    },
+    {
+      "key": "rowGestureLeftTopRight",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Right gesture action",
+      "titleRu": "Действие жеста вправо",
+      "titleUk": "Дія жесту праворуч"
+    },
+    {
+      "key": "rowGestureLeftTopUp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Up gesture action",
+      "titleRu": "Действие жеста вверх",
+      "titleUk": "Дія жесту вгору"
+    },
+    {
+      "key": "rowGestureRightBottomDown",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Down gesture action",
+      "titleRu": "Действие жеста вниз",
+      "titleUk": "Дія жесту вниз"
+    },
+    {
+      "key": "rowGestureRightBottomRight",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Right gesture action",
+      "titleRu": "Действие жеста вправо",
+      "titleUk": "Дія жесту праворуч"
+    },
+    {
+      "key": "rowGestureRightBottomUp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Up gesture action",
+      "titleRu": "Действие жеста вверх",
+      "titleUk": "Дія жесту вгору"
+    },
+    {
+      "key": "rowGestureRightTopDown",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Down gesture action",
+      "titleRu": "Действие жеста вниз",
+      "titleUk": "Дія жесту вниз"
+    },
+    {
+      "key": "rowGestureRightTopRight",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Right gesture action",
+      "titleRu": "Действие жеста вправо",
+      "titleUk": "Дія жесту праворуч"
+    },
+    {
+      "key": "rowGestureRightTopUp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Up gesture action",
+      "titleRu": "Действие жеста вверх",
+      "titleUk": "Дія жесту вгору"
+    },
+    {
+      "key": "rowZoneLeftBottomEnabled",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Left edge - lower band",
+      "titleRu": "Левый край - нижняя полоса",
+      "titleUk": "Лівий край - нижня смуга"
+    },
+    {
+      "key": "rowZoneLeftBottomStripVisible",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show the gesture strip",
+      "titleRu": "Показывать полосу жеста",
+      "titleUk": "Показувати смугу жесту"
+    },
+    {
+      "key": "rowZoneLeftTopEnabled",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Left edge - upper band",
+      "titleRu": "Левый край - верхняя полоса",
+      "titleUk": "Лівий край - верхня смуга"
+    },
+    {
+      "key": "rowZoneLeftTopStripVisible",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show the gesture strip",
+      "titleRu": "Показывать полосу жеста",
+      "titleUk": "Показувати смугу жесту"
+    },
+    {
+      "key": "rowZoneRightBottomEnabled",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Right edge - lower band",
+      "titleRu": "Правый край - нижняя полоса",
+      "titleUk": "Правий край - нижня смуга"
+    },
+    {
+      "key": "rowZoneRightBottomStripVisible",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show the gesture strip",
+      "titleRu": "Показывать полосу жеста",
+      "titleUk": "Показувати смугу жесту"
+    },
+    {
+      "key": "rowZoneRightTopEnabled",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Right edge - upper band",
+      "titleRu": "Правый край - верхняя полоса",
+      "titleUk": "Правий край - верхня смуга"
+    },
+    {
+      "key": "rowZoneRightTopStripVisible",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show the gesture strip",
+      "titleRu": "Показывать полосу жеста",
+      "titleUk": "Показувати смугу жесту"
     },
     {
       "key": "btnSelectMusicSource",
@@ -1529,6 +1929,86 @@
       "titleEn": "Support static images",
       "titleRu": "Поддержка статичных изображений",
       "titleUk": "Підтримка статичних зображень"
+    },
+    {
+      "key": "rowLauncherDensity",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Grid density",
+      "titleRu": "Плотность сетки",
+      "titleUk": "Щільність сітки"
+    },
+    {
+      "key": "rowLauncherLockDesktop",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Lock desktop",
+      "titleRu": "Заблокировать рабочий стол",
+      "titleUk": "Заблокувати робочий стіл"
+    },
+    {
+      "key": "rowLauncherOpenHomeSettings",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "BUTTON",
+      "titleEn": "Change home screen",
+      "titleRu": "Сменить домашний экран",
+      "titleUk": "Змінити домашній екран"
+    },
+    {
+      "key": "rowLauncherReplaceStatusArea",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Replace system status area",
+      "titleRu": "Замещать системную область статуса",
+      "titleUk": "Замінювати системну область статусу"
+    },
+    {
+      "key": "rowLauncherShowPinned",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show pinned apps",
+      "titleRu": "Показывать закреплённые приложения",
+      "titleUk": "Показувати закріплені застосунки"
+    },
+    {
+      "key": "rowLauncherShowRecents",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show recent apps",
+      "titleRu": "Показывать недавние приложения",
+      "titleUk": "Показувати нещодавні застосунки"
+    },
+    {
+      "key": "rowLauncherShowTray",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show clock and status",
+      "titleRu": "Показывать часы и статус",
+      "titleUk": "Показувати годинник і статус"
+    },
+    {
+      "key": "rowLauncherWallpaper",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Desktop wallpaper",
+      "titleRu": "Заставка рабочего стола",
+      "titleUk": "Заставка робочого столу"
     },
     {
       "key": "btnTranslationPrewarmRetry",
@@ -1999,6 +2479,36 @@
       "titleEn": "Ultra-smart stream buffering",
       "titleRu": "Сверхинтеллектуальная буферизация трансляций",
       "titleUk": "Надрозумна буферизація трансляцій"
+    },
+    {
+      "key": "spinnerFontFamily",
+      "sectionId": "translation",
+      "destination": "MEDIA",
+      "layout": "dialog_translation_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Font Family",
+      "titleRu": "Шрифт",
+      "titleUk": "Шрифт"
+    },
+    {
+      "key": "spinnerFontSize",
+      "sectionId": "translation",
+      "destination": "MEDIA",
+      "layout": "dialog_translation_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Font Size",
+      "titleRu": "Размер шрифта",
+      "titleUk": "Розмір шрифту"
+    },
+    {
+      "key": "switchLensStyle",
+      "sectionId": "translation",
+      "destination": "MEDIA",
+      "layout": "dialog_translation_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Translation result in blocks",
+      "titleRu": "Результат перевода в блоках",
+      "titleUk": "Результат перекладу в блоках"
     },
     {
       "key": "btnClearSnapshotResource",

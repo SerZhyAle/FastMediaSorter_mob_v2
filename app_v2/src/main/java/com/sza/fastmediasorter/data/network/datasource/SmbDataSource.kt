@@ -62,6 +62,11 @@ class SmbDataSource(
         // a 64 KB chunk comfortably while still surfacing a silent-drop hang promptly.
         private const val READ_WATCHDOG_TIMEOUT_MS = 15_000L
 
+        // S1295: IdleDisconnectPolicy expires SMB transports after 30 s and a PLAYER pool entry is
+        // never marked in-use, so a long playback read stream used to be torn down mid-film.
+        // Refresh the timer from the active DataSource, same heartbeat the SFTP path uses.
+        private const val PLAYBACK_IDLE_HEARTBEAT_MS = 15_000L
+
         // Daemon executor shared across SmbDataSource instances - cheap to keep alive
         // and avoids spawning a thread per DataSource construction. Used for both open()
         // and read() watchdog wrappers; a cached pool reuses idle threads for each read.
@@ -106,6 +111,7 @@ class SmbDataSource(
     private var opened = false
     private var totalBytesRead = 0L
     private var nextLogThresholdBytes = CHUNK_LOG_BYTES
+    private var lastPlaybackTouchMs = 0L
     
     // Internal buffer for reading larger SMB chunks than ExoPlayer requests
     private var internalBuffer = ByteArray(DEFAULT_BUFFER_SIZE)
@@ -314,7 +320,7 @@ class SmbDataSource(
         // and throw IOException so ExoPlayer surfaces onPlayerError instead of spinning.
         val future: Future<Int> = smbWatchdogExecutor.submit(Callable { readInternal(buffer, offset, length) })
         return try {
-            future.get(READ_WATCHDOG_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            future.get(READ_WATCHDOG_TIMEOUT_MS, TimeUnit.MILLISECONDS).also { maybeTouchPlaybackTransport() }
         } catch (te: TimeoutException) {
             val key = connectionKey()
             smbClient.playbackConnectionTracker.recordWatchdog(key, uri?.toString().orEmpty())
@@ -337,6 +343,19 @@ class SmbDataSource(
             Thread.currentThread().interrupt()
             future.cancel(true)
             throw IOException("SMB read interrupted", ie)
+        }
+    }
+
+    /** S1295: keep the live playback transport out of the idle-disconnect sweep, throttled. */
+    private fun maybeTouchPlaybackTransport() {
+        val now = System.currentTimeMillis()
+        if (now - lastPlaybackTouchMs < PLAYBACK_IDLE_HEARTBEAT_MS) return
+        lastPlaybackTouchMs = now
+        try {
+            smbClient.connectionManager.touchPlaybackTransport(connectionInfo)
+        } catch (e: Exception) {
+            // A heartbeat failure must never break the read that just succeeded.
+            Timber.w(e, "SmbDataSource: playback heartbeat failed")
         }
     }
 

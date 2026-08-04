@@ -1,6 +1,5 @@
 ---
 description: "Use when the user wants brief, filler-free responses - caveman mode. Triggers: '/caveman', 'be brief'. Keeps RU chat and EN code, drops filler."
-model: sonnet
 ---
 
 # Caveman Mode

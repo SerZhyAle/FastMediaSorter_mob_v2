@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.DialogFragment
-import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import androidx.fragment.app.setFragmentResult
 import com.google.android.material.chip.Chip
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
@@ -15,12 +15,18 @@ import com.sza.fastmediasorter.databinding.DialogFilterResourceBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 /**
  * Dialog for filtering and sorting resources on Main Screen
  * According to V2 Specification: "Filter and Sort Resource List Screen"
+ *
+ * Both directions travel through Bundles - starting values through [newInstance] arguments, the
+ * applied filter through a FragmentResult keyed by [RESULT_KEY]. The FragmentManager rebuilds a
+ * restored dialog with the no-arg constructor, so inputs assigned onto fields by the caller, and a
+ * caller-held apply callback, are both gone once the host is recreated.
  */
 @AndroidEntryPoint
 class FilterResourceDialog : DialogFragment() {
@@ -32,12 +38,31 @@ class FilterResourceDialog : DialogFragment() {
     private var _binding: DialogFilterResourceBinding? = null
     private val binding get() = _binding!!
 
-    private var currentSortMode: SortMode = SortMode.NAME_ASC
+    private var currentSortMode: SortMode = SortMode.MANUAL
     private var selectedResourceTypes = mutableSetOf<ResourceType>()
     private var selectedMediaTypes = mutableSetOf<MediaType>()
     private var nameFilter: String = ""
 
-    private var onApplyListener: ((SortMode, Set<ResourceType>?, Set<MediaType>?, String?) -> Unit)? = null
+    private var requestKey: String = RESULT_KEY
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val args = requireArguments()
+        currentSortMode = args.getString(ARG_SORT_MODE)
+            ?.let { name -> runCatching { enumValueOf<SortMode>(name) }.getOrNull() }
+            ?: SortMode.MANUAL
+        selectedResourceTypes = args.toEnumSet(ARG_RESOURCE_TYPES)
+        selectedMediaTypes = args.toEnumSet(ARG_MEDIA_TYPES)
+        nameFilter = args.getString(ARG_NAME_FILTER).orEmpty()
+        requestKey = args.getString(ARG_REQUEST_KEY) ?: RESULT_KEY
+    }
+
+    // Enums cross the Bundle as names, so a Bundle written before an app update can still name a
+    // constant that no longer exists - an unknown name is dropped rather than thrown.
+    private inline fun <reified T : Enum<T>> Bundle.toEnumSet(key: String): MutableSet<T> =
+        getStringArrayList(key).orEmpty().mapNotNullTo(mutableSetOf()) { name ->
+            runCatching { enumValueOf<T>(name) }.getOrNull()
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -109,7 +134,7 @@ class FilterResourceDialog : DialogFragment() {
 
     private fun setupResourceTypeChips() {
         binding.chipGroupResourceType.removeAllViews()
-        
+
         // S0391: chips reflect the availability node (compile support AND user toggle), not just flavor.
         // HTTP_STREAM/RTSP_STREAM excluded: no UI entry point creates a resource of these types
         // (AddResourceActivity only offers LOCAL/SMB/SFTP/FTP/CLOUD), so a filter chip for them
@@ -123,7 +148,7 @@ class FilterResourceDialog : DialogFragment() {
                     ?.let { remoteSourceGate.isEnabled(it) } ?: true
             }
         }
-        
+
         allowedResourceTypes.forEach { type ->
             val chip = Chip(requireContext()).apply {
                 text = type.name.replace("_", " ")
@@ -143,7 +168,7 @@ class FilterResourceDialog : DialogFragment() {
 
     private fun setupMediaTypeChips() {
         binding.chipGroupMediaType.removeAllViews()
-        
+
         // Filter media types based on product flavor
         val allowedMediaTypes = MediaType.values().filter { type ->
             when (type) {
@@ -158,7 +183,7 @@ class FilterResourceDialog : DialogFragment() {
                 MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> false
             }
         }
-        
+
         allowedMediaTypes.forEach { type ->
             val chip = Chip(requireContext()).apply {
                 text = when (type) {
@@ -190,11 +215,13 @@ class FilterResourceDialog : DialogFragment() {
     }
 
     private fun applyFilters() {
-        val resourceTypes = if (selectedResourceTypes.isEmpty()) null else selectedResourceTypes.toSet()
-        val mediaTypes = if (selectedMediaTypes.isEmpty()) null else selectedMediaTypes.toSet()
-        val name = nameFilter.takeIf { it.isNotBlank() }
-        
-        onApplyListener?.invoke(currentSortMode, resourceTypes, mediaTypes, name)
+        val result = Bundle().apply {
+            putString(RESULT_SORT_MODE, currentSortMode.name)
+            putStringArrayList(RESULT_RESOURCE_TYPES, selectedResourceTypes.namesOrNull())
+            putStringArrayList(RESULT_MEDIA_TYPES, selectedMediaTypes.namesOrNull())
+            putString(RESULT_NAME_FILTER, nameFilter.takeIf { it.isNotBlank() })
+        }
+        setFragmentResult(requestKey, result)
         dismiss()
     }
 
@@ -203,10 +230,10 @@ class FilterResourceDialog : DialogFragment() {
         selectedResourceTypes.clear()
         selectedMediaTypes.clear()
         nameFilter = ""
-        
+
         binding.spinnerSort.setSelection(0) // MANUAL is first
         binding.etNameFilter.text?.clear()
-        
+
         setupResourceTypeChips()
         setupMediaTypeChips()
     }
@@ -222,20 +249,37 @@ class FilterResourceDialog : DialogFragment() {
     }
 
     companion object {
+        const val RESULT_KEY = "filter_resource_result"
+        const val RESULT_SORT_MODE = "result_sort_mode"
+        const val RESULT_RESOURCE_TYPES = "result_resource_types"
+        const val RESULT_MEDIA_TYPES = "result_media_types"
+        const val RESULT_NAME_FILTER = "result_name_filter"
+
+        private const val ARG_SORT_MODE = "arg_sort_mode"
+        private const val ARG_RESOURCE_TYPES = "arg_resource_types"
+        private const val ARG_MEDIA_TYPES = "arg_media_types"
+        private const val ARG_NAME_FILTER = "arg_name_filter"
+        private const val ARG_REQUEST_KEY = "arg_request_key"
+
         fun newInstance(
             sortMode: SortMode = SortMode.MANUAL,
             resourceTypes: Set<ResourceType>? = null,
             mediaTypes: Set<MediaType>? = null,
             nameFilter: String? = null,
-            onApply: (SortMode, Set<ResourceType>?, Set<MediaType>?, String?) -> Unit
+            requestKey: String = RESULT_KEY
         ): FilterResourceDialog {
-            return FilterResourceDialog().apply {
-                this.currentSortMode = sortMode
-                this.selectedResourceTypes = resourceTypes?.toMutableSet() ?: mutableSetOf()
-                this.selectedMediaTypes = mediaTypes?.toMutableSet() ?: mutableSetOf()
-                this.nameFilter = nameFilter ?: ""
-                this.onApplyListener = onApply
+            val args = Bundle().apply {
+                putString(ARG_SORT_MODE, sortMode.name)
+                putStringArrayList(ARG_RESOURCE_TYPES, resourceTypes.namesOrNull())
+                putStringArrayList(ARG_MEDIA_TYPES, mediaTypes.namesOrNull())
+                putString(ARG_NAME_FILTER, nameFilter)
+                putString(ARG_REQUEST_KEY, requestKey)
             }
+            return FilterResourceDialog().apply { arguments = args }
         }
     }
 }
+
+// Absent, not empty: an empty selection reads as "no filter" to the form and to the host.
+private fun <T : Enum<T>> Set<T>?.namesOrNull(): ArrayList<String>? =
+    if (isNullOrEmpty()) null else mapTo(ArrayList<String>(size)) { it.name }

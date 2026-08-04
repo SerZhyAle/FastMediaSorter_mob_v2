@@ -18,11 +18,14 @@ import java.util.Locale
 /**
  * Generates and verifies `docs/settings/settings-manifest.json` (S0440).
  *
- * The manifest is produced by the SAME scan the app ships (`LayoutSettingsSearchSource` +
- * `SettingsSearchTabMapping`), so it cannot drift from the in-app settings index. Titles are
- * resolved per locale exactly as `LocalizedKeywordCollector` does (configuration-context per tag).
- * Only structure + trilingual titles are captured here; per-flavor availability is rendered later
- * from the availability modules, and human descriptions live in the annotations sidecar.
+ * The manifest covers two disjoint catalogs. The navigable-search scope is produced by the SAME
+ * scan the app ships (`LayoutSettingsSearchSource` + `SettingsSearchTabMapping`), so it cannot
+ * drift from the in-app settings index. The documentation-only scope (S1313) additionally walks
+ * `SettingsDocScopeCatalog` - dialog-hosted settings that must be published but must NOT become
+ * part of the in-app search index (S1035 §6.6). Titles are resolved per locale exactly as
+ * `LocalizedKeywordCollector` does (configuration-context per tag). Only structure + trilingual
+ * titles are captured here; per-flavor availability is rendered later from the availability
+ * modules, and human descriptions live in the annotations sidecar.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -56,6 +59,27 @@ class SettingsManifestExportTest {
                 titleRu = titles.getValue("ru"),
                 titleUk = titles.getValue("uk")
             )
+        }
+        // S1313: documentation-only scope - dialog-hosted settings published to the reference but
+        // deliberately excluded from the in-app search index (S1035 §6.6). Scanned one layout at a
+        // time so each surface's own sectionId/destination applies, not the search-scope mapping.
+        for (surface in SettingsDocScopeCatalog.surfaces) {
+            for (raw in source.collect(listOf(surface.layoutResId))) {
+                val titles = SupportedSearchLocales.tags.associateWith { tag ->
+                    resolveTitle(raw, localizedResources.getValue(tag))
+                }
+                if (titles.values.all { it.isBlank() }) continue
+                entries += SettingsManifestEntry(
+                    key = resourceName(raw.viewId, "viewId_${raw.viewId}"),
+                    sectionId = surface.sectionId,
+                    destination = surface.destination.name,
+                    layout = resourceName(raw.layoutResId, "layout_${raw.layoutResId}"),
+                    kind = raw.kind.name,
+                    titleEn = titles.getValue("en"),
+                    titleRu = titles.getValue("ru"),
+                    titleUk = titles.getValue("uk")
+                )
+            }
         }
         return entries
     }

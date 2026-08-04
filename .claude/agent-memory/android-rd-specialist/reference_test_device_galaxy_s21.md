@@ -1,14 +1,15 @@
 ---
 name: test-device-galaxy-s21
-description: Owner's physical Android test devices - S21+ (SM-G996U1) is blanket-authorized, S20 FE (SM-G781B) is a working phone lent per-test; check the serial before acting
+description: Owner's physical Android devices - S21+ (SM-G996U1) blanket-authorized test device, S20 FE lent per-test, personal phone is Galaxy S25 FE (2026-07-28); check the serial before acting
 metadata:
   type: reference
 ---
 
-**Two different phones appear, and they carry different permissions. Read the serial first.**
+**Different phones appear, and they carry different permissions. Read the serial first.**
 
 - **SM-G996U1 / RFCR110NBQJ - Galaxy S21+, Android 15.** Dedicated test device, blanket "do anything" authorization (details below).
-- **SM-G781B / RFCRA133MXB - Galaxy S20 FE, Android 13 (SDK 33), 1080x2400.** The owner's **working phone**, attached 2026-07-26 for one specific ticket. No blanket authorization: it carries his Telegram, his launcher layout, his lock screen (secure - adb cannot unlock it, ask him). Treat every change as borrowed: restore what you touch, and never grant a system role or change a default app on it. See [[never-grant-system-roles-on-owner-phone]].
+- **SM-G781B / RFCRA133MXB - Galaxy S20 FE, Android 13 (SDK 33), 1080x2400.** A **working phone** of the owner, attached 2026-07-26 for one specific ticket. No blanket authorization: it carries his Telegram, his launcher layout, his lock screen (secure - adb cannot unlock it, ask him). Treat every change as borrowed: restore what you touch, and never grant a system role or change a default app on it. See [[never-grant-system-roles-on-owner-phone]].
+- **Galaxy S25 FE - the owner's personal phone as of 2026-07-28** (stated in chat for S1261: sub-1x zoom values missing there; never attached over adb so far). Multi-lens Samsung, system camera offers 0.5x. Same borrowed-phone caution as the S20 FE if it ever appears on adb; camera tickets S1260/S1261/S1262 are acceptance-tested on it by the owner himself.
 
 The owner has a dedicated physical test device for FastMediaSorter and authorized doing ANYTHING on it (install/uninstall, grant any permission incl. All-Files-Access + draw-over-apps, change settings, screen-capture, factory-style resets of app data). Confirmed 2026-06-27. **That authorization is device-specific - it does not transfer to whatever phone happens to be plugged in.**
 

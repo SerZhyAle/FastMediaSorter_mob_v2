@@ -7,7 +7,7 @@ metadata:
 
 Play device-reach dropped 20,468 -> 17,510 (-2,958) between bundles 2.60.6222 and 2.60.7031. Root cause (S0918): `CameraCaptureActivity` (S0754) declares `android:screenOrientation="portrait"`, so Android implies `android.hardware.screen.portrait` as **required=true**, and Play filters out every landscape-only device (TVs, some tablets/auto displays). Fixed by declaring both `android.hardware.screen.portrait` and `.landscape` as `required="false"` in `app_v2/src/main/AndroidManifest.xml` (portrait lock kept - it is intentional UX).
 
-**Why:** Any activity that locks `screenOrientation` to a portrait/landscape value silently re-introduces an implied required `android.hardware.screen.*` feature and shrinks Play device reach. All our explicit `<uses-feature>` are already `required="false"`; only implied ones bite. Ties to the release gate [[feedback_release_no_coverage_regression]].
+**Why:** Any activity that locks `screenOrientation` to a portrait/landscape value silently re-introduces an implied required `android.hardware.screen.*` feature and shrinks Play device reach. All our explicit `<uses-feature>` are already `required="false"`; only implied ones bite. Ties to the release gate [[release-no-coverage-regression-gate]].
 
 **How to apply:**
 - Diagnostic playbook for "Play shows fewer supported devices": dump the shipped AAB's implied features locally, do not guess.

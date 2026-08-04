@@ -17,5 +17,5 @@ The app fetches its stream catalog from GitHub release **`delivery-so-v1`**, ass
 
 **How to apply:**
 - `gh` CLI is at `C:\Program Files\GitHub CLI\gh.exe`, authed as `SerZhyAle` (scope `repo`) - resolves in **pwsh, NOT the Git-Bash PATH**. Run publish from the PowerShell tool, not Bash. (Verify auth still valid: `gh auth status`; a token can expire.)
-- The zip MUST keep `streams.csv` as entry 0 (packed before the atlas) so already-installed OLD apps read the CSV without streaming the whole atlas; atlas stays < 3 MB (`-MaxAtlasBytes`) to fit the 30 s import callTimeout. Backward-compat is load-bearing - see [[feedback_third_party_branding_not_a_blocker]] and the S0668 spec.
-- Typical run is long (favicon fetch over ~1900 homepages); run in background and validate the log tail, not the trailing echo exit code (see [[feedback_background_task_exit_code_is_echo]]).
+- The zip MUST keep `streams.csv` as entry 0 (packed before the atlas) so already-installed OLD apps read the CSV without streaming the whole atlas; atlas stays < 3 MB (`-MaxAtlasBytes`) to fit the 30 s import callTimeout. Backward-compat is load-bearing - see [[third-party-branding-not-a-blocker]] and the S0668 spec.
+- Typical run is long (favicon fetch over ~1900 homepages); run in background and validate the log tail, not the trailing echo exit code (see [[background-task-exit-code-is-echo]]).

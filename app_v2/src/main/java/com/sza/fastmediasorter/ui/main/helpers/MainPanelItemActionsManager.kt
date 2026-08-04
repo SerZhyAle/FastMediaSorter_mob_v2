@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.streams.StreamTitleFormatter
 import kotlinx.coroutines.launch
@@ -27,7 +26,8 @@ import java.util.UUID
 class MainPanelItemActionsManager(
     private val activity: AppCompatActivity,
     private val settingsRepository: SettingsRepository,
-    private val unpinStreamSource: UnpinStreamSourceUseCase,
+    // S1195: an operation rather than the use case, so the host Activity routes it through its ViewModel.
+    private val unpinStreamSource: (id: String) -> Unit,
     private val currentSettings: () -> AppSettings?,
     private val resourceVrCinema: ResourceVrCinemaLaunchManager,
 ) {
@@ -111,7 +111,7 @@ class MainPanelItemActionsManager(
             .setTitle(R.string.panel_remove_title)
             .setMessage(activity.getString(R.string.panel_remove_channel_message, name))
             .setPositiveButton(R.string.remove_action) { _, _ ->
-                activity.lifecycleScope.launch { unpinStreamSource(channel.id) }
+                unpinStreamSource(channel.id)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

@@ -3,12 +3,15 @@ package com.sza.fastmediasorter.domain.usecase.launcher
 import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
+import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
+import com.sza.fastmediasorter.domain.model.launcher.LauncherContactTarget
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.util.getApplicationInfoCompat
@@ -33,22 +36,36 @@ class LauncherCommandVisual(
     val iconDrawable: Drawable? = null,
     /** Stable identity of a Drawable-backed icon (the package it came from); null for [iconRes]. */
     private val iconKey: String? = null,
+    /**
+     * S1176: set when the cell stands for a person, and the string that decides which colour they get.
+     * The binder then draws their initials instead of a glyph. Its own field rather than inferring from
+     * a null icon, which is also true for an app whose icon could not be loaded.
+     */
+    val monogramSeed: String? = null,
+    /**
+     * What a screen reader says instead of the bare [label]. Built where the command's meaning is known,
+     * because a cell that only speaks a person's name never says what tapping it will do.
+     */
+    val spokenLabel: String? = null,
 ) {
 
     /** A user-set caption over the same icon. */
     fun withLabel(newLabel: String): LauncherCommandVisual =
-        LauncherCommandVisual(newLabel, iconRes, iconDrawable, iconKey)
+        LauncherCommandVisual(newLabel, iconRes, iconDrawable, iconKey, monogramSeed, spokenLabel)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         val that = other as? LauncherCommandVisual ?: return false
-        return label == that.label && iconRes == that.iconRes && iconKey == that.iconKey
+        return label == that.label && iconRes == that.iconRes && iconKey == that.iconKey &&
+            monogramSeed == that.monogramSeed && spokenLabel == that.spokenLabel
     }
 
     override fun hashCode(): Int {
         var result = label.hashCode()
         result = HASH_MULTIPLIER * result + (iconRes ?: 0)
         result = HASH_MULTIPLIER * result + (iconKey?.hashCode() ?: 0)
+        result = HASH_MULTIPLIER * result + (monogramSeed?.hashCode() ?: 0)
+        result = HASH_MULTIPLIER * result + (spokenLabel?.hashCode() ?: 0)
         return result
     }
 
@@ -80,8 +97,57 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
                 is LauncherCellCommand.Stream -> streamVisual(command.streamId)
                 is LauncherCellCommand.OsShortcut -> osVisual(command.targetKey)
                 is LauncherCellCommand.ScheduledOp -> scheduledOpVisual(command.operationId)
+                // S1170: a favourite file is produced by a gadget row tap, never stored in a cell's
+                // target, so nothing asks the grid to draw it. Answering with the file's own name still
+                // costs nothing and keeps the resolver total, which is what makes this `when` a
+                // compile-time check that a new command kind was considered everywhere.
+                is LauncherCellCommand.FavoriteFile -> favoriteFileVisual(command.filePath)
+                // S1176: the only command that already carries its own label. The snapshot IS the
+                // answer - re-deriving one would mean reading the address book, which is exactly the
+                // permission this feature exists to avoid (ADR-1).
+                is LauncherCellCommand.Contact -> contactVisual(command.target)
             }
         }
+
+    /**
+     * `iconRes` is null on purpose, exactly as it is for an installed app: the picture belongs to the
+     * person, and the cell binder draws their photo or a monogram (Phase 03). A generic glyph here would
+     * win the race and every contact would look alike.
+     *
+     * A contact with no name is real - a number-only record - so it falls back to the number, and only
+     * then to a generic caption. The label is never empty, because it is the only thing that tells two
+     * monograms apart.
+     */
+    private fun contactVisual(target: LauncherContactTarget): LauncherCommandVisual? {
+        if (!target.isUsable) return null
+        val label = target.displayName
+            .ifBlank { target.phoneNumber }
+            .ifBlank { context.getString(R.string.launcher_contact_cell_unnamed) }
+        return LauncherCommandVisual(
+            label = label,
+            iconRes = null,
+            // The lookup key first: it survives the person being renamed, so their colour does too.
+            monogramSeed = target.lookupKey.ifBlank { target.phoneNumber }.ifBlank { label },
+            spokenLabel = context.getString(spokenLabelRes(target.action), label),
+        )
+    }
+
+    /**
+     * "Call: Ivan", not "Call Ivan". Russian and Ukrainian would need the name in the dative here, and
+     * nothing can decline an arbitrary contact name - so every locale gets a form that stays correct
+     * whatever the name is, rather than one that reads well only in English.
+     */
+    @StringRes
+    private fun spokenLabelRes(action: LauncherContactAction): Int = when (action) {
+        LauncherContactAction.PROFILE -> R.string.launcher_contact_a11y_profile
+        LauncherContactAction.DIAL -> R.string.launcher_contact_a11y_dial
+        LauncherContactAction.MESSAGE -> R.string.launcher_contact_a11y_message
+    }
+
+    private fun favoriteFileVisual(filePath: String): LauncherCommandVisual = LauncherCommandVisual(
+        label = filePath.substringAfterLast('/').ifEmpty { filePath },
+        iconRes = R.drawable.ic_widget_favorites,
+    )
 
     private suspend fun scheduledOpVisual(operationId: Long): LauncherCommandVisual? {
         val operation = scheduledOperationRepository.getById(operationId) ?: return null

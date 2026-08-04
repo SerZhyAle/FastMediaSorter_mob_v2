@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Layout for SettingsDropdownRow compound view.
-  Title + inline helper, then a Material exposed dropdown (TextInputLayout + AutoCompleteTextView).
+  Title + inline helper, then a Material outlined field (TextInputLayout + read-only TextInputEditText)
+  that opens the row's own modal option list.
   Replaces raw <Spinner> usage in settings and dialog surfaces (S0567, ADR-1).
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
@@ -41,17 +42,30 @@
 
     </LinearLayout>
 
+    <!--
+      S1390: a custom end icon instead of the ExposedDropdownMenu style, because that style hands the
+      click to AutoCompleteTextView.showDropDown() and its non-modal popup is unreachable by D-pad and
+      invisible to accessibility. The row opens a modal ListPopupWindow itself.
+    -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/sdr_inputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        app:endIconContentDescription="@string/select"
+        app:endIconDrawable="@drawable/ic_arrow_drop_down"
+        app:endIconMode="custom">
 
-        <AutoCompleteTextView
-            android:id="@+id/sdr_autocomplete"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/sdr_value"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clickable="true"
+            android:cursorVisible="false"
+            android:focusable="true"
+            android:focusableInTouchMode="false"
             android:inputType="none"
+            android:longClickable="false"
             android:textSize="@dimen/toggler_title_text_size" />
 
     </com.google.android.material.textfield.TextInputLayout>

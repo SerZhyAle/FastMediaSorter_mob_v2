@@ -34,6 +34,10 @@ class FakeFavoritesRepository : FavoritesRepository {
 
     override fun getAllFavorites(): Flow<List<FavoritesEntity>> = favoritesFlow
 
+    /** Same file-only slice the real query applies, so a seeded STREAM row is filtered here too. */
+    override fun getFileFavorites(): Flow<List<FavoritesEntity>> =
+        favoritesFlow.map { list -> list.filter { it.kind == FavoritesEntity.KIND_FILE } }
+
     override fun isFavorite(uri: String): Flow<Boolean> =
         favoritesFlow.map { list -> list.any { it.uri == uri } }
 

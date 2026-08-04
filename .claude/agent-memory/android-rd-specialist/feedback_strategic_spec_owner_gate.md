@@ -46,4 +46,4 @@ For pure documentation / refactor / rename specs that match no scope tag, §3.3 
 - A bullet whose value is `n/a - <reason>` counts as filled. Use it sparingly - if `n/a` appears, the bullet was probably not relevant in the first place and should not have been emitted.
 - Manual `update.ps1 -Status Approved` calls outside `/spec` still hit the gate; emit §3.3 manually using the same emission table if the spec was authored without going through `/spec`.
 
-**Related memories:** [[scaffolding-as-done]] - same family of failures motivated the original gate.
+**Related memories:** [[no-scaffolding-as-done]] - same family of failures motivated the original gate.

@@ -35,7 +35,7 @@ dev/CATALOG/scripts/generate-role-drafts.ps1
 ```
 dev/CATALOG/scripts/query.ps1
   Params:
-    -Module         (req)  [String]
+    -Module                [String] = 'app_v2'  {app_v2|wear}
     -Layer                 [String]
     -Status                [String]  {new|tested|legacy|todo|unknown}
     -SideEffect            [String]  {db|network|disk|prefs}
@@ -43,7 +43,9 @@ dev/CATALOG/scripts/query.ps1
     -MaxLoc                [Int32]
     -ClassMatches          [String]
     -PathMatches           [String]
-    -Search                [String]
+    -Sector                [String]
+    -Sectors               [SwitchParameter]
+    -Query                 [String]
     -Injected              [String]
     -DependsOn             [String]
     -Missing               [String]  {role|description}
@@ -54,7 +56,8 @@ dev/CATALOG/scripts/query.ps1
     -TouchedSince          [String]
     -TouchedBefore         [String]
     -Json                  [SwitchParameter]
-  Exit: 0 - success.
+    -Help                  [SwitchParameter]
+  Exit: 0 - success.; 2 - unknown -Sector name, or dev/CATALOG/sectors.json is missing or malformed.
 ```
 
 ### remove.ps1
@@ -143,16 +146,18 @@ scripts/catalog_sync.ps1
   Params:
     -Module        (req)  [String]  {app_v2|wear}
     -ChangedFiles         [String[]]
+    -Force                [SwitchParameter]
 ```
 
 ### check_device_profile_presets.ps1
-Consistency guard for the device-profile preset matrix CSV (S0327).
 
 ```
 scripts/check_device_profile_presets.ps1
-  Consistency guard for the device-profile preset matrix CSV (S0327).
   Params:
     -AddMissing         [SwitchParameter]
+    -Gate               [SwitchParameter]
+    -Quiet              [SwitchParameter]
+  Exit: 0 OK - every rule above holds, or -AddMissing completed.; 1 INCONSISTENT - at least one rule is violated, or a required input is missing/unparseable.
 ```
 
 ### check_docs_freshness.ps1
@@ -165,15 +170,17 @@ scripts/check_docs_freshness.ps1
 ```
 
 ### check_strings_localized.ps1
-Checks that string keys matching a prefix exist in all locale files (EN/RU/UK).
+Checks that string keys exist in every declared locale, at two levels of strictness.
 
 ```
 scripts/check_strings_localized.ps1
-  Checks that string keys matching a prefix exist in all locale files (EN/RU/UK).
+  Checks that string keys exist in every declared locale, at two levels of strictness.
   Params:
-    -KeyPrefix  (req)  [String]
-    -Module            [String] = "app_v2"
-    -SourceSet         [String] = "main"
+    -KeyPrefix             [String]
+    -Module                [String] = "app_v2"
+    -SourceSet             [String] = "main"
+    -AllSourceSets         [SwitchParameter]
+  Exit: 0 - every key present in en/ru/uk (gaps in the other declared locales are reported only).; 1 - at least one key missing from en, ru or uk, or the resource directory does not exist.; 3 - an explicitly given -KeyPrefix matched no keys in any audited source set. Silent success
 ```
 
 ### check-doc-vs-gradle.ps1
@@ -216,6 +223,7 @@ scripts/log-ai-request.ps1
 scripts/post-change.ps1
   Params:
     -File         (req)  [String]
+    -Files        (req)  [String[]]
     -Target       (req)  [String]
     -Description  (req)  [String]
     -ChangeType          [String]  {Doc|Script|Config|Kotlin|Xml|Mixed}
@@ -223,6 +231,8 @@ scripts/post-change.ps1
     -KeyPrefix           [String]
     -SkipScan            [SwitchParameter]
     -ScopeToFile         [SwitchParameter]
+    -RegistryAck         [String[]]
+  Exit: 0 every gate that ran passed. The verdict line reads either
 ```
 
 ### test-compatibility.ps1
@@ -613,6 +623,16 @@ scripts/builders/build-wear-release.PS1
   (no param block)
 ```
 
+### check-lint-rules.ps1
+
+```
+scripts/builders/check-lint-rules.ps1
+  Params:
+    -Tests         [String]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - the suite ran and passed.; 2 - the run reported success but produced no test-result XML, so nothing was actually
+```
+
 ### check-standard-fast.ps1
 
 ```
@@ -712,7 +732,8 @@ scripts/devtest/device-ready.ps1
     -ExpectedVersion         [String]
     -CheckMcp                [SwitchParameter]
     -Json                    [SwitchParameter]
-  Exit: 0 - device ready (also writes "OK ..." human line; with -Json writes machine JSON); 1 - ADB executable not found; 2 - no online device; 3 - multiple online devices and -DeviceId not supplied; 4 - target package not installed; 5 - installed versionName mismatch; 6 - mobile-mcp launcher not resolvable
+    -StrictExit              [SwitchParameter]
+  Exit: 0 - state determined and reported: ready, or not-ready with a `state`/`reason`; 2 - the probe itself could not run
 ```
 
 ### maestro-run.ps1
@@ -794,6 +815,32 @@ scripts/devtest/prerelease-verdict.ps1
     -FromTs                 [String]
     -Json                   [SwitchParameter]
   Exit: 0 - PASS; 1 - content FAIL (log / perf / maestro); 2 - infrastructure abort (LogFile missing / inputs unreadable)
+```
+
+## scripts\devtest\adb-log-filter.tests
+
+### Run-Tests.ps1
+
+```
+scripts/devtest/adb-log-filter.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 - every case passed; 1 - at least one case failed
+```
+
+## scripts\devtest\lib
+
+### adb-log-filter.ps1
+
+```
+scripts/devtest/lib/adb-log-filter.ps1
+  (no param block)
+```
+
+### find-adb.ps1
+
+```
+scripts/devtest/lib/find-adb.ps1
+  (no param block)
 ```
 
 ## scripts\doc-drift
@@ -904,6 +951,16 @@ scripts/doc-drift.tests/Test-Helpers.ps1
   (no param block)
 ```
 
+## scripts\doc-drift\tests
+
+### Run-Tests.ps1
+
+```
+scripts/doc-drift/tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 = all scenarios passed; 1 = one or more scenarios failed
+```
+
 ## scripts\docs
 
 ### apply-doc-icons.ps1
@@ -947,6 +1004,23 @@ scripts/docs/export-icon-svgs.ps1
   S0815 Phase 2 - export app VectorDrawable icons to lightweight web SVGs.
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+```
+
+### generate-flavor-matrix.ps1
+S1392 - flavor capability matrix generator (single source of truth renderer).
+
+```
+scripts/docs/generate-flavor-matrix.ps1
+  S1392 - flavor capability matrix generator (single source of truth renderer).
+  Params:
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -GradleFile             [String]
+    -Json                   [String]
+    -Markdown               [String]
+    -MinFlavorCount         [Int32] = 6
+    -Check                  [SwitchParameter]
+    -Quiet                  [SwitchParameter]
+  Exit: 0 artifacts written, or -Check found them current; 1 -Check found drift (regenerate without -Check); 2 could not verify: build file missing, productFlavors block not found,
 ```
 
 ### render-icon-legend.ps1
@@ -1022,11 +1096,13 @@ Query the document registry by text, product area, trigger, or publication state
 scripts/document_registry/query.ps1
   Query the document registry by text, product area, trigger, or publication state.
   Params:
-    -Text                [String]
+    -Query               [String]
     -ProductArea         [String]
     -Trigger             [String]
     -Publication         [String] = 'any'  {any|public|internal}
     -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Help                [SwitchParameter]
+  Exit: 2 = invalid invocation / registry unreadable.
 ```
 
 ### validate.ps1
@@ -1230,6 +1306,22 @@ scripts/layout-dimen-migration/sort-resources-semantic.ps1
     -NoComments          [SwitchParameter] = $true
 ```
 
+## scripts\metrics
+
+### agent-cost-report.ps1
+Operator entry point for the agent-process cost measurement.
+
+```
+scripts/metrics/agent-cost-report.ps1
+  Operator entry point for the agent-process cost measurement.
+  Params:
+    -Since                  [String]
+    -Until                  [String]
+    -TranscriptRoot         [String]
+    -OutputPath             [String]
+    -Json                   [SwitchParameter]
+```
+
 ## scripts\quality
 
 ### assert-16kb-alignment.ps1
@@ -1240,6 +1332,7 @@ scripts/quality/assert-16kb-alignment.ps1
     -ScanRoot         [String[]]
     -Readelf          [String]
     -MinAlign         [Int32] = 16384
+    -Gate             [SwitchParameter]
   Exit: 0 - all checked 64-bit .so have every LOAD segment aligned >= 16 KB, OR nothing
 ```
 
@@ -1265,15 +1358,42 @@ scripts/quality/assert-deprecated-pm-flags.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-detekt-baseline-absorption.ps1
+
+```
+scripts/quality/assert-detekt-baseline-absorption.ps1
+  Params:
+    -Module               [String]  {app_v2|wear}
+    -Gate                 [SwitchParameter]
+    -Update               [SwitchParameter]
+    -Reason               [String]
+    -MaxListed            [Int32] = 50
+    -BaselineFile         [String]
+    -SnapshotFile         [String]
+    -Json                 [String]
+  Exit: 0 PASS - no absorbed ID, or -Update completed, or absorption found without -Gate.; 1 FAIL - -Gate and the baseline absorbed at least one ID missing from the snapshot.; 2 Cannot verify - a baseline or snapshot file is missing or unparseable. Never a PASS:
+```
+
 ### assert-detekt.ps1
 
 ```
 scripts/quality/assert-detekt.ps1
   Params:
-    -Module               [String]  {app_v2|wear}
-    -Gate                 [SwitchParameter]
-    -ChangedFiles         [String[]]
+    -Module                 [String]  {app_v2|wear}
+    -Gate                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+    -TimeoutSeconds         [Int32] = 600
   Exit: 0 PASS - no new findings, or none in -ChangedFiles, or non-gate mode.; 1 FAIL - -Gate and detekt reported a new finding (in -ChangedFiles when diff-scoped).; 2 Cannot verify - gradlew.bat missing, or -ChangedFiles given but a run module's
+```
+
+### assert-device-profile-matrix.ps1
+
+```
+scripts/quality/assert-device-profile-matrix.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 PASS - matrix, registry and applier agree.; 1 FAIL - at least one coverage rule is violated, or the underlying check is missing.
 ```
 
 ### assert-dialog-cancel-style.ps1
@@ -1331,10 +1451,11 @@ scripts/quality/assert-empty-catch.ps1
 ```
 scripts/quality/assert-exit-contract.ps1
   Params:
-    -Gate          [SwitchParameter]
-    -Path          [String] = ''
-    -Quiet         [SwitchParameter]
-  Exit: 0 - no unreachable exit site (or report mode).; 1 - substantive failure: at least one unreachable exit site found.; 2 - the gate itself cannot run (scan root missing). Distinct from 1 on purpose -
+    -Gate                   [SwitchParameter]
+    -Path                   [String] = ''
+    -Quiet                  [SwitchParameter]
+    -ReasonBaseline         [Int32] = -1
+  Exit: 0 - no unreachable exit site, no silent script, Rule C at or below baseline
 ```
 
 ### assert-fast-gates.ps1
@@ -1364,8 +1485,22 @@ scripts/quality/assert-flavor-flags-not-growing.ps1
   Params:
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
-  Exit: 0 - clean (or report mode).; 1 - substantive failure: the flag count grew past the baseline.; 2 - the gate itself cannot run (baseline file missing). Distinct from 1 on
+```
+
+### assert-flavor-matrix-docs.ps1
+S1392 - documentation-vs-gradle flavor capability matrix gate.
+
+```
+scripts/quality/assert-flavor-matrix-docs.ps1
+  S1392 - documentation-vs-gradle flavor capability matrix gate.
+  Params:
+    -Gate             [SwitchParameter]
+    -Quiet            [SwitchParameter]
+    -Table            [String]
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: snapshot or manifest missing / unreadable, or the snapshot is stale
 ```
 
 ### assert-focus-highlight.ps1
@@ -1424,6 +1559,15 @@ scripts/quality/assert-layout-hardcoded-colors.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-layout-variant-id-parity.ps1
+
+```
+scripts/quality/assert-layout-variant-id-parity.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+```
+
 ### assert-listener-symmetry.ps1
 
 ```
@@ -1433,6 +1577,20 @@ scripts/quality/assert-listener-symmetry.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+```
+
+### assert-memory-budget.ps1
+
+```
+scripts/quality/assert-memory-budget.ps1
+  Params:
+    -Path                   [String]
+    -MaxBytes               [Int32] = 0
+    -StretchBytes           [Int32] = 6000
+    -TargetBytes            [Int32] = 9000
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+  Exit: 0 at or below MaxBytes, or a report-only run.; 1 -Gate and the index is above MaxBytes.; 2 cannot verify - the index or the memory directory does not exist.
 ```
 
 ### assert-neuroslop.ps1
@@ -1495,6 +1653,15 @@ scripts/quality/assert-public-mutable-flow.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-qualifier-shadowing.ps1
+
+```
+scripts/quality/assert-qualifier-shadowing.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+```
+
 ### assert-script-cheatsheet-sync.ps1
 Drift gate: docs/SCRIPT_CHEATSHEET.md must equal `help.ps1 -Generate` output.
 
@@ -1508,14 +1675,24 @@ scripts/quality/assert-script-cheatsheet-sync.ps1
   Exit: 0 in sync.; 1 stale - regenerate with `pwsh -NoProfile -File scripts/utils/help.ps1 -Generate`.; 2 the gate itself cannot run (scripts/utils/help.ps1 missing).
 ```
 
+### assert-sensitive-settings-annotated.ps1
+
+```
+scripts/quality/assert-sensitive-settings-annotated.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+```
+
 ### assert-settings-catalog-complete.ps1
-S0440 Phase 04 - assert the settings-search layout catalog is complete.
+S0440 Phase 04 (widened by S1313) - assert every settings-row layout is classified.
 
 ```
 scripts/quality/assert-settings-catalog-complete.ps1
-  S0440 Phase 04 - assert the settings-search layout catalog is complete.
+  S0440 Phase 04 (widened by S1313) - assert every settings-row layout is classified.
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - every discovered layout is classified; every exclusion entry matches a real layout.; 1 - at least one discovered layout is unclassified, or an exclusion entry is stale.; 2 - cannot verify: a required file (either catalog `.kt`, or the exclusions `.json`) is
 ```
 
 ### assert-settings-doc-sync.ps1
@@ -1528,6 +1705,21 @@ scripts/quality/assert-settings-doc-sync.ps1
     -Gate                     [SwitchParameter]
     -RepoRoot                 [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -SkipManifestTest         [SwitchParameter]
+    -ChangedFiles             [String[]]
+  Exit: 0 - every stage passed.; 1 - a stage found real drift (the failing stage is named).; 2 - a stage could not be judged: either the manifest test never ran because the
+```
+
+### assert-source-gates.ps1
+
+```
+scripts/quality/assert-source-gates.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -List                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -Only                   [String[]]
+    -ChangedFiles           [String[]]
+  Exit: 0 every rule at or below its baseline, or a non-gate report run.; 1 -Gate and at least one rule is above its baseline.; 2 cannot verify - an unknown rule name in -Only, or a source root that does not exist.
 ```
 
 ### assert-string-format.ps1
@@ -1553,6 +1745,40 @@ scripts/quality/assert-stub-todo.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-swallowed-cancellation.ps1
+
+```
+scripts/quality/assert-swallowed-cancellation.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+```
+
+### assert-tactical-step-form.ps1
+
+```
+scripts/quality/assert-tactical-step-form.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -Quiet                  [SwitchParameter]
+  Exit: 0 - clean (count <= baseline), or audit mode (no -Gate), or baseline updated.; 1 - substantive failure: more Why-less steps than the baseline allows.; 2 - the gate itself cannot run (PLAN/ or the baseline file is missing/unreadable).
+```
+
+### assert-test-suite-complete.ps1
+Fails when a unit-test run covered fewer test classes than the source set contains.
+
+```
+scripts/quality/assert-test-suite-complete.ps1
+  Fails when a unit-test run covered fewer test classes than the source set contains.
+  Params:
+    -Module                   [String] = "app_v2"
+    -TaskDir                  [String] = "testStandardDebugUnitTest"
+    -MinCoverageRatio         [Double] = 0.85
+```
+
 ### assert-trivial-comments.ps1
 
 ```
@@ -1560,7 +1786,6 @@ scripts/quality/assert-trivial-comments.ps1
   Params:
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
-    -Fix                    [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
 ```
@@ -1576,6 +1801,29 @@ scripts/quality/assert-unsafe-collect.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-window-insets.ps1
+
+```
+scripts/quality/assert-window-insets.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+  Exit: 0 at or below baseline, or a non-gate report run.; 1 -Gate and the count is above the baseline.; 2 cannot verify - the source root does not exist.
+```
+
+### audit-detekt-baseline-drift.ps1
+
+```
+scripts/quality/audit-detekt-baseline-drift.ps1
+  Params:
+    -BaselineFile         [String] = 'config/detekt/baseline-app_v2.xml'
+    -ReportFile           [String] = 'app_v2/build/reports/detekt/detekt.xml'
+    -All                  [SwitchParameter]
+    -Json                 [String]
+```
+
 ### audit-shared-state-writers.ps1
 
 ```
@@ -1585,6 +1833,21 @@ scripts/quality/audit-shared-state-writers.ps1
     -Top                [Int32] = 20
     -MinWriters         [Int32] = 2
     -Json               [String]
+```
+
+### detekt-preflight.ps1
+
+```
+scripts/quality/detekt-preflight.ps1
+  Params:
+    -ChangedFiles           [String[]]
+    -Gate                   [SwitchParameter]
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -ConfigPath             [String]
+    -BaselinePath           [String]
+    -IgnoreBaseline         [SwitchParameter]
+    -Json                   [SwitchParameter]
+  Exit: 0 - no finding in the checked files (or nothing to check).; 1 - at least one finding (only under -Gate; without it the findings print and; 2 - cannot verify: the config file is missing, or a named file does not exist.
 ```
 
 ### generate-toolchain-pins.ps1
@@ -1618,7 +1881,26 @@ scripts/quality/reindex-settings.ps1
   Exit: 0 - already fresh: nothing regenerated, verify gate green. Shippable.; 2 - drift regenerated: manifest/reference changed and are now fresh, but the
 ```
 
+### sector-gate-pilot.ps1
+
+```
+scripts/quality/sector-gate-pilot.ps1
+  Params:
+    -Action          (req)  [String]  {benchmark|classify|summary}
+    -Index                  [Int32]
+    -Classification         [String]  {correct|false-block}
+    -Runs                   [Int32] = 5
+  Exit: 0 - the requested action completed.; 2 - the catalogue or the sector file is unreadable, or the arguments are unusable.; 3 - -Action summary with fewer than 3 classified refusals: not enough evidence for a verdict.
+```
+
 ## scripts\quality.tests
+
+### check-device-profile-presets.Tests.ps1
+
+```
+scripts/quality.tests/check-device-profile-presets.Tests.ps1
+  (no param block)
+```
 
 ### Run-Tests.ps1
 
@@ -1645,6 +1927,26 @@ scripts/quality/assert-detekt.tests/Run-Tests.ps1
 scripts/quality/assert-exit-contract.tests/Run-Tests.ps1
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-swallowed-cancellation.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-swallowed-cancellation.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not verify - the baseline file is missing.
+```
+
+## scripts\quality\assert-window-insets.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-window-insets.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not acquire CODE.LOCK for the end-to-end case - re-run once the lock is free.
 ```
 
 ## scripts\quality\lib
@@ -1677,6 +1979,20 @@ scripts/quality/lib/detekt-report.ps1
   (no param block)
 ```
 
+### source-matchers.ps1
+
+```
+scripts/quality/lib/source-matchers.ps1
+  (no param block)
+```
+
+### source-scan.ps1
+
+```
+scripts/quality/lib/source-scan.ps1
+  (no param block)
+```
+
 ## scripts\release
 
 ### apply-github-store-metadata.ps1
@@ -1706,10 +2022,12 @@ Capture raw store screenshots into temp/play-shots/<id>.png for S0497 Phase 03.
 scripts/release/capture-play-screenshots.ps1
   Capture raw store screenshots into temp/play-shots/<id>.png for S0497 Phase 03.
   Params:
-    -Slot             [String]
-    -DeviceId         [String]
-    -Launch           [SwitchParameter]
-    -List             [SwitchParameter]
+    -Slot                 [String]
+    -DeviceId             [String]
+    -Locale               [String]
+    -SetAppLocale         [SwitchParameter]
+    -Launch               [SwitchParameter]
+    -List                 [SwitchParameter]
 ```
 
 ### extract-release-notes.ps1
@@ -1801,6 +2119,19 @@ scripts/release/standard-surface-snapshot.ps1
   Exit: 0 - snapshot emitted (default) / no regression candidates (-CheckRegressions); 1 - regression candidate(s) found (only with -CheckRegressions); 2 - infrastructure abort (source files missing / unreadable)
 ```
 
+## scripts\site
+
+### ping-indexnow.ps1
+Notify IndexNow-participating search engines that the site changed.
+
+```
+scripts/site/ping-indexnow.ps1
+  Notify IndexNow-participating search engines that the site changed.
+  Params:
+    -Url         [String[]]
+  Exit: 2 = invalid invocation or unreadable sitemap.
+```
+
 ## scripts\spec_catalog
 
 ### _lib.ps1
@@ -1882,8 +2213,9 @@ scripts/spec_catalog/complete.ps1
 ```
 scripts/spec_catalog/delete.ps1
   Params:
-    -Id       (req)  [String]
+    -Id              [String]
     -Confirm         [SwitchParameter]
+    -Help            [SwitchParameter]
 ```
 
 ### drift-check.ps1
@@ -1903,13 +2235,14 @@ Insert a new spec catalog record. Supply the spec path with -File, or with -Slug
 scripts/spec_catalog/insert.ps1
   Insert a new spec catalog record. Supply the spec path with -File, or with -Slug to auto-build PLAN/Sxxxx_<slug>.md from the freshly allocated id.
   Params:
-    -Name      (req)  [String]
+    -Name             [String]
     -File             [String]
     -Status           [String] = 'Draft'  {Draft|Approved|Tactical|In Progress|Implemented|Verified|Partial|Broken|BlockByOtherTask|BlockNeedUserTest|BlockQuestions|BlockExternal|Archived}
     -Tier             [Int32] = -1
     -Priority         [Int32] = 50  {range 0..100}
     -Id               [String]
     -Slug             [String]
+    -Help             [SwitchParameter]
 ```
 
 ### list-blockneedusertest.ps1
@@ -1935,6 +2268,22 @@ scripts/spec_catalog/next-id.ps1
   (no param block)
 ```
 
+### plan-form-metrics.ps1
+
+```
+scripts/spec_catalog/plan-form-metrics.ps1
+  Params:
+    -Action       (req)  [String]  {add|list|summary}
+    -Kind                [String]  {selection|measurement|verdict}
+    -Ticket              [String] = ''
+    -Form                [String] = ''  {current|robo}
+    -ToolCalls           [Nullable`1]
+    -Questions           [Nullable`1]
+    -Divergences         [Nullable`1]
+    -Note                [String] = ''
+  Exit: 0 - action done.; 2 - bad arguments, or the data file exists but is unreadable/malformed.; 3 - -Action summary ran with fewer than two tickets measured in both forms.
+```
+
 ### preview.ps1
 
 ```
@@ -1955,6 +2304,23 @@ scripts/spec_catalog/release-plan.ps1
     -CatalogFile         [String] = ''
 ```
 
+### release-queue.ps1
+
+```
+scripts/spec_catalog/release-queue.ps1
+  Params:
+    -Reconcile          [SwitchParameter]
+    -Validate           [SwitchParameter]
+    -List               [SwitchParameter]
+    -Ready              [SwitchParameter]
+    -SetCurrent  (req)  [Int32]
+    -Ship        (req)  [SwitchParameter]
+    -Release     (req)  [String] = ''
+    -Version            [String] = ''
+    -DryRun             [SwitchParameter]
+  Exit: 0 success (for -Validate: no drift).; 1 error, or -Validate found drift.; 2 cannot verify - PLAN/RELEASE_QUEUE.md is missing (seed it before using the queue).
+```
+
 ### sca-specs.ps1
 
 ```
@@ -1965,9 +2331,11 @@ scripts/spec_catalog/sca-specs.ps1
 ```
 
 ### search.ps1
+Search the spec catalog by free text, status, tag, or type.
 
 ```
 scripts/spec_catalog/search.ps1
+  Search the spec catalog by free text, status, tag, or type.
   Params:
     -Query                   [String]
     -Status                  [String]
@@ -1975,19 +2343,23 @@ scripts/spec_catalog/search.ps1
     -Type                    [String]
     -IncludeArchived         [SwitchParameter]
     -Format                  [String] = 'table'  {table|json}
+    -Help                    [SwitchParameter]
 ```
 
 ### select.ps1
+Select spec catalog records by id, status, free text, or minimum priority.
 
 ```
 scripts/spec_catalog/select.ps1
+  Select spec catalog records by id, status, free text, or minimum priority.
   Params:
     -Id                      [String]
     -Status                  [String]  {Draft|Approved|Tactical|In Progress|Implemented|Verified|Partial|Broken|BlockByOtherTask|BlockNeedUserTest|BlockQuestions|BlockExternal|Archived}
-    -Name                    [String]
+    -Query                   [String]
     -MinPriority             [Int32] = -1
     -IncludeArchived         [SwitchParameter]
     -Format                  [String] = 'table'  {table|json|tsv}
+    -Help                    [SwitchParameter]
 ```
 
 ### skip-cache.ps1
@@ -2015,6 +2387,21 @@ scripts/spec_catalog/spec-next-preflight.ps1
   Exit: 2 - usage error only.
 ```
 
+### spec-next-session.ps1
+
+```
+scripts/spec_catalog/spec-next-session.ps1
+  Params:
+    -Verb            (req)  [String]  {Init|Record|Device|CheckContext|Resume|Report|Handoff}
+    -Id                     [String]
+    -Outcome                [String]  {advanced|verified|blocked|skipped}
+    -Note                   [String] = ''
+    -Online                 [String]
+    -SelectedDevice         [String]
+    -Threshold              [Int32] = 300000
+  Exit: 0 - ok.; 1 - error (missing state file where one is required, write failure).; 2 - cannot verify (bad -Id on Record; CheckContext could not determine tokens).; 3 - threshold crossed (CheckContext only).
+```
+
 ### stats.ps1
 
 ```
@@ -2023,18 +2410,31 @@ scripts/spec_catalog/stats.ps1
     -Format         [String] = 'table'  {table|json}
 ```
 
+### unverified-backlog.ps1
+
+```
+scripts/spec_catalog/unverified-backlog.ps1
+  Params:
+    -Ceiling             [Int32] = 0
+    -IncludeTags         [SwitchParameter]
+    -Json                [SwitchParameter]
+    -Help                [SwitchParameter]
+  Exit: 0 read the catalog; BlockNeedUserTest is at or below -Ceiling, or no ceiling was given.; 1 error - the catalog could not be parsed.; 2 cannot verify - the catalog journal does not exist.; 3 -Ceiling exceeded.
+```
+
 ### update.ps1
 
 ```
 scripts/spec_catalog/update.ps1
   Params:
-    -Id          (req)  [String]
+    -Id                 [String]
     -Status             [String]  {Draft|Approved|Tactical|In Progress|Implemented|Verified|Partial|Broken|BlockByOtherTask|BlockNeedUserTest|BlockQuestions|BlockExternal|Archived}
     -Name               [String]
     -File               [String]
     -Tier               [Int32] = -1
     -Priority           [Int32] = -1
     -StatusNote         [String] = $null
+    -Help               [SwitchParameter]
 ```
 
 ### validate.ps1
@@ -2368,6 +2768,16 @@ scripts/utils/Install_release_on_adb_connected_device.ps1
     -Flavor            [String] = "standard"
 ```
 
+### locale-set.ps1
+S1190: single reader for the app's declared interface locales.
+
+```
+scripts/utils/locale-set.ps1
+  S1190: single reader for the app's declared interface locales.
+  (no param block)
+  Exit: 0 - not used; the script defines functions and returns.; 3 - locales_config.xml missing or declaring no locale.
+```
+
 ### lock-status.ps1
 Fast, read-only check of temp/BUILD.LOCK or temp/CODE.LOCK - existence, age, holder.
 
@@ -2375,9 +2785,13 @@ Fast, read-only check of temp/BUILD.LOCK or temp/CODE.LOCK - existence, age, hol
 scripts/utils/lock-status.ps1
   Fast, read-only check of temp/BUILD.LOCK or temp/CODE.LOCK - existence, age, holder.
   Params:
-    -Name  (req)  [String]  {Build|Code}
-    -Json         [SwitchParameter]
-  Exit: 1 = held by a fresh lock.
+    -Name                (req)  [String]  {Build|Code}
+    -Json                       [SwitchParameter]
+    -StrictExit                 [SwitchParameter]
+    -Wait                       [SwitchParameter]
+    -WaitTimeoutSeconds         [Int32] = 900
+    -PollSeconds                [Int32] = 2
+  Exit: 2 = could not determine (lock file unreadable), or -Wait ran out of time.; 1 = held, ONLY under -StrictExit.
 ```
 
 ### monitor_git.ps1
@@ -2385,6 +2799,14 @@ scripts/utils/lock-status.ps1
 ```
 scripts/utils/monitor_git.ps1
   (no param block)
+```
+
+### process-timeout.ps1
+
+```
+scripts/utils/process-timeout.ps1
+  (no param block)
+  Exit: 600 s: the observed tail is 5 gate runs over 300 s out of 311, so this never fires
 ```
 
 ### recover-kapt-stall.ps1
@@ -2467,12 +2889,13 @@ scripts/utils/set-android-string.ps1
   Params:
     -Action                   [String] = 'set'  {set|add|get|remove|rename|list|move|audit}
     -Module                   [String] = 'app_v2'
-    -Locale                   [String]  {en|ru|uk}
+    -Locale                   [String]
     -Key                      [String]
     -Value                    [String]
     -En                       [String]
     -Ru                       [String]
     -Uk                       [String]
+    -Translations             [Hashtable]
     -NewKey                   [String]
     -File                     [String] = 'strings.xml'
     -Prefix                   [String]

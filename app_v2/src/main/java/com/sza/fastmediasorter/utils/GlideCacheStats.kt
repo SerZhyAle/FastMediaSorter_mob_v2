@@ -96,14 +96,28 @@ object GlideCacheStats {
         val cacheHitRate = (disk + memory + repo) * 100.0 / total
         Timber.i("✅ Overall cache hit rate: %.1f%%".format(cacheHitRate))
 
+        // S1322: a LOCAL load reads the file straight off internal storage and never consults the
+        // Glide disk cache, so counting it as a cache miss made every locally-browsed folder trip
+        // the warning below with four bogus explanations. Health is judged only over the loads the
+        // disk cache could actually have served.
+        val cacheableTotal = disk + memory + repo + network
+        if (cacheableTotal == 0) {
+            Timber.d("GlideCacheStats: no cacheable loads (local=$local) - disk cache not exercised")
+            Timber.i("========================================")
+            return
+        }
+        val cacheableHitRate = (disk + memory + repo) * PERCENT * 1.0 / cacheableTotal
+        Timber.d("GlideCacheStats: cacheable=$cacheableTotal hitRate=%.1f%%".format(cacheableHitRate))
+
         // Warn only when cold loads dominate. A healthy memory-cache hit rate means disk cache
         // was not needed in this session, so zero disk hits should stay diagnostic-only.
-        if (disk == 0 && repo == 0 && (network + local) > 0 && total > 10) {
-            if (cacheHitRate >= 50.0) {
-                Timber.d("GlideCacheStats: zero disk hits but healthy cache hit rate %.1f%%".format(cacheHitRate))
+        val noPersistentHits = disk == 0 && repo == 0
+        if (noPersistentHits && network > 0 && cacheableTotal > MIN_LOADS_FOR_WARNING) {
+            if (cacheableHitRate >= HEALTHY_HIT_RATE_PERCENT) {
+                Timber.d("GlideCacheStats: zero disk hits but healthy hit rate %.1f%%".format(cacheableHitRate))
             } else {
                 Timber.w("")
-                Timber.w("⚠️ WARNING: Zero disk cache hits with $total total loads!")
+                Timber.w("⚠️ WARNING: Zero disk cache hits across $cacheableTotal cacheable loads!")
                 Timber.w("This suggests:")
                 Timber.w("  1. First time browsing (cache empty)")
                 Timber.w("  2. Cache keys changed (refreshVersion increment?)")
@@ -125,4 +139,9 @@ object GlideCacheStats {
         val other = networkLoads.get() + localLoads.get()
         return "Cache: D=$disk M=$memory R=$repo O=$other"
     }
+
+    // S1322: thresholds for the cache-health warning, expressed over cacheable loads only.
+    private const val PERCENT = 100
+    private const val MIN_LOADS_FOR_WARNING = 10
+    private const val HEALTHY_HIT_RATE_PERCENT = 50.0
 }

@@ -1,111 +1,182 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Default Player page - landscape variant.
      Keep two-column UX: instructions on the left, action buttons on the right.
-     Left side is scrollable so text remains readable on short screens. -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     Left side is scrollable so text remains readable on short screens.
+     S1237: content is capped at welcome_content_max_width and centred, matching every other welcome
+     page - without the cap this was the only page in the wizard rendering full-bleed, and on a large
+     screen the button column sat pinned to the top of a half-empty half of the display. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
     android:padding="@dimen/welcome_page_padding">
 
-    <ScrollView
+    <!-- S1234: wraps both columns so the page has one container to carry the translucent panel,
+         matching layoutContent in every other welcome page. The id cannot sit on the root - view
+         binding requires the root id to agree across configurations, and the portrait variant's
+         root is a ScrollView. -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutContent"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1.2"
-        android:fillViewport="true">
+        app:layout_constraintWidth_max="@dimen/welcome_content_max_width"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <!-- 0.6 reproduces the pre-S1237 LinearLayout weights exactly: 1.2 / (1.2 + 0.8). -->
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guidelineDefaultPlayerSplit"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingEnd="@dimen/margin_large">
+            app:layout_constraintGuide_percent="0.6" />
 
-            <TextView
-                android:id="@+id/tvTitle"
+        <ScrollView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:fillViewport="true"
+            android:paddingEnd="@dimen/margin_large"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/guidelineDefaultPlayerSplit"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/welcome_default_player_title"
-                android:textColor="?attr/colorOnSurface"
-                android:textSize="@dimen/welcome_title_text_size"
-                android:textStyle="bold" />
+                android:gravity="center_vertical"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvDescription"
+                <!-- S1237: the icon leads the column, as it does in the portrait variant and in the
+                     other landscape pages. Trailing the copy left it stranded in mid-air once the
+                     content was capped. -->
+                <ImageView
+                    android:id="@+id/ivIcon"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:contentDescription="@string/welcome_default_player_title"
+                    android:src="@drawable/ic_audio"
+                    app:tint="?attr/colorPrimary" />
+
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/welcome_default_player_title"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="@dimen/welcome_title_text_size"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/welcome_description_margin_top"
+                    android:lineSpacingMultiplier="1.3"
+                    android:text="@string/welcome_default_player_description"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="@dimen/welcome_description_text_size" />
+
+                <!-- S1385: mirrors the portrait variant (layout/page_welcome_default_player.xml);
+                     ids must stay in sync (CLAUDE.md Rule 11). Order in this column matches the
+                     portrait constraint chain: description -> details -> hint -> revert note. -->
+                <TextView
+                    android:id="@+id/tvDefaultPlayerDetails"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/welcome_description_margin_top"
+                    android:alpha="0.85"
+                    android:lineSpacingMultiplier="1.3"
+                    android:text="@string/welcome_default_player_details"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="@dimen/welcome_description_text_size" />
+
+                <TextView
+                    android:id="@+id/tvHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_medium"
+                    android:text="@string/welcome_default_player_hint"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tvDefaultPlayerRevertNote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:alpha="0.75"
+                    android:text="@string/welcome_default_player_revert_note"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+        </ScrollView>
+
+        <!-- Centred vertically rather than pinned to the top: the visible button count is gated by
+             build flavor (one to four), so top-alignment left a growing void underneath. The
+             ScrollView keeps all four reachable when a large font scale makes the stack taller than
+             the column - centring alone would clip it at both ends. -->
+        <ScrollView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:fillViewport="true"
+            app:layout_constraintStart_toStartOf="@id/guidelineDefaultPlayerSplit"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <LinearLayout
+                android:id="@+id/layoutTypeButtons"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/welcome_description_margin_top"
-                android:text="@string/welcome_default_player_description"
-                android:textColor="?attr/colorOnSurface"
-                android:textSize="@dimen/welcome_description_text_size"
-                android:lineSpacingMultiplier="1.3" />
+                android:gravity="center_vertical"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/margin_large">
 
-            <TextView
-                android:id="@+id/tvHint"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_medium"
-                android:text="@string/welcome_default_player_hint"
-                android:textColor="?attr/colorPrimary"
-                android:textSize="14sp" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSetDefaultAudio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/welcome_default_player_btn_audio"
+                    android:textAllCaps="false" />
 
-            <ImageView
-                android:id="@+id/ivIcon"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_marginTop="@dimen/margin_large"
-                android:contentDescription="@string/welcome_default_player_title"
-                android:src="@drawable/ic_audio"
-                app:tint="?attr/colorPrimary" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSetDefaultVideo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/welcome_default_player_btn_video"
+                    android:textAllCaps="false" />
 
-        </LinearLayout>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSetDefaultImages"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/welcome_default_player_btn_images"
+                    android:textAllCaps="false" />
 
-    </ScrollView>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSetDefaultDocs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/welcome_default_player_btn_docs"
+                    android:textAllCaps="false" />
 
-    <LinearLayout
-        android:id="@+id/layoutTypeButtons"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.8"
-        android:layout_gravity="top"
-        android:orientation="vertical"
-        android:paddingStart="@dimen/margin_large">
+            </LinearLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSetDefaultAudio"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginBottom="8dp"
-            android:text="@string/welcome_default_player_btn_audio"
-            android:textAllCaps="false" />
+        </ScrollView>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSetDefaultVideo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginBottom="8dp"
-            android:text="@string/welcome_default_player_btn_video"
-            android:textAllCaps="false" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSetDefaultImages"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginBottom="8dp"
-            android:text="@string/welcome_default_player_btn_images"
-            android:textAllCaps="false" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSetDefaultDocs"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/welcome_default_player_btn_docs"
-            android:textAllCaps="false" />
-
-    </LinearLayout>
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

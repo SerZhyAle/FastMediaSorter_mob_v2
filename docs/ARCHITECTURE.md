@@ -200,6 +200,16 @@ Rules:
 - Exempt by design (do not migrate to this family): player/media `ImageButton` borderless controls, reserved ExoPlayer `@id/exo_*` controls, and the intentionally dark camera/viewfinder surfaces.
 - A new role that none of the five covers is added as a new `Widget.FastMediaSorter.Button.*` style here, not as an ad-hoc layout style.
 
+## Dialog Result Delivery (MANDATORY)
+
+A `DialogFragment` never holds its result callback in a field. `FragmentManager` rebuilds a restored dialog through the no-argument constructor, so any handler the caller assigned after construction is null on the rebuilt instance - the user confirms, nothing happens, and nothing is logged. The recreation does not need a rotation to happen: a theme change, a language change, a font-size change, "don't keep activities" and process death all trigger it, and most hosts here declare `configChanges` for orientation, so rotation is in fact the one trigger that does NOT reproduce it.
+
+The result travels as a `FragmentResult` instead. The dialog declares a `RESULT_KEY`, one payload key per returned value, and a private `ARG_REQUEST_KEY`; `newInstance` takes `requestKey: String = RESULT_KEY` and stores it in `arguments`; `onCreate` reads it back out of `requireArguments()`, so a restored instance recovers it. The confirm path calls `setFragmentResult(requestKey, bundleOf(..))`. The host registers `setFragmentResultListener` in its own `onCreate`/`onViewCreated` - never at the moment the dialog is opened, because a recreated host must have the listener back before the restored dialog resumes. `SearchableLanguagePickerDialog` is the reference implementation (S1214).
+
+Payloads carry Bundle primitives. Where a value is a domain object, put its fields in the bundle and rebuild the object in the host rather than making a domain model `Parcelable`. Where one picker serves many rows, the row id rides in the arguments and comes back in the result bundle, so a single host listener serves them all.
+
+One accepted limitation: when the opening host is a plain `AlertDialog` rather than a `DialogFragment`, the host itself does not survive recreation, so a pick made after recreation is delivered the next time that picker is opened rather than immediately. Making such a host a `DialogFragment` is a separate change per surface.
+
 ## Standalone Player Toolbar Order (MANDATORY)
 
 The four standalone hosts (`PhotoVideoStandaloneActivity`, `TextStandaloneActivity`, `DocumentStandaloneActivity`, `AudioStandaloneActivity`) share ONE top-toolbar button order so a file feels the same whichever host opened it (S0920). Each host declares its own `activity_standalone_*.xml` (portrait + `layout-land/`), so there is no single shared layout to enforce this - a new host or an edit must follow the order by hand.
@@ -211,6 +221,18 @@ Rules:
 - Rename comes BEFORE the type-specific cluster (Crop/Rotate for image/video, Search/Translate/Copy/Edit for text, PDF/EPUB/Text tools for documents), never after it.
 - Type-specific buttons are the only per-host variation; everything before Rename and the trailing Overflow are fixed.
 - Keep `layout/` and `layout-land/` in the same order (Rule 11).
+
+## Directory Operations Subsystem
+
+Create, rename, delete, copy and move a whole folder, for every resource type. Architectural boundaries:
+
+- **Dispatch**: `UnifiedFileOperationHandler` is the only entry point (`executeCreateDirectory` / `executeRenameDirectory` / `executeDeleteDirectory` / `executeCopyDirectory` / `executeMoveDirectory`). Nothing calls a strategy's directory method directly.
+- **Pre-flight refusal**: every copy/move passes `refuseUnsafeDirectoryOperation` before a strategy is resolved, so a refused operation never creates a partial structure. It rejects a destination inside the source, a destination that resolves to the source itself (a same-parent copy would overwrite its own input), and a document-tree URI, which the path-based local strategy cannot address. The reason travels as `DirectoryOperationRefusal.Reason` and becomes a user-facing message through `ui/browse/helpers/DirectoryRefusalMessages.kt` - one table, used by the background worker and the folder picker alike.
+- **Same protocol**: handled by the per-protocol `FileOperationStrategy` implementation (local, SMB, SFTP, FTP, cloud), each of which owns its own recursive walk. The local walk is cycle-guarded by canonical path and depth-capped.
+- **Different protocols**: `DirectoryTreeTransferManager` streams the tree - one directory listing in memory at a time, never the whole tree - creating each destination directory through the destination strategy and transferring each entry through the same per-file path a single file uses. Remote to a different remote goes through one temp file per entry. A move deletes a source entry only after that entry's copy is confirmed.
+- **Listing**: `FileOperationStrategy.listEntries` returns `DirectoryEntry` (path, name, isDirectory, size). The interface default is built from `listFiles` plus a per-entry `isDirectory` probe; local and SMB override it from a listing that already carries the type.
+- **Progress and cancellation**: `BrowseFileTransferWorker` passes a per-entry callback into the directory operations, rate-limited through the same `TransferProgressReporter` the file path uses; the callback also checks the job, so a cancelled transfer stops at the entry in flight. Already-written entries stay at the destination and the message says so - folder transfers have no undo (S1326).
+- **Item applicability**: `BrowseItemOperationPolicy` answers whether a browse row supports an operation. Row binding, the row menu and the action buttons read that answer instead of testing `isDirectory` inline - the split that let "select all" reach a state the user could not reach by hand.
 
 ## Internet Streams Subsystem
 

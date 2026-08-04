@@ -9,16 +9,25 @@
   tool), then run this with -Slot <id> to snap the current screen into the slot file.
   -Launch (re)starts MainActivity first; -List prints the known slot ids.
 
+  -Locale <tag> files the shot under temp/play-shots/<tag>/ so one store set can be
+  captured per Play language. -SetAppLocale applies the per-app locale override first
+  (Android 13+, no reboot) - run it once before a locale batch, never between navigation
+  and capture, because the override recreates the running activity.
+
   Per CLAUDE.md, the live device id and the per-slot exit code are printed by the caller.
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/release/capture-play-screenshots.ps1 -Launch -Slot browse
 .EXAMPLE
   pwsh -NoProfile -File scripts/release/capture-play-screenshots.ps1 -Slot video-player -DeviceId emulator-5556
+.EXAMPLE
+  pwsh -NoProfile -File scripts/release/capture-play-screenshots.ps1 -Locale ru-RU -SetAppLocale -Launch -Slot browse
 #>
 param(
     [string]$Slot,
     [string]$DeviceId,
+    [string]$Locale,
+    [switch]$SetAppLocale,
     [switch]$Launch,
     [switch]$List
 )
@@ -37,6 +46,15 @@ $slotIds = (Get-Content $captions -Raw | ConvertFrom-Json).slots.id
 if ($List) { $slotIds; exit 0 }
 
 $devArgs = @(); if ($DeviceId) { $devArgs = @('-DeviceId', $DeviceId) }
+
+if ($SetAppLocale) {
+    if (-not $Locale) { throw "-SetAppLocale requires -Locale <tag>." }
+    & pwsh -NoProfile -File $adb @devArgs shell -Cmd "cmd locale set-app-locales $pkg --locales $Locale" | Out-Null
+    Start-Sleep -Seconds 2  # the override recreates the app config before the next launch
+    Write-Host "APP LOCALE -> $Locale"
+}
+
+if ($Locale) { $outDir = Join-Path $outDir $Locale }
 
 if ($Launch) {
     & pwsh -NoProfile -File $adb @devArgs shell -Cmd "am start -n $pkg/$activity" | Out-Null

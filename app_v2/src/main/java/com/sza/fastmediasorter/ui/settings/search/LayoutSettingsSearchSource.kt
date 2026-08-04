@@ -21,15 +21,23 @@ import javax.inject.Singleton
  *
  * Help-popup text (`str_helpTitle` / `str_helpMessage` / `csh_helpTitle` / `csh_helpMessage`)
  * is intentionally NOT extracted - see strategic spec §6.3.
+ *
+ * S1313: the no-arg [collect] overload (the `SettingsSearchSource` interface contract) walks
+ * only `SettingsSearchLayoutCatalog` and drives the live in-app search index - its scope must
+ * NOT grow to dialog-hosted layouts (S1035 §6.6). [collect] with an explicit layout list is a
+ * second entry point, not part of the interface, used only by the settings-manifest exporter to
+ * additionally scan `SettingsDocScopeCatalog` surfaces for documentation purposes.
  */
 @Singleton
 class LayoutSettingsSearchSource @Inject constructor(
     @ApplicationContext private val context: Context
 ) : SettingsSearchSource {
 
-    override fun collect(): List<RawSettingsSearchEntry> {
+    override fun collect(): List<RawSettingsSearchEntry> = collect(SettingsSearchLayoutCatalog.layoutResIds)
+
+    fun collect(layoutResIds: List<Int>): List<RawSettingsSearchEntry> {
         val all = mutableListOf<RawSettingsSearchEntry>()
-        for (layoutResId in SettingsSearchLayoutCatalog.layoutResIds) {
+        for (layoutResId in layoutResIds) {
             val layoutName = safeResourceName(layoutResId)
             try {
                 val parser = context.resources.getXml(layoutResId)
@@ -63,7 +71,9 @@ class LayoutSettingsSearchSource @Inject constructor(
                     // Transient permission-prompt buttons are not navigable settings: they are GONE
                     // whenever the permission is already granted (the common case), so indexing them
                     // yields dead search results. De-index at the source (S0604).
-                    val kind = if (viewId != null && viewId in TRANSIENT_ACTION_BUTTON_IDS) {
+                    val kind = if (viewId != null &&
+                        (viewId in TRANSIENT_ACTION_BUTTON_IDS || viewId in DIALOG_ACTION_BUTTON_IDS)
+                    ) {
                         null
                     } else {
                         kindFromTag(parser.name) ?: pickerKindForId(viewId)
@@ -280,6 +290,20 @@ class LayoutSettingsSearchSource @Inject constructor(
         val TRANSIENT_ACTION_BUTTON_IDS: Set<Int> = setOf(
             R.id.btnNotificationPermission,
             R.id.btnScheduledNotificationPermission
+        )
+
+        // S1313: standard dialog action buttons (close/apply/cancel/ok) - dismissing or confirming
+        // a dialog is not itself a discoverable setting, same rationale as the S0604 de-index
+        // above. Confirmed zero collisions with any fragment_settings_* screen id, so this
+        // exclusion is a no-op for the pre-existing search-scope catalog; it only trims noise from
+        // the documentation-scope scan (`SettingsDocScopeCatalog`), which walks real dialogs.
+        val DIALOG_ACTION_BUTTON_IDS: Set<Int> = setOf(
+            R.id.btnClose,
+            R.id.btnCancel,
+            R.id.btnOk,
+            R.id.btnApply,
+            R.id.btnCameraSettingsApply,
+            R.id.btnCameraSettingsCancel
         )
     }
 }

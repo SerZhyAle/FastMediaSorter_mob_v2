@@ -14,4 +14,4 @@ The media players are a **family of activities**, not one screen: in-app `Player
 - New action -> add a flag to `PlayerHostCapabilities` and branch on it, never `if standalone`.
 - Adding panel buttons -> check command-bar overflow on phone width (the standalone row overflowed and clipped btnPagePrev/btnOverflowMenu until S0389 wrapped it in HorizontalScrollView + pinned overflow).
 
-The real fix that collapses "change all" back to "change one" is extracting a binding-agnostic **host-seam** (interface: root view + current file + reload hook) so delegates are written once. Tracked by [[project_s0392_player_family_parity]] (research + catch-up) and S0390 phase 06 / waves-C follow-ups.
+The real fix that collapses "change all" back to "change one" is extracting a binding-agnostic **host-seam** (interface: root view + current file + reload hook) so delegates are written once. Tracked by S0392 (research + catch-up) and S0390 phase 06 / waves-C follow-ups.

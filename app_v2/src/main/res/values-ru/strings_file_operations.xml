@@ -134,4 +134,12 @@
     <string name="files_loaded_progress">Загружено: %1$d / %2$d</string>
     <string name="files_restored">Восстановлено файлов: %1$d</string>
     <string name="files_scanned_default">Отсканировано файлов: 0</string>
+    <string name="error_folder_into_itself">Папку нельзя скопировать или перенести внутрь неё самой. Выберите приёмник за её пределами.</string>
+    <string name="error_folder_same_location">Эта папка уже находится в выбранном месте. Выберите другой приёмник.</string>
+    <string name="error_folder_destination_not_supported">Папки нельзя переносить в это место. Выберите каталог внутри одного из ваших ресурсов.</string>
+    <string name="browse_transfer_notif_text_folders_done">Папок перенесено: %1$d</string>
+    <string name="browse_transfer_folder_partial_state">Остановлено. Уже записанные элементы остаются у приёмника - проверьте папку перед повторным запуском.</string>
+    <string name="browse_row_folder_checkbox">Папка %1$s, выбрать</string>
+    <string name="browse_row_file_checkbox">Файл %1$s, выбрать</string>
+    <string name="browse_transfer_folders_included">Папок включено: %1$d</string>
 </resources>

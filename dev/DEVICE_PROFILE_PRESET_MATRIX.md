@@ -63,7 +63,7 @@ field names.
   - `textSizeMax` → bytes (× 1; no UI unit widget)
 - Enums: the enum value name (e.g. `defaultSortMode=DATE_DESC`, `prefetchCacheMultiplier=AUTO`,
   `streamingCacheCleanupMode=AUTO_DELETE`, `backgroundAudioExitBehavior=ALWAYS_CONTINUE`,
-  `stereoDefaultLayout=MONO`, `screenshotGestureActionDown=SILENT_SCREENSHOT`). An unknown enum name
+  `stereoDefaultLayout=MONO`, `screenshotGestureLeftTopDown=SILENT_SCREENSHOT`). An unknown enum name
   is skipped (the field keeps its current value), never coerced to a default.
 - String-set fields (`enabledShareTargets`, `disabledShareTargets`): a list of ids separated by
   comma, semicolon or pipe (e.g. `email;telegram;print`); blanks are dropped. An empty cell clears
@@ -73,10 +73,24 @@ field names.
 - `allowSeparateWindow=true_if_capable` → true only when the device actually supports separate
   windows (`MultiWindowCapabilityDetector`); a plain `TRUE`/`FALSE` is honoured directly.
 
+### Values the Settings screens constrain (S1216 - gate-enforced)
+
+The gate rejects an out-of-range cell before the build, naming field and profile. The rule table
+lives in `scripts/check_device_profile_presets.ps1` (`$allowedValues` / `$valueRules`); a newly
+constrained field is one entry there, not a new code path.
+
+- `defaultIconSize` - `32 + 8·N`, the icon-size slider step.
+- `epubLineHeight` - `1.0 .. 3.0` on the `0.2` step, and `epubHorizontalMargin` - `0 .. 48` on the
+  `4` px step (`dialog_epub_reader_settings.xml`). Material `Slider` rejects an off-step value
+  outright, so an off-step preset would keep the reader settings dialog from opening.
+- `launcherDensityFactor` - one of `AppSettings.LAUNCHER_DENSITY_OPTIONS`; the launcher settings row
+  resolves the stored factor by `indexOf`, so an off-list value leaves that row showing nothing.
+- Enum-backed rows (`textReaderTheme`, `pdfColorMode`, `colorTheme`, `linkDownloadMaxResolution`,
+  the stream sort / filter / refresh-policy / track-language rows, `launcherWallpaperMode`) - the
+  exact token, checked against the same set the screen offers.
+
 ### Known data caveats (owner to fix in the CSV)
 
-- `defaultIconSize` must be `32 + 8·N` (valid slider steps, e.g. 152 or 160). A value like `156`
-  is stored but the Settings icon-size dropdown cannot display it and falls back to its default.
 - Four profiles (`media_player`, `video_player`, `audio_player`, `ebook_reader`) were **seeded by
   copying** a similar column (`media`/`video`←`tv_media_box`, `audio`←`car_head_unit`,
   `ebook`←`home_tablet`). They are starting points - refine them in the CSV.
@@ -98,19 +112,23 @@ field names.
    by name. (All 11 `DeviceProfileType` keys are already supported.)
 3. **Add a new setting row:** add the row (header = the `AppSettings` field name) AND add a matching
    `when` case in `DeviceProfilePresetApplier.applyOverride` so the value is coerced to the field.
+   A field that must never be presettable goes into the registry instead - see section 6.
 4. Keep `Other` empty (it is the "no preset" profile).
 5. Update `ApplyProfilePresetUseCaseTest` if behaviour changes.
 6. **Verify coverage:** `pwsh -NoProfile -File scripts/check_device_profile_presets.ps1` fails (exit 1)
-   if any `AppSettings` field lacks a CSV row or any `DeviceProfileType` lacks a column; run it with
-   `-AddMissing` to append the missing rows/columns as empty cells. Consider wiring it into CI / a
-   pre-commit check so a new setting or profile can never silently miss the matrix.
+   if any `AppSettings` field lacks both a CSV row and a registry entry, if a row lacks an applier
+   branch, or if a cell falls outside what its Settings screen accepts; run it with `-AddMissing` to
+   append the missing rows/columns as empty cells. Since S1216 the check is wired in: it runs as
+   `scripts/quality/assert-device-profile-matrix.ps1` inside `scripts/quality/assert-fast-gates.ps1`
+   (`.\a.ps1 fg`) and inside `scripts/post-change.ps1`, so a new setting or profile can no longer
+   silently miss the matrix.
 
 The CSV may be edited in a spreadsheet (Excel / Google Sheets) and saved quoted (`"value"`) or plain;
 the loader (`DeviceProfilePresetCsvDataSource`) parses both.
 
 State/credential fields (e.g. `defaultUser`, `defaultPassword`, `lastUsedResourceId`) are
 deliberately NOT handled by the applier - even if present in the CSV they are skipped, so a profile
-apply never wipes credentials or session state.
+apply never wipes credentials or session state. Section 6 is where that intent is declared.
 
 ---
 
@@ -135,3 +153,29 @@ Provisional minimalist vector icon set, wired into the shared picker
 | E-book reader | `ic_profile_ebook_reader` |
 | VR headset | `ic_profile_vr_headset` |
 | Other / Custom | `ic_profile_other` |
+
+---
+
+## 6. Non-presettable settings registry (S1216)
+
+**File:** `docs/settings/device-profile-nonpresettable.json`. Developer tooling data, read only by
+`scripts/check_device_profile_presets.ps1` - it is not packaged into the APK.
+
+A record is `{ "field": "<AppSettings field name>", "reason": "<why a profile may never set it>" }`.
+The reason is mandatory and is what a future reader gets instead of guessing.
+
+**The rule a new setting must satisfy:** every `AppSettings` field has *either* a row in the CSV
+matrix *or* an entry in this registry. Until one of the two exists the coverage gate fails, and with
+it `.\a.ps1 fg` and `scripts/post-change.ps1`. A registered field that nevertheless carries a value
+in the CSV is also an error - the registry promises that value can never take effect, so authoring
+one would be silent data loss.
+
+**The registry does not replace the applier's `else -> skip(..)` branch.** The applier is the
+runtime safety net: it is what actually refuses to write a credential or a session-state field when
+a hand-edited CSV asks for it. The registry is the declaration, machine-readable ahead of the build,
+which is what lets the gate tell a forgotten setting from a deliberately non-presettable one. Both
+are needed; neither makes the other redundant.
+
+Broad categories currently registered: credentials, install-local pointers (resource ids, URIs,
+paths), consent flags, session and migration state, one-shot hints, and the locale-derived
+translation languages.

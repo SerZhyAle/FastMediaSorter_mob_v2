@@ -1,5 +1,5 @@
 {
-  "_comment": "Ordered store-screenshot slots for S0497. Each slot has a stable id (matches temp/play-shots/<id>.png and play/listing/<locale>/images/phoneScreenshots/<NN>.png ordering) and a localized caption per Play language folder. Captions are short marketing lines (<=2 lines via \\n).",
+  "_comment": "Ordered store-screenshot slots. Each slot has a stable id and a localized caption per Play language folder. Raw shots are captured per locale into temp/play-shots/<locale>/<id>.png (compose falls back to temp/play-shots/<id>.png when a locale has no own shot). Composed output lands in play/listing/<locale>/images/phoneScreenshots/<NN>.png in slot order. Captions are short marketing lines (<=2 lines via \\n). Play caps phone screenshots at 8 slots.",
   "slots": [
     {
       "id": "browse",
@@ -26,19 +26,27 @@
       }
     },
     {
-      "id": "slideshow",
+      "id": "streams",
       "captions": {
-        "en-US": "Slideshows,\nyour way",
-        "ru-RU": "Слайд-шоу -\nкак вам удобно",
-        "uk-UA": "Слайд-шоу -\nяк вам зручно"
+        "en-US": "Live TV & radio\nchannels built in",
+        "ru-RU": "Живое ТВ и радио -\nвстроенные каналы",
+        "uk-UA": "Живе ТБ і радіо -\nвбудовані канали"
+      }
+    },
+    {
+      "id": "music-player",
+      "captions": {
+        "en-US": "Audio with live\nvisualizers",
+        "ru-RU": "Аудио с живыми\nвизуализаторами",
+        "uk-UA": "Аудіо з живими\nвізуалізаторами"
       }
     },
     {
       "id": "cloud-connect",
       "captions": {
-        "en-US": "SMB, FTP & cloud,\nbuilt in",
-        "ru-RU": "SMB, FTP и облако -\nиз коробки",
-        "uk-UA": "SMB, FTP і хмара -\nвбудовано"
+        "en-US": "Your NAS and cloud,\nside by side",
+        "ru-RU": "NAS и облако -\nрядом друг с другом",
+        "uk-UA": "NAS і хмара -\nпоруч одне з одним"
       }
     },
     {
@@ -50,11 +58,11 @@
       }
     },
     {
-      "id": "widgets",
+      "id": "camera",
       "captions": {
-        "en-US": "Home-screen\nwidgets",
-        "ru-RU": "Виджеты\nна экране",
-        "uk-UA": "Віджети\nна екрані"
+        "en-US": "Shoot straight\ninto your folders",
+        "ru-RU": "Снимайте сразу\nв нужную папку",
+        "uk-UA": "Знімайте одразу\nв потрібну теку"
       }
     }
   ]

@@ -4,20 +4,21 @@ import com.hierynomus.msdtyp.AccessMask
 import com.hierynomus.mssmb2.SMB2CreateDisposition
 import com.hierynomus.mssmb2.SMB2ShareAccess
 import com.hierynomus.smbj.share.File
+import com.sza.fastmediasorter.data.network.exceptions.HandledNetworkOutcomeLogger
 import com.sza.fastmediasorter.data.network.helpers.SmbDirectoryScanner
-import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
-import com.sza.fastmediasorter.domain.model.MediaExtensions
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbFileInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
+import com.sza.fastmediasorter.domain.model.MediaExtensions
+import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import timber.log.Timber
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.EnumSet
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 
 /**
  * SMB/CIFS client facade for network file operations using SMBJ library.
@@ -128,9 +129,15 @@ class SmbClient @Inject constructor(
         } else {
             "SMB testConnection failed"
         }
-        Timber.e(lastException, finalMessage)
+        val failure = lastException ?: Exception("Unknown error")
+        HandledNetworkOutcomeLogger.logConnectionTestFailure(
+            scope = "smb-test-connection",
+            resourceLabel = "${connectionInfo.server}/${connectionInfo.shareName}",
+            throwable = failure,
+            message = finalMessage
+        )
         return SmbResult.Error(
-            getUserFriendlyMessage(lastException ?: Exception("Unknown error")),
+            getUserFriendlyMessage(failure),
             lastException
         )
     }

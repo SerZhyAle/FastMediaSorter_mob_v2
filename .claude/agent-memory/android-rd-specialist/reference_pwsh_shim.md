@@ -14,4 +14,4 @@ The shim is a 3-line bash script that `exec`s `/c/Program Files/PowerShell/7/pws
 - This supersedes any older memory or comment saying "pwsh is not on bash PATH" - that was true before the shim was installed on 2026-05-21.
 - If the shim ever disappears (Windows reinstall, profile wipe), recreate with: `mkdir -p /c/Users/serzh/bin && printf '#!/usr/bin/env bash\nexec "/c/Program Files/PowerShell/7/pwsh.exe" "$@"\n' > /c/Users/serzh/bin/pwsh && chmod +x /c/Users/serzh/bin/pwsh`.
 
-Related: [[feedback_pwsh_efficiency]] (still applies - always pass `-NoProfile`, batch related calls in one process).
+Related: [[pwsh-efficiency]] (still applies - always pass `-NoProfile`, batch related calls in one process).

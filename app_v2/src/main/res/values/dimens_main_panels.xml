@@ -16,6 +16,8 @@
          the other panels. Portrait only. -->
     <dimen name="main_panel_first_tab_width">108dp</dimen>
     <dimen name="main_panel_item_spacing">2dp</dimen>
+    <!-- Shared inner gap after the leading icon in the portrait command, programs and streams rows. -->
+    <dimen name="main_top_panel_leading_icon_spacing">6dp</dimen>
     <!-- S1037: shared leading X for the first working button of each top panel (programs items /
          streams channels / resource tabs) in portrait. A leading service control (programs panel
          menu, streams entry) occupies this zone without pushing the working content past the other

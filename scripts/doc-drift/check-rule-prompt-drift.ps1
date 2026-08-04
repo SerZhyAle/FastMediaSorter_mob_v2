@@ -104,4 +104,6 @@ if (-not (Test-Path -LiteralPath $artifactDir -PathType Container)) {
 }
 ConvertTo-RulePromptJson -Records $records | Set-Content -LiteralPath $artifact -Encoding UTF8
 
-if (@($records).Count -gt 0) { exit 1 } else { exit 0 }
+if (@($records).Count -eq 0) { exit 0 }
+Write-Error ("check-rule-prompt-drift: {0} drift record(s) - details in {1}." -f @($records).Count, $artifact) -ErrorAction Continue
+exit 1

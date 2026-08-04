@@ -13,12 +13,16 @@ import com.microsoft.identity.client.SilentAuthenticationCallback
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException
 import com.microsoft.identity.client.exception.MsalException
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.network.HttpTimeouts
+import com.sza.fastmediasorter.core.network.applyTimeouts
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationEntity
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import com.sza.fastmediasorter.core.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -39,7 +43,6 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 /** CloudStorageClient for OneDrive via Microsoft Graph REST API v1.0 (MSAL 6.0.1). */
-import kotlinx.coroutines.DelicateCoroutinesApi
 
 @Singleton
 class OneDriveRestClient @Inject constructor(
@@ -108,6 +111,7 @@ class OneDriveRestClient @Inject constructor(
                                     ?: userJson.optString("mail")
                             }
                         } catch (e: Exception) {
+                            e.rethrowIfCancellation()
                             Timber.w(e, "Failed to fetch user email")
                         }
                     }
@@ -121,6 +125,7 @@ class OneDriveRestClient @Inject constructor(
                         )
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Connection test failed")
                     CloudResult.Error(
                         context.getString(
@@ -198,6 +203,7 @@ class OneDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.cloud_list_files_failed))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to list files")
                 CloudResult.Error(context.getString(R.string.cloud_list_files_failed), e)
             }
@@ -284,6 +290,7 @@ class OneDriveRestClient @Inject constructor(
                 
                 if (downloadUrl.isEmpty()) return@withContext CloudResult.Error(oneDriveDownloadFailedMessage())
                 val connection = URL(downloadUrl).openConnection() as HttpURLConnection
+                connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
                 connection.requestMethod = "GET"
                 
                 try {
@@ -305,6 +312,7 @@ class OneDriveRestClient @Inject constructor(
                     connection.disconnect()
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "OneDrive.downloadFile: EXCEPTION for fileId='$fileId'")
                 CloudResult.Error(
                     context.getString(
@@ -322,33 +330,42 @@ class OneDriveRestClient @Inject constructor(
         fileName: String,
         mimeType: String,
         parentFolderId: String?,
+        fileSize: Long,
         progressCallback: ((TransferProgress) -> Unit)?
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
                 val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
-                
+
                 val resolvedParentId = resolveOrEnsureFolder(parentFolderId)
                 val endpoint = resolvedParentId?.let { "$GRAPH_API_BASE/me/drive/items/$it:/$fileName:/content" }
                     ?: "$GRAPH_API_BASE/me/drive/root:/$fileName:/content"
-                
+
                 val url = URL(endpoint)
                 val connection = url.openConnection() as HttpURLConnection
+                connection.applyTimeouts(HttpTimeouts.uploadReadTimeoutMs(fileSize))
                 connection.requestMethod = "PUT"
                 connection.setRequestProperty("Authorization", "Bearer $token")
                 connection.setRequestProperty("Content-Type", mimeType)
                 connection.doOutput = true
-                
+                // S1361: see GoogleDriveMultipartUploader - a body with no declared length is buffered
+                // whole in memory and drains after the response read has already started counting.
+                if (fileSize > 0L) connection.setFixedLengthStreamingMode(fileSize)
+                Timber.d(
+                    "S1361: OneDrive upload $fileName streamed=${fileSize > 0L} body=$fileSize " +
+                        "readBudgetMs=${HttpTimeouts.uploadReadTimeoutMs(fileSize)}"
+                )
+
                 try {
                     val outputStream = connection.outputStream
                     val buffer = ByteArray(65536) // 64KB buffer for better network throughput
                     var bytesRead: Int
                     var totalBytes = 0L
-                    
+
                     while (inputStream.read(buffer).also { bytesRead = it } != -1) {
                         outputStream.write(buffer, 0, bytesRead)
                         totalBytes += bytesRead
-                        progressCallback?.invoke(TransferProgress(totalBytes, 0L))
+                        progressCallback?.invoke(TransferProgress(totalBytes, fileSize))
                     }
                     
                     outputStream.flush()
@@ -367,6 +384,7 @@ class OneDriveRestClient @Inject constructor(
                     connection.disconnect()
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to upload file")
                 CloudResult.Error(context.getString(R.string.cloud_upload_failed), e)
             }
@@ -402,6 +420,7 @@ class OneDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.cloud_create_folder_failed))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to create folder")
                 CloudResult.Error(context.getString(R.string.cloud_create_folder_failed), e)
             }
@@ -417,6 +436,7 @@ class OneDriveRestClient @Inject constructor(
                     is CloudResult.Error -> { Timber.e("findFolderByName: list failed: ${r.message}"); r }
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to find folder: $folderName")
                 CloudResult.Error(context.getString(R.string.cloud_search_failed), e)
             }
@@ -445,6 +465,7 @@ class OneDriveRestClient @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "ensureFolderExists failed")
                 CloudResult.Error(context.getString(R.string.cloud_create_folder_failed), e)
             }
@@ -551,6 +572,7 @@ class OneDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.error_copy_failed))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to copy file")
                 CloudResult.Error(context.getString(R.string.error_copy_failed), e)
             }
@@ -620,9 +642,10 @@ class OneDriveRestClient @Inject constructor(
                 
                 val url = URL("$GRAPH_API_BASE/me/drive/items/$fileId/thumbnails/0/$thumbnailSize/content")
                 val connection = url.openConnection() as HttpURLConnection
+                connection.applyTimeouts()
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Authorization", "Bearer $token")
-                
+
                 try {
                     val responseCode = connection.responseCode
                     if (responseCode in 200..299) {
@@ -636,6 +659,7 @@ class OneDriveRestClient @Inject constructor(
                     connection.disconnect()
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to get thumbnail")
                 CloudResult.Error(context.getString(R.string.cloud_thumbnail_failed), e)
             }
@@ -653,6 +677,7 @@ class OneDriveRestClient @Inject constructor(
             Timber.d("OneDrive.getFileInputStream: fileId='$fileId', pos=$position, len=$length")
             val url = URL("${buildItemUrlFromReference(fileId)}/content")
             val connection = url.openConnection() as HttpURLConnection
+            connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
             connection.setRequestProperty("Authorization", "Bearer $token")
             // Range header for streaming seek support
             if (position > 0 || length != -1L) {
@@ -671,6 +696,7 @@ class OneDriveRestClient @Inject constructor(
                 CloudResult.Error(oneDriveDownloadFailedMessage())
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "OneDrive.getFileInputStream: Exception")
             CloudResult.Error(
                 context.getString(
@@ -705,6 +731,7 @@ class OneDriveRestClient @Inject constructor(
                     )
                     Timber.d("OneDriveRestClient: access token queued for revocation")
                 } catch (e: Exception) {
+                    e.rethrowIfCancellation()
                     Timber.w(e, "OneDriveRestClient: failed to queue token for revocation")
                 }
             }

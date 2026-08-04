@@ -15,8 +15,8 @@ Canonical pieces (delivered by S0567, both verified present 2026-06-25):
 
 Do NOT touch / migrate these (intentionally custom, graphical, or already consistent):
 - device profile chooser, translation language chooser, cloud auth provider list, resource-editor profile selector (complex/graphical).
-- inline `SettingsDropdownRow` selectors from S0567 (language/theme/sort) - already consistent.
+- inline `SettingsDropdownRow` selectors from S0567 (theme/sort) - the inline look stays. Partly superseded: S1190 already moved language + device profile to `SettingsSelectionRow`, and S1390 (owner call 2026-08-04) keeps the inline dropdown but rebuilds its popup as a modal `ListPopupWindow` so D-pad and uiautomator can reach it.
 
 **Why:** owner dislikes the visual heterogeneity from value pickers implemented 3+ different ways across the app; S0646 (dialogs) + S0648/S0644 (rows) unified them onto these components. Reinventing the component was an explicit non-goal.
 
-**How to apply:** when adding or reviewing a settings value selector, wire a `SettingsSelectionRow` trigger to `ListSelectionDialog<T>`/`SimpleValueChoiceDialog`; preserve side effects (dependent-row visibility, on-demand delivery gates) in a wrapper around `onSelected`. See also [[feedback_reuse_existing_settings]].
+**How to apply:** when adding or reviewing a settings value selector, wire a `SettingsSelectionRow` trigger to `ListSelectionDialog<T>`/`SimpleValueChoiceDialog`; preserve side effects (dependent-row visibility, on-demand delivery gates) in a wrapper around `onSelected`. See also [[reuse-existing-settings-toggles]].

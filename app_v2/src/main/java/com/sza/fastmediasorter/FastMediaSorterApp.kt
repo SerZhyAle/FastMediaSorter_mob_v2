@@ -1,8 +1,8 @@
 package com.sza.fastmediasorter
 
 import android.app.Application
-import android.content.Context
 import android.content.ComponentCallbacks2
+import android.content.Context
 import android.os.StrictMode
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -14,28 +14,31 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.bumptech.glide.Glide
 import com.google.android.material.color.DynamicColors
+import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.cache.TranslationCacheManager
+import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.init.AppStartupInitializer
 import com.sza.fastmediasorter.core.init.FirstFrameSignal
 import com.sza.fastmediasorter.core.logging.LoggingHelper
-import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayStartupCoordinator
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
-import com.sza.fastmediasorter.worker.DeferredStartupWorker
-import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
+import com.sza.fastmediasorter.domain.model.SensitiveSetting
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.distinctUntilChanged
+import com.sza.fastmediasorter.worker.DeferredStartupWorker
+import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Locale
@@ -155,7 +158,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    private val firstFrameSignal by lazy(LazyThreadSafetyMode.NONE) { FirstFrameSignal() }
+    private val firstFrameSignal by lazy { FirstFrameSignal() }
     
     // Track if app is in foreground
     @Volatile
@@ -494,6 +497,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 // App is running but system is CRITICALLY low on memory - clear memory cache
                 Timber.w("CRITICAL memory: level=$level($levelName), mem=$memInfo, clearing Glide memory cache")
                 Glide.get(this).clearMemory()
+                releaseRecomputableCaches()
             }
             ComponentCallbacks2.TRIM_MEMORY_COMPLETE -> {
                 // System is about to kill background processes
@@ -501,7 +505,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 // Disk cache should persist for fast thumbnail loading on restart
                 Timber.w("System killing processes: level=$level($levelName), mem=$memInfo, clearing Glide MEMORY cache only (preserving disk)")
                 Glide.get(this).clearMemory()
-                
+                releaseRecomputableCaches()
+
+
                 // Clean up all temp files under critical memory pressure (ML-007)
                 applicationScope.launch(Dispatchers.IO) {
                     tempFileManager.get().cleanupAllTempFiles()
@@ -531,6 +537,17 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 }
             }
         }
+    }
+
+    /**
+     * S1299/S1300: until now onTrimMemory only trimmed Glide, so the app's own in-memory caches -
+     * the media-file lists and the PDF translation cache - stayed fully resident even at
+     * RUNNING_CRITICAL, including while backgrounded. Both hold recomputable data: dropping them
+     * costs a rescan or a re-translation, never user data.
+     */
+    private fun releaseRecomputableCaches() {
+        MediaFilesCacheManager.clearAllCaches()
+        TranslationCacheManager.trimForMemoryPressure()
     }
 
     private fun logAppStartupInfo() {
@@ -641,7 +658,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 field.isAccessible = true
                 val raw: Any? = field.get(settings)
                 val name = field.name
-                val display = formatSettingValue(name, raw)
+                val display = formatSettingValue(field, raw)
                 sb.append(String.format(Locale.US, "%-36s: %s\n", name, display))
             }
         } catch (t: Throwable) {
@@ -657,10 +674,15 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
      * Renders one AppSettings value for the dump. Masks credential-like fields
      * by field-name pattern. The matcher is intentionally broad so any future
      * `*password*`, `*secret*`, `*token*`, `*apiKey*` field is masked on day one.
+     *
+     * S1254: the name hints die silently when R8 renames fields (a real password reached
+     * exported diagnostics twice), so [SensitiveSetting] presence - checked via class
+     * identity, rename-proof - is the second, authoritative trigger.
      */
-    private fun formatSettingValue(fieldName: String, value: Any?): String {
-        val nameLower = fieldName.lowercase(Locale.US)
-        val isSecret = SECRET_FIELD_HINTS.any { it in nameLower }
+    private fun formatSettingValue(field: java.lang.reflect.Field, value: Any?): String {
+        val nameLower = field.name.lowercase(Locale.US)
+        val isSecret = field.isAnnotationPresent(SensitiveSetting::class.java) ||
+            SECRET_FIELD_HINTS.any { it in nameLower }
         if (isSecret) {
             return when (value) {
                 null -> "<null>"

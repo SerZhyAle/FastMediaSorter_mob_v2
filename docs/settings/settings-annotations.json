@@ -299,6 +299,11 @@
     "ru": "Открывает выбор виджетов для добавления виджета приложения на домашний экран.",
     "uk": "Відкриває вибір віджетів для додавання віджету застосунку на головний екран."
   },
+  "buttonAddLauncherWidget": {
+    "en": "Launches the same widget picker, but puts the chosen widget on the launcher's own desktop instead of the Android home screen. Shown only while launcher mode is on.",
+    "ru": "Открывает тот же список виджетов, но кладёт выбранный на собственный рабочий стол лаунчера, а не на домашний экран Android. Видна только при включённом режиме лаунчера.",
+    "uk": "Відкриває той самий список віджетів, але кладе вибраний на власний робочий стіл лаунчера, а не на домашній екран Android. Показується лише за увімкненого режиму лаунчера."
+  },
   "etIconSize": {
     "en": "Sets the thumbnail icon size in pixels for grid view.",
     "ru": "Задаёт размер иконок-миниатюр в пикселях для режима отображения сеткой.",
@@ -549,6 +554,11 @@
     "ru": "Обрезает изображения для заполнения всего экрана в полноэкранном режиме, убирая чёрные полосы.",
     "uk": "Обрізає зображення для заповнення всього екрана в повноекранному режимі, прибираючи чорні смуги."
   },
+  "rowDebugLogMirror": {
+    "en": "Copies the debug log into the folder currently open in the viewer, so a reproduction can be picked up without digging into the app sandbox. Off by default; debug builds only.",
+    "ru": "Копирует отладочный лог в папку, открытую сейчас в просмотрщике, чтобы забрать воспроизведение проблемы, не копаясь в песочнице приложения. По умолчанию выключено, только в отладочных сборках.",
+    "uk": "Копіює зневаджувальний лог у теку, відкриту зараз у переглядачі, щоб забрати відтворення проблеми, не копирсаючись у пісочниці додатка. Типово вимкнено, лише в зневаджувальних складаннях."
+  },
   "rowDefaultAudioLanguage": {
     "en": "Picks the audio language the app prefers when a stream offers several. A channel that you set a language for yourself keeps its own choice.",
     "ru": "Выбирает язык аудио, который приложение предпочтёт, если в трансляции несколько дорожек. Канал, которому вы задали язык вручную, сохраняет свой выбор.",
@@ -718,6 +728,11 @@
     "en": "Prevents the screen from turning off while the media player is active.",
     "ru": "Не даёт экрану отключаться во время работы медиаплеера.",
     "uk": "Не дає екрану вимкнутися під час роботи медіаплеєра."
+  },
+  "rowLanguage": {
+    "en": "Selects the language used for the app interface.",
+    "ru": "Выбирает язык интерфейса приложения.",
+    "uk": "Вибирає мову інтерфейсу застосунку."
   },
   "rowLauncherModeEnabled": {
     "en": "Makes the app the device home screen, so the Home button opens your own desktop.",
@@ -1014,11 +1029,6 @@
     "ru": "Выбирает цветовую тему интерфейса приложения.",
     "uk": "Вибирає колірну тему інтерфейсу застосунку."
   },
-  "spinnerLanguage": {
-    "en": "Selects the language used for the app interface.",
-    "ru": "Выбирает язык интерфейса приложения.",
-    "uk": "Вибирає мову інтерфейсу застосунку."
-  },
   "spinnerSortMode": {
     "en": "Sets the default order in which files are sorted when a folder opens.",
     "ru": "Задаёт порядок сортировки файлов по умолчанию при открытии папки.",
@@ -1033,5 +1043,250 @@
     "en": "Chooses the target language that recognized text is translated into.",
     "ru": "Выбирает язык, на который переводится распознанный текст.",
     "uk": "Вибирає мову, якою перекладається розпізнаний текст."
+  },
+  "btnEditAppPanel": {
+    "en": "Opens the editor for the customizable app-launch panel shown in edge-gesture zones.",
+    "ru": "Открывает редактор настраиваемой панели приложений, которая показывается в зонах жестов по краю экрана.",
+    "uk": "Відкриває редактор настроюваної панелі застосунків, яка показується в зонах жестів біля краю екрана."
+  },
+  "btnSelectScreenshotDestination": {
+    "en": "Opens a folder picker for where captured screenshots are saved.",
+    "ru": "Открывает выбор папки для сохранения сделанных скриншотов.",
+    "uk": "Відкриває вибір теки для збереження зроблених скриншотів."
+  },
+  "btnSettingsDefaultPlayerAudio": {
+    "en": "Opens Android's default-app chooser to register this app as the default audio player.",
+    "ru": "Открывает системный выбор приложения по умолчанию, чтобы назначить это приложение аудиоплеером по умолчанию.",
+    "uk": "Відкриває системний вибір застосунку за замовчуванням, щоб призначити цей застосунок аудіоплеєром за замовчуванням."
+  },
+  "btnSettingsDefaultPlayerDocs": {
+    "en": "Opens Android's default-app chooser to register this app as the default document viewer.",
+    "ru": "Открывает системный выбор приложения по умолчанию, чтобы назначить это приложение программой просмотра документов по умолчанию.",
+    "uk": "Відкриває системний вибір застосунку за замовчуванням, щоб призначити цей застосунок переглядачем документів за замовчуванням."
+  },
+  "btnSettingsDefaultPlayerImages": {
+    "en": "Opens Android's default-app chooser to register this app as the default image viewer.",
+    "ru": "Открывает системный выбор приложения по умолчанию, чтобы назначить это приложение программой просмотра изображений по умолчанию.",
+    "uk": "Відкриває системний вибір застосунку за замовчуванням, щоб призначити цей застосунок переглядачем зображень за замовчуванням."
+  },
+  "btnSettingsDefaultPlayerVideo": {
+    "en": "Opens Android's default-app chooser to register this app as the default video player.",
+    "ru": "Открывает системный выбор приложения по умолчанию, чтобы назначить это приложение видеоплеером по умолчанию.",
+    "uk": "Відкриває системний вибір застосунку за замовчуванням, щоб призначити цей застосунок відеоплеєром за замовчуванням."
+  },
+  "headerEdgeGestureGeneral": {
+    "en": "Section header for the general edge-gesture settings - screenshot destination, clipboard copy, and the app-launch panel editor.",
+    "ru": "Заголовок раздела общих настроек жестов по краю экрана - папка для скриншотов, копирование в буфер обмена и редактор панели приложений.",
+    "uk": "Заголовок розділу загальних налаштувань жестів біля краю екрана - тека для скриншотів, копіювання в буфер обміну та редактор панелі застосунків."
+  },
+  "rowAcceptSharedFiles": {
+    "en": "Allows the app to receive files shared from other apps.",
+    "ru": "Разрешает приложению получать файлы, переданные через меню «Поделиться» из других приложений.",
+    "uk": "Дозволяє застосунку отримувати файли, надіслані через меню «Поділитися» з інших застосунків."
+  },
+  "rowCopyScreenshotToClipboard": {
+    "en": "Also copies every captured screenshot to the clipboard, ready to paste.",
+    "ru": "Дополнительно копирует каждый сделанный скриншот в буфер обмена, готовый для вставки.",
+    "uk": "Додатково копіює кожен зроблений скриншот у буфер обміну, готовий для вставлення."
+  },
+  "rowGestureLeftBottomDown": {
+    "en": "Assigns the action triggered by swiping down from the left edge's lower gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у левого края (нижняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля лівого краю (нижня смуга)."
+  },
+  "rowGestureLeftBottomRight": {
+    "en": "Assigns the action triggered by swiping right from the left edge's lower gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у левого края (нижняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля лівого краю (нижня смуга)."
+  },
+  "rowGestureLeftBottomUp": {
+    "en": "Assigns the action triggered by swiping up from the left edge's lower gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у левого края (нижняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля лівого краю (нижня смуга)."
+  },
+  "rowGestureLeftTopDown": {
+    "en": "Assigns the action triggered by swiping down from the left edge's upper gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у левого края (верхняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля лівого краю (верхня смуга)."
+  },
+  "rowGestureLeftTopRight": {
+    "en": "Assigns the action triggered by swiping right from the left edge's upper gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у левого края (верхняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля лівого краю (верхня смуга)."
+  },
+  "rowGestureLeftTopUp": {
+    "en": "Assigns the action triggered by swiping up from the left edge's upper gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у левого края (верхняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля лівого краю (верхня смуга)."
+  },
+  "rowGestureRightBottomDown": {
+    "en": "Assigns the action triggered by swiping down from the right edge's lower gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у правого края (нижняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля правого краю (нижня смуга)."
+  },
+  "rowGestureRightBottomRight": {
+    "en": "Assigns the action triggered by swiping right from the right edge's lower gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у правого края (нижняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля правого краю (нижня смуга)."
+  },
+  "rowGestureRightBottomUp": {
+    "en": "Assigns the action triggered by swiping up from the right edge's lower gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у правого края (нижняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля правого краю (нижня смуга)."
+  },
+  "rowGestureRightTopDown": {
+    "en": "Assigns the action triggered by swiping down from the right edge's upper gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у правого края (верхняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля правого краю (верхня смуга)."
+  },
+  "rowGestureRightTopRight": {
+    "en": "Assigns the action triggered by swiping right from the right edge's upper gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у правого края (верхняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля правого краю (верхня смуга)."
+  },
+  "rowGestureRightTopUp": {
+    "en": "Assigns the action triggered by swiping up from the right edge's upper gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у правого края (верхняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля правого краю (верхня смуга)."
+  },
+  "rowLauncherDensity": {
+    "en": "Sets how many icons the launcher desktop grid fits per row and column.",
+    "ru": "Задаёт, сколько значков помещается по строкам и столбцам сетки рабочего стола лаунчера.",
+    "uk": "Задає, скільки піктограм вміщується в рядках і стовпцях сітки робочого столу лаунчера."
+  },
+  "rowLauncherLockDesktop": {
+    "en": "Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable.",
+    "ru": "Блокирует вход в режим редактирования рабочего стола долгим нажатием; вход через меню «Пуск» остаётся доступным.",
+    "uk": "Блокує вхід у режим редагування робочого стола довгим натисканням; вхід через меню «Пуск» лишається доступним."
+  },
+  "rowLauncherOpenHomeSettings": {
+    "en": "Opens Android's default-launcher chooser to switch the system home screen.",
+    "ru": "Открывает системный выбор лаунчера по умолчанию для смены домашнего экрана.",
+    "uk": "Відкриває системний вибір лаунчера за замовчуванням для зміни домашнього екрана."
+  },
+  "rowLauncherReplaceStatusArea": {
+    "en": "Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar.",
+    "ru": "Заменяет системную строку состояния собственной областью часов/статуса лаунчера; выключено - остаётся системная строка состояния.",
+    "uk": "Замінює системний рядок стану власною областю годинника/статусу лаунчера; вимкнено - лишається системний рядок стану."
+  },
+  "rowLauncherShowPinned": {
+    "en": "Shows pinned apps on the launcher desktop.",
+    "ru": "Показывает закреплённые приложения на рабочем столе лаунчера.",
+    "uk": "Показує закріплені застосунки на робочому столі лаунчера."
+  },
+  "rowLauncherShowRecents": {
+    "en": "Shows recently used apps on the launcher desktop.",
+    "ru": "Показывает недавно использованные приложения на рабочем столе лаунчера.",
+    "uk": "Показує нещодавно використані застосунки на робочому столі лаунчера."
+  },
+  "rowLauncherShowTray": {
+    "en": "Shows the clock and status indicators in the launcher's tray area.",
+    "ru": "Показывает часы и индикаторы статуса в области трея лаунчера.",
+    "uk": "Показує годинник та індикатори статусу в області трея лаунчера."
+  },
+  "rowLauncherWallpaper": {
+    "en": "Chooses the launcher desktop's wallpaper.",
+    "ru": "Выбирает заставку рабочего стола лаунчера.",
+    "uk": "Вибирає заставку робочого стола лаунчера."
+  },
+  "rowPrimaryMediaPlayer": {
+    "en": "Registers the app as the system media handler, shown in \"Open with\" and for hardware media buttons.",
+    "ru": "Назначает приложение системным обработчиком медиа - для меню «Открыть с помощью» и аппаратных медиакнопок.",
+    "uk": "Призначає застосунок системним обробником медіа - для меню «Відкрити за допомогою» та апаратних медіакнопок."
+  },
+  "rowZoneLeftBottomEnabled": {
+    "en": "Enables the edge-gesture zone at the left edge's lower band.",
+    "ru": "Включает зону жеста у левого края (нижняя полоса).",
+    "uk": "Вмикає зону жесту біля лівого краю (нижня смуга)."
+  },
+  "rowZoneLeftBottomStripVisible": {
+    "en": "Shows the semi-transparent gesture-strip guide for the left edge's lower zone.",
+    "ru": "Показывает полупрозрачную направляющую полосу жеста для зоны у левого края (нижняя полоса).",
+    "uk": "Показує напівпрозору напрямну смугу жесту для зони біля лівого краю (нижня смуга)."
+  },
+  "rowZoneLeftTopEnabled": {
+    "en": "Enables the edge-gesture zone at the left edge's upper band.",
+    "ru": "Включает зону жеста у левого края (верхняя полоса).",
+    "uk": "Вмикає зону жесту біля лівого краю (верхня смуга)."
+  },
+  "rowZoneLeftTopStripVisible": {
+    "en": "Shows the semi-transparent gesture-strip guide for the left edge's upper zone.",
+    "ru": "Показывает полупрозрачную направляющую полосу жеста для зоны у левого края (верхняя полоса).",
+    "uk": "Показує напівпрозору напрямну смугу жесту для зони біля лівого краю (верхня смуга)."
+  },
+  "rowZoneRightBottomEnabled": {
+    "en": "Enables the edge-gesture zone at the right edge's lower band.",
+    "ru": "Включает зону жеста у правого края (нижняя полоса).",
+    "uk": "Вмикає зону жесту біля правого краю (нижня смуга)."
+  },
+  "rowZoneRightBottomStripVisible": {
+    "en": "Shows the semi-transparent gesture-strip guide for the right edge's lower zone.",
+    "ru": "Показывает полупрозрачную направляющую полосу жеста для зоны у правого края (нижняя полоса).",
+    "uk": "Показує напівпрозору напрямну смугу жесту для зони біля правого краю (нижня смуга)."
+  },
+  "rowZoneRightTopEnabled": {
+    "en": "Enables the edge-gesture zone at the right edge's upper band.",
+    "ru": "Включает зону жеста у правого края (верхняя полоса).",
+    "uk": "Вмикає зону жесту біля правого краю (верхня смуга)."
+  },
+  "rowZoneRightTopStripVisible": {
+    "en": "Shows the semi-transparent gesture-strip guide for the right edge's upper zone.",
+    "ru": "Показывает полупрозрачную направляющую полосу жеста для зоны у правого края (верхняя полоса).",
+    "uk": "Показує напівпрозору напрямну смугу жесту для зони біля правого краю (верхня смуга)."
+  },
+  "cbOcrOnly": {
+    "en": "Skips the translation step and shows the recognized text as-is.",
+    "ru": "Пропускает этап перевода и показывает распознанный текст как есть.",
+    "uk": "Пропускає етап перекладу і показує розпізнаний текст як є."
+  },
+  "rowCameraAspect": {
+    "en": "Sets the photo aspect ratio used by the camera capture.",
+    "ru": "Задаёт соотношение сторон фото при съёмке камерой.",
+    "uk": "Задає співвідношення сторін фото під час зйомки камерою."
+  },
+  "rowCameraGrid": {
+    "en": "Shows a composition grid overlay in the camera viewfinder.",
+    "ru": "Показывает сетку композиции поверх видоискателя камеры.",
+    "uk": "Показує сітку композиції поверх видошукача камери."
+  },
+  "rowCameraHdr": {
+    "en": "Enables HDR capture for higher dynamic range photos.",
+    "ru": "Включает съёмку в HDR для фото с расширенным динамическим диапазоном.",
+    "uk": "Вмикає зйомку в HDR для фото з розширеним динамічним діапазоном."
+  },
+  "rowCameraManualSensor": {
+    "en": "Enables manual control of ISO and shutter speed instead of automatic exposure.",
+    "ru": "Включает ручное управление ISO и выдержкой вместо автоматической экспозиции.",
+    "uk": "Вмикає ручне керування ISO та витримкою замість автоматичної експозиції."
+  },
+  "rowCameraResolution": {
+    "en": "Sets the photo resolution used by the camera capture.",
+    "ru": "Задаёт разрешение фото при съёмке камерой.",
+    "uk": "Задає роздільну здатність фото під час зйомки камерою."
+  },
+  "rowCameraTimer": {
+    "en": "Sets a countdown delay before the camera captures a photo.",
+    "ru": "Задаёт задержку обратного отсчёта перед съёмкой фото камерой.",
+    "uk": "Задає затримку зворотного відліку перед зйомкою фото камерою."
+  },
+  "rowCameraWhiteBalance": {
+    "en": "Sets the camera's white balance mode.",
+    "ru": "Задаёт режим баланса белого камеры.",
+    "uk": "Задає режим балансу білого камери."
+  },
+  "spinnerFontFamily": {
+    "en": "Chooses the font family used to render translated text.",
+    "ru": "Выбирает семейство шрифта для отображения переведённого текста.",
+    "uk": "Вибирає гарнітуру шрифту для відображення перекладеного тексту."
+  },
+  "spinnerFontSize": {
+    "en": "Chooses the font size used to render translated text.",
+    "ru": "Выбирает размер шрифта для отображения переведённого текста.",
+    "uk": "Вибирає розмір шрифту для відображення перекладеного тексту."
+  },
+  "switchLensStyle": {
+    "en": "Shows the translation result as opaque blocks over the original text, matching Google Lens style.",
+    "ru": "Показывает результат перевода непрозрачными блоками поверх исходного текста, в стиле Google Lens.",
+    "uk": "Показує результат перекладу непрозорими блоками поверх вихідного тексту, у стилі Google Lens."
   }
 }

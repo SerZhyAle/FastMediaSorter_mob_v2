@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
@@ -86,6 +87,6 @@ class SaveFallbackNotifier @Inject constructor(
 
     private companion object {
         const val CHANNEL_ID = "save_fallback"
-        const val BASE_NOTIFICATION_ID = 0x5A220000
+        const val BASE_NOTIFICATION_ID = NotificationIds.SAVE_FALLBACK_BASE
     }
 }

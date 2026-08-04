@@ -10,7 +10,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -19,39 +18,47 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
+import com.sza.fastmediasorter.core.logging.DebugLogMirrorPrefs
+import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.util.LocaleHelper
-import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
+import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.statistics.StatisticsActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import kotlin.reflect.KMutableProperty0
 
 /** Owns the entire setupViews() body: switch/spinner/input setup + button wiring. */
 class GeneralSettingsViewSetupHelper(
-    private val binding: FragmentSettingsGeneralBinding,
-    private val viewModel: SettingsViewModel,
-    private val fragment: Fragment,
-    private val getIsUpdatingSpinner: () -> Boolean,
-    private val setIsUpdatingSpinner: (Boolean) -> Unit,
-    private val cacheHelper: GeneralSettingsCacheHelper,
-    private val permissionsHelper: GeneralSettingsPermissionsHelper,
-    private val importExportHelper: GeneralSettingsImportExportHelper,
-    private val credentialHelper: GeneralSettingsCredentialHelper,
-    private val logHelper: GeneralSettingsLogHelper,
-    private val resetHelper: GeneralSettingsResetHelper,
+    private val hostContext: GeneralSettingsHostContext,
+    private val isUpdatingSpinner: KMutableProperty0<Boolean>,
+    private val actionHelpers: GeneralSettingsActionHelpers,
     private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase,
     private val remoteSourceAvailabilityGate: RemoteSourceAvailabilityGate,
 ) {
+    // S1351: delegating properties, not a body-wide holder-prefix rewrite - every setupXxx
+    // function below keeps reading the bare short name it always did (binding.xxx, viewModel.xxx,
+    // cacheHelper.xxx, ...), only the constructor arity shrank. Prefixing every call site with
+    // hostContext./actionHelpers. instead pushed ~30 already-dense lines over MaxLineLength.
+    private val binding get() = hostContext.binding
+    private val viewModel get() = hostContext.viewModel
+    private val fragment get() = hostContext.fragment
+    private val cacheHelper get() = actionHelpers.cacheHelper
+    private val importExportHelper get() = actionHelpers.importExportHelper
+    private val credentialHelper get() = actionHelpers.credentialHelper
+    private val logHelper get() = actionHelpers.logHelper
+    private val resetHelper get() = actionHelpers.resetHelper
+
     private var lastCommittedDefaultUser: String = ""
     private var lastCommittedDefaultPassword: String = ""
 
     fun setup() {
-        setupLanguageSpinner()
+        setupLanguageRow()
         setupSwitches()
         setupStatisticsRow()
         setupRemoteSources()
@@ -65,74 +72,82 @@ class GeneralSettingsViewSetupHelper(
         setupActionButtons()
     }
 
-    // S0567: spinnerLanguage migrated from raw Spinner to SettingsDropdownRow (ADR-1).
-    private fun setupLanguageSpinner() {
-        val languages = listOf<CharSequence>(
-            fragment.getString(R.string.language_default),
-            fragment.getString(R.string.language_english),
-            fragment.getString(R.string.language_russian),
-            fragment.getString(R.string.language_ukrainian)
-        )
-        setIsUpdatingSpinner(true)
-        binding.spinnerLanguage.setEntries(languages)
-        binding.spinnerLanguage.setSelection(languageSelectionToPosition(currentLanguageSelectionCode()))
-        binding.spinnerLanguage.setOnItemSelectedListener { position ->
-            if (getIsUpdatingSpinner()) return@setOnItemSelectedListener
-            val newLanguageCode = positionToLanguageSelection(position)
-            val currentLanguageCode = currentLanguageSelectionCode()
-            if (newLanguageCode != currentLanguageCode) {
-                showRestartDialog(currentLanguageCode, newLanguageCode)
+    // S0567: raw Spinner -> SettingsDropdownRow. S1190: -> SettingsSelectionRow, because the interface
+    // language set is now whatever locales_config.xml declares and no longer fits an inline dropdown.
+    private fun setupLanguageRow() {
+        val current = currentLanguageSelectionCode()
+        binding.rowLanguage.setValue(UiLanguagePickerItems.label(fragment.requireContext(), current))
+        // S1214: bound to the view lifecycle, not to the tap - a picker restored after host recreation
+        // must still find a listener. The language in effect is re-read here rather than captured when
+        // the picker opened, because the listener can outlive that moment.
+        fragment.childFragmentManager.setFragmentResultListener(
+            SearchableLanguagePickerDialog.RESULT_KEY,
+            fragment.viewLifecycleOwner
+        ) { _, bundle ->
+            Timber.d("S1214: settings ui-language result received")
+            val code = bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)
+                ?: return@setFragmentResultListener
+            if (code != currentLanguageSelectionCode()) {
+                showRestartDialog(code)
             }
         }
-        binding.spinnerLanguage.post { setIsUpdatingSpinner(false) }
+        binding.rowLanguage.setOnRowClickListener { showLanguagePicker() }
+    }
+
+    private fun showLanguagePicker() {
+        val manager = fragment.childFragmentManager
+        // A second tap while the picker is already up would stack a duplicate showing the same choice.
+        if (manager.findFragmentByTag(SearchableLanguagePickerDialog.TAG) != null) return
+        SearchableLanguagePickerDialog.newInstanceForUiLanguage(currentLanguageSelectionCode())
+            .show(manager, SearchableLanguagePickerDialog.TAG)
     }
 
     private fun setupSwitches() {
         setupAllFilesResourceButton()
         binding.rowEnableFavorites.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableFavorites = isChecked))
         }
         // S0473: opt-in statistics. Routed through a dedicated VM method (not updateSettings) so the
         // off-toggle also wipes detailed activity; the VM does the work off the UI thread.
         binding.rowEnableStatistics.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             if (viewModel.settings.value.enableStatistics == isChecked) return@setOnCheckedChangeListener
             viewModel.setStatisticsCollectionEnabled(isChecked)
         }
         // S1045: secure-sensitive-screens toggle (default ON) - plain settings write like enableFavorites.
         binding.rowSecureSensitiveScreens.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.secureSensitiveScreens == isChecked) return@setOnCheckedChangeListener
             viewModel.updateSettings(current.copy(secureSensitiveScreens = isChecked))
         }
         // S0028: Multi-window toggle. Relocated from VideoSettings to General → Interface (bottom of section).
         binding.rowAllowSeparateWindow.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(allowSeparateWindow = isChecked))
         }
         binding.rowDefaultGridMode.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.defaultGridMode == isChecked) return@setOnCheckedChangeListener
             viewModel.updateSettings(current.copy(defaultGridMode = isChecked))
         }
         binding.rowHideGridActionButtons.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.hideGridActionButtons == isChecked) return@setOnCheckedChangeListener
             viewModel.updateSettings(current.copy(hideGridActionButtons = isChecked))
         }
         binding.rowFileOpsInOverflowMenu.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.fileOpsInOverflowMenu == isChecked) return@setOnCheckedChangeListener
             viewModel.updateSettings(current.copy(fileOpsInOverflowMenu = isChecked))
         }
         binding.rowCompactElements?.let { row ->
             row.setOnCheckedChangeListener { isChecked ->
-                if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+                if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
                 val current = viewModel.settings.value
                 if (current.useCompactElements == isChecked) return@setOnCheckedChangeListener
                 // Player controls layout is bound to this flag at inflate time (see PlayerLayoutModePrefs);
@@ -149,9 +164,9 @@ class GeneralSettingsViewSetupHelper(
                         LocaleHelper.restartApp(fragment.requireActivity())
                     }
                     .setNegativeButton(R.string.cancel) { dialog, _ ->
-                        setIsUpdatingSpinner(true)
+                        isUpdatingSpinner.set(true)
                         row.setCheckedSilently(current.useCompactElements)
-                        setIsUpdatingSpinner(false)
+                        isUpdatingSpinner.set(false)
                         dialog.dismiss()
                     }
                     .show()
@@ -159,27 +174,27 @@ class GeneralSettingsViewSetupHelper(
         }
         // S0911: main-window programs panel toggle (moved from Operations > Additional Programs).
         binding.rowShowProgramsPanel.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.showProgramsPanelInMainWindow == isChecked) return@setOnCheckedChangeListener
             viewModel.updateSettings(current.copy(showProgramsPanelInMainWindow = isChecked))
         }
         // S0911: main-window streams panel toggle (moved from Media > Streams).
         binding.rowShowStreamsPanel.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.showStreamsPanelInMainWindow == isChecked) return@setOnCheckedChangeListener
             viewModel.updateSettings(current.copy(showStreamsPanelInMainWindow = isChecked))
         }
         // S0160: resource ops overflow toggle
         binding.rowResourceOpsInOverflowMenu?.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.resourceOpsInOverflowMenu == isChecked) return@setOnCheckedChangeListener
             viewModel.updateSettings(current.copy(resourceOpsInOverflowMenu = isChecked))
         }
         binding.rowAllFiles.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) {
+            if (isUpdatingSpinner.get()) {
                 Timber.d("GeneralSettings: rowAllFiles listener blocked by isUpdatingSpinner")
                 return@setOnCheckedChangeListener
             }
@@ -197,11 +212,11 @@ class GeneralSettingsViewSetupHelper(
             }
         }
         binding.rowShowHiddenFiles.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(showHiddenFiles = isChecked))
         }
         binding.rowShowSubfoldersAsItems.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(showSubfoldersAsItems = isChecked))
         }
     }
@@ -232,7 +247,7 @@ class GeneralSettingsViewSetupHelper(
             if (remoteSourceAvailabilityGate.isCloudGroupSupported()) View.VISIBLE else View.GONE
 
         binding.rowSourceSmb.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             applyRemoteSourceToggle(
                 row = binding.rowSourceSmb,
                 enabled = isChecked,
@@ -240,7 +255,7 @@ class GeneralSettingsViewSetupHelper(
             ) { it.copy(smbEnabled = isChecked) }
         }
         binding.rowSourceFtp.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             applyRemoteSourceToggle(
                 row = binding.rowSourceFtp,
                 enabled = isChecked,
@@ -248,7 +263,7 @@ class GeneralSettingsViewSetupHelper(
             ) { it.copy(sftpEnabled = isChecked, ftpEnabled = isChecked) }
         }
         binding.rowSourceCloud.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             applyRemoteSourceToggle(
                 row = binding.rowSourceCloud,
                 enabled = isChecked,
@@ -279,9 +294,9 @@ class GeneralSettingsViewSetupHelper(
             .setCancelable(false)
             .setPositiveButton(R.string.yes) { _, _ -> viewModel.updateSettings(transform(current)) }
             .setNegativeButton(R.string.cancel) { dialog, _ ->
-                setIsUpdatingSpinner(true)
+                isUpdatingSpinner.set(true)
                 row.setCheckedSilently(true)
-                setIsUpdatingSpinner(false)
+                isUpdatingSpinner.set(false)
                 dialog.dismiss()
             }
             .show()
@@ -348,7 +363,7 @@ class GeneralSettingsViewSetupHelper(
     private fun setupNetworkParallelism() {
         binding.actvNetworkParallelism.text = fragment.getString(R.string.number_format, viewModel.settings.value.networkParallelism)
         binding.actvNetworkParallelism.setOnCommitListener { value ->
-            if (getIsUpdatingSpinner()) return@setOnCommitListener
+            if (isUpdatingSpinner.get()) return@setOnCommitListener
             val limit = value.toString().toIntOrNull()
             if (limit != null && limit in 1..32) {
                 val current = viewModel.settings.value
@@ -367,7 +382,7 @@ class GeneralSettingsViewSetupHelper(
     private fun setupCacheSizeInput() {
         binding.actvCacheSizeLimit.text = fragment.getString(R.string.number_format, viewModel.settings.value.cacheSizeMb)
         binding.actvCacheSizeLimit.setOnCommitListener { value ->
-            if (getIsUpdatingSpinner()) return@setOnCommitListener
+            if (isUpdatingSpinner.get()) return@setOnCommitListener
             val sizeMb = value.toString().toIntOrNull()
             if (sizeMb != null && sizeMb in 512..16384) {
                 if (viewModel.settings.value.cacheSizeMb != sizeMb) cacheHelper.showCacheSizeRestartDialog(sizeMb)
@@ -384,7 +399,7 @@ class GeneralSettingsViewSetupHelper(
         binding.etIconSize.setAdapter(iconSizeAdapter)
         binding.etIconSize.setText(fragment.getString(R.string.number_format, viewModel.settings.value.defaultIconSize), false)
         binding.etIconSize.setOnItemClickListener { _, _, position, _ ->
-            if (getIsUpdatingSpinner()) return@setOnItemClickListener
+            if (isUpdatingSpinner.get()) return@setOnItemClickListener
             val size = iconSizeOptions[position].toInt()
             val current = viewModel.settings.value
             if (current.defaultIconSize != size) {
@@ -392,7 +407,7 @@ class GeneralSettingsViewSetupHelper(
             }
         }
         binding.etIconSize.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus && !getIsUpdatingSpinner()) {
+            if (!hasFocus && !isUpdatingSpinner.get()) {
                 val size = binding.etIconSize.text.toString().toIntOrNull()
                 if (size != null && size in 32..256 && (size - 32) % 8 == 0) {
                     val current = viewModel.settings.value
@@ -408,16 +423,16 @@ class GeneralSettingsViewSetupHelper(
 
     private fun setupSyncSection() {
         binding.rowEnableBackgroundSync.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableBackgroundSync = isChecked))
         }
         binding.rowEnableThumbnailPreload.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableThumbnailPreload = isChecked))
             binding.layoutThumbnailPreloadWifiOnly.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
         binding.rowThumbnailPreloadWifiOnly.setOnCheckedChangeListener { isChecked ->
-            if (getIsUpdatingSpinner()) return@setOnCheckedChangeListener
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(thumbnailPreloadWifiOnly = isChecked))
         }
         val syncIntervalOptions = arrayOf("5", "15", "60", "120", "300")
@@ -427,14 +442,14 @@ class GeneralSettingsViewSetupHelper(
             val currentMinutes = viewModel.settings.value.backgroundSyncIntervalHours * 60
             syncIntervalView.setText(fragment.getString(R.string.number_format, currentMinutes), false)
             syncIntervalView.setOnItemClickListener { _, _, position, _ ->
-                if (getIsUpdatingSpinner()) return@setOnItemClickListener
+                if (isUpdatingSpinner.get()) return@setOnItemClickListener
                 val minutes = syncIntervalOptions[position].toInt()
                 val hours = (minutes / 60.0).toInt().coerceAtLeast(1)
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(backgroundSyncIntervalHours = hours))
             }
             syncIntervalView.setOnFocusChangeListener { _, hasFocus ->
-                if (!hasFocus && !getIsUpdatingSpinner()) {
+                if (!hasFocus && !isUpdatingSpinner.get()) {
                     val minutes = syncIntervalView.text.toString().toIntOrNull()
                     if (minutes != null && minutes >= 5) {
                         val hours = (minutes / 60.0).toInt().coerceAtLeast(1)
@@ -576,7 +591,8 @@ class GeneralSettingsViewSetupHelper(
                 else -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO.html"
             }, "No browser found to open documentation")
         }
-        // S0994: PC-side companion publish-folders guide, shown only when companion import is available (lite/vr hide it).
+        // S0994: PC-side companion publish-folders guide, shown only when companion import is
+        // available (lite/vr hide it).
         binding.btnCompanionPublishGuide.isVisible = viewModel.isCompanionImportAvailable
         binding.btnCompanionPublishGuide.setOnClickListener {
             openUrl(
@@ -608,6 +624,9 @@ class GeneralSettingsViewSetupHelper(
 
         binding.headerDebugSettings.visibility = if (BuildConfig.DEBUG) View.VISIBLE else View.GONE
         binding.containerDebugSettings.visibility = if (BuildConfig.DEBUG) View.VISIBLE else View.GONE
+        if (BuildConfig.DEBUG) {
+            setupDebugLogMirrorRow()
+        }
 
         if (BuildConfig.DEBUG && com.sza.fastmediasorter.ui.settings.IntegrationTestDialog.isAvailable()) {
             binding.btnIntegrationTests.visibility = View.VISIBLE
@@ -633,18 +652,24 @@ class GeneralSettingsViewSetupHelper(
         cacheHelper.updateCacheSize()
     }
 
-    private fun positionToLanguageSelection(position: Int): String = when (position) {
-        1 -> "en"
-        2 -> "ru"
-        3 -> "uk"
-        else -> LocaleHelper.FOLLOW_SYSTEM_LANGUAGE
-    }
-
-    private fun languageSelectionToPosition(languageCode: String): Int = when {
-        LocaleHelper.isFollowSystemLanguage(languageCode) -> 0
-        LocaleHelper.resolveSupportedLanguageCode(languageCode) == "ru" -> 2
-        LocaleHelper.resolveSupportedLanguageCode(languageCode) == "uk" -> 3
-        else -> 1
+    /**
+     * S1357: the mirror flag is stored outside AppSettings (see [DebugLogMirrorPrefs]), so the row
+     * is seeded from that store directly. Switching it off also drops the folder already selected
+     * this session - otherwise it would keep receiving writes until the process restarts.
+     */
+    private fun setupDebugLogMirrorRow() {
+        val context = fragment.requireContext().applicationContext
+        binding.rowDebugLogMirror.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
+            Timber.d("S1357: log mirror toggle -> $isChecked")
+            DebugLogMirrorPrefs.setEnabled(context, isChecked)
+            if (!isChecked) {
+                LoggingHelper.clearDebugMirrorTarget()
+            }
+        }
+        isUpdatingSpinner.set(true)
+        binding.rowDebugLogMirror.setCheckedSilently(DebugLogMirrorPrefs.isEnabled(context))
+        isUpdatingSpinner.set(false)
     }
 
     private fun currentLanguageSelectionCode(): String {
@@ -655,16 +680,8 @@ class GeneralSettingsViewSetupHelper(
         }
     }
 
-    private fun languageDisplayName(languageCode: String): String {
-        return if (LocaleHelper.isFollowSystemLanguage(languageCode)) {
-            fragment.getString(R.string.language_default)
-        } else {
-            LocaleHelper.getLanguageName(languageCode)
-        }
-    }
-
-    private fun showRestartDialog(previousLanguageCode: String, newLanguageCode: String) {
-        val languageName = languageDisplayName(newLanguageCode)
+    private fun showRestartDialog(newLanguageCode: String) {
+        val languageName = UiLanguagePickerItems.label(fragment.requireContext(), newLanguageCode)
         MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.restart_app_title)
             .setMessage(fragment.getString(R.string.restart_app_message, languageName))
@@ -674,12 +691,9 @@ class GeneralSettingsViewSetupHelper(
                 LocaleHelper.markReturnToSettings(fragment.requireContext())
                 LocaleHelper.changeLanguage(fragment.requireActivity(), newLanguageCode)
             }
-            .setNegativeButton(R.string.cancel) { dialog, _ ->
-                setIsUpdatingSpinner(true)
-                binding.spinnerLanguage.setSelection(languageSelectionToPosition(previousLanguageCode))
-                binding.spinnerLanguage.post { setIsUpdatingSpinner(false) }
-                dialog.dismiss()
-            }
+            // Declining needs no restore: the row keeps showing the language still in effect, because
+            // its value only changes once the observer sees the saved setting.
+            .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
             .setCancelable(false)
             .show()
     }

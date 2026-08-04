@@ -82,7 +82,7 @@ internal class PlayerFileOpsInitializer(
             activity.viewModel.state.value.resource?.let { resource ->
                 MediaFilesCacheManager.removeFile(resource.id, movedFilePath)
             }
-            activity.navigationManager.navigateNextAfterOperation("Pre-move: stop and optimistic advance")
+            dropFromNavigationList(movedFilePath)
         }
 
         override fun onBeforeDelete(deletedFilePath: String) {
@@ -91,7 +91,7 @@ internal class PlayerFileOpsInitializer(
             activity.viewModel.state.value.resource?.let { resource ->
                 MediaFilesCacheManager.removeFile(resource.id, deletedFilePath)
             }
-            activity.navigationManager.navigateNextAfterOperation("Pre-delete: stop and optimistic advance")
+            dropFromNavigationList(deletedFilePath)
             val nextPath = activity.viewModel.state.value.currentFile?.path
             if (nextPath != null && nextPath != deletedFilePath) {
                 activity.viewModel.saveLastViewedFile(nextPath)
@@ -141,6 +141,22 @@ internal class PlayerFileOpsInitializer(
         }
     }
 
+    /**
+     * S1279: the file leaving the list IS the advance. Removing the entry at the current index
+     * leaves that index pointing at the following file, which is why this replaces the
+     * `navigateNextAfterOperation` call that used to sit here - keeping both would step twice and
+     * skip a file after every sort action.
+     */
+    private fun dropFromNavigationList(sourcePath: String) {
+        activity.viewModel.dropCurrentFileFromList(sourcePath)
+    }
+
+    /** Delete and both move variants take the source away; copy and rename leave it addressable. */
+    private fun removesSource(op: PlayerFileOperation): Boolean =
+        op is PlayerFileOperation.Delete ||
+            op is PlayerFileOperation.MoveToResource ||
+            op is PlayerFileOperation.MoveToPath
+
     private fun handleQueueEvent(event: PlayerFileOperationEvent) = when (event) {
         is PlayerFileOperationEvent.Enqueued -> Timber.i("PlayerFileOperationQueue: enqueued %s for %s", event.op.id, event.op.sourcePath)
         is PlayerFileOperationEvent.Started -> {
@@ -149,8 +165,11 @@ internal class PlayerFileOpsInitializer(
         }
         is PlayerFileOperationEvent.Succeeded -> {
             Timber.i("PlayerFileOperationQueue: succeeded %s for %s (processed=%s)", event.op.id, event.op.sourcePath, event.processedCount)
-            recordQueuedOperationMutation(event.op)
-            showSuccessToast(event.op)
+            if (wasSourceRemoved(event)) {
+                recordQueuedOperationMutation(event.op)
+                showSuccessToast(event.op)
+            }
+            Unit
         }
         is PlayerFileOperationEvent.Failed -> onFailed(event)
         is PlayerFileOperationEvent.AuthRequired -> {
@@ -167,7 +186,24 @@ internal class PlayerFileOpsInitializer(
         }
     }
 
+    /** A skipped move reports queue success but leaves its source file in place. */
+    private fun wasSourceRemoved(event: PlayerFileOperationEvent.Succeeded): Boolean {
+        val sourceLeavingOperation = removesSource(event.op)
+        if (sourceLeavingOperation) {
+            if (event.processedCount > 0) {
+                activity.viewModel.confirmFileRemoved(event.op.sourcePath)
+            } else {
+                activity.viewModel.restoreDroppedFile(event.op.sourcePath)
+            }
+        }
+        return !sourceLeavingOperation || event.processedCount > 0
+    }
+
     private fun onFailed(event: PlayerFileOperationEvent.Failed) {
+        // S1279: undo any optimistic removal first, before the early returns below - a
+        // non-retryable failure still means the file is there and must stay navigable. A no-op for
+        // operations that never removed anything (copy, rename).
+        activity.viewModel.restoreDroppedFile(event.op.sourcePath)
         if (event.op is PlayerFileOperation.Rename) {
             val queuedNewPath = buildRenamedPath(event.op.sourcePath, event.op.newName)
             if (activity.viewModel.state.value.currentFile?.path == queuedNewPath) {

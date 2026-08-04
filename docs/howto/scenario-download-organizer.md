@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-download-organizer.html
 ---
 # 🧹 Download Organizer - Sort Files with One Tap
 
-> **Level:** Beginner &bull; **Flavor:** Any (Standard, Lite, Photos, Legacy)
+> **Level:** Beginner &bull; **Flavor:** Any (Standard, Lite, Photos, Legacy, VR, noLegal)
 
 [Русский](scenario-download-organizer-ru.md) | [Українська](scenario-download-organizer-uk.md)
 
@@ -19,7 +19,7 @@ permalink: /docs/howto/scenario-download-organizer.html
 
 - The app installed (any flavor)
 - A folder full of files to organize (e.g. Downloads)
-- 2–5 minutes to configure Quick Sort just once
+- 2-5 minutes to configure Quick Sort just once
 
 ---
 

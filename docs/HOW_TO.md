@@ -18,18 +18,21 @@ This guide now has two layers:
 
 ## Note: Feature Availability by Flavor
 
-Some features are only available in specific flavors. This guide follows the current matrix from [FEATURES.md](FEATURES.md); the XR / noLegal surface is intentionally separate because it depends on headset hardware and sideload build rules.
+Some features are only available in specific flavors. The table below is derived from [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md), which is generated from the build itself; the XR / noLegal surface is intentionally kept as one column because it depends on headset hardware and sideload build rules.
 
 | Feature | Standard | Lite | Photos | Legacy | XR / noLegal |
 |---------|----------|------|--------|--------|--------------|
 | Network folders (SMB, SFTP, FTP) | ✓ | ✗ | ✓ | ✓ | ✓ |
 | Cloud storage (Google Drive, OneDrive, Dropbox) | ✓ | ✗ | ✓ | ✓ | ✓ |
-| Audio playback & lyrics | ✓ | ✗ | ✗ | ✓ | ✓ |
-| Internet Streams (radio, HLS/DASH, RTSP) | ✓ | ✓ (progressive only) | ✗ | ✓ | ✓ |
+| Audio playback & lyrics | ✓ | ✓ | ✗ | ✓ | ✓ |
+| Background audio playback | ✓ | ✗ | ✗ | ✓ | ✓ |
+| Internet Streams (radio, HLS/DASH, RTSP) | ✓ | ✗ | ✗ | ✓ | ✓ |
 | Document viewer (PDF, Text) | ✓ | ✗ | ✗ | ✓ | ✓ |
 | EPUB reader | ✓ | ✗ | ✗ | ✓ | ✓ |
 | Translation & OCR | ✓ | ✗ | ✗ | ✓ | ✓ |
 | Image editing | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+Two rows for audio, because these are two separate build decisions: **Lite plays local audio files** including lyrics, but stops when the app leaves the foreground - it has no background playback service. Lite has no Internet Streams screen at all, so radio and HLS/DASH/RTSP are not merely limited there, they are absent.
 
 If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** build that matches your hardware and distribution path.
 
@@ -122,11 +125,11 @@ These sections are intentionally more varied than the core reference blocks belo
 **Avoid This**
 
 - Do not start with hostname troubleshooting. Use an IP address first, then optimize later.
-- Do not expect Legacy flavor to browse SMB shares.
+- Do not expect the Lite flavor to browse SMB shares - that build has no network sources at all.
 
 ## Run a slideshow with background music for a room display
 
-**Available in:** Standard, Legacy, Photos, XR / noLegal
+**Available in:** Standard, Lite, Legacy, XR / noLegal (Photos has no audio support)
 
 **Quick Path**
 
@@ -152,13 +155,13 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## OpenXR VR Immersive Cinema
 
-**Available in:** Standard, Lite, Legacy, `vr`, XR/noLegal (single-eye 3D); XR/noLegal only (full headset immersion)
+**Available in:** Standard, Lite, Legacy, `vr`, noLegal (single-eye 3D); `noLegal` only (full headset immersion - the `vr` build ships the VR source set but declares `SUPPORT_VR_PLAYER = false`, so it does not enter the immersive view yet)
 
 **Quick Path - enable, configure, watch 3D**
 
 1. **Single-eye 3D (every flavor, nothing to enable):** open any SBS/OU/180°/360° file - it's auto-detected and cropped to one eye so it looks right on a normal flat screen. This is controlled by **Settings > Playback > "Show 3D content from one eye"** (default ON). To force a specific format instead of relying on auto-detect, open the player's Control dialog on a `vr`/XR-noLegal build and pick a mode from the 3D tab - **Auto-detect**, **Side-by-Side (SBS)**, **Over-Under (OU)**, or **Mono (Disabled)**; the choice is remembered for that file.
 2. **Full immersion on a Quest (XR/noLegal sideload build only):** with the headset on, tap the VR badge in the player while a 3D file is open, choose **Open in VR Cinema** from a file's overflow menu in Browse, or open **Settings > Media** and tap **Test Immersive** to try a sample. Any of the three opens a per-eye OpenXR view of that content.
-3. **Watch:** inside the immersive view, aim the controller ray and pull the trigger to move to the next or previous file. Any other button, key, or click exits back to the flat screen - there is no in-headset volume, seek, or track control yet.
+3. **Watch:** inside the immersive view a HUD strip carries the controls - a position bar you drag with the controller ray to seek (elapsed and total time beside it), plus the pickers that apply to this file: audio track only when there is more than one, subtitles only when the file has them, stereo depth only for stereo content. **HIDE** and **EXIT** sit at opposite ends of the strip; hiding it removes it completely and a trigger pull brings it back without activating whatever is underneath. The thumbstick seeks 10 seconds a step; hold **grip** while pushing it to step between files instead - next and previous walk the whole resource list, not just the file you opened. On the first immersive entry after install a legend lists every controller binding; any press closes it, and the **HELP** button on the strip brings it back at any time.
 
 **Scenario Walkthrough**
 
@@ -174,11 +177,11 @@ These sections are intentionally more varied than the core reference blocks belo
 **Avoid This**
 
 - Do not expect the Meta Horizon Store / Google Play `vr` build to enter immersive mode yet - that part is still in development.
-- Do not expect in-headset volume, seek, or file operations inside the immersive view - drop back to the flat panel for anything beyond next/previous.
+- Seeking, track and subtitle selection and stereo depth are on the HUD strip in the headset. File operations are not - drop back to the flat panel to copy, move or delete.
 
 ## Play Internet Radio on a Car Head Unit or Audio Player
 
-**Available in:** Standard, Legacy, XR/noLegal (full); Lite (progressive-audio only)
+**Available in:** Standard, Legacy, XR / noLegal - the Streams screen is absent in Lite and Photos
 
 **Quick Path**
 
@@ -205,14 +208,13 @@ These sections are intentionally more varied than the core reference blocks belo
 **Avoid This**
 
 - Do not expect live HLS/DASH offset (live-edge) playback - only VOD HLS/DASH is supported in this release.
-- Do not use the Photos flavor for Streams; it has no Streams entry.
-- On Lite, HLS/DASH and RTSP show an unsupported message; use Standard for those protocols.
+- Do not use the Lite or Photos flavor for Streams; neither build has a Streams entry, so no protocol works there.
 
 ## Travel, reading and document workflows
 
 ## Prepare a folder for travel without stable internet
 
-**Available in:** Standard, Lite, Photos, Legacy
+**Available in:** Standard, Lite, Photos, Legacy, XR / noLegal (PDF and EPUB reading needs Standard, Legacy, or XR / noLegal)
 
 **Quick Path**
 
@@ -238,7 +240,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## Read cloud documents and EPUBs on the go
 
-**Available in:** Standard for cloud access, Standard/Lite/Photos/Legacy for local reading
+**Available in:** Standard, Legacy, XR / noLegal - Lite and Photos cannot read documents or EPUBs at all; cloud storage is additionally absent in Lite
 
 **Quick Path**
 
@@ -260,7 +262,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Avoid This**
 
-- Do not expect cloud reading in Lite, Photos, or Legacy.
+- Do not expect cloud reading in Lite - that build has neither cloud storage nor document support. Photos and Legacy do have cloud storage, but only Legacy can open documents.
 - Do not treat slow mobile data as a guaranteed reading experience for very large files.
 
 ## Translate signs, scans and screenshots with OCR
@@ -316,7 +318,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## Quick Math & Text Calculations
 
-**Available in:** Standard, Legacy, VR
+**Available in:** Standard, Legacy, XR / noLegal
 
 **Quick Path**
 
@@ -341,7 +343,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## Cloud Markdown & Code Notes
 
-**Available in:** Standard (for cloud), Standard/Lite/Photos/Legacy (locally/network)
+**Available in:** Standard, Photos, Legacy, XR / noLegal (local, network, and cloud); Lite (local folders only)
 
 **Quick Path**
 
@@ -362,13 +364,13 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Avoid This**
 
-- Do not expect cloud storage note creation on Lite or Legacy flavors.
+- Do not expect cloud storage note creation on Lite - that build has no cloud storage and no network sources.
 
 ## Power-user and mixed media workflows
 
 ## Sort a family photo archive with Quick Sort
 
-**Available in:** Standard, Lite, Photos, Legacy
+**Available in:** Standard, Lite, Photos, Legacy, XR / noLegal
 
 **Quick Path**
 
@@ -425,7 +427,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## How to Add or Import an Internet Stream
 
-**Available in:** Standard, Legacy, XR/noLegal (all protocols); Lite (http/https progressive audio + .m3u import only)
+**Available in:** Standard, Legacy, XR / noLegal (all protocols) - the Streams screen is absent in Lite and Photos
 
 **Add a single URL:**
 
@@ -456,7 +458,7 @@ These sections are intentionally more varied than the core reference blocks belo
 - Both devices on same Wi-Fi network
 - Username and password for the share
 
-**Available in:** Standard, Photos, Legacy flavors
+**Available in:** Standard, Photos, Legacy, XR / noLegal flavors
 
 **Steps:**
 
@@ -772,7 +774,7 @@ Then use **command panel buttons** instead.
 **Requirements:**
 
 - At least one folder/resource with audio files (MP3, FLAC, etc.)
-- **Available in:** Standard, Legacy, Photos, XR / noLegal
+- **Available in:** Standard, Lite, Legacy, XR / noLegal (Photos has no audio support)
 
 **Setup:**
 
@@ -841,6 +843,27 @@ Then use **command panel buttons** instead.
 
 - No recovery option (by design for security)
 - You'll need to remove and re-add the folder
+
+---
+
+## How to Work with Folders (select, copy, move)
+
+When subfolders are shown as separate items in the list, a folder row behaves like a file row.
+
+**Turn folder rows on:** **Settings** → **General** → **Show subfolders separately**. The same switch exists per resource in the resource editor.
+
+**Steps:**
+
+1. Tap the checkbox on a folder row, or long-press the row, to select a single folder. A short tap still opens the folder.
+2. Use the row's **⋮** menu, or the selection action bar, to choose **Copy**, **Move**, **Rename** or **Delete**.
+3. Pick the destination. Files and folders in the same selection travel together in one operation.
+4. The destination gets the whole structure - every subfolder and file inside the source folder.
+
+**Across resource types:** a folder can be copied or moved between the device, SMB, SFTP, FTP and cloud resources - the structure is recreated on the receiving side.
+
+**What is refused, and why:** a destination inside the folder itself, or the folder's own current location, is rejected before anything is copied; a destination picked through the system folder chooser that has no real file path cannot receive folders. The message names the reason so you can pick another destination.
+
+**Cancelling:** a folder transfer shows progress and can be stopped. Whatever was already written stays at the destination - check the folder before starting again. A move deletes each source item only after its copy succeeded, so nothing is lost in between.
 
 ---
 
@@ -935,6 +958,7 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
   - **Swipe DOWN:** Go to Previous page.
   - **Pinch:** Zoom in/out naturally.
   - **Double-tap:** Reset zoom.
+  - **Zoom carries over:** The next page opens at the zoom and position you were reading at; double-tap brings the whole page back.
 - **Pan:** Drag to move around when zoomed in.
 
 ---
@@ -1069,7 +1093,7 @@ Automatically translate text from images, PDF, and text files using a **Hybrid O
 
 ## Home-Screen Smart Widgets
 
-**Available in:** Standard, Legacy, VR
+**Available in:** all flavors - the widget set ships in every build; each widget follows its own capability, so the voice-recorder widget needs a build with microphone support (not Lite or Photos) while the photo-frame and resource widgets work everywhere
 
 **Quick Path**
 
@@ -1159,7 +1183,7 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 
 ## How to Record a Voice Note
 
-**Available in:** Standard, XR/noLegal
+**Available in:** Standard, Legacy, XR / noLegal
 
 **Steps:**
 
@@ -1185,7 +1209,7 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 1. In Browse, open the toolbar or overflow menu and tap **Capture with camera** (photo) or **Record video**.
 2. Switch between **Photo** and **Video** right on the camera screen if you change your mind.
 3. Set your zoom with a preset chip (0.5x/1x/2x..) or the slider underneath - both stay in sync.
-4. In low light, turn on **Night mode** for a brighter photo.
+4. Tap the shooting-scenario button to pick how the shot is taken - normal, night, portrait, selfie, macro or sport. Macro jumps to the dedicated close-focus lens, selfie flips to the front camera, sport keeps the exposure short so motion freezes. Only the scenarios your device can actually deliver are listed, the active one is named on the button, and changing the lens by hand returns the camera to normal.
 5. Tap the shutter (or the record button) to capture. The result saves straight to the resource - local or network - you were browsing.
 
 **Tips:**

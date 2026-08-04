@@ -2,6 +2,7 @@
 
 package com.sza.fastmediasorter.data.remote.ftp
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.IdleDisconnectPolicy
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
@@ -16,6 +17,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,6 +39,11 @@ class FtpClient @Inject constructor(
     private var ftpClient: FTPClient? = null
     private val mutex = Any()
     private val trackedTransportKeys = ConcurrentHashMap.newKeySet<String>()
+
+    // S1297: connected-mode operations share ONE FTPClient and nothing refreshed the idle timer
+    // while a transfer was streaming, so any download/upload/recursive listing longer than
+    // IDLE_TIMEOUT_MS was killed mid-flight by the idle callback (partial file, failed copy).
+    private val inFlightOperations = AtomicInteger(0)
 
     @Volatile
     private var currentTransportKey: String? = null
@@ -119,6 +126,7 @@ class FtpClient @Inject constructor(
             disconnect()
             Result.failure(e)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP connection error: $host:$port")
             disconnect()
             Result.failure(e)
@@ -141,6 +149,7 @@ class FtpClient @Inject constructor(
                     } catch (e: java.net.SocketTimeoutException) {
                         Timber.d("FTP logout timeout (ignored)")
                     } catch (e: Exception) {
+                        e.rethrowIfCancellation()
                         Timber.d(e, "FTP logout error (ignored)")
                     } finally {
                         try {
@@ -154,6 +163,7 @@ class FtpClient @Inject constructor(
             }
             Timber.d("FTP disconnected")
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.w(e, "FTP disconnect error (non-critical)")
         } finally {
             ftpClient = null
@@ -342,16 +352,36 @@ class FtpClient @Inject constructor(
     private fun armCurrentTransport() {
         currentTransportKey?.let { transportKey ->
             idleDisconnectPolicy.arm(transportKey, IDLE_TIMEOUT_MS) {
-                disconnect()
+                onIdleTimeout()
             }
         }
+    }
+
+    /**
+     * S1297: never disconnect the shared client out from under a running operation. A long transfer
+     * or recursive listing keeps the control socket legitimately busy well past the idle window, so
+     * the timer is re-armed instead and the connection closes on a later, genuinely idle tick.
+     */
+    private suspend fun onIdleTimeout() {
+        val inFlight = inFlightOperations.get()
+        if (inFlight > 0) {
+            Timber.d("FTP idle timeout deferred - %d operation(s) in flight", inFlight)
+            armCurrentTransport()
+            return
+        }
+        disconnect()
     }
 
     private suspend fun <T> withTrackedConnectedOperation(
         block: suspend () -> Result<T>,
     ): Result<T> {
         currentTransportKey?.let(idleDisconnectPolicy::touch)
-        val result = block()
+        inFlightOperations.incrementAndGet()
+        val result = try {
+            block()
+        } finally {
+            inFlightOperations.decrementAndGet()
+        }
         if (result.isSuccess) {
             armCurrentTransport()
         }

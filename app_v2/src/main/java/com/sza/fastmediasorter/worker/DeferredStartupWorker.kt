@@ -7,7 +7,6 @@ import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.core.init.AppStartupInitializer
 import com.sza.fastmediasorter.core.init.DefaultPlayerStateBootstrapper
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
-import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.transfer.TempFileManager
 import com.sza.fastmediasorter.domain.usecase.BackfillSmbCredentialShareNameUseCase
@@ -33,9 +32,11 @@ class DeferredStartupWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        runTask("clear-failed-video-cache") {
-            NetworkFileDataFetcher.clearFailedVideoCache()
-        }
+        // S1323: no "clear-failed-video-cache" task here. VideoExtractionFailurePersistence exists
+        // to survive restarts - it stamps every entry and expires it after seven days - and wiping
+        // it on every launch made that storage dead weight: a video whose frame extraction timed
+        // out (10 s per file over SFTP) paid the same timeout again on the next start. The reset
+        // now happens only on an explicit refresh gesture.
         runTask("cleanup-old-temp-files") {
             tempFileManager.get().cleanupOldTempFiles(24 * 60 * 60 * 1000L)
         }

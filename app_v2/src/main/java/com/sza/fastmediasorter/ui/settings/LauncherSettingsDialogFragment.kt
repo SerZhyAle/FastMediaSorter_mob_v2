@@ -96,6 +96,12 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(launcherTaskbarShowTray = isChecked))
         }
+        binding.rowLauncherReplaceStatusArea.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(
+                viewModel.settings.value.copy(launcherReplaceSystemStatusArea = isChecked)
+            )
+        }
         binding.rowLauncherDensity.setEntries(
             listOf(
                 getText(R.string.launcher_settings_density_sparse),
@@ -143,6 +149,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             binding.rowLauncherShowRecents.setCheckedSilently(settings.launcherTaskbarShowRecents)
             binding.rowLauncherShowPinned.setCheckedSilently(settings.launcherTaskbarShowPinned)
             binding.rowLauncherShowTray.setCheckedSilently(settings.launcherTaskbarShowTray)
+            binding.rowLauncherReplaceStatusArea.setCheckedSilently(settings.launcherReplaceSystemStatusArea)
             binding.rowLauncherLockDesktop.setCheckedSilently(settings.launcherDesktopLocked)
             val densityIndex = AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(settings.launcherDensityFactor)
             binding.rowLauncherDensity.setSelection(if (densityIndex >= 0) densityIndex else DENSITY_DEFAULT_INDEX)

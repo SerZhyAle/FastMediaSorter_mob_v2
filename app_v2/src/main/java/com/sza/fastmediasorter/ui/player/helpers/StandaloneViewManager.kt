@@ -195,9 +195,11 @@ class StandaloneViewManager(
     // Media3 1.2.1 deferral flags - mirrors VideoPlayerManager logic.
     private var standaloneVideoSizeKnown = false
     private var standalonePendingEffects = false
+
     // S0995: decoded video dimensions from onVideoSizeChanged; used to refit the frame at 90/270.
     private var standaloneVideoWidth = 0
     private var standaloneVideoHeight = 0
+
     // S0995: cumulative visual frame rotation (0/90/180/270), applied to photoView (image/gif) and to
     // the video effect chain. Carried across folder paging by re-applying after each image load.
     private var contentRotationDegrees = 0
@@ -572,7 +574,9 @@ class StandaloneViewManager(
             // S0995: manual clockwise frame rotation, composed with the colour chain (single
             // setVideoEffects call). Null (omitted) at angle 0 - keeps the existing zero-cost path.
             VideoColorProcessor.buildRotationEffect(
-                contentRotationDegrees, standaloneVideoWidth, standaloneVideoHeight
+                contentRotationDegrees,
+                standaloneVideoWidth,
+                standaloneVideoHeight
             )
         )
         // Media3 1.2.1 deferral: Presentation.createForWidthAndHeight crashes with -1,-1 when
@@ -616,13 +620,27 @@ class StandaloneViewManager(
 
     private fun showPdf(mediaFile: MediaFile) {
         pdfViewerManager.displayPdf(mediaFile)
-        // S0953: legacy PDF vertical-swipe paging parity with the in-app player. photoView is shared
-        // IMAGE/GIF/PDF, so the guard drops the fling unless a PDF is on screen. Native fling callback
-        // (not setOnTouchListener) keeps the PhotoView attacher's pinch/pan intact.
+        // S0953: legacy PDF swipe parity with the in-app player. photoView is shared IMAGE/GIF/PDF,
+        // so the guard drops the fling unless a PDF is on screen. After S1273 this callback carries
+        // only the horizontal zoom step - page turns come from the detector below.
         safeViews.photoView.setOnSingleFlingListener(
-            OnSingleFlingListener { e1, e2, velocityX, velocityY ->
+            OnSingleFlingListener { e1, e2, velocityX, _ ->
                 if (currentMediaType != MediaType.PDF) return@OnSingleFlingListener false
-                pdfViewerManager.handlePdfFling(e1, e2, velocityX, velocityY)
+                pdfViewerManager.handlePdfFling(e1, e2, velocityX)
+            }
+        )
+        // S1273: page turns cannot ride the fling callback - PhotoView withholds it while zoomed,
+        // for a second pointer, and below the platform fling velocity. The media-type guard matters
+        // here because this PhotoView is shared with images and GIFs.
+        PdfPageSwipeDetector.install(
+            safeViews.photoView,
+            object : PdfPageSwipeDetector.Host {
+                override fun isPageSwipeEnabled(): Boolean =
+                    currentMediaType == MediaType.PDF && pdfViewerManager.isPageSwipeEnabled()
+
+                override fun currentScale(): Float = safeViews.photoView.scale
+
+                override fun turnPage(next: Boolean) = pdfViewerManager.turnPage(next)
             }
         )
     }

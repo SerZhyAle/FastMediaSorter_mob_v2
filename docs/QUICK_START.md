@@ -13,15 +13,15 @@ permalink: /docs/QUICK_START.html
 
 ## Choose Your Flavor 📱
 
-FastMediaSorter v2 is available in **5 main release flavors** for day-to-day use, plus the XR / noLegal surface for headset and sideload scenarios. Pick the one that fits your needs:
+FastMediaSorter v2 ships **four flavors for everyday phones and tablets** - Standard, Lite, Photos, Legacy - plus **two headset and sideload builds**, VR and noLegal. Six in total; the exact capability grid is generated from the build in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md). Pick the one that fits your needs:
 
 | Flavor | Best For | Key Features |
 |--------|----------|--------------|
 | **Standard** ⭐ | Everyone | Full features: videos, photos, audio, documents, cloud storage, translation + internet radio / Streams |
-| **Lite** | Smaller downloads | Photos + videos only (no audio, cloud); Streams supports progressive audio streams only (no HLS/DASH/RTSP) |
-| **Photos** | Photo enthusiasts | Images only, optimized for photo work (no Streams) |
+| **Lite** | Smaller downloads | Photos, videos and local audio files; no cloud, no network folders, no Internet Streams, no documents or translation, and audio stops when the app leaves the foreground |
+| **Photos** | Photo enthusiasts | Images only, with cloud storage and network folders; no video, no audio, no Streams |
 | **Legacy** | Older Android (API 23+) | Full media + SMB/FTP/SFTP and cloud; built for older Android (API 23+) |
-| **VR / noLegal** | XR headset / sideload | OpenXR and sideload-only extras on supported hardware |
+| **VR / noLegal** | XR headset / sideload | VR is the Store-clean headset build; noLegal is the sideload build that adds the immersive player and sideload-only extras |
 
 **👉 Most users should download the "Standard" flavor for the complete experience.**
 
@@ -29,11 +29,11 @@ FastMediaSorter v2 is available in **5 main release flavors** for day-to-day use
 
 ## First Launch: Choose Your Device Profile (30 seconds) 🧭
 
-On the very first launch, right under the language picker, the welcome screen asks **how you'll use this device**. Pick a profile and the app starts with sensible defaults for that style - layout, thumbnails, fullscreen, keep-screen-awake, background audio, and delete/move confirmations. It's a one-time starting preset, not a lock - you can change anything afterwards.
+On the very first launch, right under the language picker, the welcome screen asks **how you'll use this device**. Pick a profile and the app starts with sensible defaults for that style - layout, thumbnails, fullscreen, keep-screen-awake, background audio, delete/move confirmations, the reading view, link downloads, player controls, the streams start-up view and, where the launcher is available, the desktop itself. It's a one-time starting preset, not a lock - you can change anything afterwards.
 
 - 🎯 **Recommended badge:** the app guesses a likely profile for your device and marks it **(Recommended)**. If it guessed right, you barely have to do anything.
 - ⏭️ **Skip:** in a hurry? **Skip** simply applies the recommended profile. No wrong answer here.
-- ⚙️ **Change it later:** **Settings → General → Device profile**. Switching there shows a quick **warning** - the new profile overwrites some settings with its own defaults - and asks you to confirm. Nothing changes until you say yes.
+- ⚙️ **Change it later:** **Settings → General → Device profile**. Switching there shows a quick **warning** that names exactly how many settings the new profile will overwrite, and asks you to confirm. Nothing changes until you say yes. A profile that would overwrite nothing is applied without asking.
 - 🧩 **Other / Custom:** keeps your current settings exactly as they are. No preset applied - handy if you like tuning things by hand.
 - ⬆️ **Upgrading from an older version?** Your profile shows as **Other** and your previous settings are kept untouched - no preset was auto-applied. Want one anyway? Pick a profile in Settings.
 - 🎚️ **Next - pick what the app does:** after the profile, a quick screen lets you switch capabilities on or off (file manager, audio, video, documents, text recognition, translation). Optional parts download right there and turn on the moment they finish - all changeable later in Settings.
@@ -189,7 +189,7 @@ Tap **"+"** → **Cloud Storage**
 
 - In Browse, tap the **camera button** in the toolbar to open the in-app camera and save straight to the current resource - local or network
 - **Zoom:** tap a preset (0.5x/1x/2x..) or drag the slider for a precise level
-- **Night mode:** turn it on in low light for a brighter shot
+- **Shooting scenario:** one button offers normal, night, portrait, selfie, macro and sport - only the ones your device can actually deliver
 - **Photo or video:** switch modes right on the camera screen before you shoot
 
 ### Screen Capture & Edge Gestures
@@ -207,7 +207,7 @@ Tap **"+"** → **Cloud Storage**
 - Tap **+** to add a radio URL (http/https mp3/aac, HLS .m3u8, RTSP), or **Import** to load a `.m3u` playlist.
 - Download the curated FastMediaSorter station catalog from the **Extensions** screen for a searchable, filterable library with topic and language chips.
 - Radio plays inline via the sticky bottom bar - the station list stays visible. Video/RTSP streams open in the fullscreen player; Back returns to the list.
-- **Not available in the Photos flavor. Lite supports progressive audio only (no HLS/DASH/RTSP).**
+- **Available in Standard, Legacy, noLegal and VR. The Streams screen is absent from Lite and Photos - no protocol works there, because there is no entry point.**
 
 ### Home Screen Widgets
 

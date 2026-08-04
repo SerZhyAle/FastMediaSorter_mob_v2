@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.cameracapture
 
 import android.app.Dialog
+import android.content.Context
 import android.hardware.camera2.CameraMetadata
 import android.os.Bundle
 import android.util.Size
@@ -17,13 +18,15 @@ import com.sza.fastmediasorter.databinding.DialogCameraSettingsBinding
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraSettingsDialogRotationManager
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.roundToLong
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 class CameraSettingsDialogFragment : DialogFragment() {
 
@@ -43,6 +46,26 @@ class CameraSettingsDialogFragment : DialogFragment() {
         fun onCameraSettingsPreviewChanged(state: CameraSettingsState)
         fun onCameraSettingsApplied(state: CameraSettingsState)
         fun onCameraSettingsCancelled(state: CameraSettingsState)
+
+        // S1336: queried fresh from onAttach/onCreateDialog instead of injected once before show() -
+        // a FragmentManager-driven restore (theme/language/font-size change, "don't keep activities",
+        // process death) recreates this fragment through its no-arg constructor, so anything set only
+        // by the original show() caller would be lost. Re-reading the host's live state also means a
+        // restored dialog reflects the currently-applied settings, not a frozen first-open snapshot.
+        fun currentCameraCapabilities(): CameraRuntimeCapabilities
+        fun currentCameraSettingsState(): CameraSettingsState
+        fun cameraRotationBucket(): StateFlow<Int>
+    }
+
+    /**
+     * S1336: lets [onAttach] recover [callbacks] after a framework-driven recreation, when the
+     * original show() caller is gone and cannot re-inject fields. Nullable, not a plain accessor -
+     * `BaseActivity` defers `setupViews()` (where the real handler is built) via `binding.root.post {}`
+     * for a fast first frame, so a restored fragment can attach before the handler exists; the
+     * fragment awaits the flow instead of reading a not-yet-initialized field.
+     */
+    interface Host {
+        val cameraSettingsCallbacksFlow: StateFlow<Callbacks?>
     }
 
     data class CameraSettingsState(
@@ -58,19 +81,51 @@ class CameraSettingsDialogFragment : DialogFragment() {
         val hdrEnabled: Boolean,
     )
 
-    lateinit var capabilities: CameraRuntimeCapabilities
-    lateinit var initialSettings: CameraSettingsState
-    lateinit var callbacks: Callbacks
-
-    // S0924: the Activity's single CameraOrientationManager bucket (portrait-locked host); the dialog
-    // is a third, late consumer - no second OrientationEventListener.
-    var rotationBucketState: StateFlow<Int>? = null
+    private lateinit var capabilities: CameraRuntimeCapabilities
+    private lateinit var initialSettings: CameraSettingsState
+    private lateinit var callbacks: Callbacks
+    private lateinit var host: Host
 
     private val rotationManager by lazy { CameraSettingsDialogRotationManager(requireContext()) }
     private var rotationJob: Job? = null
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        // S1336: only the type-safe reference is captured here - reading through it happens later,
+        // once the caller of onCreateDialog knows whether the host's callback handler exists yet.
+        host = context as? Host
+            ?: error("${context::class.simpleName} must implement CameraSettingsDialogFragment.Host")
+    }
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogCameraSettingsBinding.inflate(layoutInflater)
+        // S0924: wrap content in the rotate-and-swap-measure container so it can turn with the device.
+        val content = rotationManager.wrap(binding.root)
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(content)
+            .create()
+            .also { rotationManager.attach(it) }
+
+        val readyCallbacks = host.cameraSettingsCallbacksFlow.value
+        if (readyCallbacks != null) {
+            bindDialogContent(readyCallbacks)
+        } else {
+            // S1336: the handler is built inside setupViews(), which BaseActivity defers via
+            // binding.root.post {} for a fast first frame - a framework-restored fragment (theme,
+            // language, "don't keep activities", process death) attaches before that post{} runs, so
+            // reading the host synchronously here would throw the same way the pre-fix lateinit
+            // fields did. Wait for the flow instead; the rows populate one frame later than usual.
+            lifecycleScope.launch {
+                bindDialogContent(host.cameraSettingsCallbacksFlow.filterNotNull().first())
+            }
+        }
+        return dialog
+    }
+
+    private fun bindDialogContent(resolvedCallbacks: Callbacks) {
+        callbacks = resolvedCallbacks
+        capabilities = callbacks.currentCameraCapabilities()
+        initialSettings = callbacks.currentCameraSettingsState()
         draft = initialSettings.copy()
 
         bindCanonicalDropdowns()
@@ -79,22 +134,13 @@ class CameraSettingsDialogFragment : DialogFragment() {
         setupManualSensorControls()
         wireActionButtons()
 
-        // S0924: wrap content in the rotate-and-swap-measure container so it can turn with the device.
-        val content = rotationManager.wrap(binding.root)
-        return MaterialAlertDialogBuilder(requireContext())
-            .setView(content)
-            .create()
-            .also { rotationManager.attach(it) }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        val state = rotationBucketState ?: return
-        if (rotationJob != null) return
         // S0924: subscribe to the device rotation bucket; symmetric deregistration in onDestroyView.
+        // repeatOnLifecycle waits out STARTED itself, so this is safe whether bound synchronously
+        // (onCreateDialog, before onStart) or from the async wait above (possibly after onStart).
+        if (rotationJob != null) return
         rotationJob = lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                state.collect { bucket -> rotationManager.applyRotation(bucket) }
+                callbacks.cameraRotationBucket().collect { bucket -> rotationManager.applyRotation(bucket) }
             }
         }
     }

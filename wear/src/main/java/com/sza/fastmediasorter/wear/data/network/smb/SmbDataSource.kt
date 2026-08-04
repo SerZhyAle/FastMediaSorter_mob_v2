@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.FilterInputStream
 import java.io.InputStream
 import java.util.EnumSet
 import java.util.concurrent.TimeUnit
@@ -187,8 +188,20 @@ class SmbDataSource {
                 null
             )
             
-            val inputStream = file.inputStream
-            
+            // S1304: closing only the stream leaked the smbj File handle - one open SMB2 handle per
+            // viewed media file, held by the server until the session died. Tie the handle's
+            // lifetime to the stream the caller actually closes.
+            val inputStream = object : FilterInputStream(file.inputStream) {
+                override fun close() {
+                    try {
+                        super.close()
+                    } finally {
+                        runCatching { file.close() }
+                            .onFailure { Timber.w(it, "Failed to close SMB file handle for $cleanPath") }
+                    }
+                }
+            }
+
             Result.success(inputStream)
         } catch (e: Exception) {
             Timber.e(e, "Failed to open file stream")

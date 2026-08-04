@@ -9,6 +9,9 @@ import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.color.MaterialColors
@@ -22,8 +25,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
-import com.sza.fastmediasorter.domain.usecase.launcher.QueryAppShortcutsUseCase
-import com.sza.fastmediasorter.domain.usecase.launcher.StartAppShortcutUseCase
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.AppPickerDialogFragment
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.InternalRoutePickerDialogFragment
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.OsShortcutPickerDialogFragment
@@ -33,11 +34,12 @@ import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppShortcutMenuManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherContactPickManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherEditModeManager
-import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResizeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTrayManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperManager
 import com.sza.fastmediasorter.ui.launcher.menu.LauncherStartMenuFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherCellContentPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherResourceModePickerDialogFragment
@@ -68,11 +70,15 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     @Inject
     lateinit var gadgetRegistry: LauncherGadgetRegistry
 
-    @Inject
-    lateinit var queryAppShortcuts: QueryAppShortcutsUseCase
-
-    @Inject
-    lateinit var startAppShortcut: StartAppShortcutUseCase
+    // A field initialiser, not setupViews(): BaseActivity posts that call, so it runs after the Activity
+    // is STARTED and an activity-result contract registered there would throw. The operations are passed
+    // as functions so nothing is dereferenced at this point in construction.
+    private val contactPickManager = LauncherContactPickManager(
+        activity = this,
+        pickIntent = { action -> viewModel.contactPickIntent(action) },
+        resolvePick = { action, picked -> viewModel.resolveContactPick(action, picked) },
+        onTargetPicked = { target -> addShortcut(LauncherCellCommand.Contact(target)) },
+    )
 
     private val cellBinder = LauncherCellViewBinder(
         onCellClick = { viewModel.onCellTapped(it) },
@@ -96,10 +102,13 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     private lateinit var resizeManager: LauncherResizeManager
 
-    // Built lazily on the first long press: the injected use cases are not available while the field
-    // initialisers of this class run, and most Home visits never open the popup at all.
+    // Built lazily on the first long press: most Home visits never open the popup at all.
     private val shortcutMenuManager by lazy {
-        LauncherAppShortcutMenuManager(lifecycleScope, queryAppShortcuts, startAppShortcut)
+        LauncherAppShortcutMenuManager(
+            lifecycleScope,
+            { packageName -> viewModel.appShortcutsOf(packageName) },
+            { shortcut, bounds -> viewModel.launchAppShortcut(shortcut, bounds) },
+        )
     }
 
     /** Tracks the last orientation so the one-shot rotation hint fires only on an actual flip. */
@@ -124,7 +133,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // BaseActivity posts setupViews(), so the window's first insets dispatch has already
         // happened - applySystemBarInsetPadding registers the listener AND applies the current
         // insets immediately, which a bare listener would miss (Rule 17).
-        binding.launcherRoot.applySystemBarInsetPadding()
+        // S1087: this surface hides the status bar on request, so the resource-height fallback must not
+        // reserve a band for a bar that is gone - the removal would look like nothing happened.
+        binding.launcherRoot.applySystemBarInsetPadding(useStatusBarHeightFallback = false)
         // A home screen has nowhere to go back to: Back must not finish the surface and expose
         // whatever sits behind it.
         onBackPressedDispatcher.addCallback(this) { }
@@ -132,7 +143,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         applyGridGeometry()
         seedDesktopIfNeeded()
 
-        LauncherTrayManager(this, binding.launcherTaskbar)
+        LauncherTrayManager(this, binding.launcherTaskbar).bind(viewModel.replaceSystemStatusArea)
+        collectOnLifecycle(viewModel.replaceSystemStatusArea) { applyStatusBarPolicy(it) }
         taskbarManager = LauncherTaskbarManager(
             lifecycleOwner = this,
             binding = binding.launcherTaskbar,
@@ -200,6 +212,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     LauncherScheduledOpPickerDialogFragment.newInstance(),
                     LauncherScheduledOpPickerDialogFragment.TAG,
                 )
+                // The manager owns the whole ask-action / pick-contact / choose-channel chain; the cell
+                // it lands on is still pendingRow/pendingCol, like every other kind.
+                LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT ->
+                    contactPickManager.start()
                 LauncherCellContentPickerDialogFragment.CATEGORY_GADGET ->
                     onGadgetChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_GADGET_KEY))
             }
@@ -296,9 +312,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
      * rest - in edit mode the same gesture belongs to the drag that rearranges the desktop.
      */
     private fun showAppShortcuts(view: View, cellUi: LauncherCellUi): Boolean {
-        if (viewModel.editMode.value) return false
-        val command = LauncherCellCommand.decode(cellUi.cell.target)
-        if (command !is LauncherCellCommand.App) return false
+        val command = LauncherCellCommand.decode(cellUi.cell.target) as? LauncherCellCommand.App
+        if (viewModel.editMode.value || command == null) return false
         Timber.d("S0427: app shortcuts requested for %s", command.packageName)
         shortcutMenuManager.show(view, command.packageName)
         return true
@@ -313,12 +328,37 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     override fun onStop() {
         super.onStop()
+        // S1087: symmetric with the policy applied while started - the status bar is hidden only for as
+        // long as the launcher is the surface on screen, never for whatever the user opens next.
+        statusBarController().show(WindowInsetsCompat.Type.statusBars())
         // Symmetric with the long press that opened it: a popup must not survive the surface leaving
         // the foreground, or it reappears over whatever the user opened next.
         shortcutMenuManager.dismiss()
         // S1101: symmetric with onStart - an animated wallpaper must not keep drawing off-screen.
         if (::wallpaperManager.isInitialized) wallpaperManager.onStop()
     }
+
+    /**
+     * S1087: hand the status area to the launcher, or give it back. Only `statusBars()` is touched - the
+     * navigation bar is the way out of a Home surface and stays whatever the setting says. The safe-area
+     * padding is re-applied on every change because the inset the desktop must respect moves with the
+     * bar, and a stale one leaves either a gap or content under the cutout (Rule 17).
+     */
+    private fun applyStatusBarPolicy(replaceSystemStatusArea: Boolean) {
+        Timber.d("S1087: status bar policy replace=%s", replaceSystemStatusArea)
+        val controller = statusBarController()
+        if (replaceSystemStatusArea) {
+            controller.hide(WindowInsetsCompat.Type.statusBars())
+        } else {
+            controller.show(WindowInsetsCompat.Type.statusBars())
+        }
+        // Re-apply, never re-install: applySystemBarInsetPadding captures the view's current padding as
+        // its base, so calling it again would treat the already-inset padding as the base and compound
+        // it on every toggle. A fresh dispatch makes the listener recompute from the original base.
+        ViewCompat.requestApplyInsets(binding.launcherRoot)
+    }
+
+    private fun statusBarController() = WindowCompat.getInsetsController(window, binding.launcherRoot)
 
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
         applyGridGeometry()

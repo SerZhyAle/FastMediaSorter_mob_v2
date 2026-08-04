@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-smb-setup-ru.html
 ---
 # 🖥️ Подключение к домашнему NAS / Windows (SMB)
 
-> **Уровень:** Начинающий &bull; **Версия:** Standard, Lite, Photos, Legacy (все поддерживают SMB)
+> **Уровень:** Начинающий &bull; **Версия:** Standard, Photos, Legacy, VR, noLegal (в Lite сетевых источников нет)
 
 [English](scenario-smb-setup.md) | [Українська](scenario-smb-setup-uk.md)
 

@@ -377,26 +377,16 @@
 
         <LinearLayout
             android:id="@+id/streamMiniControl"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minHeight="48dp"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:background="?attr/colorSurface"
             android:elevation="8dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="8dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="16dp"
             android:visibility="gone">
-
-            <TextView
-                android:id="@+id/tvMiniTitle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:textAppearance="?attr/textAppearanceBody2"
-                android:textColor="?attr/colorOnSurface" />
 
             <ImageButton
                 android:id="@+id/btnMiniPlayStop"
@@ -408,6 +398,16 @@
                 android:focusable="true"
                 android:nextFocusUp="@id/rvStreams"
                 android:contentDescription="@string/streams_stop" />
+
+            <TextView
+                android:id="@+id/tvMiniTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="?attr/colorOnSurface" />
         </LinearLayout>
     </LinearLayout>
 

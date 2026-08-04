@@ -8,14 +8,18 @@ import com.sza.fastmediasorter.ui.profile.DeviceProfileTileAdapter
 import com.sza.fastmediasorter.ui.welcome.WelcomePage
 
 /**
- * Device-profile onboarding page (S0399). Renders the full profile tiles (icon + title + 2-line
- * description) in an adaptive grid, ordered small-screen-first, with the recommended profile
- * pre-selected, badged and auto-scrolled into view.
+ * Device-profile onboarding page (S0399). Renders the full profile tiles (icon + title + description,
+ * clamped on every tile but the selected one) in an adaptive grid, ordered small-screen-first, with
+ * the recommended profile pre-selected, badged and auto-scrolled into view.
+ *
+ * S1383: a tap on the tile that is already selected reports through `onProfileConfirmed`, which the
+ * Activity turns into "apply and advance" - so no separate confirm control is needed on this page.
  *
  * Detection is asynchronous: the page is bound (it is adjacent to page 0) before
  * WelcomeViewModel.detectDeviceProfile() resolves, so [bind] often runs with a null recommendation.
  * When the recommendation later arrives, [updateSelection] rebuilds the grid once so the recommended
- * badge appears and the grid auto-scrolls to it; subsequent user picks only restyle the selection.
+ * badge appears and the grid auto-scrolls to it; subsequent user picks only restyle the selection and
+ * reveal the tile that just expanded.
  *
  * Keep the constructor signature `(PageWelcomeProfilesBinding)` and the [updateSelection] signature
  * stable: WelcomePagerAdapter constructs the holder and calls [updateSelection] from refreshProfiles().
@@ -27,15 +31,21 @@ class ProfilesPageViewHolder(
     private var tileAdapter: DeviceProfileTileAdapter? = null
     private var orderedProfiles: List<DeviceProfileType> = emptyList()
     private var onProfileSelected: ((DeviceProfileType) -> Unit)? = null
+    private var onProfileConfirmed: ((DeviceProfileType) -> Unit)? = null
     /** The recommendation currently rendered; a change (null -> resolved) triggers a grid rebuild. */
     private var renderedRecommended: DeviceProfileType? = null
+
+    /** The selection currently rendered, so a no-op refresh does not re-scroll the grid. */
+    private var renderedSelected: DeviceProfileType? = null
     private var hasRecommendedValue = false
     private var autoScrolled = false
 
     fun bind(page: WelcomePage) {
         orderedProfiles = orderSmallScreenFirst(page.selectableProfiles)
         onProfileSelected = page.onProfileSelected
+        onProfileConfirmed = page.onProfileConfirmed
         renderedRecommended = null
+        renderedSelected = null
         hasRecommendedValue = false
         autoScrolled = false
         renderGrid(page.recommendedProfileType, page.selectedProfileType)
@@ -51,8 +61,24 @@ class ProfilesPageViewHolder(
             renderGrid(recommendedType, selectedType)
         } else {
             val target = selectedType ?: recommendedType ?: return
+            if (target == renderedSelected) return
+            renderedSelected = target
             tileAdapter?.setSelected(target)
+            revealTile(target)
         }
+    }
+
+    /**
+     * Keep the newly-selected tile fully on screen: its description expands to full length (S1383),
+     * which can push the bottom of the tile past the grid edge on a short screen. RecyclerView's
+     * smooth scroller snaps to the nearest edge, so a tile that already fits is left alone and the
+     * grid is not yanked around by a pick - the same restraint [renderGrid]'s one-shot auto-scroll has.
+     */
+    private fun revealTile(type: DeviceProfileType) {
+        val index = orderedProfiles.indexOf(type)
+        if (index < 0) return
+        // Posted so the expanded tile is measured before the scroll distance is computed.
+        binding.rvProfiles.post { binding.rvProfiles.smoothScrollToPosition(index) }
     }
 
     private fun renderGrid(recommended: DeviceProfileType?, selected: DeviceProfileType?) {
@@ -66,12 +92,14 @@ class ProfilesPageViewHolder(
             ?: recommended
             ?: orderedProfiles.firstOrNull()
             ?: DeviceProfileType.PERSONAL_SMARTPHONE
+        renderedSelected = initialSelected
 
         val adapter = DeviceProfileTileAdapter(
             profiles = orderedProfiles,
             recommended = recommended,
             selected = initialSelected,
             onClick = { type -> onProfileSelected?.invoke(type) },
+            onReselect = { type -> onProfileConfirmed?.invoke(type) },
         )
         tileAdapter = adapter
 

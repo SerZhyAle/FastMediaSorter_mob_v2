@@ -19,9 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.streams.ChannelPreviewAtlasStore
@@ -35,11 +33,9 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableInventory
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
-import com.sza.fastmediasorter.domain.model.StreamResumeState
-import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
-import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
-import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.model.StreamTrackLanguage
+import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
+import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
@@ -52,7 +48,9 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamHealthProbeManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioCallbacks
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioViews
 import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager
@@ -97,6 +95,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     @Inject
     lateinit var deliverableInventory: DeliverableInventory
 
+    // S1373: the compile-time "does this build ship background audio" axis has one sanctioned reader
+    // (CLAUDE.md Rule 14). Reading the build flag here instead is what the rule forbids in shared code.
+    @Inject
+    lateinit var capabilityAvailability: com.sza.fastmediasorter.core.capability.CapabilityAvailability
+
     // S0675: in-memory TTL cache of captured live-stream frames, shared between the snapshot engine
     // (writer) and the grid adapter (reader).
     @Inject
@@ -109,21 +112,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     @Inject
     lateinit var streamFrameIngestor: StreamFrameIngestor
-
-    // S1144: per-channel audio/subtitle preference, edited from the add/edit channel dialog.
-    @Inject
-    lateinit var streamTrackPreferenceUseCase:
-        com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
-
-    // S1152: persists the last active stream so the next cold start can resume it (mirrors media resume).
-    @Inject
-    lateinit var streamResumeStateRepository: StreamResumeStateRepository
-
-    // S1152: application-lifetime scope for the resume-record clear on exit. lifecycleScope is already
-    // cancelled by the time onDestroy runs, so a clear launched there would never reach the prefs.
-    @Inject
-    @ApplicationScope
-    lateinit var applicationScope: kotlinx.coroutines.CoroutineScope
 
     // S0668: decodes a tile index into a 32 px bitmap, re-reading the atlas file on each (re)decode so
     // invalidate() after an import picks up the new atlas. Lazy so it is built after Hilt field injection.
@@ -356,26 +344,34 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     override fun setupViews() {
         inlineAudio = StreamInlineAudioManager(
             lifecycleOwner = this,
-            miniControl = binding.streamMiniControl,
-            titleView = binding.tvMiniTitle,
-            playStopButton = binding.btnMiniPlayStop,
+            views = StreamInlineAudioViews(
+                miniControl = binding.streamMiniControl,
+                titleView = binding.tvMiniTitle,
+                playStopButton = binding.btnMiniPlayStop,
+            ),
             audioController = AudioServiceController(this),
-            // S1141: a channel is pinned XOR unpinned, so the now-playing note must be pushed to both list
-            // adapters - only the section holding it repaints, the other no-ops. S1142: the grid adapters
-            // now also carry the active tile's now-playing track, so a new play/stop resets it there too.
-            onPlayingChanged = { id ->
-                adapter.setPlayingId(id); pinnedAdapter.setPlayingId(id)
-                gridAdapter.setNowPlaying(id, null); pinnedGridAdapter.setNowPlaying(id, null)
-            },
-            onError = ::showStreamUnavailable,
-            onSuccess = { viewModel.recordStreamOutcome(it.id, ok = true) },
-            // S1142: mirror the live now-playing track onto the active channel's grid tile. The id comes
-            // from the manager itself - reading it back via inlineAudio here crashed on the init-time emit
-            // (the lateinit is not yet assigned while the constructor runs).
-            onNowPlayingChanged = { id, track ->
-                gridAdapter.setNowPlaying(id, track)
-                pinnedGridAdapter.setNowPlaying(id, track)
-            },
+            callbacks = StreamInlineAudioCallbacks(
+                // S1141: a channel is pinned XOR unpinned, so the now-playing note must be pushed to both
+                // list adapters - only the section holding it repaints, the other no-ops. S1142: the grid
+                // adapters now also carry the active tile's now-playing track, so a new play/stop resets
+                // it there too.
+                onPlayingChanged = { id ->
+                    adapter.setPlayingId(id); pinnedAdapter.setPlayingId(id)
+                    gridAdapter.setNowPlaying(id, null); pinnedGridAdapter.setNowPlaying(id, null)
+                },
+                onPlaybackStateChanged = { source, isPlaying ->
+                    if (isPlaying) source?.let(::persistStreamResume) else clearStreamResume()
+                },
+                onError = ::showStreamUnavailable,
+                onSuccess = { viewModel.recordStreamOutcome(it.id, ok = true) },
+                // S1142: mirror the live now-playing track onto the active channel's grid tile. The id
+                // comes from the manager itself - reading it back via inlineAudio here crashed on the
+                // init-time emit (the lateinit is not yet assigned while the constructor runs).
+                onNowPlayingChanged = { id, track ->
+                    gridAdapter.setNowPlaying(id, track)
+                    pinnedGridAdapter.setNowPlaying(id, track)
+                },
+            ),
         )
         // S0778: keep the bottom mini-control above the navigation bar / side cutout under edge-to-edge.
         inlineAudio.applyWindowInsets()
@@ -765,7 +761,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         }
         if (source.mediaKind == "AUDIO") {
             inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
-            persistStreamResume(source)
             return
         }
         // S1151: switching from inline radio to a video stream must fully stop the radio first. onStop
@@ -794,40 +789,24 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         )
     }
 
-    /**
-     * S1152: record this radio station as the last active stream, so a cold start resumes it. Only
-     * AUDIO is ever recorded: video playback does not survive the process anyway, and recording it
-     * made every later launch reopen this screen for 48 h (owner report 2026-07-26).
-     */
+    /** S1152: record this radio station as the last active stream, so a cold start resumes it. */
     private fun persistStreamResume(source: StreamSourceEntity) {
-        if (source.mediaKind != "AUDIO") return
-        lifecycleScope.launch {
-            streamResumeStateRepository.save(
-                StreamResumeState(
-                    url = source.url,
-                    title = source.title,
-                    mediaKind = source.mediaKind,
-                    wasPlaying = true,
-                    savedAt = System.currentTimeMillis()
-                )
-            )
-        }
+        viewModel.persistStreamResume(source)
     }
 
     /** S1152: drop the resume record when the user explicitly stops the current stream. */
     private fun clearStreamResume() {
-        lifecycleScope.launch { streamResumeStateRepository.clear() }
+        viewModel.clearStreamResume()
     }
 
     /**
      * S1152: leaving this screen without anything still playing means there is nothing to resume -
-     * drop the record so the next cold start opens the normal main screen. Runs on the application
-     * scope because lifecycleScope is already cancelled at onDestroy.
+     * drop the record so the next cold start opens the normal main screen.
      */
     private fun clearStreamResumeOnExit() {
         if (!::inlineAudio.isInitialized) return
         if (keepBackgroundService || inlineAudio.isServiceAudioActive) return
-        applicationScope.launch { streamResumeStateRepository.clear() }
+        viewModel.clearStreamResumeOnExit()
     }
 
     /**
@@ -952,10 +931,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 else -> null
             }
             Timber.d("S1144: channel dialog wrote audio=$audioIso sub=$subtitleIso on=$subtitlesEnabled")
-            lifecycleScope.launch {
-                streamTrackPreferenceUseCase.writeAudio(url, audioIso)
-                streamTrackPreferenceUseCase.writeSubtitle(url, subtitleIso, subtitlesEnabled)
-            }
+            viewModel.writeTrackPreference(url, audioIso, subtitleIso, subtitlesEnabled)
         }
     }
 
@@ -1011,7 +987,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // bound with what is on disk as soon as it arrives rather than blocking the dialog.
         var writeTrackPreference: (String) -> Unit = bindChannelTrackPreference(dialogBinding, null)
         lifecycleScope.launch {
-            val stored = streamTrackPreferenceUseCase.read(source.url)
+            val stored = viewModel.readTrackPreference(source.url)
             writeTrackPreference = bindChannelTrackPreference(dialogBinding, stored)
         }
         val dialog = MaterialAlertDialogBuilder(this)
@@ -1151,7 +1127,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     /** S0577: background streaming uses the foreground service only when the user enabled it and the flavor supports it. */
     private fun isBackgroundAudioEnabled(): Boolean =
-        viewModel.settings.value.enablePersistentAudioPlayback && BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
+        viewModel.settings.value.enablePersistentAudioPlayback &&
+            capabilityAvailability.isPersistentAudioPlaybackAvailable()
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)

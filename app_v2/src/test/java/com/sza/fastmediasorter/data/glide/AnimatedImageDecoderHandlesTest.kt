@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.data.glide
 
+import android.content.res.Resources
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.resource.gif.GifOptions
+import io.mockk.mockk
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -9,10 +11,9 @@ import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 
 /**
- * S1026: the animated WebP/APNG decoders must decline a request that asked for a still. Glide's
- * DrawableToBitmapConverter refuses Animatable drawables outright, so a thumbnail request (which
- * always calls `dontAnimate()`) fails its whole load rather than degrading to a first frame unless
- * the decoder steps aside and lets the built-in downsampler decode that frame.
+ * S1317: the animated WebP/APNG decoders must still claim animated input even when the request
+ * asked for a still frame. Declining would hand the file to Glide's built-in decoder, which ignores
+ * the disable-animation option and still returns an AnimatedImageDrawable.
  */
 class AnimatedImageDecoderHandlesTest {
 
@@ -32,42 +33,45 @@ class AnimatedImageDecoderHandlesTest {
         set(GifOptions.DISABLE_ANIMATION, disabled)
     }
 
+    // handles() never touches Resources - only decode() does - so a bare mock is enough here.
+    private val resources: Resources = mockk()
+
     @Test
     fun `byte buffer decoder claims an animated webp by default`() {
-        val decoder = AnimatedImageByteBufferDecoder()
+        val decoder = AnimatedImageByteBufferDecoder(resources)
         assertTrue(decoder.handles(ByteBuffer.wrap(animatedWebpHeader()), Options()))
     }
 
     @Test
-    fun `byte buffer decoder declines when the request disabled animation`() {
-        val decoder = AnimatedImageByteBufferDecoder()
+    fun `byte buffer decoder still claims an animated webp when animation is disabled`() {
+        val decoder = AnimatedImageByteBufferDecoder(resources)
         val options = optionsWithAnimationDisabled(true)
-        assertFalse(decoder.handles(ByteBuffer.wrap(animatedWebpHeader()), options))
+        assertTrue(decoder.handles(ByteBuffer.wrap(animatedWebpHeader()), options))
     }
 
     @Test
     fun `byte buffer decoder still claims an animated webp when animation is explicitly enabled`() {
-        val decoder = AnimatedImageByteBufferDecoder()
+        val decoder = AnimatedImageByteBufferDecoder(resources)
         val options = optionsWithAnimationDisabled(false)
         assertTrue(decoder.handles(ByteBuffer.wrap(animatedWebpHeader()), options))
     }
 
     @Test
-    fun `stream decoder declines when the request disabled animation`() {
-        val decoder = AnimatedImageStreamDecoder()
+    fun `stream decoder still claims an animated webp when animation is disabled`() {
+        val decoder = AnimatedImageStreamDecoder(resources)
         val options = optionsWithAnimationDisabled(true)
-        assertFalse(decoder.handles(ByteArrayInputStream(animatedWebpHeader()), options))
+        assertTrue(decoder.handles(ByteArrayInputStream(animatedWebpHeader()), options))
     }
 
     @Test
     fun `stream decoder claims an animated webp by default`() {
-        val decoder = AnimatedImageStreamDecoder()
+        val decoder = AnimatedImageStreamDecoder(resources)
         assertTrue(decoder.handles(ByteArrayInputStream(animatedWebpHeader()), Options()))
     }
 
     @Test
     fun `a static webp is never claimed`() {
-        assertFalse(AnimatedImageByteBufferDecoder().handles(ByteBuffer.wrap(staticWebpHeader()), Options()))
-        assertFalse(AnimatedImageStreamDecoder().handles(ByteArrayInputStream(staticWebpHeader()), Options()))
+        assertFalse(AnimatedImageByteBufferDecoder(resources).handles(ByteBuffer.wrap(staticWebpHeader()), Options()))
+        assertFalse(AnimatedImageStreamDecoder(resources).handles(ByteArrayInputStream(staticWebpHeader()), Options()))
     }
 }

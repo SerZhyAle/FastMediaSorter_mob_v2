@@ -394,6 +394,10 @@ void xr_input_poll(XrSpace baseSpace, XrTime predictedTime) {
         XrActionStateFloat gripState{XR_TYPE_ACTION_STATE_FLOAT};
         if (xrGetActionStateFloat(g_session, &gripGetInfo, &gripState) == XR_SUCCESS && gripState.isActive) {
             state.gripDown = (gripState.currentState >= 0.4f);
+            // S1240: the modifier latch lives exactly as long as the hold that set it.
+            if (!state.gripDown) {
+                state.gripIsModifier = false;
+            }
         }
 
         // Poll Thumbstick Action

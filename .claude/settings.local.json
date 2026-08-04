@@ -9,7 +9,11 @@
       "Bash(C:/Program Files/PowerShell/7/pwsh.exe *)",
       "PowerShell(npm install *)",
       "PowerShell(node \"C:/Users/serzh/.claude/plugins/cache/openai-codex/codex/1.0.4/scripts/codex-companion.mjs\" setup --json)",
-      "PowerShell(node \"C:/Users/serzh/.claude/plugins/cache/openai-codex/codex/1.0.4/scripts/codex-companion.mjs\" setup --json --enable-review-gate)"
+      "PowerShell(node \"C:/Users/serzh/.claude/plugins/cache/openai-codex/codex/1.0.4/scripts/codex-companion.mjs\" setup --json --enable-review-gate)",
+      "Bash(pwsh -NoProfile -Command 'Select-String -Path '\\\\''docs/settings/settings-manifest.json'\\\\'','\\\\''docs/SETTINGS_REFERENCE.md'\\\\'','\\\\''docs/settings/settings-annotations.json'\\\\'' -Pattern '\\\\''cropImagesToFullscreen|crop_images_to_fullscreen'\\\\'' | ForEach-Object { \\(Split-Path $_.Path -Leaf\\) + '\\\\'':'\\\\'' + $_.LineNumber + '\\\\'': '\\\\'' + $_.Line.Trim\\(\\) }')",
+      "Bash(pwsh -NoProfile -Command \"Get-Content docs/settings/settings-manifest.json | Select-Object -Skip 1468 -First 16\")",
+      "Bash(pwsh -NoProfile -File scripts/quality/assert-settings-doc-sync.ps1)",
+      "Bash(echo \"EXIT=$?\")"
     ]
   },
   "disabledMcpjsonServers": [],

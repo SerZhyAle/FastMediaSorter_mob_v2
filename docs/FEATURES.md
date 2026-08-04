@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-07-26*
+*Last updated: 2026-07-27*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -28,9 +28,9 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Direct capture into the folder you actually use** `[Standard / VR]`: Take photos, record voice notes, or capture video directly into local, network, or cloud destinations instead of first dumping everything into the camera roll.
 - **Screen capture, screen recording, and quick audio recording** `[Standard]`: Launch screenshot, screen video, or audio recording from the app or an edge gesture, then stop it from a notification or the floating in-app indicator.
 - **Edge-gesture quick actions** `[Standard]`: Turn the screen edges into instant shortcuts for capture, OCR-translate, recording, or opening the quick-launch panel/app.
-- **Unified "Send to.." hub** `[Standard / Lite / Photos / Legacy / VR]`: One command gathers Share, Telegram, email, Lens, Keep, print, and other enabled targets into a single clean list instead of scattering export actions across menus.
+- **Unified "Send to.." hub** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: One command gathers Share, Telegram, email, Lens, Keep, print, and other enabled targets into a single clean list instead of scattering export actions across menus.
 - **Home-screen camera widget** `[Standard]`: Add a launcher widget that opens capture directly, so a photo lands in your chosen folder in one tap without opening the app first.
-- **Every lens the device really has** `[Standard / Lite / Photos / Legacy / noLegal / VR]`: Capture offers each physical lens, its true zoom floor including sub-1x, a working macro mode, and the sensor's full resolution, while System info reports the whole camera layout so a problem can be diagnosed from the phone itself.
+- **Every lens the device really has** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Capture offers each physical lens, its true zoom floor including sub-1x, a working macro mode, and the sensor's full resolution, while System info reports the whole camera layout so a problem can be diagnosed from the phone itself.
 
 ## 4. Replace a basic file viewer with a sorting workstation
 - **Instant sorting panel** `[Standard / VR]`: Keep up to 30 favorite destination folders in the player and sort the current file in one tap, with optional auto-advance to the next item.
@@ -40,7 +40,7 @@ This document is the curated showcase of standout user-facing features. The comp
 ## 5. Replace several media viewers and editors
 - **Image viewer with real file actions** `[Standard / VR]`: Crop, rotate, flip, adjust colors, speed-control GIFs, and export GIF frames without switching to a separate image utility.
 - **Video frame capture to any destination** `[Standard / VR]`: Save a clean frame from video as PNG/JPG directly to local or network storage.
-- **2D/360/VR playback in a dedicated VR build** `[VR Only]`: Play SBS/OU, VR180, and 360 content, or watch normal 2D files on a giant virtual screen in the OpenXR build.
+- **2D/360/VR playback in the sideload noLegal build** `[noLegal Only]`: Play SBS/OU, VR180, and 360 content, or watch normal 2D files on a giant virtual screen in the OpenXR build.
 - **Animated WebP and APNG playback** `[Standard]`: Short WebP and APNG animations now play in the image viewer instead of showing a single frozen frame.
 
 ## 6. Replace OCR, translation, and note extraction tools
@@ -49,18 +49,19 @@ This document is the curated showcase of standout user-facing features. The comp
 - **In-place text and Markdown editing on remote storage** `[Standard / VR]`: Edit `.txt` and `.md` files directly on local or network resources, with Markdown rendering and auto-save.
 
 ## 7. Replace separate stream and radio apps
-- **Dedicated Internet Streams screen** `[Standard / Legacy / noLegal / VR / Lite (progressive-audio only)]`: Store internet radio, video streams, and RTSP sources in a proper library instead of juggling links in a browser or notes app.
-- **Inline radio playback with live ICY metadata** `[Standard / Legacy / noLegal / VR / Lite]`: Play audio streams directly in the list while keeping the station catalog visible.
-- **Pinned streams on the main window** `[Standard / Legacy / noLegal]`: Put favorite live channels directly above the resource list for one-tap access from the home screen of the app.
-- **Smarter stream playback** `[Standard / Legacy / VR]`: Streams step down to a lighter quality automatically when the connection keeps stalling, and the frame you were watching becomes the channel's thumbnail.
-- **See what is on air right now** `[Standard / Legacy / noLegal / VR]`: Radio shows the artist and title, video channels show the programme currently broadcasting, and both reach the notification and the lock screen.
-- **Find a channel without scrolling** `[Standard / Legacy / noLegal / VR]`: Filter by topic alongside category, language, and country, recognise a video channel from a downloadable preview atlas before the first watch, and keep pinned channels in their own collapsible section.
-- **Radio picks itself back up** `[Standard / Legacy / noLegal / VR]`: A station that was playing when you closed the app starts again on the next launch.
+- **Dedicated Internet Streams screen** `[Standard / Legacy / VR / noLegal]`: Store internet radio, video streams, and RTSP sources in a proper library instead of juggling links in a browser or notes app.
+- **Inline radio playback with live ICY metadata** `[Standard / Legacy / VR / noLegal]`: Play audio streams directly in the list while keeping the station catalog visible.
+- **Pinned streams on the main window** `[Standard / Legacy / VR / noLegal]`: Put favorite live channels directly above the resource list for one-tap access from the home screen of the app.
+- **Smarter stream playback** `[Standard / Legacy / VR / noLegal]`: Streams step down to a lighter quality automatically when the connection keeps stalling, and the frame you were watching becomes the channel's thumbnail.
+- **See what is on air right now** `[Standard / Legacy / VR / noLegal]`: Radio shows the artist and title, video channels show the programme currently broadcasting, and both reach the notification and the lock screen.
+- **Find a channel without scrolling** `[Standard / Legacy / VR / noLegal]`: Filter by topic alongside category, language, and country, recognise a video channel from a downloadable preview atlas before the first watch, fall back to the station logo where no preview exists, and keep pinned channels in their own collapsible section.
+- **Radio picks itself back up** `[Standard / Legacy / VR / noLegal]`: A station that was playing when you closed the app starts again on the next launch.
+- **Each channel remembers its tracks** `[Standard / Legacy / VR / noLegal]`: Pick an audio track or subtitles once and that channel opens the same way next time, with a default audio and subtitle language for every other stream.
 
 ## 8. Replace setup migration and utility clutter
 - **Unified settings backup and restore** `[Standard / VR]`: Back up sources, favorites, schedules, passwords, and sign-ins to a local file or Google Drive, then restore the whole setup after reinstalling or moving devices.
 - **App panel for apps, tools, and internal actions** `[Standard]`: Build a quick-launch panel that mixes Android apps, system shortcuts, captures, OCR tools, streams, and chosen resources in one place.
-- **Hidden bonus mini-game** `[Standard / Lite / Photos / Legacy]`: A built-in turn-based puzzle for anyone who likes finding unexpected extras in utility apps.
+- **Hidden bonus mini-game** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: A built-in turn-based puzzle for anyone who likes finding unexpected extras in utility apps.
 
 ## 9. Replace your home-screen launcher
 - **Use the app as your home screen** `[Standard / noLegal]`: Launcher mode turns FastMediaSorter into the device home screen, with resizable gadgets, a working clock, and a labeled scrollable app grid.

@@ -245,12 +245,11 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                 "Target '${target.name}' is unreachable: ${e.message ?: "connection failed"}"
             }
         } else if (PathUtils.isContentUri(target.path)) {
-            // S1009: a SAF tree Uri is not a filesystem path, so File(path).exists() is always false
+            // A SAF tree Uri is not a filesystem path, so File(path).exists() is always false
             // for one. That made every ad-hoc local-folder TARGET fail pre-flight and the operation
             // finish "done" having copied nothing. Probe the tree the way the picker does - for a
             // receiver, writability is the property that actually matters.
             val writable = checkLocalFolderWritableUseCase(target.path)
-            Timber.d("S1009: SAF target pre-flight, writable=%s", writable)
             if (writable) null else "Target directory '${target.path}' is not writable"
         } else {
             val dir = File(target.path)

@@ -12,4 +12,4 @@ type: project
 - `VrMediaSectionContract.isAvailable` - real impl in `src/vr/java` (compiled into vr + noLegal), NoOp in `src/vrStub/java` (standard/lite/photos/legacy). Inject via Hilt / EntryPoint.
 - `MediaCapabilities.supportsVrMediaControls` (added S0670) - literal `true` in `src/vr` `MediaCapabilitiesModule` (which serves both vr and noLegal; noLegal has no own module), default `false` in the data class so the other four flavor modules inherit false.
 
-Source-set wiring (build.gradle.kts): noLegal `kotlin.directories.add("src/vr/java")`; vr gets default `src/vr/*` + `src/vrOnly/java`; the rest add `src/vrStub/java`. See [[project_vr_inclusion_hierarchy]].
+Source-set wiring (build.gradle.kts): noLegal `kotlin.directories.add("src/vr/java")`; vr gets default `src/vr/*` + `src/vrOnly/java`; the rest add `src/vrStub/java`. See [[vr-inclusion-hierarchy]].

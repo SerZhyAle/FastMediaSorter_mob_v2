@@ -1,8 +1,18 @@
 ﻿[CmdletBinding()]
 param(
-    [Parameter(Mandatory)][string] $Id,
-    [switch] $Confirm
+    [string] $Id,
+    [switch] $Confirm,
+    [switch] $Help
 )
+
+if ($Help) {
+    & (Join-Path $PSScriptRoot '..\utils\help.ps1') -Name 'scripts/spec_catalog/delete.ps1'
+    exit $LASTEXITCODE
+}
+if (-not $Id) {
+    Write-Error 'delete.ps1 requires -Id <Sxxxx>. Run with -Help for the parameter list.' -ErrorAction Continue
+    exit 1
+}
 
 # Convert terminating errors (Write-Error, throw, provider errors) into
 # the documented `exit 1` so callers can rely on $LASTEXITCODE.

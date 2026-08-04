@@ -4,10 +4,11 @@ import android.os.Build
 import com.dropbox.core.DbxException
 import com.dropbox.core.oauth.DbxCredential
 import com.dropbox.core.v2.files.FileMetadata
-import kotlinx.coroutines.delay
 import com.dropbox.core.v2.files.FolderMetadata
 import com.dropbox.core.v2.files.Metadata
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaExtensions
+import kotlinx.coroutines.delay
 import org.json.JSONObject
 import timber.log.Timber
 import java.text.SimpleDateFormat
@@ -202,6 +203,7 @@ object DropboxClientUtils {
                     throw e
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 lastException = e
                 val isNetworkError = e.message?.let { msg ->
                     msg.contains("timeout", ignoreCase = true) ||

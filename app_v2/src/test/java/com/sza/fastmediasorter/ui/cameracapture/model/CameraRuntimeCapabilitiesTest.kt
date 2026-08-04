@@ -1,12 +1,15 @@
 package com.sza.fastmediasorter.ui.cameracapture.model
 
+import androidx.camera.core.CameraSelector
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
  * Pure-logic coverage for [CameraRuntimeCapabilities.buildZoomPresets] (S0753): the widened
  * candidate set must clamp to the lens range, always keep a reachable maximum, and de-duplicate.
+ * S1261 adds the cross-lens floor pill predicate ([CameraRuntimeCapabilities.showsCrossLensFloor]).
  */
 class CameraRuntimeCapabilitiesTest {
 
@@ -58,6 +61,98 @@ class CameraRuntimeCapabilitiesTest {
             multiplier = 1f,
             digitalCap = 4f,
         )
-        assertEquals(listOf(1f, 3f, 5f, 10f, 20f, 30f), presets)
+        // 8x stays: the native optical max always keeps its own button (S1189).
+        assertEquals(listOf(1f, 3f, 5f, 8f, 10f, 20f, 30f), presets)
+    }
+
+    @Test
+    fun `display rounding uses half steps below 5 and wholes from 5 upward`() {
+        // S1260 owner rule: 1.6 -> 1.5, 3.1 -> 3, 4.9 -> 5, 8.1 -> 8, 16.4 -> 16.
+        assertEquals(1.5f, CameraRuntimeCapabilities.roundEquivalentForDisplay(1.6f))
+        assertEquals(3f, CameraRuntimeCapabilities.roundEquivalentForDisplay(3.1f))
+        assertEquals(5f, CameraRuntimeCapabilities.roundEquivalentForDisplay(4.9f))
+        assertEquals(8f, CameraRuntimeCapabilities.roundEquivalentForDisplay(8.1f))
+        assertEquals(16f, CameraRuntimeCapabilities.roundEquivalentForDisplay(16.4f))
+        assertEquals(0.5f, CameraRuntimeCapabilities.roundEquivalentForDisplay(0.6f))
+    }
+
+    @Test
+    fun `presets whose display labels collide keep the native bound`() {
+        // Native max 9.8 labels as "10" and so does the 10x digital step - only one pill survives,
+        // and it is the native bound (S1260).
+        val presets = CameraRuntimeCapabilities.buildZoomPresets(
+            minZoom = 1f,
+            maxZoom = 9.8f,
+            multiplier = 1f,
+            digitalCap = 4f,
+        )
+        val labels = presets.map { CameraRuntimeCapabilities.roundEquivalentForDisplay(it) }
+        assertEquals(labels.distinct(), labels)
+        assertTrue(presets.contains(9.8f))
+        assertTrue(!presets.contains(10f))
+    }
+
+    @Test
+    fun `bound lens reaching the device floor natively hides the cross-lens pill`() {
+        // S25 FE logical camera 0: own range starts at 0.57, device floor 0.57 - reachable natively.
+        val caps = CameraRuntimeCapabilities(
+            minZoomRatio = 0.57f,
+            maxZoomRatio = 10f,
+            zoomMultiplier = 1f,
+            minEquivalentZoomRatio = 0.57f,
+        )
+        assertFalse(caps.showsCrossLensFloor)
+    }
+
+    @Test
+    fun `bound lens stuck at 1x with a sub-1x device floor shows the cross-lens pill`() {
+        // S25 FE ultra-wide entry bound directly: own floor 1.0 while the device reaches 0.57.
+        val caps = CameraRuntimeCapabilities(
+            minZoomRatio = 1f,
+            maxZoomRatio = 8f,
+            zoomMultiplier = 1f,
+            minEquivalentZoomRatio = 0.57f,
+        )
+        assertTrue(caps.showsCrossLensFloor)
+        // Pill prints the S1260 display rounding: 0.57 -> 0.5.
+        assertEquals(0.5f, caps.crossLensFloorDisplay)
+    }
+
+    @Test
+    fun `equal floors keep the row unchanged`() {
+        // POCO guard (strategic goal 4): device floor equals the bound lens floor - no extra pill.
+        val caps = CameraRuntimeCapabilities(
+            minZoomRatio = 1f,
+            maxZoomRatio = 8f,
+            zoomMultiplier = 1f,
+            minEquivalentZoomRatio = 1f,
+        )
+        assertFalse(caps.showsCrossLensFloor)
+    }
+
+    @Test
+    fun `front lens never shows the cross-lens pill`() {
+        val caps = CameraRuntimeCapabilities(
+            activeLensFacing = CameraSelector.LENS_FACING_FRONT,
+            minZoomRatio = 1f,
+            maxZoomRatio = 8f,
+            zoomMultiplier = 1f,
+            minEquivalentZoomRatio = 0.57f,
+        )
+        assertFalse(caps.showsCrossLensFloor)
+    }
+
+    @Test
+    fun `tele bound lens shows the pill against its own equivalent floor`() {
+        // Bound tele (multiplier 3, own native floor 1): reachable equivalent floor is 3.0, the
+        // device floor 0.57 sits far below - the pill must appear.
+        val caps = CameraRuntimeCapabilities(
+            minZoomRatio = 1f,
+            maxZoomRatio = 8f,
+            zoomMultiplier = 3f,
+            minEquivalentZoomRatio = 0.57f,
+        )
+        assertTrue(caps.showsCrossLensFloor)
+        assertEquals(3f, caps.ownEquivalentFloor)
     }
 }

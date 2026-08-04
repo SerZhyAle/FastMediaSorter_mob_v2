@@ -85,7 +85,12 @@
     <string name="settings_profile_source_migration">мігровано</string>
     <string name="settings_profile_source_skipped">авто-пропущено</string>
     <string name="settings_profile_title">Профіль пристрою</string>
-    <string name="settings_profile_warning">Увага: зміна профілю скине частину налаштувань на значення за замовчуванням для нового профілю. Ви впевнені, що хочете продовжити?</string>
+    <plurals name="settings_profile_warning_count">
+        <item quantity="one">Перехід на цей профіль замінить %1$d налаштування значенням, яке задає профіль. Продовжити?</item>
+        <item quantity="few">Перехід на цей профіль замінить %1$d налаштування значеннями, які задає профіль. Продовжити?</item>
+        <item quantity="many">Перехід на цей профіль замінить %1$d налаштувань значеннями, які задає профіль. Продовжити?</item>
+        <item quantity="other">Перехід на цей профіль замінить %1$d налаштування значеннями, які задає профіль. Продовжити?</item>
+    </plurals>
     <string name="settings_all_files_create_resource">Створити ресурс «Усі файли»</string>
     <string name="settings_all_files_resource_created">Ресурс «Усі файли» створено.</string>
     <string name="settings_all_files_profile_confirm_title">Створити ресурс «Усі файли»</string>

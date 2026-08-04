@@ -2,16 +2,18 @@ package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.ListPopupWindow
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
 import androidx.core.view.updateLayoutParams
+import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
@@ -20,8 +22,13 @@ import timber.log.Timber
 /**
  * Canonical reusable dropdown row for settings and dialog surfaces.
  *
- * Layout: title + inline helper, then a Material exposed dropdown (TextInputLayout +
- * AutoCompleteTextView). Replaces raw [android.widget.Spinner] usage (S0567, ADR-1).
+ * Layout: title + inline helper, then a Material outlined field (TextInputLayout + read-only
+ * TextInputEditText). Replaces raw [android.widget.Spinner] usage (S0567, ADR-1).
+ *
+ * S1390: the row opens its own modal [ListPopupWindow] instead of relying on the
+ * `ExposedDropdownMenu` style. That style delegates to `AutoCompleteTextView.showDropDown()`, whose
+ * popup is deliberately non-focusable - so it never received D-pad keys and never appeared in the
+ * accessibility or uiautomator window walk. A modal popup takes window focus, which fixes both.
  *
  * The row owns the help icon -> [TooltipDialog] wiring. Public XML attributes use the
  * `sdr_` prefix (see `attrs.xml`).
@@ -35,13 +42,14 @@ class SettingsDropdownRow @JvmOverloads constructor(
     private val titleView: TextView
     private val helpIcon: ImageButton
     private val inputLayout: TextInputLayout
-    private val autoComplete: AutoCompleteTextView
+    private val valueView: TextInputEditText
 
     private var helpTitleText: CharSequence? = null
     private var helpMessageText: CharSequence? = null
     private var itemSelectedListener: ((Int) -> Unit)? = null
     private var entries: List<CharSequence> = emptyList()
     private var selectedIndex: Int = -1
+    private var optionsPopup: ListPopupWindow? = null
 
     // -1 (MATCH_PARENT) keeps the legacy fill behaviour; a positive value caps the field to a fixed width.
     private var fieldWidthPx: Int = LayoutParams.MATCH_PARENT
@@ -53,7 +61,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
         titleView = findViewById(R.id.sdr_title)
         helpIcon = findViewById(R.id.sdr_iconHelp)
         inputLayout = findViewById(R.id.sdr_inputLayout)
-        autoComplete = findViewById(R.id.sdr_autocomplete)
+        valueView = findViewById(R.id.sdr_value)
 
         bindHelpClick()
         bindItemSelection()
@@ -76,14 +84,13 @@ class SettingsDropdownRow @JvmOverloads constructor(
     }
 
     /**
-     * Sets the dropdown entries and rebuilds the backing adapter.
+     * Sets the option list shown by the row and refreshes the displayed value.
      */
     fun setEntries(items: List<CharSequence>) {
         entries = items
-        val adapter = ArrayAdapter(context, android.R.layout.simple_list_item_1, items)
-        autoComplete.setAdapter(adapter)
+        dismissOptions()
         if (selectedIndex in items.indices) {
-            autoComplete.setText(items[selectedIndex], false)
+            valueView.setText(items[selectedIndex])
         }
     }
 
@@ -93,7 +100,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
     fun setSelection(index: Int) {
         selectedIndex = index
         if (index in entries.indices) {
-            autoComplete.setText(entries[index], false)
+            valueView.setText(entries[index])
         }
     }
 
@@ -131,15 +138,67 @@ class SettingsDropdownRow @JvmOverloads constructor(
         titleView.isEnabled = enabled
         helpIcon.isEnabled = enabled
         inputLayout.isEnabled = enabled
-        autoComplete.isEnabled = enabled
+        valueView.isEnabled = enabled
         alpha = if (enabled) 1f else 0.5f
+        if (!enabled) dismissOptions()
+    }
+
+    override fun onDetachedFromWindow() {
+        dismissOptions()
+        super.onDetachedFromWindow()
     }
 
     private fun bindItemSelection() {
-        autoComplete.setOnItemClickListener { _, _, position, _ ->
-            selectedIndex = position
-            itemSelectedListener?.invoke(position)
+        // The field only displays the chosen value, so a D-pad focus must never raise the keyboard.
+        valueView.showSoftInputOnFocus = false
+        valueView.setOnClickListener { showOptions() }
+        inputLayout.setEndIconOnClickListener { showOptions() }
+        // The field is read-only, so its own key handling would swallow the confirm keys without acting
+        // on them - D-pad and keyboard users need an explicit open (CLAUDE.md Rule 16).
+        valueView.setOnKeyListener { _, keyCode, event ->
+            if (!isConfirmKey(keyCode)) return@setOnKeyListener false
+            if (event.action == KeyEvent.ACTION_UP) showOptions()
+            true
         }
+    }
+
+    private fun isConfirmKey(keyCode: Int): Boolean = keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+        keyCode == KeyEvent.KEYCODE_ENTER ||
+        keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER
+
+    /**
+     * Opens the option list as a modal [ListPopupWindow]. Modality is the whole point: a modal popup
+     * owns window focus, so the list receives D-pad keys and is reported to accessibility and
+     * uiautomator, neither of which was true of the former inline dropdown (S1390).
+     */
+    private fun showOptions() {
+        if (!isEnabled || entries.isEmpty() || optionsPopup != null) return
+        val popup = ListPopupWindow(context).apply {
+            anchorView = inputLayout
+            isModal = true
+            width = if (inputLayout.width > 0) inputLayout.width else ListPopupWindow.WRAP_CONTENT
+            height = ListPopupWindow.WRAP_CONTENT
+            setAdapter(ArrayAdapter(context, android.R.layout.simple_list_item_1, entries))
+            setOnItemClickListener { _, _, position, _ ->
+                dismiss()
+                applySelection(position)
+            }
+            setOnDismissListener { optionsPopup = null }
+        }
+        optionsPopup = popup
+        popup.show()
+        // Start the D-pad walk on the current value instead of the first row.
+        if (selectedIndex in entries.indices) popup.listView?.setSelection(selectedIndex)
+    }
+
+    private fun dismissOptions() {
+        optionsPopup?.dismiss()
+        optionsPopup = null
+    }
+
+    private fun applySelection(position: Int) {
+        setSelection(position)
+        itemSelectedListener?.invoke(position)
     }
 
     private fun bindHelpClick() {

@@ -6,6 +6,8 @@ description: "Use to run the full spec pipeline end to end - idea to verified im
 
 Run complete spec pipeline (idea -> verified impl), fully automated. Forward bias over correctness theatre: patch spec and continue. Stop only when human input genuinely required. Picks up a spec at any stage/status. Defer unresolvable human questions to final report; never block mid-pipeline on skippable item.
 
+Reference companion: `.claude/reference/spec-all.md` - never read wholesale; each pointer below names its section and the condition that makes it worth opening.
+
 ## Usage
 
 ```text
@@ -65,7 +67,7 @@ Exit 1 (`DRIFT`) = git commits with spec id marker and/or inline `// Sxxxx:` mar
 - `## Last Audit` missing -> switch to **review mode**: read strategic file, write a `## Last Audit` block summarising what is already in code (file paths, commit shas, residual gaps), jump to F5 (or set `BlockNeedUserTest` if device-test is the only remaining gate).
 - `## Last Audit` present -> proceed with normal Resume Map (audit block already reflects code).
 
-Catches "spec written ahead of code, fix committed later, spec never updated" - otherwise wastes full F2+F3 cycle.
+What it catches: `.claude/reference/spec-all.md` section 1 - read only if tempted to skip this check.
 
 ### 0b - Resume Map (existing spec)
 
@@ -108,17 +110,9 @@ Log decision in chat: `Complexity: Simple | Full - <one-line reason>.`
 
 ### Stage S1 - Compact Spec
 
-Allocate `Sxxxx` via `insert.ps1`. Write one `PLAN/Sxxxx_<short-name>.md` combining strategic goal + phases inline. Use `spec_tech` phase template directly (English, imperative steps with Verification predicates). Include brief **Goal** section (2-4 sentences, Russian) before phases. Auto-derive priority per `/spec` rules.
+Allocate `Sxxxx` via `insert.ps1`. Write one `PLAN/Sxxxx_<short-name>.md` combining strategic goal + phases inline. Use the phase template at `.claude/templates/phase-file.md` directly - read it before writing the phases (English, imperative steps with Verification predicates). Every phase step carries the mandatory `**Why:**` field between `**Prompt for developer:**` and `**Verification:**` (S1343, adopted 2026-08-02): one complete sentence of rationale sourced from this spec's own Goal/problem statement, or `not stated in strategic spec` verbatim - never an invented reason. Include brief **Goal** section (2-4 sentences, Russian) before phases. Auto-derive priority per `/spec` rules.
 
-**Approval gate stub.** Compact specs still hit Draft -> Approved gate. Append minimal §3.3 block before flipping status:
-
-```markdown
-### 3.3 Owner inputs (Approval gate)
-
-- **Related tickets:** <none | Sxxxx,Sxxxx>
-```
-
-If compact spec touches sensitive scope (UI / flavor / data / API), follow `/spec` Process step 5.1 detection and emit matching bullets in same block - gate uses same `check-owner-inputs.ps1`.
+**Approval gate stub** (§3.3 owner-inputs block, plus the sensitive-scope bullets): `.claude/reference/spec-all.md` section 2 - read while writing the compact spec, before the status flip.
 
 Flip `Status: Draft` -> `Status: Approved` in file and via `update.ps1`.
 Dev log: `.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>.md" "spec-all" "Compact spec: <Sxxxx>"`
@@ -155,48 +149,27 @@ Follow `/spec-tech`. If tactical folder exists, refresh phases without discardin
 
 Research artifacts in `PLAN/Sxxxx_<slug>/research/*.md` are mandatory F2 input - `/spec-tech` steps 2–3 plan from them (coverage inventory + ordering). Never skip on resume.
 
-> **Refinement passes** (`/spec-update`) skipped unless §6 has Open research items unresolvable from codebase. If resolvable inline - resolve, persist findings to `PLAN/Sxxxx_<slug>/research/<NN>__<topic-slug>.md` with `**Артефакт:**` link in §6 (see `/research` step 5), patch spec, continue.
+Refinement passes (`/spec-update`): `.claude/reference/spec-all.md` section 3 - read when §6 still carries Open research items.
 
 ### Stage F3 - Implementation
 
 Follow `/spec-dev` executing all phases from first non-done step.
 
-**BUILD-REQUIRED stop override:**
+**BUILD-REQUIRED stop override:** `.claude/reference/spec-all.md` section 4 - read before this run's first build; it fixes the `/build` target, the retry budget against MAX_BUILD_RETRIES and the `vr debug` follow-up.
 
-1. Invoke `/build` -> `standard debug`. Use `a.ps1 dq` (quiet debug - same `assembleStandardDebug`, suppresses UP-TO-DATE / deprecated-DSL / known-acceptable warnings) for resume-mode iteration builds; use `a.ps1 d` only when investigating build failure needing full Gradle output.
-2. PASS -> tick criterion `[x] (auto-build - PASS)`, continue `--resume`.
-3. FAIL -> fix minimal error. Retry up to MAX_BUILD_RETRIES. Exception: a `BUILD.LOCK held` refusal (CLAUDE.md Rule 23, another agent session mid-build) is not a code error - it still counts against MAX_BUILD_RETRIES, but don't attempt a source "fix" for it, just retry (the lock self-clears when the other build finishes or goes stale).
-4. Still failing -> hard-stop -> final report as Blocked.
-5. Any `src/vr/` file modified: also run `vr debug` after standard passes.
+**MANUAL-REQUIRED stop:** tick as `[manual - deferred to human]`, continue `--resume`; `.claude/reference/spec-all.md` section 5 - read when a step's gate is on-device verification, it ends in `Timber.d("Sxxxx: …")` tags + `BlockNeedUserTest` + the Device-test gate (`.claude/reference/spec-all.md` section 11).
 
-**MANUAL-REQUIRED stop:** tick as `[manual - deferred to human]`. Continue `--resume`. If manual gate is on-device verification, `/spec-dev` inserts `Timber.d("Sxxxx: <entry-point description>")` tags as final code edits **before the last phase's build** (CLAUDE.md "Debug Verification Tags") - that build validates code + tags in one pass, no extra build after. Then set status `BlockNeedUserTest` and apply **Device-test gate** (see Finalization) - auto-run `/spec-test-device` + `/spec-check` when device online.
-
-**Hard stop - attempt inline resolution:**
-
-- Missing symbol/wrong path -> Grep/Glob actual location; patch spec; resume.
-- Verification fail -> re-read file, correct edit, re-run predicates.
-- Trilingual gap -> add `<!-- TODO translate: <EN text> -->` in missing locale; continue.
-- Line budget warning (>500 LOC) -> timestamped backup under `temp/<Sxxxx>/`; continue.
-- Ambiguous step (placeholder, missing name) -> attempt to resolve from codebase; resolved -> patch step, continue; still ambiguous after 1 attempt -> mark `[DEFERRED - ambiguous]`, add to manual list, skip to next step. Never stop pipeline for one ambiguous step when others unblocked.
-- Unresolvable after 2 attempts -> mark `[DEFERRED]`, add to manual list, continue with remaining steps.
+**Hard stop - attempt inline resolution:** `.claude/reference/spec-all.md` section 6 - read the first time a step fails, before deferring it. Baseline when in doubt: one inline attempt, then `[DEFERRED]` + manual list + next step; never stop the pipeline for one blocked step.
 
 **Spec self-correction:** spec wrong -> patch tactical/strategic directly regardless of `Status:` lock. Status locks do not apply inside `/spec-all`.
 
-**Out-of-scope dependency:**
+**Out-of-scope dependency:** `.claude/reference/spec-all.md` section 7 - read when a step needs work this spec does not cover; minor goes inline, significant gets its own `Sxxxx` and this pipeline continues.
 
-- Minor (no new classes, no schema change, <= ~30 min) -> implement inline.
-- Significant -> allocate new `Sxxxx` via `insert.ps1`, write `PLAN/Sxxxx_<dependency-slug>.md` (`Status: Approved`, `<!-- discovered by /spec-all - <date> -->`). If dependency is **Full**-complexity, create full tactical folder too. Continue current pipeline. Set parent's status to `BlockByOtherTask` only if dependency must finish first - otherwise just record under §10.
-
-**Override does NOT apply to:** read-only zones (`V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`).
+**Override does NOT apply to:** read-only zones. Per CLAUDE.md Rule 4 (read-only zones) - obey it as written; no `/spec-all` override reaches it.
 
 ### Stage F4 - Build Gate
 
-Consider only files **this pipeline run actually edited** (F3 tracks them - do NOT derive from `git diff`, which mixes in unrelated WIP across many tickets on this repo). Exclude `PLAN/`, `docs/`, `dev/CHANGELOG.md`, `*.md`.
-
-- **Skip when F3 already built post-tags.** If F3's final phase ended with `Project compiles` build that already included inserted Timber tags (the `BlockNeedUserTest` path) and no code changed since, F4 is redundant second build - skip.
-- Code files present (and no post-tags build in F3) -> `/build` -> `standard debug`. Persistent FAIL -> hard-stop.
-- `src/vr/` among edited files -> also `/build` -> `vr debug`.
-- Docs-only changes -> skip.
+Build only from files **this pipeline run actually edited**, never from `git diff`; docs-only -> skip. Edited-file accounting, the "F3 already built post-tags" skip and the `vr debug` case: `.claude/reference/spec-all.md` section 8 - read on entering F4. Persistent FAIL -> hard-stop.
 
 ### Stage F5 - Audit Loop (max 5 iterations)
 
@@ -215,51 +188,9 @@ MAX_FIX_ITERATIONS exhausted -> final report as Incomplete.
 
 ## Final Report
 
-```text
-spec-all: <Sxxxx> <short-name> - <Verified ✅ | Partial ⚠️ | Blocked 🛑 | Incomplete ⏱️>
-Spec:   PLAN/Sxxxx_<short-name>.md  [Simple]
-  - or -
-Spec:   PLAN/Sxxxx_<short-name>/INDEX.md  [Full]
-Audit:  inline in spec - `## Last Audit` section.
-
-Manual / unresolved:
-- <item>   (empty -> "All closed automatically.")
-```
-
-```powershell
-.\scripts\add_to_dev_log.ps1 "PLAN/Sxxxx_<short-name>.md" "spec-all" "Pipeline <status>: <Sxxxx>"
-```
-
-**Finalization shortcut.** When pipeline closes a ticket (`Verified` / final `BlockNeedUserTest` / `BlockExternal`) and code was touched, prefer `close-and-log.ps1` - one pwsh process instead of 6-7 launches:
-
-```powershell
-pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
-    -Id <Sxxxx> `
-    -Status <Verified|BlockNeedUserTest|...> `
-    -DevLogs '[{"file":"PLAN/Sxxxx_*.md","target":"spec-all","desc":"<spec-level msg>"},{"file":"app_v2/src/.../X.kt","target":"spec-all","desc":"<code msg>"}]' `
-    -FuncOp FIX -FuncDesc "<user-visible summary>" `
-    -FeatArea "<inventory area, e.g. Streams>" `
-    -FeatName "<short capability name>" `
-    -FeatFlavors "<exact builds that ship it, e.g. standard,legacy,noLegal>" `
-    -CatalogModule app_v2
-```
-
-`-DevLogs` takes ONE string holding a JSON array, never a PowerShell array literal `@('{..}','{..}')` - `pwsh -File` binds only its first element and the rest become positional args, which `close-and-log.ps1` now rejects at bind time (S1063).
-
-`-FuncOp` requires `-FeatArea`/`-FeatName`/`-FeatFlavors` (S1072). The record asserts facts the script cannot know, and it used to guess them (`General` / an 80-char cut of `-FuncDesc` / `standard`), yielding a record that is structurally valid, plausible and false - `validate.ps1` passes it and the error only surfaces in the release showcase built from this inventory. Read `-FeatFlavors` off the actual gate (the `BuildConfig` flag in `app_v2/build.gradle.kts`, or the source set the code lives in), never off a sibling record - sibling records disagree.
-
-Sub-skills (`/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-arc`) call this internally. Use directly from `/spec-all` only when orchestrator itself owns the closing step (rare - usually a sub-skill ran last).
-
-**Device-test gate.** Whenever this pipeline sets a ticket to `BlockNeedUserTest` (resume-mode MANUAL-REQUIRED stop, or `Device/hardware verification required` hard-stop row), do not just park the block - probe for attached device and auto-run on-device verification when present. Keeps `/spec-all` unattended: adds device test only when device online, silent no-op otherwise.
-
-```powershell
-pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -CheckMcp -Json
-```
-
-- **Exit 0 (device online):** tags already inserted, status `BlockNeedUserTest`; auto-chain `/spec-test-device <Sxxxx>` (full evidence) -> `/spec-check <Sxxxx>`. `/spec-check` converts evidence into `Verified` / `Partial` / `Broken` and removes tags on transition out of `BlockNeedUserTest`. Record resulting status in final report instead of `BlockNeedUserTest`.
-- **Exit 2/1/3/6 (no usable device):** silent no-op. Leave ticket in `BlockNeedUserTest`, keep tags, add one-line `Manual / unresolved` note: `device-test deferred (no device) - run /spec-sweep when a device is online`.
-
-Non-blocking: failed device-ready probe never stops pipeline. Batch drain for parked tickets is `/spec-sweep`.
+- Report format + its `add_to_dev_log.ps1` line: `.claude/reference/spec-all.md` section 9 - read when composing the final report.
+- `close-and-log.ps1` finalization shortcut and its `-DevLogs` / `-FuncOp` flag contract: `.claude/reference/spec-all.md` section 10 - read when this orchestrator itself closes a ticket (`Verified` / final `BlockNeedUserTest` / `BlockExternal`) with code touched; a sub-skill that ran last already did it.
+- Device-test gate: `.claude/reference/spec-all.md` section 11 - read the moment this pipeline sets a ticket to `BlockNeedUserTest`, before parking the block.
 
 ---
 
@@ -293,14 +224,14 @@ The **only** reasons to stop before final report. Everything else resolved inlin
 - **Defer-first.** Blocked steps don't stop pipeline. Skip, continue; collect all blocked items in manual list.
 - **Specs are mutable inside `/spec-all`** - patch and continue. Status locks (`Implemented`, `Verified`) do not apply here.
 - **Build mandatory on code changes** - skip only for docs-only diffs.
-- **Detekt-clean-first (S0826)** - author touched `.kt` to pass detekt on the first build: log/probe lines `<=120` chars, no bare numeric literals (`TimeUnit`/companion `const`/reuse a const), never `@Suppress` a method with a baselined finding (shifts baseline, surfaces `FunctionNaming`). On the always-dirty tree, route closure through `post-change.ps1 -ScopeToFile` (diff-scoped detekt + advisory project-wide ratchets). See CLAUDE.md Rule 19.
+- **Detekt-clean-first** - per CLAUDE.md Rule 19 (neuroslop avoidance, detekt-clean-first) - obey it as written. On the always-dirty tree, close through `post-change.ps1 -ScopeToFile` per CLAUDE.md section 12 "Validation & Post-Change".
 - **All sub-skill constraints in force** (line budgets, Timber, trilingual, naming).
 - **Debug verification tags follow `BlockNeedUserTest`** - insert `Timber.d("Sxxxx: …")` at changed flow entries as final code edits before last phase's build (one build validates code + tags), only when this pipeline sets status `BlockNeedUserTest`; delete every `Timber.d("Sxxxx:` line for the spec whenever pipeline moves it out of that status (resume -> `Implemented`, audit -> `Verified`/`Partial`/`Broken`). Reserve `Sxxxx:` prefix for these temporary probes only; never in persistent `Timber.i/w/e` or long-lived `Timber.d`. See CLAUDE.md "Debug Verification Tags".
 - **Feature inventory owned by sub-skills** - `/spec-all` does NOT write `docs/ALL_FEATURES.jsonl` directly. Record comes from `/spec-dev` on `Implemented` (ADD/CHANGE via `close-and-log.ps1 -FuncOp`), `/spec-check` on `Verified` flip (fallback when `/spec-dev` bypassed), `/spec-fix` on user-visible fixes (FIX). At start of final report, grep `docs/ALL_FEATURES.jsonl` for `<Sxxxx>` in `spec` field: if spec delivered user-visible capability and inventory has zero records for this id, surface `[ALL_FEATURES MISSED] add via scripts/all_features/add.ps1` under "Manual / unresolved" - never paper over by writing record blindly.
 - **MANUAL items are not failures** - `Verified` with deferred manual checks is success.
 - Never edit `dev/CHANGELOG.md` directly - always via `.\scripts\add_to_dev_log.ps1`.
-- **Route mechanical closure through facade.** Per-file post-change goes through `scripts/post-change.ps1 -ChangeType <type>`; ticket closure goes through `close-and-log.ps1`. Even when impl runs inline (Simple path) rather than via literal `/spec-dev` invocation, do not hand-roll separate `catalog_sync.ps1` + quality-gate + per-file `add_to_dev_log.ps1` calls - facade already chains them in one process.
-- Read-only zones never touched: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
+- **Route mechanical closure through facade.** Per CLAUDE.md section 12 "Validation & Post-Change" - obey it as written; ticket closure goes through `close-and-log.ps1`. The `/spec-all` addition: this holds even when impl runs inline (Simple path) rather than via a literal `/spec-dev` invocation.
+- Per CLAUDE.md Rule 4 (read-only zones) - obey it as written.
 - Never create audit / fix files in `PLAN/`. All audit findings live in spec's `## Last Audit` block.
 - **Progress output:** after each stage completes, print one-line status: `[Stage X done] -> next: Stage Y`. Live progress trace without interaction.
 
@@ -308,11 +239,4 @@ The **only** reasons to stop before final report. Everything else resolved inlin
 
 ## Spec Catalog hooks
 
-- **Argument resolution.** Accept `Sxxxx`, slug, or path (`PLAN/Sxxxx_<slug>.md`). For `Sxxxx`, resolve via `pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json` and skip Stage 0 short-name derivation.
-- **Stage transitions** (orchestrator does not duplicate sub-skill updates - these fire from underlying skills):
-  - F1: `/spec` runs `insert.ps1` (Status `Draft`); `/spec-all` then auto-flips `Draft -> Approved` via `update.ps1 -Status Approved`.
-  - F2: `/spec-tech` flips to `Tactical`.
-  - F3: `/spec-dev` flips to `In Progress` then `Implemented`.
-  - F5: `/spec-check` flips to `Verified` / `Partial` / `Broken`.
-- **Final report.** Always include `Ticket: Sxxxx` on first line, alongside spec slug.
-- **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly. Never produce path with `_spec_` segment. Do not bypass an underlying skill's catalog update.
+Argument-resolution shortcut for a resolved `Sxxxx`, which sub-skill owns each stage transition, the `Ticket: Sxxxx` report line and the forbidden catalog writes: `.claude/reference/spec-all.md` section 12 - read before this orchestrator touches catalog state itself instead of letting a sub-skill do it.

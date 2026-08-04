@@ -5,6 +5,8 @@ import com.google.gson.reflect.TypeToken
 import com.sza.fastmediasorter.data.local.db.CachedFileListDao
 import com.sza.fastmediasorter.data.local.db.CachedFileListEntity
 import com.sza.fastmediasorter.domain.model.MediaFile
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPInputStream
@@ -18,6 +20,12 @@ class CachedFileListRepository @Inject constructor(
 ) {
     private val gson = Gson()
     private val mediaFileListType = TypeToken.getParameterized(List::class.java, MediaFile::class.java).type
+
+    // S1307: every patch below is a read-modify-write over one compressed blob. Callers fire these
+    // from parallel IO coroutines (batch delete loops, player auto-clean), so two concurrent patches
+    // could both decompress the same snapshot and the slower write would silently resurrect the row
+    // the other one removed. One mutex per repository serializes all blob patches.
+    private val patchMutex = Mutex()
 
     // ── Compression helpers ───────────────────────────────────────────────────
 
@@ -98,7 +106,7 @@ class CachedFileListRepository @Inject constructor(
      * Patch the cached list after a rename: decompress → replace entry → recompress.
      * No-op if no snapshot is cached.
      */
-    suspend fun updateFile(resourceId: Long, oldPath: String, newFile: MediaFile) {
+    suspend fun updateFile(resourceId: Long, oldPath: String, newFile: MediaFile) = patchMutex.withLock {
         try {
             val entity = cachedFileListDao.getByResourceId(resourceId) ?: return
             val files: MutableList<MediaFile> =
@@ -123,23 +131,34 @@ class CachedFileListRepository @Inject constructor(
      * Patch the cached list after a delete/move: decompress → remove entry → recompress.
      * No-op if no snapshot is cached.
      */
-    suspend fun deleteFile(resourceId: Long, filePath: String) {
+    suspend fun deleteFile(resourceId: Long, filePath: String) = deleteFiles(resourceId, listOf(filePath))
+
+    /**
+     * Patch the cached list after a batch delete/move: decompress → remove entries → recompress.
+     * No-op if no snapshot is cached.
+     *
+     * S1307: callers used to loop [deleteFile] per path, paying a full decompress/recompress of the
+     * whole snapshot for every single file - and racing each other while doing it.
+     */
+    suspend fun deleteFiles(resourceId: Long, filePaths: Collection<String>) = patchMutex.withLock {
+        if (filePaths.isEmpty()) return@withLock
         try {
-            val entity = cachedFileListDao.getByResourceId(resourceId) ?: return
+            val entity = cachedFileListDao.getByResourceId(resourceId) ?: return@withLock
             val files: MutableList<MediaFile> =
                 gson.fromJson(decompress(entity.compressedData), mediaFileListType)
-            val removed = files.removeIf { it.path == filePath }
+            val victims = filePaths.toHashSet()
+            val removed = files.removeIf { it.path in victims }
             if (!removed) {
-                Timber.w("CachedFileList: deleteFile - $filePath not found in resource $resourceId")
-                return
+                Timber.w("CachedFileList: deleteFiles - no match for ${filePaths.size} path(s) in $resourceId")
+                return@withLock
             }
             val compressed = compress(gson.toJson(files))
             cachedFileListDao.insertOrReplace(
                 entity.copy(compressedData = compressed, fileCount = files.size)
             )
-            Timber.d("CachedFileList: removed $filePath from resource $resourceId")
+            Timber.d("CachedFileList: removed ${filePaths.size} path(s) from resource $resourceId")
         } catch (e: Exception) {
-            Timber.e(e, "CachedFileList: failed to delete file from resource $resourceId")
+            Timber.e(e, "CachedFileList: failed to delete files from resource $resourceId")
         }
     }
 }

@@ -102,9 +102,16 @@ class CloudToCloudTransferHelper(
 
                     val fileName = sourcePath.substringAfterLast('/')
                     val mimeType = CloudFileOperationPathUtils.getMimeType(fileName)
-                    val inputStream = FileInputStream(tempFile)
-                    val uploadResult = destClient.uploadFile(inputStream, fileName, mimeType, destInfo.folderId, null)
-                    inputStream.close()
+                    val uploadResult = FileInputStream(tempFile).use { inputStream ->
+                        destClient.uploadFile(
+                            inputStream = inputStream,
+                            fileName = fileName,
+                            mimeType = mimeType,
+                            parentFolderId = destInfo.folderId,
+                            fileSize = tempFile.length(),
+                            progressCallback = null
+                        )
+                    }
 
                     when (uploadResult) {
                         is CloudResult.Success -> {

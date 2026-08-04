@@ -58,7 +58,7 @@ git status --porcelain
 .\a.ps1 c "release: commit pending WIP before plateau merge"
 ```
 
-  `.\a.ps1 c` (`scripts/utils/commit-push.ps1`) runs `git add .` + `git commit` + `git push` to current branch. Quoted arg = commit subject; omit → falls back to bare `yyMMddHHmm` timestamp. `$NEW_VERSION` not known yet (Step 2), so keep message version-free.
+  `$NEW_VERSION` not known yet (Step 2), so keep message version-free. What `.\a.ps1 c` does with the argument: `.claude/reference/skill-release.md` section 13.
   - After return, re-run `git status --porcelain` to confirm tree now clean.
   - `.\a.ps1 c` exits non-zero (commit/push failed) or tree still dirty after → **ABORT** with error output. Clean, pushed tree required before merge.
 - Empty → tree already clean; proceed.
@@ -79,21 +79,7 @@ git tag --list "release/*" --sort=-version:refname | head -1
 ```
 Record `$PREV_TAG` (e.g. `release/v2.60.5130.151`). Extract version as `$PREV_VERSION` (e.g. `2.60.5130.151`).
 
-Compute `$NEW_VERSION` AND `$NEW_VERSION_CODE` from ONE timestamp (self-consistent), then **pin both into build** (Step 12) - eliminates version skew (tag = `WHATS_NEW` header = AAB = APK, so GitHub publisher never aborts on header mismatch, no post-build re-alignment). Run same formula `build-aab-release.ps1` uses:
-
-```powershell
-# 2b. Compute self-consistent versionName + versionCode + month label (pin these into the build)
-$now=Get-Date
-$fy=[int]($now.Year.ToString()[0].ToString()); $ly=[int]($now.Year.ToString()[-1].ToString())
-$fm=[int]($now.Month.ToString("00")[0].ToString()); $sm=[int]($now.Month.ToString("00")[1].ToString())
-$dd=$now.Day.ToString("00")
-$fh=[int]($now.Hour.ToString("00")[0].ToString()); $sh=[int]($now.Hour.ToString("00")[1].ToString())
-$mm=$now.Minute.ToString("00"); $fmin=[int]($mm[0].ToString())
-$NEW_VERSION="$fy.$ly$fm.$sm$dd$fh.$sh$mm"          # Y.YM.MDDH.Hmm  (e.g. 2026-06-22 17:55 -> 2.60.6221.755)
-$NEW_VERSION_CODE=[Convert]::ToInt32($now.ToString("yyMMddHH")+$fmin.ToString())  # YYMMDDHHm (e.g. 260622175)
-$MONTH_YEAR=$now.ToString("MMMM yyyy",[System.Globalization.CultureInfo]::InvariantCulture)
-"$NEW_VERSION / $NEW_VERSION_CODE / $MONTH_YEAR"
-```
+Compute the version: run the `2b` formula block in `.claude/reference/skill-release.md` section 1 verbatim - never improvise it.
 
 Record `$NEW_VERSION`, `$NEW_VERSION_CODE`, `$MONTH_YEAR`. New tag = `release/v$NEW_VERSION`. Sanity: `$NEW_VERSION_CODE` must be greater than previous release's versionCode (always true if build date advanced) - Google Play rejects non-increasing code.
 
@@ -101,7 +87,7 @@ Record `$NEW_VERSION`, `$NEW_VERSION_CODE`, `$MONTH_YEAR`. New tag = `release/v$
 
 ### Step 3 - Analyze changes since last release
 
-**Primary source = feature-inventory diff, not commit log.** Commit subjects usually non-conventional (bare numbers, timestamps, `release: commit pending WIP`); `PLAN/` gitignored, so 3a rarely yields `feat:`/`fix:` and 3c (`git diff .. -- PLAN/`) comes back empty. Drive release notes from curated inventory diff; use git log / source stat below as context only:
+**Primary source = feature-inventory diff, not commit log.** Drive release notes from curated inventory diff; use git log / source stat below as context only (why the commit log is not classifiable here: `.claude/reference/skill-release.md` section 12):
 
 ```powershell
 # 3.0 - authoritative list of user-visible capabilities added/changed since the last release
@@ -124,109 +110,25 @@ git diff $PREV_TAG..HEAD --name-only -- PLAN/
 ```
 For each changed spec file, note spec name + nature of change (new feature, fix, refactor).
 
-**Classification rules:**
-- `feat:` → "What's New"
-- `fix:` → "What's Fixed"
-- `refactor:` / `chore:` / `docs:` / `test:` → omit (internal)
-- Spec files: use spec title from `## ` heading in `.md` (more readable than raw commit message)
-
-**Tone for release notes** (follows `docs/COMMUNICATION_POLICY.md`):
-- What's New: concise feature name in bold + dash + one-line benefit. Max 12 words/item.
-- What's Fixed: plain statement of what was broken, now fixed. No "we fixed". Max 10 words/item.
-- No bullet nesting. No implementation details.
+Before wording any item, read `.claude/reference/skill-release.md` section 12 - its classification rules and tone limits bind every bullet written in Steps 4 and 5.
 
 ---
 
 ### Step 4 - Update `docs/WHATS_NEW.md`
 
-Read current file. Structure:
-```
-# What's New in FastMediaSorter v2
+Read current file. Before editing, read `.claude/reference/skill-release.md` section 2 for the file structure, the literal transform template, and the RU/UK header tokens.
 
-**Current release: $PREV_VERSION** ($PREV_MONTH_YEAR)
+Apply the section-2 transform: replace the top block (from `**Current release:**` down to first `---`) with the new release block, demoting the previous block to `## Previous Release:`. Preserve all content below insertion point verbatim. Do not reformat past entries.
 
-> Changes since version $PREV_PREV_VERSION
+**Localized mirrors (mandatory - feeds fastlane changelogs).** Apply SAME prepend to `docs/WHATS_NEW_RU.md` and `docs/WHATS_NEW_UK.md`, translating new block's items into RU/UK, matching each file's header tokens (section 2). Author style (`..`, `ё`). Edit with Write/Edit tools, NOT by passing Cyrillic through Bash->pwsh args (mojibake); verify with Read/Grep.
 
----
-
-## What's New
-[items]
-
-## What's Fixed
-[items]
-
----
-
-## Previous Release: ...
-```
-
-**Transform:**
-
-1. Replace top block (from `**Current release:**` down to first `---`) with:
-
-```markdown
-**Current release: $NEW_VERSION** ($MONTH_YEAR)
-
-> Changes since version $PREV_VERSION
-
----
-
-## What's New
-
-[generated What's New items from Step 3]
-
-## What's Fixed
-
-[generated What's Fixed items from Step 3]
-
----
-
-## Previous Release: $PREV_VERSION ($PREV_MONTH_YEAR)
-
-> Changes since version $PREV_PREV_VERSION
-
----
-
-## What's New
-
-[old What's New items - preserved verbatim]
-
-## What's Fixed
-
-[old What's Fixed items - preserved verbatim]
-
----
-
-[rest of file unchanged]
-```
-
-Preserve all content below insertion point verbatim. Do not reformat past entries.
-
-**Localized mirrors (mandatory - feeds fastlane changelogs).** Apply SAME prepend to `docs/WHATS_NEW_RU.md` and `docs/WHATS_NEW_UK.md`, translating new block's items into RU/UK. Match each file's header tokens: RU `**Текущий релиз: <version>**` + `> Изменения относительно версии <prev>` + `## Что нового` / `## Что исправлено` + `## Предыдущий релиз:`; UK `**Поточний реліз:**` + `> Зміни відносно версії` + `## Що нового` / `## Що виправлено` + `## Попередній реліз:`. Author style (`..`, `ё`). Edit with Write/Edit tools, NOT by passing Cyrillic through Bash->pwsh args (mojibake); verify with Read/Grep.
-
-`scripts/release/gen_fastlane_changelog.ps1` (invoked by `a.ps1 r` at build time) reads en-US from `WHATS_NEW.md`, ru-RU from `WHATS_NEW_RU.md`, uk-UA from `WHATS_NEW_UK.md`. If RU/UK mirrors not advanced here, generated RU/UK changelogs silently carry PREVIOUS release's notes (hit on v2.60.6050.126: en correct, RU/UK stale). After build, generated `fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt` are untracked in worktree - commit them so IzzyOnDroid / Play localized "What's new" reflect this version (Step 12a channel 5).
+After build, generated `fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt` are untracked in worktree - commit them so IzzyOnDroid / Play localized "What's new" reflect this version (Step 12a channel 5).
 
 ---
 
 ### Step 5 - Update `README.md`
 
-Read `README.md`. Find:
-```markdown
-## What's New in v2.XX.XXXX.XXX (Month Year)
-```
-Replace the entire block (heading + **New:** line + **Fixed:** line + `[Full release notes →]` link) with:
-```markdown
-## What's New in v2.$NEW_VERSION ($MONTH_YEAR)
-
-**New:**
-[comma-separated inline list of new feature names from Step 3]
-
-**Fixed:**
-[comma-separated inline list of fixed item names from Step 3]
-
-[Full release notes →](docs/WHATS_NEW.md)
-```
-Keep everything else in README.md unchanged.
+Read `README.md`. Find the `## What's New in v2.XX.XXXX.XXX (Month Year)` heading and replace the entire block (heading + **New:** line + **Fixed:** line + `[Full release notes →]` link) with the literal template in `.claude/reference/skill-release.md` section 3. Keep everything else in README.md unchanged.
 
 Also check `docs/README_RU.md` and `docs/README_UK.md` - if they have same `## What's New` pattern, update version number + month/year in heading only (don't translate content; leave items in current language). If body content in RU/UK mirrors is in Russian/Ukrainian, translate new items and replace.
 
@@ -264,9 +166,7 @@ Push fails → **ABORT** with error output. Do not proceed with merge.
 # Move to release worktree
 cd P:/ANDROID/FastMediaSorter_release
 
-# Discard the transient version stamp a PRIOR `a.ps1 r` left in build.gradle.kts.
-# It is not committed to main (the stamp is a build artifact), so it shows as a dirty
-# file and makes `git merge` abort with "local changes would be overwritten by merge".
+# Discard the transient version stamp a PRIOR `a.ps1 r` left in build.gradle.kts (why: .claude/reference/skill-release.md section 13).
 git checkout -- app_v2/build.gradle.kts 2>/dev/null; git checkout -- wear/build.gradle.kts 2>/dev/null
 
 # Ensure main is current
@@ -347,27 +247,20 @@ Both cases: after this step dev dir on `$NEXT_DEBUG`, release worktree stays on 
 ```bash
 # From development directory - a.ps1 auto-delegates to the release worktree
 cd P:/ANDROID/FastMediaSorter_mob_v2
-# PIN the Step-2 version: a.ps1 forwards extra args to build-aab-release.ps1, which accepts
-# -VersionName/-VersionCode (both required together). Pinning makes the built AAB+APK match the
-# tag + WHATS_NEW header exactly - zero skew, no post-build re-alignment.
+# PIN the Step-2 version (-VersionName/-VersionCode, both required together; rationale in .claude/reference/skill-release.md section 4)
 .\a.ps1 r -VersionName $NEW_VERSION -VersionCode $NEW_VERSION_CODE   # standard AAB (Play) + APK + Google Drive mirror + fastlane changelogs
 # Step 12a builds any extra requested flavors at the SAME version via -ReuseVersion (reads the stamped build.gradle.kts).
 ```
 
-`a.ps1 r` always builds standard AAB - Google Play artifact + core of plateau release, independent of `$FLAVORS`.
-
-`a.ps1 r` automatically before building:
-1. Reads `scripts/release-worktree-sync.txt`, copies gitignored-but-required files (signing keys, OAuth config, `local.properties`, `sza_resources.xml`, etc.) from dev dir to release worktree. Dev dir = single source of truth; files copied fresh each time, remain gitignored in both locations.
-2. Runs release build script from inside `P:/ANDROID/FastMediaSorter_release`.
-3. Copies build artifacts back to `DOWNLOADS/` in dev directory.
-
-Requested GitHub Release flavors (`$FLAVORS`) built in Step 12a by `build-release-spectrum.ps1 -ReuseVersion -Flavors $FLAVORS`, reusing version `a.ps1 r` just stamped - keeps Play AAB and every GitHub asset (`FastMediaSorter-<flavor>-$NEW_VERSION.apk`) on same version. Do not bump version between `a.ps1 r` and Step 12a.
+`a.ps1 r` always builds standard AAB regardless of `$FLAVORS`, and the version must not be bumped between here and Step 12a. Worktree sync, artifact copy-back and `-ReuseVersion`: read `.claude/reference/skill-release.md` section 4 if an artifact is missing or the stamped version looks wrong.
 
 ---
 
 ### Step 12a - Publish store channels
 
 Run GitHub Store publication in release worktree, Google Play publication from dev directory. Both belong to same release window as `standard_release`; do not publish GitHub Store assets as standalone version.
+
+Channel payloads, per-channel gates and asset naming rules: read `.claude/reference/skill-release.md` section 6 before the first publish command below.
 
 ```powershell
 # GitHub Release - requested flavors only (release worktree on main).
@@ -395,9 +288,7 @@ git checkout -- app_v2/build.gradle.kts wear/build.gradle.kts   # drop the build
 cd P:/ANDROID/FastMediaSorter_mob_v2
 ```
 
-**Play FGS gate is NOT a hard blocker.** `publish-play-release.ps1` uploads AAB fine but COMMIT returns HTTP 403 (`You must let us know whether your app uses any Foreground Service permissions`) whenever FGS declaration needs (re)confirming - owner-only Play Console action. When this fires edit is discarded, so bundle ends up in App Bundle Explorer as **Draft / 0 releases**. Record as `[PLAY FGS]` in final report (list declared `FOREGROUND_SERVICE_*` types from merged manifests; MEDIA_PROJECTION / MICROPHONE / camera / location need short demo-video link) and continue pipeline.
-
-To finish after owner saves declaration: **do NOT re-run `publish-play-release.ps1`** - `publish-play-release.py` always `bundles().upload`s AAB (no "reuse existing versionCode" path), and Play rejects re-uploading a versionCode already in library. Finish in Console instead: Policy -> App content -> Foreground service permissions (declare each type, demo-video link for MEDIA_PROJECTION/MICROPHONE, justification for SPECIAL_USE), then Production -> Create new release -> **Add from library** -> pick already-uploaded versionCode -> release notes auto-fill from committed fastlane changelog -> Review -> Start rollout. (Script-improvement candidate: teach publisher to attach existing library bundle instead of always uploading.)
+**Play FGS gate is NOT a hard blocker.** AAB uploads but COMMIT returns HTTP 403 on Foreground Service permissions → record `[PLAY FGS]` in the final report and continue; do NOT re-run `publish-play-release.ps1`. Console recovery path and the FGS types to list: read `.claude/reference/skill-release.md` section 5 when that 403 fires.
 
 GitHub publication succeeds → add this manual follow-up to final report:
 ```text
@@ -406,43 +297,22 @@ GitHub publication succeeds → add this manual follow-up to final report:
 
 Either publisher fails → abort with command, exit code, and first actionable error. Do not retry with different assets or version.
 
-#### Distribution channels - full matrix
-
-Automated steps above cover Google Play + GitHub Store. Complete plateau release reaches five channels:
-
-1. **Google Play** (`standard` AAB) - automated via `publish-play-release.ps1` (track `production`, status `completed` = full rollout, then Google review).
-   - One-time gate that blocks commit: **Foreground service permissions** declaration in Play Console -> App content. Re-declare whenever NEW `FOREGROUND_SERVICE_*` type ships (e.g. `FOREGROUND_SERVICE_MICROPHONE` arrived with Quick Recorder widget; `FOREGROUND_SERVICE_MEDIA_PROJECTION` arrived with screen capture). Microphone/camera/location/media-projection FGS require short demo video link. AAB uploads fine but commit returns HTTP 403 until declaration saved; uncommitted edit harmless - re-run publisher after saving. To list types this build declares: `grep -rhoE 'android\.permission\.FOREGROUND_SERVICE[A-Z_]*' app_v2/src/main/AndroidManifest.xml app_v2/src/standard/AndroidManifest.xml app_v2/src/screenCapture/AndroidManifest.xml | sort -u`.
-   - Do NOT pass `changesNotSentForReview` (Play API returns HTTP 400 for auto-review apps; already removed from script).
-
-2. **GitHub Release / Store** (`$FLAVORS`; default `standard` only, full spectrum is `standard`, `vr`, `lite`, `photos`, `legacy`, `wear`, `noLegal`) - built at one shared version by `build-release-spectrum.ps1 -Flavors $FLAVORS` (S0394), then automated via `publish-github-release.ps1 -Flavors $FLAVORS`: creates GitHub Release `v<version>` from `main` with requested assets (deterministic `FastMediaSorter-<flavor>-<version>.apk` names, single signing fingerprint pinned - all flavors + wear share one release key). Website download buttons (`index*.html`; `noLegal` only on `nolegal*.html`) and `docs/DOWNLOADS_*` consume this release automatically via GitHub API - a button whose flavor was not built this release keeps pointing at previous release's asset, so widen `$FLAVORS` when a non-standard edition needs refreshing. github-store.org indexes releases automatically; its `app?repo=` page is only a deep-link launcher into Android client (sits on "Redirecting.." with no client installed - not a failure). Needs `gh` CLI (script auto-resolves from standard install dir).
-
-3. **Google Drive** - automated inside `a.ps1 r` (`build-aab-release.ps1`): copies standard AAB+APK to synced Drive folder, writes password-protected ZIP (`FastMediaSorter_standard_release.zip`, password `1`). Other flavors (`lite`/`photos`/`legacy`) refresh their Drive ZIPs only when their own `a.ps1` build runs. No separate step - ensure Drive desktop-sync folder present (script warns + skips if absent).
-
-4. **4pda forum** (Russian) - MANUAL post. Aggregate `Что нового` / `Что исправлено` since LAST 4pda post, NOT since last release (4pda posted less often - union all `docs/WHATS_NEW.md` blocks between previous 4pda version and new one). Three spoilers: `Что нового..`, `Что исправлено..`, `noLegal`. Attach `FastMediaSorter_standard_release.apk` + `FastMediaSorter_nolegal_debug.apk` (build noLegal via `a.ps1 nd` for fresh asset). Author style (`..` not `...`, `ё`); noLegal items come from gitignored `docs/FEATURES_noLegal*` / `docs/ALL_FEATURES_noLegal.jsonl`, never public files.
-
-5. **IzzyOnDroid** (S0215, `standard` APK) - one-time RFP at https://codeberg.org/IzzyOnDroid/repodata/issues (owner-only; needs Codeberg account). After acceptance IzzyOnDroid auto-pulls standard APK from each GitHub release - no per-release action beyond channel 2. RFP must declare Anti-Features `NonFreeDep` + `NonFreeNet` and specify APK name pattern `FastMediaSorter-standard-*.apk` (`vr` asset shares `applicationId com.sza.fastmediasorter` per S0232, so unfiltered scan can grab wrong APK). Commit fastlane changelog `fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt` so listing shows current notes.
-
-**Version skew (all channels):** GitHub publisher matches `WHATS_NEW.md` `**Current release:**` header VERBATIM and aborts listing on mismatch with built artifact. Step 2 + Step 12 prevent this by computing `$NEW_VERSION`/`$NEW_VERSION_CODE` once and PINNING them into build (`a.ps1 r -VersionName -VersionCode`), so tag = `WHATS_NEW` = AAB = APK with no drift - no post-build re-alignment needed. (Legacy fallback, only if build run WITHOUT pinning: read real version from build log / `build.gradle.kts` and align `WHATS_NEW.md` + `README.md` + `release/v` tag to it before publishing.) Google Play skew-tolerant (keys on AAB versionCode + fastlane changelogs).
+Version skew is prevented by the Step 2 + Step 12 pinning; if a publisher aborts on a `WHATS_NEW.md` header mismatch, read `.claude/reference/skill-release.md` section 7 for the legacy re-alignment fallback.
 
 ---
 
 ### Step 12b - Feature inventory diff and showcase update
 
-Developer inventory `docs/ALL_FEATURES.jsonl` (EN-only, written per-spec by `/spec-dev` / `/spec-check`) = source of truth. Release reads what changed since previous release and promotes standout items into public showcase `docs/FEATURES*` (published to site).
+Developer inventory `docs/ALL_FEATURES.jsonl` = source of truth; the release promotes standout items into public showcase `docs/FEATURES*`.
 
 ```powershell
 # Records added/changed in the inventory since the previous release tag
 pwsh -NoProfile -File scripts/all_features/diff.ps1 -From $PREV_TAG
 ```
 
-From diff:
+From diff, apply the five showcase editing rules in `.claude/reference/skill-release.md` section 8 - read it before touching any `FEATURES*` file (standout-only selection, EN/RU/UK lockstep, flavor label from the record's `flavors` field, noLegal routing, `Last updated:` bump + parity check).
 
-1. Select important/standout capabilities a user would notice (skip internal/minor inventory entries - most inventory records never reach showcase).
-2. Add or update them in `docs/FEATURES.md` + `_RU` + `_UK` in lockstep (EN/RU/UK parity), in relevant numbered section. Keep author style (`..` not `...`, `ё`). ONLY place `FEATURES*` is edited.
-3. Set each bullet's flavor label (e.g. `[Standard / VR]`, `[VR Only]`, `[Standard Only]`) from inventory record's `flavors` field - never guess. A capability whose `flavors` is noLegal-only must NOT appear in public `FEATURES*`; route per point 4.
-4. noLegal-only standout items come from gitignored `docs/ALL_FEATURES_noLegal.jsonl` and go into gitignored `docs/FEATURES_noLegal*`, never public files.
-5. Bump `Last updated:` line at top of `docs/FEATURES.md` (+ `_RU`/`_UK`) to release date; confirm EN/RU/UK section + bullet counts match before publishing (`grep -cE '^- \*\*' docs/FEATURES*.md` and `grep -cE '^## ' docs/FEATURES*.md` must be equal across the three).
-6. Dev-log + commit + push showcase on CURRENT dev branch (`$NEXT_DEBUG` - this step runs after Step 8's merge, so dev dir already on next branch):
+Then dev-log + commit + push showcase on CURRENT dev branch (`$NEXT_DEBUG` - this step runs after Step 8's merge, so dev dir already on next branch):
 
    ```powershell
    .\scripts\add_to_dev_log.ps1 "docs/FEATURES.md" "FEATURES" "Showcase update for v$NEW_VERSION from ALL_FEATURES diff"
@@ -453,68 +323,29 @@ From diff:
    git push origin $NEXT_DEBUG
    ```
 
-   Note: because Step 12b runs post-merge, showcase lands on `$NEXT_DEBUG` and reaches `main`/site at next plateau merge (one release later). Acceptable - GitHub release notes come from `WHATS_NEW` (committed pre-merge in Step 6), not `FEATURES`.
-
-Sanity: confirm inventory carries specs that shipped this window. `PLAN/` gitignored, so `git diff -- PLAN/` empty - rely on Step-12b inventory diff above (already lists `[ADD]`/`[CHANGE]` records with their spec ids). If a user-visible spec you expected is absent from diff, surface `[INVENTORY MISSED] Sxxxx` line in final report under "Manual follow-ups". Do NOT silently backfill; operator decides whether spec really delivered user-visible change and runs `scripts/all_features/add.ps1`.
+Sanity: confirm the inventory diff carries the specs that shipped this window. If a user-visible spec you expected is absent from diff, surface `[INVENTORY MISSED] Sxxxx` line in final report under "Manual follow-ups". Do NOT silently backfill; operator decides whether spec really delivered user-visible change and runs `scripts/all_features/add.ps1`.
 
 ---
 
 ### Step 12c - Archive shipped specs
 
-Everything that reached `main` this plateau sits at `Implemented` or `Verified`; those specs no longer belong in the active `PLAN/` workspace. Archive them all in one sweep - each `archive.ps1` moves `PLAN/Sxxxx_<slug>.md` (+ tactical folder) to git-ignored `temp/done/` and flips the journal record to `Archived` (`priority -> 0`). `PLAN/` + `spec-catalog.jsonl` are git-ignored, so this touches no tracked file and needs no commit - pure workspace declutter with zero git-flow impact. Archived records stay addressable (`select.ps1 -Id Sxxxx` resolves them via the archive fallback) and files stay under `temp/done/`, so an `Implemented` (not yet device-verified) spec swept here is trivially restored if it later turns out broken.
+**Run the release-queue ship FIRST, before the archive sweep below.** Archiving flips records to `Archived`, which makes the automatic queue reconcile drop those lines - so a block archived before it is shipped is lost instead of recorded.
 
 ```powershell
-# Enumerate every Implemented + Verified spec, archive each (continue on per-id failure).
-& {
-    $ids = @()
-    foreach ($st in 'Implemented','Verified') {
-        $j = pwsh -NoProfile -File scripts/spec_catalog/select.ps1 -Status $st -Format json
-        if ($j -and $j.Trim() -ne '[]') { $ids += (ConvertFrom-Json $j | ForEach-Object { $_.id }) }
-    }
-    $ids = @($ids | Sort-Object -Unique)
-    if ($ids.Count -eq 0) { 'ARCHIVED: 0 (no Implemented/Verified specs)'; return }
-    $ok = 0; $failed = @()
-    foreach ($id in $ids) {
-        pwsh -NoProfile -File scripts/spec_catalog/archive.ps1 -Id $id
-        if ($LASTEXITCODE -eq 0) { $ok++ } else { $failed += $id }
-    }
-    "ARCHIVED: $ok of $($ids.Count)$(if ($failed) { ' | FAILED: ' + ($failed -join ', ') })"
-}
+pwsh -NoProfile -File scripts/spec_catalog/release-queue.ps1 -Ship -Release $RELEASE_PACKAGE -Version $NEW_VERSION
 ```
+
+`$RELEASE_PACKAGE` is the number from the `DEBUG-v0NN` branch this release was cut from. Where that number is read, what the command moves between the queue files, the `-DryRun` first look, and the enumerate-and-archive sweep block to run next over every `Implemented` + `Verified` spec: read `.claude/reference/skill-release.md` section 9 before running either.
 
 Record the `ARCHIVED: N` count as `$ARCHIVED_COUNT` for the final report.
 
 - Not a hard blocker: a per-id `archive.ps1` non-zero exit drops that id to `FAILED` and the sweep continues - list any failures in the final report, never abort the pipeline for it.
-- These are shipped features, not removals - archiving is pure bookkeeping, so no `docs/ALL_FEATURES.jsonl` change (do NOT pass any `-FuncOp DELETE`).
-- Debug-tag safety net: `Implemented`/`Verified` specs carry no `Timber.d("Sxxxx:` tags by invariant (tags exist only while `BlockNeedUserTest`), so no tag cleanup is expected. If a stray tag for an archived id somehow survives, delete it per CLAUDE.md "Debug Verification Tags".
 
 ---
 
 ### Step 13 - Final report
 
-After all steps complete, output single structured summary:
-
-```
-Release pipeline complete.
-  Merged:   $CURRENT_DEBUG → main
-  Version:  v$NEW_VERSION
-  Tag:      release/v$NEW_VERSION
-  Next branch: $NEXT_DEBUG (tracking origin/$NEXT_DEBUG)
-  Build:    $FLAVORS release artifacts built (default: standard only)
-  GitHub Store: GitHub Release assets published ($FLAVORS)
-  Google Play: standard release published (or BLOCKED on FGS declaration)
-  Google Drive: standard ZIP (password 1) synced by a.ps1 r
-  4pda:        manual post pending (channel 4)
-  IzzyOnDroid: auto-pull after acceptance (RFP one-time, channel 5)
-  Specs archived: $ARCHIVED_COUNT Implemented+Verified specs -> temp/done/
-
-Manual follow-ups (if any):
-  [INVENTORY MISSED] Sxxxx - confirm whether spec delivered user-visible change; add record via scripts/all_features/add.ps1
-  [S0214 STORE CHECK] Owner checks GitHub Store search/install after indexing.
-  [PLAY FGS] If a new FOREGROUND_SERVICE_* type shipped, declare it in Play Console App content (video for mic/cam/loc), then re-run publish-play-release.ps1.
-  [4PDA] Compose forum post (cumulative since last 4pda version); attach standard_release.apk + nolegal_debug.apk.
-  [IZZY RFP] First time only: submit RFP at codeberg.org/IzzyOnDroid/repodata/issues (NonFreeDep + NonFreeNet, APK pattern FastMediaSorter-standard-*).
-```
+After all steps complete, output single structured summary in the exact literal format given in `.claude/reference/skill-release.md` section 10 - read it before writing the report.
 
 No missed entries → omit "Manual follow-ups" block. No other prose.
 
@@ -522,12 +353,4 @@ No missed entries → omit "Manual follow-ups" block. No other prose.
 
 ## Abort States Reference
 
-| Condition | Action |
-|-----------|--------|
-| Not on DEBUG-v00N | Abort before any change |
-| Dirty working tree | Step 1b auto-commits + pushes via `.\a.ps1 c`; not a blocker |
-| `.\a.ps1 c` commit/push fails at Step 1b | Abort; tree must be clean + pushed before any change |
-| Release worktree missing | Abort before any change |
-| `git push` of DEBUG fails | Abort after Step 6 commit; no merge |
-| Merge conflict | Abort after Step 8; leave worktree in conflict state; give resolution instructions |
-| Any other git error | Abort; print full error; state which step failed |
+Every abort condition is stated inline at the step that raises it. The consolidated condition-to-action table: `.claude/reference/skill-release.md` section 11, read when an unexpected failure needs classifying as abort or proceed.

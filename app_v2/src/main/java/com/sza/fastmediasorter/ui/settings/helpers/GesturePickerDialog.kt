@@ -2,7 +2,9 @@ package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.app.Dialog
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
@@ -35,6 +37,7 @@ class GesturePickerDialog(
 
         val width = (context.resources.displayMetrics.widthPixels * DIALOG_WIDTH_FRACTION).toInt()
         window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
+        raisePortraitDialog()
 
         binding.tvTitle.text = title
         binding.btnClear.visibility = View.GONE
@@ -53,7 +56,18 @@ class GesturePickerDialog(
         }
     }
 
+    private fun raisePortraitDialog() {
+        if (context.resources.configuration.orientation != Configuration.ORIENTATION_PORTRAIT) return
+        window?.apply {
+            setGravity(Gravity.CENTER)
+            attributes = attributes.apply {
+                y = -(PORTRAIT_VERTICAL_OFFSET_DP * context.resources.displayMetrics.density).toInt()
+            }
+        }
+    }
+
     private companion object {
         const val DIALOG_WIDTH_FRACTION = 0.85
+        const val PORTRAIT_VERTICAL_OFFSET_DP = 96
     }
 }

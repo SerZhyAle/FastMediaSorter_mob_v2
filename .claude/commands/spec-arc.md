@@ -1,6 +1,5 @@
 ---
 description: "Use when archiving one or more specs - move files to temp/done/ and set status Archived. Triggers: 'archive spec Sxxxx', 'retire these tickets'."
-model: sonnet
 ---
 
 # Spec Arc - Archive a Specification
@@ -108,4 +107,4 @@ To restore: move files back to `PLAN/`, then `update.ps1 -Id Sxxxx -Status Draft
 
 - **Status transition:** performed by `archive.ps1` (sets `Archived`, `priority = 0`) per id.
 - **Debug tags:** deleted from `.kt` as part of archive (step 3). Normally a no-op.
-- **Forbidden:** never write to `PLAN/spec-catalog.jsonl` directly; never hard-delete a record.
+- **Forbidden:** per CLAUDE.md Rule 12 (spec catalog is script-owned) - obey it as written. Additionally, never hard-delete a record.

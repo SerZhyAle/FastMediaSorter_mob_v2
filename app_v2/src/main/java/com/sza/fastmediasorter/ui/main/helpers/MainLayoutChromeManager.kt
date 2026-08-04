@@ -84,6 +84,20 @@ class MainLayoutChromeManager(
             if (needed > available) {
                 binding.btnStartPlayer.visibility = View.GONE
             }
+            // S1258: the probe measure() above overwrites each child's measured size with its
+            // preferred one. TextView centers TEXT against getMeasuredHeight() while
+            // compound-drawable ICONS center against the real height, so a stale probe leaves
+            // labels riding (height-measuredHeight)/2 px high (4px at 48dp, 8px at 56dp
+            // buttons). Heal via post: this block can run inside a layout pass (doOnLayout),
+            // where an inline requestLayout gets superseded by later re-probes; a posted
+            // forceLayout+requestLayout runs after the frame settles and the follow-up pass
+            // re-measures with true specs (proven on-device: measuredHeight 40->56).
+            bar.post {
+                for (i in 0 until bar.childCount) {
+                    bar.getChildAt(i).forceLayout()
+                }
+                bar.requestLayout()
+            }
             restitchControlBarFocusChain()
         }
     }
@@ -139,6 +153,15 @@ class MainLayoutChromeManager(
             if (lp.height > 0) {
                 lp.height = btnH
                 child.layoutParams = lp
+            }
+        }
+        // S1263: the Programs button sits inside the layoutMainDropdownMenu wrapper, so the
+        // direct-children loop above never resizes it - in compact mode it stayed at the full
+        // height inside a shorter row and its centered content sank below the row centre.
+        binding.btnMainDropdownMenu.layoutParams?.let { lp ->
+            if (lp.height > 0) {
+                lp.height = btnH
+                binding.btnMainDropdownMenu.layoutParams = lp
             }
         }
         binding.layoutControlButtons.requestLayout()

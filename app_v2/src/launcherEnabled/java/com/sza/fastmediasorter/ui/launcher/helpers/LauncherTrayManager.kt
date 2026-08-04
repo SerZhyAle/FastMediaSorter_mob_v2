@@ -11,10 +11,13 @@ import android.os.BatteryManager
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.LauncherTaskbarBinding
+import com.sza.fastmediasorter.utils.collectOnLifecycle
+import kotlinx.coroutines.flow.Flow
 import timber.log.Timber
 
 /**
@@ -31,11 +34,18 @@ import timber.log.Timber
  * question a tray asks (strategic §7).
  */
 class LauncherTrayManager(
-    lifecycleOwner: LifecycleOwner,
+    private val lifecycleOwner: LifecycleOwner,
     private val binding: LauncherTaskbarBinding,
 ) : DefaultLifecycleObserver {
 
     private val context: Context = binding.root.context
+
+    /**
+     * S1087: the tray shows clock/network/battery only while the launcher owns the status area. With the
+     * Android status bar left in place they would be a duplicate row, so they are hidden - and the
+     * battery broadcast and network callback are dropped with them rather than feeding invisible views.
+     */
+    private var statusContentVisible = false
 
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
@@ -64,7 +74,16 @@ class LauncherTrayManager(
         lifecycleOwner.lifecycle.addObserver(this)
     }
 
+    /**
+     * Follow the persisted replacement policy for as long as [lifecycleOwner] is started. Call once from
+     * the host; the tray keeps itself in sync from there.
+     */
+    fun bind(replaceSystemStatusArea: Flow<Boolean>) {
+        lifecycleOwner.collectOnLifecycle(replaceSystemStatusArea) { applyStatusContent(it) }
+    }
+
     override fun onStart(owner: LifecycleOwner) {
+        if (!statusContentVisible) return
         registerBattery()
         registerNetwork()
     }
@@ -72,6 +91,22 @@ class LauncherTrayManager(
     override fun onStop(owner: LifecycleOwner) {
         unregisterBattery()
         unregisterNetwork()
+    }
+
+    private fun applyStatusContent(visible: Boolean) {
+        Timber.d("S1087: tray status content visible=%s", visible)
+        statusContentVisible = visible
+        binding.trayClock.isVisible = visible
+        binding.trayNetwork.isVisible = visible
+        binding.trayBattery.isVisible = visible
+        binding.trayBatteryPercent.isVisible = visible
+        if (visible) {
+            registerBattery()
+            registerNetwork()
+        } else {
+            unregisterBattery()
+            unregisterNetwork()
+        }
     }
 
     private fun registerBattery() {
@@ -123,9 +158,8 @@ class LauncherTrayManager(
 
     private fun currentTransport(): Transport {
         val manager = connectivityManager ?: return Transport.NONE
-        val active = manager.activeNetwork ?: return Transport.NONE
-        val capabilities = manager.getNetworkCapabilities(active) ?: return Transport.NONE
-        return transportOf(capabilities)
+        val capabilities = manager.activeNetwork?.let { manager.getNetworkCapabilities(it) }
+        return capabilities?.let { transportOf(it) } ?: Transport.NONE
     }
 
     private fun transportOf(capabilities: NetworkCapabilities): Transport = when {

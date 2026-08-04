@@ -189,6 +189,12 @@ Write-Host ('Summary: {0} OK, {1} WARN, {2} FAIL' -f
     $errCount
 ) -ForegroundColor Cyan
 
-if ($errCount -gt 0)               { exit 2 }
-if ($Strict -and $warnCount -gt 0) { exit 1 }
+if ($errCount -gt 0) {
+    Write-Error ("spec-catalog validate: {0} FAIL check(s) - fix the [FAIL] rows above before mutating the catalog." -f $errCount) -ErrorAction Continue
+    exit 2
+}
+if ($Strict -and $warnCount -gt 0) {
+    Write-Error ("spec-catalog validate: -Strict and {0} WARN check(s) - fix the [WARN] rows above or drop -Strict." -f $warnCount) -ErrorAction Continue
+    exit 1
+}
 exit 0

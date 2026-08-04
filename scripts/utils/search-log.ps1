@@ -9,10 +9,15 @@
 
 .PARAMETER LogFile
     Path to the log file. Default: temp\current.log.
-    Accepts ALL three log formats - auto-detected at load time:
-      FORMAT 1 LOGCAT  - standard adb/AS copy-paste: DATE TIME PID-TID TAG PKG LVL  MSG
-      FORMAT 2 JSON    - Android Studio "Export to File" (.logcat JSON)
-      FORMAT 3 TIMBER  - app device export: DATE TIME LVL/TAG: MSG
+    Accepts ALL five log formats - auto-detected at load time:
+      FORMAT 1 LOGCAT     - standard adb/AS copy-paste: YYYY-MM-DD TIME PID-TID TAG PKG LVL  MSG
+      FORMAT 2 JSON       - Android Studio "Export to File" (.logcat JSON)
+      FORMAT 3 TIMBER     - app device export: YYYY-MM-DD TIME LVL/TAG: MSG
+      FORMAT 4 THREADTIME - raw `adb logcat -v threadtime` capture (S1353): MM-DD TIME PID TID LVL TAG: MSG
+                            (no year, PID/TID as separate fields, no package field - the format
+                            scripts/builders/build-standard-device.ps1's background capture writes)
+      FORMAT 5 TIME       - raw `adb logcat -v time` capture (S1353): MM-DD TIME LVL/TAG(PID): MSG
+                            (no year, no package field, PID inside parens, no separate TID)
     Use .\scripts\utils\extract-device-logs.ps1 to pull a fresh log from a connected device.
     Use .\scripts\utils\convert-log.ps1 to pre-convert any format to standard logcat text.
 
@@ -177,16 +182,26 @@ function Show-Stats([object[]]$items, [string]$label) {
 }
 
 # ─── Format detection ─────────────────────────────────────────────────────────
-# Returns: "LOGCAT" | "JSON" | "TIMBER"
+# Returns: "LOGCAT" | "JSON" | "TIMBER" | "THREADTIME" | "TIME"
 function Get-LogFormat([string]$path) {
     $preview = Get-Content -Path $path -TotalCount 10
-    $firstNonEmpty = $preview | Where-Object { $_.Trim() -ne "" } | Select-Object -First 1
+    # `adb logcat` prints a "--------- beginning of <buffer>" separator before the first real line
+    # of each buffer it attaches to (main/system/crash/..) - skip these when sniffing the format,
+    # not just blank lines, or a THREADTIME/TIME/LOGCAT capture misdetects as LOGCAT via the
+    # fallback (S1353).
+    $firstNonEmpty = $preview | Where-Object { $_.Trim() -ne "" -and $_ -notmatch '^-+\s*beginning of' } | Select-Object -First 1
     if (-not $firstNonEmpty) { return "LOGCAT" }
     # JSON: Android Studio .logcat export
     if ($firstNonEmpty.Trim().StartsWith("{")) { return "JSON" }
     # TIMBER: YYYY-MM-DD HH:MM:SS.mmm LVL/TAG: MSG  (no PID-TID between timestamp and tag)
     if ($firstNonEmpty -match '^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d+\s+[VDIWEF]/') { return "TIMBER" }
     if ($firstNonEmpty -match '^={3,}\s*Log') { return "TIMBER" }
+    # THREADTIME: MM-DD HH:MM:SS.mmm PID TID LVL TAG: MSG  (raw `adb logcat -v threadtime` capture,
+    # no year, PID/TID as two separate fields - distinct from FORMAT 1 LOGCAT's YYYY-MM-DD + PID-TID)
+    if ($firstNonEmpty -match '^\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d+\s+\d+\s+\d+\s+[VDIWEF]\s') { return "THREADTIME" }
+    # TIME: MM-DD HH:MM:SS.mmm LVL/TAG(PID): MSG  (raw `adb logcat -v time` capture, no year, no TID,
+    # PID inside parens - distinct from THREADTIME's two bare numeric fields before the level char)
+    if ($firstNonEmpty -match '^\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d+\s+[VDIWEF]/') { return "TIME" }
     # LOGCAT: standard adb / AS copy-paste
     return "LOGCAT"
 }
@@ -243,6 +258,68 @@ function Parse-TimberLine([string]$line) {
         }
     }
     return $null
+}
+
+# Format 4 - raw `adb logcat -v threadtime` capture (S1353): MM-DD HH:MM:SS.mmm PID TID LVL TAG: MSG
+# No year, PID and TID are separate whitespace-padded fields (not "PID-TID"), no package field. Tag
+# is matched lazily up to the first ": " (colon+space) - some system tags embed a bare colon with no
+# following space (e.g. "binder:717_C: type=1400 ..."), and only ": " reliably marks the tag/message
+# boundary in real captures.
+$ThreadtimeLineRegex = '^(?<ts>\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d+)\s+(?<pid>\d+)\s+(?<tid>\d+)\s+(?<lvl>[VDIWEF])\s+(?<tag>.+?):\s(?<msg>.*)$'
+
+function Parse-ThreadtimeLine([string]$line) {
+    if ($line -match $ThreadtimeLineRegex) {
+        return [PSCustomObject]@{
+            Raw  = $line
+            TS   = $Matches['ts']
+            Time = $Matches['ts'].Substring(6, 8)   # HH:MM:SS ("MM-DD HH:MM:SS.mmm" has no year prefix)
+            PID  = "$($Matches['pid'])-$($Matches['tid'])"
+            Tag  = $Matches['tag'].Trim()
+            # threadtime carries no package field at all - unlike FORMAT 1/3, -AppOnly cannot filter
+            # this format by package; leave Pkg blank rather than guessing so -AppOnly fails closed
+            # (zero results) instead of silently matching every line, app or system.
+            Pkg  = ""
+            Lvl  = $Matches['lvl']
+            Msg  = $Matches['msg']
+        }
+    }
+    return $null
+}
+
+# Format 5 - raw `adb logcat -v time` capture (S1353): MM-DD HH:MM:SS.mmm LVL/TAG(PID): MSG
+# No year, no package field, no separate TID - PID sits inside parens after the tag.
+$TimeLineRegex = '^(?<ts>\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d+)\s+(?<lvl>[VDIWEF])/(?<tag>.+?)\(\s*(?<pid>\d+)\):\s?(?<msg>.*)$'
+
+function Parse-TimeLine([string]$line) {
+    if ($line -match $TimeLineRegex) {
+        return [PSCustomObject]@{
+            Raw  = $line
+            TS   = $Matches['ts']
+            Time = $Matches['ts'].Substring(6, 8)   # HH:MM:SS ("MM-DD HH:MM:SS.mmm" has no year prefix)
+            PID  = $Matches['pid']
+            Tag  = $Matches['tag'].Trim()
+            # -v time carries no package field either - see Parse-ThreadtimeLine's Pkg note (S1353).
+            Pkg  = ""
+            Lvl  = $Matches['lvl']
+            Msg  = $Matches['msg']
+        }
+    }
+    return $null
+}
+
+# Dispatches to the per-line parser matching the format detected at load time ($logFormat, set below
+# by Get-LogFormat). Used by modes (-Exceptions, -Context) that need a per-line Lvl/Tag lookup while
+# iterating $rawLines directly instead of the pre-parsed $parsed collection - without this, those
+# modes silently fell back to the FORMAT 1 regex for every format, which is cosmetic-only for color
+# but was a real block-boundary bug in -Exceptions (S1353): the level check that stops a crash block
+# at the next non-E/W line always saw a null Lvl for THREADTIME/TIMBER input and never fired.
+function Parse-AnyLine([string]$line) {
+    switch ($logFormat) {
+        "TIMBER"     { return Parse-TimberLine $line }
+        "THREADTIME" { return Parse-ThreadtimeLine $line }
+        "TIME"       { return Parse-TimeLine $line }
+        default      { return Parse-Line $line }
+    }
 }
 
 # ─── Format-aware load and parse ─────────────────────────────────────────────
@@ -307,6 +384,44 @@ if ($logFormat -eq "JSON") {
             $parsedList.Add($p)
         } else {
             # Header lines (=== Log started ===, banner text, stack traces)
+            if ($parsedList.Count -gt 0) {
+                $parsedList[$parsedList.Count - 1].Continuation.Add($rawLines[$idx])
+            }
+        }
+    }
+
+} elseif ($logFormat -eq "THREADTIME") {
+    # ── Format 4: raw `adb logcat -v threadtime` capture (S1353) ────────────
+    if (-not $Json) { Write-Host ("Loading threadtime logcat: {0}" -f (Split-Path $LogFile -Leaf)) -ForegroundColor DarkGray }
+    $rawLines = @(Get-Content -Path $LogFile -Encoding UTF8)   # @() guards single-line/empty logs (Get-Content returns a scalar otherwise)
+
+    for ($idx = 0; $idx -lt $rawLines.Count; $idx++) {
+        $p = Parse-ThreadtimeLine $rawLines[$idx]
+        if ($null -ne $p) {
+            Add-Member -InputObject $p -NotePropertyName LineIdx      -NotePropertyValue $idx
+            Add-Member -InputObject $p -NotePropertyName Continuation -NotePropertyValue ([System.Collections.Generic.List[string]]::new())
+            $parsedList.Add($p)
+        } else {
+            # "--------- beginning of <buffer>" separators and any other unparsed line
+            if ($parsedList.Count -gt 0) {
+                $parsedList[$parsedList.Count - 1].Continuation.Add($rawLines[$idx])
+            }
+        }
+    }
+
+} elseif ($logFormat -eq "TIME") {
+    # ── Format 5: raw `adb logcat -v time` capture (S1353) ──────────────────
+    if (-not $Json) { Write-Host ("Loading time-format logcat: {0}" -f (Split-Path $LogFile -Leaf)) -ForegroundColor DarkGray }
+    $rawLines = @(Get-Content -Path $LogFile -Encoding UTF8)   # @() guards single-line/empty logs (Get-Content returns a scalar otherwise)
+
+    for ($idx = 0; $idx -lt $rawLines.Count; $idx++) {
+        $p = Parse-TimeLine $rawLines[$idx]
+        if ($null -ne $p) {
+            Add-Member -InputObject $p -NotePropertyName LineIdx      -NotePropertyValue $idx
+            Add-Member -InputObject $p -NotePropertyName Continuation -NotePropertyValue ([System.Collections.Generic.List[string]]::new())
+            $parsedList.Add($p)
+        } else {
+            # "--------- beginning of <buffer>" separators and any other unparsed line
             if ($parsedList.Count -gt 0) {
                 $parsedList[$parsedList.Count - 1].Continuation.Add($rawLines[$idx])
             }
@@ -470,7 +585,7 @@ if ($Exceptions) {
         for ($j = $ci; $j -le $end; $j++) {
             if ($printedIdx.Contains($j)) { break }
             $null = $printedIdx.Add($j)
-            $p = Parse-Line $rawLines[$j]
+            $p = Parse-AnyLine $rawLines[$j]
             # Stop block at next non-crash/stack-trace parsed line that is not E/W (line is still consumed)
             if ($j -gt $ci -and $null -ne $p -and $p.Lvl -notin @("E", "W") -and
                 $rawLines[$j] -notmatch '^\s+at |Caused by:|Exception:') { break }
@@ -515,7 +630,7 @@ if ($Exceptions) {
         Write-Out "" "DarkGray"
         Write-Out ("══ BLOCK #{0} (line {1}) ══" -f $b.Block, $b.Line) "Magenta"
         foreach ($j in $b.Indices) {
-            $p = Parse-Line $rawLines[$j]
+            $p = Parse-AnyLine $rawLines[$j]
             $col = if ($p) { Get-LevelColor $p.Lvl } else { "DarkGray" }
             Write-Out ("[{0,5}] {1}" -f ($j + 1), $rawLines[$j]) $col
         }
@@ -558,7 +673,30 @@ if ($To -ne "") {
 
 # App-only filter
 if ($AppOnly) {
-    $results = $results | Where-Object { $_.Pkg -match "fastmediasorter" }
+    # S1387: the branch is chosen by what the capture format can express, never by how many rows
+    # survived - deciding on the result count would turn an honest zero on a package-bearing format
+    # into a dump of the whole log.
+    $hasPkgField = @($parsed | Where-Object { $_.Pkg -ne "" }).Count -gt 0
+    if ($hasPkgField) {
+        $results = $results | Where-Object { $_.Pkg -match "fastmediasorter" }
+    }
+    else {
+        # threadtime / time captures carry no package field, so the test above can never match and
+        # used to return zero without a word - indistinguishable from "the flow never ran", which is
+        # the worst possible answer on a verification path. Recover the app's PIDs from the capture
+        # itself; a restart during the run simply contributes another PID.
+        $appPids = @($parsed | ForEach-Object {
+            if ($_.Msg -match 'Start proc (\d+):com\.sza\.fastmediasorter') { $Matches[1] }
+        } | Sort-Object -Unique)
+        if ($appPids.Count -gt 0) {
+            $pidPattern = '^(' + (($appPids | ForEach-Object { [regex]::Escape($_) }) -join '|') + ')-'
+            $results = $results | Where-Object { $_.PID -match $pidPattern }
+            Write-Out "-AppOnly: capture has no package field; filtered by app PID(s) $($appPids -join ', ') recovered from the log." "DarkGray"
+        }
+        else {
+            Write-Out "-AppOnly IGNORED: this capture has no package field and no app process start to recover a PID from - results below are UNFILTERED." "Yellow"
+        }
+    }
 }
 
 # PID / Thread filter
@@ -645,7 +783,7 @@ if ($Context -gt 0 -and ($Pattern -ne "" -or $Tag -ne "")) {
         for ($j = $start; $j -le $end; $j++) {
             if ($printedIdx.Contains($j)) { continue }
             $null = $printedIdx.Add($j)
-            $p = Parse-Line $rawLines[$j]
+            $p = Parse-AnyLine $rawLines[$j]
             $lineNum = "[{0,5}]" -f ($j + 1)
 
             if ($j -eq $matchIdx) {

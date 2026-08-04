@@ -1,3 +1,11 @@
+<#
+.SYNOPSIS
+  Select spec catalog records by id, status, free text, or minimum priority.
+.NOTES
+  -Query is the canonical free-text parameter shared by the catalog and registry
+  query CLIs; -Name / -Text / -Search are accepted as aliases so older callers work.
+  Exit codes: 0 ok (including zero matches - an empty result is a normal answer).
+#>
 [CmdletBinding()]
 param(
     [string] $Id,
@@ -6,12 +14,19 @@ param(
         'BlockByOtherTask','BlockNeedUserTest','BlockQuestions','BlockExternal',
         'Archived')]
     [string] $Status,
-    [string] $Name,
+    [Alias('Name','Text','Search')]
+    [string] $Query,
     [int]    $MinPriority = -1,
     [switch] $IncludeArchived,
     [ValidateSet('table','json','tsv')]
-    [string] $Format = 'table'
+    [string] $Format = 'table',
+    [switch] $Help
 )
+
+if ($Help) {
+    & (Join-Path $PSScriptRoot '..\utils\help.ps1') -Name 'scripts/spec_catalog/select.ps1'
+    exit $LASTEXITCODE
+}
 
 . (Join-Path $PSScriptRoot '_lib.ps1')
 
@@ -25,7 +40,7 @@ if ($Id) {
     $records = Read-Catalog -IncludeArchived:$IncludeArchived
 }
 if ($Status) { $records = $records | Where-Object { $_.status -eq $Status } }
-if ($Name)   { $records = $records | Where-Object { $_.name -like $Name } }
+if ($Query)  { $records = $records | Where-Object { $_.name -like $Query } }
 if ($MinPriority -ge 0) { $records = $records | Where-Object { [int]$_.priority -ge $MinPriority } }
 
 switch ($Format) {

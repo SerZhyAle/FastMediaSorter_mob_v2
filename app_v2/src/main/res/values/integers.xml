@@ -2,8 +2,11 @@
 <resources>
     <!-- Grid column counts for default (phones in portrait) -->
     <integer name="grid_column_count">3</integer>
-    <!-- Welcome "Powerful Extras" feature-block grid column count (overridden per screen-width / orientation). -->
-    <integer name="welcome_feature_grid_columns">2</integer>
+    <!-- Welcome feature list: one column, so the entries read as a list rather than a button grid.
+         The only override is values-w600dp (2). Available width, not smallestWidth, is what decides:
+         an sw* bucket would pin a phone to the same count in both orientations, and sw outranks
+         orientation, so a values-land override would never win on a phone. -->
+    <integer name="welcome_feature_grid_columns">1</integer>
     <integer name="grid_column_count_landscape">3</integer>
     <integer name="resource_grid_column_count">2</integer>
     <integer name="destinations_column_count">1</integer>
@@ -25,7 +28,7 @@
     <integer name="grid_rows_medium">3</integer>
 
     <!-- S0473: statistics summary-card grid span. Cards take 1 cell each; in portrait two fit
-         per row, landscape (values-land) widens to three so all summary cards sit on one row. -->
+         per row, landscape (values-land) widens to four so all summary cards sit on one row. -->
     <integer name="statistics_card_span">2</integer>
 
     <!-- SeekBar/ProgressBar ranges -->
@@ -35,7 +38,6 @@
     <integer name="seekbar_default_half">50</integer>
 
     <!-- Default values for missing resources (lint fix) -->
-    <integer name="grid_column_count_list">1</integer>
     <integer name="grid_columns_main">1</integer>
     <integer name="grid_columns_gallery">2</integer>
     <integer name="grid_columns_images">1</integer>

@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-photo-frame.html
 ---
 # 🖼️ Digital Photo Frame on Tablet
 
-> **Level:** Beginner &bull; **Time:** ~15 minutes &bull; **Flavor:** Standard (for NAS/Cloud) or any (for local photos)
+> **Level:** Beginner &bull; **Time:** ~15 minutes &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (for NAS/cloud photos) or any flavor (for local photos)
 
 [Русский](scenario-photo-frame-ru.md) | [Українська](scenario-photo-frame-uk.md)
 
@@ -57,7 +57,7 @@ Set these options:
 
 | Setting | Recommended value | Why |
 |---------|------------------|-----|
-| **Slideshow Interval** | 5–10 seconds | 5 s = lively family album feel; 10 s = calm, good for art photos or big groups where you want time to recognize everyone |
+| **Slideshow Interval** | 5-10 seconds | 5 s = lively family album feel; 10 s = calm, good for art photos or big groups where you want time to recognize everyone |
 | **Include Subfolders** | ON | Shows photos from all subfolders - great if you organize by year/album |
 | **Sort mode** | Date Taken (newest first) or Random | Random = more variety daily; Date = newest photos appear first |
 | **Supported Types** | Images only | Remove Video and Audio - otherwise video files will play too, interrupting the slideshow flow |
@@ -70,7 +70,7 @@ Tap **Save**.
 
 ## Step 3 - (Optional) Add Background Music
 
-Want soft music playing while viewing photos? Here's how:
+Want soft music playing while viewing photos? Here's how (needs a flavor with audio - the Photos flavor has none):
 
 1. First, add a music source: tap **Add (⊕)** → Local Folder → navigate to your music folder
 2. Go to **Settings → Media tab → scroll to Audio section**

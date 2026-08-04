@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.print
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.CancellationSignal
@@ -11,6 +12,7 @@ import android.print.PrintDocumentInfo
 import android.print.PrintManager
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.print.PrintHelper
 import com.sza.fastmediasorter.ui.player.helpers.PrintShareFallbackManager
 import kotlinx.coroutines.CoroutineScope
@@ -18,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
@@ -129,8 +132,8 @@ class PrintDispatchActivity : AppCompatActivity() {
         }
     }
 
-    // Guard-clause early returns (fallback paths); WebView(this) can throw on broken WebView installs.
-    @Suppress("ReturnCount", "TooGenericExceptionCaught")
+    // Guard-clause early return on the missing-file path - ReturnCount is intentional.
+    @Suppress("ReturnCount")
     private fun dispatchText() {
         val current = request ?: return finish()
         val file = File(current.filePath)
@@ -138,22 +141,34 @@ class PrintDispatchActivity : AppCompatActivity() {
             showUnavailableAndFinish(current)
             return
         }
-        val rawText = runCatching { file.readText() }
-            .onFailure { error ->
-                Timber.e(
-                    error,
-                    "PrintDispatchActivity: text read failed (${error.javaClass.simpleName}: ${error.message})"
-                )
+        // S1195: the read and the escaping both scale with file size and used to run on the main
+        // thread straight out of onPostResume(). lifecycleScope binds the work to the Activity, so
+        // a teardown mid-read cancels it instead of resuming into a dead WebView.
+        lifecycleScope.launch {
+            val escaped = withContext(Dispatchers.IO) { readAndEscapeForPrint(file) }
+            if (escaped == null) {
+                fallbackToShareOrFail(file, current, "text/plain")
+                return@launch
             }
-            .getOrNull()
-        if (rawText == null) {
-            fallbackToShareOrFail(file, current, "text/plain")
-            return
+            renderTextForPrint(file, current, escaped)
         }
-        val escaped = rawText
-            .replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
+    }
+
+    private fun readAndEscapeForPrint(file: File): String? = runCatching { file.readText() }
+        .onFailure { error ->
+            Timber.e(
+                error,
+                "PrintDispatchActivity: text read failed (${error.javaClass.simpleName}: ${error.message})"
+            )
+        }
+        .getOrNull()
+        ?.replace("&", "&amp;")
+        ?.replace("<", "&lt;")
+        ?.replace(">", "&gt;")
+
+    // Guard-clause early return (fallback path); WebView(this) can throw on broken WebView installs.
+    @Suppress("ReturnCount", "TooGenericExceptionCaught")
+    private fun renderTextForPrint(file: File, current: PrintRequest, escaped: String) {
         val webView = try {
             WebView(this)
         } catch (error: Exception) {
@@ -202,8 +217,9 @@ class PrintDispatchActivity : AppCompatActivity() {
 
     // S0610/S0919: image print is routed here so One UI reaches PrintManager.print() from a clean
     // Activity context (BaseActivity's createConfigurationContext wrapper trips "Can print only from
-    // an activity"). BitmapFactory.decodeFile can throw OOM/format errors on hostile files.
-    @Suppress("ReturnCount", "TooGenericExceptionCaught")
+    // an activity").
+    // Guard-clause early return on the missing-file path - ReturnCount is intentional.
+    @Suppress("ReturnCount")
     private fun dispatchImage() {
         val current = request ?: return finish()
         val file = File(current.filePath)
@@ -211,16 +227,29 @@ class PrintDispatchActivity : AppCompatActivity() {
             showUnavailableAndFinish(current)
             return
         }
-        val bitmap = try {
-            BitmapFactory.decodeFile(file.absolutePath)
-        } catch (error: Exception) {
-            Timber.e(error, "PrintDispatchActivity: image decode failed (${error.javaClass.simpleName})")
-            null
+        // S1195: decodeFile reads and decodes the whole image; from onPostResume() that was a
+        // main-thread stall proportional to file size. Same defect as the text path - the old
+        // MainThreadIo rule missed it only because decodeFile is not one of the names it watches.
+        lifecycleScope.launch {
+            val bitmap = withContext(Dispatchers.IO) { decodeBitmapForPrint(file) }
+            if (bitmap == null) {
+                fallbackToShareOrFail(file, current, "image/*")
+                return@launch
+            }
+            printBitmapOrFallback(file, current, bitmap)
         }
-        if (bitmap == null) {
-            fallbackToShareOrFail(file, current, "image/*")
-            return
-        }
+    }
+
+    // BitmapFactory.decodeFile can throw OOM/format errors on hostile files.
+    @Suppress("TooGenericExceptionCaught")
+    private fun decodeBitmapForPrint(file: File): Bitmap? = try {
+        BitmapFactory.decodeFile(file.absolutePath)
+    } catch (error: Exception) {
+        Timber.e(error, "PrintDispatchActivity: image decode failed (${error.javaClass.simpleName})")
+        null
+    }
+
+    private fun printBitmapOrFallback(file: File, current: PrintRequest, bitmap: Bitmap) {
         runCatching {
             PrintHelper(this).apply { scaleMode = PrintHelper.SCALE_MODE_FIT }
                 .printBitmap(current.jobLabel, bitmap)

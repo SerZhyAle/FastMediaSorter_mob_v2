@@ -427,13 +427,13 @@ class PlayerGestureSetupManager(
         // For IMAGES: fling is DISABLED to avoid conflict with onSingleTapConfirmed
         // (GestureDetector cannot reliably distinguish between quick tap and slow swipe)
         photoView.setOnSingleFlingListener(
-            OnSingleFlingListener { e1, e2, velocityX, velocityY ->
+            OnSingleFlingListener { e1, e2, velocityX, _ ->
                 if (isOverlayBlocking()) return@OnSingleFlingListener false
-                
-                // Only handle fling for PDF (vertical swipes for page navigation)
+
+                // Only handle fling for PDF (horizontal swipe = zoom step; paging is S1273's detector)
                 // For images: fling disabled to prevent conflict with tap zones
                 if (viewModel.state.value.currentFile?.type == MediaType.PDF) {
-                    activity.pdfViewerManager.handlePdfFling(e1, e2, velocityX, velocityY)
+                    activity.pdfViewerManager.handlePdfFling(e1, e2, velocityX)
                 } else {
                     // IMAGE: fling disabled, return false to let PhotoView handle pan gestures
                     false
@@ -441,18 +441,29 @@ class PlayerGestureSetupManager(
             }
         )
 
-        // Record the PDF touch-down point so a long-press can pre-select the word under it.
-        // Forward every event to the PhotoView attacher so zoom/pan/fling stay intact.
-        val attacher = photoView.attacher
-        photoView.setOnTouchListener { v, ev ->
-            if (ev.actionMasked == MotionEvent.ACTION_DOWN &&
-                viewModel.state.value.currentFile?.type == MediaType.PDF
-            ) {
-                lastPdfDownX = ev.x
-                lastPdfDownY = ev.y
+        // S1273: PhotoView drops a fling callback above scale 1.0, with a second pointer, or below
+        // the platform fling velocity - which is every page-turn this reader needs. Detect it on the
+        // raw stream instead, one detector per surface, because gesture state is per surface. The
+        // installer keeps recording the PDF touch-down point so a long-press still pre-selects a word.
+        PdfPageSwipeDetector.install(
+            photoView,
+            object : PdfPageSwipeDetector.Host {
+                override fun isPageSwipeEnabled(): Boolean =
+                    activity._pdfViewerManager?.isPageSwipeEnabled() ?: false
+
+                override fun currentScale(): Float = photoView.scale
+
+                override fun turnPage(next: Boolean) {
+                    activity._pdfViewerManager?.turnPage(next)
+                }
+            },
+            onDown = { ev ->
+                if (viewModel.state.value.currentFile?.type == MediaType.PDF) {
+                    lastPdfDownX = ev.x
+                    lastPdfDownY = ev.y
+                }
             }
-            attacher.onTouch(v, ev)
-        }
+        )
 
         // Handle long press - route to PDF text selection or image zoom
         photoView.setOnLongClickListener {

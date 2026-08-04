@@ -37,7 +37,72 @@ class CameraLensEnumerationManager {
                 }
             }
         }
-        return entries.sortedWith(lensOrder)
+        return withEquivalents(entries.sortedWith(lensOrder))
+    }
+
+    /**
+     * S1261 (defect D1): the entry a fresh session should bind - the MAIN back lens, the one whose
+     * equivalent multiplier is closest to 1 (tie-breaks: has flash, then logical over physical).
+     * The list is sorted widest-first, so "first back" used to open the screen on the ultra-wide
+     * entry (own floor 1.0) and the sub-1x pill vanished. Single-back devices are unaffected.
+     */
+    fun initialLensIndex(entries: List<CameraLensEntry>): Int {
+        val backIndices = entries.indices
+            .filter { entries[it].lensFacing == CameraSelector.LENS_FACING_BACK }
+        return backIndices.minWithOrNull(
+            compareBy(
+                { abs(entries[it].equivalentMultiplier - CameraRuntimeCapabilities.DEFAULT_ZOOM) },
+                { !hasFlash(entries[it]) },
+                { entries[it].isPhysicalSubLens },
+            ),
+        ) ?: 0
+    }
+
+    private fun hasFlash(entry: CameraLensEntry): Boolean =
+        runCatching { entry.cameraInfo.hasFlashUnit() }.getOrDefault(false)
+
+    /**
+     * S1261: fills [CameraLensEntry.equivalentMultiplier] once the whole set is known - the
+     * reference (main back) lens only exists relative to its siblings. No back lens leaves every
+     * multiplier at its neutral default.
+     */
+    private fun withEquivalents(entries: List<CameraLensEntry>): List<CameraLensEntry> {
+        val reference = entries
+            .filter { it.lensFacing == CameraSelector.LENS_FACING_BACK && !it.isPhysicalSubLens }
+            .let { logicals ->
+                logicals.firstOrNull(::hasFlash) ?: logicals.firstOrNull()
+            } ?: return entries
+        val ref = LensEquivalentCalculator.Reference(
+            focalMm = reference.focalLengthMm,
+            sensorWidthMm = reference.sensorWidthMm,
+        )
+        return entries.map { entry ->
+            entry.copy(
+                equivalentMultiplier = LensEquivalentCalculator.multiplier(
+                    LensEquivalentCalculator.Lens(
+                        isBack = entry.lensFacing == CameraSelector.LENS_FACING_BACK,
+                        focalMm = entry.focalLengthMm,
+                        sensorWidthMm = entry.sensorWidthMm,
+                        parentLogicalMinZoom = entry.parentLogicalMinZoom,
+                        isWidestInParent = isWidestInParent(entry, entries),
+                    ),
+                    ref,
+                ),
+            )
+        }
+    }
+
+    /** The widest (shortest-focal) back sub-lens among its logical parent's sub-lenses. */
+    private fun isWidestInParent(entry: CameraLensEntry, entries: List<CameraLensEntry>): Boolean {
+        val qualifies = entry.isPhysicalSubLens &&
+            entry.focalLengthMm > 0f &&
+            entry.lensFacing == CameraSelector.LENS_FACING_BACK
+        return qualifies && entries.none {
+            it.isPhysicalSubLens &&
+                it.logicalCameraId == entry.logicalCameraId &&
+                it.focalLengthMm > 0f &&
+                it.focalLengthMm < entry.focalLengthMm
+        }
     }
 
     /**
@@ -52,8 +117,18 @@ class CameraLensEnumerationManager {
         val kept = entries.filterNot { it.isPhysicalSubLens }.toMutableList()
         entries.filter { it.isPhysicalSubLens }.forEach { entry ->
             if (entry.focalLengthMm <= 0f) return@forEach
+            // S1261: same focal OR same BACK equivalent means the same physics. Focal alone must
+            // stay sufficient: the standalone ultra-wide and the fused camera's sub-lens are one
+            // lens, but their multipliers diverge when the sensor size is unreadable (focal-ratio
+            // fallback vs the parent-floor cross-check) - equivalent-only dedup would offer both.
+            // Front lenses all carry the neutral multiplier, so the equivalent leg would collapse
+            // every front sub-lens into one - they keep the focal-only rule (emulator evidence:
+            // the 5.84 mm front sub-lens vanished until this gate).
             val covered = kept.any {
-                it.lensFacing == entry.lensFacing && sameMagnification(it.focalLengthMm, entry.focalLengthMm)
+                val sameEquivalent = entry.lensFacing == CameraSelector.LENS_FACING_BACK &&
+                    sameMagnification(it.equivalentMultiplier, entry.equivalentMultiplier)
+                it.lensFacing == entry.lensFacing &&
+                    (sameMagnification(it.focalLengthMm, entry.focalLengthMm) || sameEquivalent)
             }
             if (!covered) kept += entry.copy(hasOwnMagnification = true)
         }
@@ -92,7 +167,20 @@ class CameraLensEnumerationManager {
             lensInfo,
             CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE,
         ) ?: 0f,
+        sensorWidthMm = characteristic(lensInfo, CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)
+            ?.width ?: 0f,
+        // The bind camera's floor: the parent's for a sub-lens, the entry's own for a logical one.
+        // The Camera2 range is the fallback because an unbound camera's zoomState can be empty on
+        // some firmwares - and this floor (0.57 on the S25 FE) is the whole point of the ticket.
+        parentLogicalMinZoom = runCatching { bindInfo.zoomState.value?.minZoomRatio }.getOrNull()
+            ?: zoomFloorOf(bindInfo) ?: 0f,
     )
+
+    /** S1261: the logical camera's declared zoom-ratio floor straight from Camera2 (API 30+). */
+    private fun zoomFloorOf(info: CameraInfo): Float? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
+        return characteristic(info, CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE)?.lower
+    }
 
     private fun cameraIdOf(info: CameraInfo): String? =
         runCatching { Camera2CameraInfo.from(info).cameraId }.getOrElse {

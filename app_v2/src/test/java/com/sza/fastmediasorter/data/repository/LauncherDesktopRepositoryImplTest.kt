@@ -101,6 +101,61 @@ class LauncherDesktopRepositoryImplTest {
     }
 
     @Test
+    fun `the first free slot on an empty desktop is the top-left square`() = runTest {
+        val id = repository.addCellInFirstFreeSlot(cell(row = 9, col = 9), columns = 4)!!
+        val stored = storedCell(id)
+        assertEquals("the carried anchor must be ignored, not honoured", 0, stored?.rowIndex)
+        assertEquals(0, stored?.colIndex)
+    }
+
+    @Test
+    fun `the scan skips occupied squares row-major`() = runTest {
+        repository.addCell(cell(row = 0, col = 0))
+        repository.addCell(cell(row = 0, col = 1))
+        val id = repository.addCellInFirstFreeSlot(cell(row = 0, col = 0), columns = 3)!!
+        val stored = storedCell(id)
+        assertEquals(0, stored?.rowIndex)
+        assertEquals("the third column of the first row is still free", 2, stored?.colIndex)
+    }
+
+    @Test
+    fun `a full row pushes the cell onto a new row below`() = runTest {
+        repository.addCell(cell(row = 0, col = 0))
+        repository.addCell(cell(row = 0, col = 1))
+        val id = repository.addCellInFirstFreeSlot(cell(row = 0, col = 0), columns = 2)!!
+        assertEquals(1, storedCell(id)?.rowIndex)
+        assertEquals(0, storedCell(id)?.colIndex)
+    }
+
+    @Test
+    fun `a wide gadget skips a row that cannot hold its whole span`() = runTest {
+        repository.addCell(cell(row = 0, col = 1))
+        // Row 0 has a free square at column 0, but a 2-wide footprint there would cover the occupant.
+        val id = repository.addCellInFirstFreeSlot(cell(row = 0, col = 0, spanW = 2), columns = 2)!!
+        assertEquals(1, storedCell(id)?.rowIndex)
+        assertEquals(0, storedCell(id)?.colIndex)
+    }
+
+    @Test
+    fun `a span wider than the grid is clamped instead of refused`() = runTest {
+        val id = repository.addCellInFirstFreeSlot(cell(row = 0, col = 0, spanW = 5), columns = 3)!!
+        assertEquals("a footprint wider than the screen could never be rendered", 3, storedCell(id)?.spanW)
+    }
+
+    @Test
+    fun `placement is refused when the grid has no columns`() = runTest {
+        assertNull(repository.addCellInFirstFreeSlot(cell(row = 0, col = 0), columns = 0))
+    }
+
+    @Test
+    fun `the other orientation never blocks a free-slot placement`() = runTest {
+        repository.addCell(cell(row = 0, col = 0).copy(orientation = LauncherOrientation.LANDSCAPE))
+        val id = repository.addCellInFirstFreeSlot(cell(row = 0, col = 0), columns = 2)!!
+        assertEquals(0, storedCell(id)?.rowIndex)
+        assertEquals(0, storedCell(id)?.colIndex)
+    }
+
+    @Test
     fun `moving to a free square succeeds`() = runTest {
         val id = repository.addCell(cell(row = 0, col = 0))!!
         assertTrue(repository.moveCell(id, rowIndex = 3, colIndex = 2))

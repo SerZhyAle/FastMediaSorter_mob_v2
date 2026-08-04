@@ -101,7 +101,18 @@ class PlayerViewModel @Inject constructor(
     private val recordStreamPlayOutcomeUseCase: com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase,
     // S0640: snapshot the saved stream catalog so top-panel prev/next move between channels.
     private val observeStreamSourcesUseCase: com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase,
+    // S0189/S1195: persists an edited text note; the Activity used to inject this and hand it to the
+    // text-viewer save flow itself.
+    private val saveTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase,
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
+
+    /** S0189: persist [content] as [name] beside [localFile], renaming on conflict. */
+    suspend fun saveTextNote(
+        localFile: java.io.File,
+        name: String,
+        content: String,
+    ): Result<com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase.SaveOutcome> =
+        saveTextNoteUseCase(localFile, name, content)
 
     data class PlayerState(
         val files: List<MediaFile> = emptyList(),
@@ -450,6 +461,18 @@ class PlayerViewModel @Inject constructor(
     fun nextFile(skipDocuments: Boolean = false, manual: Boolean = false) = navigationCoordinator.nextFile(skipDocuments, manual)
 
     fun previousFile(skipDocuments: Boolean = false, manual: Boolean = false) = navigationCoordinator.previousFile(skipDocuments, manual)
+
+    /** S1279: drop the current entry after a delete/move so navigation cannot land on it again. */
+    fun dropCurrentFileFromList(sourcePath: String) = navigationCoordinator.dropCurrentFile(sourcePath)
+
+    /** S1279: put back what [dropCurrentFileFromList] removed when the queued operation failed. */
+    fun restoreDroppedFile(sourcePath: String) = navigationCoordinator.restoreDroppedFile(sourcePath)
+
+    /** S1279: the queued operation succeeded - drop the restore record and enforce the invariant. */
+    fun confirmFileRemoved(sourcePath: String) {
+        navigationCoordinator.forgetDroppedFile(sourcePath)
+        navigationCoordinator.removeFileByPath(sourcePath)
+    }
 
     
     fun cancelLoading() = mediaFilesLoader.cancelLoading()

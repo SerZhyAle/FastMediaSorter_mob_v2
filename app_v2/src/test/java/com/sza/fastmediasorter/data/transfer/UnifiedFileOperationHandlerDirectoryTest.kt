@@ -22,6 +22,7 @@ class UnifiedFileOperationHandlerDirectoryTest {
     private val tempFileManager: TempFileManager = mockk(relaxed = true)
     private val progressTracker: ProgressTracker = mockk(relaxed = true)
     private val errorHandler: FileOperationErrorHandler = mockk(relaxed = true)
+    private val treeTransferManager: DirectoryTreeTransferManager = mockk(relaxed = true)
 
     private val localStrategy: FileOperationStrategy = mockk()
     private val smbStrategy: FileOperationStrategy = mockk()
@@ -41,6 +42,7 @@ class UnifiedFileOperationHandlerDirectoryTest {
                 every { isEnabled(any<RemoteSourceId>()) } returns true
                 every { anyCloudEnabled() } returns true
             },
+            directoryTreeTransferManager = treeTransferManager,
         )
     }
 
@@ -87,11 +89,17 @@ class UnifiedFileOperationHandlerDirectoryTest {
         coVerify { localStrategy.copyDirectory("/a/src", "/a/dst/src", any()) }
     }
 
+    // S1325: cross-protocol used to be refused here; it now runs through the tree transfer manager.
     @Test
-    fun `copyDirectory cross-protocol returns UnsupportedOperationException`() = runTest {
+    fun `copyDirectory cross-protocol delegates to the tree transfer manager`() = runTest {
+        coEvery { treeTransferManager.copyTree("/local/dir", "smb://server/share/dir", any()) } returns
+            Result.success(4)
+
         val result = handler.executeCopyDirectory("/local/dir", "smb://server/share")
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is UnsupportedOperationException)
+
+        assertTrue(result.isSuccess)
+        assertEquals(4, result.getOrThrow())
+        coVerify(exactly = 0) { localStrategy.copyDirectory(any(), any(), any()) }
     }
 
     // ---- moveDirectory ----
@@ -106,10 +114,15 @@ class UnifiedFileOperationHandlerDirectoryTest {
     }
 
     @Test
-    fun `moveDirectory cross-protocol returns UnsupportedOperationException`() = runTest {
+    fun `moveDirectory cross-protocol delegates to the tree transfer manager`() = runTest {
+        coEvery { treeTransferManager.moveTree("smb://s/dir", "/local/dest/dir", any()) } returns
+            Result.success(9)
+
         val result = handler.executeMoveDirectory("smb://s/dir", "/local/dest")
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is UnsupportedOperationException)
+
+        assertTrue(result.isSuccess)
+        assertEquals(9, result.getOrThrow())
+        coVerify(exactly = 0) { smbStrategy.moveDirectory(any(), any(), any()) }
     }
 
     // ---- protocol key resolution ----

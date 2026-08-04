@@ -9,26 +9,26 @@ import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
 import com.bumptech.glide.Glide
+import com.bumptech.glide.Priority
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.Priority
-import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
+import com.sza.fastmediasorter.core.util.HeifSupportUtils
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
 import com.sza.fastmediasorter.data.network.glide.NetworkFileData
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
+import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
 import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
-import com.sza.fastmediasorter.core.util.HeifSupportUtils
 import com.sza.fastmediasorter.utils.GlideCacheStats
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -82,6 +82,9 @@ class AdapterThumbnailLoader(
         // EPUB cover size limits for network resources
         private const val SMB_EPUB_MAX_SIZE = 50 * 1024 * 1024L
         private const val NETWORK_EPUB_MAX_SIZE = 10 * 1024 * 1024L
+        // S1317: decode-capability failure fragment - Glide's required-transform throw on an
+        // AnimatedImageDrawable it cannot convert, not a broken source file.
+        private const val BITMAP_CONVERSION_FRAGMENT = "to a bitmap"
     }
 
     // ─── Public entry point ───────────────────────────────────────────────────
@@ -355,6 +358,8 @@ class AdapterThumbnailLoader(
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>, isFirstResource: Boolean): Boolean {
                             if (isVideoPriorityThumbnailSuspension(e)) {
                                 Timber.v("EPUB cover load suspended by video priority: ${file.name}")
+                            } else if (isDecodeCapabilityFailure(e)) {
+                                Timber.w("EPUB cover load failed due to decode capability: ${file.name}")
                             } else if (e != null) {
                                 Timber.w("EPUB cover load failed: ${file.name}, ${e.message}")
                                 NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
@@ -447,6 +452,8 @@ class AdapterThumbnailLoader(
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>, isFirstResource: Boolean): Boolean {
                             if (isVideoPriorityThumbnailSuspension(e)) {
                                 Timber.v("PDF thumbnail load suspended by video priority: ${file.name}")
+                            } else if (isDecodeCapabilityFailure(e)) {
+                                Timber.w("PDF thumbnail load failed due to decode capability: ${file.name}")
                             } else if (e != null) {
                                 Timber.w("PDF thumbnail load failed: ${file.name}, ${e.message}")
                                 NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
@@ -536,6 +543,9 @@ class AdapterThumbnailLoader(
                         override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
                             if (isVideoPriorityThumbnailSuspension(e)) {
                                 Timber.v("Network image load suspended by video priority: ${file.name}")
+                            } else if (isDecodeCapabilityFailure(e)) {
+                                Timber.d("S1317: skip failed-thumb mark for ${file.name}")
+                                Timber.w("Network image load failed due to decode capability: ${file.name}")
                             } else if (e != null) {
                                 Timber.w("Network image load failed: ${file.name}, ${e.message}")
                                 NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
@@ -744,6 +754,33 @@ class AdapterThumbnailLoader(
             if (current is CancellationException &&
                 current.message?.contains(VIDEO_PRIORITY_THUMBNAIL_SUSPEND_MESSAGE) == true
             ) {
+                return true
+            }
+            current = current.cause
+            depth++
+        }
+        return false
+    }
+
+    private fun isDecodeCapabilityFailure(e: GlideException?): Boolean {
+        if (e == null) return false
+
+        if (e.rootCauses.any { cause ->
+                cause is IllegalArgumentException &&
+                    cause.message?.lowercase()?.contains(BITMAP_CONVERSION_FRAGMENT) == true
+            }) {
+            return true
+        }
+
+        var current: Throwable? = e
+        var depth = 0
+        while (current != null && depth < 10) {
+            val msg = current.message?.lowercase() ?: ""
+            val className = current.javaClass.simpleName.lowercase()
+            if (current is IllegalArgumentException && msg.contains(BITMAP_CONVERSION_FRAGMENT)) {
+                return true
+            }
+            if (className.contains("illegalargumentexception") && msg.contains(BITMAP_CONVERSION_FRAGMENT)) {
                 return true
             }
             current = current.cause

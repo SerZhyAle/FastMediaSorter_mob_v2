@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-home-cinema-uk.html
 ---
 # 🍿 Домашній кінотеатр та VR-стримінг
 
-> **Рівень:** Початківець &bull; **Час:** ~15 хвилин &bull; **Версія:** Standard або Legacy
+> **Рівень:** Початківець &bull; **Час:** ~15 хвилин &bull; **Версія:** Standard, Legacy, VR, noLegal (у Lite немає мережевих джерел, у Photos немає відео)
 
 [English](scenario-home-cinema.md) | [Русский](scenario-home-cinema-ru.md)
 

@@ -4,136 +4,33 @@
     Ratchet gate: non-Timber logging in src/main must never grow.
 
 .DESCRIPTION
-    Part of S0383 neuroslop hygiene (Tier 1). The project logging standard is
-    Timber ONLY (CLAUDE.md Sec 8). AI-generated code routinely emits the logging
-    it was trained on instead: `android.util.Log.d/v/i/w/e/wtf(..)` and
-    `System.out` / `System.err`. These bypass the Timber tree (no tag policy, no
-    release stripping, no ticket-log gate) and are pure debug residue. They must
-    be replaced with the matching Timber level.
+    S1338: thin wrapper. The rule itself - what counts as a violation, which files it reads,
+    which baseline it ratchets against - lives once in scripts/quality/lib/source-matchers.ps1
+    and is executed by assert-source-gates.ps1, which applies every lexical rule over a SINGLE
+    walk of the tree instead of one walk per gate. This file stays on disk so every existing
+    caller keeps working unchanged.
 
-    Counts two families as one number:
-      - `Log.<level>(`     android.util.Log calls (Timber.* is NOT matched: there
-                           is no `Log.` token inside `Timber.`)
-      - `System.out`/`System.err`
+    Behaviour, baseline file and exit codes are identical to the standalone version.
 
-    Bare `println(` / `print(` are deliberately NOT flagged: this codebase uses
-    `PrintWriter.println(..)` inside `apply { }` for crash-log file writes, and
-    owns a document-printing domain (`fun print(): Boolean`, Android PrintManager)
-    - so those tokens are legitimate I/O here, not stdout debug residue. A
-    text-scan cannot separate the two without scope/type info, and including them
-    would both pollute the baseline and block legitimate domain code. Catch stray
-    `println` debug in review instead.
-
-    Comments and string literals containing these tokens are a known
-    approximation (same caveat as the sibling detectors).
-
-    Baseline lives in scripts/quality/nontimber-log-baseline.txt (single int).
-
-    Modes:
-      (default)        Report current count vs baseline.
-      -Gate            Exit 1 if current > baseline (fail-closed on growth).
-      -UpdateBaseline  Ratchet DOWN only (also seeds the file when missing).
-      -List            Print every matching file:line (proposal list for cleanup).
-
-.EXAMPLE
-    pwsh -NoProfile -File scripts/quality/assert-nontimber-log.ps1
-    pwsh -NoProfile -File scripts/quality/assert-nontimber-log.ps1 -Gate
-    pwsh -NoProfile -File scripts/quality/assert-nontimber-log.ps1 -UpdateBaseline
-    pwsh -NoProfile -File scripts/quality/assert-nontimber-log.ps1 -List
+.NOTES
+    Exit codes: 0 at or below baseline, 1 above baseline under -Gate, 2 cannot verify.
 #>
-[CmdletBinding(DefaultParameterSetName = 'Report')]
+[CmdletBinding()]
 param(
-    [Parameter(ParameterSetName = 'Gate')][switch]$Gate,
-    [Parameter(ParameterSetName = 'Update')][switch]$UpdateBaseline,
-    [Parameter(ParameterSetName = 'Report')][switch]$List,
-    # S0850: when set, judge only the growth these files introduce (working vs HEAD)
-    # instead of a full src/main scan. Preserves the "must not grow" guarantee for the change.
-    [Parameter(ParameterSetName = 'Gate')][string[]]$ChangedFiles
+    [switch]$Gate,
+    [switch]$UpdateBaseline,
+    [switch]$List,
+    [string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$mainRoot = Join-Path $repoRoot 'app_v2/src/main'
-$baselineFile = Join-Path $PSScriptRoot 'nontimber-log-baseline.txt'
+$forward = @{ Only = 'nontimber-log' }
+if ($Gate) { $forward.Gate = $true }
+if ($UpdateBaseline) { $forward.UpdateBaseline = $true }
+if ($List) { $forward.List = $true }
+if ($ChangedFiles) { $forward.ChangedFiles = $ChangedFiles }
 
-# Logging-framework-bypass tokens only. See the .DESCRIPTION note for why
-# println/print are intentionally excluded in this codebase.
-$rx = [regex]'\bLog\.(?:d|v|i|w|e|wtf)\s*\(|\bSystem\.(?:out|err)\b'
-
-# S0850: delta mode - same regex as the full scan, applied per changed file (working vs HEAD),
-# mirroring the flavor-flags/deprecated-pm wiring from S0848 Phase 04.
-if ($ChangedFiles) {
-    . (Join-Path $PSScriptRoot 'lib/changed-files-delta.ps1')
-    $scoped = @($ChangedFiles | Where-Object { ($_ -replace '\\', '/') -match 'app_v2/src/main/' })
-    $countFn = { param($t) $rx.Matches($t).Count }
-    $d = Measure-ChangedFileGrowth -ChangedFiles $scoped -RepoRoot $repoRoot -Extensions @('.kt') -CountInText $countFn
-    Write-Host ("nontimber-log [delta over changed files]: new occurrences {0}" -f $d.Growth)
-    if ($Gate -and $d.Growth -gt 0) {
-        foreach ($p in $d.PerFile) { if ($p.New -gt 0) { Write-Host ("  +{0} in {1}" -f $p.New, $p.Path) } }
-        Write-Host "FAIL: new non-Timber logging introduced in the changed file(s). Replace Log.*/System.out with Timber.<level>(..)."
-        exit 1
-    }
-    exit 0
-}
-
-$current = 0
-$hits = [System.Collections.Generic.List[string]]::new()
-$files = Get-ChildItem -LiteralPath $mainRoot -Recurse -File -Filter '*.kt' -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -notmatch '[\\/](build|\.gradle|\.kotlin)[\\/]' }
-foreach ($file in $files) {
-    $text = Get-Content -LiteralPath $file.FullName -Raw
-    if ([string]::IsNullOrEmpty($text)) { continue }
-    $matches = $rx.Matches($text)
-    $current += $matches.Count
-    if ($List -and $matches.Count -gt 0) {
-        $rel = $file.FullName.Substring($repoRoot.Length).TrimStart('\', '/') -replace '\\', '/'
-        foreach ($m in $matches) {
-            $lineNo = ($text.Substring(0, $m.Index) -split "`n").Count
-            $hits.Add(("{0}:{1}  {2}" -f $rel, $lineNo, $m.Value.Trim()))
-        }
-    }
-}
-
-if ($List) {
-    foreach ($h in $hits) { Write-Host $h }
-    Write-Host ''
-}
-
-if ($PSCmdlet.ParameterSetName -eq 'Update') {
-    if (-not (Test-Path $baselineFile)) {
-        Set-Content -LiteralPath $baselineFile -Value "$current"
-        Write-Host "nontimber-log baseline SEEDED: $current"
-        exit 0
-    }
-    $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
-    if ($current -lt $baseline) {
-        Set-Content -LiteralPath $baselineFile -Value "$current"
-        Write-Host "nontimber-log baseline ratcheted DOWN: $baseline -> $current"
-    }
-    elseif ($current -eq $baseline) {
-        Write-Host "nontimber-log baseline unchanged ($baseline)"
-    }
-    else {
-        Write-Error "Refusing to RAISE baseline ($baseline -> $current). Non-Timber logging grew - use Timber.<level>(..) instead."
-        exit 1
-    }
-    exit 0
-}
-
-if (-not (Test-Path $baselineFile)) {
-    Write-Host "nontimber-log: NO BASELINE yet | actual $current - run -UpdateBaseline to seed."
-    exit 0
-}
-$baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
-$delta = $current - $baseline
-Write-Host ("nontimber-log in src/main: baseline {0} | actual {1} | delta {2:+#;-#;0}" -f $baseline, $current, $delta)
-if ($Gate -and $current -gt $baseline) {
-    Write-Host "FAIL: non-Timber logging grew above baseline. Replace Log.*/System.out with Timber.<level>(..)."
-    exit 1
-}
-if ($current -lt $baseline) {
-    Write-Host "Note: count is below baseline - run -UpdateBaseline to ratchet the cap down."
-}
-exit 0
+& (Join-Path $PSScriptRoot 'assert-source-gates.ps1') @forward
+exit $LASTEXITCODE

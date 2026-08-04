@@ -8,10 +8,11 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.util.LocaleHelper
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.dialog.MaterialProgressDialog
+import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -25,20 +26,24 @@ class GeneralSettingsObserversHelper(
 ) {
     private var manualSyncProgressDialog: MaterialProgressDialog? = null
 
+    /**
+     * S1190: the language row shows a value, not a dropdown position - the set of languages is data now.
+     * Whether the app follows the system is read from the platform rather than from the stored setting,
+     * because clearing the per-app language leaves the previously stored value behind.
+     */
+    private fun updateLanguageRow(storedLanguage: String) {
+        val context = fragment.requireContext()
+        val selectionCode = if (LocaleHelper.isFollowingSystemLanguage(context)) {
+            LocaleHelper.FOLLOW_SYSTEM_LANGUAGE
+        } else {
+            storedLanguage
+        }
+        binding.rowLanguage.setValue(UiLanguagePickerItems.label(context, selectionCode))
+    }
+
     fun observeData() {
         fragment.viewLifecycleOwner.collectOnLifecycle(viewModel.settings) { settings ->
-            val languagePosition = when {
-                LocaleHelper.isFollowingSystemLanguage(fragment.requireContext()) -> 0
-                LocaleHelper.resolveSupportedLanguageCode(settings.language) == "ru" -> 2
-                LocaleHelper.resolveSupportedLanguageCode(settings.language) == "uk" -> 3
-                else -> 1
-            }
-            // S0567: spinnerLanguage is now a SettingsDropdownRow (getSelectedIndex/setSelection).
-            if (binding.spinnerLanguage.getSelectedIndex() != languagePosition) {
-                setIsUpdatingSpinner(true)
-                binding.spinnerLanguage.setSelection(languagePosition)
-                binding.spinnerLanguage.post { setIsUpdatingSpinner(false) }
-            }
+            updateLanguageRow(settings.language)
 
             setIsUpdatingSpinner(true)
 
@@ -48,8 +53,9 @@ class GeneralSettingsObserversHelper(
             if (binding.rowEnableStatistics.isChecked != settings.enableStatistics)
                 binding.rowEnableStatistics.setCheckedSilently(settings.enableStatistics)
             // S1045: secure-sensitive-screens toggle initial/observed state.
-            if (binding.rowSecureSensitiveScreens.isChecked != settings.secureSensitiveScreens)
+            if (binding.rowSecureSensitiveScreens.isChecked != settings.secureSensitiveScreens) {
                 binding.rowSecureSensitiveScreens.setCheckedSilently(settings.secureSensitiveScreens)
+            }
             // S0028: Multi-window toggle observation. Lives in General → Interface (bottom).
             if (binding.rowAllowSeparateWindow.isChecked != settings.allowSeparateWindow)
                 binding.rowAllowSeparateWindow.setCheckedSilently(settings.allowSeparateWindow)
@@ -62,12 +68,14 @@ class GeneralSettingsObserversHelper(
             if (binding.rowCompactElements?.isChecked != settings.useCompactElements)
                 binding.rowCompactElements?.setCheckedSilently(settings.useCompactElements)
             // S0911: main-window programs panel toggle (moved from Operations > Additional Programs).
-            if (binding.rowShowProgramsPanel.isChecked != settings.showProgramsPanelInMainWindow)
+            if (binding.rowShowProgramsPanel.isChecked != settings.showProgramsPanelInMainWindow) {
                 binding.rowShowProgramsPanel.setCheckedSilently(settings.showProgramsPanelInMainWindow)
+            }
             // S0911: main-window streams panel toggle (moved from Media > Streams). Visibility
             // replicates the gate it had while nested in streamsDefaultsGroup - capability AND master toggle.
-            if (binding.rowShowStreamsPanel.isChecked != settings.showStreamsPanelInMainWindow)
+            if (binding.rowShowStreamsPanel.isChecked != settings.showStreamsPanelInMainWindow) {
                 binding.rowShowStreamsPanel.setCheckedSilently(settings.showStreamsPanelInMainWindow)
+            }
             binding.rowShowStreamsPanel.visibility =
                 if (capabilityAvailability.isStreamsAvailable() && settings.enableStreams) View.VISIBLE else View.GONE
             // S0160: resource ops overflow toggle

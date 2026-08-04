@@ -16,9 +16,11 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferProgressSnapshot
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferTerminalEvent
+import com.sza.fastmediasorter.ui.browse.transfer.transferOverallPercent
 import com.sza.fastmediasorter.utils.SafHelper
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
@@ -67,6 +69,12 @@ class BrowseFileOperationsManager(
     private var activeTransferDialog: FileOperationProgressDialog? = null
     private var modalDetachedByUser: Boolean = false
     private var lastAutoAttachPath: String? = null
+
+    // S1227: the running transfer's type and latest snapshot, mirrored here so re-opening the modal
+    // and rendering the strip never re-read the request store from the main thread (see S1230).
+    private var activeOperationType: FileOperationType? = null
+    private var lastProgressSnapshot: BrowseFileTransferProgressSnapshot? = null
+    private var lastIndicatorLabel: String? = null
     
     interface FileOperationCallbacks {
         fun onOperationCompleted()
@@ -83,6 +91,14 @@ class BrowseFileOperationsManager(
         fun navigateToFolder(path: String)
         /** Called after a successful Move or Copy operation. [count] = number of processed files. */
         fun onSortOperationSuccess(count: Int) {}
+
+        /**
+         * S1227: shows or updates the non-modal strip for a transfer whose progress dialog the owner
+         * sent to the background; [label] null hides it. Emitted only while the modal is detached -
+         * with the modal on screen the strip would duplicate it.
+         */
+        fun onBackgroundTransferProgress(label: String?) {}
+
         /** Called when user clicks "Select folder" in the destination dialog. */
         fun onFolderPickerRequested(
             operationType: FileOperationType,
@@ -140,11 +156,18 @@ class BrowseFileOperationsManager(
 
         lifecycleOwner.collectOnLifecycle(browseTransferCoordinator.activeTransferFlow()) { state ->
             if (state.isActive) {
-                state.request?.let { maybeReattachToBrowseFolder(it) }
+                state.request?.let {
+                    maybeReattachToBrowseFolder(it)
+                    activeOperationType = it.operationType
+                }
                 if (activeTransferDialog == null && !modalDetachedByUser) {
                     state.request?.let { showTransferDialog(it.operationType, showImmediately = true) }
                 }
-                state.progress?.let { activeTransferDialog?.updateSnapshot(it) }
+                state.progress?.let {
+                    lastProgressSnapshot = it
+                    activeTransferDialog?.updateSnapshot(it)
+                }
+                publishDetachedIndicator()
                 return@collectOnLifecycle
             }
 
@@ -186,13 +209,77 @@ class BrowseFileOperationsManager(
             },
             onBackground = {
                 modalDetachedByUser = true
+                // The dialog dismisses itself on this click; dropping our reference is what lets
+                // reattachTransferDialog() past showTransferDialog's already-showing guard.
+                activeTransferDialog = null
                 callbacks.onShowMessage(context.getString(R.string.browse_transfer_sent_to_background))
+                publishDetachedIndicator()
             },
             showImmediately = showImmediately,
         )
     }
 
+    /**
+     * S1227: brings back the modal the owner sent to the background, for the transfer running now.
+     * [showTransferDialog] clears [modalDetachedByUser], so the choice does not leak into the next
+     * operation.
+     */
+    fun reattachTransferDialog() {
+        val operationType = activeOperationType
+        Timber.d("S1227: strip tapped, activeType=%s", operationType)
+        if (operationType == null) return
+        hideTransferIndicator()
+        showTransferDialog(operationType, showImmediately = true)
+        lastProgressSnapshot?.let { activeTransferDialog?.updateSnapshot(it) }
+    }
+
+    /**
+     * S1227: while the modal is detached the strip is the only in-app place the transfer is visible,
+     * so it carries operation, percent and current file. Re-emitting only on a changed label keeps
+     * byte-level progress ticks from re-laying out the strip on every emission.
+     */
+    private fun publishDetachedIndicator() {
+        // A detached modal with no live operation type means the transfer is already gone, so both
+        // conditions collapse into the same "nothing to show" branch.
+        val operationType = activeOperationType
+        if (!modalDetachedByUser || operationType == null) {
+            hideTransferIndicator()
+            return
+        }
+        val snapshot = lastProgressSnapshot
+        val percent = snapshot?.let {
+            transferOverallPercent(
+                completedOperationBytes = it.completedOperationBytes,
+                totalOperationBytes = it.totalOperationBytes,
+                currentIndex = it.currentIndex,
+                totalFiles = it.totalFiles,
+            )
+        } ?: 0
+        val label = context.getString(
+            R.string.browse_transfer_indicator,
+            context.getString(progressTitleRes(operationType)),
+            percent,
+            snapshot?.currentFile?.substringAfterLast('/').orEmpty(),
+        )
+        if (label != lastIndicatorLabel) {
+            lastIndicatorLabel = label
+            Timber.d("S1227: strip shows '%s'", label)
+            callbacks.onBackgroundTransferProgress(label)
+        }
+    }
+
+    private fun hideTransferIndicator() {
+        if (lastIndicatorLabel == null) return
+        lastIndicatorLabel = null
+        callbacks.onBackgroundTransferProgress(null)
+    }
+
     private fun dismissTransferDialog() {
+        // Runs on every non-active emission, so it is also where the strip and the mirrored transfer
+        // state are released - both must clear even when no dialog is currently held.
+        activeOperationType = null
+        lastProgressSnapshot = null
+        hideTransferIndicator()
         val dialog = activeTransferDialog ?: return
         activeTransferDialog = null
         runCatching { dialog.dismiss() }
@@ -250,28 +337,37 @@ class BrowseFileOperationsManager(
                 }
             }
             is BrowseFileTransferTerminalEvent.Cancelled -> {
-                callbacks.onShowMessage(context.getString(cancelledMessageRes(event.operationType)))
+                // S1325: a cancelled tree leaves whatever was already written at the destination, so
+                // the message says so - "cancelled" alone reads as "nothing happened".
+                callbacks.onShowMessage(
+                    context.getString(cancelledMessageRes(event.operationType)) + " " +
+                        context.getString(R.string.browse_transfer_folder_partial_state)
+                )
             }
         }
     }
 
     private fun progressTitleRes(operationType: FileOperationType): Int = when (operationType) {
         FileOperationType.MOVE -> R.string.moving_files
+        FileOperationType.DELETE -> R.string.deleting_files
         else -> R.string.copying_files
     }
 
     private fun doneMessageRes(operationType: FileOperationType): Int = when (operationType) {
         FileOperationType.MOVE -> R.string.moved_n_files
+        FileOperationType.DELETE -> R.string.deleted_n_files
         else -> R.string.copied_n_files
     }
 
     private fun failureMessageRes(operationType: FileOperationType): Int = when (operationType) {
         FileOperationType.MOVE -> R.string.move_failed
+        FileOperationType.DELETE -> R.string.delete_failed
         else -> R.string.copy_failed
     }
 
     private fun cancelledMessageRes(operationType: FileOperationType): Int = when (operationType) {
         FileOperationType.MOVE -> R.string.toast_move_cancelled
+        FileOperationType.DELETE -> R.string.toast_delete_cancelled
         else -> R.string.toast_copy_cancelled
     }
     
@@ -619,6 +715,7 @@ class BrowseFileOperationsManager(
                     )
                 }
             )
+            dialog.directoryCount = dirItems.size
             dialog.show()
         }
     }
@@ -720,6 +817,7 @@ class BrowseFileOperationsManager(
                 )
             }
         )
+        dialog.directoryCount = dirItems.size
         dialog.show()
     }
     

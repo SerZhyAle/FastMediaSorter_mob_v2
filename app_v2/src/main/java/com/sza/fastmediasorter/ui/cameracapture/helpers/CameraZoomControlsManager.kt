@@ -10,8 +10,8 @@ import androidx.core.view.children
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.slider.Slider
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.ui.cameracapture.OutlinedTextView
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
+import com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
 import timber.log.Timber
 import java.util.Locale
 import kotlin.math.abs
@@ -29,62 +29,95 @@ class CameraZoomControlsManager(
     private val zoomValue: OutlinedTextView,
     private val lensLabel: OutlinedTextView,
     private val onPresetSelected: (Float) -> Unit,
+    /** S1261: cross-lens floor pill tap, in equivalent-zoom space (lens switch + zoom, one action). */
+    private val onCrossLensFloorSelected: (Float) -> Unit = {},
 ) {
 
     /** Builds one pill per zoom preset and selects the one nearest the live ratio. */
     fun configure(capabilities: CameraRuntimeCapabilities, liveZoomRatio: Float, liveLinearZoom: Float) {
         presetGroup.removeAllViews()
-        val density = context.resources.displayMetrics.density
-        val padH = (density * CHIP_SIDE_PADDING_DP).toInt()
-        val padV = (density * CHIP_VERT_PADDING_DP).toInt()
-        val spacing = (density * CHIP_SPACING_DP).toInt()
         // S1189: the lens's own optical limits, at the same precision the presets are rounded to.
         val nativeMin = CameraRuntimeCapabilities.roundToStep(capabilities.minZoomRatio)
         val nativeMax = CameraRuntimeCapabilities.roundToStep(capabilities.maxZoomRatio)
         Timber.d("S1189: presets=%s native=%.1f..%.1f", capabilities.zoomPresets, nativeMin, nativeMax)
+        Timber.d(
+            "S1260: display labels=%s",
+            capabilities.zoomPresets.map {
+                CameraRuntimeCapabilities.roundEquivalentForDisplay(it * capabilities.zoomMultiplier)
+            },
+        )
+        if (capabilities.showsCrossLensFloor) {
+            // S1261: the device's widest equivalent leads the row even though the bound lens cannot
+            // reach it - its tap switches optics. Amber: it IS a native minimum, just of another lens.
+            val display = capabilities.crossLensFloorDisplay
+            val floorPill = buildPill(
+                labelValue = display,
+                amber = true,
+                pillTag = CROSS_LENS_FLOOR_TAG,
+            ) { onCrossLensFloorSelected(capabilities.minEquivalentZoomRatio) }
+            addPill(floorPill)
+        }
         capabilities.zoomPresets.forEach { preset ->
-            val equivalent = preset * capabilities.zoomMultiplier
+            // S1260: pills print the coarse display rounding (half steps below 5, wholes above) so the
+            // row stays readable; the applied preset keeps its precise native ratio.
+            val equivalent = CameraRuntimeCapabilities.roundEquivalentForDisplay(
+                preset * capabilities.zoomMultiplier,
+            )
             val isNativeBound = preset == nativeMin || preset == nativeMax
-            // Custom see-through pill (the Material chip kept drawing an opaque light surface). The label
-            // is the equivalent zoom (native ratio x lens multiplier), so an ultra-wide reads 0.5x.
-            val pill = OutlinedTextView(context).apply {
-                text = formatZoomLabel(equivalent)
-                tag = preset
-                // S1189: the amber colour marks an optical limit, so the description says so too -
-                // the distinction must not be colour-only.
-                contentDescription = context.getString(
-                    if (isNativeBound) {
-                        R.string.camera_control_zoom_step_native
-                    } else {
-                        R.string.camera_control_zoom_step
-                    },
-                    formatZoomRatio(equivalent),
-                )
-                isClickable = true
-                isFocusable = true
-                gravity = Gravity.CENTER
-                setTextColor(
-                    ContextCompat.getColor(
-                        context,
-                        if (isNativeBound) {
-                            R.color.camera_capture_zoom_native_bound
-                        } else {
-                            R.color.camera_capture_zoom_step
-                        },
-                    ),
-                )
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, CHIP_TEXT_SP)
-                setPadding(padH, padV, padH, padV)
-                background = ContextCompat.getDrawable(context, R.drawable.bg_camera_zoom_chip)
-                setOnClickListener { onPresetSelected(preset) }
-            }
-            val lp = ViewGroup.MarginLayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-            ).apply { marginEnd = spacing }
-            presetGroup.addView(pill, lp)
+            val pill = buildPill(
+                labelValue = equivalent,
+                amber = isNativeBound,
+                pillTag = preset,
+            ) { onPresetSelected(preset) }
+            addPill(pill)
         }
         syncSelection(liveZoomRatio, liveLinearZoom, capabilities.zoomMultiplier)
+    }
+
+    /**
+     * Custom see-through pill (the Material chip kept drawing an opaque light surface). The label is
+     * the equivalent zoom, so an ultra-wide reads 0.5. S1189: amber marks an optical limit and the
+     * description says so too - the distinction must not be colour-only.
+     */
+    private fun buildPill(
+        labelValue: Float,
+        amber: Boolean,
+        pillTag: Any,
+        onClick: () -> Unit,
+    ): OutlinedTextView {
+        val density = context.resources.displayMetrics.density
+        val padH = (density * CHIP_SIDE_PADDING_DP).toInt()
+        val padV = (density * CHIP_VERT_PADDING_DP).toInt()
+        return OutlinedTextView(context).apply {
+            text = formatZoomLabel(labelValue)
+            tag = pillTag
+            contentDescription = context.getString(
+                if (amber) R.string.camera_control_zoom_step_native else R.string.camera_control_zoom_step,
+                formatZoomRatio(labelValue),
+            )
+            isClickable = true
+            isFocusable = true
+            gravity = Gravity.CENTER
+            setTextColor(
+                ContextCompat.getColor(
+                    context,
+                    if (amber) R.color.camera_capture_zoom_native_bound else R.color.camera_capture_zoom_step,
+                ),
+            )
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, CHIP_TEXT_SP)
+            setPadding(padH, padV, padH, padV)
+            background = ContextCompat.getDrawable(context, R.drawable.bg_camera_zoom_chip)
+            setOnClickListener { onClick() }
+        }
+    }
+
+    private fun addPill(pill: OutlinedTextView) {
+        val spacing = (context.resources.displayMetrics.density * CHIP_SPACING_DP).toInt()
+        val lp = ViewGroup.MarginLayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+        ).apply { marginEnd = spacing }
+        presetGroup.addView(pill, lp)
     }
 
     /** Highlights the preset pill nearest the live zoom ratio; clears all when pinched between steps. */
@@ -138,5 +171,12 @@ class CameraZoomControlsManager(
         const val CHIP_SPACING_DP = 6f
         const val CHIP_TEXT_SP = 11f
         const val TELE_MIN_MULTIPLIER = 1.5f
+
+        /**
+         * S1261: non-Float tag so [syncSelection]'s native-ratio matching skips the cross-lens pill
+         * - its value lives in equivalent space of ANOTHER lens; after the switch the rebuilt row
+         * carries the same value as a plain native preset and highlights normally.
+         */
+        const val CROSS_LENS_FLOOR_TAG = "cross_lens_floor"
     }
 }

@@ -14,7 +14,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Helper for initializing Timber logging with file support.
@@ -28,16 +30,39 @@ object LoggingHelper {
     /** Retained instance of FileLoggingTree to expose log file access. */
     private var fileLoggingTree: FileLoggingTree? = null
 
+    /**
+     * Application context kept from [initialize] so the S1357 opt-in can be read here instead of
+     * being threaded through every caller of [updateDebugMirrorTargetFromPath].
+     */
+    private var appContext: Context? = null
+
     /** Returns all log files managed by the file logging tree. */
     fun getLogFiles(): List<File> = fileLoggingTree?.getLogFiles() ?: emptyList()
 
     /**
      * Debug-only hint: mirror the active session log into the currently opened local file folder
      * so reproductions from another machine can be shared without digging into app sandbox paths.
+     *
+     * S1357: gated here rather than at the call site because this is the only entry into the
+     * mechanism, so every present and future caller inherits the opt-in.
      */
     fun updateDebugMirrorTargetFromPath(path: String) {
         if (!BuildConfig.DEBUG) return
-        fileLoggingTree?.updateDebugMirrorTargetFromPath(path)
+        val context = appContext ?: return
+        // First SharedPreferences read is disk I/O and this arrives on the viewer thread.
+        val enabled = StrictModeHelper.allowDiskIO { DebugLogMirrorPrefs.isEnabled(context) }
+        Timber.d("S1357: mirror target request, opt-in=$enabled")
+        if (enabled) {
+            fileLoggingTree?.updateDebugMirrorTargetFromPath(path)
+        }
+    }
+
+    /**
+     * Stop mirroring into the folder already selected this session. Without this, switching the
+     * opt-in off would keep feeding the target chosen before it until the process restarts.
+     */
+    fun clearDebugMirrorTarget() {
+        fileLoggingTree?.clearDebugMirrorTarget()
     }
 
     private var previousCrashHandler: Thread.UncaughtExceptionHandler? = null
@@ -122,6 +147,16 @@ object LoggingHelper {
      * RELEASE build: Only warnings and errors (w/e) - no debug spam
      */
     fun initialize(context: Context) {
+        appContext = context.applicationContext
+        // S1253: Robolectric boots the real Application, which used to plant the FILE tree in
+        // every unit-test class - the "fms-log-io" executor then churned file IO and memory for
+        // thousands of tests and was the thread the JVM's OOM storm named right before the
+        // instrument-agent assertion killed the worker with exit value 10. Unit tests keep the
+        // logcat tree only; devices are unaffected (fingerprint is never "robolectric" there).
+        if (android.os.Build.FINGERPRINT == "robolectric") {
+            Timber.plant(Timber.DebugTree())
+            return
+        }
         if (BuildConfig.DEBUG) {
             // Debug build: log to Logcat with system noise filtering
             Timber.plant(object : Timber.DebugTree() {
@@ -160,8 +195,9 @@ object LoggingHelper {
                 override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
                     // Filter: only WARN and ERROR in release
                     if (priority >= android.util.Log.WARN) {
+                        // S1248: Timber's prepareLog already appended the throwable's stack trace to
+                        // [message]; printing it again doubled every trace in logcat.
                         android.util.Log.println(priority, tag ?: "FastMediaSorter", message)
-                        t?.let { android.util.Log.println(priority, tag ?: "FastMediaSorter", android.util.Log.getStackTraceString(it)) }
                     }
                 }
             })
@@ -193,6 +229,9 @@ object LoggingHelper {
             "logs"
         )
         private val maxFileSize = 5 * 1024 * 1024L // 5 MB
+
+        /** S1310: hard cap for the debug mirror file, which appends across source-log rotations. */
+        private val debugMirrorMaxBytes = 2 * maxFileSize
         private val maxLogFiles = 5
         private val dateFormat = object : ThreadLocal<SimpleDateFormat>() {
             override fun initialValue() = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
@@ -203,9 +242,23 @@ object LoggingHelper {
         private fun formatTs(d: Date): String = dateFormat.get()!!.format(d)
         private fun formatFileName(d: Date): String = fileNameFormat.get()!!.format(d)
         private val debugMirrorFileName = "fastmediasorter_debug_live.log"
-        private val debugMirrorScheduler = Executors.newSingleThreadScheduledExecutor { runnable ->
-            Thread(runnable, "fms-log-mirror").apply { isDaemon = true }
+
+        /**
+         * S1203: one thread owns both the file append and the 10-second debug mirror.
+         *
+         * They used to run on two different threads that serialised on this object's monitor, so a
+         * caller appending a single line waited out an entire mirror copy - on a slow emulator that
+         * froze the main thread long enough to raise repeated ANRs. Sharing one FIFO executor means
+         * the two never contend for the monitor at all.
+         */
+        private val logIoExecutor = Executors.newSingleThreadScheduledExecutor { runnable ->
+            Thread(runnable, "fms-log-io").apply { isDaemon = true }
         }
+
+        // Callers no longer block on the write, so nothing throttles them either. These bound the
+        // queue that replaced that backpressure and keep the loss visible instead of silent.
+        private val pendingWrites = AtomicInteger(0)
+        private val droppedWrites = AtomicInteger(0)
         
         @Volatile
         private var currentLogFile: File? = null
@@ -258,8 +311,10 @@ object LoggingHelper {
                     if (targetChanged) {
                         val sanitizedTarget = com.sza.fastmediasorter.core.security.SecretMasker
                             .sanitize(newMirrorFile.absolutePath)
+                        val notice =
+                            "${formatTs(Date())} I/DebugLogMirror: mirroring session log to $sanitizedTarget"
                         synchronized(this) {
-                            printWriter?.println("${formatTs(Date())} I/DebugLogMirror: mirroring session log to $sanitizedTarget")
+                            printWriter?.println(notice)
                             printWriter?.flush()
                         }
                         flushDebugMirrorDelta()
@@ -269,16 +324,57 @@ object LoggingHelper {
                 }
             }
         }
-        
+
+        /** Drops the current mirror target and its copy offset, so nothing more is appended to it. */
+        fun clearDebugMirrorTarget() {
+            synchronized(this) {
+                debugMirrorFile = null
+                debugMirrorSourcePath = null
+                debugMirrorSourceOffsetBytes = 0L
+            }
+        }
+
         override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
             if (priority < minPriority) return  // Skip below threshold (e.g. VERBOSE/DEBUG in release)
+            // S1203: the timestamp is taken on the calling thread so the file keeps call order rather
+            // than drain order; sanitising, formatting and the write itself all move to the log I/O
+            // thread, so no Timber call can put a caller on the disk or on the mirror's monitor.
+            val timestamp = formatTs(Date())
+            if (pendingWrites.incrementAndGet() > MAX_PENDING_WRITES) {
+                pendingWrites.decrementAndGet()
+                droppedWrites.incrementAndGet()
+                return
+            }
+            try {
+                logIoExecutor.execute {
+                    try {
+                        writeEntry(timestamp, priority, tag, message, t)
+                    } finally {
+                        pendingWrites.decrementAndGet()
+                    }
+                }
+            } catch (_: RejectedExecutionException) {
+                // The executor is shutting down with the process; account for the lost line rather
+                // than let a logging call take the app down on its way out.
+                pendingWrites.decrementAndGet()
+                droppedWrites.incrementAndGet()
+            }
+        }
+
+        /** Runs on the log I/O thread: formats one queued entry and appends it to the session file. */
+        private fun writeEntry(timestamp: String, priority: Int, tag: String?, message: String, t: Throwable?) {
             // Wrap file I/O in StrictModeHelper to avoid violations
             // File logging is an expected debug operation, not a bug
             // Use allowDiskIO (not just allowDiskWrites) because we also check file.exists() and file.length()
             StrictModeHelper.allowDiskIO {
                 try {
+                    // S1248: Timber's prepareLog glues the throwable's stack trace onto [message]
+                    // before any tree sees it. This tree renders the trace itself (compacted for
+                    // known-noisy errors, single-line for warnings), so the glued copy must come
+                    // off first - leaving it doubled every ERROR trace in the session file.
+                    val bareMessage = stripTimberAppendedTrace(message, t)
                     // Sanitize message for security
-                    val sanitizedMessage = com.sza.fastmediasorter.core.security.SecretMasker.sanitize(message)
+                    val sanitizedMessage = com.sza.fastmediasorter.core.security.SecretMasker.sanitize(bareMessage)
 
                     // Downgrade "unimportant" errors to WARN
                     var effectivePriority = priority
@@ -296,8 +392,6 @@ object LoggingHelper {
                         else -> '?'
                     }
                     
-                    val timestamp = formatTs(Date())
-                    
                     synchronized(this) {
                         // Check if file needs rotation
                         currentLogFile?.let { file ->
@@ -307,7 +401,8 @@ object LoggingHelper {
                                 openNewLogFile()
                             }
                         }
-                        
+                        reportDroppedWrites(timestamp)
+
                         if (effectivePriority == android.util.Log.WARN) {
                             // Warnings: single line, compact exception info
                             var logLine = "$timestamp $priorityChar/${tag ?: "App"}: $sanitizedMessage"
@@ -330,6 +425,36 @@ object LoggingHelper {
                 } catch (e: Exception) {
                     // Silently fail - don't cause app crash due to logging
                 }
+            }
+        }
+
+        /**
+         * S1203: announces the entries the queue cap had to drop, so a burst that outran the disk
+         * leaves a mark in the log instead of a silent gap. Caller holds the file monitor.
+         */
+        private fun reportDroppedWrites(timestamp: String) {
+            val dropped = droppedWrites.getAndSet(0)
+            if (dropped > 0) {
+                printWriter?.println("$timestamp W/FileLoggingTree: dropped $dropped entries - log queue full")
+            }
+        }
+
+        /**
+         * S1203: blocks until everything queued before this call has reached the file. The executor is
+         * single-threaded and FIFO, so an empty task finishing means every earlier one already did.
+         */
+        private fun flushPendingWrites() {
+            val drained = try {
+                logIoExecutor.submit { }
+            } catch (_: RejectedExecutionException) {
+                return
+            }
+            try {
+                drained.get(FLUSH_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            } catch (_: Exception) {
+                // A crash dump must never hang on a stuck log queue: abandon the tail and let the
+                // crash file be written anyway.
+                drained.cancel(true)
             }
         }
 
@@ -364,7 +489,7 @@ object LoggingHelper {
         }
 
         private fun startDebugMirrorScheduler() {
-            debugMirrorScheduler.scheduleAtFixedRate(
+            logIoExecutor.scheduleAtFixedRate(
                 {
                     StrictModeHelper.allowDiskIO {
                         flushDebugMirrorDelta()
@@ -408,6 +533,16 @@ object LoggingHelper {
                 if (sourceLength == debugMirrorSourceOffsetBytes) return
 
                 targetFile.parentFile?.mkdirs()
+                // S1310: the mirror only ever appended - across source-log rotations it re-copied
+                // every new file in full, so a long debug session grew it without bound while the
+                // source itself stayed capped at maxFileSize. Restart the mirror at the cap instead.
+                if (targetFile.length() >= debugMirrorMaxBytes) {
+                    val capMb = debugMirrorMaxBytes / 1024 / 1024
+                    FileOutputStream(targetFile, false).use { reset ->
+                        reset.write("=== mirror restarted (cap ${capMb}MB) ===\n".toByteArray())
+                    }
+                    debugMirrorSourceOffsetBytes = maxOf(0L, sourceLength - DEFAULT_BUFFER_SIZE)
+                }
                 RandomAccessFile(sourceFile, "r").use { input ->
                     input.seek(debugMirrorSourceOffsetBytes)
                     FileOutputStream(targetFile, true).use { output ->
@@ -467,6 +602,9 @@ object LoggingHelper {
          */
         fun writeCrashSynchronously(thread: Thread, throwable: Throwable) {
             try {
+                // S1203: entries queued moments before the crash are still on the log I/O thread;
+                // drain them first so the session log ends where the crash actually happened.
+                flushPendingWrites()
                 val now = Date()
                 val timestamp = formatTs(now)
                 val crashFile = File(logDir, "fastmediasorter_crash_${formatFileName(now)}.log")
@@ -506,5 +644,31 @@ object LoggingHelper {
                 file.isFile && file.name.startsWith("fastmediasorter_") && file.name.endsWith(".log")
             }?.sortedByDescending { it.lastModified() } ?: emptyList()
         }
+
+        private companion object {
+            // S1203: deep enough that ordinary bursts never reach it, shallow enough that a runaway
+            // logger cannot grow the queue without bound now that callers no longer wait on a write.
+            const val MAX_PENDING_WRITES = 4096
+
+            // How long the crash path waits for the queue before giving up on its tail.
+            const val FLUSH_TIMEOUT_SECONDS = 2L
+        }
     }
+}
+
+/**
+ * S1248: undo `Timber.Tree.prepareLog`'s message mutation. When a throwable is passed, Timber
+ * appends `"\n" + Log.getStackTraceString(t)` to the message before calling any tree, while also
+ * handing the tree the throwable itself - a tree that renders the trace from [t] then writes it
+ * twice. Returns the caller's original message text; for a text-less `Timber.e(t)` call (where the
+ * whole message IS the trace) it returns an empty string, leaving the tree's own trace rendering
+ * as the single copy.
+ *
+ * Top-level so the rule is unit-testable without touching the file-writing tree.
+ */
+internal fun stripTimberAppendedTrace(message: String, t: Throwable?): String {
+    val trace = t?.let { android.util.Log.getStackTraceString(it).trimEnd('\n') }.orEmpty()
+    if (trace.isEmpty()) return message
+    val bare = message.trimEnd('\n')
+    return if (bare == trace) "" else bare.removeSuffix("\n" + trace)
 }

@@ -20,6 +20,13 @@ data class BrowseFileTransferRequest(
     @SerializedName("destinationName") val destinationName: String,
     @SerializedName("overwriteFiles") val overwriteFiles: Boolean,
     @SerializedName("sources") val sources: List<BrowseFileTransferSource>,
+    @SerializedName("softDelete") val softDelete: Boolean = false,
+    // S1370: true when the sources are staging storage created for this operation (share-receive caches
+    // the incoming stream before the destination is picked). The requester finishes before the transfer
+    // does, so it cannot delete them itself without pulling the files out from under the running worker -
+    // the worker owns the purge instead, on every terminal outcome.
+    @SerializedName("sourcesOwnedByOperation") val sourcesOwnedByOperation: Boolean = false,
+    @SerializedName("stagingDirectoryPath") val stagingDirectoryPath: String? = null,
 )
 
 data class BrowseFileTransferSource(

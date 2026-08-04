@@ -1,8 +1,6 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
-import com.sza.fastmediasorter.core.cache.VideoPlaybackFailureSessionCache
-import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -119,9 +117,13 @@ class BrowseRefreshManager(
                         }
                     }
                 }
-                // Manual refresh means "re-check this file again", so drop session-only timeout hints too.
-                VideoPlaybackFailureSessionCache.clearAll()
-                NetworkFileDataFetcher.clearFailedVideoCache()
+                // S1323: the two failure-cache resets used to live here on the assumption that a
+                // reload is always a manual refresh. It is not - this path also runs on MediaStore
+                // and FileObserver events, after every copy/move/delete, and on auth success, so a
+                // thumbnail that timed out was re-tried (10 s per file over SFTP) on any file-system
+                // activity in the folder. They now sit on the explicit refresh gesture instead, in
+                // BrowseManagerInitializer.onRefreshClicked - which also removes the double reset
+                // that fired once there and once here for a single pull-to-refresh.
                 loadResource(true)
             }
         }

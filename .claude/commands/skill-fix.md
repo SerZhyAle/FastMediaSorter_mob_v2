@@ -12,6 +12,8 @@ description: "Use for a fast bug or UI fix that skips doc/git/build/dev-log/spec
 
 Быстрый путь для исправления **существующей** ошибки, регрессии, краша или локальной UI/logic-проблемы, закрываемой узким патчем. Код и UI. Не для новой функциональности и широких архитектурных изменений.
 
+Сюда же свёрнут бывший `/ns` (S1338 phase 07, решение владельца 2026-08-02): правка документации, конфига или скрипта, которой нечего доказывать билдом. Условия те же - не больше трёх файлов и никакого логического решения (архитектура, DI, поведение, порядок шагов). Второй законный повод для этого режима - билд-система занята параллельным агентом: проверить фактически через `pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Build` (всегда выходит 0, вердикт в выводе: `HELD` + PID/причина держателя = занята). Валидация такой правки - Step 3 в его дешёвом варианте: grep по содержимому для документа, запуск скрипта до exit 0 для скрипта.
+
 ## Usage
 
 ```
@@ -57,16 +59,16 @@ Examples:
 
 **Step 2 - Make smallest grounded edit.**
 - **CODE.LOCK (CLAUDE.md Rule 23).** Before the edit, if it touches `app_v2/`/`wear/` source: `pwsh -NoProfile -File scripts/utils/enter-code-lock.ps1 -Reason "/skill-fix: <short desc>"`. A warning about a live `BUILD.LOCK` is informational only - editing itself is unaffected. Since Step 5 skips `post-change.ps1` (the usual auto-release point), release it explicitly in Step 6 via `pwsh -NoProfile -File scripts/utils/exit-code-lock.ps1` - this is the one lock-hygiene call that is NOT bureaucracy to skip.
-- Read inline comments / KDoc in touched area first; treat as requirements.
-- New logic comment only if genuinely needed: English-only, WHY-focused (non-obvious business logic, handled edge-case, workaround) - never restate what code does.
+- Per CLAUDE.md Rule 8 (read comments/KDoc before editing) - obey it as written; here treat what you read as requirements, not context.
+- Per CLAUDE.md Rule 9 (comment discipline) - obey it as written.
 - Patch narrowest code path that directly controls bug.
 - Preserve existing architecture and style; no opportunistic refactor of adjacent code.
-- Editing `res/layout/*.xml` → immediately check `res/layout-land/*.xml` counterpart, patch it too when it exists.
+- Per CLAUDE.md Rule 11 (layout-land parity) - obey it as written; the counterpart edit lands inside the same `/skill-fix`, it is not deferred.
 - Touching user-visible Russian text → preserve author style manually: `..`, `ё`/`Ё`.
 
 **Step 3 - Validate locally, not bureaucratically.**
 - Immediately after first substantive edit, run one focused validation step for touched slice.
-- Allowed: `get_errors` on touched files, narrow unit test, targeted feature-specific script/test, another cheap behaviour-scoped check.
+- Allowed: `get_errors` on touched files, narrow unit test, targeted feature-specific script/test, another cheap behaviour-scoped check. Doc edit → grep for the changed content; script edit → run it, expect exit 0; config edit → the one target that consumes it.
 - Forbidden: full app build, release scripts, git status/diff/history as validation substitute.
 
 **Step 4 - Iterate once if needed.**
@@ -75,7 +77,7 @@ Examples:
 - Task expands beyond fast patch → stop, redirect to `/spec`, `/spec-all`, or `/ui-clarify`.
 
 **Step 4a - Optional on-device verification (only when `--verify-device`).** After Step 3 PASSes:
-1. Pre-flight: `pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -Json`. Exit ≠ 0 → log reason in chat, skip device verification (do not block fix). Common: no device online, mobile-mcp missing, package mismatch.
+1. Pre-flight: `pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -Json`. It exits 0 whenever it determined the state - read `ready` / `state` from the JSON. `ready: false` → log `reason` in chat, skip device verification (do not block fix). Common: no device online, mobile-mcp missing, package mismatch.
 2. Decide build need:
    - Kotlin/Java/manifest/build-config edit → device must run new code → `/verify --build` (underlying skill picks right `build-*-device.ps1`).
    - Pure XML/resource edit running APK won't pick up without reinstall → `/verify --build`.
@@ -97,8 +99,8 @@ Only place `/skill-fix` touches device. No dev log, feature inventory, or spec/j
 
 ## Safety floor
 
-- Read-only zones (`V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`) remain forbidden.
+- Per CLAUDE.md Rule 4 (read-only zones) - obey it as written.
 - No destructive git commands.
-- No new flavor-gating in `src/main/java/**`; respect `dev/FLAVOR_DEVELOPMENT_RULES.md`.
+- Per CLAUDE.md Rule 14 (flavor isolation) - obey it as written; see also `dev/FLAVOR_DEVELOPMENT_RULES.md`.
 - No broad search drift once local hypothesis + cheap check exist.
-- Neuroslop avoidance (CLAUDE.md Rule 20): even fast patch must not introduce AI-slop - no trivial restating comments, no empty/broad swallowing `catch`, no hardcoded `="#hex"` in `res/layout*`, no bare `lifecycleScope.launch { flow.collect { } }` on view-bound Flows (use `collectOnLifecycle`).
+- Per CLAUDE.md Rule 19 (neuroslop avoidance, detekt-clean-first) - obey it as written; the speed of this path buys no exemption.

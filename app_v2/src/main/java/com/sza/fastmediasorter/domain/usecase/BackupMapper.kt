@@ -24,6 +24,23 @@ import java.util.TimeZone
  */
 object BackupMapper {
 
+    // S1346: pinned threshold, deliberately NOT BackupPayload.CURRENT_VERSION - a future bump of
+    // that constant for an unrelated schema change must not silently change this gate.
+    private const val MIN_VERSION_FOR_TRUSTED_OPEN_IN_PLAYER = 6
+
+    /**
+     * S1346: pre-v6 backups always persisted `true` (the pre-S0981 default was ON), so an old
+     * backup's value cannot be trusted as a deliberate choice - force OFF, matching
+     * `S0981OpenInPlayerDefaultOff`'s own "cannot distinguish old default from deliberate choice,
+     * reset unconditionally" trade-off (S0386 precedent).
+     */
+    private fun resolveOpenInPlayer(backupValue: Boolean?, currentValue: Boolean, payloadVersion: Int): Boolean =
+        if (payloadVersion >= MIN_VERSION_FOR_TRUSTED_OPEN_IN_PLAYER) {
+            backupValue ?: currentValue
+        } else {
+            false
+        }
+
     fun toBackupPayload(
         settings: AppSettings,
         resources: List<MediaResource>,
@@ -283,7 +300,7 @@ object BackupMapper {
         )
     }
 
-    fun toAppSettings(backup: BackupSettings, current: AppSettings): AppSettings {
+    fun toAppSettings(backup: BackupSettings, current: AppSettings, payloadVersion: Int): AppSettings {
         return current.copy(
             isResourceGridMode = backup.isResourceGridMode,
             language = backup.language.gsonSafe(current.language),
@@ -402,7 +419,12 @@ object BackupMapper {
             // S0003: null in older backups → keep current setting (don't reset master toggle)
             linkAutoDownloadEnabled = backup.linkAutoDownloadEnabled ?: current.linkAutoDownloadEnabled,
             linkAutoDownloadResourceId = backup.linkAutoDownloadResourceId,
-            linkAutoDownloadOpenInPlayer = backup.linkAutoDownloadOpenInPlayer ?: current.linkAutoDownloadOpenInPlayer,
+            // S1346: see resolveOpenInPlayer KDoc - pre-v6 backups cannot be trusted here.
+            linkAutoDownloadOpenInPlayer = resolveOpenInPlayer(
+                backup.linkAutoDownloadOpenInPlayer,
+                current.linkAutoDownloadOpenInPlayer,
+                payloadVersion
+            ),
             // S0116: null in older backups → preserve current setting
             linkDownloadMaxResolution = backup.linkDownloadMaxResolution ?: current.linkDownloadMaxResolution,
             linkDownloadAudioOnly = backup.linkDownloadAudioOnly ?: current.linkDownloadAudioOnly,

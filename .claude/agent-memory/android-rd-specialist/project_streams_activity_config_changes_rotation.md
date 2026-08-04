@@ -20,3 +20,11 @@ recomputes/re-applies the orientation-dependent layout (mirror `StreamGridModeMa
 Always device-test the rotation explicitly - a passing build + correct portrait view is not enough. Note: the
 emulator `sdk_gphone16k` is nearly square (2076x2152), so landscape only marginally widens; column math still
 resolves to >1, but verify on it.
+
+**`WelcomeActivity` is in this club too** (confirmed 2026-08-03). Two extra consequences beyond stale
+computed values: the `layout-land/page_welcome_*.xml` variants never apply on a rotation in place, and any
+width-qualified resource the pager adapter reads at bind time (e.g. `@integer/welcome_feature_grid_columns`)
+keeps its portrait value. **So to verify a welcome-page landscape change, stop the app and relaunch it while
+already in landscape - rotating proves nothing.** Ticketed as S1377. Emulator caveat from the same session:
+`adb shell settings put system user_rotation N` sometimes does not stick on the first write - read it back
+with `settings get system user_rotation` before trusting the orientation.

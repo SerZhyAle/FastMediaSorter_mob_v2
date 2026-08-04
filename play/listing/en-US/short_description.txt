@@ -1,1 +1,1 @@
-File manager & media player: sort, view, play photos, video, audio. SMB & cloud.
+Files, photos, video, music, live TV & radio - local, SMB, FTP and cloud.

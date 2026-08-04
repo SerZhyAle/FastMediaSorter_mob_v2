@@ -19,6 +19,7 @@
     <!-- S0766: optional GPS geotagging of in-app camera photos (opt-in, default off). -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
 
     <!-- Network permissions -->

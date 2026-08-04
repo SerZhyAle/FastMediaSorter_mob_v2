@@ -196,15 +196,18 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
         }
     }
 
-    override fun setHudQuadSize(widthMeters: Float, heightMeters: Float) {
+    override fun setHudQuadSize(widthMeters: Float, heightMeters: Float, verticalOffsetMeters: Float) {
         if (!isNativeAvailable) return
-        runCatching { nativeSetHudQuadSize(widthMeters, heightMeters) }.onFailure {
+        runCatching { nativeSetHudQuadSize(widthMeters, heightMeters, verticalOffsetMeters) }.onFailure {
             Timber.w(it, "setHudQuadSize: native call threw")
         }
     }
 
-    override fun onNativeRayInteraction(uvX: Float, uvY: Float, isHover: Boolean, isClick: Boolean) {
-        // Validation placeholder for phase 03 JNI pathway streaming
+    override fun setHudVisible(visible: Boolean) {
+        if (!isNativeAvailable) return
+        runCatching { nativeSetHudVisible(visible) }.onFailure {
+            Timber.w(it, "setHudVisible: native call threw")
+        }
     }
 
     override fun applyHaptic(hand: Int, durationSeconds: Float, frequency: Float, amplitude: Float) {
@@ -233,7 +236,12 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
     private external fun nativeSetParallaxShift(value: Float)
     private external fun nativeQueueHud(rgba: ByteArray, width: Int, height: Int)
     private external fun nativeQueueSubtitle(rgba: ByteArray, width: Int, height: Int)
-    private external fun nativeSetHudQuadSize(widthMeters: Float, heightMeters: Float)
+    private external fun nativeSetHudQuadSize(
+        widthMeters: Float,
+        heightMeters: Float,
+        verticalOffsetMeters: Float
+    )
+    private external fun nativeSetHudVisible(visible: Boolean)
     private external fun nativeApplyHaptic(hand: Int, durationSeconds: Float, frequency: Float, amplitude: Float)
     private external fun nativeGetCurrentFps(): Float
     private external fun nativeRunFrameLoop(): Int

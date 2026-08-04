@@ -10,14 +10,18 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
+import com.sza.fastmediasorter.ui.player.StereoDetector
 import com.sza.fastmediasorter.ui.player.helpers.PrefetchLoadControlFactory
+import com.sza.fastmediasorter.ui.xr.helpers.ProjectionType
+import com.sza.fastmediasorter.ui.xr.helpers.StereoLayout
+import com.sza.fastmediasorter.ui.xr.helpers.VrStereoConfigResolver
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.io.File
-import java.nio.ByteBuffer
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
+import java.nio.ByteBuffer
+import javax.inject.Inject
 
 /**
  * Owns in-process playback of the item selected in the immersive browser onto the main media quad,
@@ -28,16 +32,26 @@ import timber.log.Timber
 class ImmersiveBrowsePlaybackController @Inject constructor(
     @ApplicationContext private val context: Context,
     private val runtime: DiagnosticXrRuntime,
+    stereoDetector: StereoDetector,
 ) {
 
     private var exoPlayer: ExoPlayer? = null
 
     @Volatile private var reusableBuffer: ByteBuffer? = null
 
-    /** Decodes an image within the heap budget and pushes it to the main quad. Returns success. */
-    suspend fun playImage(file: File): Boolean {
+    // S1222: the browser used to classify stereo for the grid badge only, so every file opened here
+    // rendered on the default flat mono quad. Same resolver DiagnosticXrActivity uses, so both entry
+    // points agree on projection/layout for one filename.
+    private val stereoConfigResolver = VrStereoConfigResolver(stereoDetector)
+
+    /**
+     * Decodes an image within the heap budget and pushes it to the main quad. [displayName] is the
+     * grid cell label, so the render config resolves from the same string the badge used.
+     */
+    suspend fun playImage(file: File, displayName: String): Boolean {
         stop()
         runtime.setVideoSurfaceEnabled(false)
+        applyRenderConfig(displayName)
         val bitmap = decodeWithinBudget(file) ?: run {
             Timber.w("ImmersiveBrowsePlaybackController: decode failed for %s", file.name)
             return false
@@ -50,14 +64,18 @@ class ImmersiveBrowsePlaybackController @Inject constructor(
         return bytes != null
     }
 
-    /** Starts video playback on the native video surface. Returns success. */
-    fun playVideo(uri: Uri): Boolean {
+    /**
+     * Starts video playback on the native video surface. [displayName] is the grid cell label, so
+     * the render config resolves from the same string the badge used. Returns success.
+     */
+    fun playVideo(uri: Uri, displayName: String): Boolean {
         stop()
         val surface = runtime.getVideoSurface()
         if (surface == null) {
             Timber.w("ImmersiveBrowsePlaybackController: native video surface not ready")
             return false
         }
+        applyRenderConfig(displayName)
         // S1113: apply the S0772 heap-bounded LoadControl (default LoadControl over-buffers 7K on
         // the 512 MB-heap headset and stalls). Matches the flat player + DiagnosticXrActivity.
         val vrPlayer = ExoPlayer.Builder(context)
@@ -88,6 +106,16 @@ class ImmersiveBrowsePlaybackController @Inject constructor(
             release()
         }
         exoPlayer = null
+        // S1222: a 360/180 projection binds the sphere or hemisphere VAO (xr_session.cpp), so leaving
+        // it applied would drop the browse grid inside a sphere carrying the last frame. Flat mono is
+        // the state the grid was authored against.
+        runtime.setRenderConfig(ProjectionType.FLAT.value, StereoLayout.MONO.value)
+    }
+
+    private fun applyRenderConfig(displayName: String) {
+        val config = stereoConfigResolver.resolve(displayName)
+        Timber.d("S1222: browse applies $displayName -> ${config.projection}/${config.layout}")
+        runtime.setRenderConfig(config.projection.value, config.layout.value)
     }
 
     private suspend fun decodeWithinBudget(file: File): Bitmap? = withContext(Dispatchers.IO) {

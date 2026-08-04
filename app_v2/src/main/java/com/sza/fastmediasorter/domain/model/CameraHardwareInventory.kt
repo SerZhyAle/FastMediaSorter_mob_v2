@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.model
 
 import android.util.Range
 import android.util.Size
+import android.util.SizeF
 
 /**
  * What the device reports about its cameras, read once for the System info report.
@@ -26,6 +27,7 @@ data class CameraHardwareEntry(
     val logicalParentId: String? = null,
     val lensFacing: Int? = null,
     val focalLengthsMm: List<Float> = emptyList(),
+    val sensorSizeMm: SizeF? = null,
     val zoomRange: Range<Float>? = null,
     val minFocusDistanceDiopters: Float? = null,
     val focusDistanceCalibration: Int? = null,

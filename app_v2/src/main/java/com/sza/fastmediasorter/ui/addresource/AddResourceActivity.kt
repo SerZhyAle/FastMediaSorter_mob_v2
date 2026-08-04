@@ -120,6 +120,22 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // S1331: registered here, not at btnScanNetwork - a recreated activity must have the listener
+        // back before the restored discovery dialog resumes, otherwise the picked host is dropped.
+        supportFragmentManager.setFragmentResultListener(NetworkDiscoveryDialog.RESULT_KEY, this) { _, bundle ->
+            val hostIp = bundle.getString(NetworkDiscoveryDialog.RESULT_HOST_IP)
+                ?: return@setFragmentResultListener
+            Timber.d("S1331: discovery result received ip=%s", hostIp)
+            binding.etSmbServer.setText(hostIp)
+            viewModel.scanShares(
+                hostIp,
+                binding.etSmbUsername.text?.toString()?.trim().orEmpty(),
+                binding.etSmbPassword.text?.toString()?.trim().orEmpty(),
+                binding.etSmbDomain.text?.toString()?.trim().orEmpty(),
+                binding.etSmbPort.text?.toString()?.trim()?.toIntOrNull() ?: DEFAULT_SMB_PORT
+            )
+        }
+
         copyResourceId = intent.getLongExtra(EXTRA_COPY_RESOURCE_ID, -1L).takeIf { it != -1L }
 
         val preselectedTab = intent.getStringExtra(EXTRA_PRESELECTED_TAB)?.let {
@@ -288,18 +304,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
         binding.btnScanNetwork.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ScanNetwork", "AddResource")
-            val dialog = NetworkDiscoveryDialog.newInstance()
-            dialog.onHostSelected = { host ->
-                binding.etSmbServer.setText(host.ip)
-                viewModel.scanShares(
-                    host.ip,
-                    binding.etSmbUsername.text?.toString()?.trim().orEmpty(),
-                    binding.etSmbPassword.text?.toString()?.trim().orEmpty(),
-                    binding.etSmbDomain.text?.toString()?.trim().orEmpty(),
-                    binding.etSmbPort.text?.toString()?.trim()?.toIntOrNull() ?: 445
-                )
-            }
-            dialog.show(supportFragmentManager, NetworkDiscoveryDialog.TAG)
+            NetworkDiscoveryDialog.newInstance()
+                .show(supportFragmentManager, NetworkDiscoveryDialog.TAG)
         }
         binding.btnScanShares.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ScanShares", "AddResource")
@@ -313,7 +319,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 binding.etSmbUsername.text?.toString()?.trim().orEmpty(),
                 binding.etSmbPassword.text?.toString()?.trim().orEmpty(),
                 binding.etSmbDomain.text?.toString()?.trim().orEmpty(),
-                binding.etSmbPort.text?.toString()?.trim()?.toIntOrNull() ?: 445
+                binding.etSmbPort.text?.toString()?.trim()?.toIntOrNull() ?: DEFAULT_SMB_PORT
             )
         }
         binding.btnSmbAddToResources.setOnClickListener {
@@ -518,6 +524,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     companion object {
         private const val EXTRA_COPY_RESOURCE_ID = "extra_copy_resource_id"
         private const val EXTRA_PRESELECTED_TAB = "extra_preselected_tab"
+        private const val DEFAULT_SMB_PORT = 445
 
         fun createIntent(context: Context, copyResourceId: Long? = null, preselectedTab: com.sza.fastmediasorter.ui.main.ResourceTab? = null): Intent {
             return Intent(context, AddResourceActivity::class.java).apply {

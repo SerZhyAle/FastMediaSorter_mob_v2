@@ -127,7 +127,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
     private val textEditorSaveFlow by lazy {
         com.sza.fastmediasorter.ui.player.helpers.TextEditorSaveFlow(
             context = this,
-            saveTextNoteUseCase = saveTextNoteUseCase,
+            saveTextNote = saveTextNoteUseCase::invoke,
             scope = lifecycleScope,
         )
     }

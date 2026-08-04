@@ -8,7 +8,9 @@
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)][string] $Name,
+    # Not [Parameter(Mandatory)]: a mandatory parameter makes the host prompt before the
+    # body runs, so -Help could never print. Absence is reported explicitly below instead.
+    [string] $Name,
     [string] $File,
     [ValidateSet('Draft','Approved','Tactical','In Progress',
         'Implemented','Verified','Partial','Broken',
@@ -21,8 +23,18 @@ param(
     [string] $Id,
     # Alternative to -File: build PLAN/Sxxxx_<slug>.md after id allocation,
     # collapsing the old next-id.ps1 + insert.ps1 two-step into one call.
-    [string] $Slug
+    [string] $Slug,
+    [switch] $Help
 )
+
+if ($Help) {
+    & (Join-Path $PSScriptRoot '..\utils\help.ps1') -Name 'scripts/spec_catalog/insert.ps1'
+    exit $LASTEXITCODE
+}
+if (-not $Name) {
+    Write-Error 'insert.ps1 requires -Name <ticket name>. Run with -Help for the parameter list.' -ErrorAction Continue
+    exit 1
+}
 
 # Convert terminating errors (Write-Error, throw, provider errors) into
 # the documented `exit 1` so callers can rely on $LASTEXITCODE.

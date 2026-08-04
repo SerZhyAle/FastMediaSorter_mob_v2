@@ -8,26 +8,16 @@ import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.core.ui.UiState
-import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.exceptions.WifiRequiredException
 import com.sza.fastmediasorter.data.remote.sftp.SftpFailureCategory
 import com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure
-import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.UndoOperation
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
-import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
-import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
-import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
-import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
-import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
-import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -57,48 +47,13 @@ data class InlinePlayerState(
 @HiltViewModel
 class BrowseViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val getResourcesUseCase: GetResourcesUseCase,
-    private val getMediaFilesUseCase: GetMediaFilesUseCase,
-    private val deleteByFileSizeUseCase: com.sza.fastmediasorter.domain.usecase.DeleteByFileSizeUseCase,
-    private val mediaScannerFactory: MediaScannerFactory,
-    private val settingsRepository: SettingsRepository,
-    private val cachedFileListRepository: CachedFileListRepository,
-    private val updateResourceUseCase: UpdateResourceUseCase,
-    val fileOperationUseCase: FileOperationUseCase, // Public for RenameDialog
-    private val smbClient: Lazy<com.sza.fastmediasorter.data.network.SmbClient>,
-    private val smbOperationsUseCase: SmbOperationsUseCase,
-    private val cleanupTrashFoldersUseCase: com.sza.fastmediasorter.domain.usecase.CleanupTrashFoldersUseCase,
-    private val cleanupOrphanedTempFilesUseCase: com.sza.fastmediasorter.domain.usecase.CleanupOrphanedTempFilesUseCase,
-    private val googleDriveClient: Lazy<com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient>,
-    private val dropboxClient: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>,
-    private val oneDriveClient: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>,
-    private val favoritesUseCase: com.sza.fastmediasorter.domain.usecase.FavoritesUseCase,
-    private val materializeFavoritesUseCase: com.sza.fastmediasorter.domain.usecase.MaterializeFavoritesUseCase,
-    private val statsSink: com.sza.fastmediasorter.domain.stats.StatsSink,
-    private val cachedMediaMetadataExtractor: CachedMediaMetadataExtractor,
-    private val audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader,
-    private val browseStateDataStore: com.sza.fastmediasorter.data.local.preferences.BrowseStateDataStore,
-    private val manualOrderPrefs: com.sza.fastmediasorter.data.local.preferences.BrowseManualOrderPrefs,
-    private val unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache,
-    private val syncMediaStoreUseCase: com.sza.fastmediasorter.domain.usecase.SyncMediaStoreUseCase,
-    private val clearResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase,
-    private val getResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase,
-    private val saveResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.SaveResumeStateUseCase,
-    private val createDirectoryUseCase: com.sza.fastmediasorter.domain.usecase.CreateDirectoryUseCase,
-    private val createTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.CreateTextNoteUseCase,
-    private val createDrawingUseCase: com.sza.fastmediasorter.domain.usecase.CreateDrawingUseCase,
-    private val archiveFilesUseCase: com.sza.fastmediasorter.domain.usecase.ArchiveFilesUseCase,
-    private val extractArchiveUseCase: com.sza.fastmediasorter.domain.usecase.ExtractArchiveUseCase,
-    private val addResourceAsDestinationUseCase: com.sza.fastmediasorter.domain.usecase.AddResourceAsDestinationUseCase,
-    private val deleteDirectoriesUseCase: com.sza.fastmediasorter.domain.usecase.DeleteDirectoriesUseCase,
-    private val unifiedFileOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler,
-    // S0242 Phase 03 - pull-to-refresh hooks `clearResource(resourceId)` before the rescan
-    // so Reconciler doesn't re-apply stale entries to a freshly-fetched listing.
-    private val mutationJournal: com.sza.fastmediasorter.domain.mutation.MutationJournal,
-    // S0242 Phase 05 - passed into BrowseFileObserverManager so it can canonicalize raw
-    // local paths before recording Mutation entries that the Reconciler reads on resume.
-    private val pathNormalizer: com.sza.fastmediasorter.domain.path.PathNormalizer,
-    private val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
+    private val remoteAccess: BrowseRemoteAccessDependencies,
+    private val cleanupUseCases: BrowseCleanupUseCases,
+    private val contentDiscovery: BrowseContentDiscoveryDependencies,
+    private val persistedState: BrowsePersistedStateDependencies,
+    // Public - external reads keep reaching fileOperationUseCase via this holder (S1350).
+    val contentAuthoringUseCases: BrowseContentAuthoringUseCases,
+    private val fileMutation: BrowseFileMutationDependencies,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<BrowseState, BrowseEvent>() {
@@ -121,7 +76,7 @@ class BrowseViewModel @Inject constructor(
     // ~150-field AppSettings (with a glidePrefs side-effect write) once per observer on every
     // settings write. Sharing collapses that to a single upstream collection; flowOn(Default) keeps
     // the rebuild off Main; Eagerly so .value is current for synchronous reads.
-    val settings: StateFlow<AppSettings> = settingsRepository.getSettings()
+    val settings: StateFlow<AppSettings> = fileMutation.settingsRepository.getSettings()
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
 
@@ -141,7 +96,7 @@ class BrowseViewModel @Inject constructor(
     // Undo management
     private val undoManager = com.sza.fastmediasorter.ui.browse.undo.BrowseUndoManager(
         context = context,
-        statsSink = statsSink,
+        statsSink = persistedState.statsSink,
         callbacks = object : com.sza.fastmediasorter.ui.browse.undo.BrowseUndoManager.UndoCallbacks {
             override suspend fun addFilesToList(files: List<MediaFile>) {
                 addFiles(files)
@@ -168,7 +123,8 @@ class BrowseViewModel @Inject constructor(
                     override fun getAbsolutePath(): String = currentPath
                 }
                 val operation = com.sza.fastmediasorter.domain.usecase.FileOperation.Rename(file, originalName)
-                return fileOperationUseCase.execute(operation) is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Success
+                val result = contentAuthoringUseCases.fileOperationUseCase.execute(operation)
+                return result is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Success
             }
         }
     )
@@ -177,13 +133,13 @@ class BrowseViewModel @Inject constructor(
     private val fileListManager = com.sza.fastmediasorter.ui.browse.filelist.BrowseFileListManager(resourceId)
     
     private val metadataManager = com.sza.fastmediasorter.ui.browse.metadata.BrowseMetadataManager(
-        updateResourceUseCase = updateResourceUseCase,
+        updateResourceUseCase = contentAuthoringUseCases.updateResourceUseCase,
         ioDispatcher = ioDispatcher
     )
     
     private val loadingManager = com.sza.fastmediasorter.ui.browse.loading.BrowseLoadingManager(
-        getMediaFilesUseCase = getMediaFilesUseCase,
-        favoritesUseCase = favoritesUseCase,
+        getMediaFilesUseCase = contentDiscovery.getMediaFilesUseCase,
+        favoritesUseCase = persistedState.favoritesUseCase,
         resourceId = resourceId,
         viewModelScope = viewModelScope,
         ioDispatcher = ioDispatcher,
@@ -204,7 +160,7 @@ class BrowseViewModel @Inject constructor(
         updateState = { update -> updateState(update) },
         sendEvent = { event -> sendEvent(event) },
         setLoading = { isLoading -> setLoading(isLoading) },
-        mediaScannerFactory = mediaScannerFactory,
+        mediaScannerFactory = contentDiscovery.mediaScannerFactory,
         cancelLoad = { resourceLoadManager.cancelLoad(loadFilesJob) },
         onLoadMediaFiles = { resourceLoadManager.loadMediaFiles() },
         onLoadResource = { resourceLoadManager.loadResource() }
@@ -221,8 +177,8 @@ class BrowseViewModel @Inject constructor(
         // S0242 Phase 05 - Route delete / move events through MutationJournal so the
         // Reconciler picks them up on next onResume (single source-mutation reader).
         resourceId = resourceId,
-        mutationJournal = mutationJournal,
-        pathNormalizer = pathNormalizer
+        mutationJournal = fileMutation.mutationJournal,
+        pathNormalizer = fileMutation.pathNormalizer
     )
 
     // Job for current file loading operation (to cancel on reload)
@@ -243,9 +199,9 @@ class BrowseViewModel @Inject constructor(
     // --- Loading aux: error formatting, audio enrichment, ExoPlayer warmup ---
     private val auxManager = com.sza.fastmediasorter.ui.browse.managers.BrowseLoadingAuxManager(
         context = context,
-        updateResourceUseCase = updateResourceUseCase,
-        cachedMediaMetadataExtractor = cachedMediaMetadataExtractor,
-        cachedFileListRepository = cachedFileListRepository,
+        updateResourceUseCase = contentAuthoringUseCases.updateResourceUseCase,
+        cachedMediaMetadataExtractor = contentDiscovery.cachedMediaMetadataExtractor,
+        cachedFileListRepository = contentDiscovery.cachedFileListRepository,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
         exceptionHandler = exceptionHandler,
@@ -261,9 +217,9 @@ class BrowseViewModel @Inject constructor(
     // --- Inline Audio Player (delegated to BrowseInlineAudioManager) ---
     private val audioManager = com.sza.fastmediasorter.ui.browse.managers.BrowseInlineAudioManager(
         context = context,
-        smbClient = smbClient,
-        smbOperationsUseCase = smbOperationsUseCase,
-        saveResumeStateUseCase = saveResumeStateUseCase,
+        smbClient = remoteAccess.smbClient,
+        smbOperationsUseCase = remoteAccess.smbOperationsUseCase,
+        saveResumeStateUseCase = persistedState.saveResumeStateUseCase,
         windowIdProvider = windowIdProvider,
         scope = viewModelScope,
         stateFlow = state,
@@ -274,9 +230,9 @@ class BrowseViewModel @Inject constructor(
     // --- Archive / Extraction (delegated to BrowseArchiveManager) ---
     private val archiveManager = com.sza.fastmediasorter.ui.browse.managers.BrowseArchiveManager(
         context = context,
-        archiveFilesUseCase = archiveFilesUseCase,
-        extractArchiveUseCase = extractArchiveUseCase,
-        createDirectoryUseCase = createDirectoryUseCase,
+        archiveFilesUseCase = contentAuthoringUseCases.archiveFilesUseCase,
+        extractArchiveUseCase = contentAuthoringUseCases.extractArchiveUseCase,
+        createDirectoryUseCase = contentAuthoringUseCases.createDirectoryUseCase,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
         stateFlow = state,
@@ -289,10 +245,11 @@ class BrowseViewModel @Inject constructor(
     // --- Delete (delegated to BrowseDeleteManager) ---
     private val deleteManager = com.sza.fastmediasorter.ui.browse.managers.BrowseDeleteManager(
         context = context,
-        settingsRepository = settingsRepository,
-        fileOperationUseCase = fileOperationUseCase,
-        deleteDirectoriesUseCase = deleteDirectoriesUseCase,
-        deleteByFileSizeUseCase = deleteByFileSizeUseCase,
+        settingsRepository = fileMutation.settingsRepository,
+        fileOperationUseCase = contentAuthoringUseCases.fileOperationUseCase,
+        deleteDirectoriesUseCase = cleanupUseCases.deleteDirectoriesUseCase,
+        deleteByFileSizeUseCase = cleanupUseCases.deleteByFileSizeUseCase,
+        browseTransferCoordinator = cleanupUseCases.browseTransferCoordinator,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
         stateFlow = state,
@@ -309,8 +266,8 @@ class BrowseViewModel @Inject constructor(
     // --- Directory operations (delegated to BrowseDirectoryOpsManager) ---
     private val directoryOpsManager = com.sza.fastmediasorter.ui.browse.managers.BrowseDirectoryOpsManager(
         context = context,
-        createDirectoryUseCase = createDirectoryUseCase,
-        unifiedFileOperationHandler = unifiedFileOperationHandler,
+        createDirectoryUseCase = contentAuthoringUseCases.createDirectoryUseCase,
+        unifiedFileOperationHandler = fileMutation.unifiedFileOperationHandler,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
         stateFlow = state,
@@ -337,7 +294,7 @@ class BrowseViewModel @Inject constructor(
 
     private val textNoteCreateManager = com.sza.fastmediasorter.ui.browse.managers.BrowseTextNoteCreateManager(
         context = context,
-        createTextNoteUseCase = createTextNoteUseCase,
+        createTextNoteUseCase = contentAuthoringUseCases.createTextNoteUseCase,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
         stateFlow = state,
@@ -348,7 +305,7 @@ class BrowseViewModel @Inject constructor(
 
     private val drawingCreateManager = com.sza.fastmediasorter.ui.browse.managers.BrowseDrawingCreateManager(
         context = context,
-        createDrawingUseCase = createDrawingUseCase,
+        createDrawingUseCase = contentAuthoringUseCases.createDrawingUseCase,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
         stateFlow = state,
@@ -361,9 +318,11 @@ class BrowseViewModel @Inject constructor(
     // manager; cache→visible reconciliation is now owned by BrowseReconcilerManager.
     // This manager keeps only favorites loading + resource-settings-changed reload.
     private val stateSyncManager = com.sza.fastmediasorter.ui.browse.managers.BrowseStateSyncManager(
-        favoritesUseCase = favoritesUseCase,
-        materializeFavoritesUseCase = materializeFavoritesUseCase,
-        getResourcesUseCase = getResourcesUseCase,
+        useCases = com.sza.fastmediasorter.ui.browse.managers.BrowseStateSyncUseCases(
+            favoritesUseCase = persistedState.favoritesUseCase,
+            materializeFavoritesUseCase = persistedState.materializeFavoritesUseCase,
+            getResourcesUseCase = contentDiscovery.getResourcesUseCase
+        ),
         resourceId = resourceId,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
@@ -376,10 +335,10 @@ class BrowseViewModel @Inject constructor(
 
     // --- Refresh/reload flow (delegated to BrowseRefreshManager) ---
     private val refreshManager = com.sza.fastmediasorter.ui.browse.managers.BrowseRefreshManager(
-        syncMediaStoreUseCase = syncMediaStoreUseCase,
-        smbOperationsUseCase = smbOperationsUseCase,
-        cachedFileListRepository = cachedFileListRepository,
-        mutationJournal = mutationJournal,
+        syncMediaStoreUseCase = contentDiscovery.syncMediaStoreUseCase,
+        smbOperationsUseCase = remoteAccess.smbOperationsUseCase,
+        cachedFileListRepository = contentDiscovery.cachedFileListRepository,
+        mutationJournal = fileMutation.mutationJournal,
         resourceId = resourceId,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
@@ -393,9 +352,9 @@ class BrowseViewModel @Inject constructor(
     // --- Sort / Filter (delegated to BrowseSortFilterManager) ---
     private val sortFilterManager = com.sza.fastmediasorter.ui.browse.managers.BrowseSortFilterManager(
         context = context,
-        updateResourceUseCase = updateResourceUseCase,
-        getResourcesUseCase = getResourcesUseCase,
-        getMediaFilesUseCase = getMediaFilesUseCase,
+        updateResourceUseCase = contentAuthoringUseCases.updateResourceUseCase,
+        getResourcesUseCase = contentDiscovery.getResourcesUseCase,
+        getMediaFilesUseCase = contentDiscovery.getMediaFilesUseCase,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
         stateFlow = state,
@@ -413,9 +372,9 @@ class BrowseViewModel @Inject constructor(
     // --- File Open (delegated to BrowseFileOpenManager) ---
     private val fileOpenManager = com.sza.fastmediasorter.ui.browse.managers.BrowseFileOpenManager(
         context = context,
-        updateResourceUseCase = updateResourceUseCase,
-        mediaScannerFactory = mediaScannerFactory,
-        cachedFileListRepository = cachedFileListRepository,
+        updateResourceUseCase = contentAuthoringUseCases.updateResourceUseCase,
+        mediaScannerFactory = contentDiscovery.mediaScannerFactory,
+        cachedFileListRepository = contentDiscovery.cachedFileListRepository,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
         stateFlow = state,
@@ -430,16 +389,16 @@ class BrowseViewModel @Inject constructor(
     // --- Resource / Media-file loading pipeline (delegated to BrowseResourceLoadManager) ---
     private val resourceLoadManager = com.sza.fastmediasorter.ui.browse.managers.BrowseResourceLoadManager(
         context = context,
-        updateResourceUseCase = updateResourceUseCase,
-        cachedFileListRepository = cachedFileListRepository,
-        googleDriveClient = googleDriveClient,
-        dropboxClient = dropboxClient,
-        oneDriveClient = oneDriveClient,
-        favoritesUseCase = favoritesUseCase,
-        audioMetadataLoader = audioMetadataLoader,
-        cleanupOrphanedTempFilesUseCase = cleanupOrphanedTempFilesUseCase,
-        getResourcesUseCase = getResourcesUseCase,
-        remoteSourceGate = remoteSourceGate,
+        updateResourceUseCase = contentAuthoringUseCases.updateResourceUseCase,
+        cachedFileListRepository = contentDiscovery.cachedFileListRepository,
+        googleDriveClient = remoteAccess.googleDriveClient,
+        dropboxClient = remoteAccess.dropboxClient,
+        oneDriveClient = remoteAccess.oneDriveClient,
+        favoritesUseCase = persistedState.favoritesUseCase,
+        audioMetadataLoader = contentDiscovery.audioMetadataLoader,
+        cleanupOrphanedTempFilesUseCase = cleanupUseCases.cleanupOrphanedTempFilesUseCase,
+        getResourcesUseCase = contentDiscovery.getResourcesUseCase,
+        remoteSourceGate = remoteAccess.remoteSourceGate,
         cacheManager = cacheManager,
         loadingManager = loadingManager,
         scope = viewModelScope,
@@ -462,7 +421,7 @@ class BrowseViewModel @Inject constructor(
         onFilesLoadedSaveAndEnrich = { resource, files ->
             if (resource.rememberFileList) {
                 try {
-                    cachedFileListRepository.saveCachedFiles(resource.id, files)
+                    contentDiscovery.cachedFileListRepository.saveCachedFiles(resource.id, files)
                 } catch (e: Exception) {
                     Timber.e(e, "BrowseViewModel: failed to save DB cache for ${resource.id}")
                 }
@@ -501,7 +460,7 @@ class BrowseViewModel @Inject constructor(
     // --- File-list mutations (delegated to BrowseFileListMutationManager) ---
     private val fileListMutationManager = com.sza.fastmediasorter.ui.browse.managers.BrowseFileListMutationManager(
         fileListManager = fileListManager,
-        cachedFileListRepository = cachedFileListRepository,
+        cachedFileListRepository = contentDiscovery.cachedFileListRepository,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
         stateFlow = state,
@@ -515,11 +474,11 @@ class BrowseViewModel @Inject constructor(
     // --- Resource state persistence (delegated to BrowseResourceStateManager) ---
     private val resourceStateManager = com.sza.fastmediasorter.ui.browse.managers.BrowseResourceStateManager(
         context = context,
-        favoritesUseCase = favoritesUseCase,
-        updateResourceUseCase = updateResourceUseCase,
-        getResourcesUseCase = getResourcesUseCase,
-        addResourceAsDestinationUseCase = addResourceAsDestinationUseCase,
-        clearResumeStateUseCase = clearResumeStateUseCase,
+        favoritesUseCase = persistedState.favoritesUseCase,
+        updateResourceUseCase = contentAuthoringUseCases.updateResourceUseCase,
+        getResourcesUseCase = contentDiscovery.getResourcesUseCase,
+        addResourceAsDestinationUseCase = contentAuthoringUseCases.addResourceAsDestinationUseCase,
+        clearResumeStateUseCase = persistedState.clearResumeStateUseCase,
         windowIdProvider = windowIdProvider,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
@@ -534,14 +493,15 @@ class BrowseViewModel @Inject constructor(
     private val shutdownCoordinator = com.sza.fastmediasorter.ui.browse.managers.BrowseShutdownCoordinator(
         stateFlow = state,
         ioDispatcher = ioDispatcher,
-        browseStateDataStore = browseStateDataStore,
-        unifiedCache = unifiedCache,
+        browseStateDataStore = persistedState.browseStateDataStore,
+        unifiedCache = contentDiscovery.unifiedCache,
+        hasActiveTransfer = { cleanupUseCases.browseTransferCoordinator.hasActiveTransfer() },
         cleanupTrash = { resource -> refreshManager.cleanupTrashOnBackground(resource) }
     )
 
     // --- Manual-order ordering (delegated to BrowseManualOrderCoordinator) ---
     private val manualOrderCoordinator = com.sza.fastmediasorter.ui.browse.managers.BrowseManualOrderCoordinator(
-        manualOrderPrefs = manualOrderPrefs,
+        manualOrderPrefs = persistedState.manualOrderPrefs,
         resourceId = resourceId,
         stateFlow = state,
         updateState = { update -> updateState(update) },
@@ -550,22 +510,29 @@ class BrowseViewModel @Inject constructor(
 
     // --- Lifecycle setup (delegated to BrowseLifecycleSetupManager) ---
     private val lifecycleSetupManager = com.sza.fastmediasorter.ui.browse.managers.BrowseLifecycleSetupManager(
-        context = context,
-        browseStateDataStore = browseStateDataStore,
-        settingsRepository = settingsRepository,
-        unifiedCache = unifiedCache,
-        selectionManager = selectionManager,
-        undoManager = undoManager,
-        getResumeStateUseCase = getResumeStateUseCase,
-        clearResumeStateUseCase = clearResumeStateUseCase,
+        dependencies = com.sza.fastmediasorter.ui.browse.managers.BrowseLifecycleSetupDependencies(
+            context = context,
+            settingsRepository = fileMutation.settingsRepository,
+            cacheCleanup = com.sza.fastmediasorter.ui.browse.managers.BrowseCacheCleanup(
+                unifiedCache = contentDiscovery.unifiedCache,
+                hasActiveTransfer = { cleanupUseCases.browseTransferCoordinator.hasActiveTransfer() }
+            ),
+            stateDependencies = com.sza.fastmediasorter.ui.browse.managers.BrowseLifecycleStateDependencies(
+                browseStateDataStore = persistedState.browseStateDataStore,
+                selectionManager = selectionManager,
+                undoManager = undoManager,
+                getResumeStateUseCase = persistedState.getResumeStateUseCase,
+                clearResumeStateUseCase = persistedState.clearResumeStateUseCase,
+                stateFlow = state,
+                updateState = { update -> updateState(update) },
+                sendEvent = { event -> sendEvent(event) },
+                applyFilter = { applyFilter() }
+            )
+        ),
         windowIdProvider = windowIdProvider,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
         exceptionHandler = exceptionHandler,
-        stateFlow = state,
-        updateState = { update -> updateState(update) },
-        sendEvent = { event -> sendEvent(event) },
-        applyFilter = { applyFilter() },
         resourceId = resourceId
     )
 

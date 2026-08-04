@@ -2,26 +2,39 @@
 """Compose localized caption overlays onto raw store screenshots (S0497 Phase 03).
 
 For each locale folder in play/listing/ and each slot in play/listing/captions.json, load the raw
-shot temp/play-shots/<slot-id>.png, pad it onto a brand-color canvas constrained to a 2:1 aspect
-bound, draw the localized caption as a top band, and write the result to
+shot temp/play-shots/<locale>/<slot-id>.png (falling back to temp/play-shots/<slot-id>.png when the
+locale has no own capture), pad it onto a brand-color canvas constrained to a 2:1 aspect bound, draw
+the localized caption as a top band, and write the result to
 play/listing/<locale-folder>/images/phoneScreenshots/<NN>.png (NN ordered over present slots).
 
 Play asset constraints enforced: PNG output, each side in [320, 3840], aspect ratio <= 2:1.
 Slots whose raw shot is absent are skipped with a warning (manual-pending), not silently swallowed.
 
+--tablet reads the separate temp/play-shots-tablet/ tree and writes tenInchScreenshots instead, so a
+tablet run can never overwrite or shadow a phone raw shot through resolve_shot()'s flat fallback.
+
 Usage:
-    python compose-play-screenshots.py
+    python compose-play-screenshots.py [--tablet]
 """
 import json
 import os
 import sys
 from PIL import Image, ImageDraw, ImageFont
 
+if '--help' in sys.argv or '-h' in sys.argv:
+    print(__doc__)
+    sys.exit(0)
+
+# Sibling scripts in this folder read sys.argv directly rather than pulling in argparse.
+TABLET = '--tablet' in sys.argv
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
 LISTING_ROOT = os.path.join(REPO_ROOT, 'play', 'listing')
 CAPTIONS = os.path.join(LISTING_ROOT, 'captions.json')
-SHOTS_DIR = os.path.join(REPO_ROOT, 'temp', 'play-shots')
+SHOTS_DIR = os.path.join(REPO_ROOT, 'temp',
+                         'play-shots-tablet' if TABLET else 'play-shots')
+OUT_SUBDIR = 'tenInchScreenshots' if TABLET else 'phoneScreenshots'
 
 # Play phone-screenshot bounds.
 MIN_EDGE, MAX_EDGE, MAX_ASPECT = 320, 3840, 2.0
@@ -46,6 +59,15 @@ def resolve_font(size):
         "No Cyrillic-capable TTF found. Tried: " + "; ".join(FONT_CANDIDATES))
 
 
+def resolve_shot(locale, slot_id):
+    """Locale-specific raw shot wins; the flat path stays as a shared fallback."""
+    for candidate in (os.path.join(SHOTS_DIR, locale, f"{slot_id}.png"),
+                      os.path.join(SHOTS_DIR, f"{slot_id}.png")):
+        if os.path.exists(candidate):
+            return candidate
+    return None
+
+
 def fit_to_aspect(img):
     """Pad onto a BG canvas so the result respects MAX_ASPECT (tall->wider canvas)."""
     w, h = img.size
@@ -66,7 +88,10 @@ def draw_caption(img, text):
     """Draw the caption inside a top band sized to the wrapped text."""
     w, h = img.size
     draw = ImageDraw.Draw(img)
-    font = resolve_font(max(28, w // 18))
+    # Sized off the short edge, not the width: on a landscape tablet frame w//18 gives a band
+    # covering a third of the image. For a portrait phone shot the short edge IS the width, so
+    # the phone output is unchanged.
+    font = resolve_font(max(28, min(w, h) // 18))
     lines = text.split('\n')
     spacing = max(6, font.size // 5)
     bbox = draw.multiline_textbbox((0, 0), text, font=font, spacing=spacing, align='center')
@@ -102,7 +127,7 @@ def main():
     missing = []
 
     for locale in locales:
-        out_dir = os.path.join(LISTING_ROOT, locale, 'images', 'phoneScreenshots')
+        out_dir = os.path.join(LISTING_ROOT, locale, 'images', OUT_SUBDIR)
         os.makedirs(out_dir, exist_ok=True)
         index = 0
         for slot in slots:
@@ -111,10 +136,9 @@ def main():
             if caption is None:
                 print(f"ERROR: {locale}/{slot_id}: missing caption")
                 sys.exit(1)
-            shot = os.path.join(SHOTS_DIR, f"{slot_id}.png")
-            if not os.path.exists(shot):
-                if locale == locales[0]:
-                    missing.append(slot_id)
+            shot = resolve_shot(locale, slot_id)
+            if shot is None:
+                missing.append(f"{locale}/{slot_id}")
                 continue
             index += 1
             with Image.open(shot) as raw:

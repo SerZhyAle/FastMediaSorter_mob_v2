@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-download-organizer-ru.html
 ---
 # 🧹 Порядок в загрузках - сортировка одним касанием
 
-> **Уровень:** Начинающий &bull; **Версия:** Любая (Standard, Lite, Photos, Legacy)
+> **Уровень:** Начинающий &bull; **Версия:** Любая (Standard, Lite, Photos, Legacy, VR, noLegal)
 
 [English](scenario-download-organizer.md) | [Українська](scenario-download-organizer-uk.md)
 
@@ -19,7 +19,7 @@ permalink: /docs/howto/scenario-download-organizer-ru.html
 
 - Установленное приложение (любая версия)
 - Папка с файлами для организации (например, Загрузки)
-- 2–5 минут на первичную настройку Quick Sort
+- 2-5 минут на первичную настройку Quick Sort
 
 ---
 

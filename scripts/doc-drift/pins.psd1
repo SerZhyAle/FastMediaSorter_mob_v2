@@ -138,7 +138,7 @@
             name      = 'compile-sdk'
             gradleKey = 'compile-sdk'
             docs      = @{
-                'docs/TECH_STACK.md'       = @{ required = $false; matcher = $null }
+                'docs/TECH_STACK.md'       = @{ required = $true;  matcher = '`compileSdk`\s*/\s*`targetSdk`:\s*`?(?<v>\d+)`?\s+for both modules' }
                 'dev/TECH_REQUIREMENTS.md' = @{ required = $true;  matcher = 'compileSdk\s*\|\s*(?<v>\d+)' }
                 'CLAUDE.md'                = @{ required = $false; matcher = $null }
             }
@@ -150,8 +150,8 @@
             name      = 'target-sdk'
             gradleKey = 'target-sdk'
             docs      = @{
-                'docs/TECH_STACK.md'       = @{ required = $false; matcher = $null }
-                'dev/TECH_REQUIREMENTS.md' = @{ required = $false; matcher = $null }
+                'docs/TECH_STACK.md'       = @{ required = $true;  matcher = '`compileSdk`\s*/\s*`targetSdk`:\s*`?(?<v>\d+)`?\s+for both modules' }
+                'dev/TECH_REQUIREMENTS.md' = @{ required = $true;  matcher = 'targetSdk\s*\|\s*(?<v>\d+)' }
                 'CLAUDE.md'                = @{ required = $false; matcher = $null }
             }
             policy    = 'allMustMatch'
@@ -227,6 +227,16 @@
                 'docs/TECH_STACK.md'       = @{ required = $false; matcher = $null }
                 'dev/TECH_REQUIREMENTS.md' = @{ required = $false; matcher = $null }
                 'CLAUDE.md'                = @{ required = $false; matcher = $null }
+            }
+            policy    = 'allMustMatch'
+            exclude   = @()
+        }
+
+        @{
+            name      = 'room-schema-version'
+            gradleKey = 'room-schema-version'
+            docs      = @{
+                'dev/TECH_REQUIREMENTS.md' = @{ required = $true; matcher = '\| Room DB version\s*\|\s*(?<v>\d+)\s*\|\s*Current schema version' }
             }
             policy    = 'allMustMatch'
             exclude   = @()

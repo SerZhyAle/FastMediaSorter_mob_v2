@@ -85,7 +85,12 @@
     <string name="settings_profile_source_migration">мигрировано</string>
     <string name="settings_profile_source_skipped">авто-пропущено</string>
     <string name="settings_profile_title">Профиль устройства</string>
-    <string name="settings_profile_warning">Внимание: изменение профиля сбросит часть настроек на значения по умолчанию для нового профиля. Вы уверены, что хотите продолжить?</string>
+    <plurals name="settings_profile_warning_count">
+        <item quantity="one">Переход на этот профиль заменит %1$d настройку значением, которое задаёт профиль. Продолжить?</item>
+        <item quantity="few">Переход на этот профиль заменит %1$d настройки значениями, которые задаёт профиль. Продолжить?</item>
+        <item quantity="many">Переход на этот профиль заменит %1$d настроек значениями, которые задаёт профиль. Продолжить?</item>
+        <item quantity="other">Переход на этот профиль заменит %1$d настройки значениями, которые задаёт профиль. Продолжить?</item>
+    </plurals>
     <string name="settings_all_files_create_resource">Создать ресурс «Все файлы»</string>
     <string name="settings_all_files_resource_created">Ресурс «Все файлы» создан.</string>
     <string name="settings_all_files_profile_confirm_title">Создать ресурс «Все файлы»</string>

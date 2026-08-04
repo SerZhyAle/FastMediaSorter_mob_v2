@@ -68,12 +68,24 @@ fun WindowInsetsCompat.getStatusBarHeightSafe(resources: Resources): Int {
  * Insets are passed through (not consumed) so sibling views in the same window still
  * receive them. [onApplied] reports the per-edge inset deltas that were added on top of
  * the captured base padding (0 for any disabled edge); callers use it for diagnostics.
+ *
+ * S1087: [useStatusBarHeightFallback] exists for the one screen that hides the status bar on purpose.
+ * The fallback in [getStatusBarHeightSafe] guesses the bar's height from the platform resource when the
+ * inset reads 0, which protects screens that would otherwise slide under a bar the window has not
+ * measured yet - but for a surface that just removed the bar it reserves a band for something that is
+ * no longer there, so the removal looks like it did nothing. Pass false only when the caller controls
+ * the bar's visibility itself.
+ *
+ * Call this ONCE per view: it captures the view's current padding as the base and adds insets on top,
+ * so a second call would treat the already-inset padding as the base and compound it. To re-apply after
+ * a bar changes visibility, request a fresh dispatch (`ViewCompat.requestApplyInsets`) instead.
  */
 fun View.applySystemBarInsetPadding(
     applyLeft: Boolean = true,
     applyTop: Boolean = true,
     applyRight: Boolean = true,
     applyBottom: Boolean = true,
+    useStatusBarHeightFallback: Boolean = true,
     onApplied: ((left: Int, top: Int, right: Int, bottom: Int) -> Unit)? = null,
 ) {
     val baseLeft = paddingLeft
@@ -86,7 +98,12 @@ fun View.applySystemBarInsetPadding(
         val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
         val left = if (applyLeft) maxOf(systemBars.left, cutout.left) else 0
         val top = if (applyTop) {
-            maxOf(systemBars.top, cutout.top, insets.getStatusBarHeightSafe(resources))
+            val statusBarTop = if (useStatusBarHeightFallback) {
+                insets.getStatusBarHeightSafe(resources)
+            } else {
+                systemBars.top
+            }
+            maxOf(systemBars.top, cutout.top, statusBarTop)
         } else {
             0
         }

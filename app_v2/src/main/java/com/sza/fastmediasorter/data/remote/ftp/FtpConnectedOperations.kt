@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.remote.ftp
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -38,6 +39,7 @@ class FtpConnectedOperations(
                 Timber.e(e, "FTP list files with metadata failed: $remotePath")
                 Result.failure(e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "FTP list files with metadata error: $remotePath")
                 Result.failure(e)
             }
@@ -74,6 +76,7 @@ class FtpConnectedOperations(
                 Timber.e(e, "FTP paged list files with metadata failed: $remotePath")
                 Result.failure(e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "FTP paged list files with metadata error: $remotePath")
                 Result.failure(e)
             }
@@ -116,6 +119,7 @@ class FtpConnectedOperations(
                 Timber.e(e, "FTP list files failed: $remotePath")
                 Result.failure(e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "FTP list files error: $remotePath")
                 Result.failure(e)
             }
@@ -175,6 +179,7 @@ class FtpConnectedOperations(
                             }
                         } ?: return@withContext Result.failure(IOException("Failed to open file stream (active mode): $remotePath"))
                     } catch (active: Exception) {
+                        active.rethrowIfCancellation()
                         // Behind NAT the active-mode data socket is null/unreachable; Apache commons-net
                         // throws a raw NPE/SocketException here. Fail cleanly instead of letting it escape.
                         Timber.w(active, "FTP active-mode data connection failed (likely NAT-blocked): $remotePath")
@@ -195,6 +200,7 @@ class FtpConnectedOperations(
                 Timber.w(e, "FTP read file bytes failed: $remotePath")
                 Result.failure(e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.w(e, "FTP read file bytes error: $remotePath")
                 Result.failure(e)
             }
@@ -250,6 +256,7 @@ class FtpConnectedOperations(
                             if (totalRead < length) buffer.copyOf(totalRead) else buffer
                         } ?: return@withContext Result.failure(IOException("Failed to open file stream (active mode): $remotePath"))
                     } catch (active: Exception) {
+                        active.rethrowIfCancellation()
                         // Behind NAT the active-mode data socket is null/unreachable; Apache commons-net
                         // throws a raw NPE/SocketException here. Fail cleanly instead of letting it escape.
                         Timber.w(active, "FTP active-mode data connection failed (likely NAT-blocked): $remotePath")
@@ -270,6 +277,7 @@ class FtpConnectedOperations(
                 Timber.w(e, "FTP read bytes range failed: $remotePath offset=$offset length=$length")
                 Result.failure(e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.w(e, "FTP read bytes range error: $remotePath offset=$offset length=$length")
                 Result.failure(e)
             }
@@ -297,6 +305,7 @@ class FtpConnectedOperations(
                     try {
                         client.retrieveFile(remotePath, outputStream)
                     } catch (active: Exception) {
+                        active.rethrowIfCancellation()
                         // Behind NAT the active-mode data socket is null/unreachable; Apache commons-net
                         // throws a raw NPE/SocketException here. Fail cleanly instead of letting it escape.
                         Timber.w(active, "FTP active-mode data connection failed (likely NAT-blocked): $remotePath")
@@ -312,6 +321,7 @@ class FtpConnectedOperations(
                         }
                     }
                 } catch (e: Exception) {
+                    e.rethrowIfCancellation()
                     Timber.e(e, "FTP download error during retrieveFile: $remotePath")
                     return@withContext Result.failure(
                         IOException("FTP download failed: ${e.message}", e)
@@ -328,6 +338,7 @@ class FtpConnectedOperations(
                 Timber.w(e, "FTP download failed: $remotePath")
                 Result.failure(e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.w(e, "FTP download error: $remotePath")
                 Result.failure(e)
             }
@@ -354,6 +365,7 @@ class FtpConnectedOperations(
                     }
                     client.changeWorkingDirectory("/")
                 } catch (e: Exception) {
+                    e.rethrowIfCancellation()
                     Timber.w(e, "FTP: Failed to create parent dir, trying upload anyway")
                 }
             }
@@ -369,6 +381,7 @@ class FtpConnectedOperations(
             Timber.e(e, "FTP upload failed: $remotePath")
             Result.failure(e)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP upload error: $remotePath")
             Result.failure(e)
         }
@@ -392,6 +405,7 @@ class FtpConnectedOperations(
             Timber.e(e, "FTP delete failed: $remotePath")
             Result.failure(e)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP delete error: $remotePath")
             Result.failure(e)
         }
@@ -424,6 +438,7 @@ class FtpConnectedOperations(
             Timber.e(e, "FTP delete directory failed: $remotePath")
             Result.failure(e)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP delete directory error: $remotePath")
             Result.failure(e)
         }
@@ -453,6 +468,7 @@ class FtpConnectedOperations(
             Timber.e(e, "FTP rename failed: $oldPath")
             Result.failure(e)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP rename error: $oldPath")
             Result.failure(e)
         }
@@ -476,6 +492,7 @@ class FtpConnectedOperations(
             Timber.e(e, "FTP move failed: $oldPath → $newPath")
             Result.failure(e)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP move error: $oldPath → $newPath")
             Result.failure(e)
         }
@@ -499,6 +516,7 @@ class FtpConnectedOperations(
             Timber.e(e, "FTP create directory failed: $remotePath")
             Result.failure(e)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP create directory error: $remotePath")
             Result.failure(e)
         }
@@ -519,6 +537,7 @@ class FtpConnectedOperations(
             Timber.w(e, "FTP directory exists check failed: $remotePath")
             Result.success(false)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.w(e, "FTP directory exists check error: $remotePath")
             Result.success(false)
         }

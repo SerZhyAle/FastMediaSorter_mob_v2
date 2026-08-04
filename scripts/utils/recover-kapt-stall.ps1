@@ -79,10 +79,15 @@ try {
 
     # Volatile dirs whose stale state is the usual cause of the silent stall.
     # Order matters only insofar as we want feedback per item; each removal is independent.
+    # S1338 phase 10: app_v2 moved from kapt to KSP, so the generated-source and caches
+    # directories the stall wedges on moved with it. The kapt entries stay - the wear module
+    # and any not-yet-cleaned tree still have them, and removing a path that is absent is free.
     $relativePathsToClean = @(
         "app_v2\build\tmp\kapt3",
         "app_v2\build\generated\source\kapt",
         "app_v2\build\generated\source\kaptKotlin",
+        "app_v2\build\generated\ksp",
+        "app_v2\build\kspCaches",
         "app_v2\build\kotlin",
         "app_v2\build\tmp\kotlin-classes"
     )

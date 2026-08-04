@@ -71,8 +71,9 @@ object WearAppModule {
             .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC)
             .setUsage(androidx.media3.common.C.USAGE_MEDIA)
             .build()
+        val handleAudioFocus = true
         return androidx.media3.exoplayer.ExoPlayer.Builder(context)
-            .setAudioAttributes(audioAttributes, /* handleAudioFocus= */ true)
+            .setAudioAttributes(audioAttributes, handleAudioFocus)
             .setHandleAudioBecomingNoisy(true)
             .build()
     }

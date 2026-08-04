@@ -84,6 +84,17 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             minSdk = 37,
             flavorGates = setOf("SUPPORT_LOCAL_NETWORK"),
         ),
+        // CONTACTS
+        PermissionEntry(
+            id = "read_contacts",
+            manifestName = Manifest.permission.READ_CONTACTS,
+            titleRes = R.string.perm_title_read_contacts,
+            descriptionRes = R.string.perm_desc_read_contacts,
+            iconRes = 0,
+            group = PermissionGroup.CONTACTS,
+            optional = true,
+            flavorGates = setOf("SUPPORT_LAUNCHER"),
+        ),
         // CAMERA
         PermissionEntry(
             id = "camera",
@@ -190,6 +201,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
                         PermissionGroup.NOTIFICATION -> R.string.perm_group_notification
                         PermissionGroup.SYSTEM -> R.string.perm_group_system
                         PermissionGroup.VR -> R.string.perm_group_vr
+                        PermissionGroup.CONTACTS -> R.string.perm_group_contacts
                     }
                 )
             }
@@ -214,10 +226,16 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
      * Direct references survive R8 with the correct inlined value. An unmapped name is a developer
      * error (a new gate string without a matching arm here); surface it and keep the safe default.
      */
+    // S1379: these direct reads deliberately stay. This is a NAME-to-value table, not a consumer
+    // guard - the caller supplies a gate string and this is the one place that resolves it. Routing
+    // it through the capability contract would mean giving that contract a string lookup it does not
+    // have, and would still leave the direct read somewhere. Consumer guards go through
+    // CapabilityAvailability instead.
     private fun resolveFlavorGate(fieldName: String): Boolean = when (fieldName) {
         "SUPPORT_AUDIO" -> BuildConfig.SUPPORT_AUDIO
         "SUPPORT_LOCAL_NETWORK" -> BuildConfig.SUPPORT_LOCAL_NETWORK
         "ENABLE_PERSISTENT_AUDIO_PLAYBACK" -> BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
+        "SUPPORT_LAUNCHER" -> BuildConfig.SUPPORT_LAUNCHER
         else -> {
             Timber.e("Permission flavor-gate references unmapped BuildConfig field: %s", fieldName)
             false

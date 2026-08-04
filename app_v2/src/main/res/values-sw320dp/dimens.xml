@@ -73,9 +73,13 @@
     <dimen name="welcome_title_text_size">15sp</dimen>
     <dimen name="welcome_description_margin_top">6dp</dimen>
     <dimen name="welcome_description_text_size">12sp</dimen>
-    <dimen name="welcome_feature_card_icon_size">22dp</dimen>
-    <dimen name="welcome_feature_card_text_size">10sp</dimen>
-    <dimen name="welcome_feature_card_padding">6dp</dimen>
-    <dimen name="welcome_feature_card_margin">3dp</dimen>
+    <dimen name="welcome_feature_row_icon_size">22dp</dimen>
+    <dimen name="welcome_feature_row_badge_size">36dp</dimen>
+    <dimen name="welcome_feature_row_icon_gap">10dp</dimen>
+    <dimen name="welcome_feature_row_title_text_size">13sp</dimen>
+    <dimen name="welcome_feature_row_detail_text_size">11sp</dimen>
+    <dimen name="welcome_feature_row_padding">4dp</dimen>
+    <dimen name="welcome_feature_row_gutter">8dp</dimen>
+    <dimen name="welcome_feature_row_spacing">1dp</dimen>
     <dimen name="welcome_content_max_width">400dp</dimen>
 </resources>

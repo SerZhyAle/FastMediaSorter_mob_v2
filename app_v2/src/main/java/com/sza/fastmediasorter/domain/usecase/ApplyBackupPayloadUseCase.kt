@@ -59,7 +59,7 @@ class ApplyBackupPayloadUseCase @Inject constructor(
         var settingsRestored = false
         payload.settings?.let { backupSettings ->
             val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(BackupMapper.toAppSettings(backupSettings, current))
+            settingsRepository.updateSettings(BackupMapper.toAppSettings(backupSettings, current, payload.version))
             settingsRestored = true
         }
 

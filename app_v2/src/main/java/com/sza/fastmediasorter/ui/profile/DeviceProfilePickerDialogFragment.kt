@@ -8,13 +8,16 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.DialogDeviceProfilePickerBinding
+import com.sza.fastmediasorter.domain.usecase.CountProfilePresetOverridesUseCase
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
@@ -30,6 +33,9 @@ class DeviceProfilePickerDialogFragment : DialogFragment() {
 
     @Inject
     lateinit var deviceProfileAvailability: DeviceProfileAvailability
+
+    @Inject
+    lateinit var countProfilePresetOverrides: CountProfilePresetOverridesUseCase
 
     private var _binding: DialogDeviceProfilePickerBinding? = null
     private val binding get() = _binding!!
@@ -101,14 +107,30 @@ class DeviceProfilePickerDialogFragment : DialogFragment() {
 
     private fun onTileClicked(type: DeviceProfileType) {
         val changingInSettings = warnOnApply && type != currentType && type != DeviceProfileType.OTHER
-        if (changingInSettings) {
+        if (!changingInSettings) {
+            confirmSelection(type)
+            return
+        }
+        // S1216: the count comes from the same override map the apply use case folds, so the
+        // confirmation cannot promise a different number than the one actually written.
+        viewLifecycleOwner.lifecycleScope.launch {
+            val overrides = countProfilePresetOverrides(type)
+            if (overrides == 0) {
+                // Warning about zero overwrites is noise - the profile changes nothing here.
+                confirmSelection(type)
+                return@launch
+            }
             MaterialAlertDialogBuilder(requireContext())
-                .setMessage(R.string.settings_profile_warning)
+                .setMessage(
+                    resources.getQuantityString(
+                        R.plurals.settings_profile_warning_count,
+                        overrides,
+                        overrides
+                    )
+                )
                 .setPositiveButton(R.string.profile_picker_select) { _, _ -> confirmSelection(type) }
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
-        } else {
-            confirmSelection(type)
         }
     }
 

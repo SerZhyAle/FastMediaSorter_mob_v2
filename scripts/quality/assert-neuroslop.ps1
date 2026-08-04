@@ -53,45 +53,33 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$children = @(
-    'assert-trivial-comments.ps1',
-    'assert-empty-catch.ps1',
-    'assert-layout-hardcoded-colors.ps1',
-    'assert-unsafe-collect.ps1',
-    'assert-globalscope.ps1',
-    'assert-nontimber-log.ps1',
-    'assert-stub-todo.ps1',
-    'assert-em-dash.ps1',
-    'assert-non-null-assertion.ps1'
-)
-
+# S1338: one call, one walk. Every dimension used to be its own script performing its own
+# recursive walk of app_v2/src/main and re-reading every file - nine traversals of a tree that
+# cannot change between them. assert-source-gates.ps1 applies all nine rules to each file's
+# text in a single pass (lib/source-scan.ps1), and the rules themselves live once in
+# lib/source-matchers.ps1, so the full scan and the changed-files delta cannot drift apart.
+$runner = Join-Path $PSScriptRoot 'assert-source-gates.ps1'
 $failures = 0
-foreach ($child in $children) {
-    $path = Join-Path $PSScriptRoot $child
-    if (-not (Test-Path $path)) {
-        Write-Host "neuroslop: MISSING child $child" -ForegroundColor Red
-        $failures++
-        continue
+if (-not (Test-Path $runner)) {
+    Write-Host 'neuroslop: MISSING assert-source-gates.ps1 - cannot judge anything.' -ForegroundColor Red
+    Write-Error 'assert-neuroslop: the combined source-gate runner is absent; nothing was scanned.' -ErrorAction Continue
+    exit 2
+}
+
+try {
+    $global:LASTEXITCODE = 0
+    if ($Gate) {
+        if ($ChangedFiles) { & $runner -Gate -ChangedFiles $ChangedFiles }
+        else { & $runner -Gate }
+        if ($LASTEXITCODE -ne 0) { $failures++ }
     }
-    # S0848 Phase 03: in-process call (no pwsh fork). `& $path` isolates the child's `exit`.
-    # A child that raises a terminating error (ErrorActionPreference=Stop) is caught and, in
-    # gate mode, counted as a failure - fail-closed, matching the fork's non-zero-exit outcome.
-    try {
-        $global:LASTEXITCODE = 0
-        if ($Gate) {
-            # S0850: delta mode per child when a changed-files signal is present.
-            if ($ChangedFiles) { & $path -Gate -ChangedFiles $ChangedFiles }
-            else { & $path -Gate }
-            if ($LASTEXITCODE -ne 0) { $failures++ }
-        }
-        else {
-            & $path
-        }
+    else {
+        & $runner
     }
-    catch {
-        Write-Host "neuroslop: child $child errored: $($_.Exception.Message)" -ForegroundColor Red
-        if ($Gate) { $failures++ }
-    }
+}
+catch {
+    Write-Host "neuroslop: source-gate runner errored: $($_.Exception.Message)" -ForegroundColor Red
+    if ($Gate) { $failures++ }
 }
 
 if ($Gate) {

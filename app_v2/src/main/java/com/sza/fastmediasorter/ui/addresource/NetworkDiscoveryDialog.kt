@@ -4,24 +4,31 @@ import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.domain.usecase.NetworkHost
 import com.sza.fastmediasorter.databinding.DialogNetworkDiscoveryBinding
 import com.sza.fastmediasorter.databinding.ItemNetworkHostBinding
+import com.sza.fastmediasorter.domain.usecase.NetworkHost
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import kotlinx.coroutines.launch
 
-
+/**
+ * Subnet-scan host picker. Returns the chosen host to the caller through a FragmentResult
+ * ([RESULT_HOST_IP], [RESULT_HOST_NAME], [RESULT_HOST_PORTS]) rather than a host-assigned lambda:
+ * S1331 - FragmentManager rebuilds a restored dialog with the no-arg constructor, so the request
+ * key is read back from [getArguments] and a field-held handler would be null by then.
+ */
 class NetworkDiscoveryDialog : DialogFragment() {
 
     private val viewModel: AddResourceViewModel by activityViewModels()
@@ -30,7 +37,12 @@ class NetworkDiscoveryDialog : DialogFragment() {
 
     private lateinit var adapter: NetworkHostAdapter
 
-    var onHostSelected: ((NetworkHost) -> Unit)? = null
+    private var requestKey: String = RESULT_KEY
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        requestKey = requireArguments().getString(ARG_REQUEST_KEY) ?: RESULT_KEY
+    }
 
     // onCreateDialog inflates the view and sets it via setView() so the dialog has
     // visible content. viewLifecycleOwner is NOT available in this path - observation
@@ -46,7 +58,15 @@ class NetworkDiscoveryDialog : DialogFragment() {
 
     private fun setupViews() {
         adapter = NetworkHostAdapter { host ->
-            onHostSelected?.invoke(host)
+            // NetworkHost stays a plain domain data class, so it travels as bundle primitives.
+            setFragmentResult(
+                requestKey,
+                bundleOf(
+                    RESULT_HOST_IP to host.ip,
+                    RESULT_HOST_NAME to host.hostname,
+                    RESULT_HOST_PORTS to host.openPorts.toIntArray()
+                )
+            )
             dismiss()
         }
         binding.rvHosts.adapter = adapter
@@ -123,7 +143,17 @@ class NetworkDiscoveryDialog : DialogFragment() {
 
     companion object {
         const val TAG = "NetworkDiscoveryDialog"
-        fun newInstance() = NetworkDiscoveryDialog()
+        const val RESULT_KEY = "network_discovery_result"
+        const val RESULT_HOST_IP = "result_host_ip"
+        const val RESULT_HOST_NAME = "result_host_name"
+        const val RESULT_HOST_PORTS = "result_host_ports"
+
+        private const val ARG_REQUEST_KEY = "arg_request_key"
+
+        fun newInstance(requestKey: String = RESULT_KEY): NetworkDiscoveryDialog =
+            NetworkDiscoveryDialog().apply {
+                arguments = bundleOf(ARG_REQUEST_KEY to requestKey)
+            }
     }
 }
 

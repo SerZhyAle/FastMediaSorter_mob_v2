@@ -7,6 +7,7 @@ import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -62,6 +63,9 @@ class StreamingCacheStartupGcWorker @AssistedInject constructor(
 
             Timber.i("[stream-cache-gc/$correlationId] completed")
             Result.success()
+        } catch (cancelled: CancellationException) {
+            Timber.d("[stream-cache-gc/$correlationId] cancelled")
+            throw cancelled
         } catch (t: Throwable) {
             Timber.e(t, "[stream-cache-gc/$correlationId] failed")
             Result.failure()

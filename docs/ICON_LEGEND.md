@@ -22,11 +22,15 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_resource_smb.svg" alt="ic_resource_smb" width="24" height="24"> | SMB network share |
 | <img src="icons/svg/ic_accessibility.svg" alt="ic_accessibility" width="24" height="24"> | Accessibility |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | App info |
+| <img src="icons/svg/ic_view_grid.svg" alt="ic_view_grid" width="24" height="24"> | Quick-access panel |
 | <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Auto-rotate |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Battery |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Battery saver |
 | <img src="icons/svg/ic_bluetooth.svg" alt="ic_bluetooth" width="24" height="24"> | Bluetooth |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Calculator |
+| <img src="icons/svg/ic_widget_camera_launch_accent.svg" alt="ic_widget_camera_launch_accent" width="24" height="24"> | Camera |
+| <img src="icons/svg/ic_widget_camera_photos.svg" alt="ic_widget_camera_photos" width="24" height="24"> | Camera Photos |
+| <img src="icons/svg/ic_widget_continue_reading.svg" alt="ic_widget_continue_reading" width="24" height="24"> | Continue Reading |
 | <img src="icons/svg/ic_data_usage.svg" alt="ic_data_usage" width="24" height="24"> | Data usage |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Date and time |
 | <img src="icons/svg/ic_developer_options.svg" alt="ic_developer_options" width="24" height="24"> | Developer options |
@@ -38,11 +42,17 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Photo OCR translate |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Camera |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Voice recording |
+| <img src="icons/svg/ic_widget_random_music.svg" alt="ic_widget_random_music" width="24" height="24"> | Random Music |
+| <img src="icons/svg/ic_widget_scheduled_tasks.svg" alt="ic_widget_scheduled_tasks" width="24" height="24"> | Scheduled Tasks |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen video recording |
 | <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Settings |
 | <img src="icons/svg/ic_volume_up.svg" alt="ic_volume_up" width="24" height="24"> | Sound |
+| <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Start video recording |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Storage |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Streams |
+| <img src="icons/svg/ic_edit_20.svg" alt="ic_edit_20" width="24" height="24"> | Take a photo and edit |
+| <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Take a photo and OCR-translate |
+| <img src="icons/svg/ic_camera_send_to.svg" alt="ic_camera_send_to" width="24" height="24"> | Take a photo and send to.. |
 | <img src="icons/svg/ic_lock.svg" alt="ic_lock" width="24" height="24"> | VPN |
 | <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Wi-Fi |
 | <img src="icons/svg/ic_wifi_tethering.svg" alt="ic_wifi_tethering" width="24" height="24"> | Wireless networks |
@@ -52,19 +62,26 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | Icon | Meaning |
 |---|---|
 | <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Additional programs and scenarios |
+| <img src="icons/svg/ic_cloud_upload.svg" alt="ic_cloud_upload" width="24" height="24"> | Backups, restore and settings export |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Audio playback, covers and visuals |
+| <img src="icons/svg/ic_google_account.svg" alt="ic_google_account" width="24" height="24"> | Authorization and accounts |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Background audio playback |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Photography |
+| <img src="icons/svg/ic_app_logo.svg" alt="ic_app_logo" width="24" height="24"> | Quick Sort destinations |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text, PDF, EPUB and Office viewing |
 | <img src="icons/svg/ic_folder.svg" alt="ic_folder" width="24" height="24"> | File browser interface |
 | <img src="icons/svg/ic_image.svg" alt="ic_image" width="24" height="24"> | Images, GIFs and slideshow |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Voice recorder |
+| <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Translation, digitization (OCR) |
 | <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Remote resources (SMB/(S)FTP/Cloud) |
+| <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | File deletion and trash |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Scheduled operations by schedule |
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Edge screen gestures |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen recording |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Send file to.. |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Streams |
+| <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Background sync, network and cache |
+| <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Operating system interaction |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Video and player settings |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Video recording |
 
@@ -105,7 +122,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Black screen |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Cast to.. |
 | <img src="icons/svg/ic_compress.svg" alt="ic_compress" width="24" height="24"> | Compressed copy |
-| (system icon) | Copy |
+| (system icon) | Copy to Clipboard |
 | <img src="icons/svg/ic_crop.svg" alt="ic_crop" width="24" height="24"> | Crop |
 | <img src="icons/svg/ic_crop_to_file.svg" alt="ic_crop_to_file" width="24" height="24"> | Crop to file |
 | <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | Delete |
@@ -121,7 +138,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_google_lens.svg" alt="ic_google_lens" width="24" height="24"> | Google Lens |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | File Information |
-| <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Lyrics |
+| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Lyrics |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Extract Text |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Extract Text |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Extract Text |
@@ -137,6 +154,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | (system icon) | Read Aloud |
 | <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Rename |
 | (system icon) | Re-open with Encoding.. |
+| <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Rotate 90° |
 | <img src="icons/svg/ic_rotation_unlocked.svg" alt="ic_rotation_unlocked" width="24" height="24"> | Rotation |
 | <img src="icons/svg/ic_save_frame.svg" alt="ic_save_frame" width="24" height="24"> | Save Frame |
 | (system icon) | Search |
@@ -165,8 +183,11 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_send_note_brush.svg" alt="ic_send_note_brush" width="24" height="24"> | Keep: image |
 | <img src="icons/svg/ic_send_note.svg" alt="ic_send_note" width="24" height="24"> | Keep: text |
 | <img src="icons/svg/ic_google_lens.svg" alt="ic_google_lens" width="24" height="24"> | Google Lens |
+| <img src="icons/svg/ic_send_bolt_chat.svg" alt="ic_send_bolt_chat" width="24" height="24"> | Send to app |
 | <img src="icons/svg/ic_open_in_browse.svg" alt="ic_open_in_browse" width="24" height="24"> | Open in.. |
 | <img src="icons/svg/ic_print.svg" alt="ic_print" width="24" height="24"> | Print |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Other apps |
 | <img src="icons/svg/ic_send_plane.svg" alt="ic_send_plane" width="24" height="24"> | Send to app |
+| <img src="icons/svg/ic_send_music_note.svg" alt="ic_send_music_note" width="24" height="24"> | Send to app |
+| <img src="icons/svg/ic_send_phone_chat.svg" alt="ic_send_phone_chat" width="24" height="24"> | Send to app |
 | <img src="icons/svg/ic_send_chat.svg" alt="ic_send_chat" width="24" height="24"> | Send to app |

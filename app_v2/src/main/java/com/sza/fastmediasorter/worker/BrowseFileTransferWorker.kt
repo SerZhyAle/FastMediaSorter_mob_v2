@@ -16,14 +16,17 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.transfer.CloudFileHandle
+import com.sza.fastmediasorter.data.transfer.DirectoryOperationRefusal
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.UndoOperation
+import com.sza.fastmediasorter.domain.transfer.TransferProgressReporter
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationProgress
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
+import com.sza.fastmediasorter.ui.browse.helpers.refusalMessageRes
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferProgressCodec
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferProgressSnapshot
@@ -32,8 +35,11 @@ import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequestStore
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferTerminalEvent
 import com.sza.fastmediasorter.ui.browse.transfer.toPayload
+import com.sza.fastmediasorter.ui.browse.transfer.transferBytePercentOrNull
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -50,7 +56,11 @@ class BrowseFileTransferWorker @AssistedInject constructor(
     private val directoryOperationHandler: UnifiedFileOperationHandler,
     private val requestStore: BrowseFileTransferRequestStore,
     private val coordinator: BrowseFileTransferCoordinator,
+    private val transferProgressReporter: TransferProgressReporter,
 ) : CoroutineWorker(context, workerParams) {
+
+    /** S1325: last folder-walk outcome of this run, read when the result notification is built. */
+    private var directoryOutcome = DirectoryOutcome()
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
         val request = requestStore.readActiveRequest()
@@ -87,13 +97,55 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             Timber.e(t, "BrowseFileTransferWorker.doWork caught unexpected Throwable")
             Result.failure()
         } finally {
+            transferProgressReporter.clear(id.toString())
             requestStore.clearActiveRequest()
+            withContext(NonCancellable) { purgeStagedSources(request) }
+        }
+    }
+
+    /**
+     * S1370: delete sources the requester staged for this operation alone. Runs on every terminal
+     * outcome - a purge limited to success would let a failed or cancelled share grow the cache
+     * without an owner, because the requester has already finished by then.
+     */
+    private suspend fun purgeStagedSources(request: BrowseFileTransferRequest) {
+        Timber.d("S1370: staged purge check owned=%s", request.sourcesOwnedByOperation)
+        if (!request.sourcesOwnedByOperation) return
+        val stagingPath = request.stagingDirectoryPath
+        if (stagingPath.isNullOrBlank()) {
+            Timber.w("BrowseFileTransferWorker: staged purge refused - no staging dir in request")
+            return
+        }
+        withContext(Dispatchers.IO) {
+            val stagingDir = File(stagingPath)
+            val stagingPrefix = runCatching { stagingDir.canonicalPath }.getOrElse { stagingDir.absolutePath }
+            // Containment guard: a request that names live user files as sources must never be purged,
+            // whatever the flag says - that would turn a copy into a destructive operation.
+            val contained = request.sources.all { source ->
+                val file = File(source.path)
+                val resolved = runCatching { file.canonicalPath }.getOrElse { file.absolutePath }
+                resolved.startsWith(stagingPrefix + File.separator)
+            }
+            if (!contained) {
+                Timber.w(
+                    "BrowseFileTransferWorker: staged purge refused - sources outside staging dir %s",
+                    stagingPrefix,
+                )
+                return@withContext
+            }
+            var deleted = 0
+            request.sources.forEach { source ->
+                if (File(source.path).delete()) deleted++
+            }
+            stagingDir.delete()
+            Timber.i("BrowseFileTransferWorker: purged %d staged source(s) from %s", deleted, stagingPrefix)
         }
     }
 
     private suspend fun runTransfer(request: BrowseFileTransferRequest): Result {
         var latestTotalOperationBytes = 0L
         var terminalResult: FileOperationResult? = null
+        var lastPublishedFile: String? = null
 
         if (request.sources.any { !it.isDirectory }) {
             fileOperationUseCase.executeWithProgress(request.toFileOperation()).collect { progress ->
@@ -103,6 +155,25 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                         latestTotalOperationBytes = progress.totalOperationBytes
                     }
                     is FileOperationProgress.Processing -> {
+                        // S1226: the copy layer reports every buffer chunk (~128 KB), which on a
+                        // 44 GB SFTP transfer measured ~50 events/s. Each one used to rebuild and
+                        // re-post the foreground notification AND write WorkManager's progress row
+                        // to Room - two binder/DB round-trips per chunk, competing with the copy
+                        // itself for the same thread pool. Publishing is now rate-limited; a file
+                        // change still publishes immediately so the notification never names the
+                        // wrong file.
+                        val fileChanged = progress.currentFile != lastPublishedFile
+                        val publishReport = transferProgressReporter.report(
+                            operationId = id.toString(),
+                            bytesTransferred = progress.completedOperationBytes,
+                            totalBytes = latestTotalOperationBytes,
+                            consumerKey = WORKER_CONSUMER,
+                            minimumPublishIntervalMs = PROGRESS_MIN_INTERVAL_MS,
+                            forcePublish = fileChanged,
+                        )
+                        if (!publishReport.shouldPublish) return@collect
+                        lastPublishedFile = progress.currentFile
+
                         val snapshot = BrowseFileTransferProgressSnapshot(
                             operationType = request.operationType,
                             totalFiles = progress.totalFiles,
@@ -214,29 +285,114 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         }
     }
 
+    /**
+     * S1325: folders report progress and honour cancellation per entry, like files.
+     *
+     * Granularity limit: the per-entry check rides the progress callback, so a protocol whose
+     * recursive implementation reports per file stops at the current entry, while one that reports
+     * nothing keeps the coarser per-folder granularity of the loop below.
+     */
     private suspend fun runDirectoryOperations(request: BrowseFileTransferRequest): DirectoryOutcome {
         val directorySources = request.sources.filter { it.isDirectory }
         if (directorySources.isEmpty()) return DirectoryOutcome()
 
+        Timber.d("S1325: worker folder ops count=%s", directorySources.size)
         var succeeded = 0
+        var entriesProcessed = 0
         val errors = mutableListOf<String>()
+        val job = currentCoroutineContext()[Job]
         directorySources.forEach { source ->
             currentCoroutineContext().ensureActive()
+            val onEntry: (Int, Int, String) -> Unit = { processed, total, entryName ->
+                // The walk is not a suspending caller, so cancellation is surfaced by throwing from
+                // here; the worker's own catch turns it into the Cancelled terminal event.
+                job?.ensureActive()
+                entriesProcessed = processed
+                publishDirectoryProgress(request, total, entryName)
+            }
             val result = when (request.operationType) {
                 FileOperationType.COPY ->
-                    directoryOperationHandler.executeCopyDirectory(source.path, request.destinationPath)
+                    directoryOperationHandler.executeCopyDirectory(source.path, request.destinationPath, onEntry)
                 FileOperationType.MOVE ->
-                    directoryOperationHandler.executeMoveDirectory(source.path, request.destinationPath)
+                    directoryOperationHandler.executeMoveDirectory(source.path, request.destinationPath, onEntry)
+                FileOperationType.DELETE ->
+                    directoryOperationHandler.executeDeleteDirectory(source.path, onEntry)
                 else -> kotlin.Result.failure(IllegalArgumentException("Unsupported op=${request.operationType}"))
             }
-            result.onSuccess { succeeded++ }
-                .onFailure { errors += (it.message ?: source.displayName) }
+            result.onSuccess { count ->
+                succeeded += if (request.operationType == FileOperationType.DELETE) count else 1
+            }
+                .onFailure { errors += directoryFailureText(it, source.displayName) }
         }
         return DirectoryOutcome(
             succeededCount = succeeded,
             failedCount = errors.size,
+            entriesProcessed = entriesProcessed,
             details = errors.take(MAX_ERROR_DETAILS).joinToString("\n").ifBlank { null },
+        ).also { directoryOutcome = it }
+    }
+
+    /**
+     * S1325: a refusal carries a reason the user can act on, so it is translated here instead of
+     * reaching the notification as the technical exception text.
+     */
+    private fun directoryFailureText(error: Throwable, fallbackName: String): String =
+        when (error) {
+            is DirectoryOperationRefusal -> context.getString(refusalMessageRes(error.reason))
+            else -> error.message ?: fallbackName
+        }
+
+    /**
+     * Publishes one directory-walk step. [totalEntries] is 0 when the walk streams and cannot know
+     * the total in advance - the notification then shows an indeterminate bar but still names the
+     * entry being written.
+     *
+     * A tree of many small files emits entries far faster than a byte copy emits chunks, so this
+     * path shares the byte path's publish gate rather than forcing every entry through - the same
+     * notification/Room cost S1226 removed from the file loop.
+     */
+    private fun publishDirectoryProgress(
+        request: BrowseFileTransferRequest,
+        totalEntries: Int,
+        entryName: String,
+    ) {
+        val publishReport = transferProgressReporter.report(
+            operationId = id.toString(),
+            bytesTransferred = 0L,
+            totalBytes = 0L,
+            consumerKey = WORKER_CONSUMER,
+            minimumPublishIntervalMs = PROGRESS_MIN_INTERVAL_MS,
         )
+        if (!publishReport.shouldPublish) return
+        Timber.d("S1225: dir publish entry=%s", entryName)
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(
+            NOTIF_ID_PROGRESS,
+            buildProgressNotification(
+                request = request,
+                contentText = entryName,
+                progressPercent = null,
+            ),
+        )
+        runCatching {
+            setProgressAsync(
+                BrowseFileTransferProgressCodec.encodeProgress(
+                    id.toString(),
+                    BrowseFileTransferProgressSnapshot(
+                        operationType = request.operationType,
+                        totalFiles = totalEntries,
+                        currentIndex = 0,
+                        currentFile = entryName,
+                        bytesTransferred = 0L,
+                        totalBytes = 0L,
+                        speedBytesPerSecond = 0L,
+                        completedOperationBytes = 0L,
+                        totalOperationBytes = 0L,
+                    ),
+                ),
+            )
+        }
     }
 
     private fun buildUndoOperation(
@@ -282,6 +438,10 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                 destination = destination,
                 overwrite = overwriteFiles,
                 sourceCredentialsId = sourceCredentialsId,
+            )
+            FileOperationType.DELETE -> FileOperation.Delete(
+                files = sources,
+                softDelete = softDelete,
             )
             else -> throw IllegalArgumentException("Unsupported browse background op: $operationType")
         }
@@ -346,6 +506,22 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         return builder.build()
     }
 
+    /**
+     * S1325: a mixed selection reports both halves. The file count alone read as if the folders had
+     * been skipped, which is the state the user could not distinguish from a silent failure.
+     */
+    private fun applyResultText(builder: NotificationCompat.Builder, fileText: String) {
+        val folders = directoryOutcome.succeededCount
+        if (folders <= 0) {
+            builder.setContentText(fileText)
+            return
+        }
+        val combined = fileText + "\n" +
+            context.getString(R.string.browse_transfer_notif_text_folders_done, folders)
+        builder.setContentText(combined)
+        builder.setStyle(NotificationCompat.BigTextStyle().bigText(combined))
+    }
+
     private fun postResultNotification(
         request: BrowseFileTransferRequest,
         event: BrowseFileTransferTerminalEvent,
@@ -360,11 +536,15 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         when (event) {
             is BrowseFileTransferTerminalEvent.Success -> {
                 builder.setContentTitle(context.getString(R.string.browse_transfer_notif_title_done))
-                builder.setContentText(context.getString(doneMessageRes(event.operationType), event.processedCount))
+                applyResultText(
+                    builder,
+                    context.getString(doneMessageRes(event.operationType), event.processedCount),
+                )
             }
             is BrowseFileTransferTerminalEvent.PartialSuccess -> {
                 builder.setContentTitle(context.getString(R.string.browse_transfer_notif_title_done))
-                builder.setContentText(
+                applyResultText(
+                    builder,
                     context.getString(
                         R.string.error_some_operations_failed,
                         event.failedCount,
@@ -382,7 +562,18 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             }
             is BrowseFileTransferTerminalEvent.Failure -> {
                 builder.setContentTitle(context.getString(R.string.browse_transfer_notif_title_failed))
-                builder.setContentText(context.getString(R.string.browse_transfer_notif_text_failed))
+                // S1321: the event already carries a localized reason ("destination server is
+                // unreachable", ..) and the in-app error surface shows it. The notification used a
+                // fixed string instead, so a user who had left the app - the case the background
+                // worker exists for - learned only that something failed, not what to fix.
+                val reason = event.message.ifBlank {
+                    context.getString(R.string.browse_transfer_notif_text_failed)
+                }
+                Timber.d("S1321: failure notification reason='%s'", reason)
+                builder.setContentText(reason)
+                // A reason can exceed one collapsed line; without BigTextStyle it is truncated
+                // exactly where the actionable part usually sits.
+                builder.setStyle(NotificationCompat.BigTextStyle().bigText(reason))
             }
             is BrowseFileTransferTerminalEvent.Cancelled -> {
                 return
@@ -424,16 +615,19 @@ class BrowseFileTransferWorker @AssistedInject constructor(
 
     private fun notificationTitle(operationType: FileOperationType?): String = when (operationType) {
         FileOperationType.MOVE -> context.getString(R.string.browse_transfer_notif_title_move)
+        FileOperationType.DELETE -> context.getString(R.string.deleting_files)
         else -> context.getString(R.string.browse_transfer_notif_title_copy)
     }
 
     private fun doneMessageRes(operationType: FileOperationType): Int = when (operationType) {
         FileOperationType.MOVE -> R.string.moved_n_files
+        FileOperationType.DELETE -> R.string.deleted_n_files
         else -> R.string.copied_n_files
     }
 
     private fun buildProgressText(snapshot: BrowseFileTransferProgressSnapshot): String {
         val percent = snapshot.percentOrNull()
+        Timber.d("S1225: byte publish speed=%s B/s", snapshot.speedBytesPerSecond)
         return if (percent != null) {
             context.getString(R.string.browse_transfer_notif_text_progress, percent, snapshot.currentFile)
         } else {
@@ -442,12 +636,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
     }
 
     private fun BrowseFileTransferProgressSnapshot.percentOrNull(): Int? {
-        return if (totalOperationBytes > 0L) {
-            ((completedOperationBytes * PERCENT_SCALE) / totalOperationBytes)
-                .toInt().coerceIn(0, PROGRESS_PERCENT_CAP)
-        } else {
-            null
-        }
+        return transferBytePercentOrNull(completedOperationBytes, totalOperationBytes)
     }
 
     private fun ensureChannel() {
@@ -467,6 +656,8 @@ class BrowseFileTransferWorker @AssistedInject constructor(
     private data class DirectoryOutcome(
         val succeededCount: Int = 0,
         val failedCount: Int = 0,
+        /** Entries written inside the folders - reported so a cancelled walk can say how far it got. */
+        val entriesProcessed: Int = 0,
         val details: String? = null,
     )
 
@@ -477,8 +668,13 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         private const val RESULT_TIMEOUT_MS = 20 * 60 * 1000L
         private const val MAX_ERROR_DETAILS = 5
         private const val PROGRESS_PERCENT_MAX = 100
-        private const val PROGRESS_PERCENT_CAP = 99
-        private const val PERCENT_SCALE = 100L
+
+        // S1226: minimum gap between published progress updates. The copy layer emits per buffer
+        // chunk (~50/s measured); at 1 s the bar still moves visibly while ~98% of the notification
+        // rebuilds and WorkManager Room writes disappear. Raise it if the transfer thread is still
+        // starved - the cost is only how often the number on screen changes.
+        private const val PROGRESS_MIN_INTERVAL_MS = 1_000L
+        private const val WORKER_CONSUMER = "browse-worker"
         private const val RESULT_ID_MODULO = 100
         private const val REQUEST_CODE_MODULO = 10_000
         private val REMOTE_OR_CONTENT_PREFIXES =

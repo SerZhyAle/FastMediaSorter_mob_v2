@@ -30,7 +30,7 @@ This document outlines the current technical constraints, functional limitations
 - **OCR/Translation:** Requires a one-time internet connection to download language models (~15-50 MB depending on the language).
 
 ### Internet Streams
-- **Lite flavor:** Progressive http/https audio streams only. HLS (.m3u8), DASH, and RTSP are unsupported and will show an unsupported-format message.
+- **Lite flavor:** The Streams feature is entirely absent - there is no screen and no entry point, so no protocol works there. Lite is a local-media build in general: no network sources (SMB, SFTP, FTP), no cloud storage, no documents or EPUB, no animations, and no background audio playback. Local video, images, and audio with lyrics do work.
 - **Photos flavor:** The Streams feature is entirely absent.
 - **Live HLS/DASH:** Only VOD (on-demand) HLS/DASH is supported in this release. Live-offset / live-edge HLS/DASH playback is deferred.
 - **Playlist formats:** Only `.m3u` playlist import and the curated FastMediaSorter catalog are supported. `.pls`, `.xspf`, and custom-JSON imports are deferred.

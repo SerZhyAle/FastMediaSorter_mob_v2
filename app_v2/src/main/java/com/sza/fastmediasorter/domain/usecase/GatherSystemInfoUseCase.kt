@@ -55,8 +55,13 @@ class GatherSystemInfoUseCase @Inject constructor(
     private val cameraDiagnostics: GatherCameraDiagnosticsUseCase,
 ) {
 
-    operator fun invoke(): SystemInfoReport {
-        val base = buildSections()
+    /**
+     * S1261: [appCameraView] carries the capture screen's own reading of the camera tree (selected
+     * lens set, start lens, per-entry multiplier and preset labels), composed by the UI layer - the
+     * domain stays free of CameraX/ui-helper dependencies and just renders the lines it is given.
+     */
+    operator fun invoke(appCameraView: List<String> = emptyList()): SystemInfoReport {
+        val base = buildSections(appCameraView)
         // Collect flavor-contributed sections defensively: a throwing contributor degrades the
         // extended part to empty, never breaking the base report (matches safe/safeList style).
         val extended: List<ExtendedDiagnosticsSection> = try {
@@ -71,7 +76,7 @@ class GatherSystemInfoUseCase @Inject constructor(
         return SystemInfoReport(maskedText = maskedText, fullText = fullText, hasSensitive = hasSensitive)
     }
 
-    private fun buildSections(): List<SystemInfoSection> = listOf(
+    private fun buildSections(appCameraView: List<String>): List<SystemInfoSection> = listOf(
         SystemInfoSection(
             label(R.string.sysinfo_section_device),
             listOf(
@@ -102,7 +107,7 @@ class GatherSystemInfoUseCase @Inject constructor(
             ),
         ),
         SystemInfoSection(label(R.string.sysinfo_section_hardware), hardwareFields()),
-        cameraSection(),
+        cameraSection(appCameraView),
         SystemInfoSection(label(R.string.sysinfo_section_battery), batteryFields()),
         SystemInfoSection(label(R.string.sysinfo_section_memory), memoryFields()),
         SystemInfoSection(label(R.string.sysinfo_section_storage), storageFields()),
@@ -126,9 +131,12 @@ class GatherSystemInfoUseCase @Inject constructor(
     )
 
     /** A refused camera read degrades to an empty section, which the formatter drops entirely. */
-    private fun cameraSection(): SystemInfoSection = SystemInfoSection(
+    private fun cameraSection(appCameraView: List<String>): SystemInfoSection = SystemInfoSection(
         title = label(R.string.sysinfo_section_cameras),
-        fields = safeList { cameraDiagnostics().fields }.orEmpty(),
+        // Platform view first (what Camera2 declares), then the app view (what the capture screen
+        // derived from it) - comparing the two is how a device report localizes a lens defect (S1261).
+        fields = safeList { cameraDiagnostics().fields }.orEmpty() +
+            appCameraView.map { label(R.string.sysinfo_field_camera_app_view) to it },
     )
 
     private fun benchmarkFields(): List<Pair<String, String>> = safeList {

@@ -56,15 +56,16 @@ Features include:
 
 ## Product Flavors 🎯
 
-FastMediaSorter v2 ships **5 main app flavors** for phones and tablets, plus the XR / noLegal sideload surface for headset use. The current public matrix is the one documented in [FEATURES.md](FEATURES.md) and [HOW_TO.md](HOW_TO.md):
+FastMediaSorter v2 ships **six flavors** - four for everyday phones and tablets (Standard, Lite, Photos, Legacy) plus two headset and sideload builds, VR and noLegal. The canonical capability grid is generated from the build in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md):
 
 | Flavor | Description | Notes |
 |--------|-------------|-------|
 | **Standard** | Full-featured release | Broadest feature set for media, documents, OCR, translation, and cloud access |
-| **Lite** | Lightweight release | Smaller install, core media workflows, fewer optional integrations |
-| **Photos** | Photo-first release | Optimized for browsing, sorting, and organizing images |
-| **Legacy** | Compatibility-focused release | Full media plus SMB/FTP/SFTP and cloud (Google Drive, Dropbox, OneDrive); built for Android 6/7 (API 23+) |
-| **VR / noLegal** | XR and sideload surface | OpenXR / VR-capable build path on supported headsets and sideload-only extras |
+| **Lite** | Lightweight release | Local files only - video, audio and images; no network sources, cloud, documents or Streams |
+| **Photos** | Photo-first release | Images only, with SMB/FTP/SFTP and cloud; no video and no audio |
+| **Legacy** | Compatibility-focused release | Same feature set as Standard, including SMB/FTP/SFTP and cloud (Google Drive, Dropbox, OneDrive); built for Android 6/7 (API 23+) |
+| **VR** | Store-clean headset build | Full media set for headsets; no Google Cast and no Wear OS companion |
+| **noLegal** | Sideload build | Everything in Standard plus the OpenXR immersive player and sideload-only extras |
 
 ### Which Flavor Should I Download?
 
@@ -72,7 +73,8 @@ FastMediaSorter v2 ships **5 main app flavors** for phones and tablets, plus the
 - **Lite**: Prefer this if you want a lighter package and simpler setup
 - **Photos**: Prefer this for photo-first workflows
 - **Legacy**: Choose this for Android 6/7 devices (API 23+) - includes network and cloud
-- **VR / noLegal**: Use only when you need the XR headset or sideload-only surface
+- **VR**: Choose this for an XR headset - the store build without Cast and Wear support
+- **noLegal**: Sideload only - pick it when you need the OpenXR immersive player
 
 For exact feature-by-flavor availability, use the canonical documentation:
 
@@ -94,9 +96,9 @@ For exact feature-by-flavor availability, use the canonical documentation:
 | Flavor | File Name | Description |
 |--------|-----------|-------------|
 | **Standard** | `FastMediaSorter_standard_release.zip` | Full features (Cloud, OCR, EPUB, Translation) |
-| **Lite** | `FastMediaSorter_lite_release.zip` | Local media focus (Videos, Audio, Images; no cloud/documents) |
-| **Photos** | `FastMediaSorter_photos_release.zip` | Images only (with cloud support) |
-| **Legacy** | `FastMediaSorter_legacy_release.zip` | Full media + network (SMB/FTP/SFTP) + cloud; Android 6/7 (API 23+) |
+| **Lite** | `FastMediaSorter_lite_release.zip` | Local media only (Videos, Audio, Images; no network, cloud, documents or Streams) |
+| **Photos** | `FastMediaSorter_photos_release.zip` | Images only, with network (SMB/FTP/SFTP) and cloud |
+| **Legacy** | `FastMediaSorter_legacy_release.zip` | Same features as Standard, including network (SMB/FTP/SFTP) and cloud; Android 6/7 (API 23+) |
 
 > **Note**: All builds are automatically uploaded to Google Drive after successful compilation.
 >
@@ -131,7 +133,7 @@ Full-size images:
 - ▶️ **Built-in Player:** Playback of video and audio, viewing images and GIFs without leaving the app. Supports slideshow and full-screen zooming.
 - 🧩 **Default Player Integration:** Optional playback toggles let FastMediaSorter act as a system media handler for open/share intents (ACTION_VIEW / ACTION_SEND), and route hardware media-button wake events to the audio playback service.
 - 🎛️ **Hardware Button Support:** Steering wheel controls, headset buttons, and physical media keys (Play/Pause, Next, Previous) are fully supported via the background audio service - no screen interaction required.
-- 📻 **Internet Streams (Streams screen):** Play internet radio (http/https, Icecast/Shoutcast with ICY now-playing), HLS/DASH streams, and RTSP sources directly from a dedicated Streams screen. Add URLs manually, import a `.m3u` playlist, or download a curated FastMediaSorter catalog. Pin favourites to the top; filter by category and language. Inline audio: radio plays from the list via a sticky bottom mini-control while the list stays scrollable. Video and RTSP open in the fullscreen player. Available in Standard, Legacy, noLegal/VR; progressive-audio only in Lite; absent in Photos.
+- 📻 **Internet Streams (Streams screen):** Play internet radio (http/https, Icecast/Shoutcast with ICY now-playing), HLS/DASH streams, and RTSP sources directly from a dedicated Streams screen. Add URLs manually, import a `.m3u` playlist, or download a curated FastMediaSorter catalog. Pin favourites to the top; filter by category and language. Inline audio: radio plays from the list via a sticky bottom mini-control while the list stays scrollable. Video and RTSP open in the fullscreen player. Available in Standard, Legacy, VR and noLegal; absent in Lite and Photos.
 - 🎵 **Lyrics Support:** View song lyrics for the currently playing track. Automatically searches by metadata (Artist/Title) using `api.lyrics.ovh`, with fallback to filename parsing.
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
@@ -311,7 +313,7 @@ Wear OS docs:
 
 - JDK 17+
 - Android SDK 35
-- Minimum Android version: 8.0 (API 26) for Standard/Lite/Photos; 6.0 (API 23) for Legacy
+- Minimum Android version: 8.0 (API 26) for Standard/Lite/Photos/VR/noLegal; 6.0 (API 23) for Legacy
 
 ### Build
 

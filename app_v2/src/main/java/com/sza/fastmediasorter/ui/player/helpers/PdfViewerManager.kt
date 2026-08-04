@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.pdf.PdfRenderer
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -105,6 +106,46 @@ class PdfViewerManager(
     // Page render job for cancellation on rapid navigation (C2 fix)
     private var pageRenderJob: Job? = null
 
+    private val carriedPageMatrix = Matrix()
+    private var hasCarriedPageMatrix = false
+
+    // S1355: every setImageBitmap makes PhotoView run resetMatrix(), which fires the matrix-change
+    // listener with an identity supplementary matrix. That listener keeps the carry live for rotation,
+    // so without this guard a page turn would overwrite the carry between the capture and the restore
+    // a few lines later and the S1327 transfer would silently die.
+    private var isSwappingPageBitmap = false
+
+    // S1355: all three hosts declare configChanges="orientation|screenSize|..", so rotation keeps the
+    // activity alive and only hands PhotoView a new frame - setFrame runs attacher.update(), which ends
+    // in resetMatrix() and drops the zoom. View.layout() runs setFrame before its layout-change
+    // listeners, so this is the first point at which the new base matrix exists and the carry can be
+    // re-applied. Subscribing on the manager's own view covers PlayerActivity,
+    // DocumentStandaloneActivity and StandaloneViewManager without editing any of them.
+    // Held as a field, not an anonymous lambda: the PhotoView belongs to the host layout and outlives
+    // this manager, so close() has to unregister it or the manager and its bitmaps stay reachable.
+    private val rotationCarryLayoutListener =
+        View.OnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            val sizeChanged =
+                (right - left) != (oldRight - oldLeft) || (bottom - top) != (oldBottom - oldTop)
+            val photoView = safeViews.photoView
+            val canRestore = hasCarriedPageMatrix &&
+                photoView.drawable != null &&
+                photoView.width > 0 &&
+                photoView.height > 0
+            if (sizeChanged && canRestore) {
+                isSwappingPageBitmap = true
+                try {
+                    photoView.setSuppMatrix(carriedPageMatrix)
+                } finally {
+                    isSwappingPageBitmap = false
+                }
+                // Re-read the applied matrix: setDisplayMatrix clamps it to the new frame through
+                // checkMatrixBounds, so the stored carry must be the effective one, not the request.
+                photoView.getSuppMatrix(carriedPageMatrix)
+                Timber.d("S1355: rotation carry restored scale=${photoView.scale}")
+            }
+        }
+
     // S0196 Phase 04: one-shot tag emitted when the first PDF page bitmap is pushed to
     // the PhotoView - "primary content rendered" for the StandalonePlayer docs branch.
     private var firstPageRenderedLogged = false
@@ -151,6 +192,14 @@ class PdfViewerManager(
 
         // Listen for scale/position changes on PhotoView to update translation overlay
         safeViews.photoView.setOnMatrixChangeListener {
+            // S1355: rotation never reaches showPdfPage, and resetMatrix() has already run by the time
+            // any callback lands, so there is no "before" moment left to snapshot. Keeping the carry
+            // current on every zoom/pan is what leaves something to restore after the new frame.
+            if (!isSwappingPageBitmap && safeViews.photoView.drawable != null) {
+                safeViews.photoView.getSuppMatrix(carriedPageMatrix)
+                hasCarriedPageMatrix = true
+            }
+
             // Update translation overlay position when PDF is zoomed/panned
             if (safeViews.translationLensOverlay.isVisible == true && currentPageBitmap != null) {
                 val viewWidth = safeViews.photoView.width
@@ -166,6 +215,8 @@ class PdfViewerManager(
                 )
             }
         }
+
+        safeViews.photoView.addOnLayoutChangeListener(rotationCarryLayoutListener)
 
         // Setup translation overlay click to expand/collapse
         safeViews.translationOverlay.setOnClickListener {
@@ -302,6 +353,12 @@ class PdfViewerManager(
         safeViews.btnSearchEpubCmd.isVisible = false
         safeViews.btnTranslateEpubCmd.isVisible = false
         closePdfRenderer()
+        // S1327: closePdfRenderer leaves the PhotoView image in place, so the next document's first page
+        // would capture the previous document's zoom off the stale drawable and re-apply it. Dropping the
+        // image with the carry is what makes the reset survive into the first render.
+        safeViews.photoView.setImageBitmap(null)
+        carriedPageMatrix.reset()
+        hasCarriedPageMatrix = false
         pdfLinkAndSearchManager.clearUrlCache()
         // Translation cache is intentionally NOT cleared - preserves translations when switching files.
         val isNetworkFile = mediaFile.path.startsWith("smb://") || mediaFile.path.startsWith("sftp://") || mediaFile.path.startsWith("ftp://") || mediaFile.path.startsWith("https://")
@@ -539,6 +596,11 @@ class PdfViewerManager(
     fun toggleScrollMode() {
         isScrollMode = !isScrollMode
 
+        // S1355: switching page/scroll mode is a deliberate reframing, not a rotation - carrying the
+        // zoom across it would restore a matrix into a view the user asked to see afresh.
+        carriedPageMatrix.reset()
+        hasCarriedPageMatrix = false
+
         // Persist preference
         coroutineScope.launch(Dispatchers.IO) {
             try {
@@ -704,11 +766,17 @@ class PdfViewerManager(
         // Don't call rendererWrapper.close() - closePdfRenderer() closes the underlying PdfRenderer
         rendererWrapper = null
 
+        // S1355: the PhotoView is the host's, so it survives this manager - leaving the layout-change
+        // listener attached would keep the manager and its bitmaps reachable past teardown.
+        safeViews.photoView.removeOnLayoutChangeListener(rotationCarryLayoutListener)
+
         // Clear PhotoView reference to bitmap BEFORE recycling (M3 fix)
         safeViews.photoView.setImageBitmap(null)
         closePdfRenderer()
         currentPageBitmap?.recycle()
         currentPageBitmap = null
+        carriedPageMatrix.reset()
+        hasCarriedPageMatrix = false
         translationEnabled = false
         currentPdfPath = null
         releaseTts()
@@ -734,6 +802,50 @@ class PdfViewerManager(
     }
 
     // ========== Private Helper Methods ==========
+
+    /**
+     * Push a freshly rendered [bitmap] into the PhotoView, carrying the zoom across the swap.
+     *
+     * S1355: the swap runs PhotoView's resetMatrix() more than once, and each reset fires the
+     * OnMatrixChangeListener with an identity supplementary matrix. That listener keeps the carry
+     * current for rotation, so the whole swap is fenced by [isSwappingPageBitmap] - without the fence
+     * the reset would overwrite the carry captured here and the S1327 page-turn transfer would die.
+     */
+    private fun swapRenderedPageBitmap(bitmap: Bitmap, index: Int) {
+        isSwappingPageBitmap = true
+        try {
+            if (safeViews.photoView.drawable != null) {
+                safeViews.photoView.getSuppMatrix(carriedPageMatrix)
+                hasCarriedPageMatrix = true
+            }
+
+            // Clear PhotoView BEFORE recycling old bitmap (M3 fix)
+            safeViews.photoView.setImageBitmap(null)
+            currentPageBitmap?.recycle()
+
+            safeViews.photoView.setImageBitmap(bitmap)
+
+            // S0196 Phase 04: emit once on the first successful page push to the view.
+            if (!firstPageRenderedLogged) {
+                firstPageRenderedLogged = true
+                Timber.d("PdfViewerManager: firstPageRendered index=$index pageCount=$pdfPageCount")
+            }
+
+            // Apply color filter (night mode / sepia)
+            safeViews.photoView.colorFilter = PdfColorConversion.getColorFilter(currentColorMode)
+
+            // Store bitmap for translation
+            currentPageBitmap = bitmap
+
+            // S1327: restore only after currentPageBitmap is assigned - writing the supplementary
+            // matrix fires the OnMatrixChangeListener from init, which reads currentPageBitmap.
+            if (hasCarriedPageMatrix) {
+                safeViews.photoView.setSuppMatrix(carriedPageMatrix)
+            }
+        } finally {
+            isSwappingPageBitmap = false
+        }
+    }
 
     fun showPdfPage(index: Int) {
         if (pdfRenderer == null || pdfPageCount == 0) return
@@ -800,23 +912,7 @@ class PdfViewerManager(
 
                 // Switch to main thread to update UI
                 withContext(Dispatchers.Main) {
-                    // Clear PhotoView BEFORE recycling old bitmap (M3 fix)
-                    safeViews.photoView.setImageBitmap(null)
-                    currentPageBitmap?.recycle()
-
-                    safeViews.photoView.setImageBitmap(bitmap)
-
-                    // S0196 Phase 04: emit once on the first successful page push to the view.
-                    if (!firstPageRenderedLogged) {
-                        firstPageRenderedLogged = true
-                        Timber.d("PdfViewerManager: firstPageRendered index=$index pageCount=$pdfPageCount")
-                    }
-
-                    // Apply color filter (night mode / sepia)
-                    safeViews.photoView.colorFilter = PdfColorConversion.getColorFilter(currentColorMode)
-
-                    // Store bitmap for translation
-                    currentPageBitmap = bitmap
+                    swapRenderedPageBitmap(bitmap, index)
 
                     currentPdfPageIndex = index
                     safeViews.tvPdfPageIndicatorOrNull?.text = "${index + 1} / $pdfPageCount"
@@ -891,15 +987,26 @@ class PdfViewerManager(
     fun isPdfActive(): Boolean = pdfRenderer != null
 
     /**
-     * Handle a PDF fling: vertical swipe pages, horizontal swipe zooms (S0949).
+     * S1273: whether a swipe may currently turn a page. False in scroll mode, where the RecyclerView
+     * owns vertical movement and a page-turn gesture would fight it.
+     */
+    fun isPageSwipeEnabled(): Boolean = pdfRenderer != null && !isScrollMode
+
+    /** S1273: turn one page in [next] direction. Entry point for gesture-driven paging. */
+    fun turnPage(next: Boolean) {
+        if (next) showNextPage() else showPreviousPage()
+    }
+
+    /**
+     * Handle a PDF fling: a horizontal swipe steps the zoom (S0949).
+     *
+     * S1273 moved page turns to [PdfPageSwipeDetector]. PhotoView withholds this callback above
+     * scale 1.0, for multi-touch, and below the platform fling velocity, so it can never see the
+     * gestures that turn a page - only the unzoomed horizontal flick that survives those guards.
      * Wired from each host's PhotoView single-fling listener; returns true if handled.
      */
-    fun handlePdfFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-        // Guards: PDF active, not scroll mode (RecyclerView owns vertical scroll), and not zoomed-in.
-        // PhotoView's single-fling listener only fires at scale <= fit, so the horizontal-zoom branch
-        // also lives here; the > threshold check keeps a zoomed page in pan mode.
-        val blocked = isScrollMode || safeViews.photoView.scale > PDF_NAV_ZOOM_THRESHOLD
-        if (pdfRenderer == null || e1 == null || blocked) {
+    fun handlePdfFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float): Boolean {
+        if (pdfRenderer == null || e1 == null || isScrollMode) {
             return false
         }
 
@@ -908,13 +1015,9 @@ class PdfViewerManager(
         val swipeThreshold = (root.width * PDF_SWIPE_THRESHOLD_FRACTION).toInt()
             .coerceAtLeast(PDF_MIN_SWIPE_THRESHOLD_PX)
         var handled = false
-        if (abs(diffY) > abs(diffX)) {
-            // Vertical swipe = page navigation (down = previous, up = next).
-            if (abs(diffY) > swipeThreshold && abs(velocityY) > PDF_SWIPE_VELOCITY_THRESHOLD) {
-                if (diffY > 0) showPreviousPage() else showNextPage()
-                handled = true
-            }
-        } else if (abs(diffX) > swipeThreshold && abs(velocityX) > PDF_SWIPE_VELOCITY_THRESHOLD) {
+        if (abs(diffX) > abs(diffY) && abs(diffX) > swipeThreshold &&
+            abs(velocityX) > PDF_SWIPE_VELOCITY_THRESHOLD
+        ) {
             // S0949: horizontal swipe = zoom step (right = in, left = out), clamped to 0.3x..10x.
             stepPdfZoom(zoomIn = diffX > 0)
             handled = true
@@ -1053,8 +1156,6 @@ class PdfViewerManager(
         private const val PDF_MAX_SCALE = 10.0f
         private const val PDF_ZOOM_STEP_FACTOR = 1.5f
 
-        // Above this scale a PDF page is treated as zoomed (pan mode) - fling gestures are ignored.
-        private const val PDF_NAV_ZOOM_THRESHOLD = 1.05f
         private const val PDF_SWIPE_THRESHOLD_FRACTION = 0.05f
         private const val PDF_MIN_SWIPE_THRESHOLD_PX = 50
         private const val PDF_SWIPE_VELOCITY_THRESHOLD = 100

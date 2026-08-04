@@ -81,7 +81,7 @@ When you connect cloud storage (optional):
 - ❌ Share your cloud data with anyone
 - ❌ Upload your data to our servers
 - ❌ Scan your entire cloud storage
-- ❌ Access other services (Gmail, Contacts, Calendar, etc.)
+- ❌ Access other cloud services of that account (Gmail, Google Contacts, Calendar, etc.) - the optional on-device contacts permission below is separate and never reaches your cloud account
 
 ### Data Usage
 
@@ -135,6 +135,10 @@ The app requests minimum necessary permissions:
 
 - `INTERNET`: Connect to network shares and Google Drive
 - `ACCESS_NETWORK_STATE` / `ACCESS_WIFI_STATE`: Check connectivity
+
+### Contacts Permissions
+
+- `READ_CONTACTS`: Optional, used only to show a pinned contact's name and photo on the launcher (Settings > Permissions > Contacts); denying it keeps a plain initial in place of the photo.
 
 ### Other Permissions
 

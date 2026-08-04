@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
+import com.sza.fastmediasorter.ui.launcher.gadget.di.HomeWidgetGadgets
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -17,9 +18,20 @@ class LauncherGadgetRegistry @Inject constructor(
     playlist: PlaylistGadget,
     streams: StreamsGadget,
     folderPreview: FolderPreviewGadget,
+    // S1170: the home-widget counterparts arrive as one qualified collection, not one parameter each -
+    // fourteen more constructor arguments would put this class at nineteen, past detekt's threshold of
+    // 10 and past the point where the list says anything.
+    //
+    // @JvmSuppressWildcards is load-bearing, not decoration: Kotlin compiles a `List<LauncherGadget>`
+    // parameter to Java `List<? extends LauncherGadget>`, which Dagger treats as a different key from
+    // the `List<LauncherGadget>` the module provides - the graph then fails with MissingBinding at
+    // hiltJavaCompile, long after `a.ps1 fk` has reported the Kotlin as clean. Same reason
+    // ResolvePanelRouteAvailabilityUseCase writes Set<@JvmSuppressWildcards ScreenVideoRecordingController>.
+    @HomeWidgetGadgets homeWidgets: List<@JvmSuppressWildcards LauncherGadget>,
 ) {
 
-    private val gadgets: List<LauncherGadget> = listOf(clock, weather, playlist, streams, folderPreview)
+    private val gadgets: List<LauncherGadget> =
+        listOf(clock, weather, playlist, streams, folderPreview) + homeWidgets
 
     /** Picker order (Phase 07): cheapest and most universal first. */
     fun all(): List<LauncherGadget> = gadgets
@@ -38,11 +50,13 @@ class LauncherGadgetRegistry @Inject constructor(
         val value = raw?.trim().orEmpty()
         if (value.isEmpty()) return null
         val separator = value.indexOf(SEPARATOR)
-        if (separator < 0) return value to null
-        val key = value.substring(0, separator)
-        if (key.isEmpty()) return null
-        val param = value.substring(separator + 1).takeIf { it.isNotBlank() }
-        return key to param
+        return when {
+            separator < 0 -> value to null
+            // A leading separator means an empty key, which no gadget can ever answer to.
+            separator == 0 -> null
+            else -> value.substring(0, separator) to
+                value.substring(separator + 1).takeIf { it.isNotBlank() }
+        }
     }
 
     companion object {

@@ -8,7 +8,10 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
 import timber.log.Timber
 import java.io.File
 
@@ -29,6 +32,12 @@ import java.io.File
  *
  * The caller guarantees the CAMERA runtime grant before [capture]. The camera device is released as
  * soon as the shot resolves (or on any failure), and [release] is idempotent for lifecycle teardown.
+ *
+ * S1360: the shot owns its lifecycle. It used to bind to the caller's, so anything that stopped the
+ * host aborted the in-flight frame with `ImageCaptureException: Camera is closed` by way of
+ * `LifecycleCameraRepositoryObserver.onStop` - Android 16 declining a background activity start, an
+ * orientation relayout, any system priority decision. The host lifecycle is still observed, but only
+ * as a last-resort release, never as the thing that ends the capture.
  */
 class HeadlessPhotoCapturer(
     private val lifecycleOwner: LifecycleOwner,
@@ -36,6 +45,22 @@ class HeadlessPhotoCapturer(
 ) {
 
     private var cameraProvider: ProcessCameraProvider? = null
+
+    // S1360: CameraX binds to this, not to the host. Nothing outside this class can move it.
+    private val captureLifecycle = CaptureLifecycleOwner()
+
+    // S1360 safety net, deliberately NOT the primary mechanism: with the capture off the host's
+    // lifecycle, a takePicture that never calls back would hold the camera open indefinitely. The
+    // host being destroyed is the last moment anyone can free it.
+    private val hostObserver = object : DefaultLifecycleObserver {
+        override fun onDestroy(owner: LifecycleOwner) {
+            release()
+        }
+    }
+
+    init {
+        lifecycleOwner.lifecycle.addObserver(hostObserver)
+    }
 
     /**
      * Captures a single photo into [outputFile]. [location] is written into the JPEG EXIF when the
@@ -61,7 +86,11 @@ class HeadlessPhotoCapturer(
                         .build()
                     // Bind ONLY ImageCapture (no Preview) so CameraX opens the device without any UI.
                     provider.unbindAll()
-                    provider.bindToLifecycle(lifecycleOwner, selector, imageCapture)
+                    // S1360: RESUMED before the bind - CameraX only opens the device for an owner
+                    // that is at least STARTED, and this registry is the one it will watch.
+                    captureLifecycle.resume()
+                    provider.bindToLifecycle(captureLifecycle, selector, imageCapture)
+                    Timber.d("S1360: bound to own capture lifecycle, host stop cannot abort the frame")
                     takePicture(imageCapture, outputFile, location, onSaved, onError)
                 }.onFailure { error ->
                     Timber.e(error, "HeadlessPhotoCapturer: provider/bind failed")
@@ -110,8 +139,38 @@ class HeadlessPhotoCapturer(
 
     /** Releases the camera device; safe to call more than once (lifecycle teardown + capture end). */
     fun release() {
+        runCatching { lifecycleOwner.lifecycle.removeObserver(hostObserver) }
+            .onFailure { Timber.w(it, "HeadlessPhotoCapturer: host observer removal failed") }
         runCatching { cameraProvider?.unbindAll() }
             .onFailure { Timber.w(it, "HeadlessPhotoCapturer: unbind failed") }
         cameraProvider = null
+        // S1360: destroying the registry is what actually tells CameraX the use case is done. Last,
+        // so an unbind failure above cannot leave the owner alive with no provider to release it.
+        captureLifecycle.destroy()
+    }
+
+    /**
+     * S1360: the capture's own lifecycle. Exists so the frame in flight survives every external stop
+     * of the host - only [release] ends it.
+     */
+    private class CaptureLifecycleOwner : LifecycleOwner {
+
+        private val registry = LifecycleRegistry(this)
+
+        override val lifecycle: Lifecycle get() = registry
+
+        fun resume() {
+            // A registry that already reached DESTROYED cannot go back up, and LifecycleRegistry
+            // throws rather than ignoring the attempt.
+            if (registry.currentState != Lifecycle.State.DESTROYED) {
+                registry.currentState = Lifecycle.State.RESUMED
+            }
+        }
+
+        fun destroy() {
+            if (registry.currentState != Lifecycle.State.DESTROYED) {
+                registry.currentState = Lifecycle.State.DESTROYED
+            }
+        }
     }
 }

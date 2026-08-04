@@ -4,12 +4,13 @@ import android.widget.Toast
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.media3.common.util.UnstableApi
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
+import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioCallbacks
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioViews
 /**
  * S0777: plays an AUDIO channel tapped on the main-window streams panel inline, right in the home
  * window, instead of launching the Streams list screen. Reuses the exact inline-radio engine the
@@ -27,6 +28,9 @@ class MainStreamsInlineAudioManager(
     private val binding: ActivityMainBinding,
     private val hasNetwork: () -> Boolean,
     private val isPersistentAudioSettingOn: () -> Boolean,
+    // S1373: supplied by the host, which injects the capability contract - shared code must not read
+    // the build flag itself (CLAUDE.md Rule 14).
+    private val persistentAudioCompiledIn: Boolean,
     private val onPlayVideo: (StreamSourceEntity) -> Unit,
 ) : DefaultLifecycleObserver {
 
@@ -34,12 +38,16 @@ class MainStreamsInlineAudioManager(
 
     private val inlineAudio = StreamInlineAudioManager(
         lifecycleOwner = lifecycleOwner,
-        miniControl = binding.mainStreamMiniControl,
-        titleView = binding.tvMainMiniTitle,
-        playStopButton = binding.btnMainMiniPlayStop,
+        views = StreamInlineAudioViews(
+            miniControl = binding.mainStreamMiniControl,
+            titleView = binding.tvMainMiniTitle,
+            playStopButton = binding.btnMainMiniPlayStop,
+        ),
         audioController = audioController,
-        onPlayingChanged = {},
-        onError = { onInlineAudioError() },
+        callbacks = StreamInlineAudioCallbacks(
+            onPlayingChanged = {},
+            onError = { onInlineAudioError() },
+        ),
     )
 
     init {
@@ -62,7 +70,7 @@ class MainStreamsInlineAudioManager(
                 Toast.makeText(binding.root.context, R.string.streams_error_no_network, Toast.LENGTH_SHORT).show()
             else -> {
                 // Background service only when the user enabled persistent audio AND the flavor supports it.
-                val useService = isPersistentAudioSettingOn() && BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
+                val useService = isPersistentAudioSettingOn() && persistentAudioCompiledIn
                 inlineAudio.play(channel, useBackgroundService = useService)
             }
         }

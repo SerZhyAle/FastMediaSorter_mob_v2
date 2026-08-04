@@ -378,6 +378,9 @@
     <color name="camera_capture_focus_ring">#FFFFFFFF</color>
     <!-- S0753: drop shadow behind overlay text/chips so they read on a bright (white) scene. -->
     <color name="camera_capture_text_shadow">#CC000000</color>
+    <!-- S1173: shared contour colour for OutlinedTextView/OutlinedImageView. Theme-independent on
+         purpose - the contour has to hold against an arbitrary photo, not against a theme surface. -->
+    <color name="outline_text_stroke">#CC000000</color>
     <!-- S0753: zoom-slider inactive track, semi-transparent white. -->
     <color name="camera_capture_slider_inactive">#66FFFFFF</color>
     <!-- S1189: zoom preset pills. The native bounds (the device's own optical minimum and maximum,

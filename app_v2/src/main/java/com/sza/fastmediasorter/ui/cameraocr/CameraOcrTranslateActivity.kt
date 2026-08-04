@@ -10,7 +10,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -19,12 +18,11 @@ import com.sza.fastmediasorter.databinding.ActivityCameraOcrTranslateBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrFlowManager
 import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrStorageManager
-import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
-import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
+import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
-import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
+import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.ui.player.helpers.openCalculatorForSelection
 import com.sza.fastmediasorter.ui.player.helpers.openGoogleSearch
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
@@ -45,10 +43,6 @@ import javax.inject.Inject
 class CameraOcrTranslateActivity :
     BaseActivity<ActivityCameraOcrTranslateBinding>(),
     CameraOcrFlowManager.Callback {
-
-    private val cropOverlayBaseBottomSafeInsetPx by lazy {
-        (resources.displayMetrics.density * CROP_OVERLAY_BASE_BOTTOM_SAFE_INSET_DP).toInt()
-    }
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
@@ -143,19 +137,25 @@ class CameraOcrTranslateActivity :
             )
         }
         binding.btnCropRetry.setOnClickListener { flowManager.onCropRetry() }
+        // S1214: registered here rather than inside the click handlers, so a picker restored after a
+        // recreation still finds its listener; the click only opens the dialog.
+        listenForLanguagePick(REQ_CROP_SOURCE_LANGUAGE) { code -> flowManager.setCropSourceLanguage(code) }
+        listenForLanguagePick(REQ_CROP_TARGET_LANGUAGE) { code -> flowManager.setCropTargetLanguage(code) }
         binding.btnCropOcrLang.setOnClickListener {
             showLanguagePicker(
+                requestKey = REQ_CROP_SOURCE_LANGUAGE,
                 selectedCode = cropSourceLang,
                 mode = SearchableLanguagePickerDialog.Mode.SOURCE,
                 interfaceLanguage = cropInterfaceLang
-            ) { language -> flowManager.setCropSourceLanguage(language.code) }
+            )
         }
         binding.btnCropTargetLang.setOnClickListener {
             showLanguagePicker(
+                requestKey = REQ_CROP_TARGET_LANGUAGE,
                 selectedCode = cropTargetLang,
                 mode = SearchableLanguagePickerDialog.Mode.TARGET,
                 interfaceLanguage = cropInterfaceLang
-            ) { language -> flowManager.setCropTargetLanguage(language.code) }
+            )
         }
         installResultSelectionMenu(binding.tvOriginalText)
         installResultSelectionMenu(binding.tvTranslation)
@@ -174,18 +174,6 @@ class CameraOcrTranslateActivity :
         binding.layoutEmptyState.applySystemBarInsetPadding()
         binding.layoutLoading.applySystemBarInsetPadding()
         binding.layoutCropState.applySystemBarInsetPadding()
-        binding.cropActionBar.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-            updateCropPreviewBottomPadding()
-        }
-        binding.cropPreviewContainer.post { updateCropPreviewBottomPadding() }
-    }
-
-    private fun updateCropPreviewBottomPadding() {
-        val extraBottomGap = (binding.cropActionBar.height - cropOverlayBaseBottomSafeInsetPx)
-            .coerceAtLeast(0)
-        if (binding.cropPreviewContainer.paddingBottom != extraBottomGap) {
-            binding.cropPreviewContainer.updatePadding(bottom = extraBottomGap)
-        }
     }
 
     // ---- CameraOcrFlowManager.Callback ----
@@ -328,28 +316,35 @@ class CameraOcrTranslateActivity :
                 applyLanguageLabel(targetView, selectedTargetLang, interfaceLang, R.string.translation_target_language)
             }
 
+            // Bound to this dialog instance, so - unlike the crop-step listeners - they can only be
+            // registered here: the dialog is a plain AlertDialog and is not restored after recreation.
+            listenForLanguagePick(REQ_SETTINGS_SOURCE_LANGUAGE) { code ->
+                selectedSourceLang = code
+                updateSourceView()
+            }
+            listenForLanguagePick(REQ_SETTINGS_TARGET_LANGUAGE) { code ->
+                selectedTargetLang = code
+                updateTargetView()
+            }
+
             sourceView.setOnClickListener {
                 if (!sourceView.isEnabled) return@setOnClickListener
                 showLanguagePicker(
+                    requestKey = REQ_SETTINGS_SOURCE_LANGUAGE,
                     selectedCode = selectedSourceLang,
                     mode = SearchableLanguagePickerDialog.Mode.SOURCE,
                     interfaceLanguage = interfaceLang
-                ) { language ->
-                    selectedSourceLang = language.code
-                    updateSourceView()
-                }
+                )
             }
 
             targetView.setOnClickListener {
                 if (!targetView.isEnabled) return@setOnClickListener
                 showLanguagePicker(
+                    requestKey = REQ_SETTINGS_TARGET_LANGUAGE,
                     selectedCode = selectedTargetLang,
                     mode = SearchableLanguagePickerDialog.Mode.TARGET,
                     interfaceLanguage = interfaceLang
-                ) { language ->
-                    selectedTargetLang = language.code
-                    updateTargetView()
-                }
+                )
             }
 
             cbOcrOnly.isChecked = settings.cameraOcrOnly
@@ -379,10 +374,10 @@ class CameraOcrTranslateActivity :
     }
 
     private fun showLanguagePicker(
+        requestKey: String,
         selectedCode: String,
         mode: SearchableLanguagePickerDialog.Mode,
-        interfaceLanguage: String,
-        onSelected: (LanguageItem) -> Unit
+        interfaceLanguage: String
     ) {
         val tag = "${SearchableLanguagePickerDialog.TAG}_camera_${mode.name}"
         if (supportFragmentManager.findFragmentByTag(tag) != null) return
@@ -390,8 +385,15 @@ class CameraOcrTranslateActivity :
             selectedCode = selectedCode,
             mode = mode,
             interfaceLanguage = interfaceLanguage,
-            onLanguageSelected = onSelected
+            requestKey = requestKey
         ).show(supportFragmentManager, tag)
+    }
+
+    private fun listenForLanguagePick(requestKey: String, onPicked: (String) -> Unit) {
+        supportFragmentManager.setFragmentResultListener(requestKey, this) { _, bundle ->
+            Timber.d("S1214: camera-ocr language result key=$requestKey")
+            bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)?.let(onPicked)
+        }
     }
 
     private fun updateTargetLanguageEnabled(view: TextView, enabled: Boolean) {
@@ -443,10 +445,15 @@ class CameraOcrTranslateActivity :
     }
 
     companion object {
-        private const val CROP_OVERLAY_BASE_BOTTOM_SAFE_INSET_DP = 48f
-
         /** S1042: absolute path of an app-owned source image (e.g. staged screenshot) to OCR instead of capturing. */
         const val EXTRA_SOURCE_IMAGE_PATH = "source_image_path"
+
+        // S1214: four language pickers share this Activity's FragmentManager - the crop step and the
+        // compact settings dialog apply a pick differently, so each needs its own result key.
+        private const val REQ_CROP_SOURCE_LANGUAGE = "camera_ocr_crop_source_language"
+        private const val REQ_CROP_TARGET_LANGUAGE = "camera_ocr_crop_target_language"
+        private const val REQ_SETTINGS_SOURCE_LANGUAGE = "camera_ocr_settings_source_language"
+        private const val REQ_SETTINGS_TARGET_LANGUAGE = "camera_ocr_settings_target_language"
 
         fun createIntent(context: Context): Intent {
             return Intent(context, CameraOcrTranslateActivity::class.java)

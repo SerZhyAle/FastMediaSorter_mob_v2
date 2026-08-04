@@ -94,8 +94,14 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         // otherwise let adaptive portrait layout spill it to overflow.
         SAVE_FRAME(235, R.id.menu_save_frame, true, R.string.menu_save_frame,
             R.drawable.ic_save_frame, R.string.big_btn_short_save_frame),
-        LYRICS(240, R.id.menu_lyrics, true, R.string.lyrics, R.drawable.ic_book,
-            R.string.big_btn_short_lyrics),
+        LYRICS(
+            240,
+            R.id.menu_lyrics,
+            true,
+            R.string.lyrics,
+            R.drawable.ic_book,
+            R.string.big_btn_short_lyrics
+        ),
         SEARCH_YOUTUBE_MUSIC(250, R.id.menu_search_youtube_music, true,
             R.string.search_in_youtube_music, R.drawable.ic_youtube_music),
         // S0162: Rotation toggle - low-priority, shows on bar only when space permits
@@ -130,8 +136,17 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.drawable.ic_translate, R.string.big_btn_short_translate),  // icon replaced asynchronously
         TEXT_SETTINGS(340, R.id.menu_text_settings, true, R.string.translation_settings,
             R.drawable.ic_book, R.string.big_btn_short_text_settings),
-        COPY_TEXT(350, R.id.menu_copy_text, true, R.string.copy,
-            android.R.drawable.ic_menu_save, R.string.big_btn_short_copy),
+
+        // S1252: not R.string.copy - in the grouped Browse menu this renders one tap below the
+        // file-level Copy, and both read the same word for different objects (the text vs the file).
+        COPY_TEXT(
+            350,
+            R.id.menu_copy_text,
+            true,
+            R.string.copy_to_clipboard,
+            android.R.drawable.ic_menu_save,
+            R.string.big_btn_short_copy
+        ),
 
         // EPUB
         SEARCH_EPUB(360, R.id.menu_search, true, R.string.search,
@@ -196,11 +211,17 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         COMPRESS_COPY(640, R.id.menu_compress_copy, true, R.string.menu_compress_copy, R.drawable.ic_compress),
         // S0107: Draw overlay - annotate static images (IMAGE only, not GIF/APNG)
         DRAW_OVERLAY(650, R.id.menu_draw_overlay, true, R.string.menu_draw_overlay, R.drawable.ic_draw_overlay),
+
         // S0995: manual 90° visual frame rotation (image + video). Overflow-only (barCapable = false),
         // lowest priority so it never displaces a primary action onto the bar. Distinct from
         // ROTATION_TOGGLE (screen sensor) and from destructive file rotation.
-        ROTATE_CONTENT(ROTATE_CONTENT_PRIORITY, R.id.menu_rotate_content, false,
-            R.string.rotate_content_90_title, R.drawable.ic_rotate_90);
+        ROTATE_CONTENT(
+            ROTATE_CONTENT_PRIORITY,
+            R.id.menu_rotate_content,
+            false,
+            R.string.rotate_content_90_title,
+            R.drawable.ic_rotate_90
+        )
     }
 
     data class LayoutResult(

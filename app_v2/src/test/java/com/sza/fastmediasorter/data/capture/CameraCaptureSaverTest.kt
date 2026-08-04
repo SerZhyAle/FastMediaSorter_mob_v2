@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.data.transfer.local.LocalSink
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.testing.fakes.FakeSettingsRepository
@@ -23,9 +24,10 @@ import java.io.File
 import java.io.OutputStream
 
 /**
- * Routing tests for [CameraCaptureSaver] (S0369 + S0465): the three save destinations and the
- * temp-file cleanup contract. Robolectric supplies a real [android.content.Context] and a writable
- * external storage root so local and DCIM copies can be asserted on disk.
+ * Routing tests for [CameraCaptureSaver] (S0369 + S0465 + S0522): the three save destinations,
+ * the failed-upload local fallback, and the temp-file cleanup contract. Robolectric supplies a
+ * real [android.content.Context] and a writable external storage root so local and DCIM copies
+ * can be asserted on disk.
  *
  * S0465: the saver now writes through [LocalDestinationWriter]. The production writer routes public
  * collections through MediaStore (no physical file under Robolectric), so the on-disk routing
@@ -48,6 +50,11 @@ class CameraCaptureSaverTest {
         context,
         LocalDestinationClassifier(),
         FilesystemWriter(),
+        LocalCaptureDestinationWriter(
+            context,
+            LocalDestinationClassifier(),
+            FilesystemWriter(),
+        ),
         noOpStatsSink,
         FakeSettingsRepository(),
         ImageClipboardWriter(context),
@@ -155,7 +162,25 @@ class CameraCaptureSaverTest {
     }
 
     @Test
-    fun `failed upload yields Generic failure and still deletes temp`() = runTest {
+    fun `local SAF resource stays on local writer path`() = runTest {
+        val temp = newTempFile()
+        val target = CameraCaptureTarget.Resource(
+            id = 6L,
+            name = "SAF",
+            path = "content://provider/tree/primary%3AMovies",
+            type = ResourceType.LOCAL,
+        )
+
+        val result = saver.save(temp, "saf.jpg", target) { _, _, _ ->
+            error("upload must not run for a local SAF resource")
+        }
+
+        assertEquals(SaveResult.Failure.Generic, result)
+        assertFalse(temp.exists())
+    }
+
+    @Test
+    fun `failed upload falls back to local save with fallbackReason and deletes temp`() = runTest {
         val temp = newTempFile()
         val target = CameraCaptureTarget.Resource(
             id = 4L, name = "FTP", path = "ftp://host/dir", type = ResourceType.FTP,
@@ -163,7 +188,17 @@ class CameraCaptureSaverTest {
 
         val result = saver.save(temp, "fail.jpg", target) { _, _, _ -> false }
 
-        assertEquals(SaveResult.Failure.Generic, result)
+        // S0522 contract: a refused upload must not drop the capture - the saver redirects it to
+        // the local default folder and reports Success with the redirect reason, which the caller
+        // (BrowseCameraCaptureManager -> SaveFallbackNotifier) turns into a user notification.
+        assertTrue(result is SaveResult.Success)
+        val success = result as SaveResult.Success
+        assertEquals(SaveFallbackReason.ResourceWriteFailed, success.fallbackReason)
+        assertTrue(
+            "expected DCIM/Camera fallback path, got ${success.savedPath}",
+            success.savedPath.replace('\\', '/').endsWith("/DCIM/Camera/fail.jpg"),
+        )
+        assertTrue("expected fallback file on disk", File(success.savedPath).exists())
         assertFalse(temp.exists())
     }
 

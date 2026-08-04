@@ -3,6 +3,9 @@ package com.sza.fastmediasorter.data.cloud.helpers
 import android.content.Context
 import androidx.annotation.Keep
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.network.HttpTimeouts
+import com.sza.fastmediasorter.core.network.applyTimeouts
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +50,7 @@ class GoogleDriveHttpClient @Inject constructor(
             var connection: HttpURLConnection? = null
             try {
                 connection = url.openConnection() as HttpURLConnection
+                connection.applyTimeouts()
                 connection.requestMethod = method
                 connection.setRequestProperty("Authorization", "Bearer $token")
                 connection.setRequestProperty("Accept", "application/json")
@@ -71,6 +75,7 @@ class GoogleDriveHttpClient @Inject constructor(
                     ApiResponse(isSuccess = false, data = null, errorMessage = error, httpCode = responseCode)
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Request failed: $method $url")
                 ApiResponse(isSuccess = false, data = null, errorMessage = e.message, httpCode = null)
             } finally {
@@ -111,9 +116,11 @@ class GoogleDriveHttpClient @Inject constructor(
                 Timber.d("GoogleDriveHttpClient.getFileInputStream: Request URL: $url")
                 
                 val connection = url.openConnection() as HttpURLConnection
+                // Streaming read budget: ExoPlayer pulls this stream for the whole file.
+                connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Authorization", "Bearer $token")
-                
+
                 // Add Range header if position/length specified
                 if (position > 0 || length != androidx.media3.common.C.LENGTH_UNSET.toLong()) {
                     val rangeEnd = if (length != androidx.media3.common.C.LENGTH_UNSET.toLong()) {
@@ -140,6 +147,7 @@ class GoogleDriveHttpClient @Inject constructor(
                     return@withContext StreamResult.Error(downloadFailedMessage(), responseCode)
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to get input stream for fileId='$fileId'")
                 StreamResult.Error(downloadFailedMessage(), null)
             }
@@ -164,9 +172,10 @@ class GoogleDriveHttpClient @Inject constructor(
             try {
                 val url = URL("$driveApiBase/files/$fileId?alt=media")
                 val connection = url.openConnection() as HttpURLConnection
+                connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Authorization", "Bearer $token")
-                
+
                 val responseCode = connection.responseCode
                 if (responseCode in 200..299) {
                     val bytes = connection.inputStream.readBytes()
@@ -178,6 +187,7 @@ class GoogleDriveHttpClient @Inject constructor(
                     CloudResult.Error(downloadFailedMessage())
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to download file as stream")
                 CloudResult.Error(downloadFailedMessage(), e)
             }

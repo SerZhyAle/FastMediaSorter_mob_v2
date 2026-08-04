@@ -39,16 +39,15 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
-                        <!-- Language (entries are built in code by GeneralSettingsViewSetupHelper).
-                             Compact fixed field width keeps the short value from stretching; rows pack to the left. -->
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                            android:id="@+id/spinnerLanguage"
+                        <!-- Language (S1190: SettingsDropdownRow -> SettingsSelectionRow; the row opens the
+                             searchable picker). Wrap width keeps it packed to the left beside the theme row. -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                            android:id="@+id/rowLanguage"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="@dimen/margin_large"
-                            app:sdr_inline="true"
-                            app:sdr_fieldWidth="@dimen/settings_dropdown_compact_width"
-                            app:sdr_title="@string/language" />
+                            app:ssr_inline="true"
+                            app:ssr_title="@string/language" />
 
                         <!-- Color theme (S0328). -->
                         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
@@ -596,6 +595,7 @@
                     android:id="@+id/headerSystem"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_refresh"
                     app:csh_title="@string/settings_category_system" />
 
                 <LinearLayout android:id="@+id/containerSystem" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
@@ -798,6 +798,15 @@
                         android:textAllCaps="false"
                         android:textSize="@dimen/toggler_title_text_size"
                         android:text="@string/settings_take_screenshot_now" />
+
+                    <!-- S1357: opt-in for mirroring the session log into the folder open in the viewer. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowDebugLogMirror"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        app:str_title="@string/settings_debug_log_mirror_title"
+                        app:str_subtitle="@string/settings_debug_log_mirror_desc" />
 
                 </LinearLayout>
             </LinearLayout>

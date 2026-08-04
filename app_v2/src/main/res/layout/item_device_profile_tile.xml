@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- One pressable tile in the device-profile picker grid: a horizontal card with a small leading
-     icon, a large title (+ optional inline Recommended badge) and a two-line description, so each
-     tile is information-rich. Clickable/focusable with ripple and elevation; the selected state
-     (stroke) is applied at runtime by DeviceProfileTileAdapter. -->
+     icon, a large title (+ optional inline Recommended badge) and a description, so each tile is
+     information-rich. The description maxLines below is the COLLAPSED state only: the selected tile
+     is expanded to its full text at runtime, so the chosen profile can be read end to end (S1383).
+     Clickable/focusable with ripple and elevation; the selected state (stroke) and the expansion are
+     both applied by DeviceProfileTileAdapter. -->
 <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"

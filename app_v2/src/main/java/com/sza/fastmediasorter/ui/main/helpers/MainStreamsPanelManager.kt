@@ -10,17 +10,17 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.databinding.ViewMainStreamsPanelBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.streams.ObservePinnedStreamSourcesUseCase
 import com.sza.fastmediasorter.ui.streams.FaviconAtlasSlicer
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 /**
  * S0756: owns the main-window streams panel - a wide "Streams" entry button leading a horizontally
- * scrolling row of pinned channels. The pinned list comes from the existing pin source
- * ([ObservePinnedStreamSourcesUseCase]); thumbnails reuse the favicon sprite-atlas (S0668). S0777: a
+ * scrolling row of pinned channels. The pinned list comes from the existing pin source, supplied by the
+ * host as a flow factory; thumbnails reuse the favicon sprite-atlas (S0668). S0777: a
  * tapped AUDIO channel plays inline via [MainStreamsInlineAudioManager] (bottom now-playing control in
  * the home window); a VIDEO/RTSP channel defers to the Streams screen via the host's onPlayVideo.
  *
@@ -34,7 +34,8 @@ class MainStreamsPanelManager(
     private val panel: ViewMainStreamsPanelBinding,
     private val lifecycleOwner: LifecycleOwner,
     private val scope: CoroutineScope,
-    private val observePinnedStreamSources: ObservePinnedStreamSourcesUseCase,
+    // S1195: an operation rather than the use case, so the host Activity routes it through its ViewModel.
+    private val observePinnedStreamSources: () -> Flow<List<StreamSourceEntity>>,
     private val faviconAtlasStore: FaviconAtlasStore,
     private val onOpenStreams: () -> Unit,
     // S0777: plays an AUDIO channel inline in the home window; a VIDEO/RTSP tap defers to the Streams screen.

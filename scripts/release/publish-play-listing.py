@@ -46,7 +46,9 @@ LIMITS = {'title.txt': 30, 'short_description.txt': 80, 'full_description.txt': 
 
 # imageType -> source path under play/listing/<locale>/images/
 SINGLE_IMAGES = {'featureGraphic': 'featureGraphic.png', 'icon': 'icon.png'}
-SCREENSHOT_TYPE = 'phoneScreenshots'
+# Each is its own Play slot with its own live set. A type whose local folder is absent or empty is
+# left untouched, so publishing a phone-only refresh never wipes the tablet screenshots already live.
+SCREENSHOT_TYPES = ('phoneScreenshots', 'sevenInchScreenshots', 'tenInchScreenshots')
 
 IMAGE_MIME = {'.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg'}
 
@@ -82,22 +84,25 @@ def upload_images(service, edit_id, folder, language):
     images_dir = os.path.join(LISTING_ROOT, folder, 'images')
     uploaded = 0
 
-    shots_dir = os.path.join(images_dir, SCREENSHOT_TYPE)
-    if os.path.isdir(shots_dir):
+    for shot_type in SCREENSHOT_TYPES:
+        shots_dir = os.path.join(images_dir, shot_type)
+        if not os.path.isdir(shots_dir):
+            continue
         shots = sorted(f for f in os.listdir(shots_dir)
                        if os.path.splitext(f)[1].lower() in IMAGE_MIME)
-        if shots:
-            service.edits().images().deleteall(
+        if not shots:
+            continue
+        service.edits().images().deleteall(
+            packageName=PACKAGE_NAME, editId=edit_id,
+            language=language, imageType=shot_type).execute()
+        for name in shots:
+            path = os.path.join(shots_dir, name)
+            mime = IMAGE_MIME[os.path.splitext(name)[1].lower()]
+            service.edits().images().upload(
                 packageName=PACKAGE_NAME, editId=edit_id,
-                language=language, imageType=SCREENSHOT_TYPE).execute()
-            for name in shots:
-                path = os.path.join(shots_dir, name)
-                mime = IMAGE_MIME[os.path.splitext(name)[1].lower()]
-                service.edits().images().upload(
-                    packageName=PACKAGE_NAME, editId=edit_id,
-                    language=language, imageType=SCREENSHOT_TYPE,
-                    media_body=MediaFileUpload(path, mimetype=mime)).execute()
-                uploaded += 1
+                language=language, imageType=shot_type,
+                media_body=MediaFileUpload(path, mimetype=mime)).execute()
+            uploaded += 1
 
     for image_type, fname in SINGLE_IMAGES.items():
         path = os.path.join(images_dir, fname)

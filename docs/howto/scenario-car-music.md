@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-car-music.html
 ---
 # 🚗 In-Car Music Player (Android Head Unit)
 
-> **Level:** Beginner &bull; **Time:** ~10 minutes &bull; **Flavor:** Standard or Legacy
+> **Level:** Beginner &bull; **Time:** ~10 minutes &bull; **Flavor:** Standard, Legacy, VR, noLegal (Lite plays local audio but has no background playback and no Streams; Photos has no audio)
 
 [Русский](scenario-car-music-ru.md) | [Українська](scenario-car-music-uk.md)
 
@@ -132,7 +132,7 @@ If your head unit has an active mobile data or Wi-Fi connection, you can add int
 
 > **Background audio:** to keep radio playing when you switch apps, go to **Settings → Media → Player → Background audio playback** and enable it.
 
-Note: Streams requires a network connection. On the Lite flavor, only progressive http/https audio streams are supported (no HLS/DASH/RTSP).
+Note: Streams requires a network connection, and the Streams screen is absent in the Lite and Photos flavors.
 
 ---
 

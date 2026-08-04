@@ -10,7 +10,9 @@
 
 .PARAMETER Name
   Script basename to look up (with or without .ps1). Exact match wins; otherwise
-  a unique substring match is shown, an ambiguous one is listed.
+  a unique substring match is shown, an ambiguous one is listed. A repo-relative
+  path ('scripts/spec_catalog/select.ps1') disambiguates basenames that repeat
+  across directories - two query.ps1 exist, so -Help delegation must use a path.
 
 .PARAMETER List
   List every discoverable script path instead of showing one.
@@ -221,9 +223,19 @@ if (-not $Name) {
     exit 0
 }
 
-$needle = $Name -replace '\.ps1$',''
-$exact = $allFiles | Where-Object { $_.BaseName -ieq $needle }
-$match = if ($exact) { $exact } else { $allFiles | Where-Object { $_.BaseName -like "*$needle*" } }
+if ($Name -match '[\\/]') {
+    # Path form: match the repo-relative tail, so a basename shared by several
+    # directories (query.ps1) resolves to exactly one script.
+    $tail = ($Name -replace '\\','/').TrimStart('./')
+    if ($tail -notmatch '\.ps1$') { $tail += '.ps1' }
+    $match = $allFiles | Where-Object {
+        (($_.FullName.Substring($Root.Length).TrimStart('\','/') -replace '\\','/')) -ieq $tail
+    }
+} else {
+    $needle = $Name -replace '\.ps1$',''
+    $exact = $allFiles | Where-Object { $_.BaseName -ieq $needle }
+    $match = if ($exact) { $exact } else { $allFiles | Where-Object { $_.BaseName -like "*$needle*" } }
+}
 
 if (-not $match) {
     Write-Error "No script matching '$Name' under scripts/ or dev/CATALOG/scripts/." -ErrorAction Continue

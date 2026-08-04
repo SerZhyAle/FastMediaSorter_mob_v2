@@ -2,6 +2,9 @@ package com.sza.fastmediasorter.data.cloud
 
 import android.content.Context
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.network.HttpTimeouts
+import com.sza.fastmediasorter.core.network.applyTimeouts
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveHttpClient
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
@@ -146,6 +149,7 @@ class GoogleDriveRestClient @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Connection test failed")
                 CloudResult.Error(
                     context.getString(
@@ -204,6 +208,7 @@ class GoogleDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.cloud_list_files_failed))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to list files")
                 CloudResult.Error(context.getString(R.string.cloud_list_files_failed), e)
             }
@@ -241,6 +246,7 @@ class GoogleDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.cloud_list_folders_failed))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to list folders")
                 CloudResult.Error(context.getString(R.string.cloud_list_folders_failed), e)
             }
@@ -276,6 +282,7 @@ class GoogleDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.cloud_metadata_failed))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to get file metadata")
                 CloudResult.Error(context.getString(R.string.cloud_metadata_failed), e)
             }
@@ -317,6 +324,7 @@ class GoogleDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.cloud_search_failed))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to resolve file ID from name: $fileName")
                 CloudResult.Error(context.getString(R.string.cloud_search_failed), e)
             }
@@ -407,6 +415,7 @@ class GoogleDriveRestClient @Inject constructor(
                 // Download file content
                 val url = URL("$DRIVE_API_BASE/files/$actualFileId?alt=media")
                 val connection = url.openConnection() as HttpURLConnection
+                connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Authorization", "Bearer $token")
 
@@ -428,6 +437,7 @@ class GoogleDriveRestClient @Inject constructor(
                     connection.disconnect()
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to download file")
                 CloudResult.Error(
                     context.getString(
@@ -460,18 +470,26 @@ class GoogleDriveRestClient @Inject constructor(
         fileName: String,
         mimeType: String,
         parentFolderId: String?,
+        fileSize: Long,
         progressCallback: ((TransferProgress) -> Unit)?
     ): CloudResult<CloudFile> = withContext(Dispatchers.IO) {
         try {
             val token = currentAccessToken() ?: return@withContext CloudResult.Error(googleDriveReauthRequiredMessage())
             val resolvedParentId = resolveFolderId(parentFolderId)
+            val target = com.sza.fastmediasorter.data.cloud.helpers.DriveUploadTarget(
+                fileName = fileName,
+                mimeType = mimeType,
+                parentFolderId = resolvedParentId,
+                fileSize = fileSize
+            )
             val json = com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveMultipartUploader.upload(
-                DRIVE_UPLOAD_BASE, token, fileName, mimeType, resolvedParentId, inputStream, progressCallback
+                DRIVE_UPLOAD_BASE, token, target, inputStream, progressCallback
             ) ?: return@withContext CloudResult.Error(context.getString(R.string.cloud_upload_failed))
             val parents = json.optJSONArray("parents")
             val parentId = if (parents != null && parents.length() > 0) parents.getString(0) else "root"
             CloudResult.Success(parseItem(json, parentId))
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to upload file")
             CloudResult.Error(context.getString(R.string.cloud_upload_failed), e)
         }
@@ -511,6 +529,7 @@ class GoogleDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.cloud_create_folder_failed))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to create folder")
                 CloudResult.Error(context.getString(R.string.cloud_create_folder_failed), e)
             }
@@ -537,6 +556,7 @@ class GoogleDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.error_delete_failed))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to delete file")
                 CloudResult.Error(context.getString(R.string.error_delete_failed), e)
             }
@@ -574,6 +594,7 @@ class GoogleDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.rename_failed_generic))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to rename file")
                 CloudResult.Error(context.getString(R.string.rename_failed_generic), e)
             }
@@ -617,6 +638,7 @@ class GoogleDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.error_move_failed))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to move file")
                 CloudResult.Error(context.getString(R.string.error_move_failed), e)
             }
@@ -652,6 +674,7 @@ class GoogleDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.error_copy_failed))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to copy file")
                 CloudResult.Error(context.getString(R.string.error_copy_failed), e)
             }
@@ -682,6 +705,7 @@ class GoogleDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.cloud_check_failed))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to check file existence")
                 CloudResult.Error(context.getString(R.string.cloud_check_failed), e)
             }
@@ -716,6 +740,7 @@ class GoogleDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.cloud_search_failed))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Search failed")
                 CloudResult.Error(context.getString(R.string.cloud_search_failed), e)
             }
@@ -763,6 +788,7 @@ class GoogleDriveRestClient @Inject constructor(
                     CloudResult.Error(context.getString(R.string.cloud_search_failed))
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to find folder: $folderName")
                 CloudResult.Error(context.getString(R.string.cloud_search_failed), e)
             }
@@ -801,6 +827,7 @@ class GoogleDriveRestClient @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "ensureFolderExists failed")
                 CloudResult.Error(context.getString(R.string.cloud_create_folder_failed), e)
             }
@@ -828,6 +855,7 @@ class GoogleDriveRestClient @Inject constructor(
                 // Download thumbnail
                 val url = URL(thumbnailLink)
                 val connection = url.openConnection() as HttpURLConnection
+                connection.applyTimeouts()
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Authorization", "Bearer $token")
 
@@ -844,6 +872,7 @@ class GoogleDriveRestClient @Inject constructor(
                     connection.disconnect()
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to get thumbnail")
                 CloudResult.Error(context.getString(R.string.cloud_thumbnail_failed), e)
             }
@@ -866,6 +895,7 @@ class GoogleDriveRestClient @Inject constructor(
             identityRepository.signOutPrimary()
             auth.clearAuth()
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to sign out")
             signOutError = CloudResult.Error(context.getString(R.string.cloud_sign_out_failed), e)
         }
@@ -896,6 +926,7 @@ class GoogleDriveRestClient @Inject constructor(
                         )
                     }
                 } catch (e: Exception) {
+                    e.rethrowIfCancellation()
                     Timber.w(e, "GoogleDriveRestClient: revoke network error - queuing for retry")
                     pendingRevocationDao.insert(
                         PendingRevocationEntity(

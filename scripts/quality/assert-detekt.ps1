@@ -13,8 +13,22 @@
     Ratchet contract: each module has a committed baseline
     (config/detekt/baseline-<module>.xml) freezing every pre-existing finding. detekt
     only fails on findings NOT in the baseline, so this gate blocks NEW smells while
-    leaving the historical debt untouched. To re-freeze after an intentional refactor:
-        .\gradlew.bat :app_v2:detektBaseline :wear:detektBaseline
+    leaving the historical debt untouched.
+
+    When this gate fails, the remedy is to FIX the finding. Re-freezing the baseline is not
+    the normal way out, and S1356 is why: `detektBaseline` regenerates the WHOLE module, so it
+    accepts every live finding in it - including debt that other open tickets were written
+    about. On 2026-08-02 one such run absorbed the findings behind S1198 and S1328 and left no
+    dev-log row, so the loss was only discovered by accident days later. The failure is usually
+    one file; the cure was the whole project.
+
+    Re-freezing deliberately (a large intentional refactor, not a red gate you want to silence):
+        .\gradlew.bat :app_v2:detektBaseline
+        pwsh -NoProfile -File scripts/quality/assert-detekt-baseline-absorption.ps1 `
+            -Module app_v2 -Update -Reason '<why>'
+    then close the change through post-change.ps1 so the accepted debt has a journal row naming
+    it. The absorption gate refuses any baseline carrying an ID absent from its committed
+    snapshot, so an unexplained re-freeze fails loudly instead of passing silently.
 
     Runs lexically (no type resolution) - fast, no full compile.
 
@@ -50,7 +64,12 @@ param(
     # only these files (repo-relative or absolute paths) - PASS if none of the NEW findings
     # land in them. Lets post-change.ps1 close a change on an always-dirty tree without
     # failing on other tickets' in-flight findings. Release/CI omit it for a full project gate.
-    [string[]]$ChangedFiles
+    [string[]]$ChangedFiles,
+    # S1338: wall-clock ceiling for the gradle call. One post-change run hung for three hours
+    # and still reported PASS. The observed tail is 5 runs over 300 s out of 311, so 600 s
+    # never fires on a healthy run; raise it deliberately for a genuinely long release run.
+    # Expiry is exit 2 "cannot verify" - never PASS, never FAIL.
+    [int]$TimeoutSeconds = 600
 )
 
 Set-StrictMode -Version Latest
@@ -70,6 +89,7 @@ if (-not (Test-Path $gradlew)) {
 $reportModules = if ($PSBoundParameters.ContainsKey('Module')) { @($Module) } else { @('app_v2', 'wear') }
 $lockReason = if ($PSBoundParameters.ContainsKey('Module')) { "assert-detekt.ps1 -Module $Module" } else { "assert-detekt.ps1 (app_v2 + wear)" }
 . (Join-Path $repoRoot "scripts/utils/agent-lock.ps1")
+. (Join-Path $repoRoot "scripts/utils/process-timeout.ps1")
 Enter-BuildLockOrExit -Reason $lockReason
 
 Push-Location $repoRoot
@@ -97,8 +117,17 @@ try {
         'app_v2 + wear'
     }
 
-    $output = & $gradlew @tasks 2>&1
-    $exit = $LASTEXITCODE
+    # S1338: gradle.properties disables the configuration cache globally because
+    # Chaquopy breaks its store for the noLegal task graph. The detekt graph does
+    # not pull those tasks in - measured over 6 runs: entry stored then reused,
+    # zero configuration-cache problems, 23.4s -> 18.8s warm. Enabled here only,
+    # so the global opt-out stays intact for every other caller.
+    $run = Invoke-ProcessWithTimeout -FilePath $gradlew -WorkingDirectory $repoRoot `
+        -ArgumentList (@($tasks) + '--configuration-cache') -TimeoutSeconds $TimeoutSeconds
+    $output = $run.Output
+    $exit = if ($run.TimedOut) { $null } else { $run.ExitCode }
+    $timedOut = $run.TimedOut
+    $elapsedMs = $run.ElapsedMs
     # S1189: remember when each report was written, so a failure that never reached the report
     # writer can be told apart from a real finding. Without this the caller narrows a fresh
     # failure against a stale report and blames whichever file happened to be in yesterday's run.
@@ -111,6 +140,16 @@ try {
 finally {
     Pop-Location
     Exit-AgentLock -Name Build
+}
+
+if ($timedOut) {
+    # A ceiling that reported PASS would be worse than no ceiling: it would certify a gate
+    # that never ran. The BUILD.LOCK was already released by the finally block above.
+    $why = "assert-detekt: CANNOT VERIFY - the detekt gradle run exceeded ${TimeoutSeconds}s " +
+    "(elapsed ${elapsedMs} ms) and was killed. Nothing was judged. Re-run, or raise " +
+    "-TimeoutSeconds if this build is genuinely that long."
+    Write-Error $why -ErrorAction Continue
+    exit 2
 }
 
 if ($exit -eq 0) {
@@ -130,14 +169,31 @@ if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
     # against it attributes an unrelated file's old findings to this change (and, worse, would
     # report PASS for a change whose findings the stale report cannot contain). Same fail-closed
     # rule as S1077: "could not check" is not "checked and found nothing".
-    $newestChange = ($ChangedFiles |
+    # S1338: judge staleness PER MODULE, against that module's own changed files. The global-newest
+    # comparison this replaced reported "cannot narrow" for a module whose detekt task gradle had
+    # correctly skipped as UP-TO-DATE: gradle does not rewrite an up-to-date task's report, so wear's
+    # report kept yesterday's timestamp while the changed set held a doc edited minutes ago, and the
+    # gate refused every closure that did not touch wear. A module whose own sources are untouched
+    # cannot have gained a finding, so its report - refreshed or not - still describes its tree.
+    $normalizedChanges = @($ChangedFiles |
         ForEach-Object { $_ -split ',' } |
         ForEach-Object { $_.Trim() } |
-        Where-Object { $_ -and (Test-Path $_) } |
-        ForEach-Object { (Get-Item $_).LastWriteTimeUtc } |
-        Measure-Object -Maximum).Maximum
+        Where-Object { $_ -and (Test-Path $_) })
     $staleModules = @($reportModules | Where-Object {
-            $stamp = $reportStamps[$_]
+            $module = $_
+            $stamp = $reportStamps[$module]
+            # Match on the repo-relative prefix rather than a resolved absolute path: this runs after
+            # the finally block popped back out of $repoRoot, so the working directory is not
+            # guaranteed and Resolve-Path could bind a relative entry to the wrong root.
+            $moduleChanges = @($normalizedChanges | Where-Object {
+                    $rel = $_ -replace '\\', '/'
+                    $rel = $rel -replace ('^' + [regex]::Escape(($repoRoot -replace '\\', '/')) + '/?'), ''
+                    $rel -like "$module/*"
+                })
+            if ($moduleChanges.Count -eq 0) { return $false }
+            $newestChange = ($moduleChanges |
+                ForEach-Object { (Get-Item $_).LastWriteTimeUtc } |
+                Measure-Object -Maximum).Maximum
             $null -eq $stamp -or ($newestChange -and $stamp -lt $newestChange)
         })
     if ($staleModules.Count -gt 0) {
@@ -149,7 +205,7 @@ if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
         Write-Error $why -ErrorAction Continue
         exit 2
     }
-    $report = Get-DetektFindingFiles -RepoRoot $repoRoot -Modules $reportModules
+    $report = Get-DetektFindings -RepoRoot $repoRoot -Modules $reportModules
     # S1077: fail closed. detekt has already FAILED to reach this point, so an unreadable report means
     # the narrowing cannot be done - and "could not check" must never be reported as "clean". This used
     # to `continue` past a missing report into the empty-list branch below, printing PASS on top of the
@@ -160,16 +216,23 @@ if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
         Write-Error $why -ErrorAction Continue
         exit 2
     }
-    $findingFiles = $report.Files
+    $findingFiles = @(@($report.Findings) | ForEach-Object { $_.File } | Select-Object -Unique)
     # S1184: Select-ChangedFileFindings splits a comma-joined -ChangedFiles (pwsh -File binds a CSV
     # as one element) so a multi-file scope matches file-by-file, not as one bogus path.
-    $mine = Select-ChangedFileFindings -FindingFiles $findingFiles -ChangedFiles $ChangedFiles
-    if (@($mine).Count -eq 0) {
-        Write-Host "assert-detekt: PASS [scoped] - $(@($findingFiles).Count) file(s) with new findings project-wide, none among changed files." -ForegroundColor Green
+    $mine = @(Select-ChangedFileFindings -FindingFiles $findingFiles -ChangedFiles $ChangedFiles)
+    if ($mine.Count -eq 0) {
+        Write-Host "assert-detekt: PASS [scoped] - $($findingFiles.Count) file(s) with new findings project-wide, none among changed files." -ForegroundColor Green
         exit 0
     }
+    # S1338: print the rule, line and message the report already carries. Printing the bare
+    # file path cost 2.38 further gradle round-trips per failure to discover what to fix.
     Write-Host "assert-detekt: NEW findings in changed file(s):" -ForegroundColor Red
-    @($mine) | Select-Object -Unique | ForEach-Object { Write-Host "  $_" }
+    @($report.Findings) |
+        Where-Object { $mine -contains $_.File } |
+        Sort-Object File, { [int]$_.Line } |
+        ForEach-Object {
+            Write-Host "  $($_.File):$($_.Line):$($_.Column) - $($_.RuleId) - $($_.Message)"
+        }
     if ($Gate) {
         Write-Host "assert-detekt: FAIL [scoped] - fix the detekt finding(s) in your changed files." -ForegroundColor Red
         exit 1
@@ -185,7 +248,15 @@ $output | Where-Object {
 } | Select-Object -Last 30 | ForEach-Object { Write-Host $_ }
 
 if ($Gate) {
-    Write-Host "assert-detekt: FAIL [$scopeLabel] - detekt found NEW issues above baseline. Fix them, or (if intentional) re-freeze via '.\gradlew.bat :app_v2:detektBaseline :wear:detektBaseline'." -ForegroundColor Red
+    # S1356: this line used to prescribe a two-module `detektBaseline` re-freeze as the ordinary
+    # remedy. Whoever followed it accepted every live finding in the project - including the debt
+    # other open tickets were written about - without breaking a single rule. The radius of the cure
+    # has to match the radius of the disease: the findings above are the disease.
+    Write-Host "assert-detekt: FAIL [$scopeLabel] - detekt found NEW issues above baseline. Fix the finding(s) listed above." -ForegroundColor Red
+    Write-Host "  Do NOT reach for ':app_v2:detektBaseline' to clear this - it re-freezes the WHOLE module and" -ForegroundColor Yellow
+    Write-Host "  silently accepts other tickets' live debt as permanent (that is S1356; it cost S1198 and S1328)." -ForegroundColor Yellow
+    Write-Host "  A genuinely intentional re-freeze is a separate, journalled operation - see this script's" -ForegroundColor Yellow
+    Write-Host "  header and scripts/quality/assert-detekt-baseline-absorption.ps1." -ForegroundColor Yellow
     exit 1
 }
 

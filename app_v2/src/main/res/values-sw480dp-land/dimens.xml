@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- smallestWidth outranks orientation in resource matching, so values-sw480dp
+         silently beats values-land on every large phone. This combined bucket restores
+         the landscape values that values-land has been declaring without effect (S1282).
+         Three keys appear here but not in values-sw320dp-land: at the 480dp threshold
+         their sw value diverges from the landscape one, while at 320dp it either matches
+         or is not declared at all. -->
+
+    <dimen name="empty_state_padding">24dp</dimen>
+    <dimen name="dialog_padding_large">20dp</dimen>
+
+    <!-- Player controls - more compact vertically in landscape -->
+    <dimen name="player_controls_padding">6dp</dimen>
+
+    <dimen name="padding_xxlarge">16dp</dimen>
+
+    <!-- Welcome screen landscape - compact sizes so all content fits vertically -->
+    <dimen name="welcome_page_padding">16dp</dimen>
+    <dimen name="welcome_icon_size">31dp</dimen>
+    <dimen name="welcome_icon_margin_top">4dp</dimen>
+    <dimen name="welcome_title_margin_top">6dp</dimen>
+    <dimen name="welcome_title_text_size">20sp</dimen>
+    <dimen name="welcome_description_margin_top">4dp</dimen>
+</resources>

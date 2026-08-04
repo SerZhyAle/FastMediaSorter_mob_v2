@@ -9,9 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,7 +24,7 @@ import javax.inject.Inject
 class ScreenVideoRecordingConsentActivity : AppCompatActivity() {
 
     @Inject
-    lateinit var settingsRepository: SettingsRepository
+    lateinit var disclosureManager: ScreenRecordingDisclosureManager
 
     private var consentLaunched = false
 
@@ -55,8 +53,7 @@ class ScreenVideoRecordingConsentActivity : AppCompatActivity() {
     }
 
     private suspend fun maybeStartConsentFlow() {
-        val settings = settingsRepository.getSettings().first()
-        if (settings.screenRecordingDisclosureAccepted) {
+        if (disclosureManager.isAccepted()) {
             launchSystemConsent()
         } else {
             showDisclosureDialog()
@@ -76,8 +73,7 @@ class ScreenVideoRecordingConsentActivity : AppCompatActivity() {
     }
 
     private suspend fun acceptDisclosureAndLaunchConsent() {
-        val current = settingsRepository.getSettings().first()
-        settingsRepository.updateSettings(current.copy(screenRecordingDisclosureAccepted = true))
+        disclosureManager.accept()
         launchSystemConsent()
     }
 

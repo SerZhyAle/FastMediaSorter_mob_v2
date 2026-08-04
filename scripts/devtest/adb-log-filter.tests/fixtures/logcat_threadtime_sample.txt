@@ -1,0 +1,8 @@
+07-31 11:38:10.001  1234  1234 I ActivityManager: Start proc 24469:com.sza.fastmediasorter.debug/u0a231 for next-top-activity
+07-31 11:38:14.427 24469 24469 D AudioWaveParticleView: S1277: animators off, painting static backdrop 2400x1080
+07-31 11:38:15.100 24469 24469 E MainViewModel: boom
+07-31 11:38:16.200 24469 24469 E AndroidRuntime: FATAL EXCEPTION: main
+07-31 11:38:16.201 24469 24469 E AndroidRuntime: Process: com.sza.fastmediasorter.debug, PID: 24469
+--------- beginning of crash
+07-31 11:38:17.300  9001  9001 I Finsky: unrelated other-app chatter
+07-31 11:38:20.400  1234  1234 I ActivityManager: ANR in com.sza.fastmediasorter.debug

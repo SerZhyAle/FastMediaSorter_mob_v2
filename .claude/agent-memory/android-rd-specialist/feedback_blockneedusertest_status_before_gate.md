@@ -8,4 +8,4 @@ When a spec needs a `Timber.d("Sxxxx: ..")` device-verification probe, set the c
 
 **Why:** in S0822 the order was tag -> build -> post-change -> (audit FAIL) -> set status -> re-run audit. post-change also stops at the first failing gate, so neuroslop/detekt never ran and had to be invoked by hand afterward. Correct order avoids both.
 
-**How to apply:** closing sequence for a BlockNeedUserTest ticket = insert probe tag -> `update.ps1 -Status BlockNeedUserTest -StatusNote` -> build -> closure/gates. Status first, then the gate sees a valid probe. See also [[per-phase-debug-tags-break-gate]] and [[timber-tags-before-test]].
+**How to apply:** closing sequence for a BlockNeedUserTest ticket = insert probe tag -> `update.ps1 -Status BlockNeedUserTest -StatusNote` -> build -> closure/gates. Status first, then the gate sees a valid probe. See also [[per-phase-debug-tags-break-ticket-log-gate]] and [[timber-tags-before-test]].

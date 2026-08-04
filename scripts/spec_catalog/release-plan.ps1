@@ -17,6 +17,10 @@
 # Every Draft and Approved present is listed (the caller asked for full coverage);
 # heavy ones are annotated (epic / owner-gate) but never dropped.
 #
+# Ordering authority is PLAN/RELEASE_QUEUE.md - release package first, then the owner's line
+# order inside that package. Catalog priority only breaks ties for a ticket the queue does not
+# list. Dependency edges still win over both: a blocker is always emitted before its dependent.
+#
 # Status -> command map. The trailing command of a pair is the prior skill's own
 # auto-chain (e.g. /spec-tech -> /spec-dev, /spec-fix -> /spec-check), listed
 # explicitly so the sequence stays complete on the PRIMITIVE / blocked / --dry-run
@@ -59,6 +63,43 @@ trap {
 }
 
 . (Join-Path $PSScriptRoot '_lib.ps1')
+
+# --- owner's release plan (PLAN/RELEASE_QUEUE.md) ------------------------------
+# The catalog knows priority; only the queue knows which package a ticket ships in and in
+# what order inside it. That ordering outranks priority everywhere in this plan. Priority
+# survives as the fallback for a ticket the queue does not list. The -CatalogFile test hook
+# reads an alternate journal, so the queue is skipped there to keep those runs deterministic.
+$queueRank = @{}
+$queueRel = @{}
+$queueSide = @{}
+if (-not $CatalogFile) {
+    $seq = 0
+    foreach ($line in (Read-ReleaseQueue)) {
+        if ($line.Kind -ne 'ticket' -or $queueRank.ContainsKey($line.Id)) { continue }
+        $queueRank[$line.Id] = $seq++; $queueRel[$line.Id] = [string]$line.Release; $queueSide[$line.Id] = 'queue'
+    }
+    foreach ($line in (Read-ReleaseReady)) {
+        if ($line.Kind -ne 'ticket' -or $queueRank.ContainsKey($line.Id)) { continue }
+        $queueRank[$line.Id] = $seq++; $queueRel[$line.Id] = [string]$line.Release; $queueSide[$line.Id] = 'ready'
+    }
+}
+$relReadySide = 9000     # finished content awaiting its audit - not planned work
+$relParked = 9100        # `--` in the queue: only when nothing in a package is left
+$relOffQueue = 9500      # in neither file: fall back to priority
+
+function Get-QueueBucket {
+    param([Parameter(Mandatory)][string] $Id)
+    if (-not $queueRel.ContainsKey($Id)) { return $relOffQueue }
+    if ($queueSide[$Id] -eq 'ready') { return $relReadySide }
+    if ($queueRel[$Id] -match '^\d+$') { return [int]$queueRel[$Id] }
+    return $relParked
+}
+
+function Get-QueueOrder {
+    param([Parameter(Mandatory)][string] $Id)
+    if ($queueRank.ContainsKey($Id)) { return $queueRank[$Id] }
+    return [int]::MaxValue
+}
 
 # --- status classification ----------------------------------------------------
 $implStatuses = @('Draft', 'Approved', 'Tactical', 'In Progress', 'Partial', 'Broken', 'BlockByOtherTask')
@@ -147,6 +188,11 @@ foreach ($r in $implSet) { $remaining.Add($r.id) }
 
 function Compare-Candidate {
     param($A, $B)   # returns the "better" (earlier) record
+    # Release plan first: package, then the owner's line order inside it.
+    $ba = Get-QueueBucket -Id $A.id; $bb = Get-QueueBucket -Id $B.id
+    if ($ba -ne $bb) { return ($(if ($ba -lt $bb) { $A } else { $B })) }
+    $oa = Get-QueueOrder -Id $A.id; $ob = Get-QueueOrder -Id $B.id
+    if ($oa -ne $ob) { return ($(if ($oa -lt $ob) { $A } else { $B })) }
     $pa = [int]$A.priority; $pb = [int]$B.priority
     if ($pa -ne $pb) { return ($(if ($pa -gt $pb) { $A } else { $B })) }
     $ua = [string](Get-Field $A 'updated'); $ub = [string](Get-Field $B 'updated')
@@ -196,6 +242,8 @@ $phaseBids = @{}; foreach ($x in $phaseB) { $phaseBids[$x.id] = $true }
 $phaseA = @($ordered | Where-Object { -not $phaseBids.ContainsKey($_.id) })
 
 $sortKeys = @(
+    @{ Expression = { Get-QueueBucket -Id $_.id }; Descending = $false },
+    @{ Expression = { Get-QueueOrder -Id $_.id }; Descending = $false },
     @{ Expression = { [int]$_.priority }; Descending = $true },
     @{ Expression = { [string]$_.updated }; Descending = $true },
     @{ Expression = { [string]$_.id }; Descending = $false }
@@ -237,7 +285,7 @@ $deferredItems = @($deferred | Sort-Object $sortKeys |
 $releaseLine = if ($Flavors.Trim()) { "/skill-release $($Flavors.Trim())" } else { '/skill-release' }
 
 $plan = [PSCustomObject]@{
-    generated_from = 'PLAN/spec-catalog.jsonl (active)'
+    generated_from = 'PLAN/spec-catalog.jsonl (active), ordered by PLAN/RELEASE_QUEUE.md'
     counts = [PSCustomObject]@{
         open               = $all.Count
         implementation     = $itemsA.Count
@@ -277,7 +325,7 @@ $out.Add('# === RELEASE SEQUENCE (generated from spec-catalog) ===')
 $out.Add("# open=$($c.open)  implement=$($c.implementation)  blocked-chain=$($c.blocked_chains)  implemented=$($c.verify_implemented)  device-test=$($c.device_test)  deferred=$($c.deferred)")
 $out.Add('')
 
-$out.Add('# -- Phase A: implementation (priority-ordered; every Draft/Approved listed) --')
+$out.Add('# -- Phase A: implementation (release-queue order: package, then line order; every Draft/Approved listed) --')
 if ($itemsA.Count -eq 0) { $out.Add('#   (none)') }
 foreach ($it in $itemsA) {
     $tag = "$($it.status) p$($it.priority): $($it.name)"

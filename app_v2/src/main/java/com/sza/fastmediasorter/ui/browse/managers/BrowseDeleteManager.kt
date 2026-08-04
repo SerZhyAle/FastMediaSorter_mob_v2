@@ -13,6 +13,9 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.DeletePathPolicy
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseState
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +43,7 @@ class BrowseDeleteManager(
     private val fileOperationUseCase: FileOperationUseCase,
     private val deleteDirectoriesUseCase: DeleteDirectoriesUseCase,
     private val deleteByFileSizeUseCase: DeleteByFileSizeUseCase,
+    private val browseTransferCoordinator: BrowseFileTransferCoordinator,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
     private val stateFlow: StateFlow<BrowseState>,
@@ -72,6 +76,53 @@ class BrowseDeleteManager(
      *   multiselect remains untouched. When non-null, [clearSelection] is also skipped.
      */
     fun deleteSelectedFiles(overridePaths: Set<String>? = null) {
+        val selectedPaths = (overridePaths ?: stateFlow.value.selectedFiles).toList()
+        if (selectedPaths.isEmpty()) {
+            sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.no_files_selected)))
+            return
+        }
+        val resource = stateFlow.value.resource ?: return
+        val selectedSet = selectedPaths.toSet()
+        val knownFiles = stateFlow.value.mediaFiles.associateBy { it.path }
+        val settings = settingsRepository.getSettings()
+        scope.launch(ioDispatcher) {
+            val softDelete = settings.first().useTrash &&
+                DeletePathPolicy.canUseSoftDelete(selectedPaths)
+            val request = BrowseFileTransferRequest(
+                operationType = FileOperationType.DELETE,
+                sourceResourceId = resource.id,
+                sourceResourceName = resource.name,
+                sourceCredentialsId = resource.credentialsId,
+                currentBrowsePath = selectedPaths.firstOrNull()?.substringBeforeLast('/', ""),
+                destinationPath = resource.path,
+                destinationName = resource.name,
+                overwriteFiles = false,
+                sources = selectedPaths.map { path ->
+                    val file = knownFiles[path]
+                    BrowseFileTransferSource(
+                        path = path,
+                        displayName = file?.name ?: path.substringAfterLast('/'),
+                        size = file?.size ?: 0L,
+                        isDirectory = file?.isDirectory == true,
+                    )
+                },
+                softDelete = softDelete,
+            )
+            when (browseTransferCoordinator.enqueueIfIdle(request)) {
+                is BrowseFileTransferCoordinator.EnqueueResult.ActiveAlreadyRunning -> {
+                    sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.browse_transfer_already_running)))
+                }
+                is BrowseFileTransferCoordinator.EnqueueResult.Enqueued -> {
+                    Timber.d("S1369: enqueued persistent Browse bulk delete count=%s", selectedPaths.size)
+                    if (selectedSet.size > 10) {
+                        sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.deleting_n_files, selectedSet.size)))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun deleteSelectedFilesLegacy(overridePaths: Set<String>? = null) {
         Timber.d("BrowseDeleteManager.deleteSelectedFiles: ===== START ===== override=${overridePaths?.size ?: -1}")
         scope.launch(ioDispatcher) {
             val selectedPaths = (overridePaths ?: stateFlow.value.selectedFiles).toList()

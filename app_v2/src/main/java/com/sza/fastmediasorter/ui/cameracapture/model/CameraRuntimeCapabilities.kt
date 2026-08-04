@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.cameracapture.model
 import android.util.Range
 import android.util.Size
 import androidx.camera.core.CameraSelector
+import kotlin.math.roundToInt
 
 /**
  * Immutable snapshot of what the currently-bound camera lens can actually do, read once per bind or
@@ -30,6 +31,12 @@ data class CameraRuntimeCapabilities(
     val shutterRangeNs: Range<Long>? = null,
     val awbModes: List<Int> = emptyList(),
     val supportsHdrExtension: Boolean = false,
+    /**
+     * S1262: the BOKEH extension is available on the active lens, which is what makes a portrait
+     * profile offerable. Defaults false so every existing call site keeps compiling and every device
+     * that has not been probed simply does not offer the profile.
+     */
+    val supportsBokehExtension: Boolean = false,
     val availableAspectRatios: List<Int> = emptyList(),
     val photoResolutions: List<Size> = emptyList(),
     /**
@@ -74,6 +81,21 @@ data class CameraRuntimeCapabilities(
     /** The active lens has a usable zoom range (not a fixed 1x). */
     val supportsZoom: Boolean get() = maxZoomRatio > minZoomRatio + ZOOM_EPSILON
 
+    /** The bound lens's own reachable floor, in equivalent-zoom space. */
+    val ownEquivalentFloor: Float get() = minZoomRatio * zoomMultiplier
+
+    /**
+     * S1261: the device-wide floor ([minEquivalentZoomRatio], e.g. 0.57 on the S25 FE) sits below
+     * what the bound lens itself reaches - the zoom row then offers a cross-lens floor pill whose
+     * tap switches optics. False when the bound lens covers the floor natively (single-camera
+     * devices, POCO after its own floor - strategic goal 4) so the row stays exactly as today.
+     */
+    val showsCrossLensFloor: Boolean
+        get() = !isFront && minEquivalentZoomRatio < ownEquivalentFloor - ZOOM_EPSILON
+
+    /** S1261: the floor pill's printed value - display-rounded equivalent (S1260 rule, 0.57 -> 0.5). */
+    val crossLensFloorDisplay: Float get() = roundEquivalentForDisplay(minEquivalentZoomRatio)
+
     companion object {
         const val DEFAULT_ZOOM = 1f
         const val ZOOM_EPSILON = 0.01f
@@ -89,6 +111,12 @@ data class CameraRuntimeCapabilities(
 
         /** Zoom presets are displayed and compared to one decimal place. */
         const val ZOOM_STEP_SCALE = 10f
+
+        /** S1260: below this equivalent zoom labels round to half steps, from it upward to wholes. */
+        const val DISPLAY_HALF_STEP_LIMIT = 5f
+
+        /** S1260: half-step quantization scale for displayed zoom values below the limit. */
+        const val DISPLAY_HALF_STEP_SCALE = 2f
 
         /** No-capability fallback used before the first successful bind. */
         val NONE = CameraRuntimeCapabilities()
@@ -124,9 +152,21 @@ data class CameraRuntimeCapabilities(
             // Adaptive count: drop a step just below the max (redundant with the max button) - e.g. when
             // the max is 3.3 the 3 step is dropped, like the new Samsung camera (S0753 device feedback).
             val ceiling = presets.lastOrNull() ?: return presets
-            return presets.filter {
+            val kept = presets.filter {
                 it in nativeBounds || it == ceiling || it < ceiling * NEAR_MAX_DROP_FACTOR
             }
+            // S1260: pills print the display-rounded equivalent, so two presets whose labels collapse
+            // to the same text would render as identical buttons - keep one, preferring the native
+            // bound (its amber marking carries meaning the plain step does not).
+            val byLabel = LinkedHashMap<Float, Float>()
+            kept.forEach { preset ->
+                val label = roundEquivalentForDisplay(preset * mult)
+                val current = byLabel[label]
+                if (current == null || (preset in nativeBounds && current !in nativeBounds)) {
+                    byLabel[label] = preset
+                }
+            }
+            return byLabel.values.sorted()
         }
 
         /**
@@ -134,5 +174,17 @@ data class CameraRuntimeCapabilities(
          * limit has to compare at that same precision or the two never match.
          */
         fun roundToStep(value: Float): Float = (value * ZOOM_STEP_SCALE).toInt() / ZOOM_STEP_SCALE
+
+        /**
+         * S1260: user-facing zoom values are coarse so the preset row stays readable - below
+         * [DISPLAY_HALF_STEP_LIMIT] the nearest half step (1.6 -> 1.5), from it upward the nearest
+         * whole number (8.1 -> 8). Display only: the applied native ratio keeps full precision.
+         */
+        fun roundEquivalentForDisplay(value: Float): Float =
+            if (value < DISPLAY_HALF_STEP_LIMIT) {
+                (value * DISPLAY_HALF_STEP_SCALE).roundToInt() / DISPLAY_HALF_STEP_SCALE
+            } else {
+                value.roundToInt().toFloat()
+            }
     }
 }

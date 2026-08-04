@@ -49,7 +49,9 @@ if ($Build) {
 }
 
 Write-Host '== pre-flight =='
-$drArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/device-ready.ps1", '-Package', $Pkg)
+# -StrictExit: device-ready is a status query and exits 0 for a determined not-ready state.
+# smoke.ps1 is a fail-fast harness, so it asks for the legacy numeric exit codes.
+$drArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/device-ready.ps1", '-Package', $Pkg, '-StrictExit')
 if ($DeviceId) { $drArgs += @('-DeviceId', $DeviceId) }
 & pwsh @drArgs
 if ($LASTEXITCODE -ne 0) { Write-Host "FAIL device-ready exit $LASTEXITCODE"; exit $LASTEXITCODE }

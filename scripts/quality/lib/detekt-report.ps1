@@ -34,7 +34,41 @@ function Get-DetektFindingFiles {
         [string[]]$Modules
     )
 
-    $files = [System.Collections.Generic.List[string]]::new()
+    $report = Get-DetektFindings -RepoRoot $RepoRoot -Modules $Modules
+    return @{
+        Ok     = $report.Ok
+        Files  = @(@($report.Findings) | ForEach-Object { $_.File } | Select-Object -Unique)
+        Reason = $report.Reason
+    }
+}
+
+<#
+.SYNOPSIS
+    Collect the individual NEW detekt findings for the given modules.
+
+.DESCRIPTION
+    S1338: the caller used to be handed file paths only, so a failure printed the file and
+    discarded the rule, line and message the report had already parsed - costing 2.38 extra
+    gradle round-trips per failure just to see what was wrong. Same fail-closed contract as
+    Get-DetektFindingFiles, which now delegates here.
+
+.OUTPUTS
+    Hashtable:
+      Ok       [bool]   - $false when at least one requested module's report is missing or unparseable.
+      Findings [array]  - objects with File (lowercased, forward-slashed), Line, Column, RuleId, Message.
+      Reason   [string] - why Ok is $false; empty when Ok.
+#>
+function Get-DetektFindings {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$RepoRoot,
+
+        [Parameter(Mandatory)]
+        [string[]]$Modules
+    )
+
+    $findings = [System.Collections.Generic.List[object]]::new()
     $problems = [System.Collections.Generic.List[string]]::new()
 
     foreach ($m in $Modules) {
@@ -62,13 +96,26 @@ function Get-DetektFindingFiles {
         $fileNodes = $checkstyle.file
         if ($null -eq $fileNodes) { continue }
         foreach ($fn in $fileNodes) {
-            if ($fn.error) { $files.Add((([string]$fn.name) -replace '\\', '/').ToLower()) }
+            if (-not $fn.error) { continue }
+            $path = (([string]$fn.name) -replace '\\', '/').ToLower()
+            foreach ($err in @($fn.error)) {
+                # detekt writes the rule as source="detekt.<RuleId>"; keep the bare rule id,
+                # which is what the operator greps for in config/detekt/detekt.yml.
+                $rule = ([string]$err.source) -replace '^detekt\.', ''
+                $findings.Add([pscustomobject]@{
+                        File    = $path
+                        Line    = [string]$err.line
+                        Column  = [string]$err.column
+                        RuleId  = $rule
+                        Message = [string]$err.message
+                    })
+            }
         }
     }
 
     return @{
-        Ok     = ($problems.Count -eq 0)
-        Files  = @($files)
-        Reason = ($problems -join '; ')
+        Ok       = ($problems.Count -eq 0)
+        Findings = @($findings)
+        Reason   = ($problems -join '; ')
     }
 }

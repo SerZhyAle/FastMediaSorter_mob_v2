@@ -80,7 +80,9 @@ class CameraCaptureResultManager(
 
     private fun showGalleryThumbnail(path: String) {
         galleryThumbnail.visibility = View.VISIBLE
-        Glide.with(activity).load(File(path)).centerCrop().into(galleryThumbnail)
+        // S1317: path is app-produced today (camera output), so this is defence in depth rather than an
+        // observed failure - keeps the surface safe if the source of this path ever widens.
+        Glide.with(activity).load(File(path)).centerCrop().dontAnimate().into(galleryThumbnail)
     }
 
     /**

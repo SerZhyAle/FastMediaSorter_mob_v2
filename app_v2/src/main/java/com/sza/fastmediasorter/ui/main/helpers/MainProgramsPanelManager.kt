@@ -219,6 +219,7 @@ class MainProgramsPanelManager(
         val total = widths.sum()
         if (total <= available) {
             overflowButton.visibility = View.GONE
+            healProbedMeasureState(container)
             return
         }
 
@@ -237,6 +238,22 @@ class MainProgramsPanelManager(
         }
         overflowButton.visibility = View.VISIBLE
         overflowButton.setOnClickListener { showOverflowPopup() }
+        healProbedMeasureState(container, overflowButton)
+    }
+
+    /**
+     * S1258: measureItemWidth's probe measure() overwrites the live children's measured sizes with
+     * their preferred ones. TextView centers text against getMeasuredHeight() (icons center against
+     * the real height), so a stale probe leaves labels riding high until some later pass happens to
+     * re-measure. Posted (not inline) so it survives being invoked mid-layout: the follow-up pass
+     * after the frame settles re-measures the dirtied views with true specs.
+     */
+    private fun healProbedMeasureState(container: ViewGroup, also: View? = null) {
+        container.post {
+            for (i in 0 until container.childCount) container.getChildAt(i).forceLayout()
+            also?.forceLayout()
+            container.requestLayout()
+        }
     }
 
     /**

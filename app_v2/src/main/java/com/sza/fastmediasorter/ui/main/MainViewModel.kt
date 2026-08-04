@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.core.ui.UiState
+import com.sza.fastmediasorter.data.capture.SaveResult
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -28,10 +29,13 @@ import com.sza.fastmediasorter.domain.usecase.MigrateS0059UseCase
 import com.sza.fastmediasorter.domain.usecase.ProvisionDefaultResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ProvisionDownloadsDestinationUseCase
 import com.sza.fastmediasorter.domain.usecase.ResolveResourceIconUseCase
+import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.companion.ExportCompanionConfigUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ObservePinnedStreamSourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.ui.main.helpers.ResourceFilterManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceNavigationCoordinator
 import com.sza.fastmediasorter.ui.main.helpers.ResourceOrderManager
@@ -40,6 +44,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -48,6 +53,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 enum class ResourceTab {
@@ -147,6 +153,10 @@ class MainViewModel @Inject constructor(
     private val appShortcutsManager: com.sza.fastmediasorter.core.AppShortcutsManager,
     private val networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer,
     private val remoteSourceGate: RemoteSourceAvailabilityGate,
+    // S1195: capture + streams-panel operations the Activity used to inject and hand to its managers.
+    private val saveCapturedMediaUseCase: SaveCapturedMediaUseCase,
+    private val observePinnedStreamSourcesUseCase: ObservePinnedStreamSourcesUseCase,
+    private val unpinStreamSourceUseCase: UnpinStreamSourceUseCase,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<MainState, MainEvent>() {
 
@@ -159,6 +169,18 @@ class MainViewModel @Inject constructor(
     // vs remove. Eager so `.value` is current when the panel menu opens.
     val favoriteStreamUrls: StateFlow<Set<String>> = favoritesUseCase.observeFavoriteStreamUrls()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
+    /** S0756: pinned channels in pin order, for the main-window streams panel. */
+    fun pinnedStreamSources(): Flow<List<StreamSourceEntity>> = observePinnedStreamSourcesUseCase()
+
+    /** S0770: drop a channel's pin; the pinned-sources flow then stops emitting it. */
+    fun unpinStreamSource(id: String) {
+        viewModelScope.launch { unpinStreamSourceUseCase(id) }
+    }
+
+    /** S0523/S0563: persist a freshly captured photo/video into the device's public folders. */
+    suspend fun saveCapturedMedia(captured: File, isVideo: Boolean): SaveResult =
+        saveCapturedMediaUseCase(captured, isVideo)
 
     /**
      * The main screen routes BaseViewModel error state into a dedicated full-screen surface,

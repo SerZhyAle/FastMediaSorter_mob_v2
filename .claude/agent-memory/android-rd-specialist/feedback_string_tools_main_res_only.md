@@ -13,4 +13,4 @@ The string localization helpers operate on `src/main/res` only - they do NOT see
 - For a flavor-only string (noLegal / vr / lite / photos / legacy), hand-edit the three `src/<flavor>/res/values{,-ru,-uk}/strings.xml` files (structural XML add is an allowed hand-edit case).
 - Do NOT rely on `check_strings_localized.ps1` to prove EN/RU/UK parity for flavor strings - it returns a false "not found". Verify parity with a direct `Grep -c 'name="<prefix>'` across the three flavor files instead (expect equal counts).
 - A successful flavor build only proves the default `values/` (EN) keys resolve - a missing RU/UK translation does NOT fail the build, so parity still needs the grep check.
-- Relates to [[reference_strings_tool]] and [[feedback_check_existing_tooling]].
+- Relates to [[strings-tool-mutator]] and [[check-existing-tooling-first]].

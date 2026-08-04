@@ -35,40 +35,7 @@ class VrStereoConfigResolver(private val stereoDetector: StereoDetector) {
         // side-by-side films (e.g. *_180x180_3dh.mp4) as MONO. UNKNOWN falls through to the legacy
         // token scan below so no previously-recognised name regresses.
         val detected = stereoDetector.detectFromFilename(filename).toRenderConfigOrNull()
-        val config = detected ?: RenderConfig(
-            projection = when {
-                name.contains("_360") || name.contains("360_") -> ProjectionType.SPHERE_360
-                name.contains("_180") || name.contains("180_") -> ProjectionType.HEMISPHERE_180
-                name.contains("_flat") || name.contains("flat_") -> ProjectionType.FLAT
-                else -> if (
-                    name.contains("panorama") || name.contains("panoramic") ||
-                        name.contains("equirectangular")
-                ) {
-                    ProjectionType.SPHERE_360
-                } else {
-                    ProjectionType.FLAT
-                }
-            },
-            // S0290 (owner feedback 2026-05-22): SPECIFIC markers (_sbs, _tb, _lr, _ou) MUST be
-            // checked BEFORE the generic `_stereo` fallback. The old order matched `_stereo` first
-            // and routed `video_360_stereo_sbs.mp4` to TOP_BOTTOM. Order: SBS family, then TB
-            // family, then explicit MONO marker, then generic `_stereo` defaults to TB.
-            layout = when {
-                // Side-by-side family (specific markers, capture-oriented and renderer-oriented).
-                name.contains("_sbs") || name.contains("_sidebyside") || name.contains("_hsbs") ||
-                    name.contains("_fsbs") || name.contains("_lr") || name.contains("_rl") ->
-                        StereoLayout.SIDE_BY_SIDE
-                // Top-bottom family (specific markers).
-                name.contains("_tb") || name.contains("_topbottom") || name.contains("_ou") ||
-                    name.contains("_overunder") || name.contains("stereo_tb") ->
-                        StereoLayout.TOP_BOTTOM
-                // Explicit mono marker wins over generic `_stereo` fallback below.
-                name.contains("_mono") || name.contains("mono_") -> StereoLayout.MONO
-                // Generic `_stereo` with no specific layout marker defaults to TB (industry default).
-                name.contains("_stereo") || name.contains("stereo") -> StereoLayout.TOP_BOTTOM
-                else -> StereoLayout.MONO
-            },
-        )
+        val config = detected ?: RenderConfig(legacyProjection(name), legacyLayout(name))
         Timber.d(
             "parseFilenameConfig: $filename -> projection=${config.projection}, layout=${config.layout} " +
                 "(source=${if (detected != null) "stereo-detector" else "legacy"})"
@@ -81,6 +48,53 @@ class VrStereoConfigResolver(private val stereoDetector: StereoDetector) {
         Timber.d("S1112: $filename -> proj=${config.projection} layout=${config.layout}")
         return config
     }
+
+    /**
+     * Legacy projection token scan, kept as the fallback when [StereoDetector] returns UNKNOWN.
+     * Extracted from [resolve] so that method stays under the complexity threshold - behaviour is
+     * byte-for-byte the conditions it had inline.
+     */
+    private fun legacyProjection(name: String): ProjectionType = when {
+        name.contains("_360") || name.contains("360_") -> ProjectionType.SPHERE_360
+        name.contains("_180") || name.contains("180_") -> ProjectionType.HEMISPHERE_180
+        name.contains("_flat") || name.contains("flat_") -> ProjectionType.FLAT
+        name.contains("panorama") || name.contains("panoramic") ||
+            name.contains("equirectangular") -> ProjectionType.SPHERE_360
+        else -> ProjectionType.FLAT
+    }
+
+    /**
+     * Legacy layout token scan.
+     *
+     * S0290 (owner feedback 2026-05-22): SPECIFIC markers (_sbs, _tb, _lr, _ou) MUST be checked
+     * BEFORE the generic `_stereo` fallback. The old order matched `_stereo` first and routed
+     * `video_360_stereo_sbs.mp4` to TOP_BOTTOM. Order: SBS family, then TB family, then explicit
+     * MONO marker, then generic `_stereo` defaults to TB.
+     */
+    private fun legacyLayout(name: String): StereoLayout = when {
+        name.contains("_sbs") || name.contains("_sidebyside") || name.contains("_hsbs") ||
+            name.contains("_fsbs") || name.contains("_lr") || name.contains("_rl") ->
+            StereoLayout.SIDE_BY_SIDE
+        name.contains("_tb") || name.contains("_topbottom") || name.contains("_ou") ||
+            name.contains("_overunder") || name.contains("stereo_tb") ->
+            StereoLayout.TOP_BOTTOM
+        // Explicit mono marker wins over the generic `_stereo` fallback below.
+        name.contains("_mono") || name.contains("mono_") -> StereoLayout.MONO
+        // Generic `_stereo` with no specific layout marker defaults to TB (industry default).
+        name.contains("_stereo") || name.contains("stereo") -> StereoLayout.TOP_BOTTOM
+        else -> StereoLayout.MONO
+    }
+
+    /**
+     * S1217: what the container itself says about a local MP4, read from its `st3d`/`sv3d` boxes.
+     *
+     * Null when the path is not an MP4, carries no spatial boxes, or they are inconclusive - which is
+     * the common case for a site rip, so this is an addition to the filename scan and never a
+     * replacement for it. Parses the file, so it must not run on the main thread; the caller owns
+     * that. [resolve] stays synchronous and pure precisely so the session-ready path can call it.
+     */
+    fun resolveFromMetadata(localPath: String): RenderConfig? =
+        stereoDetector.detectFromMp4Path(localPath).toRenderConfigOrNull()
 
     /**
      * S0771: map the shared [StereoDetector] verdict onto the immersive renderer's projection/layout

@@ -183,6 +183,7 @@ class BackupToGoogleDriveUseCase @Inject constructor(
                 fileName = fileName,
                 mimeType = MIME_JSON,
                 parentFolderId = folderId,
+                fileSize = jsonBytes.size.toLong(),
                 progressCallback = null
             )
 
@@ -233,6 +234,7 @@ class BackupToGoogleDriveUseCase @Inject constructor(
                 fileName = "README.md",
                 mimeType = "text/markdown",
                 parentFolderId = folderId,
+                fileSize = bytes.size.toLong(),
                 progressCallback = null
             )
         } catch (e: Exception) {

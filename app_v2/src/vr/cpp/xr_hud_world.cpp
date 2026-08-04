@@ -149,7 +149,10 @@ void xr_hud_init() {
     
     // S0290 (owner round 3 2026-05-22): HUD centered in front of head so screenshots
     // show the filename + stereo type banner clearly. Was {0, -0.2, -1.5} (below center).
-    g_hudState.quad.center = {0.0f, 0.0f, -1.5f};
+    // S1228 (owner, in-headset 2026-07-27): that centring still holds for the diagnostic banner,
+    // but the player panel must not sit on the film - it now asks for a negative offset via
+    // xr_hud_set_quad_size. Default stays 0.0 so the banner placement is unchanged.
+    g_hudState.quad.center = {0.0f, g_hudState.overrideVerticalOffset, -1.5f};
     g_hudState.quad.rot = {0.0f, 0.0f, 0.0f, 1.0f};
     
     g_hudState.targetCenter = g_hudState.quad.center;
@@ -165,16 +168,31 @@ void xr_hud_init() {
 
 // S0964: requested from the JNI bridge (any thread). Floats are written whole; the render
 // thread picks the new size up next frame - no lock needed for this tear-safe pair.
-void xr_hud_set_quad_size(float widthMeters, float heightMeters) {
+void xr_hud_set_quad_size(float widthMeters, float heightMeters, float verticalOffsetMeters) {
     if (widthMeters <= 0.0f || heightMeters <= 0.0f) {
         LOGE("xr_hud_set_quad_size REJECTED: w=%.3f h=%.3f", widthMeters, heightMeters);
         return;
     }
     g_hudState.overrideWidth = widthMeters;
     g_hudState.overrideHeight = heightMeters;
+    g_hudState.overrideVerticalOffset = verticalOffsetMeters;
     g_hudState.quad.width = widthMeters;
     g_hudState.quad.height = heightMeters;
-    LOGD("xr_hud_set_quad_size: %.3fx%.3f m", widthMeters, heightMeters);
+    LOGD("xr_hud_set_quad_size: %.3fx%.3f m dy=%.3f", widthMeters, heightMeters, verticalOffsetMeters);
+}
+
+// S1232: requested from the JNI bridge (any thread). A single bool is written whole; the render
+// thread picks it up next frame - same tear-safe contract as xr_hud_set_quad_size.
+void xr_hud_set_visible(bool visible) {
+    g_hudState.visible = visible;
+    if (!visible) {
+        // Drop the hover state with the quad. Leaving it set would strand the last cursor
+        // position, so the strip would come back already hovering a widget nobody is pointing at.
+        g_hudState.hasIntersection[0] = false;
+        g_hudState.hasIntersection[1] = false;
+        g_hudState.dragging = false;
+    }
+    LOGD("xr_hud_set_visible: %d", visible ? 1 : 0);
 }
 
 void xr_hud_update(const XrPosef& headPose, float deltaTime) {
@@ -183,7 +201,11 @@ void xr_hud_update(const XrPosef& headPose, float deltaTime) {
     
     // S0290 (owner round 3): HUD centered in front of head (y=0) instead of below (y=-0.15)
     // so the filename banner is visible directly on the user's screenshots without head tilt.
-    XrVector3f ergonomicOffset = rotate_vector(headPose.orientation, {0.0f, 0.0f, -1.5f});
+    // S1228: the offset is now per-mode (see xr_hud_set_quad_size). It rides inside the rotated
+    // vector so the strip stays below the gaze ray when the user looks up or down, rather than
+    // hanging at a fixed world height.
+    XrVector3f ergonomicOffset = rotate_vector(
+        headPose.orientation, {0.0f, g_hudState.overrideVerticalOffset, -1.5f});
     
     XrVector3f idealCenter{
         headPose.position.x + ergonomicOffset.x,
@@ -202,6 +224,10 @@ void xr_hud_update(const XrPosef& headPose, float deltaTime) {
 
 void xr_hud_process_rays(const XrSpace localSpace, XrTime predictedTime) {
     (void)localSpace;
+    // S1232: a hidden quad is not merely unpainted - it must not react. Without this gate the
+    // ray still intersects it, so a grip-drag would silently reposition a panel nobody can see
+    // and the summoning trigger pull would land on whatever widget the ray happened to cross.
+    if (!g_hudState.visible) return;
     bool anyGripDown = false;
     for (int i = 0; i < 2; i++) {
         if (!g_handInputStates[i].active) {
@@ -222,7 +248,9 @@ void xr_hud_process_rays(const XrSpace localSpace, XrTime predictedTime) {
             g_lastGripClickTime[i] = predictedTime;
         }
         g_prevGripDown[i] = gripDown;
-        if (gripDown) {
+        // S1240: a grip held as a media-navigation modifier is not a drag. Without this the same
+        // hold would step to the next file and haul the panel along with it.
+        if (gripDown && !g_handInputStates[i].gripIsModifier) {
             anyGripDown = true;
             g_hudState.quad.center = {
                 ray.pos.x + ray.dir.x * 1.5f,

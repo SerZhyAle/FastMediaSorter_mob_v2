@@ -40,7 +40,13 @@ Before building this I was juggling: Solid Explorer for file management, VLC for
 - Duplicate finder with SHA-256 matching across sources
 - Recycle bin / trash with restore
 
+*Internet streams*
+- Thousands of live TV and radio channels built in, with search, topic filters and pinned favourites
+- Station artwork and now-playing info, per-channel track memory, quality steps down automatically on repeated stalls
+
 *Other*
+- Built-in camera that shoots straight into the folder you pick, with device-matched lenses and zoom range
+- Share a network folder as a QR code - the other device joins by scanning it
 - Wear OS companion (browse NAS, control playback from watch)
 - Home screen widgets
 - PIN protection per resource
@@ -48,8 +54,9 @@ Before building this I was juggling: Solid Explorer for file management, VLC for
 
 **Flavors (different APKs):**
 - Standard: full feature set, Android 8.0+
-- Lite: video + photos only, Android 8.0+
-- Legacy: full features minus cloud, Android 6.0+
+- Lite: local files only - no cloud, no network shares, Android 8.0+
+- Photos: images only, with cloud and network shares, Android 8.0+
+- Legacy: same feature set as Standard, Android 6.0+
 
 **Links:**
 - Google Play: https://play.google.com/store/apps/details?id=com.sza.fastmediasorter

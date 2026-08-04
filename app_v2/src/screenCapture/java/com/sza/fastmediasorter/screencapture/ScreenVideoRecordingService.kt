@@ -25,9 +25,9 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
+import com.sza.fastmediasorter.data.capture.LocalCaptureDestinationWriter
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
@@ -66,10 +66,7 @@ class ScreenVideoRecordingService : Service() {
     lateinit var resourceRepository: Lazy<ResourceRepository>
 
     @Inject
-    lateinit var destinationClassifier: Lazy<LocalDestinationClassifier>
-
-    @Inject
-    lateinit var destinationWriter: Lazy<LocalDestinationWriter>
+    lateinit var localCaptureDestinationWriter: Lazy<LocalCaptureDestinationWriter>
 
     @Inject
     lateinit var stateController: ScreenRecordingStateController
@@ -235,7 +232,7 @@ class ScreenVideoRecordingService : Service() {
         }
         isPaused = true
         stateController.markPaused()
-        NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildNotification(paused = true))
+        refreshNotification(paused = true)
     }
 
     private fun resumeRecording() {
@@ -248,7 +245,21 @@ class ScreenVideoRecordingService : Service() {
         }
         isPaused = false
         stateController.markResumed()
-        NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildNotification(paused = false))
+        refreshNotification(paused = false)
+    }
+
+    /**
+     * S1195: repaints the ongoing-recording notification after a pause/resume. POST_NOTIFICATIONS is
+     * requested by the launcher before recording starts, but the user can revoke it mid-session; the
+     * recording itself is unaffected, so a stale pause badge is the correct degradation rather than a
+     * SecurityException killing a foreground service.
+     */
+    private fun refreshNotification(paused: Boolean) {
+        try {
+            NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildNotification(paused))
+        } catch (e: SecurityException) {
+            Timber.i(e, "ScreenVideoRecordingService: notification refresh skipped - POST_NOTIFICATIONS revoked")
+        }
     }
 
     // Spans settings read + Room resource lookup + device write - each throws a different exception
@@ -257,6 +268,7 @@ class ScreenVideoRecordingService : Service() {
     // recovers to a "not saved" state with a correct-level log, so a broad catch here is intentional.
     @Suppress("TooGenericExceptionCaught")
     private suspend fun saveRecording(tempFile: File) {
+        Timber.d("S1354: screen recording local destination save")
         var savedName: String? = null
         try {
             val settings = settingsRepository.get().getSettings().first()
@@ -264,8 +276,11 @@ class ScreenVideoRecordingService : Service() {
                 val id = settings.screenRecordingDestinationResourceId ?: return@withContext null
                 resourceRepository.get().getAllResourcesSync().firstOrNull { it.id.toString() == id }
             }
-            val destDir = CaptureDestinationPolicy.resolveScreenRecordingDestination(selected)
-            if (writeToDevice(tempFile, File(destDir, tempFile.name).absolutePath)) {
+            val destinationPath = selected
+                ?.takeIf(CaptureDestinationPolicy::isUsableTarget)
+                ?.path
+                ?: CaptureDestinationPolicy.resolveScreenRecordingDestination(null).absolutePath
+            if (localCaptureDestinationWriter.get().write(tempFile, destinationPath, tempFile.name).isSuccess) {
                 savedName = tempFile.name
             }
         } catch (e: Exception) {
@@ -283,23 +298,6 @@ class ScreenVideoRecordingService : Service() {
             finishService()
         }
     }
-
-    private suspend fun writeToDevice(tempFile: File, absolutePath: String): Boolean =
-        withContext(Dispatchers.IO) {
-            val category = destinationClassifier.get().classify(absolutePath)
-            val sink = destinationWriter.get().open(category, overwrite = true).getOrElse { e ->
-                Timber.e(e, "ScreenVideoRecordingService: writer.open failed for %s", absolutePath)
-                return@withContext false
-            }
-            try {
-                tempFile.inputStream().use { input -> input.copyTo(sink.outputStream) }
-                sink.commit().isSuccess
-            } catch (e: IOException) {
-                Timber.e(e, "ScreenVideoRecordingService: streaming failed for %s", absolutePath)
-                sink.abort()
-                false
-            }
-        }
 
     private fun createTempFile(): File? = try {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
@@ -494,7 +492,10 @@ class ScreenVideoRecordingService : Service() {
         const val ACTION_RESUME = "com.sza.fastmediasorter.screencapture.action.RESUME_SCREEN_RECORDING"
 
         private const val CHANNEL_ID = "screen_recording_service"
-        private const val NOTIFICATION_ID = 0x4054
+
+        // S1292: was 0x4054, the same id OverlayHostService re-posts on every process foreground -
+        // which replaced this recording notification (losing Pause/Stop) while recording continued.
+        private const val NOTIFICATION_ID = NotificationIds.SCREEN_VIDEO_RECORDING
         private const val VIRTUAL_DISPLAY_NAME = "screen_video_recording_service"
         private const val VIDEO_FRAME_RATE = 30
         private const val BITRATE_MOTION_FACTOR = 0.15

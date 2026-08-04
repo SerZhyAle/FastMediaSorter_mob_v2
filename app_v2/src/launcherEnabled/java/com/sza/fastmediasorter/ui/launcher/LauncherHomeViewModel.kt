@@ -1,26 +1,25 @@
 package com.sza.fastmediasorter.ui.launcher
 
+import android.content.Intent
+import android.graphics.Rect
+import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.launcher.AppShortcut
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
+import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
-import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
-import com.sza.fastmediasorter.domain.repository.LauncherPinsRepository
-import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.launcher.ExecuteLauncherCommandUseCase
-import com.sza.fastmediasorter.domain.usecase.launcher.QueryRecentLauncherCommandsUseCase
-import com.sza.fastmediasorter.domain.usecase.launcher.ResolveLauncherCommandLabelUseCase
-import com.sza.fastmediasorter.domain.usecase.launcher.ResolveLauncherDesktopUseCase
 import com.sza.fastmediasorter.domain.usecase.ExecuteScheduledOperationUseCase
-import com.sza.fastmediasorter.domain.usecase.launcher.SeedLauncherDesktopUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.ExecuteLauncherCommandUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.PickContactShortcutUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarComposition
@@ -38,7 +37,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -62,15 +60,11 @@ sealed interface LauncherHomeEvent {
 
 @HiltViewModel
 class LauncherHomeViewModel @Inject constructor(
-    private val resolveDesktop: ResolveLauncherDesktopUseCase,
+    private val desktopDependencies: LauncherDesktopDependencies,
+    private val taskbarDependencies: LauncherTaskbarDependencies,
+    private val shortcutDependencies: LauncherShortcutDependencies,
     private val executeCommand: ExecuteLauncherCommandUseCase,
-    private val desktopRepository: LauncherDesktopRepository,
-    private val resourceRepository: ResourceRepository,
-    private val resolveVisual: ResolveLauncherCommandLabelUseCase,
-    private val pinsRepository: LauncherPinsRepository,
-    queryRecentCommands: QueryRecentLauncherCommandsUseCase,
     private val settingsRepository: SettingsRepository,
-    private val seedLauncherDesktop: SeedLauncherDesktopUseCase,
     private val observeStreams: ObserveStreamSourcesUseCase,
     private val executeScheduledOperation: ExecuteScheduledOperationUseCase,
 ) : ViewModel() {
@@ -81,7 +75,7 @@ class LauncherHomeViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val cells: StateFlow<List<LauncherCellUi>> = _orientation
-        .flatMapLatest { resolveDesktop(it) }
+        .flatMapLatest { desktopDependencies.resolveDesktop(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), emptyList())
 
     val densityFactor: StateFlow<Float> = settingsRepository.getSettings()
@@ -98,7 +92,7 @@ class LauncherHomeViewModel @Inject constructor(
         }
         .distinctUntilChanged()
 
-    val recentIcons: Flow<List<LauncherTaskbarIcon>> = queryRecentCommands(RECENTS_LIMIT)
+    val recentIcons: Flow<List<LauncherTaskbarIcon>> = taskbarDependencies.queryRecentCommands(RECENTS_LIMIT)
         .map { entries ->
             entries.map { entry ->
                 LauncherTaskbarIcon(
@@ -112,10 +106,10 @@ class LauncherHomeViewModel @Inject constructor(
             }
         }
 
-    val pinnedIcons: Flow<List<LauncherTaskbarIcon>> = pinsRepository.observePins()
+    val pinnedIcons: Flow<List<LauncherTaskbarIcon>> = taskbarDependencies.pinsRepository.observePins()
         .map { pins ->
             pins.mapNotNull { (position, command) ->
-                resolveVisual(command)?.let { visual ->
+                taskbarDependencies.resolveVisual(command)?.let { visual ->
                     LauncherTaskbarIcon(
                         id = command.encode(),
                         label = visual.label,
@@ -172,6 +166,18 @@ class LauncherHomeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, LauncherWallpaper.Branded)
 
     /**
+     * S1087: who owns the status area while the launcher is on screen. False (the owner's default) keeps
+     * the Android status bar and therefore drops the tray's clock/network/battery, which would otherwise
+     * be a second copy of what the system bar already shows one row above. True hands the area to the
+     * launcher: the system bar goes, the tray content stays. Recents and pinned strips are a separate
+     * choice and are not touched by this policy.
+     */
+    val replaceSystemStatusArea: StateFlow<Boolean> = settingsRepository.getSettings()
+        .map { it.launcherReplaceSystemStatusArea }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    /**
      * One-shot: true once the first-rotation hint has been shown, so it never repeats. Seeds the edit
      * manager's decision on the next orientation change; the write goes back through settings so it
      * survives a process kill.
@@ -213,7 +219,7 @@ class LauncherHomeViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             rememberResourceFileList(rememberFileListResourceId)
-            desktopRepository.addCell(
+            desktopDependencies.desktopRepository.addCell(
                 LauncherCell(
                     id = 0,
                     orientation = _orientation.value,
@@ -238,36 +244,36 @@ class LauncherHomeViewModel @Inject constructor(
      */
     private suspend fun rememberResourceFileList(resourceId: Long?) {
         val id = resourceId ?: return
-        val resource = resourceRepository.getResourceById(id) ?: return
+        val resource = desktopDependencies.resourceRepository.getResourceById(id) ?: return
         if (!resource.rememberFileList) {
-            resourceRepository.updateResource(resource.copy(rememberFileList = true))
+            desktopDependencies.resourceRepository.updateResource(resource.copy(rememberFileList = true))
         }
     }
 
     /** Rejected when the footprint is not free; the cell simply snaps back where it was. */
     fun moveCell(id: Long, rowIndex: Int, colIndex: Int) {
         viewModelScope.launch {
-            desktopRepository.moveCell(id, rowIndex, colIndex)
+            desktopDependencies.desktopRepository.moveCell(id, rowIndex, colIndex)
         }
     }
 
     /** Rejected when the new footprint overlaps another cell; the gesture keeps the last valid size. */
     fun resizeCell(id: Long, spanW: Int, spanH: Int) {
         viewModelScope.launch {
-            desktopRepository.resizeCell(id, spanW, spanH)
+            desktopDependencies.desktopRepository.resizeCell(id, spanW, spanH)
         }
     }
 
     /** S0426: repoints an existing cell - used when the weather gadget is given another place. */
     fun updateCellTarget(id: Long, target: String) {
         viewModelScope.launch {
-            desktopRepository.updateCellTarget(id, target)
+            desktopDependencies.desktopRepository.updateCellTarget(id, target)
         }
     }
 
     fun removeCell(id: Long) {
         viewModelScope.launch {
-            desktopRepository.removeCell(id)
+            desktopDependencies.desktopRepository.removeCell(id)
         }
     }
 
@@ -278,16 +284,16 @@ class LauncherHomeViewModel @Inject constructor(
      */
     fun addPin(command: LauncherCellCommand) {
         viewModelScope.launch {
-            val used = pinsRepository.observePins().first().map { it.first }.toSet()
+            val used = taskbarDependencies.pinsRepository.observePins().first().map { it.first }.toSet()
             var position = 0
             while (position in used) position++
-            pinsRepository.setPin(position, command)
+            taskbarDependencies.pinsRepository.setPin(position, command)
         }
     }
 
     fun removePin(position: Int) {
         viewModelScope.launch {
-            pinsRepository.removePin(position)
+            taskbarDependencies.pinsRepository.removePin(position)
         }
     }
 
@@ -309,11 +315,6 @@ class LauncherHomeViewModel @Inject constructor(
         if (_editMode.value || cellUi.cell.kind == LauncherCellKind.GADGET) return
         when (val command = LauncherCellCommand.decode(cellUi.cell.target)) {
             null -> emitCannotOpen()
-            // A scheduled op may modify or delete files, so confirm before running (S1103).
-            is LauncherCellCommand.ScheduledOp ->
-                viewModelScope.launch {
-                    _events.send(LauncherHomeEvent.ConfirmScheduledOp(command.operationId))
-                }
             else -> run(command)
         }
     }
@@ -336,8 +337,20 @@ class LauncherHomeViewModel @Inject constructor(
         }
     }
 
-    /** Shared by the desktop, the taskbar strips and the Start menu - one guard for all of them. */
+    /** Shared by the desktop, the taskbar strips, the Start menu and the gadgets - one guard for all. */
     fun run(command: LauncherCellCommand) {
+        // A scheduled op may copy, move or delete files, so it is confirmed before it runs (S1103).
+        // This belongs here rather than in onCellTapped: every surface reaches commands through this one
+        // entry point, and ExecuteLauncherCommandUseCase deliberately refuses ScheduledOp because it can
+        // only start activities. While the branch lived in the tap handler, the same operation pinned to
+        // the taskbar or opened from the Start menu fell through to a bare "cannot open".
+        if (command is LauncherCellCommand.ScheduledOp) {
+            Timber.d("S1170: scheduled op %d asks for confirmation", command.operationId)
+            viewModelScope.launch {
+                _events.send(LauncherHomeEvent.ConfirmScheduledOp(command.operationId))
+            }
+            return
+        }
         if (launchInFlight) return
         launchInFlight = true
         viewModelScope.launch {
@@ -370,7 +383,7 @@ class LauncherHomeViewModel @Inject constructor(
     /** Records the grid width the surface actually resolved, so seeding and edit mode agree with it. */
     fun persistColumns(orientation: LauncherOrientation, columns: Int) {
         viewModelScope.launch {
-            desktopRepository.updateColumns(orientation, columns)
+            desktopDependencies.desktopRepository.updateColumns(orientation, columns)
         }
     }
 
@@ -391,9 +404,27 @@ class LauncherHomeViewModel @Inject constructor(
             val heightColumns = LauncherGridGeometry.columns(heightDp, density)
             val portraitColumns = if (startedPortrait) widthColumns else heightColumns
             val landscapeColumns = if (startedPortrait) heightColumns else widthColumns
-            seedLauncherDesktop(portraitColumns, landscapeColumns)
+            desktopDependencies.seedLauncherDesktop(portraitColumns, landscapeColumns)
         }
     }
+
+    /** S0427 long-press popup: the quick actions [packageName] publishes, empty when it publishes none. */
+    suspend fun appShortcutsOf(packageName: String): List<AppShortcut> =
+        shortcutDependencies.queryAppShortcuts(packageName)
+
+    /** Launches [shortcut] with [bounds] as the animation origin; false when the platform refused. */
+    suspend fun launchAppShortcut(shortcut: AppShortcut, bounds: Rect): Boolean =
+        shortcutDependencies.startAppShortcut(shortcut, bounds)
+
+    /** S1176: the system picker to open for [action] - phone numbers for DIAL, contacts otherwise. */
+    fun contactPickIntent(action: LauncherContactAction): Intent =
+        shortcutDependencies.pickContactShortcut.pickIntent(action)
+
+    /** S1176: reads the [picked] contact into the snapshot to pin, or reports why it cannot be pinned. */
+    suspend fun resolveContactPick(
+        action: LauncherContactAction,
+        picked: Uri,
+    ): PickContactShortcutUseCase.Outcome = shortcutDependencies.pickContactShortcut(action, picked)
 
     private companion object {
         const val SUBSCRIPTION_TIMEOUT_MS = 5_000L

@@ -9,4 +9,4 @@ metadata:
 
 **Why:** the journal `file` field is format-guarded at insert time, not just at update time. The skill doc predates (or ignores) that guard.
 
-**How to apply:** before `insert.ps1`, run `scripts/spec_catalog/next-id.ps1` to get the next `Sxxxx`, build the real `PLAN/<Sxxxx>_<slug>.md` path, and pass THAT to `insert.ps1 -File`. next-id and insert agree on the same next id, so no mismatch. Confirms the returned id equals the next-id token. Related: [[spec_catalog-exit-code-contract]].
+**How to apply:** before `insert.ps1`, run `scripts/spec_catalog/next-id.ps1` to get the next `Sxxxx`, build the real `PLAN/<Sxxxx>_<slug>.md` path, and pass THAT to `insert.ps1 -File`. next-id and insert agree on the same next id, so no mismatch. Confirms the returned id equals the next-id token. Related: [[spec-catalog-exit-code-contract]].

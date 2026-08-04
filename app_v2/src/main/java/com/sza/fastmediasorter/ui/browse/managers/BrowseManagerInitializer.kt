@@ -9,12 +9,14 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.cache.VideoPlaybackFailureSessionCache
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
@@ -49,8 +51,8 @@ import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
-import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.browse.helpers.BrowseFileDragTouchCallback
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
@@ -146,6 +148,7 @@ class BrowseManagerInitializer(
     internal lateinit var blackScreenManager: BlackScreenOverlayManager
     // S0374: adaptive priority+overflow controller for the top command bar.
     lateinit var commandOverflowManager: BrowseCommandOverflowManager
+    private val pathMenuManager = BrowsePathMenuManager(activity)
     private lateinit var buttonCallbacks: BrowseButtonSetupHelper.ButtonCallbacks
 
     fun initialize() {
@@ -231,7 +234,7 @@ class BrowseManagerInitializer(
             passwordManager = passwordManager,
             smallControlsManager = BrowseSmallControlsManager(binding),
             onUpdateDisplayMode = { mode -> updateDisplayMode(mode) },
-            onUpdateBreadcrumb = { state -> updateBreadcrumb(state) },
+            onUpdateBreadcrumb = { state -> updatePathButton(state) },
             onBuildResourceInfo = { state -> BrowseUtilityManager(activity).buildResourceInfo(state) },
             onLaunchEditResource = { id -> launchEditResource(id) },
             onUpdateToggleViewAvailability = { disable -> updateToggleViewAvailability(disable) },
@@ -377,8 +380,20 @@ class BrowseManagerInitializer(
                 override fun onSortOperationSuccess(count: Int) {
                     reviewRequestManager.onSortOperationSuccess(activity, count)
                 }
+                override fun onBackgroundTransferProgress(label: String?) {
+                    binding.tvTransferIndicator.isVisible = label != null
+                    if (label != null) {
+                        binding.tvTransferIndicator.text = label
+                        // The label already states operation, percent and file, so the description
+                        // wraps it rather than replacing it - TalkBack reads only the description.
+                        binding.tvTransferIndicator.contentDescription =
+                            activity.getString(R.string.browse_transfer_indicator_action, label)
+                    }
+                    BrowseEdgeToEdgeHelper.applyBottomInsets(binding)
+                }
             }
         )
+        binding.tvTransferIndicator.setOnClickListener { fileOperationsManager.reattachTransferDialog() }
 
         folderPickerHandler = BrowseFolderPickerHandler(
             activity = activity,
@@ -507,6 +522,11 @@ class BrowseManagerInitializer(
             override fun onFilterClicked() =
                 dialogHelper.showFilterDialog(viewModel.state.value.filter, viewModel.state.value.resource?.supportedMediaTypes)
             override fun onRefreshClicked() {
+                // S1323: sole owner of the failure-cache reset. The refresh button and the
+                // pull-to-refresh gesture both land here, and only an explicit gesture means
+                // "re-check the files that failed" - an observer-driven reload does not.
+                Timber.d("S1323: refresh gesture - resetting video failure caches")
+                VideoPlaybackFailureSessionCache.clearAll()
                 NetworkFileDataFetcher.clearFailedVideoCache()
                 mediaFileAdapter.incrementRefreshVersion(); viewModel.reloadFiles()
             }
@@ -597,32 +617,39 @@ class BrowseManagerInitializer(
         }
         browseFileOverflowMenuManager.showFor(
             anchor = anchor,
-            file = file,
-            appSettings = effectiveSettings,
-            isWritable = currentState.resource?.isReadOnly == false,
-            hasDestinations = latestHasDestinations,
-            isGridMode = mediaFileAdapter.isInGridMode,
-            onCopy = { f -> showCopyDialog(setOf(f.path)) },
-            onMove = { f -> showMoveDialog(setOf(f.path)) },
-            onRename = { f -> showRenameDialog(setOf(f.path)) },
-            onDelete = { f -> showDeleteConfirmation(setOf(f.path)) },
-            onMoveUp = if (currentState.sortMode == SortMode.MANUAL) {
-                { f -> viewModel.moveFileUp(f) }
-            } else null,
-            onMoveDown = if (currentState.sortMode == SortMode.MANUAL) {
-                { f -> viewModel.moveFileDown(f) }
-            } else null,
-            onExtractArchive = { f -> viewModel.prepareExtraction(f) },
-            onFavorite = { f -> viewModel.toggleFavorite(f) },
-            onSendTo = { f ->
-                val resource = viewModel.state.value.resource
-                if (resource != null) fileOperationsManager.sendFilesToMenu(listOf(f), resource, effectiveSettings)
-            },
-            onInfo = { f -> showFileInfoDialog(f) },
-            onDrawOverlay = { f -> launchPlayerWithDrawOverlay(f) },
-            onSearchYoutubeMusic = { f -> searchYoutubeMusicForFile(f) },
-            onOpenInPlayer = { f -> viewModel.openFile(f) },
-            onOpenInNewWindow = { f -> eventHandler.openPlayerInNewWindow(f) }
+            menuContext = com.sza.fastmediasorter.ui.browse.helpers.BrowseFileMenuContext(
+                file = file,
+                siblings = currentState.mediaFiles,
+                appSettings = effectiveSettings,
+                isWritable = currentState.resource?.isReadOnly == false,
+                hasDestinations = latestHasDestinations,
+                isGridMode = mediaFileAdapter.isInGridMode,
+            ),
+            actions = com.sza.fastmediasorter.ui.browse.helpers.BrowseFileMenuActions(
+                onCopy = { f -> showCopyDialog(setOf(f.path)) },
+                onMove = { f -> showMoveDialog(setOf(f.path)) },
+                onRename = { f -> showRenameDialog(setOf(f.path)) },
+                onDelete = { f -> showDeleteConfirmation(setOf(f.path)) },
+                onMoveUp = if (currentState.sortMode == SortMode.MANUAL) {
+                    { f -> viewModel.moveFileUp(f) }
+                } else null,
+                onMoveDown = if (currentState.sortMode == SortMode.MANUAL) {
+                    { f -> viewModel.moveFileDown(f) }
+                } else null,
+                onExtractArchive = { f -> viewModel.prepareExtraction(f) },
+                onFavorite = { f -> viewModel.toggleFavorite(f) },
+                onSendTo = { f ->
+                    val resource = viewModel.state.value.resource
+                    if (resource != null) {
+                        fileOperationsManager.sendFilesToMenu(listOf(f), resource, effectiveSettings)
+                    }
+                },
+                onInfo = { f -> showFileInfoDialog(f) },
+                onDrawOverlay = { f -> launchPlayerWithDrawOverlay(f) },
+                onSearchYoutubeMusic = { f -> searchYoutubeMusicForFile(f) },
+                onOpenInPlayer = { f -> viewModel.openFile(f) },
+                onOpenInNewWindow = { f -> eventHandler.openPlayerInNewWindow(f) },
+            ),
         )
     }
 
@@ -947,15 +974,19 @@ class BrowseManagerInitializer(
         }
     }
 
-    private fun updateBreadcrumb(state: com.sza.fastmediasorter.ui.browse.BrowseState) {
+    private fun updatePathButton(state: com.sza.fastmediasorter.ui.browse.BrowseState) {
         val sub = state.isSubfolderMode && state.currentPath != null
-        binding.breadcrumbView.visibility = if (sub) android.view.View.VISIBLE else android.view.View.GONE
-        binding.spaceAfterBack?.visibility = if (sub) android.view.View.GONE else android.view.View.VISIBLE
+        binding.btnPath.visibility = if (sub) android.view.View.VISIBLE else android.view.View.GONE
         if (sub) {
-            val (resourceName, folders) = viewModel.getBreadcrumbParts()
-            binding.breadcrumbView.setPath(resourceName, folders)
-            binding.breadcrumbView.setOnSegmentClickListener { depth -> viewModel.navigateToDepth(depth) }
-        } else binding.breadcrumbView.clear()
+            // The listener re-reads the path on tap instead of closing over `state`: emissions that
+            // only toggle visibility must not leave the menu showing a path the user has left.
+            binding.btnPath.setOnClickListener {
+                val (resourceName, folders) = viewModel.getBreadcrumbParts()
+                pathMenuManager.showPathMenu(binding.btnPath, resourceName, folders) { depth ->
+                    viewModel.navigateToDepth(depth)
+                }
+            }
+        }
     }
 
     private fun launchEditResource(resourceId: Long) {

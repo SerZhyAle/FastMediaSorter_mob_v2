@@ -110,6 +110,13 @@ pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -DependsOn ResourceDao
 # Search across class, path, role, dependencies, or functions
 pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Search "Welcome"
 
+# Named product sectors (S1344): list them, then map one across ui/domain/data
+pwsh -File dev/CATALOG/scripts/query.ps1 -Sectors
+pwsh -File dev/CATALOG/scripts/query.ps1 -Sector player
+
+# A sector composes with every other filter rather than replacing them
+pwsh -File dev/CATALOG/scripts/query.ps1 -Sector player -Layer ui
+
 # Recently touched data-layer code
 pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Layer data -TouchedSince 2026-04-01
 
@@ -164,6 +171,13 @@ For a single record, `set.ps1 -Role` remains the direct path.
 ownership, DI wiring, side effects, size, or feature boundaries. It is faster
 than grepping the whole repo and already carries semantic context (role,
 status, side effects, DI graph).
+
+**"First" is enforced, not advised (S1344):** a `PreToolUse` hook refuses an
+unnarrowed Kotlin search - a `Grep`/`Glob` targeting `.kt` with no `path` and no
+directory-naming `glob` - until `query.ps1` has run once in the session. A search
+that already names a subtree passes untouched, and nothing outside `.kt` is in
+scope. Definitions of the named sectors live in `sectors.json`; the hook is
+`.claude/hooks/guard-catalog-before-kt-search.ps1`.
 
 **Exact-match lookup:** for a known class/file/token name, read
 `app_v2.jsonl` or `wear.jsonl` directly, or use `rg` if the target is not a

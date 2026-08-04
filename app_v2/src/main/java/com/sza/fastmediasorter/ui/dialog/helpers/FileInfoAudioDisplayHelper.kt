@@ -132,6 +132,8 @@ class FileInfoAudioDisplayHelper(
                 Glide.with(context)
                     .load(coverFile)
                     .centerCrop()
+                    // S1317: cover art extension comes from embedded tag data and can be animated WebP.
+                    .dontAnimate()
                     .into(binding.ivAudioCoverArt)
                 binding.ivAudioCoverArt.isVisible = true
             } else {

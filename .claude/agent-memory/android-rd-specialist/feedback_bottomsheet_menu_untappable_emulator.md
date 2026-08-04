@@ -1,5 +1,5 @@
 ---
-name: bottom-sheet menu items untappable on emulator
+name: bottomsheet-menu-untappable-emulator
 description: ResourceOperationsMenu / bottom-sheet items don't register taps via mobile-mcp or adb on the AVD during /spec-test-device
 type: feedback
 ---

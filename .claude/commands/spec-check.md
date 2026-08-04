@@ -1,6 +1,5 @@
 ---
 description: "Use to audit a spec against the codebase and set status Verified/Partial/Broken, writing to the Last Audit section. Triggers: 'spec-check Sxxxx', 'is this spec actually implemented'."
-model: sonnet
 ---
 
 # Specification Implementation Audit
@@ -64,7 +63,7 @@ Verification mechanics:
 | Room version | Read `AppDatabase.kt`, match `@Database(version = N` |
 | Dev log entry | `Grep` for file path in `dev/CHANGELOG.md` |
 | Catalog up-to-date | `Grep` for class name in `dev/CATALOG/<module>.jsonl` |
-| Dead-weight introduced (CLAUDE.md Rule 21) | `Grep` for remnants the change should have removed: orphaned/superseded classes, `-keep` rules naming a deleted class, a dependency added to a flavor that never references it, assets/resources no longer referenced. WARN per remnant that would still ship in target variant. Cross-check `PLAN/` before treating a zero-ref artifact as dead - may be active-ticket scaffolding |
+| Dead-weight introduced - per CLAUDE.md Rule 20 (dead-weight hygiene), obey it as written | `Grep` for remnants the change should have removed: orphaned/superseded classes, `-keep` rules naming a deleted class, a dependency added to a flavor that never references it, assets/resources no longer referenced. WARN per remnant that would still ship in target variant. Cross-check `PLAN/` before treating a zero-ref artifact as dead - may be active-ticket scaffolding |
 | FEATURES trilingual | Read strategic §8 first. §8 text is "Без изменений" (or equivalent "no change") → EXEMPT. Otherwise `Grep` for keyword in all three FEATURES docs - PASS only if all three hit |
 | File size vs budget | `Read` file, count lines, compare to step budget |
 | Flavor gating | `Grep` for `BuildConfig.<FLAG>` if §3.2 names a flag |
@@ -163,7 +162,7 @@ Block replaces previous `## Last Audit` block in full. Rest of strategic spec (�
 - Strategic audit qualitative (keyword overlap for goal coverage). Tactical audit strict (static predicates).
 - Grep miss is FAIL. Hit-count mismatch (expected 1, found 3) is WARN with all hits listed.
 - Never run `./gradlew` or build commands - static analysis only.
-- Read-only zones ignored: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
+- Read-only zones ignored. Per CLAUDE.md Rule 4 (read-only zones) - obey it as written.
 - `--quick` skips grep-heavy invariants (forbidden-call checks, trilingual greps) - annotates block.
 - Never approve `Verified` if any tactical phase Broken.
 - Grep hits on declaration lines only - not comments or string literals.
@@ -179,4 +178,4 @@ Block replaces previous `## Last Audit` block in full. Rest of strategic spec (�
   - Verdict `Broken`   → `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id <Sxxxx> -Status Broken`.
 - **Debug tags.** Every verdict that flips journal status away from `BlockNeedUserTest` (Verified / Partial / Broken - and trivially also from `Implemented`, where there are none) requires grep-and-delete of `Timber.d("<Sxxxx>:` lines from `.kt` (Process step 6). Holds in `--quick` mode too.
 - **Read-only mode (`--quick`):** still emits status transition and debug-tag removal above; difference is in scope of audit checks, not journal effect.
-- **Forbidden:** never write `PLAN/spec-catalog.jsonl` directly; never demote a `Verified` ticket back to `Implemented` - only `/spec-fix` followed by `/spec-check` can change verdict. Never create audit files in `PLAN/`.
+- **Forbidden:** per CLAUDE.md Rule 12 (spec catalog is script-owned) - obey it as written. Additionally, never demote a `Verified` ticket back to `Implemented` - only `/spec-fix` followed by `/spec-check` can change verdict. Never create audit files in `PLAN/`.

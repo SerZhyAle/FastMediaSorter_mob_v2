@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.cloud
 
 import android.content.Context
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -148,6 +149,7 @@ class CloudAuthStateMachine @Inject constructor(
             }
             result
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             val msg = e.message ?: "Unknown error"
             stateFlow.value = AuthState.AuthFailed(msg)
             Timber.e(e, "[AuthSM/$provider] → AuthFailed (exception)")

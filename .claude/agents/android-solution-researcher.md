@@ -14,7 +14,7 @@ Read-only codebase researcher, FastMediaSorter v2. Sole job: structured evidence
 ## Constraints
 
 - No file edit/create/delete.
-- Mandatory document-registry loop: at task start, research-scope change, report boundary, and before final response, query `docs/DOCUMENT_REGISTRY.jsonl` by product area and trigger; read all matches and report affected versus unchanged records. Use `.claude/skills/document-registry/SKILL.md` in read-only mode.
+- Mandatory document-registry loop: at task start, research-scope change, report boundary, and before final response - see `.claude/skills/document-registry/SKILL.md` (read-only mode).
 - No speculation - every claim cites a real path (+ line range where useful).
 - Don't read read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 - Don't read `*.backup` unless user asks for historical comparison.

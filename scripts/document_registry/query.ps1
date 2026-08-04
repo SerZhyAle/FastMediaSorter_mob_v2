@@ -3,17 +3,32 @@
     Query the document registry by text, product area, trigger, or publication state.
 
 .DESCRIPTION
-    Exit codes: 0 = matches printed, 1 = no matches, 2 = invalid invocation.
+    "No records matched" is a normal answer to a query, not a failure, so it exits 0 like any
+    other successful lookup. Non-zero is reserved for the query not being answerable at all.
+
+    Exit codes: 0 = query answered (matches printed, or the no-match message),
+                2 = invalid invocation / registry unreadable.
+    A rejected parameter value (ValidateSet) is refused by the PowerShell host before the body
+    runs and surfaces as the host's own exit 1 - that path is outside this script's contract.
 #>
 [CmdletBinding()]
 param(
-    [string] $Text,
+    # -Query is the canonical free-text parameter shared by the catalog and registry
+    # query CLIs; -Text was this script's former spelling and stays as an alias.
+    [Alias('Text','Search','Name')]
+    [string] $Query,
     [string] $ProductArea,
     [string] $Trigger,
     [ValidateSet('any', 'public', 'internal')]
     [string] $Publication = 'any',
-    [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
+    [switch] $Help
 )
+
+if ($Help) {
+    & (Join-Path $PSScriptRoot '..\utils\help.ps1') -Name 'scripts/document_registry/query.ps1'
+    exit $LASTEXITCODE
+}
 
 $ErrorActionPreference = 'Stop'
 
@@ -28,7 +43,7 @@ try {
         $record = $_
         $haystack = (($record.id, $record.title, $record.category, $record.audience,
                 $record.product_areas, $record.update_triggers, $record.paths) -join ' ').ToLowerInvariant()
-        $textMatch = -not $Text -or $haystack.Contains($Text.ToLowerInvariant())
+        $textMatch = -not $Query -or $haystack.Contains($Query.ToLowerInvariant())
         $areaMatch = -not $ProductArea -or $record.product_areas -contains $ProductArea
         $triggerMatch = -not $Trigger -or $record.update_triggers -contains $Trigger
         $publicationMatch = $Publication -eq 'any' -or
@@ -38,7 +53,7 @@ try {
     })
     if ($matches.Count -eq 0) {
         Write-Host 'No document registry records matched.' -ForegroundColor Yellow
-        exit 1
+        exit 0
     }
     $matches | Sort-Object id | ForEach-Object {
         $areas = $_.product_areas -join ','

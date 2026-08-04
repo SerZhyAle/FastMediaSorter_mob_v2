@@ -9,9 +9,7 @@ import android.util.Size
 import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
-import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
-import androidx.camera.lifecycle.ProcessCameraProvider
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraLensEntry
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import timber.log.Timber
@@ -26,65 +24,15 @@ import timber.log.Timber
 class CameraCapabilityProbe {
 
     /**
-     * Every camera CameraX exposes to the app, ordered back lenses first (S0753). Lets the lens switch
-     * cycle each physical back lens (ultra-wide / main / tele) plus the front, so their 0.5x and
-     * long-zoom ranges become reachable instead of being hidden behind one logical back camera.
-     */
-    fun availableCameras(provider: ProcessCameraProvider): List<CameraInfo> =
-        runCatching {
-            provider.availableCameraInfos.sortedBy { it.lensFacing != CameraSelector.LENS_FACING_BACK }
-        }.getOrElse {
-            Timber.w(it, "CameraCapabilityProbe: camera enumeration failed")
-            emptyList()
-        }
-
-    /** First reported focal length of a lens, in mm; 0 when unavailable. */
-    fun focalLengthOf(info: CameraInfo): Float =
-        runCatching {
-            Camera2CameraInfo.from(info)
-                .getCameraCharacteristic(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)
-                ?.firstOrNull() ?: 0f
-        }.getOrElse {
-            Timber.w(it, "CameraCapabilityProbe: focal length probe failed")
-            0f
-        }
-
-    /**
-     * Focal length of the device's main back lens, used as the 1x reference for equivalent zoom. The
-     * main lens is the back camera that has a flash (ultra-wide / depth lenses usually do not); falls
-     * back to the first back camera, else 0 (multipliers then default to 1).
-     */
-    fun mainBackFocalLength(cameras: List<CameraInfo>): Float {
-        val back = cameras.filter { it.lensFacing == CameraSelector.LENS_FACING_BACK }
-        val main = back.firstOrNull { it.hasFlashUnit() } ?: back.firstOrNull() ?: return 0f
-        return focalLengthOf(main)
-    }
-
-    /**
-     * Same 1x reference, resolved over the expanded lens set (S1189). Distinct JVM name because both
-     * overloads erase to the same signature.
-     */
-    @JvmName("mainBackFocalLengthOfLenses")
-    fun mainBackFocalLength(lenses: List<CameraLensEntry>): Float {
-        val back = lenses.filter { it.lensFacing == CameraSelector.LENS_FACING_BACK }
-        val main = back.firstOrNull { runCatching { it.cameraInfo.hasFlashUnit() }.getOrDefault(false) }
-            ?: back.firstOrNull()
-            ?: return 0f
-        return if (main.focalLengthMm > 0f) main.focalLengthMm else focalLengthOf(main.cameraInfo)
-    }
-
-    /**
      * S1189: the widest equivalent zoom the device can actually reach, taken over every offered back
-     * lens rather than the bound one. A lens whose own floor is 1x still contributes 0.6x when its
-     * focal length is 0.6 of the reference, which is precisely the case the bound-lens-only reading
-     * used to miss. Front lenses keep their native scale and are excluded.
+     * lens rather than the bound one. S1261: reachable floors are `minZoomRatio * equivalentMultiplier`
+     * - the per-entry multiplier the enumeration computed (parent-floor / FOV aware), not a raw focal
+     * ratio. Front lenses keep their native scale and are excluded.
      */
-    fun minEquivalentZoom(lenses: List<CameraLensEntry>, referenceFocal: Float): Float {
-        if (referenceFocal <= 0f) return CameraRuntimeCapabilities.DEFAULT_ZOOM
-        val back = lenses.filter { it.lensFacing == CameraSelector.LENS_FACING_BACK }
-        val reachable = back.mapNotNull { lens ->
-            if (lens.focalLengthMm <= 0f) null else lens.minZoomRatio * (lens.focalLengthMm / referenceFocal)
-        }
+    fun minEquivalentZoom(lenses: List<CameraLensEntry>): Float {
+        val reachable = lenses
+            .filter { it.lensFacing == CameraSelector.LENS_FACING_BACK }
+            .map { it.minZoomRatio * it.equivalentMultiplier }
         return reachable.minOrNull() ?: CameraRuntimeCapabilities.DEFAULT_ZOOM
     }
 
@@ -100,10 +48,10 @@ class CameraCapabilityProbe {
 
     fun probe(
         camera: Camera,
-        activeLensFacing: Int,
+        activeLens: CameraLensEntry,
         availableLensFacings: List<Int>,
-        referenceFocal: Float,
     ): CameraRuntimeCapabilities {
+        val activeLensFacing = activeLens.lensFacing
         val info = camera.cameraInfo
         val zoom = info.zoomState.value
         val minZoom = zoom?.minZoomRatio ?: CameraRuntimeCapabilities.DEFAULT_ZOOM
@@ -116,16 +64,9 @@ class CameraCapabilityProbe {
         val exposureState = info.exposureState
         val exposureSupported = exposureState.isExposureCompensationSupported
         val maxExposureIndex = if (exposureSupported) exposureState.exposureCompensationRange.upper else 0
-        // S0753: equivalent-zoom factor so an ultra-wide reads ~0.5x and the main reads 1x; front
-        // lenses keep their own native scale (no meaningful comparison to the back reference).
-        val thisFocal = focalLengthOf(info)
-        val multiplier = if (
-            activeLensFacing == CameraSelector.LENS_FACING_BACK && referenceFocal > 0f && thisFocal > 0f
-        ) {
-            thisFocal / referenceFocal
-        } else {
-            1f
-        }
+        // S1261: the equivalent-zoom factor now travels on the lens entry (parent-floor / FOV aware)
+        // instead of being re-derived from raw focal lengths here; front lenses carry 1 already.
+        val multiplier = activeLens.equivalentMultiplier
         // S0753: macro heuristic - a lens that can focus very close (high diopters) gets a macro toggle.
         val minFocusDistance = runCatching {
             Camera2CameraInfo.from(info)

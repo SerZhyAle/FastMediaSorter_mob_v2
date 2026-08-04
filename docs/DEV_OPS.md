@@ -67,6 +67,7 @@
 | `.\a.ps1 fr`   | Fast resources/manifest check |
 | `.\a.ps1 fc`   | Fast code + resources check |
 | `.\a.ps1 fu`   | Fast full unit-test suite |
+| `.\a.ps1 flr`  | Fast lint-rules detector test suite (`:lint-rules:test`); `-Tests <filter>` narrows it |
 | `.\a.ps1 dc`   | Clean + debug build |
 | `.\a.ps1 cls`  | Clean Gradle caches |
 | `.\a.ps1 ss`   | Show unresolved specs (`sca-specs`) |
@@ -87,12 +88,18 @@ takes `-DeviceId` / `-Release` / `-Package` / `-Json`, and uses stable exit code
 .\a.ps1 adb stop                              # force-stop
 .\a.ps1 adb clear                             # pm clear (reset app data)
 .\a.ps1 adb shot                              # screenshot -> temp/
-.\a.ps1 adb log -Tail 400 -Grep "S0035|Net"  # logcat -d app tail, filtered; full dump -> temp/
+.\a.ps1 adb log -Tail 400 -Grep "S0035|Net"  # app's own process lines + lines naming the package
 .\a.ps1 adb current                           # focused activity / package
 .\a.ps1 adb install -Flavor standard          # install -r -d newest debug APK (or -Apk <path>)
 .\a.ps1 adb tap -X 540 -Y 1000                # input tap / text -Text / key -Key
 .\a.ps1 adb shell -Cmd "getprop ro.product.cpu.abi"
 ```
+
+`log` picks lines by process id, so the app's own Timber output survives even though Timber tags
+a line with the class name and never with the package (S1332); the package-text arm remains, and is
+what keeps the system-side lines about the app. A `WARN` verdict instead of `OK` means the filter
+suppressed lines your pattern did match - the full capture under `temp/scratch/` still holds them and
+is the fallback. A plain `OK 0 line(s)` therefore now means what it says.
 
 Run `.\a.ps1 adb` (no verb) for the full verb list. Direct form:
 `pwsh -NoProfile -File scripts/devtest/adb.ps1 <verb> [options]`. This is the manual-work
@@ -161,6 +168,35 @@ pwsh -File scripts/utils/recover-kapt-stall.ps1
 
 `recover-kapt-stall.ps1` is the targeted scalpel: it stops daemons, removes `app_v2/build/tmp/kapt3`, `app_v2/build/generated/source/kapt*`, `app_v2/build/kotlin`, `app_v2/build/tmp/kotlin-classes`, and `.gradle/<ver>/executionHistory`. `clean-gradle-caches.ps1` nukes everything (`.gradle/`, `build/`, `app_v2/build/`) and is the cold-start option.
 
+### KSP incremental is off on purpose - S1375
+
+Symptom, if the setting is ever removed: `:app_v2:kspStandardDebugKotlin` fails and `compileStandardDebugKotlin` never runs, so nothing in `app_v2` compiles.
+
+```text
+e: [ksp] java.lang.IllegalArgumentException: this and base files have different roots:
+   C:\Users\<user>\.gradle\caches\<ver>\transforms\..\okhttp3-integration-4.16.0-api.jar!\..\GlideIndexer_..class
+   and P:\ANDROID\FastMediaSorter_mob_v2\app_v2
+```
+
+Cause: KSP2's incremental bookkeeping relativizes every classpath entry against the module directory. On a Windows host whose Gradle cache and project sit on different drives, `Path.relativize` throws on the cross-root pair. Nothing about the touched source matters - the failure lands while walking a dependency jar.
+
+`gradle.properties` therefore carries `ksp.incremental=false`. Do not remove it to "speed builds up":
+
+- KSP1 is not a fallback. `ksp.useKSP2=false` fails at configuration time with `KSP1 is no longer available` - the plugin ships KSP2 only.
+- The cost is small and measured: a no-change run stays `UP-TO-DATE` at ~2 s, a one-file edit costs ~24 s. Only the first build after flipping the property pays a full pass (~2 min).
+- The line is inert wherever the cache and project share a root (Linux CI, or a same-drive Windows layout).
+
+A same-root layout (`GRADLE_USER_HOME` on the project's drive) also avoids the crash, but that is a machine-specific absolute path - the same reason `org.gradle.java.home` is not committed, see the header of `gradle.properties`.
+
+### Concurrent-agent locks (BUILD.LOCK / CODE.LOCK) - S1338
+
+Two independent locks under `temp/`, both driven through `scripts/utils/agent-lock.ps1`, so two agent sessions in the same working tree do not race each other:
+
+- **`temp/BUILD.LOCK`** - acquired by `Enter-BuildLockOrExit` before any direct `gradlew`/`gradlew.bat` invocation, released by `Exit-AgentLock` after (success or failure). A second gradle-backed invocation while the lock is held refuses outright, reporting the holder's PID, age, and reason instead of racing the daemon.
+- **`temp/CODE.LOCK`** - acquired via `scripts/utils/enter-code-lock.ps1 -Reason "<ticket/skill>"` before a multi-file source edit (Kotlin/XML/build-file). Auto-releases from `post-change.ps1`'s closure; a skill that skips the facade (`/skill-fix`) must call `scripts/utils/exit-code-lock.ps1` itself when the edit is done.
+
+Staleness for both locks is judged by PID liveness, never by a guessed timeout while the holder process is still alive - a generous safety-net ceiling exists only for the edge case where the holder process itself is gone without releasing. `CODE.LOCK` is advisory only (Tier 2, no hook enforcement - the agent owns the decision, same model as `dirty-tree-guard.ps1`): a build script that finds it fresh warns but does not refuse, so it cannot deadlock a session that legitimately needs to build while a lock is held for an unrelated edit.
+
 ### Shared-state mutation audit (S0703)
 
 On-demand quality tool, not a build gate. Finds places where one shared object is mutated from several layers (the "last-write-wins" / redundant / unsafe class).
@@ -192,6 +228,23 @@ Ratchet model: each module has a committed baseline freezing every pre-existing 
 - Config: `config/detekt/detekt.yml` (relies on `buildUponDefaultConfig` - only enables formatting + a few thresholds).
 - Baselines: `config/detekt/baseline-app_v2.xml`, `config/detekt/baseline-wear.xml`.
 - Plugin: applied per-subproject in the root `build.gradle.kts` (`subprojects { }`), detekt `1.23.8` + `detekt-formatting`.
+
+**Detekt-clean-first authoring tips (S0826).** Write touched `.kt` to pass this gate on the first build, not the second:
+- Keep log/probe lines `<=120` chars (wrap args or shorten) - detekt's line-length rule fires on long `Timber.d(...)` calls as readily as on any other statement.
+- Avoid bare numeric literals - reuse `TimeUnit`, a companion `const`, or an existing const; `ignoreNumbers` in the ruleset config only covers -1/0/1/2.
+- Never add `@Suppress` to a method that already has a baselined finding - it shifts that finding's baseline signature and can surface a second, unrelated one (e.g. `FunctionNaming`) as a false "new" hit.
+
+**Baseline-drift diagnostic (S1334).** A baseline entry is keyed to the full, whitespace-collapsed text of the code element it froze - if that element's shape changes (a parameter added, an import reordered), the entry silently stops matching. The finding it used to suppress does not disappear: it lies dormant until an unrelated change to the same file trips the diff-scoped gate, which then blames that unrelated ticket. `scripts/quality/audit-detekt-baseline-drift.ps1` surfaces this class of staleness on demand:
+
+```powershell
+# Classify every stale entry in the app_v2 baseline against the current detekt report
+pwsh -NoProfile -File scripts/quality/audit-detekt-baseline-drift.ps1
+
+# Same, for the wear module
+pwsh -NoProfile -File scripts/quality/audit-detekt-baseline-drift.ps1 -BaselineFile config/detekt/baseline-wear.xml -ReportFile wear/build/reports/detekt/detekt.xml
+```
+
+Each stale entry prints as `DRIFTED` (the same rule is still live elsewhere in the same file, under a shape this entry no longer covers - a debt that quietly thawed) or `DEAD (prune candidate)` / `DEAD (file removed)` (nothing under that rule is live in the file at all - most likely already fixed, safe to prune after a glance). Diagnostic-only: it never fails a build and never mutates the baseline file - the classification is advisory input for a human decision, not an automated cleanup.
 
 ### Listener symmetry ratchet gate - S0721
 
@@ -271,16 +324,20 @@ Use the string updater scripts for targeted `<string>` edits. Manual XML editing
 
 ## FEATURE FLAGS (BuildConfig)
 
+[`docs/FLAVOR_MATRIX.md`](FLAVOR_MATRIX.md) is the canonical, generated answer to "which capability is available in which flavor" - rendered from the `productFlavors` block by `scripts/docs/generate-flavor-matrix.ps1`, together with the machine-readable `docs/flavors/flavor-matrix.json`. The two tables below are a working summary of it and are checked against it cell by cell by `scripts/quality/assert-flavor-matrix-docs.ps1` (in `.\a.ps1 fg` and in `post-change.ps1`), so an inverted marker fails instead of drifting. Change `app_v2/build.gradle.kts`, then regenerate; never fix a disagreement by editing the generated table.
+
 ### Core feature matrix
 
-| Flavor           | VIDEO | AUDIO | IMAGES | CLOUD | DOCS | ANIM | VR  |
-|:-----------------|:-----:|:-----:|:------:|:-----:|:----:|:----:|:---:|
-| **standard**     | [+]   | [+]   | [+]    | [+]   | [+]  | [+]  | [-] |
-| **lite**         | [+]   | [+]   | [+]    | [-]   | [-]  | [-]  | [-] |
-| **photos**       | [-]   | [-]   | [+]    | [+]   | [-]  | [+]  | [-] |
-| **legacy**       | [+]   | [+]   | [+]    | [+]   | [+]  | [+]  | [-] |
-| **vr**           | [+]   | [+]   | [+]    | [+]   | [+]  | [+]  | [+] |
-| **noLegal**      | [+]   | [+]   | [+]    | [+]   | [+]  | [+]  | [+] |
+| Flavor           | VIDEO | AUDIO | IMAGES | CLOUD | NETWORK | DOCS | ANIM | STREAMS | VR  |
+|:-----------------|:-----:|:-----:|:------:|:-----:|:-------:|:----:|:----:|:-------:|:---:|
+| **standard**     | [+]   | [+]   | [+]    | [+]   | [+]     | [+]  | [+]  | [+]     | [-] |
+| **lite**         | [+]   | [+]   | [+]    | [-]   | [-]     | [-]  | [-]  | [-]     | [-] |
+| **photos**       | [-]   | [-]   | [+]    | [+]   | [+]     | [-]  | [+]  | [-]     | [-] |
+| **legacy**       | [+]   | [+]   | [+]    | [+]   | [+]     | [+]  | [+]  | [+]     | [-] |
+| **vr**           | [+]   | [+]   | [+]    | [+]   | [+]     | [+]  | [+]  | [+]     | [-] |
+| **noLegal**      | [+]   | [+]   | [+]    | [+]   | [+]     | [+]  | [+]  | [+]     | [+] |
+
+`NETWORK` = `SUPPORT_LOCAL_NETWORK` (SMB/SFTP/FTP), `STREAMS` = `SUPPORT_STREAMS`, `VR` = `SUPPORT_VR_PLAYER`. Those two network/streams columns are the pair that defines `lite` and were missing here until S1392; `lite` is the only flavor with neither.
 
 ### Extended per-flavor flags
 
@@ -293,11 +350,15 @@ Use the string updater scripts for targeted `<string>` edits. Manual XML editing
 | `SUPPORTS_DEFAULT_PLAYER`          | [+] | [-] | [+] | [+] | [+] | [+] |
 | `SUPPORT_WEAR_COMPANION`           | [+] | [-] | [-] | [+] | [-] | [+] |
 | `SUPPORT_CAST`                     | [+] | [+] | [+] | [+] | [-] | [+] |
-| `SUPPORT_VR_PLAYER`                | -   | -   | -   | -   | [+] | [+] |
-| `VR_UI_COMPOSITION_LAYER_ENABLED`  | -   | -   | -   | -   | [+] | [+] |
-| `IS_NO_LEGAL_FLAVOR`               | -   | -   | -   | -   | -   | [+] |
+| `SUPPORT_VR_PLAYER`                | [-] | [-] | [-] | [-] | [-] | [+] |
+| `VR_UI_COMPOSITION_LAYER_ENABLED`  | n/a | n/a | n/a | n/a | [-] | [+] |
+| `IS_NO_LEGAL_FLAVOR`               | [-] | [-] | [-] | [-] | [-] | [+] |
 
-`noL` = `noLegal`. Cast is disabled in `vr` (Horizon OS lacks the Google Play Services Cast module); `noLegal` keeps it because it also targets phones/tablets. `SUPPORT_WEAR_COMPANION = true` in `noLegal` is harmless on Quest (no paired watch exists) and meaningful on phones/tablets - runtime decides. VR feature surface in `noLegal` is gated at runtime by `XrDetectionFacade` - VR controls show disabled on devices without an OpenXR runtime. S0250 (2026-05-19) archived the former `vrUnlicensed` flavor; `noLegal` now covers both phone-sideload and Quest-sideload through one APK.
+`noL` = `noLegal`. `n/a` means the field is not declared for that flavor at all, so it is absent from its `BuildConfig` and only a flavor-specific source set can reference it - distinct from `[-]`, which is a declared `false`.
+
+`SUPPORT_VR_PLAYER` is true in `noLegal` only. The `vr` flavor declares it `false`: it ships the `src/vr` source set and its OpenXR runtime hooks, but immersive rendering is not wired to the player there yet (epic S0773), so `vr` is the Store-clean shell and `noLegal` is the sideload build where immersive playback works today. Reading the flavor name as the capability is what made this row read as enabled for `vr` until S1392.
+
+Cast is disabled in `vr` (Horizon OS lacks the Google Play Services Cast module); `noLegal` keeps it because it also targets phones/tablets. `SUPPORT_WEAR_COMPANION = true` in `noLegal` is harmless on Quest (no paired watch exists) and meaningful on phones/tablets - runtime decides. VR feature surface in `noLegal` is gated at runtime by `XrDetectionFacade` - VR controls show disabled on devices without an OpenXR runtime. S0250 (2026-05-19) archived the former `vrUnlicensed` flavor; `noLegal` now covers both phone-sideload and Quest-sideload through one APK.
 
 ### Build-type flags (all flavors)
 

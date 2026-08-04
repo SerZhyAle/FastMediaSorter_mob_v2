@@ -11,9 +11,12 @@
 -keep class com.sza.fastmediasorter.data.model.TrashMetadata { *; }
 -keep class com.sza.fastmediasorter.domain.game.** { *; }
 
-# The startup settings dump reflects every AppSettings field for support diagnostics. Retain fields
-# and their names while allowing R8 to optimize them; the class and its methods remain shrinkable.
--keepclassmembers,allowoptimization class com.sza.fastmediasorter.domain.model.AppSettings {
+# The startup settings dump reflects every AppSettings field for support diagnostics. Keep the
+# reflective fields, then retain only their names; the class name remains obfuscatable.
+-keep,allowoptimization,allowobfuscation class com.sza.fastmediasorter.domain.model.AppSettings {
+    <fields>;
+}
+-keepclassmembernames class com.sza.fastmediasorter.domain.model.AppSettings {
     <fields>;
 }
 
@@ -239,10 +242,10 @@
     public *;
 }
 
-# Keep Glide generated API
--keep class com.sza.fastmediasorter.GlideApp { *; }
--keep class com.sza.fastmediasorter.GlideRequest { *; }
--keep class com.sza.fastmediasorter.GlideRequests { *; }
+# Glide's generated facade (GlideApp / GlideRequest / GlideRequests) no longer exists: the KSP
+# processor generates only GeneratedAppGlideModuleImpl, and nothing in this app referenced the
+# facade anyway. The rules that named it were also pointing at the wrong package - kapt had emitted
+# it under .di - so they matched nothing even before the migration (S1338 phase 10).
 
 # ===== ML Kit (Translation & OCR) =====
 -dontwarn com.google.mlkit.**

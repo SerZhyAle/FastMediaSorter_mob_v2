@@ -34,6 +34,7 @@ class MicRecordingSaver @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val destinationClassifier: LocalDestinationClassifier,
     private val destinationWriter: LocalDestinationWriter,
+    private val localCaptureDestinationWriter: LocalCaptureDestinationWriter,
     private val networkStateMonitor: NetworkStateMonitor,
     private val statsSink: StatsSink,
 ) {
@@ -61,6 +62,7 @@ class MicRecordingSaver @Inject constructor(
         browsedResource: MediaResource?,
         upload: suspend (tempFile: File, name: String, resource: MediaResource) -> Boolean,
     ): Result {
+        Timber.d("S1354: microphone capture local destination save")
         val targetResource = resolveMicSaveResource(browsedResource)
         var success = false
         var savedPath: String? = null
@@ -74,9 +76,9 @@ class MicRecordingSaver @Inject constructor(
                     if (success) savedPath = path
                 }
                 targetResource.type == ResourceType.LOCAL -> {
-                    val path = File(targetResource.path, name).absolutePath
-                    success = writeToDevice(tempFile, path)
-                    if (success) savedPath = path
+                    val saved = localCaptureDestinationWriter.write(tempFile, targetResource.path, name)
+                    success = saved.isSuccess
+                    if (success) savedPath = saved.getOrThrow()
                 }
                 else -> {
                     if (networkStateMonitor.canReach(targetResource.type)) {

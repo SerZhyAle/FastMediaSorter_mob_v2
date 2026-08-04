@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-The "2nd/3rd immersive entry hangs" bug on Quest 3 was a ~2-month recurring battle (owner, resolved 2026-06-22 by [[S0607]]). Lineage of the immersive VR engine: S0249 (engine) -> S0290/S0291 (HUD/zoom/input rounds) -> S0382 -> **S0607** (re-entry fix). Treat `app_v2/src/vr/cpp/xr_session.cpp` + `DiagnosticXrActivity` as a flaky hotspot - changes here need on-device re-entry testing, not just a build.
+The "2nd/3rd immersive entry hangs" bug on Quest 3 was a ~2-month recurring battle (owner, resolved 2026-06-22 by S0607). Lineage of the immersive VR engine: S0249 (engine) -> S0290/S0291 (HUD/zoom/input rounds) -> S0382 -> **S0607** (re-entry fix). Treat `app_v2/src/vr/cpp/xr_session.cpp` + `DiagnosticXrActivity` as a flaky hotspot - changes here need on-device re-entry testing, not just a build.
 
 **Recognition (how the bug looks):** first immerse works; 2nd/3rd shows "вечный полёт" (immersive void, no image rendered, trigger/both-triggers still exit via Android key). Native session is stuck in `XR_SESSION_STATE_IDLE` (state -> 1, never -> 2). Log signature: `OpenXR_SessionImpl: xrCreateSession: Activity is not yet in the ready state` + `E VrRuntimeClient: Failed to get window type` + `NullPointerException ... VolumetricWindowInfo.getType() on null ... VrRuntimeClient.getDisplayID`.
 

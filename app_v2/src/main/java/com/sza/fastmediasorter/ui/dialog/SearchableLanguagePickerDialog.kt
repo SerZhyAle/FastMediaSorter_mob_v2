@@ -12,6 +12,7 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.setFragmentResult
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -24,9 +25,16 @@ import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
 
+/**
+ * Searchable language picker. Returns the chosen language code to the host through a FragmentResult
+ * ([RESULT_LANGUAGE_CODE] in the bundle) rather than a constructor lambda: S1214 - FragmentManager
+ * rebuilds a restored dialog with the no-arg constructor, so a field-held handler would be null and
+ * the pick would be dropped without a trace.
+ */
 @AndroidEntryPoint
 class SearchableLanguagePickerDialog : DialogFragment() {
 
@@ -39,7 +47,10 @@ class SearchableLanguagePickerDialog : DialogFragment() {
     private var selectedCode: String = "en"
     private var mode: Mode = Mode.TARGET
     private var interfaceLanguage: String = "en"
-    private var onLanguageSelected: ((LanguageItem) -> Unit)? = null
+
+    // S1214: hosts that open the picker twice (source + target) pass their own key, so one
+    // FragmentManager can carry both without either host seeing the other's pick.
+    private var requestKey: String = RESULT_KEY
     private lateinit var languageAdapter: LanguageAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,21 +59,29 @@ class SearchableLanguagePickerDialog : DialogFragment() {
         selectedCode = args.getString(ARG_SELECTED_CODE, "en")
         mode = Mode.valueOf(args.getString(ARG_MODE, Mode.TARGET.name))
         interfaceLanguage = args.getString(ARG_INTERFACE_LANGUAGE, "en")
+        requestKey = args.getString(ARG_REQUEST_KEY) ?: RESULT_KEY
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogSearchableLanguagePickerBinding.inflate(layoutInflater)
         setupViews()
         return MaterialAlertDialogBuilder(requireContext())
-            .setTitle(if (mode == Mode.SOURCE) R.string.translation_source_language_and_ocr else R.string.translation_target_language)
+            .setTitle(titleRes())
             .setView(binding.root)
             .create()
+    }
+
+    private fun titleRes(): Int = when (mode) {
+        Mode.SOURCE -> R.string.translation_source_language_and_ocr
+        Mode.TARGET -> R.string.translation_target_language
+        Mode.UI_LANGUAGE -> R.string.language
     }
 
     private fun setupViews() {
         val languages = when (mode) {
             Mode.SOURCE -> TranslationLanguageCatalog.buildSourceLanguageList(interfaceLanguage)
             Mode.TARGET -> TranslationLanguageCatalog.buildTargetLanguageList(interfaceLanguage)
+            Mode.UI_LANGUAGE -> UiLanguagePickerItems.build(requireContext())
         }
 
         languageAdapter = LanguageAdapter(
@@ -70,7 +89,8 @@ class SearchableLanguagePickerDialog : DialogFragment() {
             mode = mode,
             noLegalOcrLabelsEnabled = capabilityAvailability.isOcrEngineSelectionAvailable(),
             onClick = { language ->
-                onLanguageSelected?.invoke(language)
+                Timber.d("S1214: picker emits key=$requestKey code=${language.code}")
+                setFragmentResult(requestKey, bundleOf(RESULT_LANGUAGE_CODE to language.code))
                 dismiss()
             }
         )
@@ -106,29 +126,49 @@ class SearchableLanguagePickerDialog : DialogFragment() {
 
     enum class Mode {
         SOURCE,
-        TARGET
+        TARGET,
+
+        /** S1190: the app's own interface language, sourced from `locales_config.xml`. */
+        UI_LANGUAGE
     }
 
     companion object {
         const val TAG = "SearchableLanguagePickerDialog"
+        const val RESULT_KEY = "language_picker_result"
+        const val RESULT_LANGUAGE_CODE = "result_language_code"
 
         private const val ARG_SELECTED_CODE = "arg_selected_code"
         private const val ARG_MODE = "arg_mode"
         private const val ARG_INTERFACE_LANGUAGE = "arg_interface_language"
+        private const val ARG_REQUEST_KEY = "arg_request_key"
+
+        /**
+         * Interface-language picker. [selectedCode] is a declared language tag or
+         * [com.sza.fastmediasorter.core.util.LocaleHelper.FOLLOW_SYSTEM_LANGUAGE].
+         */
+        fun newInstanceForUiLanguage(
+            selectedCode: String,
+            requestKey: String = RESULT_KEY
+        ): SearchableLanguagePickerDialog = newInstance(
+            selectedCode = selectedCode,
+            mode = Mode.UI_LANGUAGE,
+            interfaceLanguage = selectedCode,
+            requestKey = requestKey
+        )
 
         fun newInstance(
             selectedCode: String,
             mode: Mode,
             interfaceLanguage: String,
-            onLanguageSelected: (LanguageItem) -> Unit
+            requestKey: String = RESULT_KEY
         ): SearchableLanguagePickerDialog {
             return SearchableLanguagePickerDialog().apply {
                 arguments = bundleOf(
                     ARG_SELECTED_CODE to selectedCode,
                     ARG_MODE to mode.name,
-                    ARG_INTERFACE_LANGUAGE to interfaceLanguage
+                    ARG_INTERFACE_LANGUAGE to interfaceLanguage,
+                    ARG_REQUEST_KEY to requestKey
                 )
-                this.onLanguageSelected = onLanguageSelected
             }
         }
     }
@@ -188,10 +228,11 @@ class SearchableLanguagePickerDialog : DialogFragment() {
         ) : RecyclerView.ViewHolder(binding.root) {
 
             fun bind(item: LanguageItem, selected: Boolean) {
-                val label = TranslationLanguageCatalog.formatLanguage(item)
+                val name = item.displayName()
+                val label = if (item.flagEmoji.isBlank()) name else "${item.flagEmoji} $name"
                 val capabilityLabel = item.capabilityLabel(binding.root.context, mode)
                 LanguageFlagFormatter.applyFlagGlyph(binding.tvLanguageFlag, item)
-                binding.tvLanguageName.text = "${item.localizedName} (${item.nativeName})"
+                binding.tvLanguageName.text = name
                 binding.tvLanguageCapabilities.text = capabilityLabel
                 binding.tvLanguageCapabilities.isVisible = capabilityLabel.isNotBlank()
                 binding.root.isSelected = selected
@@ -214,6 +255,16 @@ class SearchableLanguagePickerDialog : DialogFragment() {
                     }
                 }
             }
+
+            // "German (Deutsch)", but a single name when both spellings coincide - the interface-language
+            // list contains rows ("Default", English while the app is English) where the doubled form
+            // would read as a defect.
+            private fun LanguageItem.displayName(): String =
+                if (localizedName.equals(nativeName, ignoreCase = true)) {
+                    localizedName
+                } else {
+                    "$localizedName ($nativeName)"
+                }
 
             private fun LanguageItem.capabilityLabel(context: Context, mode: Mode): String {
                 return capabilities

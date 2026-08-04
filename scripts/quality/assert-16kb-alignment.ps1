@@ -19,12 +19,18 @@
         to verify (no .so found) / readelf toolchain unavailable (advisory skip).
     1 - at least one 64-bit .so has a LOAD segment below 16 KB (Play would reject).
     2 - usage error (invalid -ScanRoot or -Readelf path).
+
+  -Gate is accepted for uniformity with the other scripts/quality/assert-*.ps1 gates and
+  is a no-op here: this gate already exits 1 on a finding with no advisory mode. Batch
+  runners invoke every gate with -Gate, and a parameter-binding error reads as a FAIL of
+  the thing being audited rather than of the invocation (S1338 step 04.5).
 #>
 [CmdletBinding()]
 param(
     [string[]] $ScanRoot,
     [string]   $Readelf,
-    [int]      $MinAlign = 16384
+    [int]      $MinAlign = 16384,
+    [switch]   $Gate
 )
 
 $ErrorActionPreference = 'Stop'

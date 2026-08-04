@@ -41,10 +41,12 @@
             android:insetBottom="0dp"
             android:minWidth="@dimen/main_top_panel_leading_anchor"
             android:minHeight="0dp"
-            android:paddingHorizontal="@dimen/main_panel_item_spacing"
+            android:paddingStart="0dp"
+            android:paddingEnd="@dimen/main_panel_item_spacing"
             android:text=""
             app:icon="@drawable/ic_more_vert"
-            app:iconGravity="textStart"
+            app:iconGravity="start"
+            app:iconPadding="@dimen/main_top_panel_leading_icon_spacing"
             app:iconSize="@dimen/icon_size_normal"
             app:iconTint="@color/main_panel_accent_foreground" />
 

@@ -279,6 +279,7 @@ class NetworkSpeedTestUseCase @Inject constructor(
                 fileName = testFileName,
                 mimeType = "application/octet-stream",
                 parentFolderId = null,
+                fileSize = TEST_FILE_SIZE_BYTES,
                 progressCallback = null
             )
             if (result is com.sza.fastmediasorter.data.cloud.CloudResult.Success) {

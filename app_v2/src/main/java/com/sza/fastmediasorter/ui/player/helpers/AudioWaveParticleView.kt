@@ -8,6 +8,8 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import android.os.Build
+import android.provider.Settings
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
@@ -72,6 +74,15 @@ class AudioWaveParticleView @JvmOverloads constructor(
         private const val WAVE_COUNT_MAX_LOW    = 6
         private const val PARTICLE_MIN_LOW      = 6
         private const val PARTICLE_MAX_LOW      = 18
+
+        // S1277: the look is accumulated, not drawn in one pass - each tick lays a translucent
+        // overlay and draws over it, and the first STARTUP_RAMP_FRAMES ticks ramp amplitude and
+        // alpha up from 35 %. The static path runs that ramp to completion so a device with
+        // animations off gets the frame the animator would have reached, not a near-empty buffer.
+        private const val STATIC_FRAME_PASSES = STARTUP_RAMP_FRAMES
+
+        // Default when the animator scale cannot be read; matches the platform default.
+        private const val ANIMATOR_SCALE_DEFAULT = 1f
     }
 
     /**
@@ -199,6 +210,39 @@ class AudioWaveParticleView @JvmOverloads constructor(
             wavePaint.strokeWidth = waveStrokeWidth
             animator.start()
         }
+        // S1277: with system animations off the animator ends without ever firing its update
+        // listener, so nothing would repaint the buffer this method just blacked out and the view
+        // stays pure black for the rest of the session. Draw the frame here instead.
+        if (animatorsDisabled()) renderStaticFrame()
+    }
+
+    /**
+     * True when the user has turned system animations off, in which case a [ValueAnimator] ends
+     * immediately and never delivers an update callback.
+     *
+     * [ValueAnimator.areAnimatorsEnabled] is the official signal but arrived in API 26, and the
+     * legacy flavor builds against a lower minSdk - below that the same state is the animator
+     * duration scale this ticket measured.
+     */
+    private fun animatorsDisabled(): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            !ValueAnimator.areAnimatorsEnabled()
+        } else {
+            Settings.Global.getFloat(
+                context.contentResolver,
+                Settings.Global.ANIMATOR_DURATION_SCALE,
+                ANIMATOR_SCALE_DEFAULT
+            ) == 0f
+        }
+
+    /** Builds one complete frame without the animator, then shows it. See [STATIC_FRAME_PASSES]. */
+    private fun renderStaticFrame() {
+        wavePaint.strokeWidth = waveStrokeWidth
+        repeat(STATIC_FRAME_PASSES) {
+            time += TIME_INCREMENT
+            tick()
+        }
+        invalidate()
     }
 
     /**
@@ -282,6 +326,10 @@ class AudioWaveParticleView @JvmOverloads constructor(
                 initParticles(w, h)
                 wavePaint.strokeWidth = waveStrokeWidth
                 animator.start()
+                // S1277: covers the ordering where the host starts the animation after layout -
+                // onSizeChanged already painted its frame with the previous session's palette,
+                // and randomizeParams() above has just rolled a new one.
+                if (animatorsDisabled()) renderStaticFrame()
             }
             // already running - no-op
         }

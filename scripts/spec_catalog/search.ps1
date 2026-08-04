@@ -1,13 +1,28 @@
+<#
+.SYNOPSIS
+  Search the spec catalog by free text, status, tag, or type.
+.NOTES
+  -Query is the canonical free-text parameter shared by the catalog and registry
+  query CLIs; -Text / -Search / -Name are accepted as aliases so older callers work.
+  Exit codes: 0 ok (including zero matches - an empty result is a normal answer).
+#>
 [CmdletBinding()]
 param(
+    [Alias('Text','Search','Name')]
     [string] $Query,
     [string] $Status,
     [string] $Tag,
     [string] $Type,
     [switch] $IncludeArchived,
     [ValidateSet('table','json')]
-    [string] $Format = 'table'
+    [string] $Format = 'table',
+    [switch] $Help
 )
+
+if ($Help) {
+    & (Join-Path $PSScriptRoot '..\utils\help.ps1') -Name 'scripts/spec_catalog/search.ps1'
+    exit $LASTEXITCODE
+}
 
 . (Join-Path $PSScriptRoot '_lib.ps1')
 

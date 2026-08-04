@@ -6,8 +6,6 @@ import android.widget.ListPopupWindow
 import android.widget.Toast
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.launcher.AppShortcut
-import com.sza.fastmediasorter.domain.usecase.launcher.QueryAppShortcutsUseCase
-import com.sza.fastmediasorter.domain.usecase.launcher.StartAppShortcutUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -20,11 +18,14 @@ import kotlinx.coroutines.launch
  *
  * Not injected: the two hosts (home Activity and Start menu) each own an instance bound to their own
  * scope, so a popup can never outlive the surface that anchored it.
+ *
+ * S1195: the operations arrive as functions rather than use cases, so the Activity host can route them
+ * through its ViewModel instead of injecting domain types itself (CLAUDE.md Rule 3).
  */
 class LauncherAppShortcutMenuManager(
     private val scope: CoroutineScope,
-    private val queryAppShortcuts: QueryAppShortcutsUseCase,
-    private val startAppShortcut: StartAppShortcutUseCase,
+    private val queryAppShortcuts: suspend (packageName: String) -> List<AppShortcut>,
+    private val startAppShortcut: suspend (shortcut: AppShortcut, bounds: Rect) -> Boolean,
 ) {
 
     private var window: ListPopupWindow? = null

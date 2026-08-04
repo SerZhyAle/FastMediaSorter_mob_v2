@@ -1,0 +1,42 @@
+{
+  "dialog_add_stream": {
+    "category": "entity-editor",
+    "reason": "Configures one stream channel being added, not a standing app-wide preference."
+  },
+  "dialog_scheduled_operation": {
+    "category": "entity-editor",
+    "reason": "Configures one scheduled copy/move job, not a standing app-wide preference."
+  },
+  "dialog_filter_resource": {
+    "category": "entity-editor",
+    "reason": "Configures the sort/filter for the current browse session, not a persisted app-wide preference."
+  },
+  "page_welcome_enhanced": {
+    "category": "onboarding",
+    "reason": "Onboarding-wizard page; whether the reference should document wizard copy or only the settings-screen equivalent is a product decision, deferred (S1313 INDEX Pre-Implementation Blockers)."
+  },
+  "page_welcome_functionality": {
+    "category": "onboarding",
+    "reason": "Onboarding-wizard page; same deferred product decision as page_welcome_enhanced."
+  },
+  "page_welcome_networks": {
+    "category": "onboarding",
+    "reason": "Onboarding-wizard page; same deferred product decision as page_welcome_enhanced."
+  },
+  "fragment_vr_settings_block": {
+    "category": "flavor-scoped",
+    "reason": "Lives in app_v2/src/vr/res/layout/, so R.layout.fragment_vr_settings_block does not resolve in the standardDebug variant the manifest test runs under."
+  },
+  "dialog_player_settings": {
+    "category": "session-scoped",
+    "reason": "Its own KDoc states settings are applied immediately and persist for the current player session only, not across app restarts - not a standing app-wide preference."
+  },
+  "dialog_playback_control": {
+    "category": "session-scoped",
+    "reason": "In-player quick-controls panel (volume/brightness/hue/speed/mute/section-tab buttons); its one plausible setting (switchVrOverrideFormatType, a stereo-mode override) is session-scoped in the player ViewModel per an existing code comment. Not a settings surface."
+  },
+  "dialog_slideshow_settings": {
+    "category": "unsupported-widget",
+    "reason": "Hosts one recognized persisted toggle (cbPlayToEnd) but its primary setting (playback interval) is a Slider widget LayoutSettingsSearchSource.kindFromTag does not recognize; cataloging now would document an incomplete, misleading subset. Revisit once Slider/CheckBox widget kinds are supported."
+  }
+}

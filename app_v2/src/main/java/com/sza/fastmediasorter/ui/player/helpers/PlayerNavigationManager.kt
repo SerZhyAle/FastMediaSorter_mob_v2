@@ -225,6 +225,7 @@ class PlayerNavigationManager(
      * Navigate to previous file
      */
     private fun navigatePrevious(skipDocuments: Boolean = false, manual: Boolean = false) {
+        lastNavigationWasBackwards = true
         val currentFileBeforeNav = viewModel.state.value.currentFile
         if (manual) {
             activity.onManualSlideshowNavigation()
@@ -242,6 +243,7 @@ class PlayerNavigationManager(
      * Navigate to next file
      */
     private fun navigateNext(skipDocuments: Boolean = false, manual: Boolean = false) {
+        lastNavigationWasBackwards = false
         val currentFileBeforeNav = viewModel.state.value.currentFile
         if (manual) {
             activity.onManualSlideshowNavigation()
@@ -307,6 +309,26 @@ class PlayerNavigationManager(
     /**
      * Navigate to next file (from auto-advance after copy/move/delete)
      */
+    /**
+     * S1279: which way the user was last heading, so [skipAfterLoadError] can follow it.
+     */
+    private var lastNavigationWasBackwards: Boolean = false
+
+    /**
+     * S1279: step past a file that would not open, continuing the way the user was going.
+     *
+     * This used to always advance, which turned a single unopenable entry into a wall: every
+     * Previous press onto it failed and the recovery immediately jumped forward again, so the file
+     * before it could not be reached at all.
+     */
+    fun skipAfterLoadError() {
+        if (lastNavigationWasBackwards) {
+            navigatePrevious(manual = false)
+        } else {
+            navigateNext(manual = false)
+        }
+    }
+
     fun navigateNextAfterOperation(reason: String) {
         Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: $reason")
         navigateNext()

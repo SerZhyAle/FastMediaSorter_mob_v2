@@ -111,7 +111,7 @@
 | Library                          | Version    | Purpose                            |
 |:---------------------------------|:-----------|:-----------------------------------|
 | `hilt-android`                  | 2.59       | DI framework                       |
-| `hilt-android-compiler`        | 2.59       | Annotation processor (kapt/ksp)    |
+| `hilt-android-compiler`        | 2.59       | Annotation processor (KSP)         |
 | `hilt-work`                     | 1.2.0      | Hilt + WorkManager integration     |
 | `hilt-compiler`                 | 1.2.0      | Hilt AndroidX compiler             |
 
@@ -124,7 +124,7 @@
 | `room-compiler`                | 2.7.0      | Room annotation processor          |
 | `datastore-preferences`        | 1.0.0      | Key-value preferences store        |
 | `paging-runtime-ktx`           | 3.2.1      | Paging 3 library                   |
-| Room DB version                  | 42         | Current schema version (see AppDatabase.kt) |
+| Room DB version                  | 44         | Current schema version (see AppDatabase.kt) |
 
 ### 4.7 Media Playback
 
@@ -141,7 +141,7 @@
 | Library                          | Version    | Purpose                            |
 |:---------------------------------|:-----------|:-----------------------------------|
 | `glide`                         | 4.16.0     | Image loading (app_v2)             |
-| `glide-compiler`               | 4.16.0     | Glide annotation processor         |
+| `glide-ksp`                    | 4.16.0     | Glide annotation processor - the KSP artifact, not `glide-compiler` |
 | `glide-okhttp3-integration`    | 4.16.0     | OkHttp transport for Glide         |
 | `camera-core` / `camera-camera2` / `camera-lifecycle` / `camera-view` | 1.5.3 | In-app CameraX preview and JPEG capture |
 | `PhotoView`                     | 2.3.0      | Pinch-to-zoom & rotation           |
@@ -245,7 +245,7 @@
 | `org.gradle.caching`                       | `true`          | Build cache enabled                     |
 | `android.enableR8.fullMode`               | `false`         | R8 compat mode (faster builds)          |
 | `android.bundle.enableNativeLibraryAlignment` | `true`      | 16 KB page alignment (Play Store req)   |
-| `kapt.incremental.apt`                    | `true`          | Incremental annotation processing       |
+| `ksp.incremental`                          | `false`         | KSP incremental processing off: it fails with "this and base files have different roots" on this host |
 
 ### ProGuard / R8
 
@@ -300,15 +300,17 @@
 
 ### Main App (app_v2)
 
-| Parameter                | Standard/Lite/Photos | Legacy flavor       |
-|:-------------------------|:---------------------|:--------------------|
-| Android version          | 8.0 (Oreo, API 26)  | 6.0 (Marshmallow, API 23) |
-| RAM                      | ≥ 2 GB               | ≥ 1.5 GB            |
-| Heap (dalvik.vm.heapsize)| ≥ 256 MB             | ≥ 128 MB            |
-| Free storage             | ≥ 200 MB             | ≥ 200 MB            |
-| Google Play Services     | Required for Cloud    | Required for Cloud   |
-| Internet                 | Required for Cloud/OCR Translation | Required for Cloud/OCR Translation |
-| Network protocols        | SMB 2/3, SFTP, FTP   | SMB 2/3, SFTP, FTP  |
+| Parameter                | Standard/Photos      | Lite flavor          | Legacy flavor       |
+|:-------------------------|:---------------------|:---------------------|:--------------------|
+| Android version          | 8.0 (Oreo, API 26)  | 8.0 (Oreo, API 26)  | 6.0 (Marshmallow, API 23) |
+| RAM                      | ≥ 2 GB               | ≥ 2 GB               | ≥ 1.5 GB            |
+| Heap (dalvik.vm.heapsize)| ≥ 256 MB             | ≥ 256 MB             | ≥ 128 MB            |
+| Free storage             | ≥ 200 MB             | ≥ 200 MB             | ≥ 200 MB            |
+| Google Play Services     | Required for Cloud    | Not used - no cloud providers | Required for Cloud   |
+| Internet                 | Required for Cloud/OCR Translation | Not required - local files only | Required for Cloud/OCR Translation |
+| Network protocols        | SMB 2/3, SFTP, FTP   | None - `SUPPORT_LOCAL_NETWORK` is false | SMB 2/3, SFTP, FTP  |
+
+`lite` is split out because grouping it with Standard/Photos asserted cloud and network support it does not have (`SUPPORT_CLOUD` and `SUPPORT_LOCAL_NETWORK` both false since S0448). The generated grid is [`docs/FLAVOR_MATRIX.md`](../docs/FLAVOR_MATRIX.md); `vr` and `noLegal` match the Standard column on every row in this table.
 
 ### Wear OS (wear)
 
@@ -447,7 +449,7 @@ Detailed live complexity snapshot is maintained in `dev/PRODUCT_COMPLEXITY_ASSES
 | Kotlin 2.2.10                      | Aligned with KSP 2.3.8 + Compose plugin 2.2.10              |
 | AGP 9.2.1                          | Requires Gradle 9.x; introduces `AndroidApiLevel`           |
 | Gradle 9.4.1                       | Required by AGP 9.x; JDK 17/21                              |
-| Hilt 2.59                          | Current stable; via kapt (KSP migration pending)            |
+| Hilt 2.59                          | Current stable; processed by KSP since S1338 phase 10       |
 | Media3 1.2.1 (not 1.3+)           | 1.3+ requires API adjustments not yet validated             |
 | Glide 4.16.0                       | Latest stable; 5.x requires migration                      |
 | SMBJ 0.12.1                        | Last version before breaking BC changes in 0.13            |

@@ -4,12 +4,13 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import com.sza.fastmediasorter.core.game.GameLaunchIntents
-import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
+import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
+import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.widget.CameraLaunchActivity
 import com.sza.fastmediasorter.widget.CameraQuickCaptureActivity
@@ -84,7 +85,51 @@ object AppLaunchPanelRouteIntents {
     fun startVideoRecording(context: Context): Intent =
         CameraLaunchActivity.videoIntent(context).withPanelFlags()
 
+    // S1170: the five destinations the mechanical home-screen widgets fire that no route covered yet.
+    // Each mirrors its provider's PendingIntent so a launcher desktop cell and the same widget on the
+    // Android home screen land on the identical screen - action constants are referenced, never retyped.
+
+    fun cameraPhotos(context: Context): Intent =
+        Intent(context, MainActivity::class.java)
+            .setAction(MainActivity.ACTION_CAMERA_PHOTOS)
+            .withWidgetEntryFlags()
+
+    /**
+     * Photo mode, i.e. [CameraLaunchActivity] without the force-video extra [startVideoRecording] sets.
+     *
+     * `CameraLaunchWidgetProvider` also stamps a `fms://cam-launch/<widgetId>` data URI on this intent,
+     * purely so two pinned instances do not collapse onto one cached PendingIntent. A launcher cell has
+     * no widget id and no PendingIntent, so there is nothing to keep distinct and the URI is omitted.
+     */
+    fun cameraLaunch(context: Context): Intent =
+        Intent(context, CameraLaunchActivity::class.java)
+            .setAction(CameraLaunchActivity.ACTION_LAUNCH)
+            .withPanelFlags()
+
+    fun continueReading(context: Context): Intent =
+        Intent(context, MainActivity::class.java)
+            .setAction(MainActivity.ACTION_START_SLIDESHOW)
+            .withWidgetEntryFlags()
+
+    fun randomMusic(context: Context): Intent =
+        Intent(context, MainActivity::class.java)
+            .setAction(MainActivity.ACTION_RANDOM_MUSIC)
+            .withWidgetEntryFlags()
+
+    fun scheduledTasks(context: Context): Intent =
+        Intent(context, SettingsActivity::class.java)
+            .putExtra(SettingsActivity.EXTRA_OPEN_SCHEDULED, true)
+            .withWidgetEntryFlags()
+
     private fun Intent.withPanelFlags(): Intent = addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+    /**
+     * S1170: the flags the widget providers use for their long-lived hosts (MainActivity, SettingsActivity).
+     * `CLEAR_TOP` is what makes a second tap reach the running instance's `onNewIntent` and re-read the
+     * action instead of stacking a duplicate - dropping it would silently change where the tap lands.
+     */
+    private fun Intent.withWidgetEntryFlags(): Intent =
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
     /** Matches the key `FavoritesWidgetProvider` / `MainActivity` already agree on (S0134). */
     private const val EXTRA_OPEN_FAVORITES = "open_favorites"

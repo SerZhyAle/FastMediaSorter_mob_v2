@@ -79,10 +79,21 @@ interface DiagnosticXrRuntime {
      * 0.3x0.113 m; the interactive panel needs a taller quad matching its texture aspect. The
      * value persists across sessions in native state - callers set it per launch mode.
      */
-    fun setHudQuadSize(widthMeters: Float, heightMeters: Float)
+    fun setHudQuadSize(widthMeters: Float, heightMeters: Float, verticalOffsetMeters: Float)
 
-    /** JNI Pathway: stream interaction data from C++ render loop up to JVM */
-    fun onNativeRayInteraction(uvX: Float, uvY: Float, isHover: Boolean, isClick: Boolean)
+    /**
+     * Thread-safe: show or hide the HUD quad (S1232). Hidden means the quad, its laser lines and
+     * its cursor stop drawing AND stop reacting - a hidden panel cannot be hit-tested or
+     * grip-dragged. While hidden the controller trigger summons it back instead of clicking
+     * through it; that press is consumed natively and never arrives as a ray interaction.
+     */
+    fun setHudVisible(visible: Boolean)
+
+    // S1232: onNativeRayInteraction was declared here and overridden as an empty stub, with a
+    // matching JNI export whose body was the comment "validation grep target". Nothing bound to
+    // it - the Kotlin side was never `external` - and the live path reflects the callback onto
+    // the Activity instead (xr_session.cpp triggerJniRayInteraction -> DiagnosticXrActivity /
+    // ImmersiveBrowseActivity). Deleted rather than kept as a second, inert callback surface.
 
     /** Apply haptic vibration to the specified controller (0 = left, 1 = right) */
     fun applyHaptic(hand: Int, durationSeconds: Float, frequency: Float, amplitude: Float)

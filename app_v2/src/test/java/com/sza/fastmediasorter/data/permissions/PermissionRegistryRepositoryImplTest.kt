@@ -68,6 +68,16 @@ class PermissionRegistryRepositoryImplTest {
     }
 
     @Test
+    fun `S1335 registers the read-contacts permission in registry, onboarding and groups`() {
+        val contacts = repo.getEntries().firstOrNull { it.id == "read_contacts" }
+        assertNotNull("read_contacts must be registered", contacts)
+        assertEquals(PermissionGroup.CONTACTS, contacts!!.group)
+        assertTrue("read_contacts must be optional", contacts.optional)
+        assertTrue("read_contacts" in repo.getWelcomeEntries().map { it.id })
+        assertTrue(PermissionGroup.CONTACTS in repo.getGroups().map { it.group })
+    }
+
+    @Test
     fun `every declared flavor-gate names an existing boolean BuildConfig field`() {
         // Guards against a typo'd / removed flavorGates string silently dropping a permission:
         // such a name resolves on no variant, so this standardDebug run fails fast on it.

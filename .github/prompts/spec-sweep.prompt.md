@@ -62,10 +62,11 @@ Uncertain cases go to a **review bucket** (listed in the report), never silently
 pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug [-DeviceId <id>] -CheckMcp -Json
 ```
 
-Exit-code handling (see script header table):
-- `0` → record device identity (API level, ABI, model, screen, density) into the report header; proceed.
-- `2` (no online device) / `1` (adb missing) / `6` (mobile-mcp unresolvable) → **abort the whole sweep** with one line stating the reason. No ticket is touched.
-- `3` (multiple devices, no `--device`) → abort and ask the user to pass `--device <id>`.
+`device-ready.ps1` exits 0 whenever it determined the state - branch on the payload's `state`,
+not on the exit code (see the script header table):
+- `ready` → record device identity (API level, ABI, model, screen, density) into the report header; proceed.
+- `no-device` / `no-adb` / `mcp-unavailable` → **abort the whole sweep** with one line stating the reason. No ticket is touched.
+- `multiple-devices` → abort and ask the user to pass `--device <id>`.
 
 ### 4 - Classify each eligible ticket
 

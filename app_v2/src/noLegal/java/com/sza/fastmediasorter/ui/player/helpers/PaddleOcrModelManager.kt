@@ -1,15 +1,18 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
+import com.sza.fastmediasorter.core.network.HttpTimeouts
+import com.sza.fastmediasorter.core.network.applyTimeouts
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import javax.inject.Inject
 import java.io.FileOutputStream
+import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
 import java.util.zip.GZIPInputStream
+import javax.inject.Inject
 
 /**
  * Tracks PP-OCRv5 Paddle-Lite model files stored inside the app sandbox.
@@ -97,10 +100,19 @@ class PaddleOcrModelManager @Inject constructor(
             tempFile.delete()
         }
 
-        URL(artifact.url).openStream().use { input ->
-            GZIPInputStream(input).use { gzip ->
-                extractTarEntry(gzip, artifact.entryName, tempFile)
+        // S1298: openStream() inherits HttpURLConnection's "wait forever" defaults, so a stalled
+        // download left the OCR flow hanging with no way back. Same budget as the cloud clients.
+        val connection = (URL(artifact.url).openConnection() as HttpURLConnection).apply {
+            applyTimeouts(HttpTimeouts.STREAM_READ_MS)
+        }
+        try {
+            connection.inputStream.use { input ->
+                GZIPInputStream(input).use { gzip ->
+                    extractTarEntry(gzip, artifact.entryName, tempFile)
+                }
             }
+        } finally {
+            connection.disconnect()
         }
 
         if (outputFile.exists()) {

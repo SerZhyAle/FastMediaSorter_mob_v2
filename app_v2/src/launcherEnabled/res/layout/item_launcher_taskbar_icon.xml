@@ -2,6 +2,7 @@
 <!-- S0404: one icon in the taskbar's recents / pinned strip. Label is carried by the content
      description and tooltip, not drawn - the bar has no room for text. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/taskbarIconRoot"
     android:layout_width="wrap_content"
@@ -35,7 +36,7 @@
         android:foreground="@drawable/focus_button_background"
         android:scaleType="centerInside"
         android:src="@drawable/ic_clear"
-        android:tint="?attr/colorError"
+        app:tint="?attr/colorError"
         android:visibility="gone"
         tools:visibility="visible" />
 

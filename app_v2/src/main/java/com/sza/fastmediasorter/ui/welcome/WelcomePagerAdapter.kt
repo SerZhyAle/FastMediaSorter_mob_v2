@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.welcome
 
+import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,6 +9,8 @@ import android.view.animation.AnimationUtils
 import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
@@ -22,9 +26,11 @@ import com.sza.fastmediasorter.databinding.PageWelcomeFunctionalityBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeNetworksBinding
 import com.sza.fastmediasorter.databinding.PageWelcomePermissionsBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeProfilesBinding
+import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.welcome.holders.FunctionalityPageViewHolder
 import com.sza.fastmediasorter.ui.welcome.holders.PermissionsPageViewHolder
 import com.sza.fastmediasorter.ui.welcome.holders.ProfilesPageViewHolder
+import timber.log.Timber
 
 class WelcomePagerAdapter(
     private val pages: List<WelcomePage>,
@@ -39,6 +45,9 @@ class WelcomePagerAdapter(
         private const val VIEW_TYPE_DEFAULT_PLAYER = 4
         private const val VIEW_TYPE_NETWORKS = 5
         private const val VIEW_TYPE_PERMISSIONS = 6
+
+        /** Opaque end of the 8-bit alpha channel, for turning [WelcomePagePalette.PANEL_ALPHA] into a colour. */
+        private const val MAX_ALPHA = 255
     }
 
     /** The currently-bound device-profile page holder, kept so the Activity can refresh the grid
@@ -95,6 +104,7 @@ class WelcomePagerAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        applyContentPanel(holder.itemView, position)
         when (holder) {
             is ProfilesPageViewHolder -> {
                 profilesHolder = holder
@@ -113,6 +123,20 @@ class WelcomePagerAdapter(
     }
 
     override fun getItemCount(): Int = pages.size
+
+    /**
+     * S1234: gives the page copy a translucent backing tinted with this page's colour, so it stays
+     * legible over the brand animation while the pages remain visually distinct. Applied here, for
+     * every view type at once, because the container id is shared across all page layouts - doing it
+     * per view holder would mean seven copies of the same three lines.
+     */
+    private fun applyContentPanel(itemView: View, position: Int) {
+        val panel = itemView.findViewById<View>(R.id.layoutContent) ?: return
+        val base = ContextCompat.getColor(itemView.context, WelcomePagePalette.colorResFor(position))
+        val alpha = (WelcomePagePalette.PANEL_ALPHA * MAX_ALPHA).toInt()
+        panel.setBackgroundResource(R.drawable.bg_welcome_content_panel)
+        panel.backgroundTintList = ColorStateList.valueOf(ColorUtils.setAlphaComponent(base, alpha))
+    }
 
     class WelcomeViewHolder(
         private val binding: PageWelcomeBinding
@@ -160,6 +184,14 @@ class WelcomePagerAdapter(
                 HtmlCompat.FROM_HTML_MODE_LEGACY
             )
 
+            val res = binding.root.context.resources
+            Timber.d(
+                "S1237: default player page bound, swDp=%d, landscape=%b, capPx=%d",
+                res.configuration.smallestScreenWidthDp,
+                res.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE,
+                res.getDimensionPixelSize(R.dimen.welcome_content_max_width)
+            )
+
             animateEntrance(binding.ivIcon, 0L)
             animateEntrance(binding.tvTitle, 150L)
             animateEntrance(binding.tvDescription, 250L)
@@ -195,30 +227,15 @@ class WelcomePagerAdapter(
             bindDetails(binding.tvDetails, page)
             populateFeatureGrid(binding.gridFeatures, page.featureCards)
 
-            // Language picker wiring
+            // S1190: language wiring. The control only reports the tap - the Activity owns the picker,
+            // because choosing a language recreates it and an adapter cannot survive that.
             if (page.showLanguagePicker) {
-                binding.layoutLanguagePicker.visibility = View.VISIBLE
-                binding.layoutLanguagePicker.clearOnButtonCheckedListeners()
-                val currentLang = LocaleHelper.getLanguage(binding.root.context)
-                val initialId = when (currentLang) {
-                    "ru" -> R.id.btnLangRu
-                    "uk" -> R.id.btnLangUk
-                    else -> R.id.btnLangEn
-                }
-                binding.layoutLanguagePicker.check(initialId)
-                binding.layoutLanguagePicker.addOnButtonCheckedListener { _, checkedId, isChecked ->
-                    if (!isChecked) return@addOnButtonCheckedListener
-                    val code = when (checkedId) {
-                        R.id.btnLangRu -> "ru"
-                        R.id.btnLangUk -> "uk"
-                        else -> "en"
-                    }
-                    if (code != LocaleHelper.getLanguage(binding.root.context)) {
-                        page.onLanguageSelected?.invoke(code)
-                    }
-                }
+                val currentLanguage = LocaleHelper.getLanguage(context)
+                binding.btnWelcomeLanguage.visibility = View.VISIBLE
+                binding.btnWelcomeLanguage.text = UiLanguagePickerItems.label(context, currentLanguage)
+                binding.btnWelcomeLanguage.setOnClickListener { page.onLanguagePickerRequested?.invoke() }
             } else {
-                binding.layoutLanguagePicker.visibility = View.GONE
+                binding.btnWelcomeLanguage.visibility = View.GONE
             }
 
             // Theme picker wiring: mirrors the language picker. Pre-checks the button for the current
@@ -302,9 +319,10 @@ private fun bindDetails(view: TextView, page: WelcomePage) {
 }
 
 /**
- * Fill [grid] with one tile per [cards] entry (tinted icon + ≤2-line label). The column count
- * comes from @integer/welcome_feature_grid_columns (adapts per screen-width / orientation); cells
- * share the row width evenly via column weight. Collapses the grid when [cards] is empty.
+ * Fill [grid] with one row per [cards] entry (badged icon + bold title + one short detail line).
+ * The column count comes from @integer/welcome_feature_grid_columns - one column on a phone so the
+ * rows read as a list, two on a tablet or in landscape; cells share the row width evenly via column
+ * weight. Collapses the grid when [cards] is empty.
  */
 private fun populateFeatureGrid(grid: GridLayout, cards: List<FeatureCard>) {
     grid.removeAllViews()
@@ -316,22 +334,26 @@ private fun populateFeatureGrid(grid: GridLayout, cards: List<FeatureCard>) {
     val context = grid.context
     val columns = context.resources.getInteger(R.integer.welcome_feature_grid_columns).coerceAtLeast(1)
     grid.columnCount = columns
-    val margin = context.resources.getDimensionPixelSize(R.dimen.welcome_feature_card_margin)
+    val gutter = context.resources.getDimensionPixelSize(R.dimen.welcome_feature_row_gutter)
+    val spacing = context.resources.getDimensionPixelSize(R.dimen.welcome_feature_row_spacing)
     val inflater = LayoutInflater.from(context)
     cards.forEachIndexed { index, card ->
-        val tile = inflater.inflate(R.layout.item_welcome_feature_tile, grid, false)
-        tile.findViewById<ImageView>(R.id.ivFeatureTileIcon).setImageResource(card.iconRes)
+        val row = inflater.inflate(R.layout.item_welcome_feature_tile, grid, false)
+        row.findViewById<ImageView>(R.id.ivFeatureTileIcon).setImageResource(card.iconRes)
         val label = context.getString(card.labelRes)
-        tile.findViewById<TextView>(R.id.tvFeatureTileLabel).text = label
-        tile.contentDescription = label
+        val detail = context.getString(card.detailRes)
+        row.findViewById<TextView>(R.id.tvFeatureTileLabel).text = label
+        row.findViewById<TextView>(R.id.tvFeatureTileDetail).text = detail
+        // Two TextViews would otherwise be announced as two separate items; the row is one idea.
+        row.contentDescription = "$label. $detail"
         val params = GridLayout.LayoutParams(
             GridLayout.spec(index / columns),
             GridLayout.spec(index % columns, 1, GridLayout.FILL, 1f)
         )
         params.width = 0
-        params.setMargins(margin, margin, margin, margin)
-        tile.layoutParams = params
-        grid.addView(tile)
+        params.setMargins(gutter, spacing, gutter, spacing)
+        row.layoutParams = params
+        grid.addView(row)
     }
 }
 
@@ -351,10 +373,10 @@ data class WelcomePage(
     /** Called with the MIME type when the user taps a type-specific default-player button. */
     val onSetDefaultForTypeClick: ((mimeType: String) -> Unit)? = null,
     val featureCards: List<FeatureCard> = emptyList(),
-    /** Show the language picker strip. Only set on the first Welcome page. */
+    /** Show the interface-language control. Only set on the first Welcome page. */
     val showLanguagePicker: Boolean = false,
-    /** Invoked with the ISO-639-1 language code when the user taps a picker button. */
-    val onLanguageSelected: ((code: String) -> Unit)? = null,
+    /** Invoked when the user taps that control; the host opens the searchable picker. */
+    val onLanguagePickerRequested: (() -> Unit)? = null,
     /** Show the colour-theme picker strip (Auto/Light/Dark). Only set on the first Welcome page. */
     val showThemePicker: Boolean = false,
     /** Invoked with "AUTO"|"LIGHT"|"DARK" when the user taps a theme button. */
@@ -373,6 +395,8 @@ data class WelcomePage(
     val recommendedProfileType: DeviceProfileType? = null,
     val selectedProfileType: DeviceProfileType? = null,
     val onProfileSelected: ((DeviceProfileType) -> Unit)? = null,
+    /** S1383: a tap on the tile that is already selected - apply the pick and move on. */
+    val onProfileConfirmed: ((DeviceProfileType) -> Unit)? = null,
     // ── S0400 functionality page ─────────────────────────────────────────────
     /** Marks the functionality (capability toggles + downloads) page. */
     val isFunctionalityPage: Boolean = false,
@@ -387,5 +411,7 @@ data class WelcomePage(
 
 data class FeatureCard(
     val iconRes: Int,
-    val labelRes: Int
+    val labelRes: Int,
+    /** One-line benefit shown under the title - what this capability buys the user, not what it is. */
+    val detailRes: Int
 )

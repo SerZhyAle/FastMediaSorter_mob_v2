@@ -21,20 +21,24 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.core.content.ContextCompat
+import com.sza.fastmediasorter.core.util.XrDeviceProbe
+import com.sza.fastmediasorter.domain.model.EdgeGestureAxis
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionCatalog
 import timber.log.Timber
 import kotlin.math.atan2
-import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 /**
- * S0847: hosts up to four independent edge-band overlay views (2 left, 2 right at 10-40% / 60-90% of
- * the safe height). Each band classifies an inward drag into DOWN/RIGHT/UP and reports the originating
- * [ScreenshotGestureZone]. Right-edge bands drag inward leftward; the classifier mirrors the horizontal
- * delta so the same angle windows apply on both edges.
+ * S0847: hosts up to four independent edge-band overlay views (2 per edge, at 10-40% / 60-90% of the
+ * safe extent). Each band classifies an inward drag into DOWN/RIGHT/UP and reports the originating
+ * [ScreenshotGestureZone]. The far edge of each pair drags inward in the opposite sense; the classifier
+ * mirrors that delta so the same angle windows apply to all four bands.
+ *
+ * S1188: which pair of edges the bands occupy comes from [EdgeGestureAxis] - the edges Android's own
+ * bars leave free - so a rotation that does not move those bars does not move the bands either.
  */
 class ScreenGestureOverlayManager(
     context: Context,
@@ -55,8 +59,16 @@ class ScreenGestureOverlayManager(
     private val bandViews = LinkedHashMap<ScreenshotGestureZone, View>()
     private var stripWidthPx = 0
 
+    // S1188: the edge pair the live bands currently sit on. Kept beside stripWidthPx because the touch
+    // handler and setStripVisible run without a Geometry in hand and must not re-derive it per event.
+    private var bandAxis = EdgeGestureAxis.VERTICAL
+
     // S1008: the subset of shown bands whose grey guide is visible; the rest render transparent.
     private var stripVisibleZones: Set<ScreenshotGestureZone> = emptySet()
+
+    // A guide is useful only when it touches the physical display edge. A visible system bar can
+    // reserve that edge and move the overlay inward, where the guide incorrectly looks detached.
+    private var edgeAlignedGuideZones: Set<ScreenshotGestureZone> = emptySet()
 
     // S1167: the zone set the host last asked for, replayed when the panel lights up again. Kept apart
     // from bandViews because between screen-off and screen-on there are no windows but the request stands.
@@ -70,13 +82,10 @@ class ScreenGestureOverlayManager(
 
     // Single-touch state: Android routes a whole gesture (down..up) to the view that received DOWN, so
     // one band owns a gesture at a time and sharing these across bands is safe.
-    private var gestureTriggered = false
-
-    // S1162: set once the finger returns to the edge. Without it, hiding the hint was the ONLY effect of
-    // that return: a second outward drag inside the same touch still classified and fired, silently,
-    // with no hint on screen (showHint runs on ACTION_DOWN only). Cancelling must outlive the move that
-    // caused it, so it is a flag rather than a single ignored event.
-    private var gestureCancelled = false
+    //
+    // S1210: what lifting the finger right now would run - null is the cancel target, which is also the
+    // starting value: a touch that never travels inward ends on cancel rather than in a special case.
+    private var selection: ScreenshotGestureDirection? = null
     private var downX = 0f
     private var downY = 0f
 
@@ -112,6 +121,11 @@ class ScreenGestureOverlayManager(
         if (bandViews.isNotEmpty()) return
         val geom = computeGeometry()
         stripWidthPx = geom.stripWidth
+        bandAxis = geom.axis
+        edgeAlignedGuideZones = requestedZones.filterTo(linkedSetOf()) { zone ->
+            geom.isBandOnPhysicalEdge(zone)
+        }
+        Timber.d("S1188: bands axis=${geom.axis} l=${geom.safeLeft} r=${geom.safeRight}")
         for (zone in requestedZones) {
             addBand(zone, geom)
         }
@@ -143,8 +157,8 @@ class ScreenGestureOverlayManager(
         }
         if (rows.isEmpty()) return
 
-        val view = ScreenGestureHintView(overlayContext).apply { bind(rows) }
         val geom = computeGeometry()
+        val view = ScreenGestureHintView(overlayContext).apply { bind(rows, geom.axis, zone.isRightEdge) }
         // S1048: reuse the band frame rather than re-deriving band coordinates - two geometry
         // formulas for the same band drifted apart once already.
         val frame = bandFrame(zone, geom)
@@ -166,7 +180,7 @@ class ScreenGestureOverlayManager(
         ).apply {
             gravity = Gravity.START or Gravity.TOP
             x = hintX(zone, frame, geom, hintWidth)
-            y = hintY(frame, geom, hintHeight)
+            y = hintY(zone, frame, geom, hintHeight)
             title = "screen_gesture_hint_${zone.name.lowercase()}"
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 layoutInDisplayCutoutMode =
@@ -184,17 +198,29 @@ class ScreenGestureOverlayManager(
         windowManager.removeViewImmediate(view)
     }
 
-    /** Places the hint against the band's inner side and keeps it inside the safe bounds (Rule 17). */
+    /**
+     * Places the hint against the band's inner side and keeps it inside the safe bounds (Rule 17).
+     *
+     * S1188: which of the two coordinates carries that offset follows the axis - across the band's own
+     * edge the hint sits beside it, along the edge it stays centred on it.
+     */
     private fun hintX(zone: ScreenshotGestureZone, frame: BandFrame, geom: Geometry, width: Int): Int {
         val maxX = (geom.screenWidth - geom.safeRight - width).coerceAtLeast(geom.safeLeft)
-        val preferred = if (zone.isRightEdge) frame.x - width else frame.x + frame.width
+        val preferred = when (geom.axis) {
+            EdgeGestureAxis.VERTICAL -> if (zone.isRightEdge) frame.x - width else frame.x + frame.width
+            EdgeGestureAxis.HORIZONTAL -> frame.x + frame.width / 2 - width / 2
+        }
         return preferred.coerceIn(geom.safeLeft, maxX)
     }
 
     /** Centres the hint on the band, not on the finger - a hint that follows the touch is harder to read. */
-    private fun hintY(frame: BandFrame, geom: Geometry, height: Int): Int {
-        val maxY = (geom.safeTop + geom.safeHeight - height).coerceAtLeast(geom.safeTop)
-        return (frame.y + frame.height / 2 - height / 2).coerceIn(geom.safeTop, maxY)
+    private fun hintY(zone: ScreenshotGestureZone, frame: BandFrame, geom: Geometry, height: Int): Int {
+        val maxY = (geom.screenHeight - geom.safeBottom - height).coerceAtLeast(geom.safeTop)
+        val preferred = when (geom.axis) {
+            EdgeGestureAxis.VERTICAL -> frame.y + frame.height / 2 - height / 2
+            EdgeGestureAxis.HORIZONTAL -> if (zone.isRightEdge) frame.y - height else frame.y + frame.height
+        }
+        return preferred.coerceIn(geom.safeTop, maxY)
     }
 
     /**
@@ -248,11 +274,18 @@ class ScreenGestureOverlayManager(
      *  place. Call from the host's onConfigurationChanged - a rotation (sensor auto-rotate, or an
      *  app forcing orientation, e.g. YouTube's "expand to fullscreen" button) otherwise leaves each
      *  band's WindowManager x/y/width/height baked in [show] re-interpreted in the new orientation's
-     *  coordinate space, so bands drift off the physical edge (observed: one landing near center). */
+     *  coordinate space, so bands drift off the physical edge (observed: one landing near center).
+     *  S1188: the recomputed geometry also re-picks the edge pair, so the bands follow where the system
+     *  bars ended up rather than what the new orientation calls left and right. */
     fun relayout() {
         if (bandViews.isEmpty()) return
         val geom = computeGeometry()
         stripWidthPx = geom.stripWidth
+        bandAxis = geom.axis
+        edgeAlignedGuideZones = bandViews.keys.filterTo(linkedSetOf()) { zone ->
+            geom.isBandOnPhysicalEdge(zone)
+        }
+        Timber.d("S1188: relayout axis=${geom.axis} bands=${bandViews.size}")
         bandViews.forEach { (zone, view) ->
             val params = view.layoutParams as? WindowManager.LayoutParams ?: return@forEach
             val frame = bandFrame(zone, geom)
@@ -274,18 +307,40 @@ class ScreenGestureOverlayManager(
         bandViews.forEach { (zone, view) -> applyBandBackground(zone, view) }
     }
 
-    // S1048: shared by addBand and relayout so the initial placement and the post-rotation
-    // reposition can never drift apart into two competing geometry formulas.
+    /**
+     * S1048: shared by addBand and relayout so the initial placement and the post-rotation
+     * reposition can never drift apart into two competing geometry formulas.
+     *
+     * S1188: the two axes are a straight transpose of one another - [ScreenshotGestureZone.isRightEdge]
+     * picks the far edge of the active pair (right, or bottom) and [ScreenshotGestureZone.isBottomBand]
+     * picks the offset along it, measured down the safe height or across the safe width.
+     */
     private fun bandFrame(zone: ScreenshotGestureZone, geom: Geometry): BandFrame {
         val startFraction = if (zone.isBottomBand) BAND_BOTTOM_START else BAND_TOP_START
-        val top = geom.safeTop + (geom.safeHeight * startFraction).roundToInt()
-        val height = (geom.safeHeight * BAND_HEIGHT).roundToInt().coerceAtLeast(geom.stripWidth * 4)
-        val x = if (zone.isRightEdge) {
-            (geom.screenWidth - geom.safeRight - geom.stripWidth).coerceAtLeast(0)
-        } else {
-            geom.safeLeft
+        val minLength = geom.stripWidth * MIN_BAND_LENGTH_STRIPS
+        return when (geom.axis) {
+            EdgeGestureAxis.VERTICAL -> {
+                val length = (geom.safeHeight * BAND_HEIGHT).roundToInt().coerceAtLeast(minLength)
+                val x = if (zone.isRightEdge) {
+                    (geom.screenWidth - geom.safeRight - geom.stripWidth).coerceAtLeast(0)
+                } else {
+                    geom.safeLeft
+                }
+                val y = geom.safeTop + (geom.safeHeight * startFraction).roundToInt()
+                BandFrame(x = x, y = y, width = geom.stripWidth, height = length)
+            }
+
+            EdgeGestureAxis.HORIZONTAL -> {
+                val length = (geom.safeWidth * BAND_HEIGHT).roundToInt().coerceAtLeast(minLength)
+                val y = if (zone.isRightEdge) {
+                    (geom.screenHeight - geom.safeBottom - geom.stripWidth).coerceAtLeast(0)
+                } else {
+                    geom.safeTop
+                }
+                val x = geom.safeLeft + (geom.safeWidth * startFraction).roundToInt()
+                BandFrame(x = x, y = y, width = length, height = geom.stripWidth)
+            }
         }
-        return BandFrame(x = x, y = top, width = geom.stripWidth, height = height)
     }
 
     private fun addBand(zone: ScreenshotGestureZone, geom: Geometry) {
@@ -314,7 +369,23 @@ class ScreenGestureOverlayManager(
                     WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
             }
         }
-        windowManager.addView(view, params)
+        runCatching { windowManager.addView(view, params) }
+            .onSuccess {
+                Timber.d(
+                    "S1236: band added zone=%s xrDevice=%b type=%d frame=%dx%d at %d,%d",
+                    zone.name,
+                    XrDeviceProbe.isXrDevice(overlayContext),
+                    overlayWindowType,
+                    frame.width,
+                    frame.height,
+                    frame.x,
+                    frame.y
+                )
+            }
+            .onFailure { error ->
+                Timber.d("S1236: band REJECTED zone=%s type=%d - %s", zone.name, overlayWindowType, error)
+                return
+            }
         applyGestureExclusion(view, frame)
         bandViews[zone] = view
     }
@@ -331,7 +402,7 @@ class ScreenGestureOverlayManager(
     }
 
     private fun applyBandBackground(zone: ScreenshotGestureZone, view: View) {
-        if (zone !in stripVisibleZones) {
+        if (zone !in stripVisibleZones || zone !in edgeAlignedGuideZones) {
             view.setBackgroundColor(Color.TRANSPARENT)
             return
         }
@@ -339,13 +410,19 @@ class ScreenGestureOverlayManager(
         // the left edge already worked at the original width, so the two sides are no longer tied
         // to one shared constant.
         val edgeVisibleWidthPx = if (zone.isRightEdge) EDGE_VISIBLE_WIDTH_RIGHT_PX else EDGE_VISIBLE_WIDTH_LEFT_PX
-        val currentWidthPx = stripWidthPx.takeIf { it > 0 } ?: view.width.coerceAtLeast(edgeVisibleWidthPx)
+        // S1188: the strip's thickness runs across the band's own edge, so it is the view's height
+        // once the bands lie along the top and bottom.
+        val measuredThickness =
+            if (bandAxis == EdgeGestureAxis.VERTICAL) view.width else view.height
+        val currentWidthPx = stripWidthPx.takeIf { it > 0 } ?: measuredThickness.coerceAtLeast(edgeVisibleWidthPx)
         val visibleEdgeWidthPx = edgeVisibleWidthPx.coerceAtMost(currentWidthPx)
         view.background = EdgeGuideDrawable(
             color = STRIP_VISIBLE_EDGE_COLOR,
             visibleWidthPx = visibleEdgeWidthPx,
-            // Draw the guide on the physical screen edge: outer-left for left bands, outer-right for right bands.
-            alignEnd = zone.isRightEdge
+            // Draw the guide on the physical screen edge - the outer side of the band, which is the far
+            // edge of the active pair for right/bottom zones and the near one for left/top zones.
+            alignEnd = zone.isRightEdge,
+            axis = bandAxis
         )
     }
 
@@ -357,58 +434,77 @@ class ScreenGestureOverlayManager(
             MotionEvent.ACTION_DOWN -> {
                 downX = event.rawX
                 downY = event.rawY
-                gestureTriggered = false
-                gestureCancelled = false
+                selection = null
+                Timber.d("S1236: band TOUCHED zone=%s at %.0f,%.0f", zone.name, event.rawX, event.rawY)
                 showHint(zone)
                 return true
             }
 
             MotionEvent.ACTION_MOVE -> {
-                if (gestureTriggered) return true
-                if (gestureCancelled) return false
-                val dx = event.rawX - downX
-                val dy = event.rawY - downY
-                // Inward drag: rightward (dx>0) from a left band, leftward (dx<0) from a right band.
-                // Mirror the right edge by negating dx so the shared UP/RIGHT/DOWN classifier applies.
-                val inwardDx = if (zone.isRightEdge) -dx else dx
-                if (inwardDx <= 0f) {
-                    // S1162: returning to the edge cancels the gesture for the rest of this touch, and
-                    // taking the hint down is how that cancellation becomes visible before the lift.
-                    gestureCancelled = true
-                    hideHint()
-                    Timber.d("S1162: gesture cancelled by return to edge, zone=${zone.name}")
-                    return false
-                }
-                val angle = Math.toDegrees(atan2(dy, inwardDx).toDouble())
-                // S1162: one classifier call feeds both the preview and the outcome, so the hint cannot
-                // promise a direction other than the one that fires.
-                val direction = directionForAngle(angle)
-                hintView?.highlight(direction)
-                if (hypot(inwardDx.toDouble(), dy.toDouble()) < GESTURE_DISTANCE_PX) {
-                    return true
-                }
-                if (direction == null) return false
-                gestureTriggered = true
+                val components = dragComponents(zone, event.rawX - downX, event.rawY - downY)
+                // S1210: one resolver feeds both the preview and the outcome, so the hint cannot promise
+                // a target other than the one the lift runs.
+                selection = resolveSelection(components)
+                hintView?.highlight(selection)
+                return true
+            }
+
+            MotionEvent.ACTION_UP -> {
+                val chosen = selection
+                Timber.d("S1210: lift zone=${zone.name} selection=${chosen?.name ?: "cancel"}")
                 hideHint()
-                onGestureMatched(zone, direction)
+                selection = null
+                if (chosen == null) return false
+                // Let WindowManager commit the hint removal before an immediate accessibility capture.
+                view.postOnAnimation {
+                    onGestureMatched(zone, chosen)
+                }
                 view.performClick()
                 return true
             }
 
-            MotionEvent.ACTION_UP,
             MotionEvent.ACTION_CANCEL -> {
+                // ADR-3: the user never confirmed by lifting, so an interrupted touch runs nothing -
+                // a silent action on top of somebody else's app is worse than a gesture that did not fire.
                 hideHint()
-                val consumed = gestureTriggered
-                gestureTriggered = false
-                gestureCancelled = false
-                return consumed
+                selection = null
+                return false
             }
         }
         return false
     }
 
+    /**
+     * S1210: maps the finger onto the cancel target or one direction. Everything shallower than the
+     * drawn cancel target - measured from the touch-down point, so the band's own width counts - is
+     * cancel, and so is an angle that falls outside every direction window.
+     */
+    private fun resolveSelection(components: DragComponents): ScreenshotGestureDirection? {
+        val cancelDepth = (hintView?.cancelTargetExtentPx ?: 0) + stripWidthPx
+        if (components.inward <= cancelDepth) return null
+        val angle = Math.toDegrees(atan2(components.lateral, components.inward).toDouble())
+        return directionForAngle(angle)
+    }
+
+    /**
+     * S1188: restates the drag in band-local terms - [DragComponents.inward] crosses the band's own
+     * edge, [DragComponents.lateral] runs along it - so one classifier serves all four bands on either
+     * axis. Mirroring the far edge of each pair is what lets the same angle windows apply to both.
+     */
+    private fun dragComponents(zone: ScreenshotGestureZone, dx: Float, dy: Float): DragComponents =
+        when (bandAxis) {
+            EdgeGestureAxis.VERTICAL ->
+                DragComponents(inward = if (zone.isRightEdge) -dx else dx, lateral = dy)
+
+            EdgeGestureAxis.HORIZONTAL ->
+                DragComponents(inward = if (zone.isRightEdge) -dy else dy, lateral = dx)
+        }
+
+    private data class DragComponents(val inward: Float, val lateral: Float)
+
     // Classify the inward drag angle into one of three non-overlapping windows. Negative angle =
-    // upward drag, ~0 = horizontal (inward), positive = downward. Bounds are device-test tuning candidates.
+    // lateral-negative drag, ~0 = straight inward, positive = lateral-positive. Under the vertical axis
+    // that reads as up/inward/down; transposed, as left/inward/right. Bounds are device-test candidates.
     private fun directionForAngle(angle: Double): ScreenshotGestureDirection? = when (angle) {
         in UP_MIN_ANGLE_DEGREES..UP_MAX_ANGLE_DEGREES -> ScreenshotGestureDirection.UP
         in RIGHT_MIN_ANGLE_DEGREES..RIGHT_MAX_ANGLE_DEGREES -> ScreenshotGestureDirection.RIGHT
@@ -422,39 +518,74 @@ class ScreenGestureOverlayManager(
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val windowMetrics = windowManager.currentWindowMetrics
-            val insets = windowMetrics.windowInsets.getInsetsIgnoringVisibility(
-                WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout()
+            val types = WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout()
+            // S1358: two questions, two inset sources. WHICH edge pair the bands take must not
+            // flip when a bar is briefly revealed, so the axis keeps reading the reserved inset
+            // (S1188's reason). HOW FAR from that edge they sit must follow the bar that is
+            // actually on screen: under a fullscreen video the status bar is hidden and the
+            // reserved variant still claims its height, which parked the band a bar-height below
+            // an empty physical edge.
+            val visible = windowMetrics.windowInsets.getInsets(types)
+            val reserved = windowMetrics.windowInsets.getInsetsIgnoringVisibility(types)
+            Timber.d(
+                "S1358: insets visible=${visible.top}/${visible.bottom}/${visible.left}/${visible.right} " +
+                    "reserved=${reserved.top}/${reserved.bottom}/${reserved.left}/${reserved.right}"
             )
-            val safeHeight =
-                (windowMetrics.bounds.height() - insets.top - insets.bottom).coerceAtLeast(1)
             return Geometry(
-                safeTop = insets.top,
-                safeHeight = safeHeight,
-                safeLeft = insets.left,
-                safeRight = insets.right,
+                safeTop = visible.top,
+                safeBottom = visible.bottom,
+                safeLeft = visible.left,
+                safeRight = visible.right,
+                axisLeft = reserved.left,
+                axisRight = reserved.right,
                 screenWidth = windowMetrics.bounds.width(),
+                screenHeight = windowMetrics.bounds.height(),
                 stripWidth = stripWidth
             )
         }
 
+        // Pre-R reports no per-edge inset breakdown, so the free edge pair cannot be established and
+        // the zeroed insets keep [Geometry.axis] on the historical left/right placement.
         return Geometry(
             safeTop = 0,
-            safeHeight = metrics.heightPixels.coerceAtLeast(1),
+            safeBottom = 0,
             safeLeft = 0,
             safeRight = 0,
+            axisLeft = 0,
+            axisRight = 0,
             screenWidth = metrics.widthPixels,
+            screenHeight = metrics.heightPixels,
             stripWidth = stripWidth
         )
     }
 
     private data class Geometry(
+        // Live insets: what a bar currently occupies. These place the band.
         val safeTop: Int,
-        val safeHeight: Int,
+        val safeBottom: Int,
         val safeLeft: Int,
         val safeRight: Int,
+        // S1358: reserved insets, kept separate because they answer a different question - which
+        // edge pair is free - and must stay stable while a bar is hidden and shown again.
+        val axisLeft: Int,
+        val axisRight: Int,
         val screenWidth: Int,
+        val screenHeight: Int,
         val stripWidth: Int
-    )
+    ) {
+        val safeHeight: Int get() = (screenHeight - safeTop - safeBottom).coerceAtLeast(1)
+        val safeWidth: Int get() = (screenWidth - safeLeft - safeRight).coerceAtLeast(1)
+
+        // S1188: derived rather than passed in, so the placement rule has exactly one definition and
+        // the pre-R zeroed-inset fallback resolves through it too.
+        val axis: EdgeGestureAxis get() = EdgeGestureAxis.forInsets(axisLeft, axisRight)
+
+        /** A guide must not be drawn after a live system inset has moved its band inward. */
+        fun isBandOnPhysicalEdge(zone: ScreenshotGestureZone): Boolean = when (axis) {
+            EdgeGestureAxis.VERTICAL -> if (zone.isRightEdge) safeRight == 0 else safeLeft == 0
+            EdgeGestureAxis.HORIZONTAL -> if (zone.isRightEdge) safeBottom == 0 else safeTop == 0
+        }
+    }
 
     private data class BandFrame(val x: Int, val y: Int, val width: Int, val height: Int)
 
@@ -476,7 +607,10 @@ class ScreenGestureOverlayManager(
         private const val BAND_TOP_START = 0.10f
         private const val BAND_BOTTOM_START = 0.60f
         private const val BAND_HEIGHT = 0.30f
-        private const val GESTURE_DISTANCE_PX = 120.0
+
+        // A band shorter than this many strip widths is not reliably hittable, so the percentage
+        // length is floored at it on small safe areas.
+        private const val MIN_BAND_LENGTH_STRIPS = 4
 
         // S1162: hint row order - up, straight ahead, down, matching the settings direction diagram.
         private val HINT_DIRECTION_ORDER = listOf(
@@ -497,7 +631,8 @@ class ScreenGestureOverlayManager(
     private class EdgeGuideDrawable(
         color: Int,
         private val visibleWidthPx: Int,
-        private val alignEnd: Boolean
+        private val alignEnd: Boolean,
+        private val axis: EdgeGestureAxis
     ) : Drawable() {
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.FILL
@@ -505,10 +640,18 @@ class ScreenGestureOverlayManager(
         }
 
         override fun draw(canvas: Canvas) {
-            val width = visibleWidthPx.coerceAtMost(bounds.width()).coerceAtLeast(0)
-            if (width <= 0 || bounds.height() <= 0) return
-            val left = if (alignEnd) (bounds.width() - width).toFloat() else 0f
-            canvas.drawRect(left, 0f, left + width, bounds.height().toFloat(), paint)
+            // The guide's thickness always runs across the band's own edge, so the only thing the axis
+            // changes is which bounds dimension it is measured against and which way the rect is laid.
+            val vertical = axis == EdgeGestureAxis.VERTICAL
+            val span = if (vertical) bounds.width() else bounds.height()
+            val thickness = visibleWidthPx.coerceAtMost(span)
+            if (thickness <= 0 || bounds.width() <= 0 || bounds.height() <= 0) return
+            val offset = if (alignEnd) (span - thickness).toFloat() else 0f
+            if (vertical) {
+                canvas.drawRect(offset, 0f, offset + thickness, bounds.height().toFloat(), paint)
+            } else {
+                canvas.drawRect(0f, offset, bounds.width().toFloat(), offset + thickness, paint)
+            }
         }
 
         override fun setAlpha(alpha: Int) {

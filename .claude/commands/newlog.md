@@ -1,6 +1,5 @@
 ---
 description: "Use when intaking a fresh remote-diagnostics log bundle for analysis. Triggers: 'new log', remote diagnostics intake, an incoming device log package."
-model: sonnet
 ---
 
 # New Log - Remote Diagnostics Intake
@@ -62,8 +61,11 @@ Exit codes:
 
 ### 2 - Determine files to analyse
 
-`toAnalyze = newFiles + updatedFiles`, ordered chronologically by the timestamp embedded in the
-filename (`fastmediasorter_YYYYMMDD_HHmmss.log`), oldest first.
+`toAnalyze = newFiles + updatedFiles`. For each file, scan log lines matching
+`yyyy-MM-dd HH:mm:ss.SSS` and use the **latest** valid timestamp as its chronological key; sort
+oldest first. This deliberately ignores the timestamp embedded in the filename: device clocks can
+be corrected during a session. If a file has no parseable timestamp, place it after timestamped
+sessions and report that fallback explicitly.
 
 `unchangedFiles` were already extracted (and presumably analysed) by a prior `/newlog` run or a
 manual import - skip them, they are not re-read.
@@ -108,8 +110,8 @@ If any session surfaced a crash/exception, lead with that file instead of chrono
 - **Extraction target is exactly `logs/`.** Never write elsewhere.
 - **Filename is never an identity signal for the archive itself** - selection is recency + zip
   content only, per the "Why this exists" section above. Do not special-case a language string.
-- **Dedup is by (name, size)**, not hash - filenames are session-start timestamps generated
-  on-device, so a same-name/same-size collision with different content is not realistic here.
+- **Dedup is by SHA-256 content.** When two different sessions have the same on-device filename,
+  the importer preserves both; the later one gains a SHA-256 suffix before `.log`.
 - **Ticket creation/update is fully delegated to `/log-reader`.** `/newlog` is the intake +
   fan-out glue, not a spec-mutating skill in its own right.
 

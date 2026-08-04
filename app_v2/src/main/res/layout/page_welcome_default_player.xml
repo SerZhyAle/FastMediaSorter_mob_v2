@@ -8,20 +8,26 @@
     android:layout_height="match_parent"
     android:fillViewport="true">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
         android:padding="@dimen/welcome_page_padding">
 
-        <!-- Content column capped at welcome_content_max_width for wide/TV screens -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <!-- Content column capped at welcome_content_max_width and centred for wide/TV screens.
+             S1237: the cap is expressed as layout_constraintWidth_max, matching every other welcome
+             page. It previously read android:maxWidth on a LinearLayout - an attribute the platform
+             declares only for TextView/ImageView/ProgressBar/SearchView, so it never applied and the
+             page was the only one in the wizard rendering full-bleed.
+             S1234: id shared with the other welcome pages so the pager adapter can tint the
+             translucent panel behind the copy here too. -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layoutContent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:maxWidth="@dimen/welcome_content_max_width">
+            app:layout_constraintWidth_max="@dimen/welcome_content_max_width"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/ivIcon"
@@ -30,47 +36,96 @@
                 android:layout_marginTop="@dimen/welcome_icon_margin_top"
                 android:contentDescription="@string/welcome_default_player_title"
                 android:src="@drawable/ic_audio"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
                 app:tint="?attr/colorPrimary" />
 
             <TextView
                 android:id="@+id/tvTitle"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/welcome_title_margin_top"
                 android:gravity="center"
                 android:text="@string/welcome_default_player_title"
                 android:textColor="?attr/colorOnSurface"
                 android:textSize="@dimen/welcome_title_text_size"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/ivIcon" />
 
             <TextView
                 android:id="@+id/tvDescription"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/welcome_description_margin_top"
                 android:gravity="center"
+                android:lineSpacingMultiplier="1.3"
                 android:text="@string/welcome_default_player_description"
                 android:textColor="?attr/colorOnSurface"
                 android:textSize="@dimen/welcome_description_text_size"
-                android:lineSpacingMultiplier="1.3" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+
+            <!-- S1385: what the choice actually changes, and that it is reversible. Deliberately
+                 type-neutral ("a file", not "a video") - the button set below is flavor-gated - and
+                 it names no Android settings path, which differs across OS versions. Both ids mirror
+                 the landscape variant (CLAUDE.md Rule 11); the constraint chain below runs
+                 description -> details -> hint -> revert note -> buttons. -->
+            <TextView
+                android:id="@+id/tvDefaultPlayerDetails"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/welcome_description_margin_top"
+                android:alpha="0.85"
+                android:gravity="center"
+                android:lineSpacingMultiplier="1.3"
+                android:text="@string/welcome_default_player_details"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/welcome_description_text_size"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvDescription" />
 
             <TextView
                 android:id="@+id/tvHint"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/margin_medium"
                 android:gravity="center"
                 android:text="@string/welcome_default_player_hint"
                 android:textColor="?attr/colorPrimary"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvDefaultPlayerDetails" />
+
+            <TextView
+                android:id="@+id/tvDefaultPlayerRevertNote"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:alpha="0.75"
+                android:gravity="center"
+                android:text="@string/welcome_default_player_revert_note"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="14sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvHint" />
 
             <!-- 4 type-specific buttons. Visibility is gated in DefaultPlayerViewHolder by BuildConfig. -->
             <LinearLayout
                 android:id="@+id/layoutTypeButtons"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/margin_large"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvDefaultPlayerRevertNote">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSetDefaultAudio"
@@ -109,8 +164,8 @@
 
             </LinearLayout>
 
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>

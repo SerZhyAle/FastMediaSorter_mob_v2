@@ -51,16 +51,30 @@ try {
     $sitemap = [System.Text.StringBuilder]::new()
     [void]$sitemap.AppendLine('<?xml version="1.0" encoding="UTF-8"?>')
     [void]$sitemap.AppendLine('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">')
+    $siteBase = 'https://serzhyale.github.io/FastMediaSorter_mob_v2'
     foreach ($record in ($records | Where-Object { $_.published -and $_.indexable } | Sort-Object url)) {
-        $url = "https://serzhyale.github.io/FastMediaSorter_mob_v2$($record.url)"
-        [void]$sitemap.AppendLine('  <url>')
-        [void]$sitemap.AppendLine("    <loc>$url</loc>")
-        if ($record.id -eq 'site-landing') {
-            [void]$sitemap.AppendLine(('    <xhtml:link rel="alternate" hreflang="en" href="{0}"/>' -f $url))
-            [void]$sitemap.AppendLine('    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html"/>')
-            [void]$sitemap.AppendLine('    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html"/>')
+        $localized = $record.localized_urls
+        if (-not $localized) {
+            # Single-language record: one entry, no hreflang cluster to describe.
+            [void]$sitemap.AppendLine('  <url>')
+            [void]$sitemap.AppendLine("    <loc>$siteBase$($record.url)</loc>")
+            [void]$sitemap.AppendLine('  </url>')
+            continue
         }
-        [void]$sitemap.AppendLine('  </url>')
+        # Translated record: every language is its own indexable page, and each entry repeats the
+        # whole cluster including a self-reference - a version listed only as someone else's
+        # alternate is routinely left unindexed.
+        $langs = @($record.languages | Where-Object { $localized.PSObject.Properties.Name -contains $_ })
+        $default = if ($langs -contains 'en') { 'en' } else { $langs[0] }
+        foreach ($lang in $langs) {
+            [void]$sitemap.AppendLine('  <url>')
+            [void]$sitemap.AppendLine("    <loc>$siteBase$($localized.$lang)</loc>")
+            foreach ($alt in $langs) {
+                [void]$sitemap.AppendLine(('    <xhtml:link rel="alternate" hreflang="{0}" href="{1}{2}"/>' -f $alt, $siteBase, $localized.$alt))
+            }
+            [void]$sitemap.AppendLine(('    <xhtml:link rel="alternate" hreflang="x-default" href="{0}{1}"/>' -f $siteBase, $localized.$default))
+            [void]$sitemap.AppendLine('  </url>')
+        }
     }
     [void]$sitemap.AppendLine('</urlset>')
     $mapDrift = Set-GeneratedFile -Path (Join-Path $RepoRoot 'docs/DOCS_MAP.md') -Content $mapContent

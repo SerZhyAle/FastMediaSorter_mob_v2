@@ -123,6 +123,64 @@ exit 2
     $missingExit = Invoke-Gate (Join-Path $sandbox 'no-such-file.ps1')
     Assert-That 'G1 gate exits 2 on a missing scan root' ($missingExit -eq 2) "expected 2, got $missingExit"
 
+    # --- I: Rule C (S1338 phase 09) - a non-zero exit with nothing printed forces the caller to
+    # re-run blind just to learn what went wrong. -ReasonBaseline 0 turns the fixture into an
+    # assertion; without it a -Path probe is report-only. ---
+    Write-Host 'I: a non-zero exit with no reason printed is flagged, a reasoned one is spared' -ForegroundColor Yellow
+    $noReason = New-Fixture 'noreason.ps1' @'
+$ErrorActionPreference = 'Stop'
+if ($true) {
+    exit 3
+}
+exit 0
+'@
+    $withReason = New-Fixture 'withreason.ps1' @'
+$ErrorActionPreference = 'Stop'
+if ($true) {
+    Write-Error 'nothing to do here' -ErrorAction Continue
+    exit 3
+}
+exit 0
+'@
+    & $pwshExe -NoProfile -File $gate -Gate -Path $noReason -ReasonBaseline 0 *> $null
+    $noReasonExit = $LASTEXITCODE
+    Assert-That 'I1 gate exits 1 on a reasonless exit' ($noReasonExit -eq 1) "expected 1, got $noReasonExit"
+    & $pwshExe -NoProfile -File $gate -Gate -Path $withReason -ReasonBaseline 0 *> $null
+    $withReasonExit = $LASTEXITCODE
+    Assert-That 'I2 gate exits 0 when a reason is printed' ($withReasonExit -eq 0) "expected 0, got $withReasonExit"
+
+    # --- J (S1368): a machine-readable verb prints its reason as a rendered pipeline, not a
+    # Write-*. The heuristic used to see only the latter and turned a normal control-flow signal
+    # into a red gate, whose obvious "fix" would have been a Write-Error announcing an expected
+    # outcome and corrupting the JSON its caller parses. A diverted tail is still no reason. ---
+    Write-Host 'J: a rendered pipeline counts as the reason, a diverted one does not' -ForegroundColor Yellow
+    $jsonReason = New-Fixture 'jsonreason.ps1' @'
+$ErrorActionPreference = 'Stop'
+$result = @{ crossed = $true }
+if ($true) {
+    [PSCustomObject]@{
+        crossed = $result.crossed
+    } | ConvertTo-Json -Compress
+    exit 3
+}
+exit 0
+'@
+    $swallowed = New-Fixture 'swallowed.ps1' @'
+$ErrorActionPreference = 'Stop'
+$result = @{ crossed = $true }
+if ($true) {
+    $result | Out-Null
+    exit 3
+}
+exit 0
+'@
+    & $pwshExe -NoProfile -File $gate -Gate -Path $jsonReason -ReasonBaseline 0 *> $null
+    $jsonReasonExit = $LASTEXITCODE
+    Assert-That 'J1 gate exits 0 when the reason is a ConvertTo-Json pipeline' ($jsonReasonExit -eq 0) "expected 0, got $jsonReasonExit"
+    & $pwshExe -NoProfile -File $gate -Gate -Path $swallowed -ReasonBaseline 0 *> $null
+    $swallowedExit = $LASTEXITCODE
+    Assert-That 'J2 gate exits 1 when the pipeline tail is Out-Null' ($swallowedExit -eq 1) "expected 1, got $swallowedExit"
+
     # --- H: live regression - the real tree stays clean (all 18 S1070 sites cured). ---
     Write-Host 'H: the repository scripts/ tree has no unreachable exit site' -ForegroundColor Yellow
     & $pwshExe -NoProfile -File $gate -Gate -Quiet *> $null

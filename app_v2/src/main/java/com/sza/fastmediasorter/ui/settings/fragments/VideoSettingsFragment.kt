@@ -1,18 +1,22 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.TooltipCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsVideoBinding
-import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
+import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderDestinationPickerManager
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.launch
 
 @android.annotation.SuppressLint("SetTextI18n")
@@ -22,6 +26,17 @@ class VideoSettingsFragment : BaseSettingsFragment() {
     private val binding get() = _binding!!
 
     private val viewModel: SettingsViewModel by activityViewModels()
+
+    private val localFolderDestinationPickerManager by lazy {
+        LocalFolderDestinationPickerManager(this, viewModel, localFolderDestinationPickerLauncher)
+    }
+
+    // S1010: SAF picker for the "Local Folder" snapshot-destination option. Must be created at
+    // field-init time (registerForActivityResult must run before the fragment reaches CREATED).
+    private val localFolderDestinationPickerLauncher: ActivityResultLauncher<Uri?> =
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+            localFolderDestinationPickerManager.onFolderPicked(uri)
+        }
 
     companion object {
         private const val KB_TO_BYTES = 1024L
@@ -138,6 +153,7 @@ class VideoSettingsFragment : BaseSettingsFragment() {
                 currentSelection = viewModel.settings.value.videoSnapshotResourceId,
                 title = getString(R.string.select_snapshot_destination),
                 allowClear = true,
+                localFolderPicker = localFolderDestinationPickerManager,
                 onResourceSelected = { resource ->
                     val current = viewModel.settings.value
                     viewModel.updateSettings(current.copy(videoSnapshotResourceId = resource?.id))

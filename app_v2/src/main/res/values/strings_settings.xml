@@ -85,7 +85,10 @@
     <string name="settings_profile_source_migration">migrated</string>
     <string name="settings_profile_source_skipped">auto-skipped</string>
     <string name="settings_profile_title">Device profile</string>
-    <string name="settings_profile_warning">Warning: Changing the profile will overwrite some of your settings with the default values of the new profile. Are you sure you want to proceed?</string>
+    <plurals name="settings_profile_warning_count">
+        <item quantity="one">Switching to this profile replaces %1$d setting with the value this profile defines. Continue?</item>
+        <item quantity="other">Switching to this profile replaces %1$d settings with the values this profile defines. Continue?</item>
+    </plurals>
     <string name="settings_all_files_create_resource">Create resource \"All Files\"</string>
     <string name="settings_all_files_resource_created">Resource \"All Files\" created.</string>
     <string name="settings_all_files_profile_confirm_title">Create \"All Files\" resource</string>

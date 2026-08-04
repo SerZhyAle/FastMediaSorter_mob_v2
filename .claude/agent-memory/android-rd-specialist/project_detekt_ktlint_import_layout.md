@@ -23,4 +23,15 @@ case-sensitive comparison (a one-off S0751 sorter script in `temp/` was wiped; i
 sort with `[string]::CompareOrdinal` per group). Verify with `./gradlew.bat :app_v2:detekt --rerun-tasks` (plain `:app_v2:detekt` may replay a
 cached failure without regenerating app_v2/build/reports/detekt/detekt.txt). Related: also fix
 `TooGenericExceptionThrown` via `check(..)`/`error(..)` not `throw IllegalStateException`
-(detekt's UseCheckOrError fires on the latter). See [[detekt_gate_in_post_change]].
+(detekt's UseCheckOrError fires on the latter). See [[detekt-gate-in-post-change]].
+
+**Do not script the check in PowerShell - both obvious ways lie.** On S1328 (2026-07-31) two
+scripted audits of `StreamsActivity.kt` gave two different wrong answers before hand-comparison
+found the single real violation. `Sort-Object -CaseSensitive` is culture-aware, not ordinal, and
+reported 33 bogus out-of-place imports. Piping `Group-Object` output into
+`[Array]::Sort($g, [System.StringComparer]::Ordinal)` reported 30 - the elements arrive
+`PSObject`-wrapped, so the comparer is silently ignored and the sort falls back to
+case-insensitive. Both flag the correct-by-rule cases (`com.x.R` above `com.x.core.*`,
+`ui.player.PlayerActivity` above `ui.player.helpers.*`) as errors. Compare the suspect pair by hand
+against the rule above, then let a fresh detekt run be the proof. Note also that `ImportOrdering`
+is one finding for the whole block, so the finding count never tells you how many lines are wrong.

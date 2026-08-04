@@ -29,6 +29,7 @@ class BrowseShutdownCoordinator(
     private val ioDispatcher: CoroutineDispatcher,
     private val browseStateDataStore: BrowseStateDataStore,
     private val unifiedCache: UnifiedFileCache,
+    private val hasActiveTransfer: suspend () -> Boolean,
     private val cleanupTrash: suspend (MediaResource) -> Unit
 ) {
 
@@ -59,9 +60,17 @@ class BrowseShutdownCoordinator(
      * the supplied scope (the ViewModel still owns the scope).
      */
     fun onShutdown(scope: CoroutineScope) {
-        buildNetworkResourceKey()?.let {
-            ConnectionThrottleManager.cancelAllForResource(it)
-            Timber.d("BrowseShutdownCoordinator.onShutdown: cancelled ops for $it")
+        val resourceKey = buildNetworkResourceKey()
+        CoroutineScope(ioDispatcher + NonCancellable).launch {
+            if (hasActiveTransfer()) {
+                Timber.d("S1362: shutdown throttle cleanup skipped during active transfer")
+                Timber.i("BrowseShutdownCoordinator: skipped throttle cleanup during active transfer")
+            } else {
+                resourceKey?.let {
+                    ConnectionThrottleManager.cancelAllForResource(it)
+                    Timber.d("BrowseShutdownCoordinator.onShutdown: cancelled ops for $it")
+                }
+            }
         }
         scope.launch(ioDispatcher) {
             browseStateDataStore.saveFilter(stateFlow.value.filter)
@@ -77,8 +86,13 @@ class BrowseShutdownCoordinator(
         CoroutineScope(ioDispatcher + NonCancellable).launch {
             runCatching { cleanupTrash(resource) }
                 .onFailure { Timber.w(it, "BrowseShutdownCoordinator: trash cleanup failed") }
-            runCatching { unifiedCache.clearAll() }
-                .onFailure { Timber.w(it, "BrowseShutdownCoordinator: cache cleanup failed") }
+            if (hasActiveTransfer()) {
+                Timber.d("S1362: shutdown cache cleanup skipped during active transfer")
+                Timber.i("BrowseShutdownCoordinator: skipped cache cleanup during active transfer")
+            } else {
+                runCatching { unifiedCache.clearAll() }
+                    .onFailure { Timber.w(it, "BrowseShutdownCoordinator: cache cleanup failed") }
+            }
         }
     }
 }

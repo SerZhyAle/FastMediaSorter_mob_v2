@@ -146,7 +146,7 @@ spec-quiz <Sxxxx> <slug>
 - **AskUserQuestion is the only question vehicle.** Never ask free-form questions in chat prose when MC options can frame the decision. Always lead each question with a researched recommended default.
 - **Never ask what the architecture already answers.** Filter every candidate question against codebase/docs first (Stage 1). Silently fill and report auto-resolved ones.
 - **Never fabricate an owner answer.** Owner skips a question (AskUserQuestion returns no choice) → do not invent one - leave that input unfilled, do not advance past the gate that needs it, report it as outstanding.
-- **Never hand-edit `PLAN/spec-catalog.jsonl`.** All status changes go through `update.ps1`. Status header in `.md` synced by mutator, not by hand.
+- **Catalog writes.** Per CLAUDE.md Rule 12 (spec catalog is script-owned) - obey it as written; all status changes go through `update.ps1`, which also syncs the `.md` status header.
 - **No code, no build.** A quiz collects decisions and advances status. Implementation belongs to `/spec-dev` (reached via `--chain` → `/spec-all`).
 - **Debug-tag invariant untouched.** This skill never enters or leaves `BlockNeedUserTest`, so it neither inserts nor removes `Timber.d("Sxxxx:` tags.
 - **`--dry` mutates nothing** - no questions asked, no file edits, no status change, no dev log.

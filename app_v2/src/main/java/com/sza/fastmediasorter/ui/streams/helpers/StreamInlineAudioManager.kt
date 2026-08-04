@@ -4,9 +4,6 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.view.View
-import android.widget.ImageButton
-import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.media3.common.AudioAttributes
@@ -42,24 +39,9 @@ import timber.log.Timber
 @UnstableApi
 class StreamInlineAudioManager(
     lifecycleOwner: LifecycleOwner,
-    private val miniControl: View,
-    private val titleView: TextView,
-    private val playStopButton: ImageButton,
+    private val views: StreamInlineAudioViews,
     private val audioController: AudioServiceController,
-    private val onPlayingChanged: (String?) -> Unit,
-    // Fired when the inline stream fails to play (no response, dead URL). The Activity surfaces a
-    // dialog offering retry / remove-from-list - without this hook the failure only stopped the
-    // background service and left the UI silent.
-    private val onError: (StreamSourceEntity) -> Unit = {},
-    // S0593: fired once per play when the stream actually starts playing (ground-truth "OK" outcome).
-    // The Activity forwards it to the ViewModel, which records the green status for this source.
-    private val onSuccess: (StreamSourceEntity) -> Unit = {},
-    // S1142: fired with this manager's own playing id and the current now-playing track line (or null)
-    // so the Activity can mirror it onto the active channel's grid tile (the grid adapters have no
-    // metadata pipeline of their own). The id is passed in rather than read back from the Activity's
-    // reference to this manager: the init-time StateFlow emit fires synchronously inside the constructor,
-    // before that lateinit field is assigned, so reading it back crashed (UninitializedPropertyAccess).
-    private val onNowPlayingChanged: (playingId: String?, track: String?) -> Unit = { _, _ -> },
+    private val callbacks: StreamInlineAudioCallbacks = StreamInlineAudioCallbacks(),
 ) {
 
     private var currentSource: StreamSourceEntity? = null
@@ -99,12 +81,23 @@ class StreamInlineAudioManager(
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             // S0593: first transition to actually-playing = the stream works here -> record OK once.
-            if (isPlaying) reportSuccessfulPlayback()
+            if (isPlaying) {
+                markPlaybackHealthy()
+                reportSuccessfulPlayback()
+                callbacks.onPlaybackStateChanged(currentSource, true)
+            }
+        }
+
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            if (!playWhenReady) callbacks.onPlaybackStateChanged(null, false)
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             when (playbackState) {
-                Player.STATE_READY -> reportSuccessfulPlayback()
+                Player.STATE_READY -> {
+                    markPlaybackHealthy()
+                    reportSuccessfulPlayback()
+                }
                 Player.STATE_BUFFERING -> if (hasSuccessfulPlayback) scheduleToleranceTimeout()
             }
         }
@@ -142,16 +135,16 @@ class StreamInlineAudioManager(
                 return
             }
             stop()
-            failed?.let(onError)
+            failed?.let(callbacks.onError)
         }
     }
 
     init {
-        playStopButton.setOnClickListener { stop() }
+        views.playStopButton.setOnClickListener { stop() }
         lifecycleOwner.collectOnLifecycle(nowPlaying) {
             renderTitle()
             val track = nowPlaying.value?.trackLine()
-            onNowPlayingChanged(playingId, track)
+            callbacks.onNowPlayingChanged(playingId, track)
         }
     }
 
@@ -163,7 +156,7 @@ class StreamInlineAudioManager(
      * side cutout is covered too. Wiring lives here, not in the Activity (Rule 3).
      */
     fun applyWindowInsets() {
-        miniControl.applySystemBarInsetPadding(applyTop = false)
+        views.miniControl.applySystemBarInsetPadding(applyTop = false)
     }
 
     /** Returns the id of the source currently playing inline, or null. */
@@ -188,8 +181,9 @@ class StreamInlineAudioManager(
         noSignalVisible = false
         scheduleToleranceTimeout()
         nowPlaying.value = null
-        miniControl.isVisible = true
-        onPlayingChanged(source.id)
+        views.miniControl.isVisible = true
+        Timber.d("S1219: mini control shown, width=${views.miniControl.width}")
+        callbacks.onPlayingChanged(source.id)
         renderTitle()
         Timber.i("StreamInlineAudioManager: inline audio start - %s (bg=%b)", source.url, useBackgroundService)
         usingService = useBackgroundService
@@ -211,20 +205,20 @@ class StreamInlineAudioManager(
             // S1015: reuse the shared factory (Icy-MetaData + userinfo Basic-Auth) instead of a local
             // one-off - NetworkAwareMediaSourceFactory's http/https branch already does the same for the
             // background-service twin, and a duplicated factory here had silently dropped the auth fix.
-            val httpFactory = StreamDataSourceFactoryProvider.create(miniControl.context)
+            val httpFactory = StreamDataSourceFactoryProvider.create(views.miniControl.context)
             // S0896: this OFF-mode local player had no audio-focus/becoming-noisy handling, unlike
             // its service-mode twin (audioController.playAudioWithMetadata -> AudioPlaybackService).
             val audioAttributes = AudioAttributes.Builder()
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                 .setUsage(C.USAGE_MEDIA)
                 .build()
-            val local = ExoPlayer.Builder(miniControl.context)
+            val local = ExoPlayer.Builder(views.miniControl.context)
                 .setMediaSourceFactory(
                     DefaultMediaSourceFactory(httpFactory).setLoadErrorHandlingPolicy(
-                        RadioStreamBufferConfig.createLoadErrorHandlingPolicy(miniControl.context)
+                        RadioStreamBufferConfig.createLoadErrorHandlingPolicy(views.miniControl.context)
                     )
                 )
-                .setLoadControl(RadioStreamBufferConfig.createLoadControl(miniControl.context))
+                .setLoadControl(RadioStreamBufferConfig.createLoadControl(views.miniControl.context))
                 .setAudioAttributes(
                     audioAttributes,
                     /* handleAudioFocus= */
@@ -245,7 +239,7 @@ class StreamInlineAudioManager(
 
     fun stop() {
         stopPlaybackKeepingController()
-        miniControl.isVisible = false
+        views.miniControl.isVisible = false
     }
 
     /** Releases the service connection; call from the Activity's onDestroy. */
@@ -264,12 +258,13 @@ class StreamInlineAudioManager(
         usingService = false
         currentSource = null
         nowPlaying.value = null
-        onPlayingChanged(null)
-        miniControl.isVisible = false
+        callbacks.onPlayingChanged(null)
+        views.miniControl.isVisible = false
         audioController.release()
     }
 
     private fun stopPlaybackKeepingController() {
+        if (currentSource != null) callbacks.onPlaybackStateChanged(null, false)
         clearRecoveryState()
         player?.removeListener(playerListener)
         val local = localPlayer
@@ -292,7 +287,7 @@ class StreamInlineAudioManager(
         usingService = false
         currentSource = null
         nowPlaying.value = null
-        onPlayingChanged(null)
+        callbacks.onPlayingChanged(null)
     }
 
     private fun renderTitle() {
@@ -300,10 +295,25 @@ class StreamInlineAudioManager(
         // formatter reuses S0691's `Name (Name)` dedup so the mini-control matches the list/grid rendering.
         val station = currentSource?.title ?: return
         val displayTitle = StreamTitleFormatter.nowPlayingLine(station, nowPlaying.value)
-        titleView.text = if (noSignalVisible) {
-            "$displayTitle - [${miniControl.context.getString(R.string.streams_no_signal)}]"
+        views.titleView.text = if (noSignalVisible) {
+            "$displayTitle - [${views.miniControl.context.getString(R.string.streams_no_signal)}]"
         } else {
             displayTitle
+        }
+    }
+
+    /**
+     * Audio is flowing: drop the pending stall timeout and any "no signal" marker it already raised.
+     * Deliberately separate from [reportSuccessfulPlayback], which is once-per-play (successReported) -
+     * after the first re-buffer that guard made it a no-op, so the marker stayed on screen for the rest
+     * of the session while the stream was audibly fine.
+     */
+    private fun markPlaybackHealthy() {
+        recoveryHandler.removeCallbacks(toleranceRunnable)
+        retryAttempt = 0
+        if (noSignalVisible) {
+            noSignalVisible = false
+            renderTitle()
         }
     }
 
@@ -311,11 +321,8 @@ class StreamInlineAudioManager(
         if (successReported) return
         successReported = true
         hasSuccessfulPlayback = true
-        retryAttempt = 0
-        noSignalVisible = false
-        recoveryHandler.removeCallbacks(toleranceRunnable)
         renderTitle()
-        currentSource?.let(onSuccess)
+        currentSource?.let(callbacks.onSuccess)
     }
 
     private fun scheduleToleranceTimeout() {
@@ -330,20 +337,26 @@ class StreamInlineAudioManager(
 
     private fun handleToleranceTimeout() {
         val source = currentSource ?: return
+        // Never contradict what the user hears. A player that is still playing means the buffering
+        // event recovered without a further state change, so the timeout is stale - stay silent.
+        if (player?.isPlaying == true) {
+            markPlaybackHealthy()
+            return
+        }
         if (hasSuccessfulPlayback) {
             noSignalVisible = true
             renderTitle()
         } else {
             stop()
-            onError(source)
+            callbacks.onError(source)
         }
     }
 
-    private fun canRetry(error: PlaybackException): Boolean =
-        error.errorCode in PlaybackException.ERROR_CODE_IO_UNSPECIFIED..
-            PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE &&
-            (hasSuccessfulPlayback ||
-                elapsedSinceConnectionStart() < RadioStreamBufferConfig.DIALOG_TIMEOUT_MS)
+    private fun canRetry(error: PlaybackException): Boolean {
+        val firstIoCode = PlaybackException.ERROR_CODE_IO_UNSPECIFIED
+        val lastIoCode = PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE
+        return error.errorCode in firstIoCode..lastIoCode && canContinueRetrying()
+    }
 
     private fun scheduleLocalRetry() {
         val delay = (RadioStreamBufferConfig.BASE_RETRY_DELAY_MS shl retryAttempt)

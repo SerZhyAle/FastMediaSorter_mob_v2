@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.core.cache
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,7 +25,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class UnifiedFileCache @Inject constructor(
-    private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     // S1153: lazy so neither context.cacheDir access nor the mkdirs() disk touch runs in the
     // constructor. The singleton is built during Activity field injection on the main thread at
@@ -39,7 +41,25 @@ class UnifiedFileCache @Inject constructor(
     companion object {
         private const val MAX_CACHE_AGE_MS = 24 * 60 * 60 * 1000L // 24 hours
         private const val DEFAULT_MAX_CACHE_SIZE_BYTES = 500L * 1024 * 1024 // 500 MB (ML-006)
+
+        /** S1294: bytes handed out through [getCacheFile] before the budget is re-checked. */
+        private const val EVICTION_CHECK_BYTES = 64L * 1024 * 1024
+
+        /** S1294: upper bound between budget checks when downloads are small but constant. */
+        private const val EVICTION_CHECK_INTERVAL_MS = 5 * 60 * 1000L
+
+        /** A file this fresh may still be downloading or feeding the active player - never evict. */
+        private const val EVICTION_MIN_AGE_MS = 2 * 60 * 1000L
     }
+
+    // S1294: the ML-006 budget used to be enforced only in putFile(), which no real download path
+    // calls - every writer takes a getCacheFile() handle and streams into it, so an overnight
+    // network-audio session grew the directory to many GB. Checking there instead, throttled:
+    // a full stat sweep per metadata read (thousands while browsing) would be its own regression.
+    private val bytesSinceEvictionCheck = AtomicLong(0L)
+
+    @Volatile
+    private var lastEvictionCheckMs = 0L
 
     /**
      * Get cached file if exists and valid.
@@ -124,9 +144,27 @@ class UnifiedFileCache @Inject constructor(
         if (!cacheDir.exists()) {
             cacheDir.mkdirs()
         }
-        
+
+        maybeEvict(size)
+
         val cacheKey = generateCacheKey(path, size)
         return File(cacheDir, cacheKey)
+    }
+
+    /**
+     * S1294: run the LRU budget check on the direct-download path, throttled by accumulated bytes
+     * and elapsed time so a browse-driven burst of small reads does not stat the whole directory
+     * every call. A duplicate concurrent sweep is harmless, so plain atomics are enough.
+     */
+    private fun maybeEvict(incomingBytes: Long) {
+        val pending = bytesSinceEvictionCheck.addAndGet(incomingBytes.coerceAtLeast(0L))
+        val now = System.currentTimeMillis()
+        if (pending < EVICTION_CHECK_BYTES && now - lastEvictionCheckMs < EVICTION_CHECK_INTERVAL_MS) {
+            return
+        }
+        bytesSinceEvictionCheck.set(0L)
+        lastEvictionCheckMs = now
+        evictIfNeeded()
     }
     
     /**
@@ -160,11 +198,17 @@ class UnifiedFileCache @Inject constructor(
             return  // Within limit, no eviction needed
         }
         
-        // Sort by lastModified (oldest first) for LRU eviction
-        val sortedByAge = allFiles.sortedBy { it.lastModified() }
-        
-        Timber.d("UnifiedFileCache: Cache size (${totalSize / 1024 / 1024}MB) exceeds limit (${DEFAULT_MAX_CACHE_SIZE_BYTES / 1024 / 1024}MB), starting LRU eviction")
-        
+        // Sort by lastModified (oldest first) for LRU eviction. S1294: eviction now also runs while
+        // downloads are in flight, so anything just written is off limits - deleting the file the
+        // player or an active download is streaming into would surface as a playback failure.
+        val now = System.currentTimeMillis()
+        val sortedByAge = allFiles
+            .filter { now - it.lastModified() >= EVICTION_MIN_AGE_MS }
+            .sortedBy { it.lastModified() }
+
+        val limitMb = DEFAULT_MAX_CACHE_SIZE_BYTES / 1024 / 1024
+        Timber.d("UnifiedFileCache: ${totalSize / 1024 / 1024}MB over ${limitMb}MB limit - LRU eviction")
+
         for (file in sortedByAge) {
             if (totalSize <= DEFAULT_MAX_CACHE_SIZE_BYTES) {
                 break  // Cache is now within limit
@@ -180,6 +224,9 @@ class UnifiedFileCache @Inject constructor(
             }
         }
         
+        if (totalSize > DEFAULT_MAX_CACHE_SIZE_BYTES) {
+            Timber.w("UnifiedFileCache: over budget after eviction - remaining files too fresh to drop")
+        }
         Timber.d("UnifiedFileCache: LRU eviction complete, new total size: ${totalSize / 1024 / 1024}MB")
     }
     

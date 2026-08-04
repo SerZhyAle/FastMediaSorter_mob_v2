@@ -95,6 +95,7 @@ class AudioPlaybackService : MediaSessionService() {
 
     private var mediaSession: MediaSession? = null
     private var player: ExoPlayer? = null
+
     // S1142: last raw ICY StreamTitle pushed into the notification, to skip no-op updates (anti-flicker).
     private var lastIcyTitle: String? = null
     private val autoStopHandler = Handler(Looper.getMainLooper())
@@ -115,6 +116,10 @@ class AudioPlaybackService : MediaSessionService() {
     private var streamConnectionStartedAtMs = 0L
     private var streamHasSuccessfulPlayback = false
     private var streamRetryAttempt = 0
+
+    // Elapsed-time stamp of the first retry since the last successful READY; 0 = not retrying.
+    // Bounds the reconnect loop for a stream that already played once (S1291).
+    private var streamRetryStartedAtMs = 0L
     private val streamRetryRunnable = Runnable { retryCurrentStream() }
 
     // Live-radio stutters leave no trace at state level (playbackState stays READY, no error), so
@@ -263,6 +268,13 @@ class AudioPlaybackService : MediaSessionService() {
         /** Suppress repeat skip toasts within this window so a run of bad files does not spam (S0413). */
         private const val SKIP_TOAST_DEBOUNCE_MS = 3_000L
         private const val MAX_STREAM_BACKOFF_SHIFT = 2
+
+        /**
+         * S1291: how long reconnect attempts may continue after a stream that already played once
+         * stops being reachable. Without this cap the retry loop (<= 8 s apart) runs until the
+         * process dies, keeping a foreground service with a wake mode alive all night.
+         */
+        private const val MAX_STREAM_RETRY_WINDOW_MS = 5 * 60 * 1000L
         private const val STREAM_OUTCOME_OK = "OK"
         /** Matches VideoPlayerManager.POSITION_SAVE_INTERVAL_MS (15 s). */
         private const val POSITION_SAVE_INTERVAL_MS = 15_000L
@@ -639,6 +651,10 @@ class AudioPlaybackService : MediaSessionService() {
 
     private fun startPositionSaving() {
         val p = player ?: return
+        // S1291 (mirrors the S0854 fix in PlaybackPositionHelper): STATE_READY is re-entered on every
+        // seek and rebuffer, so overwriting the field without stopping the previous loop leaves its
+        // Handler runnable self-reposting forever, retaining the released player.
+        positionSaveLoop?.stop()
         positionSaveLoop = PositionSaveLoop(
             intervalMs = POSITION_SAVE_INTERVAL_MS,
             getPath = { currentOriginalPath.takeIf { it.isNotEmpty() } },
@@ -706,21 +722,42 @@ class AudioPlaybackService : MediaSessionService() {
         val delay = (RadioStreamBufferConfig.BASE_RETRY_DELAY_MS shl streamRetryAttempt)
             .coerceAtMost(RadioStreamBufferConfig.MAX_RETRY_DELAY_MS)
         streamRetryAttempt = (streamRetryAttempt + 1).coerceAtMost(MAX_STREAM_BACKOFF_SHIFT)
+        if (streamRetryStartedAtMs == 0L) streamRetryStartedAtMs = SystemClock.elapsedRealtime()
         autoStopHandler.removeCallbacks(streamRetryRunnable)
         autoStopHandler.postDelayed(streamRetryRunnable, delay)
     }
 
     private fun retryCurrentStream() {
         val currentPlayer = player ?: return
-        if (!streamHasSuccessfulPlayback &&
-            SystemClock.elapsedRealtime() - streamConnectionStartedAtMs >=
-            RadioStreamBufferConfig.DIALOG_TIMEOUT_MS
-        ) {
-            stopSelf()
-            return
+        when {
+            // S1291: the user paused while the retry was pending - reconnecting would resurrect
+            // playback behind their back (and re-arm playWhenReady, which also blocks swipe-away).
+            !currentPlayer.playWhenReady -> {
+                Timber.d("AudioPlaybackService: stream retry dropped - playback paused")
+                streamRetryStartedAtMs = 0L
+            }
+            giveUpStreamRetry() -> {
+                Timber.w("AudioPlaybackService: stream unreachable - stopping service instead of retrying")
+                AudioNowPlayingSnapshotStore.clear(this)
+                stopSelf()
+            }
+            else -> {
+                currentPlayer.prepare()
+                currentPlayer.playWhenReady = true
+            }
         }
-        currentPlayer.prepare()
-        currentPlayer.playWhenReady = true
+    }
+
+    /**
+     * S1291: a source that never played gets the short connect window; one that already played gets
+     * a bounded reconnect window instead of the former unlimited loop.
+     */
+    private fun giveUpStreamRetry(): Boolean {
+        val now = SystemClock.elapsedRealtime()
+        if (!streamHasSuccessfulPlayback) {
+            return now - streamConnectionStartedAtMs >= RadioStreamBufferConfig.DIALOG_TIMEOUT_MS
+        }
+        return streamRetryStartedAtMs != 0L && now - streamRetryStartedAtMs >= MAX_STREAM_RETRY_WINDOW_MS
     }
 
     private fun resetStreamRecovery(mediaItem: MediaItem?) {
@@ -728,6 +765,7 @@ class AudioPlaybackService : MediaSessionService() {
         streamConnectionStartedAtMs = SystemClock.elapsedRealtime()
         streamHasSuccessfulPlayback = false
         streamRetryAttempt = 0
+        streamRetryStartedAtMs = 0L
         val streamUrl = mediaItem?.localConfiguration?.uri?.toString() ?: return
         serviceScope.launch {
             streamHasSuccessfulPlayback = streamSourceRepository.getByUrl(streamUrl)?.lastPlayedAt != null
@@ -743,9 +781,11 @@ class AudioPlaybackService : MediaSessionService() {
      */
     private fun applyLiveIcyMetadata(rawIcyTitle: String) {
         if (rawIcyTitle == lastIcyTitle) return
-        val parsed = NowPlayingMetadata.parse(rawIcyTitle) ?: return
-        val p = player ?: return
-        val current = p.currentMediaItem ?: return
+        val p = player
+        val current = p?.currentMediaItem
+        val parsed = NowPlayingMetadata.parse(rawIcyTitle)
+        // One combined guard instead of a chain of early returns (detekt ReturnCount).
+        if (parsed == null || p == null || current == null) return
         val index = p.currentMediaItemIndex
         // Preserve the station across successive updates: after the first replace the item title holds
         // the song, so read the already-stored station field first and fall back to the initial title.
@@ -770,10 +810,14 @@ class AudioPlaybackService : MediaSessionService() {
 
     private fun recordCurrentStreamSuccess() {
         val streamUrl = player?.currentMediaItem?.localConfiguration?.uri?.toString() ?: return
-        streamHasSuccessfulPlayback = true
         streamRetryAttempt = 0
+        streamRetryStartedAtMs = 0L
         serviceScope.launch {
             val source = streamSourceRepository.getByUrl(streamUrl) ?: return@launch
+            // S1291: only a catalog stream earns the reconnect window. Setting this for every media
+            // item made an ordinary file (e.g. FILE_NOT_FOUND after cache eviction) retry forever
+            // instead of taking the fatal-error path that stops the service.
+            streamHasSuccessfulPlayback = true
             streamSourceRepository.recordPlayOutcome(source.id, STREAM_OUTCOME_OK)
             streamSourceRepository.markPlayed(source.id, System.currentTimeMillis())
         }

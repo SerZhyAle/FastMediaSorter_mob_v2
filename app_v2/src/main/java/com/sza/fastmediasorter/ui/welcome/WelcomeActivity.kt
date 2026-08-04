@@ -19,6 +19,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -32,16 +34,19 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
+import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeEnableAllManager
+import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeFeatureCards
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeFunctionalityController
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomePermissionsManager
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeRemoteSourcesController
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -92,20 +97,17 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     // Separate field so the restored page is applied once in setupViewPager() without
     // affecting currentPage until the ViewPager is ready.
     private var restoredPage = 0
-    private val pageBackgrounds = mutableListOf(
-        R.color.welcome_page_1_background,
-        R.color.welcome_page_2_background,
-        R.color.welcome_page_3_background,
-        R.color.welcome_page_4_background,
-        R.color.welcome_page_5_background,
-        R.color.welcome_page_6_background,
-        R.color.welcome_page_7_background
-    )
+
+    // S1377: registered in setupViewPager, unregistered on the destroy edge below.
+    private var rotationManager: com.sza.fastmediasorter.ui.welcome.helpers.WelcomeRotationManager? = null
+    // S1234: the per-page palette moved to WelcomePagePalette - the brand animation owns the page
+    // background now, and the colour tints the translucent panel behind each page's copy instead.
 
     override fun getViewBinding(): ActivityWelcomeBinding =
         ActivityWelcomeBinding.inflate(layoutInflater)
 
     override fun setupViews() {
+        observeBrandBackdrop()
         // WelcomeActivity is the root task at this point, so Back minimises instead of exiting.
         onBackPressedDispatcher.addCallback(
             this,
@@ -130,6 +132,21 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         // The permissions page (S0402) owns ActivityResult launchers - wire it before the pager binds.
         permissionsManager.attach(this)
 
+        // S1214: this screen recreates itself routinely (theme picks) and the language picker survives
+        // that recreation, so the listener belongs to the Activity instance rather than to a tap, and
+        // the language in effect is re-read on delivery instead of captured when the picker opened.
+        supportFragmentManager.setFragmentResultListener(
+            SearchableLanguagePickerDialog.RESULT_KEY,
+            this
+        ) { _, bundle ->
+            Timber.d("S1214: welcome ui-language result received")
+            val code = bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)
+                ?: return@setFragmentResultListener
+            if (code != LocaleHelper.getLanguage(this)) {
+                onWelcomeLanguageSelected(code)
+            }
+        }
+
         setupViewPager()
         setupButtons()
         updateUI()
@@ -147,16 +164,28 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         collectOnLifecycle(viewModel.events) { event ->
             when (event) {
                 is WelcomeEvent.ConfirmProfilePresetReapply ->
-                    showProfilePresetReapplyWarning(event.type)
+                    showProfilePresetReapplyWarning(event.type, event.overrideCount)
             }
         }
     }
 
     /** Re-entry from Settings changed the profile: warn before the preset overwrites tuned settings
-     *  (mirrors the Settings device-profile picker warning). Confirm reapplies; cancel keeps settings. */
-    private fun showProfilePresetReapplyWarning(type: DeviceProfileType) {
+     *  (mirrors the Settings device-profile picker warning). Confirm reapplies; cancel keeps settings.
+     *  S1216: [overrideCount] is resolved by the ViewModel and names how many settings are at stake;
+     *  a profile that overrides nothing is applied without a dialog, same as the Settings picker. */
+    private fun showProfilePresetReapplyWarning(type: DeviceProfileType, overrideCount: Int) {
+        if (overrideCount == 0) {
+            viewModel.confirmProfilePresetReapply(type)
+            return
+        }
         MaterialAlertDialogBuilder(this)
-            .setMessage(R.string.settings_profile_warning)
+            .setMessage(
+                resources.getQuantityString(
+                    R.plurals.settings_profile_warning_count,
+                    overrideCount,
+                    overrideCount
+                )
+            )
             .setPositiveButton(R.string.profile_picker_select) { _, _ ->
                 viewModel.confirmProfilePresetReapply(type)
             }
@@ -180,6 +209,33 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         outState.putInt(KEY_CURRENT_PAGE, currentPage)
         permissionsManager.onSaveInstanceState(outState)
         enableAllManager.onSaveInstanceState(outState)
+    }
+
+    /**
+     * S1234: the brand backdrop runs only while onboarding is on screen, so a backgrounded welcome
+     * never keeps a 60 fps animator alive - the same contract the launcher desktop uses for this
+     * view. A lifecycle observer rather than onStart/onStop overrides: this class already sits on
+     * detekt's 40-function ceiling, and the pair belongs together anyway.
+     */
+    private fun observeBrandBackdrop() {
+        lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStart(owner: LifecycleOwner) {
+                Timber.d("S1234: welcome brand animation start")
+                binding.brandAnimation.startAnimation()
+            }
+
+            override fun onStop(owner: LifecycleOwner) {
+                binding.brandAnimation.pauseAnimation()
+            }
+
+            // S1377: the rotation callback is registered against the Application, so it outlives this
+            // screen unless dropped here. Riding this observer keeps the Activity off detekt's
+            // 40-function ceiling that the KDoc above records.
+            override fun onDestroy(owner: LifecycleOwner) {
+                rotationManager?.let { unregisterComponentCallbacks(it) }
+                rotationManager = null
+            }
+        })
     }
 
     private fun applyEdgeToEdgeInsets() {
@@ -231,18 +287,12 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 titleRes = R.string.welcome_title_1,
                 descriptionRes = R.string.welcome_description_1,
                 detailDescriptionRes = R.string.welcome_description_1_details,
-                featureCards = listOf(
-                    // Row 1 in 3-col grid: content + two storage origins
-                    FeatureCard(R.drawable.ic_image, R.string.welcome_feature_photos),
-                    FeatureCard(R.drawable.ic_resource_local, R.string.welcome_feature_local_folders),
-                    FeatureCard(R.drawable.ic_resource_smb, R.string.welcome_feature_network),
-                    // Row 2 in 3-col grid: cloud storage + two actions
-                    FeatureCard(R.drawable.ic_resource_cloud, R.string.welcome_feature_cloud),
-                    FeatureCard(R.drawable.ic_swap_horizontal, R.string.welcome_feature_sorting),
-                    FeatureCard(R.drawable.ic_slideshow, R.string.welcome_feature_slideshow)
-                ),
+                // Ordered as a pitch, not as a grid: what the app opens, then where it reads from,
+                // then what it does with it. Rendered as a one-column list on a phone.
+                // S1389: the set answers to the build's own capabilities - see WelcomeFeatureCards.
+                featureCards = WelcomeFeatureCards.build(mediaCapabilities),
                 showLanguagePicker = true,
-                onLanguageSelected = ::onWelcomeLanguageSelected,
+                onLanguagePickerRequested = ::showWelcomeLanguagePicker,
                 showThemePicker = true,
                 onThemeSelected = ::onWelcomeThemeSelected,
                 showLauncherModeToggle = launcherModeContract.isAvailableInBuild,
@@ -260,21 +310,35 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 recommendedProfileType = viewModel.state.value.recommendedProfile,
                 selectedProfileType = viewModel.state.value.selectedProfile,
                 onProfileSelected = { type -> viewModel.onProfileSelected(type) },
+                // S1383: tapping the already-selected tile means "this one, go on" - the same step
+                // Next would take, so the profile page needs no separate confirm control.
+                onProfileConfirmed = { type ->
+                    viewModel.onProfileSelected(type)
+                    flipPage(forward = true)
+                },
             )
         )
 
-        // Networks page (index 2). Three remote-source group toggles (SMB / (S)FTP / Cloud);
+        // Networks page. Three remote-source group toggles (SMB / (S)FTP / Cloud);
         // WelcomeRemoteSourcesController owns all logic and binds via the page callback. The cloud
         // toggle collapses on flavors without cloud support (decided inside the controller via the gate).
-        pagesList.add(
-            WelcomePage(
-                iconRes = 0,
-                titleRes = 0,
-                descriptionRes = 0,
-                isNetworksPage = true,
-                onBindNetworks = { b -> remoteSourcesController.bind(b, this) },
+        // S1388: a build with neither remote group has nothing to offer here - the controller hides
+        // every row and the page renders its header ("Add media from network shares and remote
+        // storage") over an empty body, promising what the build cannot do. Left out entirely
+        // instead, the same way the default-player page below is gated.
+        val shouldShowNetworksPage =
+            mediaCapabilities.supportsLocalNetworkSources || mediaCapabilities.supportsCloud
+        if (shouldShowNetworksPage) {
+            pagesList.add(
+                WelcomePage(
+                    iconRes = 0,
+                    titleRes = 0,
+                    descriptionRes = 0,
+                    isNetworksPage = true,
+                    onBindNetworks = { b -> remoteSourcesController.bind(b, this) },
+                )
             )
-        )
+        }
 
         // S0400: functionality page (index 3). Capability toggles + inline deliverable downloads;
         // WelcomeFunctionalityController owns all logic and binds via the page callback.
@@ -351,6 +415,26 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             binding.viewPager.setCurrentItem(restoredPage, false)
             restoredPage = 0
         }
+
+        // S1377: a fresh adapter is the only way the page layouts get inflated again and the
+        // width-qualified values re-read, because this Activity is deliberately not recreated on
+        // rotation. Dropped on the destroy edge in observeBrandBackdrop's lifecycle observer.
+        rotationManager = com.sza.fastmediasorter.ui.welcome.helpers.WelcomeRotationManager(
+            initialOrientation = resources.configuration.orientation,
+            currentPageProvider = { binding.viewPager.currentItem },
+            onOrientationChanged = { page ->
+                pagerAdapter = WelcomePagerAdapter(pagesList, mediaCapabilities)
+                binding.viewPager.adapter = pagerAdapter
+                binding.viewPager.setCurrentItem(page, false)
+                currentPage = page
+                previousPage = page
+                val state = viewModel.state.value
+                pagerAdapter.refreshProfiles(state.recommendedProfile, state.selectedProfile)
+                setupIndicators(pagesList.size)
+                updateUI()
+            },
+        )
+        registerComponentCallbacks(rotationManager)
     }
 
     private val indicatorDotSize by lazy {
@@ -453,7 +537,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     }
 
     private fun updateUI() {
-        applyPageBackground()
         updateIndicators()
 
         val isLastPage = currentPage == pagerAdapter.itemCount - 1
@@ -473,9 +556,15 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         }
     }
 
-    private fun applyPageBackground() {
-        val backgroundIndex = currentPage.coerceIn(0, pageBackgrounds.lastIndex)
-        binding.root.setBackgroundResource(pageBackgrounds[backgroundIndex])
+    /**
+     * S1190: the interface language is chosen from the same searchable picker the settings screen uses,
+     * so the Welcome page no longer caps the choice at the three languages a button strip could hold.
+     */
+    private fun showWelcomeLanguagePicker() {
+        // A second tap while the picker is already up would stack a duplicate showing the same choice.
+        if (supportFragmentManager.findFragmentByTag(SearchableLanguagePickerDialog.TAG) != null) return
+        SearchableLanguagePickerDialog.newInstanceForUiLanguage(LocaleHelper.getLanguage(this))
+            .show(supportFragmentManager, SearchableLanguagePickerDialog.TAG)
     }
 
     @Suppress("DEPRECATION")

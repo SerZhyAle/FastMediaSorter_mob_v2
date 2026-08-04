@@ -3,6 +3,7 @@
      picker to pin one more app. Same frame as item_launcher_taskbar_icon so it lines up with the pins;
      its contentDescription is set in the adapter (the "+" alone tells a screen reader nothing). -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/taskbarAddRoot"
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
@@ -21,6 +22,6 @@
         android:importantForAccessibility="no"
         android:scaleType="centerInside"
         android:src="@drawable/ic_add"
-        android:tint="?attr/colorOnSurfaceVariant" />
+        app:tint="?attr/colorOnSurfaceVariant" />
 
 </FrameLayout>

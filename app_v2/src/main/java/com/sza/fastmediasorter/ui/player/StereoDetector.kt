@@ -106,6 +106,29 @@ class StereoDetector @javax.inject.Inject constructor() {
         private const val FLAT_OU_AR_TOL = 0.02f
         private const val FLAT_OU_MIN_WIDTH = 1280
 
+        // S1229: bands for the last-resort `ambiguityBestGuess` pass. Deliberately wider than the
+        // conservative windows above - this runs only when every other source gave up and the user
+        // opted into guessing - but they must still be *arithmetically possible* for stereo:
+        //  - Full SBS is two frames side by side, so its aspect is 2x the source: 2.67 for 4:3,
+        //    3.55 for 16:9. The widest ordinary cinema aspect is 2.39, so 2.5 separates them.
+        //    The previous threshold was 1.6, which classified every 16:9 film (1.78) as SBS_FULL.
+        //  - Full OU stacks two frames, so its aspect is half the source: 0.67 for 4:3, 0.89 for
+        //    16:9, 1.20 for 2.39:1. Portrait phone video (9:16 = 0.5625) sits below the band.
+        //    The previous rules were `<= 0.7` (which caught portrait video) plus `0.9..1.1` (which
+        //    missed the most common 16:9 OU at 0.89 - the band had a hole exactly where the
+        //    real-world value lives).
+        private const val GUESS_SBS_AR_MIN = 2.5f
+        private const val GUESS_OU_AR_MIN = 0.62f
+        private const val GUESS_OU_AR_MAX = 1.25f
+        private const val GUESS_MIN_WIDTH = 1024
+
+        // S1249: the OU floor for an explicit user tap. Zero, i.e. no floor - the pre-S1229 rule on
+        // this path was `aspect <= 0.7 -> OU` with nothing below it, and narrowing it was collateral
+        // from tuning the passive band. Anything taller than GUESS_OU_AR_MAX is OU when the user
+        // pointed at it: an OU-packed portrait frame lands at 0.28 (9:16 halved) and a square-eye
+        // pair at 0.5, both of which a floor derived from landscape sources would reject.
+        private const val GUESS_OU_AR_MIN_TAP = 0f
+
         // Matroska StereoMode values (EBML element 0x53B8)
         // https://www.matroska.org/technical/elements.html#StereoMode
         private const val MATROSKA_STEREO_MONO       = "0"
@@ -287,6 +310,7 @@ class StereoDetector @javax.inject.Inject constructor() {
         // No enabled source identified the content. Apply ambiguity behavior.
         if (config.ambiguityBestGuess) {
             val guess = aggressiveDimensionGuess(format.width, format.height)
+            Timber.d("S1229: best-guess %dx%d -> %s", format.width, format.height, guess)
             if (guess != StereoMode.MONO) {
                 Timber.d("VR_AUDIT/12: detectForVideo result=%s source=ambiguity-best-guess filename=%s", guess, path)
                 return guess
@@ -322,7 +346,7 @@ class StereoDetector @javax.inject.Inject constructor() {
 
         // Best-guess path: explicit user tap (userInitiated) OR the ambiguity-best-guess setting.
         if (userInitiated || config.ambiguityBestGuess) {
-            val aggressive = aggressiveDimensionGuess(width, height)
+            val aggressive = aggressiveDimensionGuess(width, height, userInitiated)
             if (userInitiated) {
                 if (aggressive != StereoMode.MONO) {
                     Timber.d(
@@ -384,22 +408,36 @@ class StereoDetector @javax.inject.Inject constructor() {
     }
 
     /**
-     * Aggressive aspect-ratio heuristic used only when the user has explicitly tapped the
-     * VR-toolbar icon on an image (95% intent is stereo). Returns `MONO` for ordinary landscape
-     * photo ratios so a regular DSLR JPG does not get false-3D-claimed.
+     * Aggressive aspect-ratio heuristic, reached when every conservative source declined AND the
+     * caller opted into guessing - either an explicit VR-toolbar tap on an image (`userInitiated`)
+     * or the `ambiguityBestGuess` setting. Returns `MONO` for ordinary ratios so a regular film or
+     * DSLR JPG does not get false-3D-claimed.
      *
-     * - aspect ≥ 1.6 and width ≥ 1024 → SBS_FULL
-     * - aspect ≤ 0.7 and height ≥ 1024 → OU
-     * - 0.9 ≤ aspect ≤ 1.1 and width ≥ 1024 → OU
+     * The bands are the arithmetic of packed stereo, not tuned guesses - see [GUESS_SBS_AR_MIN] and
+     * [GUESS_OU_AR_MIN] for the derivation:
+     *
+     * - aspect ≥ [GUESS_SBS_AR_MIN] and width ≥ [GUESS_MIN_WIDTH] → SBS_FULL
+     * - aspect in [GUESS_OU_AR_MIN]..[GUESS_OU_AR_MAX] and width ≥ [GUESS_MIN_WIDTH] → OU
      * - everything else (including null dimensions) → MONO
+     *
+     * S1249: [userInitiated] drops the OU band's lower bound, because the two callers have opposite
+     * priors and one set of thresholds cannot serve both. The passive caller is guessing about an
+     * arbitrary library, where a false positive plays an ordinary film as 3D. An explicit tap on
+     * *this* image is ~95% stereo intent, so a false negative there discards an instruction the user
+     * gave, while a false positive costs one tap to undo. The upper bound stays shared - it is what
+     * keeps an ordinary 4:3 DSLR frame (1.33) MONO on either path.
      */
-    private fun aggressiveDimensionGuess(width: Int?, height: Int?): StereoMode {
+    private fun aggressiveDimensionGuess(
+        width: Int?,
+        height: Int?,
+        userInitiated: Boolean = false,
+    ): StereoMode {
         if (width == null || height == null || width <= 0 || height <= 0) return StereoMode.MONO
         val aspect = width.toFloat() / height.toFloat()
+        val ouMin = if (userInitiated) GUESS_OU_AR_MIN_TAP else GUESS_OU_AR_MIN
         return when {
-            aspect >= 1.6f && width >= 1024 -> StereoMode.SBS_FULL
-            aspect <= 0.7f && height >= 1024 -> StereoMode.OU
-            aspect in 0.9f..1.1f && width >= 1024 -> StereoMode.OU
+            aspect >= GUESS_SBS_AR_MIN && width >= GUESS_MIN_WIDTH -> StereoMode.SBS_FULL
+            aspect in ouMin..GUESS_OU_AR_MAX && width >= GUESS_MIN_WIDTH -> StereoMode.OU
             else -> StereoMode.MONO
         }
     }

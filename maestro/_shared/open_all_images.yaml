@@ -1,0 +1,20 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Open the built-in virtual image resource after the Local tab is selected.
+# Its persisted name retains the locale active during initial provisioning, while the rest of the
+# app can use a later app locale. Support the two exact provisioning labels without regex matching.
+
+- runFlow:
+    when:
+      visible:
+        text: "All Images"
+    commands:
+      - tapOn:
+          text: "All Images"
+- runFlow:
+    when:
+      visible:
+        text: "Все изображения"
+    commands:
+      - tapOn:
+          text: "Все изображения"

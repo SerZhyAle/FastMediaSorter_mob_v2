@@ -87,10 +87,16 @@ class FileOperationDestinationDialog(
         loadDestinations()
     }
 
+    /**
+     * S1325: folders travel in the same selection but are not part of [sourceFiles], so without this
+     * a folder-only selection announced "0 files". Set before `show()`; read once in [setupUI].
+     */
+    var directoryCount: Int = 0
+
     private fun setupUI() {
         binding.apply {
             // Set message based on operation type
-            tvFileCount.text = when (operationType) {
+            val fileCountText = when (operationType) {
                 FileOperationType.COPY -> context.getString(
                     R.string.copying_n_files_from_folder,
                     sourceFiles.size,
@@ -107,6 +113,13 @@ class FileOperationDestinationDialog(
                     sourceFolderName
                 )
                 else -> "" // DELETE and RENAME not used in this dialog
+            }
+            tvFileCount.text = if (directoryCount > 0) {
+                fileCountText +
+                    System.lineSeparator() +
+                    context.getString(R.string.browse_transfer_folders_included, directoryCount)
+            } else {
+                fileCountText
             }
 
             btnCancel.setOnClickListenerDebounced { dismiss() }

@@ -1,21 +1,22 @@
 # FastMediaSorter v2 Agent Protocol
 
 ## 1. Source of Truth
-- Universal conventions (canon): SZA Unified Rules at `P:\WEB\sites.google.comsiteszaodua\Unified_Rules` (REFERENCE model, not mirrored). This repo is the reference the core was extracted from; per-repo overlay facts + channel matrix live in `Unified_Rules/contrib/fastmediasorter_mob_v2.md`. Canon wins for universal principles; fix them in a canon session.
+- Universal conventions (canon): SZA Unified Rules, shipped as the `sza` Claude Code plugin (`/plugin marketplace add SerZhyAle/sza-unified-rules`; `/plugin install sza@sza-unified-rules`). Consumption model: REFERENCE, not mirrored. This repo is overlay B and the reference the core was extracted from; per-repo overlay facts + channel matrix live in the canon at `rules/contrib/fastmediasorter_mob_v2.md`, adoption stamp `.sza-canon.json`. Canon wins for universal principles; fix them in a canon session.
 - Rules: `CLAUDE.md`, `.github/copilot-instructions.md`, `dev/PROJECT_OPERATIONS_INDEX.md`, `dev/AGENT_WORKFLOW.md`.
 - Stricter rules override. Import order: `CLAUDE.md` -> `.github/copilot-instructions.md` -> prompt/agent file.
 
 ## 2. Communication
-- Chat: RU. Code, docs, logs, commits, changelog: EN. Dry, concise.
-- Ellipsis / Dash / Ё (documentation prose & user-visible UI text ONLY): `..` (never `...`), plain hyphen `-` (never em-dash `-`, en-dash `–`, or horizontal bar `―`), Russian Ё/ё where grammatically correct. Never enforce these typography rules in code, technical/tactical specs, commands, logs, or chat.
-- Timestamps: Always accompany replies with a timestamp (HH:mm:ss based on the current local time provided in prompt metadata).
+- Language and tone: one home, canon `rules/AUTHOR.md` "Language" + "Working style". Nothing about it is repo-specific here.
+- House text style and its scope: one home, canon `rules/DOCUMENTATION_CONCEPT.md` section 5 "House text style". Repo extension past that scope: long dashes are banned in `.kt` too (CLAUDE.md Rule 19, gate `scripts/quality/assert-neuroslop.ps1`).
+- Timestamps: see `CLAUDE.md` §1.
 
 ## 3. Core Rules
 - Stack: Android, Kotlin 1.9+, Java 17, Hilt, Room, Media3, Timber.
 - Directories: `app_v2/`, `wear/`, `dev/`, `docs/`, `scripts/`, `temp/` (scratch/logs). Read-only: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
 - Temp layout (CLAUDE.md Rule 10.1): ticket-bound scratch/artifacts -> `temp/Sxxxx/` (per-ticket subdir; replaces flat `temp/Sxxxx_*`); no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root, never nested: `temp/BUILD.LOCK`, `temp/CODE.LOCK`, `temp/done/`, `temp/spec-next-skip-cache.json`, raw logcat sinks `temp/current.log` + `temp/fastmediasorter_*.log`, stream-catalog files.
 - No Activity logic (delegate to `helpers/*Manager.kt`).
-- Bash `find` safety (CLAUDE.md Rule 24): never run `find` with a disk-wide root path (`/`, `~`, drive root, `/c/`, `//host`) or without `-maxdepth`; prefer Glob/Grep or `dev/CATALOG/scripts/query.ps1`. Reason: on Windows/MSYS an orphaned `find.exe` from a dropped session scans the whole disk and floods handles. Enforced by the global PreToolUse hook `~/.claude/hooks/guard-find-command.ps1`.
+- What to work on next comes from `PLAN/RELEASE_QUEUE.md` (CLAUDE.md 4): release package ascending, then the owner's line order inside it; then `Implemented` rows in `PLAN/RELEASE_READY.md`, then `--` parked lines, then anything unlisted. Catalog `priority` is a tiebreak for unlisted tickets only. Recommend from that file, quote the package and line, state any deviation. `spec-next-preflight.ps1` and `release-plan.ps1` rank from it.
+- Bash `find` safety: the rule has one home, canon `rules/GITHUB_INTERACTION.md` section 6. This repo owns only the enforcement: global PreToolUse hook `~/.claude/hooks/guard-find-command.ps1` (blocks the tool call before bash spawns, exit 2), and file/class lookup goes through the `Glob`/`Grep` tools or `dev/CATALOG/scripts/query.ps1`. Detail: CLAUDE.md Rule 24.
 - No `.ps1` as a Bash command head (CLAUDE.md Rule 25): never run a PowerShell script directly in Bash (`./a.ps1 fk`, `.\a.ps1 d`, `scripts/foo.ps1`); Bash cannot execute a `.ps1` and the failure returns **exit 0**, so a broken build/check looks like it passed. Always `pwsh -NoProfile -File ./a.ps1 <cmd>` from the repo root (bare `pwsh` via the Git Bash shim). Enforced by the global PreToolUse hook `~/.claude/hooks/guard-ps1-in-bash.ps1`.
 - Timber only (no `Log.d()`). `Sxxxx` ticket ids only in `BlockNeedUserTest` temporary debug logs.
 - Strings: prefer `scripts/utils/set-android-string.ps1`.
@@ -23,17 +24,19 @@
 - UI changes: run `/ui-clarify` before implementation.
 - WindowInsets: systemBars + displayCutout safe bounds (fitsSystemWindows not enough).
 - Dialog action pair (S0538/S0684): confirm/cancel in any dialog/bottom-sheet/custom layout uses the named styles - confirm = `DialogConfirm` (green, wide), cancel = `DialogCancel` (soft-pink tonal, shorter/narrower), destructive = `DialogDestructive` (red). Never a one-off cancel button. Gate: `scripts/quality/assert-dialog-cancel-style.ps1`.
+- Settings docs sync (CLAUDE.md Rule 22): any change to a setting, including one hosted in a dialog/bottom-sheet/wizard page, must regenerate `docs/settings/settings-manifest.json` + `docs/SETTINGS_REFERENCE*.md` and update `docs/settings/settings-annotations.json`. A non-screen surface registers in `SettingsDocScopeCatalog`, never in `SettingsSearchLayoutCatalog` (S1035/S1313). Gate: `scripts/quality/assert-settings-doc-sync.ps1`.
 
 ## 4. Research Order
 1. `dev/PROJECT_OPERATIONS_INDEX.md`
 2. Specs: `scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`
 3. Kotlin classes: `dev/CATALOG/scripts/query.ps1` before global grep.
 4. Docs: `docs/ARCHITECTURE.md`, `docs/DEV_OPS.md`, `dev/TECH_REQUIREMENTS.md`, `dev/FLAVOR_DEVELOPMENT_RULES.md`.
-5. Every agent iteration: at task start, material scope change, phase boundary, and before final response, query `docs/DOCUMENT_REGISTRY.jsonl` through `scripts/document_registry/query.ps1` by product area and change trigger, then read the returned records. State affected records and reasons for unchanged matches. Run `validate.ps1` and `generate.ps1 -Check` when a registered document, page, or registry record changes.
+   Flavors are standard, noLegal, lite, photos, legacy, vr. Which capability is live in which flavor: `docs/FLAVOR_MATRIX.md` - generated from `productFlavors` by `scripts/docs/generate-flavor-matrix.ps1`, enforced against the docs by `scripts/quality/assert-flavor-matrix-docs.ps1`. Never restate the grid from memory (S1392).
+5. Document-registry loop: mandatory at task start, material scope change, phase boundary, and before final response - see `.claude/skills/document-registry/SKILL.md`.
 
 ## 5. Skill Routing (Load `.github/prompts/*.prompt.md`)
 - `/quick`: tiny fix (design, typo, 1 string), skip spec/build.
-- `/skill-fix`: fast bug/UI fix, skip doc/git/build/dev-log.
+- `/skill-fix`: fast bug/UI fix, and the doc/config/script tweak that needs no gradle; skip doc/git/build/dev-log.
 - `/spec*`: spec lifecycle (`/spec`, `/spec-all`, `/spec-tech`, `/spec-update`, `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-arc`, `/spec-test-device`, `/spec-sweep`).
 - `/ui-clarify`: resolve UI ambiguity before coding.
 - `/catalog`: class/feature queries, sync catalog.
@@ -53,7 +56,7 @@
 - PowerShell: Always `-NoProfile`. Batch: `& { cmd1; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; cmd2 }`. Use literal `$LASTEXITCODE`. Use project wrappers.
 - PowerShell exit codes (S1070): under `$ErrorActionPreference = 'Stop'` a bare `Write-Error` throws and the `exit N` after it never runs, so the code collapses to 1 while the message still prints. Use `Write-Error $msg -ErrorAction Continue` before `exit N` (N != 1); a header must list the codes actually returned. Gate: `scripts/quality/assert-exit-contract.ps1`.
 - Cost discipline: follow `docs/AGENT_COST_PLAYBOOK.md` - inline over subagent for single-fact lookups (<=3 tool calls), `/compact` at task boundaries, `/clear` on task switch, offload raw artifacts to `temp/Sxxxx/` (or `temp/scratch/`), restrict `mobile-mcp` to exploratory UI walks (`adb.ps1`/Maestro first).
-- Subagent MCP isolation: When defining a subagent, always set `enable_mcp_tools` to `false` unless the subagent strictly requires driving the UI/emulator (exploratory walkthroughs). This prevents duplicate Node/MCP server instances.
+- Subagent MCP isolation: When defining a subagent, always give it an explicit `tools:` frontmatter allowlist that omits every MCP tool name, unless the subagent strictly requires driving the UI/emulator (exploratory walkthroughs) - omitting `tools:` entirely grants the full set the parent session has, MCP-registered tools included. This prevents duplicate Node/MCP server instances. (S1348: `enable_mcp_tools` is not a real Claude Code option - do not use it.)
 
 ## 7. Validation
 - Follow `CLAUDE.md` validation ladder. Record `expected: X | actual: Y`.

@@ -4,6 +4,7 @@ import android.content.Context
 import android.hardware.camera2.CameraMetadata
 import android.util.Range
 import android.util.Size
+import android.util.SizeF
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoSection
@@ -39,6 +40,9 @@ class GatherCameraDiagnosticsUseCase @Inject constructor(
             fields += label(id, R.string.sysinfo_field_camera_physical_of) to it
         }
         fields += label(id, R.string.sysinfo_field_camera_focal) to focalText(entry.focalLengthsMm)
+        // Sensor size feeds the FOV-normalized equivalent multiplier (S1261); an unknown here means
+        // the calculator's FOV path is unavailable on this device, which the report must show.
+        fields += label(id, R.string.sysinfo_field_camera_sensor) to sensorText(entry.sensorSizeMm)
         fields += label(id, R.string.sysinfo_field_camera_zoom_range) to zoomText(entry.zoomRange)
         fields += label(id, R.string.sysinfo_field_camera_focus_distance) to
             focusText(entry.minFocusDistanceDiopters)
@@ -73,6 +77,10 @@ class GatherCameraDiagnosticsUseCase @Inject constructor(
         diopters <= 0f -> "fixed focus"
         else -> String.format(Locale.US, "%.1f dpt (~%.0f cm)", diopters, CM_PER_METRE / diopters)
     }
+
+    private fun sensorText(size: SizeF?): String = size?.let {
+        String.format(Locale.US, "%.1fx%.1f mm", it.width, it.height)
+    } ?: UNKNOWN
 
     private fun sizeText(size: Size?): String = size?.let {
         val megapixels = it.width.toLong() * it.height.toLong() / MEGAPIXEL

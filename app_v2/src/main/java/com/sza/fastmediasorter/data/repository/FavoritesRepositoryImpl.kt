@@ -21,6 +21,10 @@ class FavoritesRepositoryImpl @Inject constructor(
         return favoritesDao.getAllFavorites().distinctUntilChanged()
     }
 
+    override fun getFileFavorites(): Flow<List<FavoritesEntity>> {
+        return favoritesDao.getFileFavorites().distinctUntilChanged()
+    }
+
     override fun isFavorite(uri: String): Flow<Boolean> {
         return favoritesDao.isFavorite(uri).distinctUntilChanged()
     }

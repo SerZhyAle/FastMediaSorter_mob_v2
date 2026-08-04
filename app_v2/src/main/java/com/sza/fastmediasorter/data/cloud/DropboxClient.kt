@@ -9,9 +9,6 @@ import com.dropbox.core.DbxRequestConfig
 import com.dropbox.core.IncludeGrantedScopes
 import com.dropbox.core.android.Auth
 import com.dropbox.core.http.OkHttp3Requestor
-import com.sza.fastmediasorter.R
-import okhttp3.OkHttpClient
-import java.util.concurrent.TimeUnit
 import com.dropbox.core.oauth.DbxCredential
 import com.dropbox.core.v2.DbxClientV2
 import com.dropbox.core.v2.files.CreateFolderErrorException
@@ -22,16 +19,20 @@ import com.dropbox.core.v2.files.SearchMatchV2
 import com.dropbox.core.v2.files.ThumbnailFormat
 import com.dropbox.core.v2.files.ThumbnailSize
 import com.dropbox.core.v2.files.WriteMode
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaExtensions
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
 import org.json.JSONObject
 import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -245,6 +246,7 @@ class DropboxClient @Inject constructor(
                 // Need OAuth flow - must be initiated from Activity via AddResourceActivity
                 AuthResult.Error("Re-authentication required. Please re-add this Dropbox resource.")
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Dropbox authentication failed")
                 AuthResult.Error("Authentication failed: ${e.message}")
             }
@@ -295,6 +297,7 @@ class DropboxClient @Inject constructor(
                 
                 AuthResult.Cancelled
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to finish Dropbox authentication")
                 AuthResult.Error(buildUserFriendlyErrorMessage(e))
             }
@@ -327,6 +330,7 @@ class DropboxClient @Inject constructor(
                 Timber.d("Dropbox client initialized for account: ${account.email}")
                 true
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to initialize Dropbox client")
                 logTlsDiagnostics(e, "initialize_with_credential")
                 lastInitializationError = buildUserFriendlyErrorMessage(e)
@@ -354,6 +358,7 @@ class DropboxClient @Inject constructor(
                 Timber.d("Dropbox client initialized with access token for account: ${account.email}")
                 true
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to initialize Dropbox client with access token")
                 logTlsDiagnostics(e, "initialize_with_access_token")
                 lastInitializationError = buildUserFriendlyErrorMessage(e)
@@ -417,6 +422,7 @@ class DropboxClient @Inject constructor(
             val credential = deserializeCredential(credentialsJson) ?: return false
             initializeWithCredential(credential)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to initialize Dropbox client from stored credentials")
             false
         }
@@ -438,6 +444,7 @@ class DropboxClient @Inject constructor(
                 logTlsDiagnostics(e, "test_connection_dbx_exception")
                 CloudResult.Error(buildUserFriendlyErrorMessage(e), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Unexpected error during connection test")
                 logTlsDiagnostics(e, "test_connection_exception")
                 CloudResult.Error(buildUserFriendlyErrorMessage(e), e)
@@ -458,6 +465,7 @@ class DropboxClient @Inject constructor(
                     accountEmail
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to get account email")
                 null
             }
@@ -488,6 +496,7 @@ class DropboxClient @Inject constructor(
                 Timber.e(e, "Failed to list files in folder: $folderId")
                 CloudResult.Error(context.getString(R.string.cloud_list_files_failed), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Unexpected error listing files")
                 CloudResult.Error(context.getString(R.string.cloud_list_files_failed), e)
             }
@@ -515,6 +524,7 @@ class DropboxClient @Inject constructor(
                 Timber.e(e, "Failed to list folders in: $parentFolderId")
                 CloudResult.Error(buildUserFriendlyErrorMessage(e), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Unexpected error listing folders")
                 CloudResult.Error(buildUserFriendlyErrorMessage(e), e)
             }
@@ -539,6 +549,7 @@ class DropboxClient @Inject constructor(
                 Timber.e(e, "Failed to get file metadata: $fileId")
                 CloudResult.Error(context.getString(R.string.cloud_metadata_failed), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Unexpected error getting metadata")
                 CloudResult.Error(context.getString(R.string.cloud_metadata_failed), e)
             }
@@ -600,6 +611,7 @@ class DropboxClient @Inject constructor(
                 Timber.e(e, "Failed to download file: $fileId")
                 CloudResult.Error(downloadFailedMessage(), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Unexpected error downloading file")
                 CloudResult.Error(downloadFailedMessage(), e)
             }
@@ -611,10 +623,12 @@ class DropboxClient @Inject constructor(
         fileName: String,
         mimeType: String,
         parentFolderId: String?,
+        @Suppress("UNUSED_PARAMETER") fileSize: Long,
         progressCallback: ((TransferProgress) -> Unit)?
     ): CloudResult<CloudFile> {
         return withContext(Dispatchers.IO) {
             try {
+                // fileSize is unused here: the Dropbox SDK streams and chunks the body itself.
                 val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
                 
                 val parentPath = normalizeDropboxPath(parentFolderId)
@@ -633,6 +647,7 @@ class DropboxClient @Inject constructor(
                 Timber.e(e, "Failed to upload file: $fileName")
                 CloudResult.Error(context.getString(R.string.cloud_upload_failed), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Unexpected error uploading file")
                 CloudResult.Error(context.getString(R.string.cloud_upload_failed), e)
             }
@@ -663,6 +678,7 @@ class DropboxClient @Inject constructor(
                 Timber.e(e, "Failed to create folder: $folderName")
                 CloudResult.Error(context.getString(R.string.cloud_create_folder_failed), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Unexpected error creating folder")
                 CloudResult.Error(context.getString(R.string.cloud_create_folder_failed), e)
             }
@@ -697,6 +713,7 @@ class DropboxClient @Inject constructor(
                 Timber.e(e, "Failed to delete: $fileId")
                 CloudResult.Error(context.getString(R.string.error_delete_failed), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Unexpected error deleting file")
                 CloudResult.Error(context.getString(R.string.error_delete_failed), e)
             }
@@ -732,6 +749,7 @@ class DropboxClient @Inject constructor(
                 Timber.e(e, "Failed to rename: $fileId")
                 CloudResult.Error(context.getString(R.string.rename_failed_generic), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Unexpected error renaming file")
                 CloudResult.Error(context.getString(R.string.rename_failed_generic), e)
             }
@@ -754,6 +772,7 @@ class DropboxClient @Inject constructor(
                 Timber.e(e, "Failed to move: $fileId")
                 CloudResult.Error(context.getString(R.string.error_move_failed), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Unexpected error moving file")
                 CloudResult.Error(context.getString(R.string.error_move_failed), e)
             }
@@ -780,6 +799,7 @@ class DropboxClient @Inject constructor(
                 Timber.e(e, "Failed to copy: $fileId")
                 CloudResult.Error(context.getString(R.string.error_copy_failed), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Unexpected error copying file")
                 CloudResult.Error(context.getString(R.string.error_copy_failed), e)
             }
@@ -809,6 +829,7 @@ class DropboxClient @Inject constructor(
                 Timber.e(e, "Search failed: $query")
                 CloudResult.Error(context.getString(R.string.cloud_search_failed), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Unexpected error during search")
                 CloudResult.Error(context.getString(R.string.cloud_search_failed), e)
             }
@@ -857,6 +878,7 @@ class DropboxClient @Inject constructor(
                 Timber.e(e, "Dropbox.getFileInputStream: DbxException")
                 CloudResult.Error(downloadFailedMessage(), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Dropbox.getFileInputStream: Exception")
                 CloudResult.Error(downloadFailedMessage(), e)
             }
@@ -892,6 +914,7 @@ class DropboxClient @Inject constructor(
                 Timber.e(e, "Failed to get thumbnail: $fileId")
                 CloudResult.Error(context.getString(R.string.cloud_thumbnail_failed), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Unexpected error getting thumbnail")
                 CloudResult.Error(context.getString(R.string.cloud_thumbnail_failed), e)
             }
@@ -910,6 +933,7 @@ class DropboxClient @Inject constructor(
                 Timber.d("Dropbox sign-out successful")
                 CloudResult.Success(true)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Error during sign-out")
                 CloudResult.Error(context.getString(R.string.cloud_sign_out_failed), e)
             }
@@ -944,6 +968,7 @@ class DropboxClient @Inject constructor(
                 Timber.e(e, "Failed to check file existence: $fileName")
                 CloudResult.Error(context.getString(R.string.cloud_check_failed), e)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Unexpected error checking file existence")
                 CloudResult.Error(context.getString(R.string.cloud_check_failed), e)
             }

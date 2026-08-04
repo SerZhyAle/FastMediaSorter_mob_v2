@@ -60,6 +60,7 @@ _Generated from the app. Do not edit by hand._
 | Allow All Files mode | Grants access to all files on the device, including system folders (requires All Files permission). |
 | Allow new windows | Allows opening additional app windows in multi-window or split-screen mode. |
 | Compact elements | Reduces the padding and size of all list elements globally, fitting more items on screen. |
+| Mirror log to opened folder | Copies the debug log into the folder currently open in the viewer, so a reproduction can be picked up without digging into the app sandbox. Off by default; debug builds only. |
 | Open browse in grid view | Opens the file browser in grid view by default instead of list view. |
 | Device profile | Selects the device profile that adapts the interface and controls to your device type. |
 | Enable background sync | Lets the app sync remote resources in the background when the device is idle. |
@@ -68,6 +69,7 @@ _Generated from the app. Do not edit by hand._
 | Preload thumbnails | Preloads thumbnails for files ahead of scrolling so the grid loads faster. |
 | File operations in overflow menu | Moves file operations (copy, move, delete) into the overflow menu instead of showing them as buttons. |
 | Hide quick action buttons on thumbnails | Hides the quick action buttons overlaid on thumbnails in grid view. |
+| Language/Язык/Мова | Selects the language used for the app interface. |
 | Make this app the home screen | Makes the app the device home screen, so the Home button opens your own desktop. |
 | System launcher settings | Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density. |
 | Statistics | Opens the usage statistics screen. |
@@ -83,11 +85,10 @@ _Generated from the app. Do not edit by hand._
 | Wi-Fi only preload | Restricts thumbnail preloading to Wi-Fi connections only, saving mobile data. |
 | Saved authorizations | Opens the list of saved sign-ins to remote sources so you can review or remove them. |
 | Color theme | Selects the color theme applied across the app interface. |
-| Language/Язык/Мова | Selects the language used for the app interface. |
 
 ## <img src="icons/doc/ic_image.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Images
 
-_Available in: Standard, Lite, Photos, Legacy_
+_Available in: Standard, Lite, Photos, Legacy, VR_
 
 | Setting | What it does |
 |---|---|
@@ -102,7 +103,7 @@ _Available in: Standard, Lite, Photos, Legacy_
 
 ## <img src="icons/doc/ic_video.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Video
 
-_Available in: Standard, Lite, Legacy_
+_Available in: Standard, Lite, Legacy, VR_
 
 | Setting | What it does |
 |---|---|
@@ -117,7 +118,7 @@ _Available in: Standard, Lite, Legacy_
 
 ## <img src="icons/doc/ic_audio.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Audio
 
-_Available in: Standard, Legacy_
+_Available in: Standard, Legacy, VR_
 
 | Setting | What it does |
 |---|---|
@@ -132,7 +133,7 @@ _Available in: Standard, Legacy_
 
 ## <img src="icons/doc/ic_book.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Documents
 
-_Available in: Standard, Legacy_
+_Available in: Standard, Legacy, VR_
 
 | Setting | What it does |
 |---|---|
@@ -221,6 +222,7 @@ _Available in: Standard, Legacy_
 | Select resource.. | Selects the destination resource where screen recordings are saved. |
 | Select resource.. | Selects the destination resource where video recordings are saved. |
 | Add widget to the Android home screen.. | Launches the widget picker so you can add an app widget to the home screen. |
+| Add a widget to the launcher desktop | Launches the same widget picker, but puts the chosen widget on the launcher's own desktop instead of the Android home screen. Shown only while launcher mode is on. |
 | Max recipients (1-30) | Sets the maximum number of recipients (1-30) when sharing files. |
 | Additional programs and scenarios | Settings for supplementary programs and scenarios: camera text translation, the calculator, and the mini-game. |
 | App behavior and operating rules | Settings that control how the app behaves and what operations are allowed. |
@@ -268,3 +270,87 @@ _Available in: Standard, Legacy_
 | Use trash folder (.trash) | Moves deleted files to a .trash folder instead of removing them immediately. |
 | Enable video recording | Enables the built-in video recording feature. |
 | Open recorded video in player | Opens the recorded video in the player immediately after recording stops. |
+
+## Launcher
+
+_Settings -> General -> System launcher settings_
+
+| Setting | What it does |
+|---|---|
+| Grid density | Sets how many icons the launcher desktop grid fits per row and column. |
+| Lock desktop | Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable. |
+| Change home screen | Opens Android's default-launcher chooser to switch the system home screen. |
+| Replace system status area | Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar. |
+| Show pinned apps | Shows pinned apps on the launcher desktop. |
+| Show recent apps | Shows recently used apps on the launcher desktop. |
+| Show clock and status | Shows the clock and status indicators in the launcher's tray area. |
+| Desktop wallpaper | Chooses the launcher desktop's wallpaper. |
+
+## Edge gestures
+
+_Settings -> Destinations -> Configure gestures_
+
+| Setting | What it does |
+|---|---|
+| Edit app panel | Opens the editor for the customizable app-launch panel shown in edge-gesture zones. |
+| Select resource.. | Opens a folder picker for where captured screenshots are saved. |
+| General gesture settings | Section header for the general edge-gesture settings - screenshot destination, clipboard copy, and the app-launch panel editor. |
+| Save screenshots to clipboard | Also copies every captured screenshot to the clipboard, ready to paste. |
+| Down gesture action | Assigns the action triggered by swiping down from the left edge's lower gesture zone. |
+| Right gesture action | Assigns the action triggered by swiping right from the left edge's lower gesture zone. |
+| Up gesture action | Assigns the action triggered by swiping up from the left edge's lower gesture zone. |
+| Down gesture action | Assigns the action triggered by swiping down from the left edge's upper gesture zone. |
+| Right gesture action | Assigns the action triggered by swiping right from the left edge's upper gesture zone. |
+| Up gesture action | Assigns the action triggered by swiping up from the left edge's upper gesture zone. |
+| Down gesture action | Assigns the action triggered by swiping down from the right edge's lower gesture zone. |
+| Right gesture action | Assigns the action triggered by swiping right from the right edge's lower gesture zone. |
+| Up gesture action | Assigns the action triggered by swiping up from the right edge's lower gesture zone. |
+| Down gesture action | Assigns the action triggered by swiping down from the right edge's upper gesture zone. |
+| Right gesture action | Assigns the action triggered by swiping right from the right edge's upper gesture zone. |
+| Up gesture action | Assigns the action triggered by swiping up from the right edge's upper gesture zone. |
+| Left edge - lower band | Enables the edge-gesture zone at the left edge's lower band. |
+| Show the gesture strip | Shows the semi-transparent gesture-strip guide for the left edge's lower zone. |
+| Left edge - upper band | Enables the edge-gesture zone at the left edge's upper band. |
+| Show the gesture strip | Shows the semi-transparent gesture-strip guide for the left edge's upper zone. |
+| Right edge - lower band | Enables the edge-gesture zone at the right edge's lower band. |
+| Show the gesture strip | Shows the semi-transparent gesture-strip guide for the right edge's lower zone. |
+| Right edge - upper band | Enables the edge-gesture zone at the right edge's upper band. |
+| Show the gesture strip | Shows the semi-transparent gesture-strip guide for the right edge's upper zone. |
+
+## Default apps
+
+_Settings -> Destinations -> Set as default_
+
+| Setting | What it does |
+|---|---|
+| Default audio player | Opens Android's default-app chooser to register this app as the default audio player. |
+| Default document viewer | Opens Android's default-app chooser to register this app as the default document viewer. |
+| Default image viewer | Opens Android's default-app chooser to register this app as the default image viewer. |
+| Default video player | Opens Android's default-app chooser to register this app as the default video player. |
+| Accept shared files | Allows the app to receive files shared from other apps. |
+| System media handler | Registers the app as the system media handler, shown in "Open with" and for hardware media buttons. |
+
+## Camera capture
+
+_Reached from the camera capture screen, not from Settings._
+
+| Setting | What it does |
+|---|---|
+| Only OCR (no translation) | Skips the translation step and shows the recognized text as-is. |
+| Aspect ratio | Sets the photo aspect ratio used by the camera capture. |
+| Grid | Shows a composition grid overlay in the camera viewfinder. |
+| HDR | Enables HDR capture for higher dynamic range photos. |
+| Manual ISO and shutter | Enables manual control of ISO and shutter speed instead of automatic exposure. |
+| Resolution | Sets the photo resolution used by the camera capture. |
+| Self-timer | Sets a countdown delay before the camera captures a photo. |
+| White balance | Sets the camera's white balance mode. |
+
+## On-screen translation
+
+_Reached from the on-screen translation overlay, not from Settings._
+
+| Setting | What it does |
+|---|---|
+| Font Family | Chooses the font family used to render translated text. |
+| Font Size | Chooses the font size used to render translated text. |
+| Translation result in blocks | Shows the translation result as opaque blocks over the original text, matching Google Lens style. |

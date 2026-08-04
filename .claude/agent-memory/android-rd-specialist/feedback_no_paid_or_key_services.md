@@ -14,3 +14,8 @@ When a feature needs a third-party service, default to a **keyless, free** endpo
 - State the licence/ToS risk once, in one paragraph, then implement the owner's choice - see [[argue-then-obey]].
 - Put the service behind a one-interface seam so a licence change is a one-class swap, not a refactor; note the fallback candidate in the spec.
 - If a key genuinely cannot be avoided, implement against an empty-key-degrades-gracefully path and hand the ticket over for the key rather than blocking the whole feature.
+
+**Known keyless dead ends - do not re-offer these as options:**
+
+- **Address autocomplete / typeahead is impossible keyless.** Nominatim's usage policy explicitly forbids implementing autocomplete client-side against its API, and every provider that does offer suggestions (Stadia Maps, LocationIQ, Google Places) needs a paid key. So "address field with suggestions" is closed permanently, not deferred - a plain field plus one rate-capped lookup on submit is the most that can be delivered. Recorded on S1175 (ADR-6) after quizzing the owner; do not reopen it as a scope question in a later planning pass.
+- Nominatim also bans systematic/bulk querying and requires an app-specific User-Agent, so any map or geocoding feature must cache and must not sweep an area.

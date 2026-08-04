@@ -6,7 +6,50 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.7270.415** (July 2026)
+**Current release: 2.60.8042.332** (August 2026)
+
+> Changes since version 2.60.7270.415
+
+---
+
+## What's New
+
+- **In-headset controls** - seek bar, track pickers, hide and exit, controller legend.
+- **Stereo from file metadata** - VR video without a filename tag plays correctly.
+- **Launcher desktop** - app widgets, contact shortcuts, own status area, wallpaper through cells.
+- **PDF reading** - swipe to turn pages, long-press to select real text.
+- **Browse toolbar** - path button with segment menu, active filter summary, grouped file menu.
+- **Background transfers** - a copy sent to the background stays visible and tappable.
+- **Folder transfers** - select folders like files, copy and move them across protocols.
+- **Shooting scenarios** - one button for night, portrait, selfie, macro and sport.
+- **Local write destination** - send captures, screenshots and downloads to any local folder.
+- **Device profiles** - one pick now seeds reader, download, player, streams and launcher.
+- **Welcome walkthrough** - app roles, protocol examples, and an animated brand backdrop.
+- **Calculator preview** - the running result appears while you type.
+- **Accessible settings lists** - dropdowns open to D-pad, keyboard and screen readers.
+- **Optional contacts permission** - pin a person without granting it.
+- **Full-frame images** - fullscreen and slideshow no longer crop to fill.
+- **Edge gesture bands** - strips sit on the edges Android leaves free.
+- **Animated thumbnails** - animated WebP and APNG show a still first frame.
+
+## What's Fixed
+
+- Ordinary widescreen films are no longer detected as 3D.
+- PDF zoom no longer resets when the page turns.
+- Deleted or moved files leave the player navigation list.
+- Leaving the channel grid no longer closes the app.
+- Camera settings survive a theme or language change.
+- The edge-gesture dialog keeps its layout after rotation.
+- Built-in resource names follow the language switch.
+- The recording indicator appears on wide landscape layouts.
+- Command bar icons and labels line up on wide screens.
+- The brand backdrop shows a still frame with animations off.
+- Restoring an old backup no longer re-enables open-in-player.
+- Credentials stay masked in exported diagnostic logs.
+
+---
+
+## Previous Release: 2.60.7270.415 (July 2026)
 
 > Changes since version 2.60.7260.335
 
@@ -772,7 +815,7 @@ permalink: /docs/WHATS_NEW.html
 - RANDOM sort not reshuffling on repeated taps
 - Camera upload failing on network resources (SMB / FTP / SFTP)
 - ScheduledOperationsWorker freeze on WAKE_LOCK race condition
-- Print crash on Android 8 (API 26–27)
+- Print crash on Android 8 (API 26-27)
 - SMB scan errors now shown as a Snackbar with error count instead of being silently discarded
 - WebView for EPUB now created lazily (prevents OOM on low-memory devices)
 - ExoPlayer recreated every 4 tracks to prevent native heap OOM in long sessions

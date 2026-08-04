@@ -210,7 +210,10 @@ class ExecuteScheduledOperationUseCaseTest {
                     !it.overwrite
             })
         }
-        coVerify(exactly = 0) { fileOperationUseCase.execute(any<FileOperation.Delete>()) }
+        // S1204: ofType, not any<FileOperation.Delete>. The type argument on any<T> is erased, so
+        // that matcher accepts the Move call above and turns this line into "execute was never
+        // called" - which contradicts the exactly = 1 verification directly above it.
+        coVerify(exactly = 0) { fileOperationUseCase.execute(ofType<FileOperation.Delete>()) }
     }
 
     @Test

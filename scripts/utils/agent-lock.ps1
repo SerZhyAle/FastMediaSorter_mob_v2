@@ -148,12 +148,27 @@ function Enter-AgentLock {
     #>
     param(
         [Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name,
-        [Parameter(Mandatory)][string]$Reason
+        [Parameter(Mandatory)][string]$Reason,
+        # S1338: block until the holder releases instead of refusing. 793 lock-status polls and
+        # 48 hand-rolled `until` loops existed only because this function had no way to wait.
+        # Default stays single-shot: a caller that cannot afford to block must still fail fast.
+        [switch]$Wait,
+        [int]$WaitTimeoutSeconds = 900,
+        [int]$PollSeconds = 2
     )
 
-    $status = Get-AgentLockStatus -Name $Name
-    if ($status.Exists -and -not $status.Stale) {
-        return [pscustomobject]@{ Acquired = $false; Status = $status }
+    $deadline = (Get-Date).AddSeconds($WaitTimeoutSeconds)
+    while ($true) {
+        $status = Get-AgentLockStatus -Name $Name
+        if (-not ($status.Exists -and -not $status.Stale)) { break }
+        # Staleness is re-judged every iteration, and Get-AgentLockStatus judges Build by PID
+        # liveness - so a holder that dies mid-wait is reclaimed on the next poll rather than
+        # waited out to the timeout.
+        if (-not $Wait) { return [pscustomobject]@{ Acquired = $false; Status = $status } }
+        if ((Get-Date) -ge $deadline) {
+            return [pscustomobject]@{ Acquired = $false; Status = $status; WaitTimedOut = $true }
+        }
+        Start-Sleep -Seconds $PollSeconds
     }
     if ($status.Exists -and $status.Stale) {
         # Best-effort reclaim of a dead/expired lock before attempting to acquire.
@@ -242,20 +257,41 @@ function Enter-BuildLockOrExit {
         Convenience for leaf gradle-invoking scripts: warn (never block) on a fresh CODE.LOCK,
         then hard-acquire BUILD.LOCK or exit 1 with the current holder's PID/age/reason.
     #>
-    param([Parameter(Mandatory)][string]$Reason)
+    param(
+        [Parameter(Mandatory)][string]$Reason,
+        # S1338: forwarded to Enter-AgentLock. Without -Wait the historical single-shot refusal
+        # (exit 1) is unchanged. With it, a wait that runs out of time exits 2 "cannot verify" -
+        # nothing was built, which is a different fact from "the build failed".
+        [switch]$Wait,
+        [int]$WaitTimeoutSeconds = 900
+    )
 
     $codeStatus = Get-AgentLockStatus -Name Code
     if ($codeStatus.Exists -and -not $codeStatus.Stale) {
         Write-Host "Warning: CODE.LOCK present (age $([int]$codeStatus.AgeSeconds)s, reason: '$($codeStatus.Reason)') - a code edit may be in progress elsewhere. This build may reflect a half-written state." -ForegroundColor Yellow
     }
 
-    $result = Enter-AgentLock -Name Build -Reason $Reason
+    $enterArgs = @{ Name = 'Build'; Reason = $Reason }
+    if ($Wait) {
+        $enterArgs.Wait = $true
+        $enterArgs.WaitTimeoutSeconds = $WaitTimeoutSeconds
+        Write-Host "BUILD.LOCK held - waiting up to ${WaitTimeoutSeconds}s for the holder to finish.." -ForegroundColor DarkGray
+    }
+    $result = Enter-AgentLock @enterArgs
     if (-not $result.Acquired) {
         $s = $result.Status
-        Write-Host "BUILD.LOCK held - refusing to start a second gradle build." -ForegroundColor Red
+        $waitTimedOut = ($result.PSObject.Properties.Name -contains 'WaitTimedOut' -and $result.WaitTimedOut)
+        if ($waitTimedOut) {
+            Write-Host "BUILD.LOCK still held after ${WaitTimeoutSeconds}s - giving up without building." -ForegroundColor Red
+        }
+        else {
+            Write-Host "BUILD.LOCK held - refusing to start a second gradle build." -ForegroundColor Red
+        }
         Write-Host "  Holder PID: $($s.Pid)  age: $([int]$s.AgeSeconds)s  reason: '$($s.Reason)'  host: $($s.Host)" -ForegroundColor Red
         Write-Host "  Never run two gradle builds concurrently (daemon OOM / cache corruption - see CLAUDE.md)." -ForegroundColor Gray
         Write-Host "  Check status: pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Build" -ForegroundColor Gray
+        # A wait that ran out of time inspected nothing - exit 2 "cannot verify", not 1 "failed".
+        if ($waitTimedOut) { exit 2 }
         exit 1
     }
 }

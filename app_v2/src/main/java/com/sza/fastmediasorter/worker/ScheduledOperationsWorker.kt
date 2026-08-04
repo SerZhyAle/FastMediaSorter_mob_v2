@@ -16,6 +16,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.domain.model.MIN_SCHEDULED_INTERVAL_MS
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
@@ -35,9 +36,10 @@ class ScheduledOperationsWorker @AssistedInject constructor(
     companion object {
         const val KEY_OPERATION_ID = "operation_id"
         const val NOTIFICATION_CHANNEL_ID = "scheduled_ops_channel"
-        private const val NOTIFICATION_ID = 4200
+        private const val NOTIFICATION_ID = NotificationIds.SCHEDULED_OPERATIONS
         // S0710: separate id so the permission advisory survives the ongoing "running" notification.
-        private const val PERMISSION_NOTIFICATION_ID = 4201
+        // S1292: ids now come from NotificationIds - two sync workers used to reuse this very value.
+        private const val PERMISSION_NOTIFICATION_ID = NotificationIds.SCHEDULED_OPERATIONS_PERMISSION
 
         // S0759: live counter of in-flight scheduled file operations. This worker runs as a foreground
         // service (DATA_SYNC) for its whole doWork(), so a non-zero count means a background file op is

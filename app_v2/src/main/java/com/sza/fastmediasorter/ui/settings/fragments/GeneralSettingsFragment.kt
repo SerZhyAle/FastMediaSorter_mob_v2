@@ -34,14 +34,15 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.auth.AuthSessionsActivity
+import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsActionHelpers
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsBackupHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsCacheHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsCredentialHelper
+import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsHostContext
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsImportExportHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsLauncherHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsLogHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsObserversHelper
-import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsPermissionsHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsPrefetchHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsProfileHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsResetHelper
@@ -50,11 +51,11 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-@AndroidEntryPoint
-@android.annotation.SuppressLint("SetTextI18n")
 // S1161: extends BaseSettingsFragment so the two-column grid for collapsed groups is installed here too.
 // Three of the four top-level tabs extended Fragment directly, so the landscape columns reached only
 // Management - the rule is meant to hold on every tab, including a build's own extension tabs.
+@AndroidEntryPoint
+@android.annotation.SuppressLint("SetTextI18n")
 class GeneralSettingsFragment : BaseSettingsFragment() {
 
     private var _binding: FragmentSettingsGeneralBinding? = null
@@ -62,8 +63,6 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
     @Inject lateinit var audioMetadataCacheRepository: AudioMetadataCacheRepository
     @Inject lateinit var streamingCacheRepository: StreamingCacheRepository
-    @Inject lateinit var requestContextualPermission: com.sza.fastmediasorter.domain.usecase.RequestContextualPermissionUseCase
-    @Inject lateinit var permissionRegistry: com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
     @Inject lateinit var gatherSystemInfoUseCase: GatherSystemInfoUseCase
     @Inject lateinit var ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
     @Inject lateinit var saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase
@@ -126,16 +125,6 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         }
     }
 
-    private val mediaPermissionsLauncher: androidx.activity.result.ActivityResultLauncher<Array<String>> =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-            permissionsHelper.updatePermissionButtonsState()
-        }
-
-    private val notificationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String> =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            permissionsHelper.updatePermissionButtonsState()
-        }
-
     // S0404/S1107: returns from the API 29+ role dialog / home-settings screen; only refreshes the toggle
     // to the real component-enabled state (enabling the mode already happened before this launched). The
     // chooser can return after a tab swap nulls _binding, so guard before touching the view.
@@ -180,9 +169,6 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             saveTextFileToResourceUseCase = saveTextFileToResourceUseCase,
         )
     }
-    private val permissionsHelper by lazy {
-        GeneralSettingsPermissionsHelper(binding, this, mediaPermissionsLauncher, notificationPermissionLauncher, requestContextualPermission, permissionRegistry)
-    }
     private val importExportHelper by lazy {
         GeneralSettingsImportExportHelper(binding, viewModel, this, importSettingsFileLauncher)
     }
@@ -213,15 +199,27 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     }
     private val observersHelper by lazy {
         GeneralSettingsObserversHelper(
-            binding, viewModel, this, { isUpdatingSpinner }, { isUpdatingSpinner = it }, capabilityAvailability,
+            binding,
+            viewModel,
+            this,
+            { isUpdatingSpinner },
+            { isUpdatingSpinner = it },
+            capabilityAvailability,
         )
     }
     private val viewSetupHelper by lazy {
         GeneralSettingsViewSetupHelper(
-            binding, viewModel, this,
-            { isUpdatingSpinner }, { isUpdatingSpinner = it },
-            cacheHelper, permissionsHelper, importExportHelper, credentialHelper, logHelper, resetHelper,
-            ensureAllFilesPredefinedResourceUseCase, remoteSourceAvailabilityGate
+            hostContext = GeneralSettingsHostContext(binding, viewModel, this),
+            isUpdatingSpinner = this::isUpdatingSpinner,
+            actionHelpers = GeneralSettingsActionHelpers(
+                cacheHelper,
+                importExportHelper,
+                credentialHelper,
+                logHelper,
+                resetHelper,
+            ),
+            ensureAllFilesPredefinedResourceUseCase = ensureAllFilesPredefinedResourceUseCase,
+            remoteSourceAvailabilityGate = remoteSourceAvailabilityGate,
         )
     }
     // S0328: color theme spinner (Auto/Light/Dark) in General → Interface, after the language spinner.
@@ -235,7 +233,11 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     }
     private val launcherHelper by lazy {
         GeneralSettingsLauncherHelper(
-            binding, this, launcherModeContract, launcherRoleManager, launcherRoleLauncher,
+            binding,
+            this,
+            launcherModeContract,
+            launcherRoleManager,
+            launcherRoleLauncher,
         )
     }
 
@@ -312,7 +314,6 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
     override fun onResume() {
         super.onResume()
-        permissionsHelper.updatePermissionButtonsState()
         cacheHelper.updateCacheSize()
         observersHelper.refreshLastSyncStatus()
         launcherHelper.refreshState()

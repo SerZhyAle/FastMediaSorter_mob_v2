@@ -3,10 +3,11 @@ package com.sza.fastmediasorter.ui.main.helpers
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
-import com.sza.fastmediasorter.domain.model.MediaResource
-import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.data.network.exceptions.HandledNetworkOutcomeLogger
 import com.sza.fastmediasorter.data.network.exceptions.NetworkErrorClassifier
 import com.sza.fastmediasorter.data.network.exceptions.NetworkErrorMessageMapper
+import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import kotlinx.coroutines.flow.first
@@ -131,8 +132,13 @@ class ResourceNavigationCoordinator(
                     createNavigationResult(resource.id, slideshowMode)
                 },
                 onFailure = { error ->
-                    Timber.e(error, "Connection test failed for ${resource.name}")
-                    
+                    HandledNetworkOutcomeLogger.logConnectionTestFailure(
+                        scope = "resource-navigation",
+                        resourceLabel = resource.name,
+                        throwable = error,
+                        message = "Connection test failed"
+                    )
+
                     // Update availability to false
                     if (resource.isAvailable) {
                         val updatedResource = resource.copy(isAvailable = false)
@@ -142,15 +148,24 @@ class ResourceNavigationCoordinator(
                     // Format error message via NetworkErrorClassifier
                     val classifiedError = NetworkErrorClassifier.classify(error)
                     val userMessage = NetworkErrorMessageMapper.toContextAwareMessage(
-                        context, classifiedError, resource.type, resource.path, networkContextAnalyzer,
+                        context,
+                        classifiedError,
+                        resource.type,
+                        resource.path,
+                        networkContextAnalyzer,
                         resource.accessNote // S1014
                     )
                     NavigationResult.Error(userMessage, null)
                 }
             )
         } catch (e: Exception) {
-            Timber.e(e, "Exception testing connection for ${resource.name}")
-            
+            HandledNetworkOutcomeLogger.logConnectionTestFailure(
+                scope = "resource-navigation",
+                resourceLabel = resource.name,
+                throwable = e,
+                message = "Exception testing connection"
+            )
+
             // Update availability to false on exception
             if (resource.isAvailable) {
                 val updatedResource = resource.copy(isAvailable = false)
@@ -160,7 +175,11 @@ class ResourceNavigationCoordinator(
             // Format error message via NetworkErrorClassifier
             val classifiedError = NetworkErrorClassifier.classify(e)
             val userMessage = NetworkErrorMessageMapper.toContextAwareMessage(
-                context, classifiedError, resource.type, resource.path, networkContextAnalyzer,
+                context,
+                classifiedError,
+                resource.type,
+                resource.path,
+                networkContextAnalyzer,
                 resource.accessNote // S1014
             )
             NavigationResult.Error(userMessage, null)

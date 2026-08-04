@@ -12,4 +12,4 @@ Never run several **gradle-backed builds** concurrently on this machine. Launchi
 
 **Why:** each real gradle build starts its own Kotlin daemon; the machine's heap can't host many simultaneously. The failure looks like a code/compile error but is pure resource contention - retrying serially passes.
 
-**How to apply:** run only one gradle build at a time. post-change closures can run freely (no daemon). If a build OOMs with multiple-daemon warnings, it's contention - kill stragglers, retry the single build clean (see [[project_build_gotchas]]). kapt recovery: `scripts/utils/recover-kapt-stall.ps1`.
+**How to apply:** run only one gradle build at a time. post-change closures can run freely (no daemon). If a build OOMs with multiple-daemon warnings, it's contention - kill stragglers, retry the single build clean (see [[build-gotchas]]). kapt recovery: `scripts/utils/recover-kapt-stall.ps1`.

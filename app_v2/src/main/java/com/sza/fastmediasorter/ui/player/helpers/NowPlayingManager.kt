@@ -10,7 +10,6 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import com.bumptech.glide.Glide
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.databinding.ViewMiniNowPlayingBinding
@@ -34,12 +33,15 @@ import java.io.File
  * Constructor-instantiated in PlayerActivity (same pattern as SleepTimerManager).
  * All playback commands are delegated - this manager holds no ExoPlayer reference.
  *
- * Entry points are guarded by [BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK].
+ * Entry points are guarded by [persistentAudioCompiledIn].
  */
 class NowPlayingManager(
     private val activityBinding: ActivityPlayerUnifiedBinding,
     private val fragmentManager: FragmentManager,
-    private val audioServiceController: AudioServiceController
+    private val audioServiceController: AudioServiceController,
+    // S1379: resolved by the host from the capability contract - shared code must not read the
+    // build flag itself (CLAUDE.md Rule 14).
+    private val persistentAudioCompiledIn: Boolean
 ) {
 
     // View Binding always returns a non-null binding for <include> tags; try/catch guards against
@@ -78,7 +80,7 @@ class NowPlayingManager(
     }
 
     init {
-        if (BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) {
+        if (persistentAudioCompiledIn) {
             if (miniBar != null) {
                 Timber.d("NowPlayingManager: Initializing mini now playing bar listeners")
                 miniBar.root.setOnClickListener { showBottomSheet() }
@@ -106,7 +108,7 @@ class NowPlayingManager(
         startIndex: Int,
         onPlayerReady: (androidx.media3.common.Player) -> Unit
     ) {
-        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) return
+        if (!persistentAudioCompiledIn) return
 
         Timber.d("NowPlayingManager: startPlayback files=${files.size} startIndex=$startIndex")
         val items = files.map { file ->
@@ -143,7 +145,7 @@ class NowPlayingManager(
      *   full-screen video with touch zones, not a background-audio overlay.
      */
     fun onStart(currentMediaType: MediaType? = null, showPanel: Boolean = false) {
-        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) return
+        if (!persistentAudioCompiledIn) return
         updateBarVisibility(currentMediaType, showPanel)
     }
 
@@ -155,7 +157,7 @@ class NowPlayingManager(
      * Should be called whenever AudioPlaybackService.isRunning may have changed.
      */
     fun updateBarVisibility(currentMediaType: MediaType? = null, showPanel: Boolean = false) {
-        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK || miniBar == null) return
+        if (!persistentAudioCompiledIn || miniBar == null) return
 
         // Never show when the user is directly viewing an audio or video file -
         // they control playback via the player UI itself, not the background bar.
