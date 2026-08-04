@@ -20,11 +20,11 @@ This guide explains how to select and configure which module runs by default.
 
 Some features are flavor-scoped. Key examples:
 
-- **Internet Streams** (internet radio, HLS/DASH/RTSP playback, curated catalog): full scope on `standard`, `legacy`, `noLegal`, and `vr`; progressive-audio only (no HLS/DASH/RTSP) on `lite`; absent on `photos`.
-- **VR / OpenXR rendering**: `vr` and `noLegal` flavors only.
-- **Wear OS companion**: all flavors except `vr`.
+- **Internet Streams** (internet radio, HLS/DASH/RTSP playback, curated catalog): full scope on `standard`, `legacy`, `noLegal`, and `vr`; absent on `lite` and `photos` - the screen has no entry point in either.
+- **VR / OpenXR rendering**: only the `vr` and `noLegal` flavors compile the VR source set, and of those only `noLegal` declares `SUPPORT_VR_PLAYER`, so full headset immersion ships in `noLegal` alone.
+- **Wear OS companion**: `standard`, `noLegal`, and `legacy`; excluded from `lite`, `photos`, and `vr`.
 
-See [ALL_FEATURES.jsonl](ALL_FEATURES.jsonl) for the full feature inventory.
+See [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) for the generated per-flavor grid and [ALL_FEATURES.jsonl](ALL_FEATURES.jsonl) for the full feature inventory.
 
 ## Quick Selection (Interactive)
 

@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-smb-setup.html
 ---
 # 🖥️ Connect to Home NAS / Windows Share (SMB)
 
-> **Level:** Beginner &bull; **Flavor:** Standard, Lite, Photos, Legacy (all support SMB)
+> **Level:** Beginner &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (Lite has no network sources)
 
 [Русский](scenario-smb-setup-ru.md) | [Українська](scenario-smb-setup-uk.md)
 

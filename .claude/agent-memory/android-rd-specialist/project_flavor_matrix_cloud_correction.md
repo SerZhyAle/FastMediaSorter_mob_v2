@@ -1,17 +1,13 @@
 ---
 name: flavor-matrix-cloud-correction
-description: legacy AND photos DO have SUPPORT_CLOUD=true; lite DOES have SUPPORT_AUDIO=true; verify flags in build.gradle.kts, not from any memorized matrix
+description: never answer a flavor-capability question from memory - docs/FLAVOR_MATRIX.md is generated from productFlavors and gated; binary file types are the one thing not capability-gated
 type: project
 ---
 
-The persona/system-prompt flavor matrix ("legacy: VIDEO+AUDIO+IMAGES+ANIM", "photos: IMAGES+ANIM") is STALE on cloud/documents. Ground truth from app_v2/build.gradle.kts productFlavors:
+The canonical grid is **`docs/FLAVOR_MATRIX.md`**, generated from the `productFlavors` block by `scripts/docs/generate-flavor-matrix.ps1` and enforced against every documentation table by `scripts/quality/assert-flavor-matrix-docs.ps1` (S1392, 2026-08-04). Read it; do not restate it here or answer from a prompt summary.
 
-- **legacy**: SUPPORT_CLOUD=true, SUPPORT_LOCAL_NETWORK=true, SUPPORT_DOCUMENTS=true, ENABLE_TRANSLATION=true, ENABLE_EPUB=true (full set, only minSdk 23 differs).
-- **photos**: SUPPORT_CLOUD=true, SUPPORT_LOCAL_NETWORK=true, ENABLE_ANIMATIONS=true; but SUPPORT_VIDEO=false, SUPPORT_AUDIO=false, SUPPORT_DOCUMENTS=false, ENABLE_TRANSLATION=false.
-- **lite**: the only flavor with NO cloud, NO network, NO documents, NO translation, NO animations (local-files-only, S0448). But it DOES have SUPPORT_AUDIO=true - the persona matrix's "lite: VIDEO+IMAGES" is wrong on audio (found 2026-07-16, S1058).
-- **Binary files (archives / disk images / executables) are NOT capability-gated at all**: `GetMediaFilesUseCase.applyFlavorMediaTypeRestrictions` filters every MediaType by MediaCapabilities except the four BINARY_* types, which sit on an unconditional `-> true`. So binary-file features ship in all six flavors regardless of the SUPPORT_* set (found 2026-07-16, S1058).
-- Capability axes that actually gate docs claims: CLOUD (std/photos/legacy/noLegal/vr - NOT lite), LOCAL_NETWORK/SMB (same set), DOCUMENTS/PDF/EPUB (std/legacy/noLegal/vr - NOT lite, NOT photos), TRANSLATION/OCR (std/legacy/noLegal/vr).
+The one fact that grid does NOT show, because it is a code path rather than a flag: **binary files (archives / disk images / executables) are not capability-gated at all.** `GetMediaFilesUseCase.applyFlavorMediaTypeRestrictions` filters every `MediaType` by `MediaCapabilities` except the four `BINARY_*` types, which sit on an unconditional `-> true`. Binary-file features therefore ship in all six flavors regardless of the `SUPPORT_*` set (found 2026-07-16, S1058).
 
-**Why:** S0557 docs-drift audit nearly applied wrong fixes ("Photos has no cloud", "Legacy has no cloud") because both the memorized matrix and a sub-agent's report contradicted the real flags. The in-repo HOW_TO matrix row "Cloud storage | std✓ lite✗ photos✓ legacy✓ XR✓" matches build.gradle.kts, not the persona table.
+**Why:** two separate audits nearly landed wrong fixes off a memorized matrix - S0557 was about to write "Photos has no cloud" and "Legacy has no cloud" (both have it), and S1392 found four user-facing documents that had followed a persona summary claiming `lite` had no audio and progressive-only streams, the exact inverse of the flags. A capability summary that is not generated goes stale silently; that is what the gate now prevents.
 
-**How to apply:** Any flavor-capability claim (docs, spec, code gate) - read the SUPPORT_*/ENABLE_* buildConfigField lines in app_v2/build.gradle.kts before asserting. Never answer flavor-capability questions from the persona's summary matrix; it predates cloud being added to legacy/photos.
+**How to apply:** any flavor-capability claim - docs, spec, code gate, chat answer - reads `docs/FLAVOR_MATRIX.md` first. If the question is about a media type rather than a flag, check the restriction function too, because the `BINARY_*` exemption is invisible in the grid.

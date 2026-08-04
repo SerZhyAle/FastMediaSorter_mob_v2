@@ -1006,6 +1006,23 @@ scripts/docs/export-icon-svgs.ps1
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 ```
 
+### generate-flavor-matrix.ps1
+S1392 - flavor capability matrix generator (single source of truth renderer).
+
+```
+scripts/docs/generate-flavor-matrix.ps1
+  S1392 - flavor capability matrix generator (single source of truth renderer).
+  Params:
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -GradleFile             [String]
+    -Json                   [String]
+    -Markdown               [String]
+    -MinFlavorCount         [Int32] = 6
+    -Check                  [SwitchParameter]
+    -Quiet                  [SwitchParameter]
+  Exit: 0 artifacts written, or -Check found them current; 1 -Check found drift (regenerate without -Check); 2 could not verify: build file missing, productFlavors block not found,
+```
+
 ### render-icon-legend.ps1
 S0815 Phase 03 - render the trilingual icon-legend pages.
 
@@ -1470,6 +1487,20 @@ scripts/quality/assert-flavor-flags-not-growing.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+```
+
+### assert-flavor-matrix-docs.ps1
+S1392 - documentation-vs-gradle flavor capability matrix gate.
+
+```
+scripts/quality/assert-flavor-matrix-docs.ps1
+  S1392 - documentation-vs-gradle flavor capability matrix gate.
+  Params:
+    -Gate             [SwitchParameter]
+    -Quiet            [SwitchParameter]
+    -Table            [String]
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: snapshot or manifest missing / unreadable, or the snapshot is stale
 ```
 
 ### assert-focus-highlight.ps1

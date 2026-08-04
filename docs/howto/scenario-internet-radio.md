@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-internet-radio.html
 ---
 # 📻 Internet Radio & Streams
 
-> **Level:** Beginner - **Time:** ~10 minutes - **Flavor:** Standard or Legacy (Lite: audio-only)
+> **Level:** Beginner - **Time:** ~10 minutes - **Flavor:** Standard, Legacy, VR, noLegal (Streams are absent in Lite and Photos)
 
 [Русский](scenario-internet-radio-ru.md) | [Українська](scenario-internet-radio-uk.md)
 
@@ -18,7 +18,7 @@ FastMediaSorter includes a dedicated Streams screen for internet audio and video
 ## What You Will Need
 
 - Android device with a network connection (mobile data or Wi-Fi)
-- FastMediaSorter Standard or Legacy (Lite supports http/https audio only)
+- FastMediaSorter Standard, Legacy, VR, or noLegal (the Streams screen is absent in Lite and Photos)
 - A stream URL, .m3u playlist file or URL, or the built-in curated catalog
 
 ---
@@ -96,6 +96,6 @@ If a stream is unavailable or redirected, a dialog appears with three options:
 |---------|-------------|
 | Stream does not play | Check that the URL is correct and the station is online. Try Retry in the unavailability dialog |
 | Audio stops when switching apps | Enable Background audio playback in Settings -> Media -> Player |
-| HLS/DASH stream shows "unsupported" | This flavor (Lite) supports http/https audio only. Use Standard or Legacy for HLS/DASH/RTSP |
+| No Streams entry in the menu | The Streams screen is absent in the Lite and Photos flavors. Use Standard, Legacy, VR, or noLegal |
 | Catalog import hangs | The catalog host may be slow or offline. The import times out automatically and shows an error - check your connection and retry |
 | No flags shown in language filter | Flags are shown based on the language tag in the station catalog. Manually added stations with no language tag are always visible under any language filter |

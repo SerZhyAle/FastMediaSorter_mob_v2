@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-download-organizer.html
 ---
 # 🧹 Download Organizer - Sort Files with One Tap
 
-> **Level:** Beginner &bull; **Flavor:** Any (Standard, Lite, Photos, Legacy)
+> **Level:** Beginner &bull; **Flavor:** Any (Standard, Lite, Photos, Legacy, VR, noLegal)
 
 [Русский](scenario-download-organizer-ru.md) | [Українська](scenario-download-organizer-uk.md)
 

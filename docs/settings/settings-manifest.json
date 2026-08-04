@@ -1361,6 +1361,16 @@
       "titleUk": "Компактні елементи (глобально)"
     },
     {
+      "key": "rowDebugLogMirror",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Mirror log to opened folder",
+      "titleRu": "Зеркалировать лог в открытую папку",
+      "titleUk": "Дублювати лог у відкриту папку"
+    },
+    {
       "key": "rowDefaultGridMode",
       "sectionId": "general",
       "destination": "GENERAL",

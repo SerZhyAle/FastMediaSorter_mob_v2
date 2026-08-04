@@ -225,17 +225,23 @@ HEAD-probe по кандидатам (≤ 8 параллельно, лимит 4
 
 ## 10. Поддержка по сборкам (flavor matrix)
 
-| Возможность | standard | legacy | vr | lite | photos |
-|-------------|:---:|:---:|:---:|:---:|:---:|
-| Прямой файл (MP4/MP3/JPEG/..) | ✓ | ✓ | ✓ | ✓ | image-only |
-| HTML-парсинг (og:*, video/audio/img теги) | ✓ | ✓ | ✓ | ✓ | image-only |
-| Streaming sniffer (m3u8/mpd в HTML) | ✓ | ✓ | ✓ | - | - |
-| HLS/DASH → MP4 (Media3 + MediaMuxer) | ✓ | ✓ | ✓ | - | - |
-| WebView-авторизация (любой домен) | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Cookie injection | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Несколько аккаунтов на хост (S0155) | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Настройки качества | ✓ | ✓ | ✓ | - | - |
-| Постобработка UX (плеер vs тост) | ✓ | ✓ | ✓ | ✓ | ✓ |
+Значения выведены из [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) - сгенерированной сетки возможностей по сборкам.
+
+| Возможность | standard | noLegal | legacy | vr | lite | photos |
+|-------------|:---:|:---:|:---:|:---:|:---:|:---:|
+| Прямой файл (MP4/MP3/JPEG/..) | ✓ | ✓ | ✓ | ✓ | ✓ | image-only |
+| HTML-парсинг (og:*, video/audio/img теги) | ✓ | ✓ | ✓ | ✓ | ✓ | image-only |
+| Streaming sniffer (m3u8/mpd в HTML) | ✓ | ✓ | ✓ | ✓ | - | - |
+| HLS/DASH → MP4 (Media3 + MediaMuxer) | ✓ | ✓ | ✓ | ✓ | - | - |
+| WebView-авторизация (любой домен) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Cookie injection | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Несколько аккаунтов на хост (S0155) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Настройки качества | ✓ | ✓ | ✓ | ✓ | - | - |
+| Постобработка UX (плеер vs тост) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Дополнительные стратегии извлечения (`UrlExtractionStrategy` из flavor-source set) | - | ✓ | - | - | - | - |
+| Пейсер карусели (`LinkDownloadPacer`, S0973) | - | ✓ | - | - | - | - |
+
+**Столбец `noLegal` (S1392).** Приём ссылок не читает ни одного флага возможностей: в общем коде встречается только `BuildConfig.DEBUG`, а `IS_NO_LEGAL_FLAVOR` не читается нигде в `app_v2/src`. Флаги, которыми `noLegal` отличается от `standard` (`IS_NO_LEGAL_FLAVOR`, `SUPPORT_VR_PLAYER`, `VR_UI_COMPOSITION_LAYER_ENABLED`), в этом коде не участвуют, а все остальные (`SUPPORT_VIDEO`, `SUPPORT_AUDIO`, `SUPPORT_IMAGES`, `SUPPORT_STREAMS`, `SUPPORT_CLOUD`, `SUPPORT_LOCAL_NETWORK`, `SUPPORT_DOCUMENTS`) у обеих сборок объявлены `true`. Поэтому по девяти базовым строкам столбцы совпадают. Различие приходит не из флага, а из source set: модуль `noLegal` добавляет в мультибиндинг дополнительные стратегии извлечения и пейсер - это две последние строки.
 
 ---
 

@@ -3,11 +3,11 @@ package com.sza.fastmediasorter.data.remote.ftp
 import android.content.Context
 import com.sza.fastmediasorter.core.util.MediaFileIntegrity
 import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
 import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
-import dagger.hilt.android.qualifiers.ApplicationContext
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.usecase.MediaFilePage
 import com.sza.fastmediasorter.domain.usecase.MediaScanner
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.utils.FtpPathUtils
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -145,6 +146,7 @@ class FtpMediaScanner @Inject constructor(
                 } else null
             } ?: emptyList()
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error scanning FTP folder: $path")
             emptyList()
         }
@@ -249,6 +251,7 @@ class FtpMediaScanner @Inject constructor(
             )
             MediaFilePage(resultFiles, hasMore)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error scanning FTP folder (paged): $path")
             MediaFilePage(emptyList(), false)
         }
@@ -328,6 +331,7 @@ class FtpMediaScanner @Inject constructor(
             Timber.d("FTP getFileCount result: $count files")
             count
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error counting FTP files in: $path")
             0
         }
@@ -413,6 +417,7 @@ class FtpMediaScanner @Inject constructor(
                             result
                         }
                     } catch (e: Exception) {
+                        e.rethrowIfCancellation()
                         Result.failure(e)
                     }
 
@@ -470,6 +475,7 @@ class FtpMediaScanner @Inject constructor(
             ) ?: emptyList()
 
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error listing FTP directory contents: $path")
             emptyList()
         }
@@ -502,6 +508,7 @@ class FtpMediaScanner @Inject constructor(
             Timber.d("FTP isWritable result: true")
             true
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error checking FTP writable: $path")
             false
         }

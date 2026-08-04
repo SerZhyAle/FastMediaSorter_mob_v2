@@ -31,6 +31,7 @@
 2. Specs: `scripts/spec_catalog/select.ps1 -Id Sxxxx -Format json`
 3. Kotlin classes: `dev/CATALOG/scripts/query.ps1` before global grep.
 4. Docs: `docs/ARCHITECTURE.md`, `docs/DEV_OPS.md`, `dev/TECH_REQUIREMENTS.md`, `dev/FLAVOR_DEVELOPMENT_RULES.md`.
+   Flavors are standard, noLegal, lite, photos, legacy, vr. Which capability is live in which flavor: `docs/FLAVOR_MATRIX.md` - generated from `productFlavors` by `scripts/docs/generate-flavor-matrix.ps1`, enforced against the docs by `scripts/quality/assert-flavor-matrix-docs.ps1`. Never restate the grid from memory (S1392).
 5. Document-registry loop: mandatory at task start, material scope change, phase boundary, and before final response - see `.claude/skills/document-registry/SKILL.md`.
 
 ## 5. Skill Routing (Load `.github/prompts/*.prompt.md`)

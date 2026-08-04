@@ -300,15 +300,17 @@
 
 ### Main App (app_v2)
 
-| Parameter                | Standard/Lite/Photos | Legacy flavor       |
-|:-------------------------|:---------------------|:--------------------|
-| Android version          | 8.0 (Oreo, API 26)  | 6.0 (Marshmallow, API 23) |
-| RAM                      | ≥ 2 GB               | ≥ 1.5 GB            |
-| Heap (dalvik.vm.heapsize)| ≥ 256 MB             | ≥ 128 MB            |
-| Free storage             | ≥ 200 MB             | ≥ 200 MB            |
-| Google Play Services     | Required for Cloud    | Required for Cloud   |
-| Internet                 | Required for Cloud/OCR Translation | Required for Cloud/OCR Translation |
-| Network protocols        | SMB 2/3, SFTP, FTP   | SMB 2/3, SFTP, FTP  |
+| Parameter                | Standard/Photos      | Lite flavor          | Legacy flavor       |
+|:-------------------------|:---------------------|:---------------------|:--------------------|
+| Android version          | 8.0 (Oreo, API 26)  | 8.0 (Oreo, API 26)  | 6.0 (Marshmallow, API 23) |
+| RAM                      | ≥ 2 GB               | ≥ 2 GB               | ≥ 1.5 GB            |
+| Heap (dalvik.vm.heapsize)| ≥ 256 MB             | ≥ 256 MB             | ≥ 128 MB            |
+| Free storage             | ≥ 200 MB             | ≥ 200 MB             | ≥ 200 MB            |
+| Google Play Services     | Required for Cloud    | Not used - no cloud providers | Required for Cloud   |
+| Internet                 | Required for Cloud/OCR Translation | Not required - local files only | Required for Cloud/OCR Translation |
+| Network protocols        | SMB 2/3, SFTP, FTP   | None - `SUPPORT_LOCAL_NETWORK` is false | SMB 2/3, SFTP, FTP  |
+
+`lite` is split out because grouping it with Standard/Photos asserted cloud and network support it does not have (`SUPPORT_CLOUD` and `SUPPORT_LOCAL_NETWORK` both false since S0448). The generated grid is [`docs/FLAVOR_MATRIX.md`](../docs/FLAVOR_MATRIX.md); `vr` and `noLegal` match the Standard column on every row in this table.
 
 ### Wear OS (wear)
 

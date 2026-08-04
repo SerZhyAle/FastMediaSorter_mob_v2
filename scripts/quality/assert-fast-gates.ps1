@@ -16,6 +16,7 @@
       - assert-listener-symmetry
       - assert-qualifier-shadowing   (values-land key a smallestWidth bucket always outranks)
       - assert-tactical-step-form    (S1343 Why-field ratchet over PLAN/*/PHASE_*.md)
+      - assert-flavor-matrix-docs    (S1392 doc flavor tables vs the generated capability snapshot)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
@@ -95,6 +96,12 @@ $gates = [ordered]@{
     # the diff-scoping every sibling gate uses returns nothing here. Parses ~300 small .md
     # files, no gradle daemon.
     'assert-tactical-step-form.ps1'             = @('-Quiet')
+    # S1392: documentation flavor tables vs the generated capability snapshot. Nothing compared a
+    # markdown matrix to build.gradle.kts before - the pin checker covers pins, the release
+    # snapshot covers `standard` only - so docs/HOW_TO.md sat inverted against the lite gates on
+    # two rows until a sibling ticket happened to derive wording from the gates instead. Parses one
+    # JSON plus four small docs, no gradle daemon.
+    'assert-flavor-matrix-docs.ps1'             = @('-Quiet')
 }
 
 # S1338: these five accept -ChangedFiles and used to be invoked with no arguments at

@@ -81,7 +81,7 @@ When you connect cloud storage (optional):
 - ❌ Share your cloud data with anyone
 - ❌ Upload your data to our servers
 - ❌ Scan your entire cloud storage
-- ❌ Access other services (Gmail, Contacts, Calendar, etc.)
+- ❌ Access other cloud services of that account (Gmail, Google Contacts, Calendar, etc.) - the optional on-device contacts permission below is separate and never reaches your cloud account
 
 ### Data Usage
 

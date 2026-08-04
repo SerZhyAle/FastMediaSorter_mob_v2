@@ -47,11 +47,9 @@ Recently changed files unless asked otherwise:
 
 ## Build & Flavors
 
-Matrix (gated via `BuildConfig` in `app_v2/build.gradle.kts`):
-- `standard`: VIDEO+AUDIO+IMAGES+CLOUD+DOCS+ANIM, minSdk 26
-- `lite`: VIDEO+IMAGES, minSdk 26
-- `photos`: IMAGES+ANIM, minSdk 26
-- `legacy`: VIDEO+AUDIO+IMAGES+ANIM, minSdk 23
+Six flavors: `standard`, `noLegal`, `lite`, `photos`, `legacy`, `vr`. minSdk 26 everywhere except `legacy` (23).
+
+**Never answer a flavor-capability question from memory - read `docs/FLAVOR_MATRIX.md`.** It is generated from the `productFlavors` block by `scripts/docs/generate-flavor-matrix.ps1` and is the only correct grid; a shorthand summary in a prompt cannot be gated and goes stale silently (S1392 - a summary here claimed `lite` had no audio, and four documents had followed it).
 
 Build questions -> `/build`; run debug builds via PowerShell autonomously. pwsh 7 at `/c/Program Files/PowerShell/7/pwsh.exe`. Flags -> `docs/DEV_OPS.md` + `build.gradle.kts`. Deps -> `docs/TECH_STACK.md` + `dev/TECH_REQUIREMENTS.md`.
 

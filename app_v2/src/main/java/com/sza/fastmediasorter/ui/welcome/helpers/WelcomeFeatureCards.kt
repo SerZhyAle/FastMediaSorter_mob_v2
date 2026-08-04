@@ -3,76 +3,88 @@ package com.sza.fastmediasorter.ui.welcome.helpers
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.ui.welcome.FeatureCard
+import timber.log.Timber
 
 /**
  * Builds the pitch shown on the first welcome page.
  *
- * The order is the pitch itself, not a grid: what the app opens, then where it reads from, then what
- * it does with it.
+ * S1386: the pitch names the app's roles, not a sample of its capabilities. A literal list of
+ * features reads as a truncation at any length, while the core roles and a final umbrella card
+ * cover the app without requiring one card per capability.
  *
- * S1389: this is the one surface in the wizard that makes promises rather than offering a toggle, so
- * every card answers to the build's own capabilities. A source the build cannot open loses its card
- * outright; a card that belongs on every build but names an absent media type keeps its place and
- * swaps to wording that stays true. The flags are the same ones that decide which wizard pages are
- * added, so the pitch and the pages cannot disagree about what the build can do.
+ * Every role belongs on every build - each one reads local storage, opens at least images, moves
+ * files and sorts - so no card is ever dropped. What varies is the second line: it names only the
+ * media types, protocols and services this build can actually open, so the pitch cannot promise
+ * what the flavor gates away (S1389).
  */
 object WelcomeFeatureCards {
 
-    fun build(capabilities: MediaCapabilities): List<FeatureCard> = buildList {
-        val hasVideo = capabilities.supportsVideo
-        add(
-            FeatureCard(
-                R.drawable.ic_image,
-                if (hasVideo) R.string.welcome_feature_photos else R.string.welcome_feature_photos_images_only,
-                if (hasVideo) {
-                    R.string.welcome_feature_photos_detail
-                } else {
-                    R.string.welcome_feature_photos_detail_images_only
-                }
-            )
-        )
-        add(
-            FeatureCard(
-                R.drawable.ic_resource_local,
-                R.string.welcome_feature_local_folders,
-                R.string.welcome_feature_local_folders_detail
-            )
-        )
-        if (capabilities.supportsLocalNetworkSources) {
+    fun build(capabilities: MediaCapabilities): List<FeatureCard> {
+        val cards = buildList {
             add(
                 FeatureCard(
-                    R.drawable.ic_resource_smb,
-                    R.string.welcome_feature_network,
-                    R.string.welcome_feature_network_detail
+                    R.drawable.ic_folder_open_24,
+                    R.string.welcome_role_file_manager,
+                    R.string.welcome_role_file_manager_detail
+                )
+            )
+            add(
+                FeatureCard(
+                    R.drawable.ic_play,
+                    playerTitle(capabilities),
+                    playerDetail(capabilities)
+                )
+            )
+            add(
+                FeatureCard(
+                    R.drawable.ic_resource,
+                    R.string.welcome_role_sources,
+                    sourcesDetail(capabilities)
+                )
+            )
+            add(
+                FeatureCard(
+                    R.drawable.ic_swap_horizontal,
+                    R.string.welcome_role_sorting,
+                    R.string.welcome_role_sorting_detail
+                )
+            )
+            add(
+                FeatureCard(
+                    R.drawable.ic_apps,
+                    R.string.welcome_role_more,
+                    R.string.welcome_role_more_detail
                 )
             )
         }
-        if (capabilities.supportsCloud) {
-            add(
-                FeatureCard(
-                    R.drawable.ic_resource_cloud,
-                    R.string.welcome_feature_cloud,
-                    R.string.welcome_feature_cloud_detail
-                )
-            )
+        Timber.d("S1386: welcome role showcase built, cards=${cards.size}")
+        return cards
+    }
+
+    private fun playerTitle(capabilities: MediaCapabilities): Int =
+        if (capabilities.supportsVideo || capabilities.supportsAudio) {
+            R.string.welcome_role_player
+        } else {
+            R.string.welcome_role_player_images_only
         }
-        add(
-            FeatureCard(
-                R.drawable.ic_swap_horizontal,
-                R.string.welcome_feature_sorting,
-                R.string.welcome_feature_sorting_detail
-            )
-        )
-        add(
-            FeatureCard(
-                R.drawable.ic_slideshow,
-                R.string.welcome_feature_slideshow,
-                if (capabilities.supportsAudio) {
-                    R.string.welcome_feature_slideshow_detail
-                } else {
-                    R.string.welcome_feature_slideshow_detail_no_audio
-                }
-            )
-        )
+
+    private fun playerDetail(capabilities: MediaCapabilities): Int = when {
+        capabilities.supportsVideo && capabilities.supportsAudio && capabilities.supportsDocuments ->
+            R.string.welcome_role_player_detail
+
+        capabilities.supportsVideo && capabilities.supportsAudio ->
+            R.string.welcome_role_player_detail_no_documents
+
+        capabilities.supportsVideo -> R.string.welcome_role_player_detail_no_audio
+        else -> R.string.welcome_role_player_detail_images_only
+    }
+
+    private fun sourcesDetail(capabilities: MediaCapabilities): Int = when {
+        capabilities.supportsLocalNetworkSources && capabilities.supportsCloud ->
+            R.string.welcome_role_sources_detail
+
+        capabilities.supportsLocalNetworkSources -> R.string.welcome_role_sources_detail_network_only
+        capabilities.supportsCloud -> R.string.welcome_role_sources_detail_cloud_only
+        else -> R.string.welcome_role_sources_detail_local_only
     }
 }

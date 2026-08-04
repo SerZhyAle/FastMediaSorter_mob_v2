@@ -60,7 +60,20 @@ $expectedFallbacks = @(
     'CastMediaManager.*not supported', 'LocalCastProxyServer.*unavailable',
     '\(non-critical\)', '\(ignored\)', 'NetworkReachabilityGate: no-(network|wifi)',
     'scanFolderSAFFast.*No permission', 'MediaCodec error', 'Audio renderer failed',
-    'Media3OomSafeLogger', 'Upgrade reconciliation', 'ShareTarget package not installed'
+    'Media3OomSafeLogger', 'Upgrade reconciliation', 'ShareTarget package not installed',
+    # S1391: emulator-only noise that reached the FAIL count on the 2026-08-04 sweep, where the run
+    # was otherwise clean - 17/17 Maestro green, no toast, no crash, no ANR - yet the gate returned
+    # pass=false on these alone. Each entry is emulator or framework behaviour the app cannot change.
+    'EGL_emulation', 'eglQueryContext',                        # emulator GPU stack, no host rendernode
+    'Failed to open rendernode',                               # same emulator GPU stack, once per process
+    # 2026-08-04 sweep, same S1391 class: android.window.SurfaceSyncGroup (AOSP framework, absent from
+    # app_v2 sources) logs a 1000 ms timeout waiting for the window transaction ack while the software
+    # renderer is saturated by back-to-back Maestro flows. Nothing the app owns can ack faster.
+    'SurfaceSyncGroup\(.*\) as ready',
+    # search-log matches the message body, not the tag, so these carry no tag prefix.
+    'Unable to open asset URL: file:///android_asset',          # WebView probes the asset first; EpubResourceContentHelper serves it ms later
+    'Not starting debugger since process cannot load the jdwp agent',  # every debuggable process on the image logs this
+    'isn''t requested by package'                              # Maestro grants a permission the app does not declare
 ) -join '|'
 
 function Invoke-SearchLog {

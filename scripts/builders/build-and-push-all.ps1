@@ -1,5 +1,5 @@
 ﻿# Master Build and Push Script
-# Builds ALL flavors (Standard, Lite, Photos, Legacy, VR) in both Debug and Release modes
+# Builds ALL flavors (Standard, Lite, Photos, Legacy, VR, noLegal) in both Debug and Release modes
 # Also builds Wear OS (Debug + Release)
 # Copies artifacts to DOWNLOADS folder
 # Commits and pushes to git

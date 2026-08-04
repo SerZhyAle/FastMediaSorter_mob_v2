@@ -73,10 +73,10 @@ class GeneralSettingsColorThemeHelper(
 
     private fun showRestartDialog(previousValue: String, newValue: String) {
         MaterialAlertDialogBuilder(fragment.requireContext())
-            .setTitle(R.string.restart_required_title)
-            .setMessage(R.string.restart_required_message)
+            .setTitle(R.string.restart_app_title)
+            .setMessage(R.string.restart_app_color_theme_message)
             .setCancelable(false)
-            .setPositiveButton(R.string.restart_now) { _, _ ->
+            .setPositiveButton(R.string.restart) { _, _ ->
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(colorTheme = newValue))
                 ColorThemePrefs.setMode(fragment.requireContext(), newValue)
@@ -84,7 +84,7 @@ class GeneralSettingsColorThemeHelper(
                 LocaleHelper.markReturnToSettings(fragment.requireContext())
                 LocaleHelper.restartApp(fragment.requireActivity())
             }
-            .setNegativeButton(R.string.restart_later) { dialog, _ ->
+            .setNegativeButton(R.string.cancel) { dialog, _ ->
                 setIsUpdatingSpinner(true)
                 binding.spinnerColorTheme.setSelection(valueToPosition(previousValue))
                 binding.spinnerColorTheme.post { setIsUpdatingSpinner(false) }

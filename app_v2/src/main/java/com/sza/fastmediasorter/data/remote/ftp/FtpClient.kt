@@ -2,6 +2,7 @@
 
 package com.sza.fastmediasorter.data.remote.ftp
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.IdleDisconnectPolicy
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
@@ -125,6 +126,7 @@ class FtpClient @Inject constructor(
             disconnect()
             Result.failure(e)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP connection error: $host:$port")
             disconnect()
             Result.failure(e)
@@ -147,6 +149,7 @@ class FtpClient @Inject constructor(
                     } catch (e: java.net.SocketTimeoutException) {
                         Timber.d("FTP logout timeout (ignored)")
                     } catch (e: Exception) {
+                        e.rethrowIfCancellation()
                         Timber.d(e, "FTP logout error (ignored)")
                     } finally {
                         try {
@@ -160,6 +163,7 @@ class FtpClient @Inject constructor(
             }
             Timber.d("FTP disconnected")
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.w(e, "FTP disconnect error (non-critical)")
         } finally {
             ftpClient = null

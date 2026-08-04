@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-home-cinema.html
 ---
 # 🍿 Home Cinema & VR Streaming
 
-> **Level:** Beginner &bull; **Time:** ~15 minutes &bull; **Flavor:** Standard or Legacy
+> **Level:** Beginner &bull; **Time:** ~15 minutes &bull; **Flavor:** Standard, Legacy, VR, noLegal (Lite has no network sources, Photos has no video)
 
 [Русский](scenario-home-cinema-ru.md) | [Українська](scenario-home-cinema-uk.md)
 

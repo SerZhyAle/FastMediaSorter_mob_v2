@@ -3256,4 +3256,7 @@
     <string name="perm_group_contacts">Контакти</string>
     <string name="perm_title_read_contacts">Доступ до контактів</string>
     <string name="perm_desc_read_contacts">Показувати ім\'я та фото контакту, коли ви закріплюєте його на робочому столі, і дозволяти зв\'язуватися з ним прямо із закріпленої комірки.</string>
+    <string name="restart_app_color_theme_message">Для застосування нової колірної теми потрібен перезапуск додатку. Продовжити?</string>
+    <string name="settings_debug_log_mirror_title">Дублювати лог у відкриту папку</string>
+    <string name="settings_debug_log_mirror_desc">Копіює журнал налагодження в папку, відкриту зараз у переглядачі. Типово вимкнено.</string>
 </resources>

@@ -30,16 +30,39 @@ object LoggingHelper {
     /** Retained instance of FileLoggingTree to expose log file access. */
     private var fileLoggingTree: FileLoggingTree? = null
 
+    /**
+     * Application context kept from [initialize] so the S1357 opt-in can be read here instead of
+     * being threaded through every caller of [updateDebugMirrorTargetFromPath].
+     */
+    private var appContext: Context? = null
+
     /** Returns all log files managed by the file logging tree. */
     fun getLogFiles(): List<File> = fileLoggingTree?.getLogFiles() ?: emptyList()
 
     /**
      * Debug-only hint: mirror the active session log into the currently opened local file folder
      * so reproductions from another machine can be shared without digging into app sandbox paths.
+     *
+     * S1357: gated here rather than at the call site because this is the only entry into the
+     * mechanism, so every present and future caller inherits the opt-in.
      */
     fun updateDebugMirrorTargetFromPath(path: String) {
         if (!BuildConfig.DEBUG) return
-        fileLoggingTree?.updateDebugMirrorTargetFromPath(path)
+        val context = appContext ?: return
+        // First SharedPreferences read is disk I/O and this arrives on the viewer thread.
+        val enabled = StrictModeHelper.allowDiskIO { DebugLogMirrorPrefs.isEnabled(context) }
+        Timber.d("S1357: mirror target request, opt-in=$enabled")
+        if (enabled) {
+            fileLoggingTree?.updateDebugMirrorTargetFromPath(path)
+        }
+    }
+
+    /**
+     * Stop mirroring into the folder already selected this session. Without this, switching the
+     * opt-in off would keep feeding the target chosen before it until the process restarts.
+     */
+    fun clearDebugMirrorTarget() {
+        fileLoggingTree?.clearDebugMirrorTarget()
     }
 
     private var previousCrashHandler: Thread.UncaughtExceptionHandler? = null
@@ -124,6 +147,7 @@ object LoggingHelper {
      * RELEASE build: Only warnings and errors (w/e) - no debug spam
      */
     fun initialize(context: Context) {
+        appContext = context.applicationContext
         // S1253: Robolectric boots the real Application, which used to plant the FILE tree in
         // every unit-test class - the "fms-log-io" executor then churned file IO and memory for
         // thousands of tests and was the thread the JVM's OOM storm named right before the
@@ -300,7 +324,16 @@ object LoggingHelper {
                 }
             }
         }
-        
+
+        /** Drops the current mirror target and its copy offset, so nothing more is appended to it. */
+        fun clearDebugMirrorTarget() {
+            synchronized(this) {
+                debugMirrorFile = null
+                debugMirrorSourcePath = null
+                debugMirrorSourceOffsetBytes = 0L
+            }
+        }
+
         override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
             if (priority < minPriority) return  // Skip below threshold (e.g. VERBOSE/DEBUG in release)
             // S1203: the timestamp is taken on the calling thread so the file keeps call order rather

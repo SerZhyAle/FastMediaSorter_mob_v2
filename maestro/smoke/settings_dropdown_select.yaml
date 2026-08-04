@@ -1,0 +1,70 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: a settings dropdown row can be driven by an automated test at all (S1390).
+# Oracle: with the option list open, the option is addressable BY TEXT and tapping it commits the
+#   value into the row - the row's value field ends up showing the option that was tapped.
+#
+# Why this flow exists: until S1390 the row hosted a plain AutoCompleteTextView, whose non-modal
+# ListPopupWindow never appeared in the accessibility / uiautomator window walk. Maestro could not
+# see a single option, so no dropdown-backed setting was reachable by any flow - only switches were.
+# The row now opens its own modal ListPopupWindow, which takes window focus and is therefore walked.
+# If this flow starts failing with "no visible element" on the option text, the popup has gone
+# non-modal again and every dropdown setting is once more untestable.
+#
+# Target is Player -> "Default sort mode": it commits immediately, with no restart prompt and no
+# activity recreation, so the assertion reads the row directly.
+
+- launchApp
+- runFlow: ../_shared/permissions.yaml
+- runFlow: ../_shared/go_home.yaml
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- runFlow: ../_shared/dismiss_settings_dialogs.yaml
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/titleText"
+    timeout: 10000
+
+# Tabs carry no stable view id, so they are addressed by label. The suite otherwise assumes a
+# ru-locale device; this flow accepts either label so it also runs on an en emulator image.
+- tapOn:
+    text: "Плеер|Player"
+- waitForAnimationToEnd
+
+# Sections start collapsed, so the row is absent from the tree until the header is expanded. Expand
+# only when the row is missing - an unconditional tap would collapse a section a previous flow left
+# open (same guard as settings_toggle_sweep.yaml).
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/headerSortingSlideshow"
+    visibilityPercentage: 100
+    centerElement: true
+    timeout: 8000
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/spinnerSortMode"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/headerSortingSlideshow"
+      - waitForAnimationToEnd
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/spinnerSortMode"
+    visibilityPercentage: 10
+    timeout: 8000
+
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/spinnerSortMode"
+- waitForAnimationToEnd
+
+# The whole point of the ticket: the option is found by its own text inside the popup.
+- assertVisible:
+    text: "Name \\(Z-A\\)|Имя \\(Я-А\\)|Ім'я \\(Я-А\\)"
+- tapOn:
+    text: "Name \\(Z-A\\)|Имя \\(Я-А\\)|Ім'я \\(Я-А\\)"
+- waitForAnimationToEnd
+
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/sdr_value"
+    text: "Name \\(Z-A\\)|Имя \\(Я-А\\)|Ім'я \\(Я-А\\)"

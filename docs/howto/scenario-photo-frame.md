@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-photo-frame.html
 ---
 # 🖼️ Digital Photo Frame on Tablet
 
-> **Level:** Beginner &bull; **Time:** ~15 minutes &bull; **Flavor:** Standard (for NAS/Cloud) or any (for local photos)
+> **Level:** Beginner &bull; **Time:** ~15 minutes &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (for NAS/cloud photos) or any flavor (for local photos)
 
 [Русский](scenario-photo-frame-ru.md) | [Українська](scenario-photo-frame-uk.md)
 
@@ -70,7 +70,7 @@ Tap **Save**.
 
 ## Step 3 - (Optional) Add Background Music
 
-Want soft music playing while viewing photos? Here's how:
+Want soft music playing while viewing photos? Here's how (needs a flavor with audio - the Photos flavor has none):
 
 1. First, add a music source: tap **Add (⊕)** → Local Folder → navigate to your music folder
 2. Go to **Settings → Media tab → scroll to Audio section**

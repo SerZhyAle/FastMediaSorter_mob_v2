@@ -350,6 +350,20 @@ $runsScriptCheatsheetGate = (
     (Test-AnyChangedFile '(^|/)scripts/.*\.ps1$') -or
     (Test-AnyChangedFile 'docs/SCRIPT_CHEATSHEET\.md$')
 )
+# S1392 flavor-matrix doc-conformance gate. Fires when the flavor grid itself moves
+# (app_v2/build.gradle.kts), when the generated snapshot / rendered table is touched, or when one
+# of the documents carrying a checked glyph table is edited. Compares cell VALUES against
+# docs/flavors/flavor-matrix.json, so a marker inverted against the gates cannot land silently -
+# the failure mode that left docs/HOW_TO.md stating the opposite of the lite flags on two rows.
+# Pure text plus one JSON, no gradle daemon.
+$runsFlavorMatrixDocGate = (
+    (Test-AnyChangedFile 'app_v2/build\.gradle\.kts$') -or
+    (Test-AnyChangedFile 'docs/FLAVOR_MATRIX\.md$') -or
+    (Test-AnyChangedFile 'docs/flavors/flavor-matrix\.json$') -or
+    (Test-AnyChangedFile 'docs/DEV_OPS\.md$') -or
+    (Test-AnyChangedFile 'docs/HOW_TO[A-Z_]*\.md$') -or
+    (Test-AnyChangedFile 'scripts/(quality/flavor-matrix-docs\.psd1|quality/assert-flavor-matrix-docs\.ps1|docs/generate-flavor-matrix\.ps1)$')
+)
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -653,6 +667,18 @@ if ($runsScriptCheatsheetGate) {
 }
 else {
     Skip-Step "script-cheatsheet-sync-gate" "not applicable - no changed file is a repo script or the script cheatsheet"
+}
+
+if ($runsFlavorMatrixDocGate) {
+    # Strict even under -ScopeToFile: the gate judges each declared table against the generated
+    # snapshot, so its verdict is attributable to the tables named in this change and never to
+    # another ticket's in-flight drift. Nothing about it is a project-wide count ratchet.
+    Invoke-Step "flavor-matrix-doc-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-flavor-matrix-docs.ps1") -Gate -Quiet
+    }
+}
+else {
+    Skip-Step "flavor-matrix-doc-gate" "not applicable - no changed file is the flavor grid, the generated matrix, or a doc carrying a checked flavor table"
 }
 
 # S1338 phase 05: the document-registry trigger. Reads docs/DOCUMENT_REGISTRY.jsonl and reports

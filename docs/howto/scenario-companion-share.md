@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-companion-share.html
 ---
 # <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Open Your PC's Folders by Scanning One Code
 
-> **Level:** Beginner &bull; **Flavor:** Standard, Photos, Legacy, XR/noLegal (scan needs a camera; the file method works everywhere)
+> **Level:** Beginner &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (Lite has no network sources; scanning needs a camera, the file method works everywhere)
 
 [Русский](scenario-companion-share-ru.md) | [Українська](scenario-companion-share-uk.md)
 

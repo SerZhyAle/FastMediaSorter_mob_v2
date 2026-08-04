@@ -60,6 +60,7 @@ _Generated from the app. Do not edit by hand._
 | Allow All Files mode | Grants access to all files on the device, including system folders (requires All Files permission). |
 | Allow new windows | Allows opening additional app windows in multi-window or split-screen mode. |
 | Compact elements | Reduces the padding and size of all list elements globally, fitting more items on screen. |
+| Mirror log to opened folder | Copies the debug log into the folder currently open in the viewer, so a reproduction can be picked up without digging into the app sandbox. Off by default; debug builds only. |
 | Open browse in grid view | Opens the file browser in grid view by default instead of list view. |
 | Device profile | Selects the device profile that adapts the interface and controls to your device type. |
 | Enable background sync | Lets the app sync remote resources in the background when the device is idle. |
@@ -87,7 +88,7 @@ _Generated from the app. Do not edit by hand._
 
 ## <img src="icons/doc/ic_image.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Images
 
-_Available in: Standard, Lite, Photos, Legacy_
+_Available in: Standard, Lite, Photos, Legacy, VR_
 
 | Setting | What it does |
 |---|---|
@@ -102,7 +103,7 @@ _Available in: Standard, Lite, Photos, Legacy_
 
 ## <img src="icons/doc/ic_video.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Video
 
-_Available in: Standard, Lite, Legacy_
+_Available in: Standard, Lite, Legacy, VR_
 
 | Setting | What it does |
 |---|---|
@@ -117,7 +118,7 @@ _Available in: Standard, Lite, Legacy_
 
 ## <img src="icons/doc/ic_audio.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Audio
 
-_Available in: Standard, Legacy_
+_Available in: Standard, Legacy, VR_
 
 | Setting | What it does |
 |---|---|
@@ -132,7 +133,7 @@ _Available in: Standard, Legacy_
 
 ## <img src="icons/doc/ic_book.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Documents
 
-_Available in: Standard, Legacy_
+_Available in: Standard, Legacy, VR_
 
 | Setting | What it does |
 |---|---|

@@ -24,8 +24,8 @@ internal object WelcomePagePalette {
     )
 
     /** Opacity of the panel - enough to carry body text, sheer enough to read as glass over the waves.
-     *  Raised from 0.82: the waves showed through hard enough to fight the copy on the busiest pages. */
-    const val PANEL_ALPHA = 0.87f
+     *  Raised from 0.87: the waves showed through hard enough to fight the copy on the busiest pages. */
+    const val PANEL_ALPHA = 0.95f
 
     @ColorRes
     fun colorResFor(position: Int): Int = PAGE_COLORS[position.coerceIn(0, PAGE_COLORS.lastIndex)]

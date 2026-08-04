@@ -799,6 +799,15 @@
                         android:textSize="@dimen/toggler_title_text_size"
                         android:text="@string/settings_take_screenshot_now" />
 
+                    <!-- S1357: opt-in for mirroring the session log into the folder open in the viewer. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowDebugLogMirror"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        app:str_title="@string/settings_debug_log_mirror_title"
+                        app:str_subtitle="@string/settings_debug_log_mirror_desc" />
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

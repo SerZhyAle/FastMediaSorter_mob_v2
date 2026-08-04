@@ -554,6 +554,11 @@
     "ru": "Обрезает изображения для заполнения всего экрана в полноэкранном режиме, убирая чёрные полосы.",
     "uk": "Обрізає зображення для заповнення всього екрана в повноекранному режимі, прибираючи чорні смуги."
   },
+  "rowDebugLogMirror": {
+    "en": "Copies the debug log into the folder currently open in the viewer, so a reproduction can be picked up without digging into the app sandbox. Off by default; debug builds only.",
+    "ru": "Копирует отладочный лог в папку, открытую сейчас в просмотрщике, чтобы забрать воспроизведение проблемы, не копаясь в песочнице приложения. По умолчанию выключено, только в отладочных сборках.",
+    "uk": "Копіює зневаджувальний лог у теку, відкриту зараз у переглядачі, щоб забрати відтворення проблеми, не копирсаючись у пісочниці додатка. Типово вимкнено, лише в зневаджувальних складаннях."
+  },
   "rowDefaultAudioLanguage": {
     "en": "Picks the audio language the app prefers when a stream offers several. A channel that you set a language for yourself keeps its own choice.",
     "ru": "Выбирает язык аудио, который приложение предпочтёт, если в трансляции несколько дорожек. Канал, которому вы задали язык вручную, сохраняет свой выбор.",

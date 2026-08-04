@@ -276,19 +276,17 @@ If the app detects Cyrillic text, it initializes the Tesseract engine, which is 
 Tap the **track name** displayed during the slideshow to skip to a different random track from your music resource.
 
 ### Does it work with all flavors?
-**No.** Background music is available in:
-- **Standard** (full audio support)
-- **Legacy** (local audio only)
-- **Photos** (slideshow background music supported)
-
-The **Lite** flavor does not include audio features.
+**Almost.** Slideshow music needs audio support:
+- **Standard**, **Legacy**, **XR / noLegal** - full audio support, including playback that continues in the background
+- **Lite** - plays local audio files and lyrics, but has no background playback service, so sound stops when the app leaves the foreground
+- **Photos** - no audio support at all, so there is no slideshow music
 
 ---
 
 ## Internet Streams
 
 ### Does FastMediaSorter play internet radio?
-Yes. The **Streams** screen plays http/https audio streams (mp3/aac), Icecast/Shoutcast radio with ICY now-playing metadata, HLS (.m3u8) and DASH VOD, and RTSP sources. Available in Standard, Legacy, and noLegal/VR. Lite supports progressive-audio only. Photos has no Streams feature.
+Yes. The **Streams** screen plays http/https audio streams (mp3/aac), Icecast/Shoutcast radio with ICY now-playing metadata, HLS (.m3u8) and DASH VOD, and RTSP sources. Available in Standard, Legacy, and XR / noLegal. Lite and Photos have no Streams screen at all - the feature is absent there, not merely limited to some protocols.
 
 ### How do I open the Streams screen?
 Tap **Streams** in the main window dropdown (visible when Streams is enabled). You can also reach it via **Settings > Media > Streams** where the master toggle lives.

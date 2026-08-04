@@ -22,7 +22,7 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 - **Video player** (MX Player, VLC) - video, Blu-ray TS/.m2ts, picture-in-picture, frame screenshots, Chromecast casting.
 - **Audio player** (Poweramp, AIMP) - background playback, lyrics, MIDI, sleep timer, visualizations, notification controls.
-- **Internet radio / IPTV player** (TuneIn, RadioDroid, Online Radio Box, VLC network streams, IPTV players) - Streams screen plays http/https radio with ICY metadata, HLS/DASH VOD, and RTSP; curated catalog included. *(Standard / Legacy / noLegal; progressive-audio only in Lite; absent in Photos)*
+- **Internet radio / IPTV player** (TuneIn, RadioDroid, Online Radio Box, VLC network streams, IPTV players) - Streams screen plays http/https radio with ICY metadata, HLS/DASH VOD, and RTSP; curated catalog included. *(Standard / Legacy / VR / noLegal; absent in Lite and Photos)*
 - **Gallery / image viewer** (QuickPic, Google Photos) - images and GIFs, crop, filters, rotate.
 - **PDF / EPUB reader** (Adobe Reader, Moon+ Reader) - books, chapter maps, themes, Read Aloud (TTS).
 - **Slideshow / photo frame** - rotating photos with background music, plus a photo-frame widget.
@@ -107,14 +107,16 @@ Features include:
 
 ## Product Flavors 🎯
 
-FastMediaSorter v2 is available in **4 different flavors** to suit different needs and reduce app size:
+FastMediaSorter v2 ships **six flavors** - four for everyday phones and tablets (Standard, Lite, Photos, Legacy) plus two headset and sideload builds, VR and noLegal. The exact capability grid is generated from the build in [FLAVOR_MATRIX.md](docs/FLAVOR_MATRIX.md):
 
 | Flavor | Description | Features |
 |--------|-------------|----------|
 | **Standard** | Full-featured version | Broadest feature set for media, documents, OCR, and integrations |
-| **Lite** | Lightweight daily-use version | Core media workflows with reduced complexity |
-| **Photos** | Image-centric version | Focused experience for photo browsing and organization |
-| **Legacy** | Compatibility-focused version | Optimized for older Android devices (API 23-25) |
+| **Lite** | Lightweight daily-use version | Local files only - video, audio and images; no network sources, cloud, documents or Streams |
+| **Photos** | Image-centric version | Images only, with network sources and cloud; no video and no audio |
+| **Legacy** | Compatibility-focused version | Same feature set as Standard, built for older Android devices (API 23-25) |
+| **VR** | Store-clean headset build | Full media set for headsets; no Google Cast and no Wear OS companion |
+| **noLegal** | Sideload build | Everything in Standard plus the OpenXR immersive player and sideload-only extras |
 
 ### Which Flavor Should I Download?
 
@@ -122,6 +124,8 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 - **Lite**: Prefer this if you want a lighter package and simpler setup
 - **Photos**: Prefer this for photo-first workflows
 - **Legacy**: Choose this for older Android devices (API 23-25)
+- **VR**: Choose this for an XR headset - the store build without Cast and Wear support
+- **noLegal**: Sideload only - pick it when you need the OpenXR immersive player
 
 For exact feature-by-flavor availability, use the canonical documentation:
 
@@ -147,9 +151,9 @@ Available on GitHub Store - install, update, and discover apps directly from Git
 | Flavor | File Name | Description |
 |--------|-----------|-------------|
 | **Standard** | `FastMediaSorter_standard_release.zip` | Full features (Cloud, OCR, EPUB, Translation) |
-| **Lite** | `FastMediaSorter_lite_release.zip` | Local media focus (Videos, Audio, Images; no cloud/documents) |
-| **Photos** | `FastMediaSorter_photos_release.zip` | Images only (with cloud support) |
-| **Legacy** | `FastMediaSorter_legacy_release.zip` | Full local media (Android 6/7 compatibility, API 23-25) |
+| **Lite** | `FastMediaSorter_lite_release.zip` | Local media only (Videos, Audio, Images; no network, cloud, documents or Streams) |
+| **Photos** | `FastMediaSorter_photos_release.zip` | Images only (with network and cloud support) |
+| **Legacy** | `FastMediaSorter_legacy_release.zip` | Same features as Standard (Android 6/7 compatibility, API 23-25) |
 
 > **Note**: All builds are automatically uploaded to Google Drive after successful compilation.
 >
@@ -358,7 +362,7 @@ Wear OS docs:
 
 - JDK 17+
 - Android SDK 35
-- Minimum Android version: 8.0 (API 26) for Standard/Lite/Photos; 6.0 (API 23) for Legacy
+- Minimum Android version: 8.0 (API 26) for Standard/Lite/Photos/VR/noLegal; 6.0 (API 23) for Legacy
 
 ### Build
 

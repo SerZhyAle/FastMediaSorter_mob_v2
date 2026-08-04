@@ -5,7 +5,7 @@ permalink: /docs/TROUBLESHOOTING.html
 ---
 # 🔧 Troubleshooting Guide
 
-Current troubleshooting guide for FastMediaSorter v2. Use the current flavor matrix in [FEATURES.md](FEATURES.md) and [DOCS_MAP.md](DOCS_MAP.md) when the issue depends on the selected build path (Standard, Lite, Photos, Legacy, or XR / noLegal).
+Current troubleshooting guide for FastMediaSorter v2. Use the canonical flavor matrix in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) when the issue depends on the selected build path (Standard, Lite, Photos, Legacy, or XR / noLegal).
 
 ---
 
@@ -308,13 +308,13 @@ The app applies a fast timeout for catalog downloads. If the spinner hangs beyon
 
 ### HLS / DASH / RTSP shows 'unsupported' message
 
-The **Lite** flavor supports progressive http/https audio only. HLS, DASH, and RTSP require the **Standard**, **Legacy**, or **noLegal** build.
+In **Standard**, **Legacy**, and **XR / noLegal** all three protocols are supported, so this message points at the stream or its codec, not at the build. **Lite** and **Photos** have no Streams screen at all, so no stream can be added there in the first place.
 
 ### Streams option is not visible in the menu or settings
 
-- In **Standard / Legacy / noLegal**: go to **Settings > Media > Streams** and ensure **Enable Streams** is toggled on. The dropdown item appears only when Streams is enabled.
-- In **Photos**: Streams is not available in this flavor.
-- In **Lite**: Streams (progressive-audio only) is available but HLS/DASH/RTSP are not.
+- In **Standard / Legacy / XR / noLegal**: go to **Settings > Media > Streams** and ensure **Enable Streams** is toggled on. The dropdown item appears only when Streams is enabled.
+- In **Photos**: the Streams feature is not built into this flavor.
+- In **Lite**: the Streams feature is not built into this flavor either - there is no toggle to switch on and no screen to open.
 
 ### ICY now-playing metadata not showing
 
@@ -338,7 +338,7 @@ ICY metadata requires an Icecast/Shoutcast stream that sends the `Icy-MetaData: 
 
 - ⚠️ **No RAW photo support** (CR2, NEF, ARW)
 - ⚠️ **Network undo unavailable** (files are hard-deleted)
-- ⚠️ **Cloud integration availability depends on the current flavor and platform**; check the canonical feature matrix in [FEATURES.md](FEATURES.md) before assuming a provider is available in your build
+- ⚠️ **Cloud storage is built into every flavor except Lite**; which providers a given build offers can still depend on the device platform, and [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) is the per-flavor grid
 - ⚠️ **No multi-device sync** (favorites are local)
 
 ---

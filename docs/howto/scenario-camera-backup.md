@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-camera-backup.html
 ---
 # 📷 Scheduled Camera Backup to PC
 
-> **Level:** Beginner &bull; **Time:** ~15 minutes setup &bull; **Flavor:** Standard only
+> **Level:** Beginner &bull; **Time:** ~15 minutes setup &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (needs network sources - Lite has none)
 
 [Русский](scenario-camera-backup-ru.md) | [Українська](scenario-camera-backup-uk.md)
 
@@ -19,7 +19,7 @@ Automatically copy new photos from your phone's camera to your home computer **e
 
 - Phone and PC connected to the **same home Wi-Fi** (same router)
 - A folder on your PC where photos will be saved (e.g. `C:\PhoneBackup`)
-- FastMediaSorter **Standard** flavor installed
+- FastMediaSorter installed in a flavor with network sources (**Standard**, Photos, Legacy, VR, noLegal)
 
 > **Not sure which flavor you have?** Open the app → tap the **menu icon (☰)** in the top-left corner. The flavor name (Standard / Lite / etc.) is shown at the bottom of the side menu.
 

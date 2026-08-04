@@ -71,8 +71,13 @@ $benignPatterns = @(
     'OCR engines not installed', 'UnsatisfiedLinkError loading', # expected optional-native fallback
     'NetworkReachabilityGate: no-(network|wifi)',              # offline gate, expected
     'SpellCheckerSession',                                      # IME service noise
-    'BufferQueueProducer.*(cancelBuffer|requestBuffer).*no connected producer'  # S0484: app-scoped but
+    'BufferQueueProducer.*(cancelBuffer|requestBuffer).*no connected producer',  # S0484: app-scoped but
     # a well-known harmless SurfaceTexture teardown race (player/view surface torn down mid-frame)
+    # S1391: message signatures that appear under many different process-name tags, so a tag list
+    # cannot catch them.
+    'Not starting debugger since process cannot load the jdwp agent',  # every debuggable process logs this
+    'Failed to open rendernode',                                       # emulator has no host rendernode
+    'cr_AndroidProtocolHandler.*Unable to open asset URL'              # WebView probes first; the EPUB interceptor then serves the asset
 ) -join '|'
 
 # Foreign / other-process tags dropped entirely (same treatment as $systemTagHint): recurrent
@@ -97,7 +102,20 @@ $foreignTagPatterns = @(
     # none belong to our process - other-app / system_server / codec-HAL noise (S0976).
     'SmsApplication', 'TaskPersister', '\badbd\b', 'BpTransactionCompletedListener',
     'WifiMulticastLockManager', 'MediaControlProfile', 'WorkSourceUtil',
-    'C2IgbaBuffer', 'Codec2-Component-Aidl', '\beptr\b', '\bsystem_server\b'
+    'C2IgbaBuffer', 'Codec2-Component-Aidl', '\beptr\b', '\bsystem_server\b',
+    # S1391 2026-08-04 sweep: the audit reported 49 actionable clusters on a run with zero toasts,
+    # zero crashes and 17/17 Maestro green. Every cluster below was PID-checked against the app's
+    # own process and belongs to the emulator image, the system server, or another installed app.
+    'audio@7\.1-impl\.ranchu', 'pcmWrite',                     # emulator audio HAL
+    'CellBroadcastUtils', 'ConnectivityService', 'WifiStaIfaceAidlImpl',  # system connectivity services
+    'AppOpService', 'lowmemorykiller', 'JavaBinder', 'hwservicemanager', 'BLASTSyncEngine',
+    'AbstractOpenableExtension', 'PropertyBackgroundShape', 'ExpressiveConceptModelManager',
+    'HandwritingSuperpacksUtil',                               # Google keyboard, other process
+    'DelightKLPDownloader', '\bMDD\b', 'DownloadManager',      # GMS model-download stack
+    'Codec2-', 'C2Goldfish', '\bnative\b',                     # emulator codec stack
+    'webview_service', 'droid\.apps\.docs', 'id\.gms\.unstable', '\.android\.chrome',
+    'd\.process\.acore', 'd\.process\.media', 'ndroid\.keychain', 'id\.partnersetup',
+    'ackageinstaller', 'gs\.intelligence', 'ocessService\d'    # process-name tags of other apps
 ) -join '|'
 
 # Benign (tag, message-signature) pairs (S0976). Unlike $foreignTagPatterns these tags either name
@@ -107,6 +125,9 @@ $foreignTagPatterns = @(
 $benignTagSignaturePairs = @(
     @{ tag = 'WindowOrganizerController'; sig = 'non-organized|not .*organized' },  # task-reorg on our task
     @{ tag = 'AppOps';                    sig = 'attributionTag' },                 # missing attributionTag, harmless
+    # S1391: system_server bookkeeping for a uid it has not registered yet - fires while another app
+    # installs or starts, never on our own op changes. Tag-only drop would be too broad, hence a pair.
+    @{ tag = 'AppOps';                    sig = 'Trying to set mode for unknown uid' },
     @{ tag = 'PermissionService';         sig = 'WRITE_EXTERNAL_STORAGE' },         # not requested on scoped storage - expected
     @{ tag = 'PackageManager';            sig = 'alignment|mobile\.maestro' },      # Maestro alignment probe, not our error
     @{ tag = '.*';                        sig = 'Failed to query component interface for required system resources' }

@@ -2,7 +2,7 @@
 
 **Canonical source:** This document. Mirrors: `COMMUNICATION_POLICY_RU.md`, `COMMUNICATION_POLICY_UK.md`.
 **Origin:** S0118 (friendly-ui-copy-revision). Update this document when new message formulas or feedback channels are added.
-**Scope:** All user-visible strings in all flavors (`standard`, `lite`, `photos`, `legacy`), EN/RU/UK. Excludes: legal texts, Terms of Service, machine-readable technical artifacts (manifests, metadata).
+**Scope:** All user-visible strings in all six flavors (`standard`, `noLegal`, `lite`, `photos`, `legacy`, `vr`), EN/RU/UK. Excludes: legal texts, Terms of Service, machine-readable technical artifacts (manifests, metadata).
 
 ---
 

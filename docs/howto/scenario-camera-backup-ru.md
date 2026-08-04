@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-camera-backup-ru.html
 ---
 # 📷 Автобэкап фото на ПК по расписанию
 
-> **Уровень:** Начинающий &bull; **Время:** ~15 минут на настройку &bull; **Версия:** Только Standard
+> **Уровень:** Начинающий &bull; **Время:** ~15 минут на настройку &bull; **Версия:** Standard, Photos, Legacy, VR, noLegal (нужны сетевые источники - в Lite их нет)
 
 [English](scenario-camera-backup.md) | [Українська](scenario-camera-backup-uk.md)
 
@@ -19,7 +19,7 @@ permalink: /docs/howto/scenario-camera-backup-ru.html
 
 - Телефон и ПК подключены к **одной домашней Wi-Fi сети** (одному роутеру)
 - Папка на ПК, куда будут сохраняться фото (например, `C:\РезервФото`)
-- Установлена версия FastMediaSorter **Standard**
+- Установлена версия FastMediaSorter с сетевыми источниками (**Standard**, Photos, Legacy, VR, noLegal)
 
 > **Не знаете, какая у вас версия?** Откройте приложение → нажмите на иконку меню (☰) в верхнем левом углу. Название версии (Standard / Lite / и т.д.) отображается внизу бокового меню.
 

@@ -18,6 +18,8 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
+import com.sza.fastmediasorter.core.logging.DebugLogMirrorPrefs
+import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
@@ -622,6 +624,9 @@ class GeneralSettingsViewSetupHelper(
 
         binding.headerDebugSettings.visibility = if (BuildConfig.DEBUG) View.VISIBLE else View.GONE
         binding.containerDebugSettings.visibility = if (BuildConfig.DEBUG) View.VISIBLE else View.GONE
+        if (BuildConfig.DEBUG) {
+            setupDebugLogMirrorRow()
+        }
 
         if (BuildConfig.DEBUG && com.sza.fastmediasorter.ui.settings.IntegrationTestDialog.isAvailable()) {
             binding.btnIntegrationTests.visibility = View.VISIBLE
@@ -645,6 +650,26 @@ class GeneralSettingsViewSetupHelper(
         binding.btnClearCache.setOnClickListener { cacheHelper.clearCache() }
         binding.btnResetSmbConnections.setOnClickListener { resetHelper.resetSmbConnections() }
         cacheHelper.updateCacheSize()
+    }
+
+    /**
+     * S1357: the mirror flag is stored outside AppSettings (see [DebugLogMirrorPrefs]), so the row
+     * is seeded from that store directly. Switching it off also drops the folder already selected
+     * this session - otherwise it would keep receiving writes until the process restarts.
+     */
+    private fun setupDebugLogMirrorRow() {
+        val context = fragment.requireContext().applicationContext
+        binding.rowDebugLogMirror.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
+            Timber.d("S1357: log mirror toggle -> $isChecked")
+            DebugLogMirrorPrefs.setEnabled(context, isChecked)
+            if (!isChecked) {
+                LoggingHelper.clearDebugMirrorTarget()
+            }
+        }
+        isUpdatingSpinner.set(true)
+        binding.rowDebugLogMirror.setCheckedSilently(DebugLogMirrorPrefs.isEnabled(context))
+        isUpdatingSpinner.set(false)
     }
 
     private fun currentLanguageSelectionCode(): String {

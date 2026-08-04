@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-companion-share-uk.html
 ---
 # <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Відкрийте папки ПК, відсканувавши один код
 
-> **Рівень:** Початківець &bull; **Флейвори:** Standard, Photos, Legacy, XR/noLegal (для скану потрібна камера; спосіб із файлом працює всюди)
+> **Рівень:** Початківець &bull; **Флейвори:** Standard, Photos, Legacy, VR, noLegal (у Lite немає мережевих джерел; для скану потрібна камера, спосіб із файлом працює всюди)
 
 [English](scenario-companion-share.md) | [Русский](scenario-companion-share-ru.md)
 

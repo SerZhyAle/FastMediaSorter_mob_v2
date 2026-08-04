@@ -13,15 +13,15 @@ permalink: /docs/QUICK_START.html
 
 ## Choose Your Flavor 📱
 
-FastMediaSorter v2 is available in **5 main release flavors** for day-to-day use, plus the XR / noLegal surface for headset and sideload scenarios. Pick the one that fits your needs:
+FastMediaSorter v2 ships **four flavors for everyday phones and tablets** - Standard, Lite, Photos, Legacy - plus **two headset and sideload builds**, VR and noLegal. Six in total; the exact capability grid is generated from the build in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md). Pick the one that fits your needs:
 
 | Flavor | Best For | Key Features |
 |--------|----------|--------------|
 | **Standard** ⭐ | Everyone | Full features: videos, photos, audio, documents, cloud storage, translation + internet radio / Streams |
-| **Lite** | Smaller downloads | Photos + videos only (no audio, cloud); Streams supports progressive audio streams only (no HLS/DASH/RTSP) |
-| **Photos** | Photo enthusiasts | Images only, optimized for photo work (no Streams) |
+| **Lite** | Smaller downloads | Photos, videos and local audio files; no cloud, no network folders, no Internet Streams, no documents or translation, and audio stops when the app leaves the foreground |
+| **Photos** | Photo enthusiasts | Images only, with cloud storage and network folders; no video, no audio, no Streams |
 | **Legacy** | Older Android (API 23+) | Full media + SMB/FTP/SFTP and cloud; built for older Android (API 23+) |
-| **VR / noLegal** | XR headset / sideload | OpenXR and sideload-only extras on supported hardware |
+| **VR / noLegal** | XR headset / sideload | VR is the Store-clean headset build; noLegal is the sideload build that adds the immersive player and sideload-only extras |
 
 **👉 Most users should download the "Standard" flavor for the complete experience.**
 
@@ -207,7 +207,7 @@ Tap **"+"** → **Cloud Storage**
 - Tap **+** to add a radio URL (http/https mp3/aac, HLS .m3u8, RTSP), or **Import** to load a `.m3u` playlist.
 - Download the curated FastMediaSorter station catalog from the **Extensions** screen for a searchable, filterable library with topic and language chips.
 - Radio plays inline via the sticky bottom bar - the station list stays visible. Video/RTSP streams open in the fullscreen player; Back returns to the list.
-- **Not available in the Photos flavor. Lite supports progressive audio only (no HLS/DASH/RTSP).**
+- **Available in Standard, Legacy, noLegal and VR. The Streams screen is absent from Lite and Photos - no protocol works there, because there is no entry point.**
 
 ### Home Screen Widgets
 

@@ -5,7 +5,7 @@ permalink: /docs/howto/scenario-download-organizer-uk.html
 ---
 # 🧹 Порядок у завантаженнях - сортування одним дотиком
 
-> **Рівень:** Початківець &bull; **Версія:** Будь-яка (Standard, Lite, Photos, Legacy)
+> **Рівень:** Початківець &bull; **Версія:** Будь-яка (Standard, Lite, Photos, Legacy, VR, noLegal)
 
 [English](scenario-download-organizer.md) | [Русский](scenario-download-organizer-ru.md)
 

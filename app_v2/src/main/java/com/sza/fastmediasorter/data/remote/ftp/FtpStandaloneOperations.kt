@@ -2,6 +2,7 @@
 
 package com.sza.fastmediasorter.data.remote.ftp
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
@@ -79,6 +80,7 @@ object FtpStandaloneOperations {
             Timber.e(e, "FTP test connection failed: $host:$port")
             Result.failure(e)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP test connection error: $host:$port")
             Result.failure(e)
         }
@@ -137,6 +139,7 @@ object FtpStandaloneOperations {
                 Result.failure(IOException(message))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP temp connection upload failed: $remotePath")
             Result.failure(e)
         } finally {
@@ -214,6 +217,7 @@ object FtpStandaloneOperations {
             val files = client.listFiles(remotePath)
             Result.success(files != null && files.isNotEmpty())
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.w(e, "FTP exists check failed for $remotePath")
             Result.success(false)
         }
@@ -279,9 +283,11 @@ object FtpStandaloneOperations {
                 }
                 Result.success(bytes)
             } catch (e2: Exception) {
+                e2.rethrowIfCancellation()
                 Result.failure(e2)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Result.failure(e)
         }
     }
@@ -324,6 +330,7 @@ object FtpStandaloneOperations {
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Result.failure(e)
         }
     }
@@ -396,6 +403,7 @@ object FtpStandaloneOperations {
 
             Result.success(wrapper)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             try { if (tempClient.isConnected) tempClient.disconnect() } catch (_: Exception) {}
             Timber.e(e, "FTP openInputStream failed: $remotePath")
             Result.failure(e)
@@ -457,6 +465,7 @@ object FtpStandaloneOperations {
 
             block(tempClient)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP temp connection operation failed")
             Result.failure(e)
         } finally {

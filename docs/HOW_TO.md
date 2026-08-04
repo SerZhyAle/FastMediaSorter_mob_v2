@@ -18,18 +18,21 @@ This guide now has two layers:
 
 ## Note: Feature Availability by Flavor
 
-Some features are only available in specific flavors. This guide follows the current matrix from [FEATURES.md](FEATURES.md); the XR / noLegal surface is intentionally separate because it depends on headset hardware and sideload build rules.
+Some features are only available in specific flavors. The table below is derived from [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md), which is generated from the build itself; the XR / noLegal surface is intentionally kept as one column because it depends on headset hardware and sideload build rules.
 
 | Feature | Standard | Lite | Photos | Legacy | XR / noLegal |
 |---------|----------|------|--------|--------|--------------|
 | Network folders (SMB, SFTP, FTP) | ✓ | ✗ | ✓ | ✓ | ✓ |
 | Cloud storage (Google Drive, OneDrive, Dropbox) | ✓ | ✗ | ✓ | ✓ | ✓ |
-| Audio playback & lyrics | ✓ | ✗ | ✗ | ✓ | ✓ |
-| Internet Streams (radio, HLS/DASH, RTSP) | ✓ | ✓ (progressive only) | ✗ | ✓ | ✓ |
+| Audio playback & lyrics | ✓ | ✓ | ✗ | ✓ | ✓ |
+| Background audio playback | ✓ | ✗ | ✗ | ✓ | ✓ |
+| Internet Streams (radio, HLS/DASH, RTSP) | ✓ | ✗ | ✗ | ✓ | ✓ |
 | Document viewer (PDF, Text) | ✓ | ✗ | ✗ | ✓ | ✓ |
 | EPUB reader | ✓ | ✗ | ✗ | ✓ | ✓ |
 | Translation & OCR | ✓ | ✗ | ✗ | ✓ | ✓ |
 | Image editing | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+Two rows for audio, because these are two separate build decisions: **Lite plays local audio files** including lyrics, but stops when the app leaves the foreground - it has no background playback service. Lite has no Internet Streams screen at all, so radio and HLS/DASH/RTSP are not merely limited there, they are absent.
 
 If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** build that matches your hardware and distribution path.
 
@@ -122,11 +125,11 @@ These sections are intentionally more varied than the core reference blocks belo
 **Avoid This**
 
 - Do not start with hostname troubleshooting. Use an IP address first, then optimize later.
-- Do not expect Legacy flavor to browse SMB shares.
+- Do not expect the Lite flavor to browse SMB shares - that build has no network sources at all.
 
 ## Run a slideshow with background music for a room display
 
-**Available in:** Standard, Legacy, Photos, XR / noLegal
+**Available in:** Standard, Lite, Legacy, XR / noLegal (Photos has no audio support)
 
 **Quick Path**
 
@@ -152,7 +155,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## OpenXR VR Immersive Cinema
 
-**Available in:** Standard, Lite, Legacy, `vr`, XR/noLegal (single-eye 3D); XR/noLegal only (full headset immersion)
+**Available in:** Standard, Lite, Legacy, `vr`, noLegal (single-eye 3D); `noLegal` only (full headset immersion - the `vr` build ships the VR source set but declares `SUPPORT_VR_PLAYER = false`, so it does not enter the immersive view yet)
 
 **Quick Path - enable, configure, watch 3D**
 
@@ -178,7 +181,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## Play Internet Radio on a Car Head Unit or Audio Player
 
-**Available in:** Standard, Legacy, XR/noLegal (full); Lite (progressive-audio only)
+**Available in:** Standard, Legacy, XR / noLegal - the Streams screen is absent in Lite and Photos
 
 **Quick Path**
 
@@ -205,14 +208,13 @@ These sections are intentionally more varied than the core reference blocks belo
 **Avoid This**
 
 - Do not expect live HLS/DASH offset (live-edge) playback - only VOD HLS/DASH is supported in this release.
-- Do not use the Photos flavor for Streams; it has no Streams entry.
-- On Lite, HLS/DASH and RTSP show an unsupported message; use Standard for those protocols.
+- Do not use the Lite or Photos flavor for Streams; neither build has a Streams entry, so no protocol works there.
 
 ## Travel, reading and document workflows
 
 ## Prepare a folder for travel without stable internet
 
-**Available in:** Standard, Lite, Photos, Legacy
+**Available in:** Standard, Lite, Photos, Legacy, XR / noLegal (PDF and EPUB reading needs Standard, Legacy, or XR / noLegal)
 
 **Quick Path**
 
@@ -238,7 +240,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## Read cloud documents and EPUBs on the go
 
-**Available in:** Standard for cloud access, Standard/Lite/Photos/Legacy for local reading
+**Available in:** Standard, Legacy, XR / noLegal - Lite and Photos cannot read documents or EPUBs at all; cloud storage is additionally absent in Lite
 
 **Quick Path**
 
@@ -260,7 +262,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Avoid This**
 
-- Do not expect cloud reading in Lite, Photos, or Legacy.
+- Do not expect cloud reading in Lite - that build has neither cloud storage nor document support. Photos and Legacy do have cloud storage, but only Legacy can open documents.
 - Do not treat slow mobile data as a guaranteed reading experience for very large files.
 
 ## Translate signs, scans and screenshots with OCR
@@ -316,7 +318,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## Quick Math & Text Calculations
 
-**Available in:** Standard, Legacy, VR
+**Available in:** Standard, Legacy, XR / noLegal
 
 **Quick Path**
 
@@ -341,7 +343,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## Cloud Markdown & Code Notes
 
-**Available in:** Standard (for cloud), Standard/Lite/Photos/Legacy (locally/network)
+**Available in:** Standard, Photos, Legacy, XR / noLegal (local, network, and cloud); Lite (local folders only)
 
 **Quick Path**
 
@@ -362,13 +364,13 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Avoid This**
 
-- Do not expect cloud storage note creation on Lite or Legacy flavors.
+- Do not expect cloud storage note creation on Lite - that build has no cloud storage and no network sources.
 
 ## Power-user and mixed media workflows
 
 ## Sort a family photo archive with Quick Sort
 
-**Available in:** Standard, Lite, Photos, Legacy
+**Available in:** Standard, Lite, Photos, Legacy, XR / noLegal
 
 **Quick Path**
 
@@ -425,7 +427,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## How to Add or Import an Internet Stream
 
-**Available in:** Standard, Legacy, XR/noLegal (all protocols); Lite (http/https progressive audio + .m3u import only)
+**Available in:** Standard, Legacy, XR / noLegal (all protocols) - the Streams screen is absent in Lite and Photos
 
 **Add a single URL:**
 
@@ -456,7 +458,7 @@ These sections are intentionally more varied than the core reference blocks belo
 - Both devices on same Wi-Fi network
 - Username and password for the share
 
-**Available in:** Standard, Photos, Legacy flavors
+**Available in:** Standard, Photos, Legacy, XR / noLegal flavors
 
 **Steps:**
 
@@ -772,7 +774,7 @@ Then use **command panel buttons** instead.
 **Requirements:**
 
 - At least one folder/resource with audio files (MP3, FLAC, etc.)
-- **Available in:** Standard, Legacy, Photos, XR / noLegal
+- **Available in:** Standard, Lite, Legacy, XR / noLegal (Photos has no audio support)
 
 **Setup:**
 
@@ -1091,7 +1093,7 @@ Automatically translate text from images, PDF, and text files using a **Hybrid O
 
 ## Home-Screen Smart Widgets
 
-**Available in:** Standard, Legacy, VR
+**Available in:** all flavors - the widget set ships in every build; each widget follows its own capability, so the voice-recorder widget needs a build with microphone support (not Lite or Photos) while the photo-frame and resource widgets work everywhere
 
 **Quick Path**
 
@@ -1181,7 +1183,7 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 
 ## How to Record a Voice Note
 
-**Available in:** Standard, XR/noLegal
+**Available in:** Standard, Legacy, XR / noLegal
 
 **Steps:**
 
