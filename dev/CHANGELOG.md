@@ -24306,3 +24306,5 @@ Format: | datetime | file | target | description |
 | 2026-08-04 20:39:48 | `PLAN/spec-catalog.jsonl` | `spec-next` | Session: 8 processed, 1 verified, 6 blocked [branch: DEBUG-v030] |
 | 2026-08-04 23:18:38 | `scripts/devtest/prerelease-verdict.ps1` | `prerelease verdict gate` | S1391 follow-up: allowlist SurfaceSyncGroup transaction-ready timeouts as emulator render noise [branch: DEBUG-v030] |
 | 2026-08-04 23:20:14 | `docs/PRIVACY_POLICY.md` | `privacy policy` | Clarify the cloud-scope disclaimer now that an optional on-device READ_CONTACTS permission ships (EN/RU/UK) [branch: DEBUG-v030] |
+| 2026-08-04 23:30:11 | `docs/HOW_TO.md` | `HOW_TO guides` | Correct stale VR immersive-HUD and camera night-mode claims now that the HUD controls and the shooting-scenario menu ship (EN/RU/UK) [branch: DEBUG-v030] |
+| 2026-08-04 23:30:47 | `docs/HOW_TO.md` | `user guides` | Correct stale VR immersive-HUD and camera night-mode claims across HOW_TO and QUICK_START (EN/RU/UK) [branch: DEBUG-v030] |

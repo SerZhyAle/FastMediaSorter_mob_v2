@@ -161,7 +161,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 1. **Single-eye 3D (every flavor, nothing to enable):** open any SBS/OU/180°/360° file - it's auto-detected and cropped to one eye so it looks right on a normal flat screen. This is controlled by **Settings > Playback > "Show 3D content from one eye"** (default ON). To force a specific format instead of relying on auto-detect, open the player's Control dialog on a `vr`/XR-noLegal build and pick a mode from the 3D tab - **Auto-detect**, **Side-by-Side (SBS)**, **Over-Under (OU)**, or **Mono (Disabled)**; the choice is remembered for that file.
 2. **Full immersion on a Quest (XR/noLegal sideload build only):** with the headset on, tap the VR badge in the player while a 3D file is open, choose **Open in VR Cinema** from a file's overflow menu in Browse, or open **Settings > Media** and tap **Test Immersive** to try a sample. Any of the three opens a per-eye OpenXR view of that content.
-3. **Watch:** inside the immersive view, aim the controller ray and pull the trigger to move to the next or previous file. Any other button, key, or click exits back to the flat screen - there is no in-headset volume, seek, or track control yet.
+3. **Watch:** inside the immersive view a HUD strip carries the controls - a position bar you drag with the controller ray to seek (elapsed and total time beside it), plus the pickers that apply to this file: audio track only when there is more than one, subtitles only when the file has them, stereo depth only for stereo content. **HIDE** and **EXIT** sit at opposite ends of the strip; hiding it removes it completely and a trigger pull brings it back without activating whatever is underneath. The thumbstick seeks 10 seconds a step; hold **grip** while pushing it to step between files instead - next and previous walk the whole resource list, not just the file you opened. On the first immersive entry after install a legend lists every controller binding; any press closes it, and the **HELP** button on the strip brings it back at any time.
 
 **Scenario Walkthrough**
 
@@ -177,7 +177,7 @@ These sections are intentionally more varied than the core reference blocks belo
 **Avoid This**
 
 - Do not expect the Meta Horizon Store / Google Play `vr` build to enter immersive mode yet - that part is still in development.
-- Do not expect in-headset volume, seek, or file operations inside the immersive view - drop back to the flat panel for anything beyond next/previous.
+- Seeking, track and subtitle selection and stereo depth are on the HUD strip in the headset. File operations are not - drop back to the flat panel to copy, move or delete.
 
 ## Play Internet Radio on a Car Head Unit or Audio Player
 
@@ -1209,7 +1209,7 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 1. In Browse, open the toolbar or overflow menu and tap **Capture with camera** (photo) or **Record video**.
 2. Switch between **Photo** and **Video** right on the camera screen if you change your mind.
 3. Set your zoom with a preset chip (0.5x/1x/2x..) or the slider underneath - both stay in sync.
-4. In low light, turn on **Night mode** for a brighter photo.
+4. Tap the shooting-scenario button to pick how the shot is taken - normal, night, portrait, selfie, macro or sport. Macro jumps to the dedicated close-focus lens, selfie flips to the front camera, sport keeps the exposure short so motion freezes. Only the scenarios your device can actually deliver are listed, the active one is named on the button, and changing the lens by hand returns the camera to normal.
 5. Tap the shutter (or the record button) to capture. The result saves straight to the resource - local or network - you were browsing.
 
 **Tips:**

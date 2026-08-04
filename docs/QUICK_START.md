@@ -189,7 +189,7 @@ Tap **"+"** → **Cloud Storage**
 
 - In Browse, tap the **camera button** in the toolbar to open the in-app camera and save straight to the current resource - local or network
 - **Zoom:** tap a preset (0.5x/1x/2x..) or drag the slider for a precise level
-- **Night mode:** turn it on in low light for a brighter shot
+- **Shooting scenario:** one button offers normal, night, portrait, selfie, macro and sport - only the ones your device can actually deliver
 - **Photo or video:** switch modes right on the camera screen before you shoot
 
 ### Screen Capture & Edge Gestures
