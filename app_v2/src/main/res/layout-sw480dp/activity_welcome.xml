@@ -42,14 +42,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- S1234: the bottom bar sits on the brand animation, which paints black in BOTH themes, so
+             ?attr/colorOnSurface rendered the label black-on-black in the light theme. -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPrevious"
-            style="@style/Widget.FastMediaSorter.Button.Text"
+            style="@style/Widget.FastMediaSorter.Button.Outlined"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
             android:text="@string/previous"
-            android:textColor="?attr/colorOnSurface"
-            android:alpha="0.7"
+            android:textColor="@color/white"
+            app:strokeColor="@color/white_50_alpha"
             android:textSize="@dimen/welcome_button_text_size"
             android:minHeight="36dp"
             android:visibility="invisible"
@@ -78,7 +81,8 @@
             android:text="@string/welcome_enable_all"
             android:contentDescription="@string/welcome_enable_all_content_description"
             android:textSize="@dimen/welcome_button_text_size"
-            android:textColor="?attr/colorPrimary"
+            android:textColor="@color/white"
+            app:strokeColor="@color/white_50_alpha"
             android:minHeight="36dp"
             android:visibility="gone"
             app:layout_constraintEnd_toStartOf="@id/btnNext"
@@ -90,6 +94,7 @@
             style="@style/Widget.FastMediaSorter.Button.Filled"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_small"
             android:text="@string/next"
             android:textSize="@dimen/welcome_button_text_size"
             android:textColor="?attr/colorOnPrimary"
@@ -104,6 +109,7 @@
             style="@style/Widget.FastMediaSorter.Button.Filled"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_small"
             android:text="@string/finish"
             android:textSize="@dimen/welcome_button_text_size"
             android:textColor="?attr/colorOnPrimary"

@@ -80,6 +80,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Запись видео с экрана |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Команды отправить файл в.. |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Трансляции |
+| <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Фоновая синхронизация, сеть и кэш |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Взаимодействие с операционной системой |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Видео, настройки проигрывателя |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Видеосъёмка |

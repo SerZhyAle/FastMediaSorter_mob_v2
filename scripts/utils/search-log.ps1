@@ -673,7 +673,30 @@ if ($To -ne "") {
 
 # App-only filter
 if ($AppOnly) {
-    $results = $results | Where-Object { $_.Pkg -match "fastmediasorter" }
+    # S1387: the branch is chosen by what the capture format can express, never by how many rows
+    # survived - deciding on the result count would turn an honest zero on a package-bearing format
+    # into a dump of the whole log.
+    $hasPkgField = @($parsed | Where-Object { $_.Pkg -ne "" }).Count -gt 0
+    if ($hasPkgField) {
+        $results = $results | Where-Object { $_.Pkg -match "fastmediasorter" }
+    }
+    else {
+        # threadtime / time captures carry no package field, so the test above can never match and
+        # used to return zero without a word - indistinguishable from "the flow never ran", which is
+        # the worst possible answer on a verification path. Recover the app's PIDs from the capture
+        # itself; a restart during the run simply contributes another PID.
+        $appPids = @($parsed | ForEach-Object {
+            if ($_.Msg -match 'Start proc (\d+):com\.sza\.fastmediasorter') { $Matches[1] }
+        } | Sort-Object -Unique)
+        if ($appPids.Count -gt 0) {
+            $pidPattern = '^(' + (($appPids | ForEach-Object { [regex]::Escape($_) }) -join '|') + ')-'
+            $results = $results | Where-Object { $_.PID -match $pidPattern }
+            Write-Out "-AppOnly: capture has no package field; filtered by app PID(s) $($appPids -join ', ') recovered from the log." "DarkGray"
+        }
+        else {
+            Write-Out "-AppOnly IGNORED: this capture has no package field and no app process start to recover a PID from - results below are UNFILTERED." "Yellow"
+        }
+    }
 }
 
 # PID / Thread filter

@@ -80,6 +80,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Запис відео з екрана |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Команди надіслати файл у.. |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Трансляції |
+| <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Фонова синхронізація, мережа й кеш |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Взаємодія з операційною системою |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Відео, налаштування програвача |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Відеозйомка |

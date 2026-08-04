@@ -24231,3 +24231,38 @@ Format: | datetime | file | target | description |
 | 2026-08-03 23:16:12 | `P:\ANDROID\FastMediaSorter_mob_v2\scripts\doc-drift\GradleParser.ps1` | `S1381` | Cover live SDK and Room schema documentation pins [branch: DEBUG-v030] |
 | 2026-08-03 23:17:07 | `P:\ANDROID\FastMediaSorter_mob_v2\docs\SCRIPT_CHEATSHEET.md` | `S1381` | Regenerate script cheatsheet for drift regression runner [branch: DEBUG-v030] |
 | 2026-08-03 23:17:10 | `PLAN/S1381_doc-drift-gate-coverage-holes/INDEX.md` | `spec-dev` | S1381 phases complete [branch: DEBUG-v030] |
+| 2026-08-03 23:17:47 | `PLAN/S1381_doc-drift-gate-coverage-holes.md` | `spec-check` | Audit S1381 -> Verified; PASS/WARN/FAIL 15/0/0 [branch: DEBUG-v030] |
+| 2026-08-03 23:33:14 | `PLAN/S1383_bugfix-profile-option-description-selection.md` | `spec` | Scaffold strategic spec skeleton S1383 [branch: DEBUG-v030] |
+| 2026-08-03 23:36:37 | `PLAN/S1384_network-protocol-onboarding-examples.md` | `spec` | Scaffold strategic spec skeleton S1384 [branch: DEBUG-v030] |
+| 2026-08-03 23:38:44 | `app_v2/src/main/res/layout/activity_welcome.xml` | `S1234` | Welcome wizard: make the Previous button readable on the brand-animation backdrop (outlined, fixed light label/stroke) - colorOnSurface rendered it black-on-black in the light theme [branch: DEBUG-v030] |
+| 2026-08-03 23:40:10 | `PLAN/S1385_default-player-onboarding-details.md` | `spec` | Scaffold strategic spec skeleton S1385 [branch: DEBUG-v030] |
+| 2026-08-03 23:45:41 | `app_v2/src/main/res/layout/activity_welcome.xml` | `S1234` | Welcome bottom nav follow-up: Enable all readable on the black brand backdrop, and start/end margins so Previous/Next/Finish are no longer flush with the screen edge [branch: DEBUG-v030] |
+| 2026-08-03 23:51:45 | `P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\res\layout\fragment_settings_general.xml` | `headerSystem` | Reuse Sync Now refresh icon for system collapsible header [branch: DEBUG-v030] |
+| 2026-08-03 23:55:40 | `PLAN/S1386_redesign-welcome-screen-positioning.md` | `spec` | Scaffold strategic spec skeleton S1386 [branch: DEBUG-v030] |
+| 2026-08-04 14:06:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/profile/DeviceProfileTileAdapter.kt` | `S1383` | Welcome profile tiles: selected tile shows its full description, a repeat tap confirms the profile and advances the onboarding pager [branch: DEBUG-v030] |
+| 2026-08-04 14:17:52 | `PLAN/S1387_bugfix-search-log-apponly-filter.md` | `spec` | Scaffold strategic spec skeleton S1387 [branch: DEBUG-v030] |
+| 2026-08-04 14:18:47 | `PLAN/S1383_bugfix-profile-option-description-selection.md` | `spec-test-device` | Device run on emulator-5554 -> PASS/FAIL/SKIPPED 9/0/0 [branch: DEBUG-v030] |
+| 2026-08-04 14:22:56 | `PLAN/S1383_bugfix-profile-option-description-selection.md` | `spec-check` | Audit S1383 -> Verified; PASS/WARN/FAIL 12/0/0 [branch: DEBUG-v030] |
+| 2026-08-04 14:22:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/profile/DeviceProfileTileAdapter.kt` | `spec-check` | Remove S1383 debug verification tag on Verified flip [branch: DEBUG-v030] |
+| 2026-08-04 14:22:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/holders/ProfilesPageViewHolder.kt` | `spec-check` | Remove S1383 debug verification tag on Verified flip [branch: DEBUG-v030] |
+| 2026-08-04 14:22:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `spec-check` | Remove S1383 debug verification tag on Verified flip [branch: DEBUG-v030] |
+| 2026-08-04 14:32:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/helpers/WelcomeRemoteSourcesController.kt` | `S1384` | Welcome network sources page: each protocol group row carries a plain-language usage example that follows the same flavor gate as the row [branch: DEBUG-v030] |
+| 2026-08-04 14:44:35 | `PLAN/S1388_bugfix-empty-networks-page-on-lite.md` | `spec` | Scaffold strategic spec skeleton S1388 [branch: DEBUG-v030] |
+| 2026-08-04 14:47:16 | `PLAN/S1384_network-protocol-onboarding-examples.md` | `spec-check` | Audit S1384 -> Verified; PASS/WARN/FAIL 11/0/0 [branch: DEBUG-v030] |
+| 2026-08-04 14:47:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/helpers/WelcomeRemoteSourcesController.kt` | `spec-check` | Remove S1384 debug verification tag on Verified flip [branch: DEBUG-v030] |
+| 2026-08-04 14:54:05 | `app_v2/src/main/res/layout/page_welcome_default_player.xml` | `S1385` | Default Player onboarding page: explain what the default-app choice changes and that Android keeps it reversible [branch: DEBUG-v030] |
+| 2026-08-04 14:59:31 | `PLAN/S1385_default-player-onboarding-details.md` | `spec-check` | Audit S1385 -> Verified; PASS/WARN/FAIL 12/0/0 [branch: DEBUG-v030] |
+| 2026-08-04 15:02:17 | `PLAN/S1389_bugfix-welcome-feature-cards-flavor-blind.md` | `spec` | Scaffold strategic spec skeleton S1389 [branch: DEBUG-v030] |
+| 2026-08-04 15:03:48 | `PLAN/S1386_redesign-welcome-screen-positioning.md` | `spec` | S1386 researched to a decision-ready strategic spec; parked on BlockQuestions for the direction choice [branch: DEBUG-v030] |
+| 2026-08-04 15:07:10 | `scripts/utils/search-log.ps1` | `S1387` | search-log.ps1 -AppOnly: recover app PIDs from a package-less capture instead of silently returning zero matches [branch: DEBUG-v030] |
+| 2026-08-04 15:07:41 | `PLAN/S1387_bugfix-search-log-apponly-filter.md` | `spec-check` | Audit S1387 -> Verified; PASS/WARN/FAIL 5/0/0 [branch: DEBUG-v030] |
+| 2026-08-04 15:12:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `S1388` | Welcome wizard: skip the network sources page entirely on builds that support neither local network nor cloud [branch: DEBUG-v030] |
+| 2026-08-04 15:21:15 | `PLAN/S1388_bugfix-empty-networks-page-on-lite.md` | `spec-check` | Audit S1388 -> Verified; PASS/WARN/FAIL 6/0/0 [branch: DEBUG-v030] |
+| 2026-08-04 15:29:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `S1389` | Welcome first page: build the feature pitch from the build capabilities so no card promises a source or media type the flavor does not ship [branch: DEBUG-v030] |
+| 2026-08-04 15:36:39 | `PLAN/S1389_bugfix-welcome-feature-cards-flavor-blind.md` | `spec-check` | Audit S1389 -> Verified; PASS/WARN/FAIL 8/0/0 [branch: DEBUG-v030] |
+| 2026-08-04 15:46:05 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/AudioMetadataLoader.kt` | `S1371` | Cancellation package: AudioMetadataLoader rethrows CancellationException instead of logging a screen exit as a failure and advancing the kill-switch counter [branch: DEBUG-v030] |
+| 2026-08-04 15:47:30 | `PLAN/S1371_swallowed-cancellation-debt.md` | `spec-dev` | S1371 package 1 landed: AudioMetadataLoader, gate ratcheted 731 -> 722 [branch: DEBUG-v030] |
+| 2026-08-04 15:49:18 | `PLAN/S1386_redesign-welcome-screen-positioning.md` | `spec-quiz` | S1386: BlockQuestions -> Approved via quiz (2 questions; direction A - roles over features, brand names kept in tile subtitles) [branch: DEBUG-v030] |
+| 2026-08-04 15:50:29 | `PLAN/spec-catalog.jsonl` | `spec-do` | Session: 8 processed, 6 verified, 1 blocked, 1 advanced [branch: DEBUG-v030] |
+| 2026-08-04 16:39:37 | `PLAN/S1390_bugfix-settings-dropdown-popup-not-selectable.md` | `spec` | Scaffold strategic spec skeleton S1390 [branch: DEBUG-v030] |
+| 2026-08-04 16:39:38 | `PLAN/S1391_bugfix-prerelease-verdict-emulator-noise-gate.md` | `spec` | Scaffold strategic spec skeleton S1391 [branch: DEBUG-v030] |

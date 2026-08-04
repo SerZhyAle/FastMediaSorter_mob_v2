@@ -395,6 +395,8 @@ data class WelcomePage(
     val recommendedProfileType: DeviceProfileType? = null,
     val selectedProfileType: DeviceProfileType? = null,
     val onProfileSelected: ((DeviceProfileType) -> Unit)? = null,
+    /** S1383: a tap on the tile that is already selected - apply the pick and move on. */
+    val onProfileConfirmed: ((DeviceProfileType) -> Unit)? = null,
     // ── S0400 functionality page ─────────────────────────────────────────────
     /** Marks the functionality (capability toggles + downloads) page. */
     val isFunctionalityPage: Boolean = false,

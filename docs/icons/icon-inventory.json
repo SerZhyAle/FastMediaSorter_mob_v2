@@ -1041,6 +1041,14 @@
   },
   {
     "surface": "settings-header",
+    "key": "headerSystem",
+    "feature": "settings_category_system",
+    "drawable": "ic_refresh",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
     "key": "headerSystemApps",
     "feature": "setting_group_system_apps_title",
     "drawable": "ic_android",

@@ -98,6 +98,21 @@
                     app:str_title="@string/settings_remote_source_smb_title"
                     app:str_subtitle="@string/settings_remote_source_smb_subtitle" />
 
+                <!-- S1384: per-group plain-language example; mirrors the portrait variant
+                     (layout/page_welcome_networks.xml). Ids must stay in sync (CLAUDE.md Rule 11). -->
+                <TextView
+                    android:id="@+id/tvExampleSmb"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="6dp"
+                    android:alpha="0.75"
+                    android:lineSpacingMultiplier="1.2"
+                    android:text="@string/welcome_networks_example_smb"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="@dimen/welcome_description_text_size" />
+
                 <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                     android:id="@+id/rowSourceFtp"
                     android:layout_width="match_parent"
@@ -111,6 +126,19 @@
                     app:str_title="@string/settings_remote_source_ftp_title"
                     app:str_subtitle="@string/settings_remote_source_ftp_subtitle" />
 
+                <TextView
+                    android:id="@+id/tvExampleFtp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="6dp"
+                    android:alpha="0.75"
+                    android:lineSpacingMultiplier="1.2"
+                    android:text="@string/welcome_networks_example_ftp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="@dimen/welcome_description_text_size" />
+
                 <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                     android:id="@+id/rowSourceCloud"
                     android:layout_width="match_parent"
@@ -122,6 +150,19 @@
                     app:str_icon="@drawable/ic_cloud"
                     app:str_title="@string/settings_remote_source_cloud_title"
                     app:str_subtitle="@string/settings_remote_source_cloud_subtitle" />
+
+                <TextView
+                    android:id="@+id/tvExampleCloud"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="6dp"
+                    android:alpha="0.75"
+                    android:lineSpacingMultiplier="1.2"
+                    android:text="@string/welcome_networks_example_cloud"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="@dimen/welcome_description_text_size" />
 
                 <!-- Windows companion promo: mirrors the portrait variant
                      (layout/page_welcome_networks.xml). Ids must stay in sync (CLAUDE.md Rule 11). -->

@@ -40,6 +40,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeEnableAllManager
+import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeFeatureCards
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeFunctionalityController
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomePermissionsManager
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeRemoteSourcesController
@@ -288,38 +289,8 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 detailDescriptionRes = R.string.welcome_description_1_details,
                 // Ordered as a pitch, not as a grid: what the app opens, then where it reads from,
                 // then what it does with it. Rendered as a one-column list on a phone.
-                featureCards = listOf(
-                    FeatureCard(
-                        R.drawable.ic_image,
-                        R.string.welcome_feature_photos,
-                        R.string.welcome_feature_photos_detail
-                    ),
-                    FeatureCard(
-                        R.drawable.ic_resource_local,
-                        R.string.welcome_feature_local_folders,
-                        R.string.welcome_feature_local_folders_detail
-                    ),
-                    FeatureCard(
-                        R.drawable.ic_resource_smb,
-                        R.string.welcome_feature_network,
-                        R.string.welcome_feature_network_detail
-                    ),
-                    FeatureCard(
-                        R.drawable.ic_resource_cloud,
-                        R.string.welcome_feature_cloud,
-                        R.string.welcome_feature_cloud_detail
-                    ),
-                    FeatureCard(
-                        R.drawable.ic_swap_horizontal,
-                        R.string.welcome_feature_sorting,
-                        R.string.welcome_feature_sorting_detail
-                    ),
-                    FeatureCard(
-                        R.drawable.ic_slideshow,
-                        R.string.welcome_feature_slideshow,
-                        R.string.welcome_feature_slideshow_detail
-                    )
-                ),
+                // S1389: the set answers to the build's own capabilities - see WelcomeFeatureCards.
+                featureCards = WelcomeFeatureCards.build(mediaCapabilities),
                 showLanguagePicker = true,
                 onLanguagePickerRequested = ::showWelcomeLanguagePicker,
                 showThemePicker = true,
@@ -339,21 +310,35 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 recommendedProfileType = viewModel.state.value.recommendedProfile,
                 selectedProfileType = viewModel.state.value.selectedProfile,
                 onProfileSelected = { type -> viewModel.onProfileSelected(type) },
+                // S1383: tapping the already-selected tile means "this one, go on" - the same step
+                // Next would take, so the profile page needs no separate confirm control.
+                onProfileConfirmed = { type ->
+                    viewModel.onProfileSelected(type)
+                    flipPage(forward = true)
+                },
             )
         )
 
-        // Networks page (index 2). Three remote-source group toggles (SMB / (S)FTP / Cloud);
+        // Networks page. Three remote-source group toggles (SMB / (S)FTP / Cloud);
         // WelcomeRemoteSourcesController owns all logic and binds via the page callback. The cloud
         // toggle collapses on flavors without cloud support (decided inside the controller via the gate).
-        pagesList.add(
-            WelcomePage(
-                iconRes = 0,
-                titleRes = 0,
-                descriptionRes = 0,
-                isNetworksPage = true,
-                onBindNetworks = { b -> remoteSourcesController.bind(b, this) },
+        // S1388: a build with neither remote group has nothing to offer here - the controller hides
+        // every row and the page renders its header ("Add media from network shares and remote
+        // storage") over an empty body, promising what the build cannot do. Left out entirely
+        // instead, the same way the default-player page below is gated.
+        val shouldShowNetworksPage =
+            mediaCapabilities.supportsLocalNetworkSources || mediaCapabilities.supportsCloud
+        if (shouldShowNetworksPage) {
+            pagesList.add(
+                WelcomePage(
+                    iconRes = 0,
+                    titleRes = 0,
+                    descriptionRes = 0,
+                    isNetworksPage = true,
+                    onBindNetworks = { b -> remoteSourcesController.bind(b, this) },
+                )
             )
-        )
+        }
 
         // S0400: functionality page (index 3). Capability toggles + inline deliverable downloads;
         // WelcomeFunctionalityController owns all logic and binds via the page callback.

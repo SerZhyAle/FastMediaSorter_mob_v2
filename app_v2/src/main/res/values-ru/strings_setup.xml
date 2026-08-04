@@ -176,4 +176,12 @@
     <string name="welcome_feature_cloud_detail">Google Drive, OneDrive и Dropbox в общем списке</string>
     <string name="welcome_feature_sorting_detail">Перенести или скопировать файл одним касанием</string>
     <string name="welcome_feature_slideshow_detail">Просмотр без рук, при желании - с музыкой</string>
+    <string name="welcome_networks_example_smb">Например: общая папка на компьютере с Windows, NAS вроде Synology или QNAP, USB-диск, подключённый к роутеру.</string>
+    <string name="welcome_networks_example_ftp">Например: хостинг по FTP, собственный домашний сервер по SFTP, камера, которая выгружает снимки в папку FTP.</string>
+    <string name="welcome_networks_example_cloud">Например: войдите в Google Drive один раз и открывайте резервную копию фотографий как обычную папку.</string>
+    <string name="welcome_default_player_details">«Приложение по умолчанию» означает, что файл, открытый из другого приложения - галереи, мессенджера, файлового менеджера, - откроется здесь, а не в системном проигрывателе.</string>
+    <string name="welcome_default_player_revert_note">Это не навсегда: выбор хранится в настройках самого Android, и его можно вернуть в любой момент.</string>
+    <string name="welcome_feature_photos_images_only">Фото и GIF</string>
+    <string name="welcome_feature_photos_detail_images_only">Все фотографии и GIF на устройстве</string>
+    <string name="welcome_feature_slideshow_detail_no_audio">Показ фотографий без единого касания</string>
 </resources>

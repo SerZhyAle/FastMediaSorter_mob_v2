@@ -156,8 +156,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260803230
-val defaultAppVersionName = "2.60.8032.303"
+val defaultAppVersionCode = 260804153
+val defaultAppVersionName = "2.60.8041.533"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }

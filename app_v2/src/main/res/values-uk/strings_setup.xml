@@ -176,4 +176,12 @@
     <string name="welcome_feature_cloud_detail">Google Drive, OneDrive і Dropbox у спільному списку</string>
     <string name="welcome_feature_sorting_detail">Перенести чи скопіювати файл одним дотиком</string>
     <string name="welcome_feature_slideshow_detail">Перегляд без рук, за бажанням - з музикою</string>
+    <string name="welcome_networks_example_smb">Наприклад: спільна папка на ПК з Windows, NAS на кшталт Synology або QNAP, USB-диск у роутері.</string>
+    <string name="welcome_networks_example_ftp">Наприклад: хостинг через FTP, власний домашній сервер через SFTP, камера, яка вивантажує знімки в папку FTP.</string>
+    <string name="welcome_networks_example_cloud">Наприклад: увійдіть у Google Drive один раз і відкривайте резервну копію фотографій як звичайну папку.</string>
+    <string name="welcome_default_player_details">«Застосунок за умовчанням» означає, що файл, відкритий з іншого застосунку - галереї, месенджера, файлового менеджера, - відкриється тут, а не в системному програвачі.</string>
+    <string name="welcome_default_player_revert_note">Це не назавжди: вибір зберігається в налаштуваннях самого Android, і його можна повернути будь-коли.</string>
+    <string name="welcome_feature_photos_images_only">Фото та GIF</string>
+    <string name="welcome_feature_photos_detail_images_only">Усі фотографії та GIF на пристрої</string>
+    <string name="welcome_feature_slideshow_detail_no_audio">Показ фотографій без жодного дотику</string>
 </resources>

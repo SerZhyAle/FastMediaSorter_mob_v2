@@ -23,6 +23,9 @@ import javax.inject.Inject
  * tapping it mass-writes every member. A group row is hidden on flavors lacking that group: the
  * cloud row without cloud support, the SMB/(S)FTP rows without local-network support (S0448).
  *
+ * Each row carries a plain-language example below it (S1384); the examples follow their row's gate,
+ * so an unsupported group leaves neither a toggle nor an orphaned example behind.
+ *
  * Hilt-injected into WelcomeActivity and wired into the page via [bind]; mirrors
  * [WelcomeFunctionalityController] so the page stays a thin renderer (Clean+MVVM).
  */
@@ -45,8 +48,20 @@ class WelcomeRemoteSourcesController @Inject constructor(
         bindSmbRow(binding.rowSourceSmb, settings)
         bindFtpRow(binding.rowSourceFtp, settings)
         bindCloudRow(binding.rowSourceCloud, settings)
+        bindExamples(binding)
         bindCompanionPromo(binding)
     }
+
+    // S1384: each example reads the same gate as the row it explains, so a flavor that hides a group
+    // cannot leave its example behind advertising a source the build does not have.
+    private fun bindExamples(binding: PageWelcomeNetworksBinding) {
+        val networkVisibility = visibilityOf(gate.isNetworkGroupSupported())
+        binding.tvExampleSmb.visibility = networkVisibility
+        binding.tvExampleFtp.visibility = networkVisibility
+        binding.tvExampleCloud.visibility = visibilityOf(gate.isCloudGroupSupported())
+    }
+
+    private fun visibilityOf(supported: Boolean): Int = if (supported) View.VISIBLE else View.GONE
 
     // The Windows companion publishes PC folders over SMB/SFTP, so the promo is only meaningful where
     // the local-network group is available - hidden on cloud-only flavors alongside the SMB/(S)FTP rows.

@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -20,15 +21,15 @@ import com.sza.fastmediasorter.utils.FtpPathUtils
 import com.sza.fastmediasorter.utils.SftpPathUtils
 import com.sza.fastmediasorter.utils.SmbPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
-import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
-import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import timber.log.Timber
 import java.io.File
 import java.io.RandomAccessFile
@@ -205,6 +206,12 @@ class AudioMetadataLoader @Inject constructor(
                     val enriched = applyMetadata(file, metadata)
                     withContext(Dispatchers.Main) { onLoaded(enriched) }
                 }
+            } catch (e: CancellationException) {
+                // S1371: leaving the screen cancels this load. Swallowing it here would not only log
+                // a normal exit as a failure - it would also advance the kill-switch counter below,
+                // so repeated navigation could disable metadata loading for the whole session.
+                inFlight.remove(file.path)
+                throw e
             } catch (e: Exception) {
                 Timber.w(e, "AudioMetadataLoader: Failed for ${file.name}")
                 recordFailure()
@@ -242,6 +249,8 @@ class AudioMetadataLoader @Inject constructor(
             if (count > 0) {
                 Timber.d("AudioMetadataLoader: Warmed memoryCache with $count audio entries for resource $resourceId")
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.w(e, "AudioMetadataLoader: warmMemoryCacheForResource failed for resource $resourceId")
         }
@@ -272,6 +281,8 @@ class AudioMetadataLoader @Inject constructor(
             }
             if (bytes == null || bytes.isEmpty()) return null
             extractMetadataFromBytes(bytes, file.path)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.w(e, "AudioMetadataLoader: loadDetailed failed for ${file.path}")
             null
@@ -331,6 +342,8 @@ class AudioMetadataLoader @Inject constructor(
                 path.startsWith("ftp://", ignoreCase = true) -> readFtpPartial(path)
                 else -> null
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.w(e, "AudioMetadataLoader: readPartialBytes failed for $path")
             null
@@ -363,6 +376,8 @@ class AudioMetadataLoader @Inject constructor(
                     }
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.w(e, "AudioMetadataLoader: SMB readPartial exception")
             null
@@ -392,6 +407,8 @@ class AudioMetadataLoader @Inject constructor(
                 sftpClient.readFileBytes(connectionInfo, pathInfo.remotePath, MAX_PARTIAL_READ_BYTES.toLong())
                     .getOrNull()
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.w(e, "AudioMetadataLoader: SFTP readPartial exception")
             null
@@ -426,6 +443,8 @@ class AudioMetadataLoader @Inject constructor(
                 ftpClient.readFileBytes(pathInfo.remotePath, MAX_PARTIAL_READ_BYTES.toLong())
                     .getOrNull()
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.w(e, "AudioMetadataLoader: FTP readPartial exception")
             null
@@ -540,6 +559,9 @@ class AudioMetadataLoader @Inject constructor(
                 coverFileName = coverFileName,
                 coverExtension = coverExtension
             )
+        } catch (e: CancellationException) {
+            // The finally below still deletes the temp file, so cleanup is unaffected by the rethrow.
+            throw e
         } catch (e: Exception) {
             val failureName = metadataRetrieverFailureName(e)
             if (shouldLogMetadataRetrieverFailureAsDebug(filePath, e)) {
@@ -667,6 +689,8 @@ class AudioMetadataLoader @Inject constructor(
                 metadataState = "COMPLETE"
             )
             fileMetadataCacheDao.upsert(entity)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.w(e, "AudioMetadataLoader: DB save failed for ${file.path}")
         }

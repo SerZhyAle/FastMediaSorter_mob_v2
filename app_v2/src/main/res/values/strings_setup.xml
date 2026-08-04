@@ -176,4 +176,12 @@
     <string name="welcome_feature_cloud_detail">Google Drive, OneDrive and Dropbox in one list</string>
     <string name="welcome_feature_sorting_detail">Move or copy a file to its place with one tap</string>
     <string name="welcome_feature_slideshow_detail">Hands-free playback, with music if you like</string>
+    <string name="welcome_networks_example_smb">For example: a shared folder on a Windows PC, a NAS such as Synology or QNAP, or a USB disk plugged into your router.</string>
+    <string name="welcome_networks_example_ftp">For example: a hosting account over FTP, your own home server over SFTP, or a camera that uploads photos to an FTP folder.</string>
+    <string name="welcome_networks_example_cloud">For example: sign in to Google Drive once and browse your photo backup like any other folder.</string>
+    <string name="welcome_default_player_details">Being the default app means a file opened from somewhere else - a gallery, a messenger, a file manager - lands here instead of the system player.</string>
+    <string name="welcome_default_player_revert_note">This is not permanent: Android keeps the choice in its own settings and it can be changed back at any time.</string>
+    <string name="welcome_feature_photos_images_only">Photos &amp; GIFs</string>
+    <string name="welcome_feature_photos_detail_images_only">Every photo and GIF on the device</string>
+    <string name="welcome_feature_slideshow_detail_no_audio">Hands-free playback of your photos</string>
 </resources>

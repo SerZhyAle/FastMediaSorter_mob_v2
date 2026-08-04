@@ -66,6 +66,10 @@ class ScreenGestureOverlayManager(
     // S1008: the subset of shown bands whose grey guide is visible; the rest render transparent.
     private var stripVisibleZones: Set<ScreenshotGestureZone> = emptySet()
 
+    // A guide is useful only when it touches the physical display edge. A visible system bar can
+    // reserve that edge and move the overlay inward, where the guide incorrectly looks detached.
+    private var edgeAlignedGuideZones: Set<ScreenshotGestureZone> = emptySet()
+
     // S1167: the zone set the host last asked for, replayed when the panel lights up again. Kept apart
     // from bandViews because between screen-off and screen-on there are no windows but the request stands.
     private var requestedZones: Set<ScreenshotGestureZone> = emptySet()
@@ -118,6 +122,9 @@ class ScreenGestureOverlayManager(
         val geom = computeGeometry()
         stripWidthPx = geom.stripWidth
         bandAxis = geom.axis
+        edgeAlignedGuideZones = requestedZones.filterTo(linkedSetOf()) { zone ->
+            geom.isBandOnPhysicalEdge(zone)
+        }
         Timber.d("S1188: bands axis=${geom.axis} l=${geom.safeLeft} r=${geom.safeRight}")
         for (zone in requestedZones) {
             addBand(zone, geom)
@@ -275,6 +282,9 @@ class ScreenGestureOverlayManager(
         val geom = computeGeometry()
         stripWidthPx = geom.stripWidth
         bandAxis = geom.axis
+        edgeAlignedGuideZones = bandViews.keys.filterTo(linkedSetOf()) { zone ->
+            geom.isBandOnPhysicalEdge(zone)
+        }
         Timber.d("S1188: relayout axis=${geom.axis} bands=${bandViews.size}")
         bandViews.forEach { (zone, view) ->
             val params = view.layoutParams as? WindowManager.LayoutParams ?: return@forEach
@@ -392,7 +402,7 @@ class ScreenGestureOverlayManager(
     }
 
     private fun applyBandBackground(zone: ScreenshotGestureZone, view: View) {
-        if (zone !in stripVisibleZones) {
+        if (zone !in stripVisibleZones || zone !in edgeAlignedGuideZones) {
             view.setBackgroundColor(Color.TRANSPARENT)
             return
         }
@@ -569,6 +579,12 @@ class ScreenGestureOverlayManager(
         // S1188: derived rather than passed in, so the placement rule has exactly one definition and
         // the pre-R zeroed-inset fallback resolves through it too.
         val axis: EdgeGestureAxis get() = EdgeGestureAxis.forInsets(axisLeft, axisRight)
+
+        /** A guide must not be drawn after a live system inset has moved its band inward. */
+        fun isBandOnPhysicalEdge(zone: ScreenshotGestureZone): Boolean = when (axis) {
+            EdgeGestureAxis.VERTICAL -> if (zone.isRightEdge) safeRight == 0 else safeLeft == 0
+            EdgeGestureAxis.HORIZONTAL -> if (zone.isRightEdge) safeBottom == 0 else safeTop == 0
+        }
     }
 
     private data class BandFrame(val x: Int, val y: Int, val width: Int, val height: Int)

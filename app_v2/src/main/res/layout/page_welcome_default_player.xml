@@ -69,6 +69,26 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tvTitle" />
 
+            <!-- S1385: what the choice actually changes, and that it is reversible. Deliberately
+                 type-neutral ("a file", not "a video") - the button set below is flavor-gated - and
+                 it names no Android settings path, which differs across OS versions. Both ids mirror
+                 the landscape variant (CLAUDE.md Rule 11); the constraint chain below runs
+                 description -> details -> hint -> revert note -> buttons. -->
+            <TextView
+                android:id="@+id/tvDefaultPlayerDetails"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/welcome_description_margin_top"
+                android:alpha="0.85"
+                android:gravity="center"
+                android:lineSpacingMultiplier="1.3"
+                android:text="@string/welcome_default_player_details"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/welcome_description_text_size"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvDescription" />
+
             <TextView
                 android:id="@+id/tvHint"
                 android:layout_width="0dp"
@@ -80,7 +100,21 @@
                 android:textSize="14sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tvDescription" />
+                app:layout_constraintTop_toBottomOf="@id/tvDefaultPlayerDetails" />
+
+            <TextView
+                android:id="@+id/tvDefaultPlayerRevertNote"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:alpha="0.75"
+                android:gravity="center"
+                android:text="@string/welcome_default_player_revert_note"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="14sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvHint" />
 
             <!-- 4 type-specific buttons. Visibility is gated in DefaultPlayerViewHolder by BuildConfig. -->
             <LinearLayout
@@ -91,7 +125,7 @@
                 android:orientation="vertical"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tvHint">
+                app:layout_constraintTop_toBottomOf="@id/tvDefaultPlayerRevertNote">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSetDefaultAudio"

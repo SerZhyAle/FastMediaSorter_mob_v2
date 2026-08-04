@@ -14,12 +14,20 @@ import com.sza.fastmediasorter.ui.common.DeviceProfileUi
  * (icon + title, optional Recommended badge) and highlights the currently-selected tile with a
  * primary-colored stroke. Tapping a tile reports it through [onClick]; the dialog updates the
  * selection via [setSelected].
+ *
+ * The selected tile shows its description in full while the others stay clamped, so the picker grid
+ * stays compact yet the chosen profile can be read end to end (S1383).
+ *
+ * [onReselect] is optional: when set, a tap on the tile that is already selected reports there
+ * instead of through [onClick], which lets a host treat the second tap as "confirm". Left null the
+ * adapter behaves exactly as before - every tap goes to [onClick].
  */
 class DeviceProfileTileAdapter(
     private val profiles: List<DeviceProfileType>,
     private val recommended: DeviceProfileType?,
     private var selected: DeviceProfileType,
     private val onClick: (DeviceProfileType) -> Unit,
+    private val onReselect: ((DeviceProfileType) -> Unit)? = null,
 ) : RecyclerView.Adapter<DeviceProfileTileAdapter.TileViewHolder>() {
 
     /** Move the selection highlight to [type], refreshing only the affected tiles. */
@@ -76,7 +84,22 @@ class DeviceProfileTileAdapter(
             binding.cardProfileTile.isSelected = isSelected
             binding.cardProfileTile.contentDescription = "$title. $description"
 
-            binding.cardProfileTile.setOnClickListener { onClick(type) }
+            // Both branches are assigned: RecyclerView hands this holder an already-expanded TextView
+            // when the previously-bound tile was the selected one.
+            binding.tvProfileTileDescription.maxLines =
+                if (isSelected) Int.MAX_VALUE else COLLAPSED_DESCRIPTION_LINES
+
+            binding.cardProfileTile.setOnClickListener {
+                // Compare against the live selection, not the bind-time copy - the host may have
+                // moved the highlight through setSelected() since this tile was bound.
+                val confirming = onReselect != null && type == selected
+                if (confirming) onReselect?.invoke(type) else onClick(type)
+            }
         }
+    }
+
+    private companion object {
+        /** Matches android:maxLines on tvProfileTileDescription in item_device_profile_tile.xml. */
+        const val COLLAPSED_DESCRIPTION_LINES = 2
     }
 }
