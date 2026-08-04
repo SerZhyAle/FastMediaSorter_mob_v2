@@ -24308,3 +24308,4 @@ Format: | datetime | file | target | description |
 | 2026-08-04 23:20:14 | `docs/PRIVACY_POLICY.md` | `privacy policy` | Clarify the cloud-scope disclaimer now that an optional on-device READ_CONTACTS permission ships (EN/RU/UK) [branch: DEBUG-v030] |
 | 2026-08-04 23:30:11 | `docs/HOW_TO.md` | `HOW_TO guides` | Correct stale VR immersive-HUD and camera night-mode claims now that the HUD controls and the shooting-scenario menu ship (EN/RU/UK) [branch: DEBUG-v030] |
 | 2026-08-04 23:30:47 | `docs/HOW_TO.md` | `user guides` | Correct stale VR immersive-HUD and camera night-mode claims across HOW_TO and QUICK_START (EN/RU/UK) [branch: DEBUG-v030] |
+| 2026-08-04 23:34:54 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.8042.332 - plateau merge from DEBUG-v030 [branch: DEBUG-v030] |
