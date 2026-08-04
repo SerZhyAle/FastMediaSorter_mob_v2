@@ -1,0 +1,6 @@
+• In-headset controls - seek bar, track pickers, hide and exit, controller legend.
+• Stereo from file metadata - VR video without a filename tag plays correctly.
+• Launcher desktop - app widgets, contact shortcuts, own status area, wallpaper through cells.
+• PDF reading - swipe to turn pages, long-press to select real text.
+• Browse toolbar - path button with segment menu, active filter summary, grouped file menu.
+..
