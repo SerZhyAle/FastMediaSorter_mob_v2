@@ -214,6 +214,36 @@ function Measure-SwallowedCancellationText([string]$Text) {
     return @(Find-SwallowedCancellationLines $Text).Count
 }
 
+# S1329: CLAUDE.md Rule 3 - an Activity is a host, not a place for domain wiring. The rule is the
+# lint detector's own (lint-rules/../ActivityLogicDetector.kt): an @Inject field in a *Activity class
+# whose declared type names a Repository, UseCase, DataSource, Dao or Database. It is mirrored here
+# because app_v2/lint-baseline.xml is regenerated only by a full build, so nothing stopped the count
+# growing between builds - which is how it reached 78 unnoticed.
+$script:ActivityClassRx = [regex]'\bclass\s+\w*Activity\b'
+# Modifiers and extra annotations sit between @Inject and `var`, and a long declaration wraps before
+# its type. Both shapes are real here - PlayerActivity carries wrapped declarations and `internal`
+# ones - and a line-oriented scan silently undercounts every one of them.
+$script:ActivityInjectFieldRx = [regex]'@Inject\s+(?:(?:@[\w.]+(?:\([^)]*\))?|internal|private|protected|public|open|final|lateinit)\s+)*var\s+\w+\s*:\s*([A-Za-z0-9_.<>?, ]+)'
+# Case-SENSITIVE by construction - [regex] does not fold case the way PowerShell's -match does.
+# BrowseActivity's FaviconAtlasStore sits in a `data.repository.streams` package and is NOT a
+# violation; folding case would over-count it.
+$script:ActivityDomainTypeRx = [regex]'Repository|UseCase|DataSource|Dao|Database'
+
+function Find-ActivityLogicLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return @() }
+    if (-not $script:ActivityClassRx.IsMatch($Text)) { return @() }
+    $hits = @()
+    foreach ($m in $script:ActivityInjectFieldRx.Matches($Text)) {
+        if (-not $script:ActivityDomainTypeRx.IsMatch($m.Groups[1].Value)) { continue }
+        $hits += ($Text.Substring(0, $m.Index) -split "`n").Count
+    }
+    return $hits
+}
+
+function Measure-ActivityLogicText([string]$Text) {
+    return @(Find-ActivityLogicLines $Text).Count
+}
+
 function New-RegexRule {
     param(
         [Parameter(Mandatory)][string]$Name,
@@ -360,6 +390,19 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-SwallowedCancellationText $t }
             LocateInText = { param($t) Find-SwallowedCancellationLines $t }
             FailMessage  = 'new broad catch in coroutine code that swallows CancellationException. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363).'
+        },
+        [pscustomobject]@{
+            Name         = 'activity-logic'
+            Extensions   = @('.kt')
+            # Every source set, not just main - ScreenCaptureConsentActivity lives in
+            # app_v2/src/screenCapture/. Test source sets are out: the rule judges shipped hosts.
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/(?!androidTest/|test|benchmark/)'
+            Baseline     = 'activity-logic-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-ActivityLogicText $t }
+            LocateInText = { param($t) Find-ActivityLogicLines $t }
+            FailMessage  = 'new domain-layer field injection in an Activity. Move the dependency into a ViewModel or a Manager the host delegates to (CLAUDE.md Rule 3).'
         }
     )
 }

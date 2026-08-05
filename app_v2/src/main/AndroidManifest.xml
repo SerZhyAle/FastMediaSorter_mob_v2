@@ -444,6 +444,21 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_continue_reading_info" />
         </receiver>
 
+        <!-- S1401: keeps the installed-app cache in step with installs, removals and locale changes.
+             Exported because the sender is the system; the package broadcasts are exempt from the
+             implicit-broadcast restrictions, so a manifest receiver still fires with the app stopped. -->
+        <receiver android:name=".core.apps.InstalledAppsChangeReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <data android:scheme="package" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
         <!-- Camera Photos Widget (S0134) -->
         <receiver android:name=".widget.CameraPhotosWidgetProvider" android:exported="true" android:label="@string/widget_camera_photos_label" android:icon="@drawable/ic_widget_camera_photos">
             <intent-filter>

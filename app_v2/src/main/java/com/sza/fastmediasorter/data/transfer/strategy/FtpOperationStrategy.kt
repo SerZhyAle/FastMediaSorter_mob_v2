@@ -1,15 +1,15 @@
 package com.sza.fastmediasorter.data.transfer.strategy
 
 import android.content.Context
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import com.sza.fastmediasorter.data.transfer.FileExistsException
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -17,6 +17,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
+import javax.inject.Inject
 
 /** Strategy for FTP file operations. Handles ftp:// using FtpClient (stateful connection). */
 class FtpOperationStrategy @Inject constructor(
@@ -58,6 +59,7 @@ class FtpOperationStrategy @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FtpOperationStrategy: Copy failed - $source -> $destination")
             Result.failure(e)
         }
@@ -110,6 +112,7 @@ class FtpOperationStrategy @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FtpOperationStrategy: Move failed - $source -> $destination")
             Result.failure(e)
         }
@@ -135,6 +138,7 @@ class FtpOperationStrategy @Inject constructor(
                 ftpClient.deleteFile(pathInfo.remotePath)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FtpOperationStrategy: Delete failed - $path")
             Result.failure(e)
         }
@@ -166,6 +170,7 @@ class FtpOperationStrategy @Inject constructor(
                 Result.failure(Exception("List files failed: ${result.exceptionOrNull()?.message}"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FtpOperationStrategy: listFiles failed - $path")
             Result.failure(e)
         }
@@ -182,6 +187,7 @@ class FtpOperationStrategy @Inject constructor(
             val files = ftpClient.listFilesWithMetadata(pathInfo.remotePath, recursive = false)
             Result.success(files.isSuccess && files.getOrNull()?.isNotEmpty() == true)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FtpOperationStrategy: exists check failed - $path")
             Result.failure(e)
         }
@@ -195,6 +201,7 @@ class FtpOperationStrategy @Inject constructor(
              ensureFtpDirectoryExists(pathInfo.remotePath)
              Result.success(Unit)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FtpOperationStrategy: Create directory failed - $path")
             Result.failure(e)
         }
@@ -219,6 +226,7 @@ class FtpOperationStrategy @Inject constructor(
             )
             Result.success(localFile.absolutePath)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FtpOperationStrategy.createTextFile failed - parent=$parentPath name=$fileName")
             Result.failure(e)
         }
@@ -234,6 +242,7 @@ class FtpOperationStrategy @Inject constructor(
              if (uploadResult.isSuccess) Result.success(Unit) 
              else Result.failure(Exception("Upload failed: ${uploadResult.exceptionOrNull()?.message}"))
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FtpOperationStrategy: Write file failed - $path")
             Result.failure(e)
         }
@@ -252,6 +261,7 @@ class FtpOperationStrategy @Inject constructor(
                  Result.failure(Exception("Download failed: ${downloadResult.exceptionOrNull()?.message}"))
              }
          } catch (e: Exception) {
+             e.rethrowIfCancellation()
              Timber.e(e, "FtpOperationStrategy: Read file failed - $path")
              Result.failure(e) 
          }
@@ -407,6 +417,7 @@ class FtpOperationStrategy @Inject constructor(
             
             return Result.success(destination)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP to FTP copy failed: $source -> $destination")
             return Result.failure(e)
         }
@@ -450,6 +461,7 @@ class FtpOperationStrategy @Inject constructor(
                 Result.failure(e)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP to Local download failed: $source -> $destination")
             return Result.failure(e)
         }
@@ -496,6 +508,7 @@ class FtpOperationStrategy @Inject constructor(
             
             return Result.success(destination)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Local to FTP upload failed: $source -> $destination")
             return Result.failure(e)
         }
@@ -542,6 +555,7 @@ class FtpOperationStrategy @Inject constructor(
             Timber.d("FtpOperationStrategy: Deleted directory $path ($deletedCount items)")
             Result.success(deletedCount)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FtpOperationStrategy: Delete directory failed - $path")
             Result.failure(e)
         }
@@ -592,6 +606,7 @@ class FtpOperationStrategy @Inject constructor(
                 Result.failure(renameResult.exceptionOrNull() ?: Exception("Rename failed"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FtpOperationStrategy: Rename directory failed - $oldPath -> $newPath")
             Result.failure(e)
         }
@@ -647,6 +662,7 @@ class FtpOperationStrategy @Inject constructor(
             Timber.d("FtpOperationStrategy: Copied directory $source -> $destination ($copiedCount files)")
             Result.success(copiedCount)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FtpOperationStrategy: Copy directory failed - $source -> $destination")
             Result.failure(e)
         }
@@ -692,6 +708,7 @@ class FtpOperationStrategy @Inject constructor(
                 Result.failure(listResult.exceptionOrNull() ?: Exception("Failed to list directory"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FtpOperationStrategy: isDirectory check failed - $path")
             Result.failure(e)
         }
@@ -728,6 +745,7 @@ class FtpOperationStrategy @Inject constructor(
                 )
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FtpOperationStrategy: getDirectoryInfo failed - $path")
             Result.failure(e)
         }

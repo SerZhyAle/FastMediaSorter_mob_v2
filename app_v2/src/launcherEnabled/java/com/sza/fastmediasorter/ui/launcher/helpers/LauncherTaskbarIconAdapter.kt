@@ -18,6 +18,8 @@ data class LauncherTaskbarIcon(
     val label: String,
     val iconRes: Int?,
     val iconDrawable: Drawable?,
+    /** Identity of [iconDrawable], since the drawable itself compares by reference. */
+    val iconKey: String? = null,
     /** The pin slot this icon occupies; -1 for a recents entry, which cannot be unpinned. */
     val position: Int = -1,
 )
@@ -142,6 +144,8 @@ class LauncherTaskbarIconAdapter(
 
             // iconDrawable is excluded: PackageManager returns a fresh instance per call and
             // Drawable uses identity equality, so comparing it would rebind the strip every time.
+            // iconKey stands in for it - S1289 made resource rows drawable-backed too, so iconRes
+            // alone is null on both sides and would report two different logos as the same row.
             override fun areContentsTheSame(oldItem: LauncherTaskbarRow, newItem: LauncherTaskbarRow): Boolean =
                 when {
                     oldItem is LauncherTaskbarRow.Icon && newItem is LauncherTaskbarRow.Icon ->
@@ -149,6 +153,7 @@ class LauncherTaskbarIconAdapter(
                             oldItem.icon.id == newItem.icon.id &&
                             oldItem.icon.label == newItem.icon.label &&
                             oldItem.icon.iconRes == newItem.icon.iconRes &&
+                            oldItem.icon.iconKey == newItem.icon.iconKey &&
                             oldItem.icon.position == newItem.icon.position
                     else -> true
                 }

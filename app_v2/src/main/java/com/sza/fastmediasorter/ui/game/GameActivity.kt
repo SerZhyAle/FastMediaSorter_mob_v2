@@ -91,6 +91,7 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
         )
         inputManager.bindPrimaryAction(binding.btnGameReset)
         binding.btnGameSkip.setOnClickListener { viewModel.skipTurn() } // S0928
+        binding.btnGameRestartLevel.setOnClickListener { viewModel.restartCurrentLevel() }
         modeMenuManager = GameModeMenuManager(this, this)
         binding.btnGameBack.setOnClickListener { finish() }
         binding.btnGameMode.setOnClickListener {
@@ -158,6 +159,7 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
         boardView.setRenderState(null)
         binding.btnGameReset.isEnabled = false
         binding.btnGameReset.setText(R.string.game_new_game)
+        binding.btnGameRestartLevel.isVisible = false
         cancelAutoAdvance()
         previousStatus = null
     }
@@ -170,6 +172,7 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
         binding.txtGameTurns.text = getString(R.string.game_turns, ready.turns)
         binding.btnGameReset.isEnabled = true
         binding.btnGameReset.text = resetActionText(ready)
+        binding.btnGameRestartLevel.isVisible = ready.levelState.status == GameStatus.PLAYING
         val modeLabel = getString(GameModeMenuManager.labelRes(ready.mode))
         binding.btnGameMode.text = modeLabel
         binding.btnGameMode.contentDescription = getString(R.string.game_mode_button_content_description, modeLabel)
@@ -184,6 +187,7 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
         boardView.setRenderState(null)
         binding.btnGameReset.isEnabled = false
         binding.btnGameReset.setText(R.string.game_new_game)
+        binding.btnGameRestartLevel.isVisible = false
         cancelAutoAdvance()
         previousStatus = null
     }
@@ -194,6 +198,7 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
         boardView.setRenderState(null)
         binding.btnGameReset.isEnabled = true
         binding.btnGameReset.setText(R.string.game_new_game)
+        binding.btnGameRestartLevel.isVisible = false
         cancelAutoAdvance()
         previousStatus = null
     }

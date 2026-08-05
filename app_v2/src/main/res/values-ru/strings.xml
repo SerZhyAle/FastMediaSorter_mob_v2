@@ -3120,9 +3120,9 @@
     <string name="launcher_edit_kind_resource">Мой ресурс</string>
     <string name="launcher_edit_kind_stream">Канал</string>
     <string name="launcher_edit_kind_os">Настройка Android</string>
-    <string name="launcher_edit_kind_gadget">Гаджет</string>
+    <string name="launcher_edit_kind_gadget">Виджет</string>
     <string name="launcher_edit_pick_stream_title">Выберите канал</string>
-    <string name="launcher_edit_pick_gadget_title">Выберите гаджет</string>
+    <string name="launcher_edit_pick_gadget_title">Выберите виджет</string>
     <string name="launcher_edit_remove_cell_named">Убрать %1$s с рабочего стола</string>
     <string name="launcher_edit_mode_browse">Просмотр</string>
     <string name="launcher_edit_mode_slideshow">Слайд-шоу</string>
@@ -3274,4 +3274,9 @@
     <string name="restart_app_color_theme_message">Для применения новой цветовой темы необходимо перезапустить приложение. Продолжить?</string>
     <string name="settings_debug_log_mirror_title">Зеркалировать лог в открытую папку</string>
     <string name="settings_debug_log_mirror_desc">Копирует отладочный лог в папку, открытую сейчас в просмотрщике. По умолчанию выключено.</string>
+    <string name="error_destination_insufficient_space">Недостаточно места на %1$s - не хватает %2$s. Освободите место или выберите другое назначение.</string>
+    <string name="removable_volumes_section">Съёмные носители</string>
+    <string name="removable_volume_button_label">%1$s - свободно %2$s</string>
+    <string name="removable_volume_button_description">Съёмный носитель %1$s, свободно %2$s. Открывает этот том.</string>
+    <string name="removable_volume_access_request">Чтобы читать %1$s, выберите этот том в системном диалоге - приложение получит доступ только к выбранной папке.</string>
 </resources>

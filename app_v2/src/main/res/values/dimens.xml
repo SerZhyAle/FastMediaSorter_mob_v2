@@ -66,6 +66,9 @@
     <dimen name="icon_size_button">20dp</dimen>
     <dimen name="icon_size_menu">18dp</dimen>
     <dimen name="icon_size_tiny">16dp</dimen>
+    <!-- S1401: edge of a cached app-icon raster. The nominal launcher cell is the largest surface that
+         ever draws one, so a bigger bitmap could not show more detail and would only cost cache space. -->
+    <dimen name="installed_app_icon_cache_size">96dp</dimen>
     <dimen name="toolbar_height">56dp</dimen>
     <dimen name="card_corner_radius">8dp</dimen>
     <dimen name="card_elevation">2dp</dimen>

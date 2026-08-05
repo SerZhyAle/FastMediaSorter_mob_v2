@@ -77,21 +77,40 @@ class GameViewModel @Inject constructor(
         viewModelScope.launch {
             val ready = _state.value as? GameUiState.Ready ?: return@launch
             if (ready.levelState.status != GameStatus.GAME_OVER) return@launch
-
-            val currentConfig = ready.levelState.config
-            val restartConfig = currentConfig.copy(seed = nextSeed(currentConfig.levelNumber))
-            val generatedLevel = boardGenerator.createInitialState(restartConfig)
-            val restartedState = rulesEngine.restartLevel(ready.levelState, generatedLevel)
-            publishAndPersist(
-                ready.copy(
-                    levelState = restartedState,
-                    unreadableBoardWarning = shouldWarnForUnreadableBoard(restartedState.config, ready.customBoard),
-                    defeatConnection = null,
-                    lastRejectReason = null,
-                    turnMoves = emptyList()
-                )
-            )
+            applyLevelRestart(ready, rulesEngine::restartLevel)
         }
+    }
+
+    /**
+     * S1359: start the current level over while it is still being played. The engine charges the
+     * same price as being caught, so there is no second scoring path to keep in step here.
+     */
+    fun restartCurrentLevel() {
+        viewModelScope.launch {
+            val ready = _state.value as? GameUiState.Ready ?: return@launch
+            if (ready.levelState.status != GameStatus.PLAYING) return@launch
+            applyLevelRestart(ready, rulesEngine::restartLevelVoluntarily)
+        }
+    }
+
+    // Both restart commands publish the same shape; one helper is what stops them drifting apart.
+    private suspend fun applyLevelRestart(
+        ready: GameUiState.Ready,
+        restart: (GameLevelState, GameLevelState) -> GameLevelState
+    ) {
+        val currentConfig = ready.levelState.config
+        val restartConfig = currentConfig.copy(seed = nextSeed(currentConfig.levelNumber))
+        val generatedLevel = boardGenerator.createInitialState(restartConfig)
+        val restartedState = restart(ready.levelState, generatedLevel)
+        publishAndPersist(
+            ready.copy(
+                levelState = restartedState,
+                unreadableBoardWarning = shouldWarnForUnreadableBoard(restartedState.config, ready.customBoard),
+                defeatConnection = null,
+                lastRejectReason = null,
+                turnMoves = emptyList()
+            )
+        )
     }
 
     fun move(direction: GameDirection) {

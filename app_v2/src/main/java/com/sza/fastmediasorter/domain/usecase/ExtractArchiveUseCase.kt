@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.stats.FileOpAction
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsMediaType
@@ -22,8 +23,8 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
-import java.nio.charset.MalformedInputException
 import java.nio.charset.Charset
+import java.nio.charset.MalformedInputException
 import java.util.Locale
 import java.util.zip.ZipInputStream
 import javax.inject.Inject
@@ -158,6 +159,9 @@ class ExtractArchiveUseCase @Inject constructor(
             val normalized = if (isNoSpaceError(e)) "no_space" else "extract_error"
             emit(ExtractProgress.Failure(normalized))
         } catch (e: Exception) {
+            // Leaving the screen cancels the flow; emitting a Failure here would show the user an
+            // "extraction failed" result for an extraction they themselves abandoned.
+            e.rethrowIfCancellation()
             Timber.e(e, "ExtractArchiveUseCase failed")
             emit(ExtractProgress.Failure("extract_error"))
         }
@@ -311,6 +315,9 @@ class ExtractArchiveUseCase @Inject constructor(
                 lastError = e
                 Timber.w(e, "ExtractArchiveUseCase: charset fallback from %s", charset.name())
             } catch (e: Exception) {
+                // Propagation must not depend on isCharsetRelatedError's message heuristic: a
+                // cancellation that ever looked charset-related would retry the next charset instead.
+                e.rethrowIfCancellation()
                 if (!isCharsetRelatedError(e)) {
                     throw e
                 }

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.transfer.strategy
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,6 +16,7 @@ suspend fun <T> safeIo(tag: String, block: suspend CoroutineScope.() -> T): Resu
         try {
             Result.success(block())
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, tag)
             Result.failure(e)
         }

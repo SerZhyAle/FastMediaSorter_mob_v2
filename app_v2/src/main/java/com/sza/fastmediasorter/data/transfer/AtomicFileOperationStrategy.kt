@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.transfer
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationCategory
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
@@ -181,6 +182,7 @@ class AtomicFileOperationStrategy(
                 Result.success(Unit)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "AtomicFileOperationStrategy: renamePath exception")
             Result.failure(e)
         }

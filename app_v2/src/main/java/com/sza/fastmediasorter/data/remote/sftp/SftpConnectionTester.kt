@@ -5,6 +5,7 @@ import com.jcraft.jsch.JSch
 import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.Session
 import com.jcraft.jsch.UserInfo
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -62,6 +63,7 @@ object SftpConnectionTester {
 
             Result.success(Unit)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             mapTestFailure(e, pinnedCanonical)
         } finally {
             try {
@@ -121,6 +123,7 @@ object SftpConnectionTester {
 
             Result.success(Unit)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             mapTestFailure(e, pinnedCanonical)
         } finally {
             try {

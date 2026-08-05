@@ -37,6 +37,18 @@ object LauncherGridGeometry {
     fun rowsFor(cells: List<LauncherCell>): Int =
         cells.maxOfOrNull { safeRow(it.rowIndex) + safeSpanH(it.spanH) } ?: 1
 
+    /**
+     * How many rows a viewport of [availableHeightPx] covers - the second axis of [columns], and the
+     * only thing that lets edit mode fill the screen instead of stopping under the last cell (S1288).
+     *
+     * Rounded up on purpose: a partially visible row at the bottom edge costs nothing and doubles as
+     * the sign that the desktop scrolls, while rounding down leaves exactly the strip of bare
+     * wallpaper this exists to remove. Returns 0 when either input is still unknown, so a caller that
+     * asks before the surface is measured falls back to its content-driven row count.
+     */
+    fun rowsForViewport(availableHeightPx: Int, cellSizePx: Int): Int =
+        if (availableHeightPx <= 0 || cellSizePx <= 0) 0 else (availableHeightPx + cellSizePx - 1) / cellSizePx
+
     /** The squares a cell occupies once clamped to the grid it is being drawn on. */
     data class CellFootprint(val row: Int, val col: Int, val spanW: Int, val spanH: Int) {
         val rows: IntRange get() = row until row + spanH

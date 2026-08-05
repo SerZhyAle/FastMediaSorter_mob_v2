@@ -12,7 +12,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.ui.browse.helpers.refusalMessageRes
+import com.sza.fastmediasorter.ui.browse.helpers.refusalMessage
 import com.sza.fastmediasorter.utils.SafHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -181,9 +181,9 @@ class BrowseFolderPickerHandler(
         }
         // A destination the tree layer cannot address is a different fact from "some operations
         // failed" - the user has to choose another destination, not retry the same one.
-        val refusalMessage = refusal?.let { activity.getString(refusalMessageRes(it.reason)) }
+        val refusalText = refusal?.let { refusalMessage(activity, it) }
         when {
-            refusalMessage != null -> Toast.makeText(activity, refusalMessage, Toast.LENGTH_LONG).show()
+            refusalText != null -> Toast.makeText(activity, refusalText, Toast.LENGTH_LONG).show()
             dirFailed > 0 -> Toast.makeText(
                 activity,
                 activity.getString(R.string.error_some_operations_failed, dirFailed, dirSucceeded + dirFailed),

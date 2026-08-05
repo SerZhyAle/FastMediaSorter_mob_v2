@@ -52,6 +52,8 @@ Everything else is excluded. Preflight applies eligibility itself; the loop neve
 
 **Session state.** `--resume` present -> `pwsh -NoProfile -File scripts/spec_catalog/spec-next-session.ps1 -Verb Resume`; seed the in-memory `processed` set from its `excludeCsv`. No `--resume` -> `pwsh -NoProfile -File scripts/spec_catalog/spec-next-session.ps1 -Verb Init` (add `-Threshold <n>` if `--threshold` was passed) - a fresh round, per Hard rules "round memory is session-scoped".
 
+`-Verb Init` exiting **4** means a live foreign session already owns the state file, and it names that session (S1396). Stop there and report it - never `-Force` past it unsupervised, because a sibling `/spec-next` is working the same queue and two of them duplicate each other's tickets. Own session after a threshold `/clear` -> the right verb was `--resume` all along; re-run with it.
+
 Before the loop, detect whether on-device verification is available this run:
 
 ```powershell

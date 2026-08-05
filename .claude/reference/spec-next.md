@@ -86,6 +86,8 @@ The call itself replaces the previous `search.ps1` + manual rank + `skip-cache.p
 
 The loop is designed to run for many rounds and will accumulate context - that is expected. It no longer self-judges when to reset: `-Verb CheckContext` (Stage 5b) is the sole trigger, on the fixed threshold (default 300000, `-Threshold`/`--threshold` overridable). On a threshold stop, `-Verb Handoff` recommends `/clear` rather than `/compact` - round state (`processed`, tally, `DEVICE_ONLINE`, `selectedDevice`) already lives on disk in `temp/spec-next-session.json`, so a `/compact` summary would only re-carry what the state file already holds at zero cost. After `/clear`, `/spec-next --resume` reads that file back (`-Verb Resume`) and continues at Stage 1 with the restored `-Exclude` set - nothing is re-derived, nothing is reprocessed.
 
+The state file is owned, keyed on the agent session id (S1396). `-Verb Resume` adopts ownership rather than refusing, precisely because the post-`/clear` session carries a new id while the previous owner's transcript is seconds old and would read as live under any liveness test - it prints the displaced owner as `previousOwner` so a genuine sibling steal is still visible. `-Verb Init` is where the refusal lives (exit 4). `-Verb Record` is keyed by ticket id: a ticket recorded twice in one session (`advanced` when the impl lands, `verified` once the audit passes) updates its own row and the tally is recomputed, so `processed` counts tickets rather than status changes.
+
 ---
 
 ## Stage 5 - round-outcome table

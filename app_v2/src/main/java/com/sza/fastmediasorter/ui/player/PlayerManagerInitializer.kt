@@ -735,7 +735,9 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             activityBinding = activity.activityBinding,
             fragmentManager = activity.supportFragmentManager,
             audioServiceController = activity.audioServiceController!!,
-            persistentAudioCompiledIn = activity.capabilityAvailability.isPersistentAudioPlaybackAvailable()
+            persistentAudioCompiledIn = activity.capabilityAvailability.isPersistentAudioPlaybackAvailable(),
+            faviconAtlasStore = activity.faviconAtlasStore,
+            scope = activity.lifecycleScope
         )
         activity.sleepTimerManager = SleepTimerManager(
             vinylView = activity.activityBinding.vinylIndicator,

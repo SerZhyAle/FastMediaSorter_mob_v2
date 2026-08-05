@@ -123,4 +123,28 @@
 
     </LinearLayout>
 
+    <!-- S1412: last element of the bar, so it sits bottom-right and below every desktop cell (owner,
+         2026-08-05). It used to float over the grid's top-right corner and covered up to two cells,
+         which were then the only cells edit mode could not reach. GONE at rest, so it costs no width
+         outside editing; the weighted strip block above yields slack before the tray does. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/launcherEditDone"
+        style="@style/Widget.FastMediaSorter.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:insetLeft="0dp"
+        android:insetRight="0dp"
+        android:minHeight="0dp"
+        android:nextFocusUp="@id/launcherDesktop"
+        android:nextFocusLeft="@id/trayContainer"
+        android:paddingStart="@dimen/launcher_taskbar_item_spacing"
+        android:paddingEnd="@dimen/launcher_taskbar_item_spacing"
+        android:text="@string/launcher_edit_done"
+        android:visibility="gone" />
+
 </LinearLayout>

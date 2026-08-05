@@ -10,11 +10,13 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.StorageVolumeInfo
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.DiscoverNetworkResourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.GetStorageVolumesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.NetworkHost
 import com.sza.fastmediasorter.domain.usecase.NetworkSpeedTestUseCase
@@ -85,6 +87,11 @@ sealed class AddResourceEvent {
  * - [AddResourceSftpKeyCoordinator]   - SFTP with SSH private key
  */
 @HiltViewModel
+// Screen-level ViewModel: every parameter is an independent Hilt collaborator, and folding them
+// into a holder object would relocate the list rather than shorten it. The constructor was already
+// past the threshold and baselined at twelve parameters; S1378's volume registry made it thirteen,
+// which changes the signature the baseline entry recorded and resurfaces the finding.
+@Suppress("LongParameterList")
 class AddResourceViewModel @Inject constructor(
     @param:ApplicationContext private val context: android.content.Context,
     scanLocalFoldersUseCase: ScanLocalFoldersUseCase,
@@ -96,6 +103,9 @@ class AddResourceViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
     private val networkSpeedTestUseCase: NetworkSpeedTestUseCase,
+    // S1378: the folder dialog offers connected removable volumes; the registry is reached from
+    // here so the UI layer never holds a use case of its own (CLAUDE.md Rule 3 and the layering).
+    private val getStorageVolumesUseCase: GetStorageVolumesUseCase,
     @param:ApplicationScope private val applicationScope: CoroutineScope,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<AddResourceState, AddResourceEvent>() {
@@ -267,6 +277,10 @@ class AddResourceViewModel @Inject constructor(
     fun scanLocalFolders() = virtualCoordinator.scanLocalFolders()
     fun addVirtualResource(virtualPath: String) = virtualCoordinator.addVirtualResource(virtualPath)
     suspend fun getExistingVirtualPaths(): Set<String> = virtualCoordinator.getExistingVirtualPaths()
+
+    /** S1378: mounted removable volumes, in the one order every surface renders them in. */
+    suspend fun getRemovableVolumes(): List<StorageVolumeInfo> =
+        getStorageVolumesUseCase.removableOnly().filter { it.isMounted }
     fun addManualFolder(uri: Uri) = virtualCoordinator.addManualFolder(uri, null)
     fun addManualFolder(uri: Uri, accessPin: String?) = virtualCoordinator.addManualFolder(uri, accessPin)
 

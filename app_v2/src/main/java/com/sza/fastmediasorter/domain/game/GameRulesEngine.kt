@@ -92,6 +92,20 @@ class GameRulesEngine(
         )
     }
 
+    /**
+     * S1359: restart a level the player is still playing. Routing through [asGameOver] and the
+     * existing [restartLevel] is what makes the voluntary price identical to being caught - a second
+     * scoring path could drift from it. The engine owns this normalisation because letting the UI
+     * hand in a faked GAME_OVER state would make [restartLevel]'s invariant decorative.
+     */
+    fun restartLevelVoluntarily(
+        playingState: GameLevelState,
+        restartedLevel: GameLevelState
+    ): GameLevelState {
+        require(playingState.status == GameStatus.PLAYING) { "current level is not being played" }
+        return restartLevel(playingState.asGameOver(), restartedLevel)
+    }
+
     private fun movePlayer(state: GameLevelState, direction: GameDirection): PlayerMoveOutcome {
         val from = state.player.position
         val target = from.move(direction)

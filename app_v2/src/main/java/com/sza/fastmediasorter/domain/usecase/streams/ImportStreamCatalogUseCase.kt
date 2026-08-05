@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.streams
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamCatalogCsvParser
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
@@ -68,6 +69,7 @@ class ImportStreamCatalogUseCase @Inject constructor(
                 entries.size
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.w(e, "Stream catalog import: favicon sidecar write failed (rows still merge)")
         }
 
@@ -95,6 +97,7 @@ class ImportStreamCatalogUseCase @Inject constructor(
         val merge = try {
             repository.mergeCatalog(sources)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.w(e, "Stream catalog import failed: %s", "merge")
             return@withContext CatalogImportResult.Failure(e.message ?: "merge error")
         }

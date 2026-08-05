@@ -26,7 +26,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationProgress
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
-import com.sza.fastmediasorter.ui.browse.helpers.refusalMessageRes
+import com.sza.fastmediasorter.ui.browse.helpers.refusalMessage
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferProgressCodec
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferProgressSnapshot
@@ -338,7 +338,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
      */
     private fun directoryFailureText(error: Throwable, fallbackName: String): String =
         when (error) {
-            is DirectoryOperationRefusal -> context.getString(refusalMessageRes(error.reason))
+            is DirectoryOperationRefusal -> refusalMessage(context, error)
             else -> error.message ?: fallbackName
         }
 

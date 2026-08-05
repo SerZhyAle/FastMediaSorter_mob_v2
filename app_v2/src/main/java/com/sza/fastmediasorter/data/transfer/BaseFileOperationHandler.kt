@@ -7,8 +7,9 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.transfer.strategy.TrashRenameUnavailableException
+import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.domain.transfer.FileOperationError
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.domain.usecase.FileOperation
@@ -56,6 +57,7 @@ abstract class BaseFileOperationHandler(
                     }
                 )
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 if (e is FileExistsException && !operation.overwrite) {
                     val destPath = joinPath(destinationPath, extractFileName(getSafePath(source), source.name))
                     skippedCount++; skippedPaths.add(destPath)
@@ -94,6 +96,7 @@ abstract class BaseFileOperationHandler(
                     }
                 )
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 if (e is FileExistsException && !operation.overwrite) {
                     val destPath = joinPath(destinationPath, extractFileName(getSafePath(source), source.name))
                     skippedCount++; skippedPaths.add(destPath)
@@ -154,6 +157,7 @@ abstract class BaseFileOperationHandler(
                         } else errors.add("Failed to create trash folder $batchTrash")
                     }
                 } catch (e: Exception) {
+                    e.rethrowIfCancellation()
                     Timber.e(e, "executeDelete: Error preparing soft delete for $parentPath")
                     errors.add("Soft delete setup failed: ${e.message}")
                 }
@@ -193,6 +197,7 @@ abstract class BaseFileOperationHandler(
                         }
                     )
                 } catch (e: Exception) {
+                    e.rethrowIfCancellation()
                     Timber.e(e, "executeDelete: Exception deleting ${file.name}")
                     errors.add("Exception deleting ${file.name}: ${e.message}")
                 }
@@ -225,6 +230,7 @@ abstract class BaseFileOperationHandler(
             return if (uploadResult.isSuccess) Result.success(destPath)
                    else Result.failure(Exception("Upload failed: ${uploadResult.exceptionOrNull()?.message}"))
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "copyCrossProtocol: Failed")
             return Result.failure(e)
         } finally {

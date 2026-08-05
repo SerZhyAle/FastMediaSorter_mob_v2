@@ -1,17 +1,18 @@
 package com.sza.fastmediasorter.data.transfer.strategy
 
 import android.content.Context
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.transfer.FileExistsException
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import javax.inject.Inject
 
 class TrashRenameUnavailableException(
     val sourcePath: String,
@@ -68,6 +69,7 @@ class LocalOperationStrategy @Inject constructor(
             Timber.d("LocalOperationStrategy: Copied ${sourceFile.name} (${destFile.length()} bytes)")
             Result.success(destination)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "LocalOperationStrategy: Copy failed - $source -> $destination")
             Result.failure(e)
         }
@@ -115,6 +117,7 @@ class LocalOperationStrategy @Inject constructor(
         } catch (e: TrashRenameUnavailableException) {
             throw e
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "LocalOperationStrategy: Move failed - $source -> $destination")
             Result.failure(e)
         }
@@ -156,6 +159,7 @@ class LocalOperationStrategy @Inject constructor(
             // Re-throw permission exception - don't wrap in Result
             throw e
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "LocalOperationStrategy: Delete failed - $path")
             Result.failure(e)
         }
@@ -236,6 +240,7 @@ class LocalOperationStrategy @Inject constructor(
                         // Re-throw our custom exception
                         throw e
                     } catch (e: Exception) {
+                        e.rethrowIfCancellation()
                         Timber.w(e, "LocalOperationStrategy: createDeleteRequest failed, falling back to regular delete")
                         // Fall through to try regular delete
                     }
@@ -278,8 +283,9 @@ class LocalOperationStrategy @Inject constructor(
             // Re-throw our custom exception
             throw e
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             // Re-throw RecoverableSecurityException to be handled by caller/UI
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q && 
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q &&
                 e is android.app.RecoverableSecurityException) {
                 Timber.i("LocalOperationStrategy: Propagating RecoverableSecurityException to UI layer")
                 throw e
@@ -320,6 +326,7 @@ class LocalOperationStrategy @Inject constructor(
                  else Result.failure(Exception("Failed to create directory: $path"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "LocalOperationStrategy: Create directory failed - $path")
             Result.failure(e)
         }
@@ -353,6 +360,7 @@ class LocalOperationStrategy @Inject constructor(
             )
             Result.success(target.absolutePath)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "LocalOperationStrategy: createTextFile failed - $parentPath/$fileName")
             Result.failure(e)
         }
@@ -370,6 +378,7 @@ class LocalOperationStrategy @Inject constructor(
                 Result.failure(java.io.FileNotFoundException("File not found: $path"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "LocalOperationStrategy: readFile failed - $path")
             Result.failure(e)
         }
@@ -385,6 +394,7 @@ class LocalOperationStrategy @Inject constructor(
             val filesElement = file.listFiles()?.map { it.absolutePath } ?: emptyList()
             Result.success(filesElement)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "LocalOperationStrategy: listFiles failed - $path")
             Result.failure(e)
         }
@@ -441,6 +451,7 @@ class LocalOperationStrategy @Inject constructor(
             Timber.d("LocalOperationStrategy: Deleted directory $path ($deletedCount items)")
             Result.success(deletedCount)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "LocalOperationStrategy: Delete directory failed - $path")
             Result.failure(e)
         }
@@ -500,6 +511,7 @@ class LocalOperationStrategy @Inject constructor(
                 Result.failure(Exception("Failed to rename directory"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "LocalOperationStrategy: Rename directory failed - $oldPath -> $newPath")
             Result.failure(e)
         }
@@ -551,6 +563,7 @@ class LocalOperationStrategy @Inject constructor(
             Timber.d("LocalOperationStrategy: Copied directory $source -> $destination ($copiedCount files)")
             Result.success(copiedCount)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "LocalOperationStrategy: Copy directory failed - $source -> $destination")
             Result.failure(e)
         }
@@ -575,6 +588,7 @@ class LocalOperationStrategy @Inject constructor(
             } ?: emptyList()
             Result.success(entries)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "LocalOperationStrategy: listEntries failed - $path")
             Result.failure(e)
         }
@@ -604,6 +618,7 @@ class LocalOperationStrategy @Inject constructor(
                 )
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "LocalOperationStrategy: getDirectoryInfo failed - $path")
             Result.failure(e)
         }

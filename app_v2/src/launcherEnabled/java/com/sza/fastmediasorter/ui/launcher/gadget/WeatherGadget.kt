@@ -65,7 +65,6 @@ private class WeatherGadgetView(
             showMessage(R.string.launcher_gadget_weather_no_location)
             return
         }
-        Timber.d("S0426: weather gadget active for %s", place.label)
         while (isActive) {
             when (val result = getWeather(place)) {
                 is WeatherResult.Fresh -> showSnapshot(result.snapshot, stale = false)

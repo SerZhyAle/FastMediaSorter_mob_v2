@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.transfer.strategies
 
 import android.content.Context
 import android.net.Uri
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.transfer.TransferStrategy
@@ -66,6 +67,7 @@ class SmbToLocalStrategy @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to write local file")
             false
         }

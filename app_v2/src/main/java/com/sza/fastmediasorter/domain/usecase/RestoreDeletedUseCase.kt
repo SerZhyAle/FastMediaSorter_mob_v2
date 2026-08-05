@@ -2,14 +2,15 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.model.TrashMetadata
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
-import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.data.transfer.strategy.CloudOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.FtpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
+import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -105,6 +106,7 @@ class RestoreDeletedUseCase @Inject constructor(
                         }
                     }
                 } catch (e: Exception) {
+                    e.rethrowIfCancellation()
                     errors.add("Error restoring $fileName: ${e.message}")
                 }
             }
@@ -129,6 +131,7 @@ class RestoreDeletedUseCase @Inject constructor(
                 // If .trash is empty, delete it too
                 // strategy.deleteFile(trashBasePath) 
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.w("Failed to cleanup trash folder: $e")
             }
             
@@ -143,6 +146,7 @@ class RestoreDeletedUseCase @Inject constructor(
             }
             
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "RestoreDeletedUseCase: Exception during restore")
             Result.failure(e)
         }
@@ -176,6 +180,7 @@ class RestoreDeletedUseCase @Inject constructor(
                 null
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error listing trash folders")
             null
         }
@@ -187,63 +192,4 @@ class RestoreDeletedUseCase @Inject constructor(
         return path.replace('\\', '/').trimEnd('/').substringAfterLast('/')
     }
 
-    /**
-     * Read TrashMetadata from metadata.json file.
-     */
-    private suspend fun readMetadata(metadataPath: String, strategy: Any): TrashMetadata? {
-        return try {
-            if (strategy is FileOperationStrategy) {
-                val result = strategy.readFile(metadataPath)
-                result.getOrNull()?.let { json ->
-                    TrashMetadata.fromJson(json)
-                }
-            } else {
-                null
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "RestoreDeletedUseCase: Failed to read metadata")
-            null
-        }
-    }
-    
-    /**
-     * Move file using appropriate strategy.
-     */
-    private suspend fun moveFile(sourcePath: String, targetPath: String, strategy: Any): Result<Unit> {
-        return try {
-            if (strategy is FileOperationStrategy) {
-                // Use moveFile from interface
-                strategy.moveFile(sourcePath, targetPath)
-            } else {
-                Result.failure(IllegalArgumentException("Strategy does not implement FileOperationStrategy"))
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "RestoreDeletedUseCase: Failed to move file from $sourcePath to $targetPath")
-            Result.failure(e)
-        }
-    }
-    
-    /**
-     * Delete directory recursively.
-     */
-    private suspend fun deleteDirectory(dirPath: String, strategy: Any): Result<Unit> {
-        return try {
-             if (strategy is FileOperationStrategy) {
-                // Strategies typically implement deleteFile which handles directories too (e.g. SMB/Local)
-                // or we might need a dedicated deleteDirectory in interface?
-                // Interface has deleteFile(path).
-                // LocalOperationStrategy.deleteFile checks if directory and recursively deletes?
-                // LocalOperationStrategy.deleteFile (I should check)
-                // SmbOperationStrategy.deleteFile (I should check)
-                // If they don't support recursive directory delete, this might fail for non-empty dirs.
-                // But for now let's assume they might.
-                strategy.deleteFile(dirPath)
-            } else {
-                Result.failure(IllegalArgumentException("Strategy does not implement FileOperationStrategy"))
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "RestoreDeletedUseCase: Error deleting directory: $dirPath")
-            Result.failure(e)
-        }
-    }
 }

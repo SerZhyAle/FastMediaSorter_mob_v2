@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.companion
 
 import android.content.Context
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.companion.CompanionAccessPathDto
 import com.sza.fastmediasorter.data.companion.CompanionConfigDto
 import com.sza.fastmediasorter.data.companion.CompanionConfigParser
@@ -48,6 +49,7 @@ class ExportCompanionConfigUseCase @Inject constructor(
                 val file = writeConfig(resource.name, serializer.serialize(dto))
                 Result.success(file)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Companion config export failed for '${resource.name}'")
                 Result.failure(e)
             }
@@ -71,6 +73,7 @@ class ExportCompanionConfigUseCase @Inject constructor(
                 )
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Companion QR export failed for '${resource.name}'")
             Result.failure(e)
         }

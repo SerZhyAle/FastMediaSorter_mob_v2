@@ -730,9 +730,9 @@
     "uk": "Не дає екрану вимкнутися під час роботи медіаплеєра."
   },
   "rowLanguage": {
-    "en": "Selects the language used for the app interface.",
-    "ru": "Выбирает язык интерфейса приложения.",
-    "uk": "Вибирає мову інтерфейсу застосунку."
+    "en": "Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using.",
+    "ru": "Открывает список языков интерфейса с поиском. В сборке из Play выбранный язык сначала догружается; если загрузить не удалось, приложение остаётся на текущем языке.",
+    "uk": "Відкриває список мов інтерфейсу з пошуком. У збірці з Play вибрана мова спочатку завантажується; якщо завантажити не вдалося, застосунок залишається поточною мовою."
   },
   "rowLauncherModeEnabled": {
     "en": "Makes the app the device home screen, so the Home button opens your own desktop.",

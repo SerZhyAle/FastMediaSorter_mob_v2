@@ -74,6 +74,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingManager
 import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainSftpShareManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
+import com.sza.fastmediasorter.ui.main.helpers.MainStorageVolumeWatchManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsPanelManager
 import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
@@ -135,6 +136,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     // S0984: builds the "share SFTP access" dialog; lazy since only SFTP resources reach it.
     private val sftpShareManager by lazy { MainSftpShareManager(this) }
+
+    // S1378: connecting or ejecting a medium has to reach the list; all of that logic is the
+    // manager's, this screen only starts and stops it.
+    private val storageVolumeWatchManager by lazy {
+        MainStorageVolumeWatchManager(this) { viewModel.refreshResources() }
+    }
     private var startupFullyDrawnReported = false
     private var startupAprilFoolsPrankChecked = false
     private var isCalculatorEnabled = false
@@ -784,6 +791,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Apply edge-to-edge insets: RecyclerView bottom padding for nav bar
         layoutChrome.applyEdgeToEdgeInsets()
 
+        storageVolumeWatchManager.attach()
         miniGameMenuManager = MainMiniGameMenuManager(this)
         streamsMenuManager = MainStreamsMenuManager(this)
         voiceCaptureManager = MainVoiceCaptureManager(

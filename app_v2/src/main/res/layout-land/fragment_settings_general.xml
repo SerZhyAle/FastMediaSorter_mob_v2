@@ -899,7 +899,7 @@
                     <!-- Version Info with logo -->
                     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="@dimen/margin_large">
                         <ImageView android:id="@+id/ivContactLogo" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_logo" android:contentDescription="@null" android:layout_marginEnd="8dp" />
-                        <TextView android:id="@+id/tvVersionInfo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="?android:attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:gravity="left" android:padding="8dp" android:text="" android:textColor="?android:attr/textColorLink" android:textSize="@dimen/text_size_small" />
+                        <TextView android:id="@+id/tvVersionInfo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="?android:attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:gravity="start" android:padding="8dp" android:text="" android:textColor="?android:attr/textColorLink" android:textSize="@dimen/text_size_small" />
                     </LinearLayout>
 
             </LinearLayout>

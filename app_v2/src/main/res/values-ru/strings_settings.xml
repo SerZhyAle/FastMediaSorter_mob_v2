@@ -255,4 +255,5 @@
     <string name="settings_group_screen_recording">Запись видео с экрана</string>
     <string name="settings_open_default_apps_dialog">Задать по-умолчанию</string>
     <string name="default_apps_dialog_title">Приложение по умолчанию</string>
+    <string name="language_download_failed">Не удалось загрузить этот язык. Проверьте подключение к интернету и попробуйте снова - приложение останется на текущем языке.</string>
 </resources>

@@ -7,8 +7,8 @@ import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
-import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
+import com.sza.fastmediasorter.domain.icon.ResourceIconProvider
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactTarget
@@ -23,19 +23,24 @@ import javax.inject.Inject
 
 /**
  * What a launcher cell shows for its command. Exactly one icon source is set: [iconRes] for our own
- * drawables, [iconDrawable] for an installed app's own icon.
+ * flat drawables, [iconDrawable] for a picture assembled elsewhere - an installed app's own icon, or
+ * (S1289) a resource's composed logo.
  *
- * Not a data class on purpose. PackageManager returns a fresh [Drawable] per call and Drawable
- * inherits identity equality, so a generated equals() would make every re-resolution of the same
- * app unequal - defeating StateFlow conflation and making DiffUtil rebind the whole desktop on
+ * Not a data class on purpose. Both of those sources hand back a fresh [Drawable] per call and
+ * Drawable inherits identity equality, so a generated equals() would make every re-resolution of the
+ * same cell unequal - defeating StateFlow conflation and making DiffUtil rebind the whole desktop on
  * every return to Home. Equality is defined over [iconKey] (the icon's source identity) instead.
  */
 class LauncherCommandVisual(
     val label: String,
     @DrawableRes val iconRes: Int?,
     val iconDrawable: Drawable? = null,
-    /** Stable identity of a Drawable-backed icon (the package it came from); null for [iconRes]. */
-    private val iconKey: String? = null,
+    /**
+     * Stable identity of a Drawable-backed icon - the package it came from, or the resource fields
+     * its logo was composed from; null for [iconRes]. Readable because every surface that diffs
+     * cells has to compare this instead of the drawable.
+     */
+    val iconKey: String? = null,
     /**
      * S1176: set when the cell stands for a person, and the string that decides which colour they get.
      * The binder then draws their initials instead of a glyph. Its own field rather than inferring from
@@ -86,6 +91,7 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val streamSourceRepository: StreamSourceRepository,
     private val scheduledOperationRepository: ScheduledOperationRepository,
+    private val resourceIconProvider: ResourceIconProvider,
 ) {
 
     suspend operator fun invoke(command: LauncherCellCommand): LauncherCommandVisual? =
@@ -196,9 +202,13 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
 
     private suspend fun resourceVisual(resourceId: Long): LauncherCommandVisual? {
         val resource = resourceRepository.getResourceById(resourceId) ?: return null
+        val icon = resourceIconProvider.iconFor(resource)
+        Timber.d("S1289: composed launcher icon for resource %s, key=%s", resource.name, icon.key)
         return LauncherCommandVisual(
             label = resource.name,
-            iconRes = ResourceTypeIconMap.iconFor(resource.type),
+            iconRes = null,
+            iconDrawable = icon.drawable,
+            iconKey = icon.key,
         )
     }
 

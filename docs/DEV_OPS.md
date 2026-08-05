@@ -197,6 +197,8 @@ Two independent locks under `temp/`, both driven through `scripts/utils/agent-lo
 
 Staleness for both locks is judged by PID liveness, never by a guessed timeout while the holder process is still alive - a generous safety-net ceiling exists only for the edge case where the holder process itself is gone without releasing. `CODE.LOCK` is advisory only (Tier 2, no hook enforcement - the agent owns the decision, same model as `dirty-tree-guard.ps1`): a build script that finds it fresh warns but does not refuse, so it cannot deadlock a session that legitimately needs to build while a lock is held for an unrelated edit.
 
+A third shared file follows the same family but keys ownership differently (S1396): **`temp/spec-next-session.json`**, the round state of `/spec-next` and `/spec-do`. Its owner is an agent session, not an OS process, so PID liveness cannot apply - `scripts/spec_catalog/spec-next-session.ps1` stamps `owner.sessionId` from `CLAUDE_CODE_SESSION_ID` and reads liveness off that session's transcript write time (`-StaleMinutes`, default 45). `-Verb Init` refuses with **exit 4** when a live foreign session holds the file, naming it and offering `-Verb Resume` or `-Force`; `-Verb Resume` always adopts ownership and reports the displaced owner, because after `/clear` the resuming session necessarily carries a new id. Every other verb warns and writes anyway, the `CODE.LOCK` model. No session id in the environment -> ownership is undefined and all of it is a no-op.
+
 ### Shared-state mutation audit (S0703)
 
 On-demand quality tool, not a build gate. Finds places where one shared object is mutated from several layers (the "last-write-wins" / redundant / unsafe class).

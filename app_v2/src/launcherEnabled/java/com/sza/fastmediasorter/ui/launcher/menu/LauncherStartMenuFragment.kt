@@ -30,7 +30,6 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -68,7 +67,6 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
         // The sheet deliberately stays open: the popup anchors inside it, and dismissing the sheet
         // would take its own anchor away.
         onAppLongClick = { view, app ->
-            Timber.d("S0427: start-menu shortcuts requested for %s", app.id)
             shortcutMenuManager.show(view, app.id)
             true
         },

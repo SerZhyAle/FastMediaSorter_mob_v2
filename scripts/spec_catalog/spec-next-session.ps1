@@ -7,6 +7,15 @@
 #   them and every resume had to re-derive state from scratch. This script
 #   persists that state to disk so a reset is just a resume.
 #
+# Ownership (S1396):
+#   The state path is fixed, so two concurrent /spec-next sessions would otherwise share
+#   one file: the second session's -Verb Init silently wiped the first one's processed set,
+#   tally and device facts (observed 2026-08-05). The owner here is NOT an OS process - each
+#   invocation is a separate short-lived pwsh.exe and nothing survives between them - so
+#   BUILD.LOCK's pid-liveness model does not apply. Ownership is keyed on the agent session
+#   id instead, and liveness is read off that session's transcript file. No session id in the
+#   environment -> ownership is undefined and every check below is a no-op.
+#
 # Storage: temp/spec-next-session.json
 # Schema (one session record):
 #   {
@@ -15,24 +24,30 @@
 #     "threshold": 300000,
 #     "deviceOnline": false,
 #     "selectedDevice": null,
+#     "owner": { "sessionId": "<uuid>", "host": "PC", "pid": 1234,
+#                "stampedAt": "2026-08-01T11:40:00", "lastSeenAt": "2026-08-01T11:55:00" },
 #     "processed": [
-#       { "id": "S1339", "outcome": "verified", "note": "", "at": "2026-08-01T11:55:00" }
+#       { "id": "S1339", "outcome": "verified", "note": "", "firstAt": "2026-08-01T11:50:00",
+#         "at": "2026-08-01T11:55:00" }
 #     ],
 #     "tally": { "processed": 0, "verified": 0, "blocked": 0 }
 #   }
 #
 # Verbs:
-#   -Verb Init          - start a fresh session (overwrites any prior state - round memory
-#                          is session-scoped, per /spec-next's own hard rule).
-#   -Verb Record         - append a processed ticket + update the tally.
+#   -Verb Init          - start a fresh session (overwrites prior state - round memory is
+#                          session-scoped, per /spec-next's own hard rule - but refuses when a
+#                          live foreign owner holds the file; -Force takes it over anyway).
+#   -Verb Record         - record a processed ticket, keyed by id: a repeat id updates that
+#                          entry in place and the tally is recomputed, never incremented.
 #   -Verb Device          - persist device-probe facts (Stage 0).
 #   -Verb CheckContext    - mechanical threshold check against the live transcript.
-#   -Verb Resume           - continue a prior session: bump round, return -Exclude CSV + device facts.
+#   -Verb Resume           - continue a prior session: bump round, adopt ownership, return
+#                            -Exclude CSV + device facts + the displaced owner.
 #   -Verb Report            - end-of-session summary, reconstructable after a reset.
 #   -Verb Handoff             - one-screen stop block: what happened, why, what's next, recommended commands.
 #
 # Usage:
-#   spec-next-session.ps1 -Verb Init [-Threshold 300000]
+#   spec-next-session.ps1 -Verb Init [-Threshold 300000] [-Force] [-StaleMinutes 45]
 #   spec-next-session.ps1 -Verb Record -Id Sxxxx -Outcome <advanced|verified|blocked|skipped> [-Note "text"]
 #   spec-next-session.ps1 -Verb Device -Online <true|false> [-SelectedDevice <id>]
 #   spec-next-session.ps1 -Verb CheckContext [-Threshold N]
@@ -45,6 +60,7 @@
 #   1 - error (missing state file where one is required, write failure).
 #   2 - cannot verify (bad -Id on Record; CheckContext could not determine tokens).
 #   3 - threshold crossed (CheckContext only).
+#   4 - refused: a live foreign owner holds the state file (Init only; -Force overrides).
 
 [CmdletBinding()]
 param(
@@ -63,7 +79,15 @@ param(
 
     [string]$SelectedDevice,
 
-    [int]$Threshold = 300000
+    [int]$Threshold = 300000,
+
+    # Take the state file over from a live foreign owner (Init only).
+    [switch]$Force,
+
+    # How long an owner's last sign of life may be before it counts as gone. Deliberately
+    # generous: a session waiting on a release build writes nothing to its transcript for
+    # tens of minutes, and a false "dead" verdict re-creates the very wipe this guards.
+    [int]$StaleMinutes = 45
 )
 
 $ErrorActionPreference = 'Stop'
@@ -93,6 +117,87 @@ function Write-State($state) {
     Set-Content -Path $statePath -Value $json -Encoding utf8NoBOM
 }
 
+function Get-SessionTranscript([string]$SessionId) {
+    if (-not $SessionId) { return $null }
+    $projectsRoot = Join-Path $env:USERPROFILE '.claude\projects'
+    return Get-ChildItem -Path $projectsRoot -Recurse -Filter "$SessionId.jsonl" -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+}
+
+function New-OwnerStamp {
+    $now = (Get-Date).ToString('s')
+    return [PSCustomObject]@{
+        sessionId  = $env:CLAUDE_CODE_SESSION_ID
+        host       = $env:COMPUTERNAME
+        pid        = $PID
+        stampedAt  = $now
+        lastSeenAt = $now
+    }
+}
+
+function Set-OwnerStamp($state) {
+    $owner = New-OwnerStamp
+    if ($state.PSObject.Properties['owner']) { $state.owner = $owner }
+    else { $state | Add-Member -NotePropertyName owner -NotePropertyValue $owner }
+    return $state
+}
+
+function Get-OwnerCheck($state) {
+    # Verdict on who owns $state relative to this session:
+    #   none          - no stamp (absent file, or one written before S1396)
+    #   self          - this session
+    #   foreign-live  - another session, still showing signs of life
+    #   foreign-stale - another session, gone
+    #   undetermined  - we have no session id, so "mine" and "theirs" are indistinguishable
+    $sessionId = $env:CLAUDE_CODE_SESSION_ID
+    $owner = if ($state) { $state.owner } else { $null }
+    if (-not $owner -or -not $owner.sessionId) {
+        return [PSCustomObject]@{ status = 'none'; owner = $null; ageMinutes = $null }
+    }
+    if (-not $sessionId) {
+        return [PSCustomObject]@{ status = 'undetermined'; owner = $owner; ageMinutes = $null }
+    }
+    if ($owner.sessionId -eq $sessionId) {
+        return [PSCustomObject]@{ status = 'self'; owner = $owner; ageMinutes = 0 }
+    }
+    # A live agent session appends to its transcript on every turn, so the file's write time
+    # is the closest thing to a heartbeat. Fall back to our own stamp when the transcript is
+    # unreachable (different machine, pruned history).
+    $lastSeen = $null
+    $transcript = Get-SessionTranscript -SessionId $owner.sessionId
+    if ($transcript) { $lastSeen = $transcript.LastWriteTime }
+    if ($null -eq $lastSeen -and $owner.lastSeenAt) {
+        try { $lastSeen = [datetime]::Parse($owner.lastSeenAt) } catch { $lastSeen = $null }
+    }
+    if ($null -eq $lastSeen) {
+        return [PSCustomObject]@{ status = 'foreign-stale'; owner = $owner; ageMinutes = $null }
+    }
+    $ageMinutes = [math]::Round(((Get-Date) - $lastSeen).TotalMinutes, 1)
+    $status = if ($ageMinutes -le $StaleMinutes) { 'foreign-live' } else { 'foreign-stale' }
+    return [PSCustomObject]@{ status = $status; owner = $owner; ageMinutes = $ageMinutes }
+}
+
+function Format-Owner($check) {
+    $o = $check.owner
+    $age = if ($null -eq $check.ageMinutes) { 'unknown' } else { "$($check.ageMinutes) min ago" }
+    return "session $($o.sessionId) on $($o.host) (pid $($o.pid), last seen $age)"
+}
+
+function Update-OwnerOnWrite($state, $check) {
+    # Mutating verbs other than Init never refuse (soft CODE.LOCK model): refusing mid-round
+    # would drop the record of a ticket the loop just finished, which costs more than the
+    # warning. A live foreign owner keeps its stamp so the file still names who started it.
+    switch ($check.status) {
+        'self' { $state.owner.lastSeenAt = (Get-Date).ToString('s'); return $state }
+        'foreign-live' {
+            Write-Warning "spec-next-session: state file belongs to another session - $(Format-Owner $check); writing into it anyway, its tally will include this row"
+            return $state
+        }
+        'undetermined' { return $state }
+        default { return (Set-OwnerStamp $state) }
+    }
+}
+
 function Get-ContextCheck([int]$ThresholdOverride, [bool]$ThresholdExplicit) {
     # Mechanical threshold check (strategic S1339 §3): the newest assistant record's
     # cache_read_input_tokens in the LIVE session transcript is the current carried
@@ -103,8 +208,7 @@ function Get-ContextCheck([int]$ThresholdOverride, [bool]$ThresholdExplicit) {
     if (-not $sessionId) {
         return [PSCustomObject]@{ ok = $false; reason = 'no session id in environment (CLAUDE_CODE_SESSION_ID)' }
     }
-    $projectsRoot = Join-Path $env:USERPROFILE '.claude\projects'
-    $transcript = Get-ChildItem -Path $projectsRoot -Recurse -Filter "$sessionId.jsonl" -ErrorAction SilentlyContinue | Select-Object -First 1
+    $transcript = Get-SessionTranscript -SessionId $sessionId
     if (-not $transcript) {
         return [PSCustomObject]@{ ok = $false; reason = "no transcript file for session $sessionId" }
     }
@@ -134,12 +238,22 @@ function Get-ContextCheck([int]$ThresholdOverride, [bool]$ThresholdExplicit) {
 
 switch ($Verb) {
     'Init' {
+        $existing = Read-State
+        $check = Get-OwnerCheck $existing
+        if ($check.status -eq 'foreign-live' -and -not $Force) {
+            Write-Error "spec-next-session: refusing to overwrite state owned by $(Format-Owner $check). Use -Verb Resume to continue that session (the normal path after /clear), or -Force to take the file over." -ErrorAction Continue
+            exit 4
+        }
+        if ($check.status -eq 'foreign-live') {
+            Write-Output "spec-next-session: -Force displaced $(Format-Owner $check)"
+        }
         $state = [PSCustomObject]@{
             round          = 1
             startedAt      = (Get-Date).ToString('s')
             threshold      = $Threshold
             deviceOnline   = $false
             selectedDevice = $null
+            owner          = (New-OwnerStamp)
             processed      = @()
             tally          = [PSCustomObject]@{ processed = 0; verified = 0; blocked = 0 }
         }
@@ -159,7 +273,15 @@ switch ($Verb) {
             Write-Error "spec-next-session: no session state to resume - run -Verb Init first" -ErrorAction Continue
             exit 1
         }
+        # Resume adopts ownership unconditionally and never refuses: after the /clear this verb
+        # exists to survive, the resuming session carries a NEW session id while the previous
+        # owner's transcript was written seconds ago, so any liveness test would read it as a
+        # live foreigner and refuse the one path the state file was built for. Naming the
+        # displaced owner is the honest half - a genuine sibling steal stays visible.
+        $check = Get-OwnerCheck $state
+        $previousOwner = if ($check.status -in @('foreign-live', 'foreign-stale')) { $check.owner.sessionId } else { $null }
         $state.round = [int]$state.round + 1
+        $state = Set-OwnerStamp $state
         Write-State $state
         $processedIds = @($state.processed | ForEach-Object { $_.id })
         $out = [PSCustomObject]@{
@@ -167,6 +289,7 @@ switch ($Verb) {
             deviceOnline   = $state.deviceOnline
             selectedDevice = $state.selectedDevice
             round          = $state.round
+            previousOwner  = $previousOwner
         }
         $out | ConvertTo-Json -Compress
         exit 0
@@ -185,6 +308,7 @@ switch ($Verb) {
             Write-Error "spec-next-session: no session state - run -Verb Init or -Verb Resume first" -ErrorAction Continue
             exit 1
         }
+        $state = Update-OwnerOnWrite $state (Get-OwnerCheck $state)
         $onlineBool = [bool]($Online -match '^(?i:true|1)$')
         $state.deviceOnline = $onlineBool
         if ($SelectedDevice) { $state.selectedDevice = $SelectedDevice }
@@ -220,18 +344,41 @@ switch ($Verb) {
             Write-Error "spec-next-session: no session state - run -Verb Init or -Verb Resume first" -ErrorAction Continue
             exit 1
         }
-        $entry = [PSCustomObject]@{
-            id      = $Id
-            outcome = $Outcome
-            note    = $Note
-            at      = (Get-Date).ToString('s')
+        $state = Update-OwnerOnWrite $state (Get-OwnerCheck $state)
+        $now = (Get-Date).ToString('s')
+        $entries = @($state.processed)
+        $existing = $entries | Where-Object { $_.id -eq $Id } | Select-Object -First 1
+        if ($existing) {
+            # A ticket changing status twice in one session is the ordinary pipeline shape
+            # (advanced when /spec-dev lands it, verified once /spec-check passes). Appending a
+            # second row counted it twice, and that inflated count is exactly what the final
+            # report and the handoff print - so the entry is keyed by id and updated in place.
+            if (-not $existing.PSObject.Properties['firstAt']) {
+                $existing | Add-Member -NotePropertyName firstAt -NotePropertyValue $existing.at
+            }
+            $existing.outcome = $Outcome
+            $existing.note = $Note
+            $existing.at = $now
+            $recordAction = 'updated'
         }
-        $state.processed = @($state.processed) + $entry
-        $state.tally.processed = [int]$state.tally.processed + 1
-        if ($Outcome -eq 'verified') { $state.tally.verified = [int]$state.tally.verified + 1 }
-        if ($Outcome -eq 'blocked') { $state.tally.blocked = [int]$state.tally.blocked + 1 }
+        else {
+            $entries += [PSCustomObject]@{
+                id      = $Id
+                outcome = $Outcome
+                note    = $Note
+                firstAt = $now
+                at      = $now
+            }
+            $recordAction = 'recorded'
+        }
+        $state.processed = $entries
+        # Recomputed, never incremented: an in-place update must not move the counters, and a
+        # recount from the collapsed list is the only form that stays right for both branches.
+        $state.tally.processed = $entries.Count
+        $state.tally.verified = @($entries | Where-Object { $_.outcome -eq 'verified' }).Count
+        $state.tally.blocked = @($entries | Where-Object { $_.outcome -eq 'blocked' }).Count
         Write-State $state
-        Write-Output "spec-next-session: recorded $Id ($Outcome)"
+        Write-Output "spec-next-session: $recordAction $Id ($Outcome)"
         exit 0
     }
     'Handoff' {

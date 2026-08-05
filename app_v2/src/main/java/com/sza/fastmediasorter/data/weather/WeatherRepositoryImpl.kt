@@ -14,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -68,12 +67,10 @@ class WeatherRepositoryImpl @Inject constructor(
             }
 
             cached != null -> {
-                Timber.d("S0426: weather fetch failed, showing cached reading")
                 WeatherResult.Stale(cached, now - cached.observedAtMs)
             }
 
             else -> {
-                Timber.d("S0426: weather fetch failed with no cached reading")
                 WeatherResult.Unavailable
             }
         }

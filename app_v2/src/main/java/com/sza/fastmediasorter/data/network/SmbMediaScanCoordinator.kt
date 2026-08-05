@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.network
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.helpers.SmbDirectoryScanner
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbFileInfo
@@ -213,6 +214,7 @@ class SmbMediaScanCoordinator(
                 SmbResult.Success(count)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to count SMB media files")
             SmbResult.Error("Failed to count media files: ${e.message}", e)
         }

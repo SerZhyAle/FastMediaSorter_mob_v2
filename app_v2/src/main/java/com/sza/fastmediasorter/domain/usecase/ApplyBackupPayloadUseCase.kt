@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import androidx.room.withTransaction
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -90,6 +91,10 @@ class ApplyBackupPayloadUseCase @Inject constructor(
                         }
                         credentialsRestored++
                     } catch (e: Exception) {
+                        // Cancellation must abort the whole transaction, not be logged as one skipped
+                        // row: swallowing it here would let the loop run on and commit a partial
+                        // restore, defeating the all-or-nothing guarantee this block exists for.
+                        e.rethrowIfCancellation()
                         Timber.w(e, "ApplyBackup: skip credential %s", backupCred.credentialId)
                     }
                 }
@@ -111,6 +116,7 @@ class ApplyBackupPayloadUseCase @Inject constructor(
                             if (candidate.type != ResourceType.LOCAL) resourcesNeedingAuth++
                         }
                     } catch (e: Exception) {
+                        e.rethrowIfCancellation()
                         Timber.w(e, "ApplyBackup: skip resource %s", backupRes.name)
                     }
                 }
@@ -133,6 +139,7 @@ class ApplyBackupPayloadUseCase @Inject constructor(
                         favoritesDao.insert(BackupMapper.toFavoritesEntity(backupFav, localResource.id))
                         favoritesAdded++
                     } catch (e: Exception) {
+                        e.rethrowIfCancellation()
                         Timber.w(e, "ApplyBackup: skip favorite %s", backupFav.displayName)
                         favoritesSkipped++
                     }
@@ -149,6 +156,7 @@ class ApplyBackupPayloadUseCase @Inject constructor(
                         if (op.isEnabled) enabledScheduledOpIds.add(newId)
                         scheduledOpsAdded++
                     } catch (e: Exception) {
+                        e.rethrowIfCancellation()
                         Timber.w(e, "ApplyBackup: skip scheduled op")
                     }
                 }

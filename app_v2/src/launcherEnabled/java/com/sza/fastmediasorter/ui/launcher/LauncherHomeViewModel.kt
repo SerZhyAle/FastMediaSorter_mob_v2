@@ -102,6 +102,7 @@ class LauncherHomeViewModel @Inject constructor(
                     label = entry.visual.label,
                     iconRes = entry.visual.iconRes,
                     iconDrawable = entry.visual.iconDrawable,
+                    iconKey = entry.visual.iconKey,
                 )
             }
         }
@@ -115,6 +116,7 @@ class LauncherHomeViewModel @Inject constructor(
                         label = visual.label,
                         iconRes = visual.iconRes,
                         iconDrawable = visual.iconDrawable,
+                        iconKey = visual.iconKey,
                         // Carried so edit mode can unpin the exact slot; the id is the command, not the slot.
                         position = position,
                     )

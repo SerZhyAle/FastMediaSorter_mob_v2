@@ -3160,9 +3160,9 @@ Close the player and try again.</string>
     <string name="launcher_edit_kind_resource">My resource</string>
     <string name="launcher_edit_kind_stream">Channel</string>
     <string name="launcher_edit_kind_os">Android setting</string>
-    <string name="launcher_edit_kind_gadget">Gadget</string>
+    <string name="launcher_edit_kind_gadget">Widget</string>
     <string name="launcher_edit_pick_stream_title">Choose a channel</string>
-    <string name="launcher_edit_pick_gadget_title">Choose a gadget</string>
+    <string name="launcher_edit_pick_gadget_title">Choose a widget</string>
     <string name="launcher_edit_remove_cell_named">Remove %1$s from desktop</string>
     <string name="launcher_edit_mode_browse">Browse</string>
     <string name="launcher_edit_mode_slideshow">Slideshow</string>
@@ -3308,4 +3308,9 @@ Close the player and try again.</string>
     <string name="restart_app_color_theme_message">To apply the new color theme, the application needs to restart. Continue?</string>
     <string name="settings_debug_log_mirror_title">Mirror log to opened folder</string>
     <string name="settings_debug_log_mirror_desc">Copies the debug log into the folder currently open in the viewer. Off by default.</string>
+    <string name="error_destination_insufficient_space">Not enough space on %1$s - %2$s more is needed. Free up room there or pick another destination.</string>
+    <string name="removable_volumes_section">Removable media</string>
+    <string name="removable_volume_button_label">%1$s - %2$s free</string>
+    <string name="removable_volume_button_description">Removable medium %1$s, %2$s free. Opens this volume.</string>
+    <string name="removable_volume_access_request">To read %1$s, pick this volume in the system dialog that opens next - the app gets access only to the folder you choose.</string>
 </resources>

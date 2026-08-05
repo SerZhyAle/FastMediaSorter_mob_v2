@@ -1,9 +1,8 @@
 package com.sza.fastmediasorter.data.transfer.strategy
 
 import android.content.Context
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.SmbClient
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.transfer.FileExistsException
@@ -13,6 +12,7 @@ import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.utils.SmbPathUtils
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
+import javax.inject.Inject
 
 /** Strategy for SMB file operations (smb:// protocol via SmbClient). */
 class SmbOperationStrategy @Inject constructor(
@@ -50,6 +51,7 @@ class SmbOperationStrategy @Inject constructor(
                 else -> Result.failure(IllegalArgumentException("At least one path must be SMB"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: Copy failed - $source -> $destination")
             Result.failure(e)
         }
@@ -75,6 +77,7 @@ class SmbOperationStrategy @Inject constructor(
                 deleteFile(source)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: Move failed - $source -> $destination")
             Result.failure(e)
         }
@@ -102,9 +105,13 @@ class SmbOperationStrategy @Inject constructor(
                         val file = File(if (uri.scheme == "file") uri.path ?: path else path)
                         if (file.delete()) Result.success(Unit) else Result.failure(Exception("Failed to delete local file: $path"))
                     }
-                } catch (e: Exception) { Result.failure(e) }
+                } catch (e: Exception) {
+                    e.rethrowIfCancellation()
+                    Result.failure(e)
+                }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: Delete failed - $path")
             Result.failure(e)
         }
@@ -127,6 +134,7 @@ class SmbOperationStrategy @Inject constructor(
                 if (dir.mkdirs()) Result.success(Unit) else Result.failure(Exception("Failed to create local directory: $path"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: Create directory failed - $path")
             Result.failure(e)
         }
@@ -152,6 +160,7 @@ class SmbOperationStrategy @Inject constructor(
             )
             Result.success(localFile.absolutePath)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy.createTextFile failed - parent=$parentPath name=$fileName")
             Result.failure(e)
         }
@@ -181,6 +190,7 @@ class SmbOperationStrategy @Inject constructor(
                 Result.success(Unit)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: Write file failed - $path")
             Result.failure(e)
         }
@@ -211,6 +221,7 @@ class SmbOperationStrategy @Inject constructor(
                 else Result.failure(java.io.FileNotFoundException("File not found: $path"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: Read file failed - $path")
             Result.failure(e)
         }
@@ -232,6 +243,7 @@ class SmbOperationStrategy @Inject constructor(
                 Result.success(false)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: Exists check failed - $path")
             Result.failure(e)
         }
@@ -256,6 +268,7 @@ class SmbOperationStrategy @Inject constructor(
                 Result.failure(IllegalArgumentException("Not an SMB path"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: listFiles failed - $path")
             Result.failure(e)
         }
@@ -289,6 +302,7 @@ class SmbOperationStrategy @Inject constructor(
                 is SmbResult.Error -> Result.failure(Exception(result.message))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: listEntries failed - $path")
             Result.failure(e)
         }
@@ -325,6 +339,7 @@ class SmbOperationStrategy @Inject constructor(
                 context.contentResolver.openOutputStream(destUri)
                     ?: return Result.failure(Exception("Failed to open output stream for content URI: $localPath"))
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 return Result.failure(Exception("Failed to open local destination: ${e.message}"))
             }
             return try {
@@ -595,6 +610,7 @@ class SmbOperationStrategy @Inject constructor(
             Timber.d("SmbOperationStrategy: Deleted directory $path ($deletedCount items)")
             Result.success(deletedCount)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: Delete directory failed - $path")
             Result.failure(e)
         }
@@ -654,6 +670,7 @@ class SmbOperationStrategy @Inject constructor(
                 is SmbResult.Error -> Result.failure(Exception(result.message))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: Rename directory failed - $oldPath -> $newPath")
             Result.failure(e)
         }
@@ -693,6 +710,7 @@ class SmbOperationStrategy @Inject constructor(
             Timber.d("SmbOperationStrategy: Copied directory $source -> $destination ($copiedCount files)")
             Result.success(copiedCount)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: Copy directory failed - $source -> $destination")
             Result.failure(e)
         }
@@ -714,6 +732,7 @@ class SmbOperationStrategy @Inject constructor(
                 is SmbResult.Error -> Result.failure(Exception(result.message))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: isDirectory check failed - $path")
             Result.failure(e)
         }
@@ -760,6 +779,7 @@ class SmbOperationStrategy @Inject constructor(
                 )
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: getDirectoryInfo failed - $path")
             Result.failure(e)
         }

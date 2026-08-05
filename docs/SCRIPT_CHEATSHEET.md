@@ -1662,6 +1662,18 @@ scripts/quality/assert-qualifier-shadowing.ps1
     -Quiet         [SwitchParameter]
 ```
 
+### assert-rtl-layout-attrs.ps1
+
+```
+scripts/quality/assert-rtl-layout-attrs.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+  Exit: 0 - pass (count at or below baseline, or a non-gate mode).; 1 - fail: the count rose above the baseline, or a changed file carries an occurrence.; 2 - cannot verify: the scan root is missing, or a named changed file does not exist.
+```
+
 ### assert-script-cheatsheet-sync.ps1
 Drift gate: docs/SCRIPT_CHEATSHEET.md must equal `help.ps1 -Generate` output.
 
@@ -2399,7 +2411,9 @@ scripts/spec_catalog/spec-next-session.ps1
     -Online                 [String]
     -SelectedDevice         [String]
     -Threshold              [Int32] = 300000
-  Exit: 0 - ok.; 1 - error (missing state file where one is required, write failure).; 2 - cannot verify (bad -Id on Record; CheckContext could not determine tokens).; 3 - threshold crossed (CheckContext only).
+    -Force                  [SwitchParameter]
+    -StaleMinutes           [Int32] = 45
+  Exit: 0 - ok.; 1 - error (missing state file where one is required, write failure).
 ```
 
 ### stats.ps1
@@ -2878,6 +2892,23 @@ scripts/utils/search-log.ps1
     -NoColor               [SwitchParameter]
     -Json                  [SwitchParameter]
     -OutFile               [String] = ""
+```
+
+### seed-locale-tranche.ps1
+S1190: seeds one locale's copy of a strings file from a translation map.
+
+```
+scripts/utils/seed-locale-tranche.ps1
+  S1190: seeds one locale's copy of a strings file from a translation map.
+  Params:
+    -Module             [String] = 'app_v2'
+    -SourceFile  (req)  [String]
+    -Locale             [String]
+    -MapPath            [String]
+    -KeyPrefix          [String]
+    -DumpSource         [SwitchParameter]
+    -DryRun             [SwitchParameter]
+  Exit: 0 - the locale file was written, or planned under -DryRun. An empty map writes an empty
 ```
 
 ### set-android-string.ps1

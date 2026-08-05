@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.color.MaterialColors
@@ -156,11 +157,13 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         editModeManager = LauncherEditModeManager(
             lifecycleOwner = this,
             desktop = binding.launcherDesktop,
-            doneButton = binding.launcherEditDone,
+            // S1412: the button moved onto the taskbar, so it is reached through the included layout.
+            doneButton = binding.launcherTaskbar.launcherEditDone,
             snackbarAnchor = binding.launcherRoot,
             viewModel = viewModel,
         )
         editModeManager.attach()
+        Timber.d("S1412: edit-done button bound from the taskbar layout")
         wallpaperManager = LauncherWallpaperManager(
             lifecycleOwner = this,
             imageLayer = binding.launcherWallpaperImage,
@@ -314,7 +317,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     private fun showAppShortcuts(view: View, cellUi: LauncherCellUi): Boolean {
         val command = LauncherCellCommand.decode(cellUi.cell.target) as? LauncherCellCommand.App
         if (viewModel.editMode.value || command == null) return false
-        Timber.d("S0427: app shortcuts requested for %s", command.packageName)
         shortcutMenuManager.show(view, command.packageName)
         return true
     }
@@ -348,6 +350,13 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         Timber.d("S1087: status bar policy replace=%s", replaceSystemStatusArea)
         val controller = statusBarController()
         if (replaceSystemStatusArea) {
+            // S1409: the default behaviour hands the bar back permanently once the user swipes it into
+            // view, so the setting looked switched off from the first swipe until it was applied again.
+            // Transient is what the setting actually promises: the bar is there on demand and leaves on
+            // its own. Set before hide - the behaviour applies to the hidden types.
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            Timber.d("S1409: status bar hidden with transient-by-swipe behavior")
             controller.hide(WindowInsetsCompat.Type.statusBars())
         } else {
             controller.show(WindowInsetsCompat.Type.statusBars())
@@ -521,7 +530,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 LauncherWeatherLocationDialogFragment.RESULT_CELL_ID,
                 LauncherWeatherLocationDialogFragment.NO_CELL_ID,
             )
-            Timber.d("S0426: weather place picked for cell %d", cellId)
             if (cellId == LauncherWeatherLocationDialogFragment.NO_CELL_ID) {
                 placeWeatherGadget(encoded)
             } else {
@@ -581,6 +589,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             viewModel.cells.value,
             currentColumns(),
             viewModel.editMode.value,
+            currentViewportRows(),
         )
     }
 
@@ -588,6 +597,36 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         availableWidthDp = resources.configuration.screenWidthDp.toFloat(),
         densityFactor = viewModel.densityFactor.value,
     )
+
+    /**
+     * S1288: how many rows the visible desktop covers, so edit mode can fill it with empty slots.
+     *
+     * The scroll container is asked first because it is the exact answer - it already accounts for
+     * insets, its own padding and whatever the taskbar leaves. Before the first layout pass it has no
+     * size yet, and a rotation while editing rebinds in precisely that state, so the fallback derives
+     * the same figure from the configuration - the source the column count above already trusts -
+     * minus the taskbar the container stops above.
+     */
+    private fun currentViewportRows(): Int {
+        val scroll = binding.launcherGridScroll
+        val density = resources.displayMetrics.density
+        val widthPx = if (scroll.width > 0) {
+            scroll.width
+        } else {
+            (resources.configuration.screenWidthDp * density).toInt()
+        }
+        val heightPx = if (scroll.height > 0) {
+            scroll.height
+        } else {
+            (resources.configuration.screenHeightDp * density).toInt() -
+                resources.getDimensionPixelSize(R.dimen.launcher_taskbar_height)
+        }
+        val contentWidthPx = widthPx - scroll.paddingStart - scroll.paddingEnd
+        return LauncherGridGeometry.rowsForViewport(
+            availableHeightPx = heightPx,
+            cellSizePx = LauncherGridGeometry.cellSizePx(contentWidthPx, currentColumns()),
+        )
+    }
 
     private fun currentOrientation(): LauncherOrientation =
         if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {

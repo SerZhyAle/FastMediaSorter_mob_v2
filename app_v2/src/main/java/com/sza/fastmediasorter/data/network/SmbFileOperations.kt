@@ -5,6 +5,7 @@ import com.hierynomus.mssmb2.SMB2CreateDisposition
 import com.hierynomus.mssmb2.SMB2ShareAccess
 import com.hierynomus.smbj.share.DiskShare
 import com.sza.fastmediasorter.core.util.InputStreamExt.copyToWithProgress
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbFileInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
@@ -333,6 +334,7 @@ class SmbFileOperations @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbFileOperations.deleteFile: EXCEPTION - Failed to establish connection or execute delete")
             Timber.e("SmbFileOperations.deleteFile: Exception type: ${e.javaClass.name}")
             Timber.e("SmbFileOperations.deleteFile: Exception message: ${e.message}")
@@ -369,6 +371,7 @@ class SmbFileOperations @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbFileOperations.deleteDirectory: EXCEPTION - ${e.message}")
             SmbResult.Error("Failed to delete directory: ${e.message}", e)
         }
@@ -413,6 +416,7 @@ class SmbFileOperations @Inject constructor(
                 SmbResult.Success(Unit)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbFileOperations.renameFile: FAILED")
             SmbResult.Error("Failed to rename file: ${e.message}", e)
         }
@@ -462,6 +466,7 @@ class SmbFileOperations @Inject constructor(
                 SmbResult.Success(Unit)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbFileOperations.moveFile: FAILED")
             SmbResult.Error("Failed to move file: ${e.message}", e)
         }
@@ -481,6 +486,7 @@ class SmbFileOperations @Inject constructor(
                 SmbResult.Success(Unit)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to create SMB directory")
             SmbResult.Error("Failed to create directory: ${e.message}", e)
         }
@@ -499,6 +505,7 @@ class SmbFileOperations @Inject constructor(
                 SmbResult.Success(exists)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to check SMB file existence")
             SmbResult.Error("Failed to check existence: ${e.message}", e)
         }
@@ -541,6 +548,7 @@ class SmbFileOperations @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to get SMB file info")
             SmbResult.Error("Failed to get file info: ${e.message}", e)
         }
@@ -594,6 +602,7 @@ class SmbFileOperations @Inject constructor(
                 SmbResult.Success(inputStream)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to open SMB input stream")
             SmbResult.Error("Failed to open stream: ${e.message}", e)
         }

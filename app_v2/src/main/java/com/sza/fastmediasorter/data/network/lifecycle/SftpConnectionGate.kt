@@ -1,8 +1,9 @@
 package com.sza.fastmediasorter.data.network.lifecycle
 
-import com.sza.fastmediasorter.core.di.ApplicationScope
-import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.jcraft.jsch.ChannelSftp
+import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -65,6 +66,7 @@ class SftpConnectionGate @Inject constructor(
                 client.disconnectAllPool()
                 Timber.i("[scope=lifecycle protocol=SFTP action=close_ui] all SFTP sessions disconnected")
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.w(e, "SftpConnectionGate.closeFor: disconnectAll failed")
             }
         }

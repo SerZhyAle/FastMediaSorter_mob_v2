@@ -38,7 +38,10 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
+        android:fadeScrollbars="false"
         android:fillViewport="true"
+        android:scrollbarThumbVertical="@color/scrollbar_thumb"
+        android:scrollbars="vertical"
         android:paddingStart="@dimen/margin_small"
         android:paddingEnd="@dimen/margin_small"
         app:layout_constraintBottom_toTopOf="@+id/launcherTaskbar"
@@ -62,16 +65,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Floats over the desktop only while editing. Edit mode is entered from the Start-menu row or, since
-         S1090, by long-pressing empty desktop unless the desktop is locked in launcher settings. -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/launcherEditDone"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/margin_small"
-        android:text="@string/launcher_edit_done"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <!-- S1412: the "done" button lives on the taskbar (launcher_taskbar.xml), not here - floating over
+         the grid's top-right corner covered up to two cells that edit mode then could not reach. -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.room.withTransaction
 import com.google.gson.Gson
 import com.google.gson.JsonParseException
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
@@ -49,6 +50,7 @@ class ImportFavoritesUseCase @Inject constructor(
                 )
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Favorites import preview failed")
             Result.failure(e)
         }

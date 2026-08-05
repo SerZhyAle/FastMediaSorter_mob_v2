@@ -165,13 +165,7 @@ class DirectoryTreeTransferManager @Inject constructor(
     private fun noStrategy(path: String): Exception =
         IllegalStateException("No FileOperationStrategy registered for $path")
 
-    private fun protocolKeyOf(path: String): String = when {
-        path.startsWith("smb://") -> "smb"
-        path.startsWith("sftp://") -> "sftp"
-        path.startsWith("ftp://") -> "ftp"
-        path.startsWith("cloud://") -> "cloud"
-        else -> LOCAL_PROTOCOL
-    }
+    private fun protocolKeyOf(path: String): String = transferProtocolKeyFor(path)
 
     private companion object {
         const val LOCAL_PROTOCOL = "local"

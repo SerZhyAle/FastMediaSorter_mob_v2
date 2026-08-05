@@ -5,6 +5,8 @@ import com.sza.fastmediasorter.data.detector.RealDeviceProfileDetector
 import com.sza.fastmediasorter.data.game.GameStateRepositoryImpl
 import com.sza.fastmediasorter.data.repository.FavoritesRepositoryImpl
 import com.sza.fastmediasorter.data.repository.NetworkCredentialsRepositoryImpl
+import com.sza.fastmediasorter.data.repository.PlatformDeviceMemorySource
+import com.sza.fastmediasorter.data.repository.PlatformStorageVolumeSource
 import com.sza.fastmediasorter.data.repository.PlaybackPositionRepositoryImpl
 import com.sza.fastmediasorter.data.repository.RealDeviceProfileRepository
 import com.sza.fastmediasorter.data.repository.ResourceRepositoryImpl
@@ -12,11 +14,14 @@ import com.sza.fastmediasorter.data.repository.ResumeStateRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ScheduledOperationRepositoryImpl
 import com.sza.fastmediasorter.data.repository.SettingsRepositoryImpl
 import com.sza.fastmediasorter.data.repository.StatisticsRepositoryImpl
+import com.sza.fastmediasorter.data.repository.StorageVolumeRepositoryImpl
+import com.sza.fastmediasorter.data.repository.StorageVolumeSource
 import com.sza.fastmediasorter.data.repository.StreamingCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.streams.RealStreamFrameIngestor
 import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
 import com.sza.fastmediasorter.domain.game.GameStateRepository
+import com.sza.fastmediasorter.domain.repository.DeviceMemoryRepository
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.repository.FavoritesRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -26,6 +31,7 @@ import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.StatisticsRepository
+import com.sza.fastmediasorter.domain.repository.StorageVolumeRepository
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
@@ -63,6 +69,24 @@ abstract class RepositoryModule {
     abstract fun bindStatisticsRepository(
         impl: StatisticsRepositoryImpl
     ): StatisticsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindStorageVolumeSource(
+        impl: PlatformStorageVolumeSource
+    ): StorageVolumeSource
+
+    @Binds
+    @Singleton
+    abstract fun bindStorageVolumeRepository(
+        impl: StorageVolumeRepositoryImpl
+    ): StorageVolumeRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindDeviceMemoryRepository(
+        impl: PlatformDeviceMemorySource
+    ): DeviceMemoryRepository
 
     @Binds
     @Singleton

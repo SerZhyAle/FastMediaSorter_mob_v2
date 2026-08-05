@@ -38,6 +38,7 @@ import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
+import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
@@ -410,6 +411,10 @@ class PlayerActivity :
 
     @Inject lateinit var playbackPositionRepository:
         com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+
+    // S1382: forwarded into NowPlayingManager so the background-playback bar can resolve a stream's
+    // own favicon from the atlas sidecar.
+    @Inject lateinit var faviconAtlasStore: FaviconAtlasStore
 
     // S0473: usage-statistics sink, forwarded into the manually-constructed player managers
     // (video/image/pdf) via PlayerViewerFactory and PlayerManagerInitializer.

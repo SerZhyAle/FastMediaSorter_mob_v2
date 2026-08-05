@@ -21,7 +21,6 @@ class LaunchActionHandler @Inject constructor() {
 
     /** Returns true when [action] is a launch/intent action this handler owns (started or degraded). */
     fun handle(context: Context, action: ScreenshotGestureAction, payload: String): Boolean {
-        Timber.d("S1038: launch action %s", action)
         return when (action) {
         ScreenshotGestureAction.OPEN_ASSISTANT -> {
             startGuarded(context, Intent(Intent.ACTION_ASSIST), "assistant")

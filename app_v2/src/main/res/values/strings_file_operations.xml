@@ -136,7 +136,6 @@
     <string name="files_scanned_default">0 files scanned</string>
     <string name="error_folder_into_itself">A folder can\'t be copied or moved into itself. Choose a destination outside it.</string>
     <string name="error_folder_same_location">This folder is already in the chosen destination. Pick a different destination.</string>
-    <string name="error_folder_destination_not_supported">Folders can\'t be transferred to this destination. Choose a folder inside one of your resources.</string>
     <string name="browse_transfer_notif_text_folders_done">Folders transferred: %1$d</string>
     <string name="browse_transfer_folder_partial_state">Stopped. Items already written stay at the destination - check the folder before starting again.</string>
     <string name="browse_row_folder_checkbox">Folder %1$s, select</string>

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.network.helpers
 
 import com.hierynomus.smbj.share.DiskShare
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
 import kotlinx.coroutines.CoroutineDispatcher
@@ -221,7 +222,7 @@ class SmbDirectoryScanner(
                 if (limitReached) return true
             }
         } catch (e: Exception) {
-            if (e is kotlinx.coroutines.CancellationException) throw e
+            e.rethrowIfCancellation()
             Timber.w(e, "Failed to scan directory: $path")
             throw e
         }
@@ -304,7 +305,7 @@ class SmbDirectoryScanner(
             
             Timber.d("SmbDirectoryScanner.scanNonRecursive: Found ${results.size} files in root")
         } catch (e: Exception) {
-            if (e is kotlinx.coroutines.CancellationException) throw e
+            e.rethrowIfCancellation()
             Timber.w(e, "Error scanning directory non-recursively: $path")
             throw e
         }
@@ -365,7 +366,7 @@ class SmbDirectoryScanner(
             
             Timber.d("SmbDirectoryScanner.scanNonRecursiveWithOffset: Returned ${results.size} files")
         } catch (e: Exception) {
-            if (e is kotlinx.coroutines.CancellationException) throw e
+            e.rethrowIfCancellation()
             Timber.w(e, "Error scanning directory non-recursively with offset: $path")
             throw e
         }

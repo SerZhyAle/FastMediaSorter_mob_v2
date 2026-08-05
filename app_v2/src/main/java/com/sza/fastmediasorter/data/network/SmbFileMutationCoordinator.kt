@@ -4,10 +4,11 @@ import com.hierynomus.msdtyp.AccessMask
 import com.hierynomus.mssmb2.SMB2CreateDisposition
 import com.hierynomus.mssmb2.SMB2ShareAccess
 import com.hierynomus.smbj.share.DiskShare
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
-import java.util.EnumSet
 import timber.log.Timber
+import java.util.EnumSet
 
 /**
  * SMB file mutation coordinator - rename and move of single files plus the shared
@@ -94,6 +95,7 @@ class SmbFileMutationCoordinator(
                 SmbResult.Success(Unit)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to rename file on SMB")
             SmbResult.Error("Failed to rename file: ${e.message}", e)
         }
@@ -181,6 +183,7 @@ class SmbFileMutationCoordinator(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to move file on SMB")
             SmbResult.Error("Failed to move file: ${e.message}", e)
         }

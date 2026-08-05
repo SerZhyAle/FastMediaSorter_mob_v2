@@ -1,15 +1,16 @@
 package com.sza.fastmediasorter.data.transfer
 
-import com.sza.fastmediasorter.data.network.SmbClient
-import com.sza.fastmediasorter.utils.MediaStoreNotifier
-import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Context
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.transfer.FileTransferProvider
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
+import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import com.sza.fastmediasorter.utils.SmbPathUtils
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -147,6 +148,7 @@ class SmbTransferProvider @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SMB download exception")
             Result.failure(e)
         }
@@ -177,6 +179,7 @@ class SmbTransferProvider @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SMB upload exception")
             Result.failure(e)
         }
@@ -195,6 +198,7 @@ class SmbTransferProvider @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SMB delete exception")
             Result.failure(e)
         }
@@ -224,6 +228,7 @@ class SmbTransferProvider @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SMB rename exception")
             Result.failure(e)
         }
@@ -253,6 +258,7 @@ class SmbTransferProvider @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SMB move exception")
             Result.failure(e)
         }
@@ -272,6 +278,7 @@ class SmbTransferProvider @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SMB exists exception")
             Result.failure(e)
         }
@@ -301,6 +308,7 @@ class SmbTransferProvider @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SMB getFileInfo exception")
             Result.failure(e)
         }
@@ -319,6 +327,7 @@ class SmbTransferProvider @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SMB createDirectory exception")
             Result.failure(e)
         }
@@ -334,6 +343,7 @@ class SmbTransferProvider @Inject constructor(
                 Result.failure(infoResult.exceptionOrNull() ?: Exception("Failed to get file info"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SMB isFile exception")
             Result.failure(e)
         }

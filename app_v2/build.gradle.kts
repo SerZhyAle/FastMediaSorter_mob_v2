@@ -1265,6 +1265,9 @@ dependencies {
 
     // Google Play In-App Review (S0135)
     implementation("com.google.android.play:review-ktx:2.0.2")
+    // Google Play language splits (S1190). Brought back for on-demand locale delivery only - the
+    // dynamic-feature module this library once served was deleted with S0423 and stays deleted.
+    implementation("com.google.android.play:feature-delivery-ktx:2.1.0")
 
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")

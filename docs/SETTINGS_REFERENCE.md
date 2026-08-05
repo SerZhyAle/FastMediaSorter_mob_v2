@@ -69,7 +69,7 @@ _Generated from the app. Do not edit by hand._
 | Preload thumbnails | Preloads thumbnails for files ahead of scrolling so the grid loads faster. |
 | File operations in overflow menu | Moves file operations (copy, move, delete) into the overflow menu instead of showing them as buttons. |
 | Hide quick action buttons on thumbnails | Hides the quick action buttons overlaid on thumbnails in grid view. |
-| Language/Язык/Мова | Selects the language used for the app interface. |
+| Language/Язык/Мова | Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. |
 | Make this app the home screen | Makes the app the device home screen, so the Home button opens your own desktop. |
 | System launcher settings | Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density. |
 | Statistics | Opens the usage statistics screen. |

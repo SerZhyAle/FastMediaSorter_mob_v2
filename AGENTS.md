@@ -8,7 +8,7 @@
 ## 2. Communication
 - Language and tone: one home, canon `rules/AUTHOR.md` "Language" + "Working style". Nothing about it is repo-specific here.
 - House text style and its scope: one home, canon `rules/DOCUMENTATION_CONCEPT.md` section 5 "House text style". Repo extension past that scope: long dashes are banned in `.kt` too (CLAUDE.md Rule 19, gate `scripts/quality/assert-neuroslop.ps1`).
-- Timestamps: see `CLAUDE.md` §1.
+- Timestamps: never prefix a reply with a clock time - see `CLAUDE.md` §1.
 
 ## 3. Core Rules
 - Stack: Android, Kotlin 1.9+, Java 17, Hilt, Room, Media3, Timber.
@@ -37,6 +37,7 @@
 ## 5. Skill Routing (Load `.github/prompts/*.prompt.md`)
 - `/quick`: tiny fix (design, typo, 1 string), skip spec/build.
 - `/skill-fix`: fast bug/UI fix, and the doc/config/script tweak that needs no gradle; skip doc/git/build/dev-log.
+- **Reach for the two above first.** Measured 2026-08-05 across the whole transcript corpus: `/quick` 0 invocations and `/skill-fix` 2, against `/spec-next` 91 and `/spec-all` 44, in 434 total - the tier ordering was an ungated sentence and never fired once. Claude Code now gets a `UserPromptSubmit` nudge (`.claude/hooks/nudge-small-task-tier.ps1`, advisory, always exit 0); agents outside Claude Code do not, so for them this line is the whole mechanism.
 - `/spec*`: spec lifecycle (`/spec`, `/spec-all`, `/spec-tech`, `/spec-update`, `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-arc`, `/spec-test-device`, `/spec-sweep`).
 - `/ui-clarify`: resolve UI ambiguity before coding.
 - `/catalog`: class/feature queries, sync catalog.

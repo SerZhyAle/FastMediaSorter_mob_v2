@@ -87,6 +87,11 @@ class OperationsScheduledManager(
             }
         )
         binding.rvScheduledOps.layoutManager = LinearLayoutManager(fragment.requireContext())
+        // S1397: no item animator. Deleting the last operation makes reconcileToggleWithList() collapse
+        // containerScheduledContent while DefaultItemAnimator still holds animating views, and the
+        // wrap_content list inside a NestedScrollView can re-measure mid-animation - both leave a
+        // tmpDetached holder without a parent, and RecyclerView throws when the animation ends.
+        binding.rvScheduledOps.itemAnimator = null
         binding.rvScheduledOps.adapter = scheduledAdapter
 
         binding.btnAddScheduledOp.setOnClickListener { showScheduledOperationDialog(null) }
@@ -136,6 +141,11 @@ class OperationsScheduledManager(
 
     /** Applies the master scheduled toggle + dependent visibility from the latest settings. */
     fun render(settings: AppSettings) {
+        Timber.d(
+            "S1397: scheduled container visible=%b animating=%b",
+            settings.enableScheduledOperations,
+            binding.rvScheduledOps.isAnimating,
+        )
         binding.rowEnableScheduledOps.setCheckedSilently(settings.enableScheduledOperations)
         binding.containerScheduledContent.isVisible = settings.enableScheduledOperations
         binding.layoutScheduledActions.isVisible = settings.enableScheduledOperations

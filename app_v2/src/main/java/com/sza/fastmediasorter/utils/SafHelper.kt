@@ -307,7 +307,12 @@ object SafHelper {
         }
     }
 
-    private fun guessMimeType(displayName: String): String {
+    /**
+     * S1378: MIME type for a name about to be created through SAF. `DocumentFile.createFile` needs one
+     * up front and a wrong guess is sticky - the provider stores it on the document - so this single
+     * guess is shared by every SAF creation path rather than re-derived per call site.
+     */
+    fun guessMimeType(displayName: String): String {
         val extension = displayName.substringAfterLast('.', "").lowercase(Locale.ROOT)
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
             ?: "application/octet-stream"

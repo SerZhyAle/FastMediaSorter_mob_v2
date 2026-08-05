@@ -9,6 +9,7 @@ import com.hierynomus.smbj.share.DiskShare
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.network.NetworkReachabilityGate
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.model.ConnectionKey
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
@@ -378,8 +379,8 @@ class SmbConnectionManager @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                // An outer withTimeout/coroutine cancel propagates as CancellationException.
-                if (e is CancellationException) throw e
+                // An outer withTimeout/coroutine cancel must not be retried as a connection failure.
+                e.rethrowIfCancellation()
 
                 lastException = e
                 if (isNonRetriableConnectionError(e)) {

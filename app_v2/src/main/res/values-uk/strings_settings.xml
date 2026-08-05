@@ -255,4 +255,5 @@
     <string name="settings_group_screen_recording">Запис відео з екрана</string>
     <string name="settings_open_default_apps_dialog">Задати за замовчуванням</string>
     <string name="default_apps_dialog_title">Застосунок за замовчуванням</string>
+    <string name="language_download_failed">Не вдалося завантажити цю мову. Перевірте підключення до інтернету та спробуйте ще раз - застосунок залишиться поточною мовою.</string>
 </resources>

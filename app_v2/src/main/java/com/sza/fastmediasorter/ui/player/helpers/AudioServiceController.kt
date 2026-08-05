@@ -179,8 +179,12 @@ class AudioServiceController(
     ) {
         connect { player ->
             Timber.d("AudioServiceController: playAudioWithMetadata uri=$uri title=$title artist=$artist")
+            // S1382: MediaItem.toBundle() drops localConfiguration, so a client MediaController never
+            // sees the played URI. requestMetadata is bundled, and it is how the mini bar tells an
+            // audio stream from a local file and finds the channel favicon for it.
             val mediaItemBuilder = MediaItem.Builder()
                 .setUri(uri)
+                .setRequestMetadata(MediaItem.RequestMetadata.Builder().setMediaUri(uri).build())
             if (mimeType != null) {
                 mediaItemBuilder.setMimeType(mimeType)
             }

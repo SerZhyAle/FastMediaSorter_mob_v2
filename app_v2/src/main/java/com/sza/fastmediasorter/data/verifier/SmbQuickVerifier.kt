@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.verifier
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
 import com.sza.fastmediasorter.domain.verifier.QuickVerifier
@@ -58,6 +59,7 @@ class SmbQuickVerifier @Inject constructor(
                     missing
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.w(
                     e,
                     "QuickVerifier(SMB): probe error for resource=%d, returning no-op",

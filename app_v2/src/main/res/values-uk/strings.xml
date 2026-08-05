@@ -3092,9 +3092,9 @@
     <string name="launcher_edit_kind_resource">Мій ресурс</string>
     <string name="launcher_edit_kind_stream">Канал</string>
     <string name="launcher_edit_kind_os">Налаштування Android</string>
-    <string name="launcher_edit_kind_gadget">Гаджет</string>
+    <string name="launcher_edit_kind_gadget">Віджет</string>
     <string name="launcher_edit_pick_stream_title">Виберіть канал</string>
-    <string name="launcher_edit_pick_gadget_title">Виберіть гаджет</string>
+    <string name="launcher_edit_pick_gadget_title">Виберіть віджет</string>
     <string name="launcher_edit_remove_cell_named">Прибрати %1$s з робочого столу</string>
     <string name="launcher_edit_mode_browse">Перегляд</string>
     <string name="launcher_edit_mode_slideshow">Слайд-шоу</string>
@@ -3259,4 +3259,9 @@
     <string name="restart_app_color_theme_message">Для застосування нової колірної теми потрібен перезапуск додатку. Продовжити?</string>
     <string name="settings_debug_log_mirror_title">Дублювати лог у відкриту папку</string>
     <string name="settings_debug_log_mirror_desc">Копіює журнал налагодження в папку, відкриту зараз у переглядачі. Типово вимкнено.</string>
+    <string name="error_destination_insufficient_space">Недостатньо місця на %1$s - бракує %2$s. Звільніть місце або виберіть інше призначення.</string>
+    <string name="removable_volumes_section">Знімні носії</string>
+    <string name="removable_volume_button_label">%1$s - вільно %2$s</string>
+    <string name="removable_volume_button_description">Знімний носій %1$s, вільно %2$s. Відкриває цей том.</string>
+    <string name="removable_volume_access_request">Щоб читати %1$s, виберіть цей том у системному діалозі - застосунок отримає доступ лише до вибраної папки.</string>
 </resources>

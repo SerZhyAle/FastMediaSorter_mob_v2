@@ -1,7 +1,6 @@
 # Memory Index
 
 - [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) - docs/FEATURES*.md are for standard/VR published builds; noLegal docs live in gitignored docs/FEATURES_noLegal.md
-- [Timestamp every chat message](feedback_timestamp_in_chat.md) - prefix each response with [HH:MM:SS]; never shell out to `date`
 - [Capability inventory](project_functionality_log.md) - FUNCTIONALITY.log RETIRED (S0489); capability history is docs/ALL_FEATURES.jsonl + git/release diffs; researcher reads, never writes
 - [No backticks in Bash-tool args](feedback_no_backticks_in_bash_args.md) - bash performs command substitution on `text` even in quoted strings; descriptions with backticks lose words silently
 - [Catalog scan source sets](project_catalog_scan_source_sets.md) - scan.ps1 hard-codes source roots; zero hits for a class you see on disk = catalog gap, fall back to direct grep

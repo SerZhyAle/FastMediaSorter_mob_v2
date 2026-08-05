@@ -43,6 +43,8 @@ class LauncherCellViewBinder(
 
     private var lastBound: Triple<List<LauncherCellUi>, Int, Boolean>? = null
 
+    private var lastRows: Int = 0
+
     /**
      * Rebuilds the desktop. Cheap to call repeatedly by design: the rendered tree is a pure function of
      * (cells, columns), so an unchanged pair is skipped.
@@ -58,13 +60,20 @@ class LauncherCellViewBinder(
         cells: List<LauncherCellUi>,
         columns: Int,
         editMode: Boolean = false,
+        viewportRows: Int = 0,
     ) {
-        if (lastBound == Triple(cells, columns, editMode)) return
+        val rows = rowsToShow(cells, editMode, viewportRows)
+        // The row count joins the guard rather than [viewportRows] itself: a viewport that changed
+        // without changing how many rows are drawn - a few pixels of inset, a rotation on a square
+        // screen - must not tear down every gadget for an identical render.
+        if (lastBound == Triple(cells, columns, editMode) && lastRows == rows) return
         lastBound = Triple(cells, columns, editMode)
+        lastRows = rows
         Timber.d("S1173: desktop render cells=%d editMode=%b", cells.size, editMode)
+        Timber.d("S1288: desktop rows=%d viewportRows=%d editMode=%b", rows, viewportRows, editMode)
         container.removeAllViews()
         container.columns = columns
-        container.rows = rowsToShow(cells, editMode)
+        container.rows = rows
         val inflater = LayoutInflater.from(container.context)
         cells.forEach { item ->
             val view = when (item.cell.kind) {
@@ -117,12 +126,18 @@ class LauncherCellViewBinder(
 
     /**
      * Edit mode shows two spare rows past the last occupied one, so the desktop can always grow
-     * downward (strategic §3.3 - one screen plus scroll, no pages). At rest it is exactly as tall as
-     * its content: empty squares are an editing affordance, not part of the desktop.
+     * downward (strategic §3.3 - one screen plus scroll, no pages), and never fewer rows than the
+     * viewport covers, so arranging never faces a strip of bare wallpaper that cannot take a cell
+     * (S1288). The two rules are a maximum rather than a sum: on a desktop already taller than the
+     * screen the spare rows win and the behaviour is what it always was.
+     *
+     * At rest it is exactly as tall as its content: empty squares are an editing affordance, not part
+     * of the desktop, so [viewportRows] is deliberately ignored outside edit mode.
      */
-    private fun rowsToShow(cells: List<LauncherCellUi>, editMode: Boolean): Int {
+    private fun rowsToShow(cells: List<LauncherCellUi>, editMode: Boolean, viewportRows: Int): Int {
         val occupied = LauncherGridGeometry.rowsFor(cells.map { it.cell })
-        return if (editMode) occupied + SPARE_EDIT_ROWS else occupied
+        if (!editMode) return occupied
+        return maxOf(occupied + SPARE_EDIT_ROWS, viewportRows)
     }
 
     /**

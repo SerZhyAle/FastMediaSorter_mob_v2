@@ -6,7 +6,7 @@ Pointers only - open a file when its hook matches the work. Size is billed on ev
 - [About Me](about_me.md) - solo owner, data engineer, no Kotlin · [Audience](feedback_target_audience_non_technical.md) - zero jargon
 - [Argue then obey](feedback_argue_then_obey.md) + [decision after pushback](feedback_owner_decision_after_pushback.md)
 - [Don't ask if architecture answers](feedback_no_owner_questions_when_architecture_already_answers.md) · [research forks](feedback_research_over_owner_question.md) · [clarify unclear framing](feedback_clarify_task_when_framing_unclear.md)
-- [Timestamp every message](feedback_timestamp_in_chat.md) · [Writing style](feedback_writing_style.md) `..`/hyphen/ё, docs+UI only
+- [Writing style](feedback_writing_style.md) `..`/hyphen/ё, docs+UI only
 - [Finish mechanical follow-ups](feedback_finish_mechanical_followups_in_context.md) · [Skill aliases](feedback_skill_aliases.md)
 - [Universal Agent Kit](reference_universal_agent_kit.md) · [No paid/key services](feedback_no_paid_or_key_services.md) · [Weather on Open-Meteo](project_weather_gadget_open_meteo.md)
 - [fms_companion](project_fms_companion_subproject.md) - Go+Wails, out of repo · [FMS Windows rebrand](project_fms_windows_rebrand.md)
@@ -17,6 +17,7 @@ Pointers only - open a file when its hook matches the work. Size is billed on ev
 - [Never grant system roles on owner phone](feedback_never_grant_system_roles_on_owner_phone.md) · [setup_test_media](reference_setup_test_media.md) · [gh CLI path](reference_gh_cli_location.md)
 - [R8 mapping is per-build](project_r8_mapping_is_per_build.md) - wrong mapping = plausible nonsense
 - [Play API read-only](reference_play_console_api_access.md) · [FGS precedent](project_play_release_in_review.md) · [Device reach implies screen.*](project_play_device_reach_screen_portrait.md)
+- [API listing != public page](project_play_listing_api_vs_public_page.md) - API read green while play.google.com served the old listing for 8 days
 - [No coverage regression](feedback_release_no_coverage_regression.md) · [check OCR/translate versions](feedback_release_check_ocr_translate_versions.md)
 - [Crash scan sees only ANR](project_crash_scan_blind_to_java_crashes.md) S1332 · [Car head unit](project_owner_runs_app_on_car_head_unit.md) · [Store art](project_store_screenshot_capture_traps.md)
 - [/skill-release gotchas](project_skill_release_gotchas.md) · [Archive after release](feedback_archive_after_every_release.md) · [prerelease emulator-only](feedback_prerelease_emulator_only.md) + [Maestro flaky](project_prerelease_maestro_harness_flaky.md)
@@ -55,6 +56,7 @@ Pointers only - open a file when its hook matches the work. Size is billed on ev
 - [Stale test-results XML](feedback_stale_test_results_xml.md) · [fu OOMs mid-run](project_unit_suite_oom_truncation.md) S1244 - verify per class
 - [Prevent at source](feedback_prevent_at_source_not_just_detect.md) · [No Sxxxx in permanent logs](reference_ticket_log_gate.md) + [rule](feedback_persistent_logs_no_ticket_id.md) · [Timber.e for real errors](feedback_log_levels.md)
 - [Settings docs sync Rule 22](feedback_settings_manifest_regen.md)
+- [ChangeType Kotlin skips the doc-pin gate](feedback_post_change_kotlin_skips_doc_pin_gate.md) - a version bump closes green with stale docs
 
 ## Long-run correctness
 - [Notification id registry](project_notification_id_registry.md) - never hardcode an id

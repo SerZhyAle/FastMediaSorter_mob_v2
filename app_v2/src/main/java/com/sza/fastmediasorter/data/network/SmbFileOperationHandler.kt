@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
@@ -160,6 +161,7 @@ class SmbFileOperationHandler @Inject constructor(
                          tempFile.delete()
                      }
                  } catch (e: Exception) {
+                     e.rethrowIfCancellation()
                      Result.failure(e)
                  }
             }
@@ -516,6 +518,7 @@ class SmbFileOperationHandler @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             val msg = "Failed to write local file: ${e.message}"
             Timber.e(e, "downloadFromSmb: $msg")
             SmbResult.Error(msg, e)
@@ -602,6 +605,7 @@ class SmbFileOperationHandler @Inject constructor(
                 closeLocalSourceQuietly(inputStream)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             val msg = "Failed to read local file: ${e.message}"
             Timber.e(e, "uploadToSmb: $msg")
             SmbResult.Error(msg, e)
@@ -715,6 +719,7 @@ class SmbFileOperationHandler @Inject constructor(
                 remotePath = tempInfo.remotePath
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error parsing SMB path: $path")
             null
         }

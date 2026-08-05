@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.core.util.CacheStatusHelper
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.transfer.TempFileManager
 import com.sza.fastmediasorter.domain.usecase.BackfillSmbCredentialShareNameUseCase
+import com.sza.fastmediasorter.domain.usecase.apps.RefreshInstalledAppsUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
@@ -29,6 +30,7 @@ class DeferredStartupWorker @AssistedInject constructor(
     private val settingsRepository: dagger.Lazy<SettingsRepository>,
     private val tempFileManager: dagger.Lazy<TempFileManager>,
     private val backfillSmbCredentialShareNameUseCase: dagger.Lazy<BackfillSmbCredentialShareNameUseCase>,
+    private val refreshInstalledApps: dagger.Lazy<RefreshInstalledAppsUseCase>,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -51,6 +53,11 @@ class DeferredStartupWorker @AssistedInject constructor(
         }
         runTask("run-app-startup-initializer-deferred-tasks") {
             appStartupInitializer.get().runDeferredStartupTasks()
+        }
+        // S1401: last, and here rather than in AppStartupInitializer - this is the deferred-work host,
+        // and the cache must be filled before the user asks for a list, not while they wait for one.
+        runTask("seed-installed-app-cache") {
+            refreshInstalledApps.get().refreshIfStale()
         }
         return Result.success()
     }

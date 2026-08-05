@@ -336,6 +336,10 @@ $runsIconInventoryGate = (
 # never a one-off cancel style. Baseline ratchets DOWN. Narrow trigger keeps it cheap.
 $runsDialogCancelGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
     (Test-AnyChangedFile 'res/layout.*/(dialog_|bottom_sheet_).*\.xml$'))
+# S1190 RTL gate. An absolute Left/Right attribute reads correctly in English and wrong in Arabic
+# or Urdu, which no English-language check can see - so a touched layout is judged directly.
+$runsRtlLayoutGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
+    (Test-AnyChangedFile 'res/layout.*/.*\.xml$'))
 # S0721 listener symmetry gate. Runs on Kotlin or Mixed change types.
 $runsListenerSymmetryGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
 # S0918 orientation-implied-feature gate. Fires only when a manifest is touched - an
@@ -597,6 +601,19 @@ if ($runsDialogCancelGate) {
 }
 else {
     Skip-Step "dialog-cancel-style-gate" "not applicable - no changed file is a dialog/bottom-sheet layout"
+}
+
+if ($runsRtlLayoutGate) {
+    # Scoped to the changed layouts under -ScopeToFile: the project-wide baseline says how many
+    # absolute attributes may exist at all, and a file being edited is not the one to raise it.
+    Invoke-Step "rtl-layout-attrs-gate" {
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-rtl-layout-attrs.ps1"), '-Gate')
+        if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
+        & $pwsh @a
+    }
+}
+else {
+    Skip-Step "rtl-layout-attrs-gate" "not applicable - no changed file is a layout"
 }
 
 if ($runsListenerSymmetryGate) {

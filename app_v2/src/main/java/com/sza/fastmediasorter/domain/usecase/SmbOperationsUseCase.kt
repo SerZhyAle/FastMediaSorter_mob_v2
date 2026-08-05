@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
@@ -82,6 +83,7 @@ class SmbOperationsUseCase @Inject constructor(
                                 }
                             }
                         } catch (e: Exception) {
+                            e.rethrowIfCancellation()
                             Timber.e(e, "Error during debug listing of share root")
                         }
                     }
@@ -95,6 +97,7 @@ class SmbOperationsUseCase @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SMB test connection failed")
             Result.failure(e)
         }
@@ -117,6 +120,7 @@ class SmbOperationsUseCase @Inject constructor(
                 )
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to list SMB shares")
             Result.failure(e)
         }
@@ -161,6 +165,7 @@ class SmbOperationsUseCase @Inject constructor(
                 )
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to scan SMB media files")
             Result.failure(e)
         }
@@ -217,6 +222,7 @@ class SmbOperationsUseCase @Inject constructor(
                 Result.success(credentialId)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to save SMB credentials")
             Result.failure(e)
         }
@@ -244,6 +250,7 @@ class SmbOperationsUseCase @Inject constructor(
                 
                 Result.success(connectionInfo)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to get SMB connection info")
                 Result.failure(e)
             }
@@ -290,6 +297,7 @@ class SmbOperationsUseCase @Inject constructor(
                 )
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to list SMB files")
             Result.failure(e)
         }
@@ -404,6 +412,7 @@ class SmbOperationsUseCase @Inject constructor(
                 Result.success(credentialId)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to save SFTP credentials")
             Result.failure(e)
         }
@@ -426,6 +435,7 @@ class SmbOperationsUseCase @Inject constructor(
                 Result.failure(result.exceptionOrNull() ?: Exception("FTP connection failed"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP test connection failed")
             Result.failure(e)
         }
@@ -467,6 +477,7 @@ class SmbOperationsUseCase @Inject constructor(
                 Result.success(credentialId)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to save FTP credentials")
             Result.failure(e)
         }
@@ -485,6 +496,7 @@ class SmbOperationsUseCase @Inject constructor(
                 
                 Result.success(credentials)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to get SFTP credentials")
                 Result.failure(e)
             }
@@ -503,6 +515,7 @@ class SmbOperationsUseCase @Inject constructor(
                 
                 Result.success(credentials)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to get FTP credentials")
                 Result.failure(e)
             }
@@ -546,6 +559,7 @@ class SmbOperationsUseCase @Inject constructor(
             
             Result.success(mediaFiles)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to list SFTP files")
             Result.failure(e)
         }
@@ -577,6 +591,7 @@ class SmbOperationsUseCase @Inject constructor(
                 expectedFingerprint = hostKeyFingerprint
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to list SFTP files with credentials")
             Result.failure(e)
         }
@@ -642,6 +657,7 @@ class SmbOperationsUseCase @Inject constructor(
                 else -> Result.success(Pair(false, emptyList()))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to check trash folders")
             Result.failure(e)
         }
@@ -711,6 +727,7 @@ class SmbOperationsUseCase @Inject constructor(
             }
             Result.success(deletedCount)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to cleanup trash")
             Result.failure(e)
         }
@@ -724,6 +741,7 @@ class SmbOperationsUseCase @Inject constructor(
             sftpClient.disconnectAll()
             ftpClient.disconnect()
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error clearing connection pools")
         }
     }
