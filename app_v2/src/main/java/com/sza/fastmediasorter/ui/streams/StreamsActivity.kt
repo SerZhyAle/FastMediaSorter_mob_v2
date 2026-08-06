@@ -123,7 +123,16 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private var faviconCoords: Map<String, Int> = emptyMap()
 
     // S1154: per-tile region-decode slicer for the channel-preview atlas (never decodes the full sheet).
-    private val atlasSlicer by lazy { ChannelPreviewAtlasSlicer { channelPreviewAtlasStore.atlasFile() } }
+    // S1445: it prefers the tile pack when one is installed - the sheet path is the fallback.
+    private val atlasSlicer by lazy {
+        ChannelPreviewAtlasSlicer(
+            { channelPreviewAtlasStore.atlasFile() },
+            StreamTilePackReader(
+                { channelPreviewAtlasStore.tilePackFile() },
+                StreamTilePackReader.budgetBytes(this),
+            ),
+        )
+    }
 
     // S1154: url->tile-index map for the atlas preview; volatile for the same reason as faviconCoords.
     @Volatile
@@ -131,7 +140,15 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     // S1201: per-tile region-decode slicer for the logo atlas - same shape as the preview slicer, its
     // own geometry (square tiles, 59 columns).
-    private val logoSlicer by lazy { StreamLogoAtlasSlicer { streamLogoAtlasStore.atlasFile() } }
+    private val logoSlicer by lazy {
+        StreamLogoAtlasSlicer(
+            { streamLogoAtlasStore.atlasFile() },
+            StreamTilePackReader(
+                { streamLogoAtlasStore.tilePackFile() },
+                StreamTilePackReader.budgetBytes(this),
+            ),
+        )
+    }
 
     // S1201: url->tile-index map for the logo tier; volatile for the same reason as faviconCoords.
     @Volatile
@@ -509,14 +526,25 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      */
     private fun logStreamArtworkState() {
         Timber.i(
-            "Streams artwork: favicon=%b/%d, preview=%b/%d, logo=%b/%d (atlas on disk / channels covered)",
+            "Streams artwork: favicon=%b/%d, preview=%s/%d, logo=%s/%d (payload on disk / channels covered)",
             faviconAtlasStore.atlasFile() != null,
             faviconCoords.size,
-            channelPreviewAtlasStore.atlasFile() != null,
+            payloadKind(channelPreviewAtlasStore.tilePackFile(), channelPreviewAtlasStore.atlasFile()),
             atlasPreviewCoords.size,
-            streamLogoAtlasStore.atlasFile() != null,
+            payloadKind(streamLogoAtlasStore.tilePackFile(), streamLogoAtlasStore.atlasFile()),
             logoAtlasCoords.size
         )
+    }
+
+    /**
+     * Which container an artwork payload is being served from. A pack and a sheet render identical
+     * pictures at wildly different speed, so a log that says only "installed" cannot explain a slow
+     * grid on a user's device.
+     */
+    private fun payloadKind(pack: java.io.File?, sheet: java.io.File?): String = when {
+        pack != null -> "pack"
+        sheet != null -> "sheet"
+        else -> "none"
     }
 
     /**
@@ -1147,11 +1175,16 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         super.onStart()
         // S1154: the atlas may have been installed from the Extensions Manager while this screen sat in
         // the background - pick it up on return instead of waiting for the next catalog import.
-        if (atlasPreviewCoords.isEmpty() && channelPreviewAtlasStore.atlasFile() != null) {
+        // S1445: either container counts as installed - a fresh install carries the pack and no sheet.
+        val previewInstalled = channelPreviewAtlasStore.tilePackFile() != null ||
+            channelPreviewAtlasStore.atlasFile() != null
+        if (atlasPreviewCoords.isEmpty() && previewInstalled) {
             lifecycleScope.launch { reloadAtlasPreviews() }
         }
         // S1201: same for the logo atlas - the two payloads install independently.
-        if (logoAtlasCoords.isEmpty() && streamLogoAtlasStore.atlasFile() != null) {
+        val logoInstalled = streamLogoAtlasStore.tilePackFile() != null ||
+            streamLogoAtlasStore.atlasFile() != null
+        if (logoAtlasCoords.isEmpty() && logoInstalled) {
             lifecycleScope.launch { reloadLogoTiles() }
         }
     }

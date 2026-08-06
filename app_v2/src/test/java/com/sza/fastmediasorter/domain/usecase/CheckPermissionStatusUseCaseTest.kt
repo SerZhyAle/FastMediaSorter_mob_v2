@@ -116,7 +116,6 @@ class CheckPermissionStatusUseCaseTest {
         manifestName = manifestName,
         titleRes = 0,
         descriptionRes = 0,
-        iconRes = 0,
         group = PermissionGroup.STORAGE,
         optional = false,
     )

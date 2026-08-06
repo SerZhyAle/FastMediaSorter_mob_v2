@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
 import timber.log.Timber
 
 /**
@@ -50,7 +51,8 @@ class QuickAudioRecorderLaunchManager(
                 Manifest.permission.RECORD_AUDIO
             )
         ) {
-            toast(activity.getString(R.string.quick_recorder_permission_needed))
+            Timber.d("S1436: recorder widget microphone denial explained from the registry")
+            toast(activity.permissionRationaleShort(Manifest.permission.RECORD_AUDIO))
         } else {
             toast(activity.getString(R.string.quick_recorder_permission_settings))
             openAppSettings()

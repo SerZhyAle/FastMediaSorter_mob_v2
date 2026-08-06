@@ -123,6 +123,36 @@ of the geometry contract is `StreamLogoAtlasSlicer` - change one side without th
 drifts. A rebuilt sheet that is not tile-compatible gets a new `-v2` element revision plus fresh SHA-256
 pins in `DeliverableDescriptorCatalog.streamLogoAtlas()`, never a silent re-upload under the same name.
 
+## Tile packs - the same artwork, addressable one tile at a time
+
+Both sprite sheets above are also published cut into **tile packs**, and that is what the app itself
+downloads. A sheet is not randomly addressable: a WebP decoder walks the stream from the top to reach
+a given row, so cropping one tile out of the `8160 x 7560` preview sheet costs a share of a full
+61,7 Mpx decode (measured at 1,48 s on a desktop). A grid asking for one tile per cell filled in one
+cell at a time. Each pack entry is its own small image, so a tile costs one small decode.
+
+```
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/channel-preview-tiles-v2.zip
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-logo-tiles-v2.zip
+```
+
+Container contract:
+
+- A ZIP whose entries are **stored uncompressed** - the tiles are already compressed images, and
+  stored entries keep random access cheap.
+- An entry name is the slot **index as a plain decimal string, with no extension** (`0`, `1`, `1880`) -
+  the same index the `url -> index` sidecar carries, which is shared with the sprite sheet unchanged.
+- An entry is one tile image at the geometry of its sheet (`240 x 135` preview, `136 x 136` logo).
+  Its format is whatever the packer emitted - the 2026-08-06 build uses lossy WebP, with alpha for the
+  logo tiles.
+- A slot with no captured artwork has no entry, exactly as it has no sidecar key.
+- The packs are cut FROM the published sheets, so an index resolves to the same picture in either
+  container. The 2026-08-06 build: 1881 preview entries (10,3 MiB) and 1838 logo entries (5,5 MiB).
+- Rebuild command: `pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithTilePacks -PublishTilePacks`
+  (needs `ffmpeg` and `gh`; reads a finished sheet, so it costs seconds).
+
+The sheets stay published unchanged - a consumer that prefers cropping one sheet can keep doing so.
+
 ### Why a rebuild needs fresh pins (S1200)
 
 Both atlases above say a rebuilt sheet takes a new element revision plus new SHA-256 pins. That is not

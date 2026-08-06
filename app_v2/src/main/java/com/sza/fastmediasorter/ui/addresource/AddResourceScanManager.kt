@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.addresource
 
+import android.Manifest
 import android.app.AlertDialog
 import android.app.Dialog
 import android.net.Uri
@@ -15,7 +16,10 @@ import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
+import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.domain.model.StorageVolumeInfo
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import kotlinx.coroutines.launch
@@ -260,7 +264,10 @@ internal class AddResourceScanManager(
             }
             !dir.exists() && isAndroidMedia && !hasAllFilesAccess -> {
                 Timber.e("FOLDER_PICKER: Android/media path requires MANAGE_EXTERNAL_STORAGE: $path")
-                Toast.makeText(activity, activity.getString(R.string.android_media_requires_permission), Toast.LENGTH_LONG).show()
+                // S1436: the toast keeps the one short line policy allows it; the dialog that follows
+                // carries the paragraph, and both now come from the same registry row.
+                val short = activity.permissionRationaleShort(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+                Toast.makeText(activity, short, Toast.LENGTH_LONG).show()
                 showAllFilesAccessPermissionDialog()
             }
             !dir.exists() && isAndroidMedia && hasAllFilesAccess -> {
@@ -363,9 +370,16 @@ internal class AddResourceScanManager(
     // ========== Permission Dialog ==========
 
     fun showAllFilesAccessPermissionDialog() {
+        // S1436: the shell is unchanged - the wording is the registry's, with the folder-picking
+        // addendum appended, and this file no longer keeps a copy of either.
         MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.all_files_access_required)
-            .setMessage(R.string.all_files_access_explanation)
+            .setTitle(R.string.permissions_required_title)
+            .setMessage(
+                activity.permissionRationale(
+                    Manifest.permission.MANAGE_EXTERNAL_STORAGE,
+                    PermissionTask.FOLDER_PICKING,
+                )
+            )
             .setPositiveButton(R.string.grant_permission) { _, _ ->
                 PermissionHelper.requestAllFilesAccessPermission(activity)
             }

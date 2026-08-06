@@ -123,30 +123,42 @@ Cloud access is subject to each provider's privacy policy:
 
 ## Permissions Explained
 
-The app requests minimum necessary permissions:
+This section lists everything the app can ask you about - each permission granted through a system dialog or through a dedicated system screen. Permissions granted silently at install, which you are never asked about (network access, vibration, keeping the screen awake, foreground service types), are not listed.
 
-### Storage Permissions
+Your build may show fewer of these than the list: a permission appears only when the feature behind it exists in that build, and Settings > Permissions always shows exactly the ones your build can ask for.
 
-- `READ_EXTERNAL_STORAGE` / `WRITE_EXTERNAL_STORAGE`: Access local media files (Android ≤12)
-- `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` / `READ_MEDIA_AUDIO`: Access media (Android 13+)
-- `MANAGE_EXTERNAL_STORAGE`: Optional for full storage access
+### Storage
 
-### Network Permissions
+- `READ_EXTERNAL_STORAGE`: Find and show media files on the device (Android 6-12)
+- `WRITE_EXTERNAL_STORAGE`: Move and delete files you sort (Android 6-9)
+- `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` / `READ_MEDIA_AUDIO`: The same access, split by media type (Android 13+)
+- `MANAGE_EXTERNAL_STORAGE`: Optional. Granted on a system screen. Lets you pick any folder, including DCIM, Camera and app folders such as Android/media, instead of only Documents, Downloads and Pictures
+- `MANAGE_MEDIA`: Optional. Granted on a system screen. Lets media moves and deletions go through without a separate confirmation each time (Android 12+)
 
-- `INTERNET`: Connect to network shares and Google Drive
-- `ACCESS_NETWORK_STATE` / `ACCESS_WIFI_STATE`: Check connectivity
+### Network
 
-### Contacts Permissions
+- `ACCESS_LOCAL_NETWORK`: Optional. Reach SMB, SFTP, FTP and DLNA servers on your own network, and find them by looking for devices on it. Android introduces this permission in a release later than any shipped today, so no current Android version asks you for it
 
-- `READ_CONTACTS`: Optional, used only to show a pinned contact's name and photo on the launcher (Settings > Permissions > Contacts); denying it keeps a plain initial in place of the photo.
+### Camera, microphone and location
 
-### Phone State Permission
+- `CAMERA`: Optional. Shoot photos and video inside the app, recognize text, and scan a companion QR code
+- `RECORD_AUDIO`: Optional. Record voice notes and the sound in a screen recording
+- `ACCESS_FINE_LOCATION` / `ACCESS_COARSE_LOCATION`: Optional. Two features read it. It writes coordinates into the photos and videos you shoot in the app; and, on the launcher desktop, it gives the compass, speed and chart gadgets your speed and altitude while one of those tiles is on screen. Position is read only while a tile that needs it is visible - never in the background. The speed and altitude charts keep their readings on the device so the chart survives a restart, and each chart's reset button erases them. Nothing is sent anywhere. Denying it leaves captures without coordinates and those tiles idle with a message saying so
 
-- `READ_PHONE_STATE`: Optional, used only to show the SIM signal level in the launcher's own status area. The level is read on the device and never leaves it - nothing is stored, sent, or shared. Denying it simply hides both SIM indicators; the rest of the status area is unaffected.
+### Notifications
 
-### Other Permissions
+- `POST_NOTIFICATIONS`: Optional. Show playback, transfer and recording progress, and the notification that carries their stop control (Android 13+)
 
-- `WAKE_LOCK`: Keep screen on during playback (user-controlled in Settings)  
+### System
+
+- `SYSTEM_ALERT_WINDOW`: Optional. Granted on a system screen. Draw the edge-gesture strip over other apps
+- `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`: Optional. Granted on a system screen. Keep scheduled operations running on time instead of being paused in the background
+- `REQUEST_INSTALL_PACKAGES`: Optional. Granted on a system screen. Install an APK file you opened from a browsed folder. Present only in the build without legal restrictions
+- Screen capture consent: asked again by the system every time a screen recording starts, so it cannot be granted in advance. The app declares `FOREGROUND_SERVICE_MEDIA_PROJECTION` to keep the recording alive while it runs
+- `READ_PHONE_STATE`: Optional. Show the SIM signal level in the launcher's own status area. The level is read on the device and never leaves it - nothing is stored, sent, or shared. Denying it hides both SIM indicators and changes nothing else
+- `BIND_NOTIFICATION_LISTENER_SERVICE`: Optional. Turned on by you on a system screen. Mirror notification badges on the launcher's app icons
+- `READ_CONTACTS`: Optional. Show a pinned contact's name and photo on the launcher; denying it keeps a plain initial in place of the photo
+- `ACTIVITY_RECOGNITION`: Optional. Asked only when you add the steps gadget to the launcher desktop. The count comes from the counter your phone already keeps, is read only while the tile is on screen, and is neither stored by the app nor sent anywhere. Denying it leaves the tile idle with a message saying so
 
 ## Data Security
 

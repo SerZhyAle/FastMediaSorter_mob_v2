@@ -6,8 +6,8 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
@@ -21,9 +21,10 @@ import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
-import com.sza.fastmediasorter.core.error.ErrorSeverity
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import com.sza.fastmediasorter.util.AppErrorNotifier
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -524,8 +525,8 @@ internal class AddResourceConnectionManager(
 
     fun showLocalNetworkPermissionRationale() {
         MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.local_network_permission_rationale_title)
-            .setMessage(R.string.local_network_permission_rationale_message)
+            .setTitle(R.string.permissions_required_title)
+            .setMessage(activity.permissionRationale(PermissionHelper.LOCAL_NETWORK_PERMISSION))
             .setPositiveButton(R.string.local_network_permission_open_settings) { _, _ ->
                 if (PermissionHelper.isLocalNetworkRuntimePermissionExpected()) {
                     PermissionHelper.requestLocalNetworkPermission(activity)

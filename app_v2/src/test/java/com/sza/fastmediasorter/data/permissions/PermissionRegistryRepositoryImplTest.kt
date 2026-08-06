@@ -78,6 +78,18 @@ class PermissionRegistryRepositoryImplTest {
     }
 
     @Test
+    fun `S1436 onboarding is a superset of settings and differs only on welcome-only entries`() {
+        val settings = repo.getEntries().map { it.id }.toSet()
+        val welcome = repo.getWelcomeEntries()
+        val welcomeIds = welcome.map { it.id }.toSet()
+        assertTrue("onboarding must never hide a permission Settings shows", settings.all { it in welcomeIds })
+        // Anything onboarding adds must say so in the registry - the difference is declared, not coded.
+        val extra = welcome.filter { it.id !in settings }
+        val undeclared = extra.filterNot { it.shownInWelcomeDespiteGates }.map { it.id }
+        assertTrue("onboarding-only entries without the flag: $undeclared", undeclared.isEmpty())
+    }
+
+    @Test
     fun `every declared build-gate names an existing boolean BuildConfig field`() {
         // Guards against a typo'd / removed buildGates string silently dropping a permission:
         // such a name resolves on no variant, so this standardDebug run fails fast on it.

@@ -14,12 +14,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.PermissionEntry
 import com.sza.fastmediasorter.domain.model.PermissionGroupHeader
+import com.sza.fastmediasorter.domain.model.PermissionRow
 import com.sza.fastmediasorter.domain.model.PermissionStatus
-
-sealed class PermissionRow {
-    data class Header(val header: PermissionGroupHeader) : PermissionRow()
-    data class Entry(val entry: PermissionEntry, val status: PermissionStatus) : PermissionRow()
-}
 
 class PermissionRowAdapter(
     private val onActionClick: (PermissionEntry, PermissionStatus) -> Unit

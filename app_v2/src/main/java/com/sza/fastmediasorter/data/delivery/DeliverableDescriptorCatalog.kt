@@ -105,12 +105,13 @@ object DeliverableDescriptorCatalog {
         )
     )
 
-    // Channel-preview atlas integrity pins (S1154), taken from the 2026-07-26 build published to the
-    // mirror: 1881 tiles on an 8160x7560 sheet, produced by the offline packer
-    // (`collect-stream-candidates.ps1 -WithChannelPreviews`). Regenerating the atlas means a new
-    // element revision (-v2) plus new pins here, never a silent re-upload under the same name.
-    private const val ATLAS_SHEET_SHA256 = "7d3e6422ae1fa7ff251b9cd8db20316b72313ffb713d54bc18403111738424ca"
-    private const val ATLAS_SHEET_MIN_SIZE = 11_358_632L
+    // Channel-preview atlas integrity pins. The payload is the S1445 tile pack (element revision v2),
+    // cut from the 2026-07-26 sheet by `collect-stream-candidates.ps1 -WithTilePacks`: 1881 entries,
+    // one 240x135 image per slot, named by the slot index. The sheet (-v1) stays published for
+    // third-party consumers but is no longer fetched by the app. Regenerating the payload means a new
+    // element revision plus new pins here, never a silent re-upload under the same name.
+    private const val ATLAS_PACK_SHA256 = "f4124e93f2e4e816d2253991ef975ffc9bd72c91b07d2cde262a3af4a285fed5"
+    private const val ATLAS_PACK_MIN_SIZE = 10_840_856L
     private const val ATLAS_COORDS_SHA256 = "be60d35c838d14e584350c2403f22faaa4077a5f0176ed1ceb75e7df760259d9"
     private const val ATLAS_COORDS_MIN_SIZE = 134_997L
 
@@ -123,17 +124,16 @@ object DeliverableDescriptorCatalog {
     fun channelPreviewAtlas(): DeliverableSourceDescriptor = DeliverableSourceDescriptor(
         set = DeliverableSet.CHANNEL_PREVIEW_ATLAS,
         files = listOf(
-            resource("channel-preview-atlas.webp", ATLAS_SHEET_SHA256, ATLAS_SHEET_MIN_SIZE),
+            resource("channel-preview-tiles.zip", ATLAS_PACK_SHA256, ATLAS_PACK_MIN_SIZE, rev = "v2"),
             resource("channel-preview-coords.json", ATLAS_COORDS_SHA256, ATLAS_COORDS_MIN_SIZE)
         )
     )
 
-    // Stream logo atlas integrity pins (S1201), taken from the 2026-07-26 build published to the
-    // mirror: 1838 tiles covering 2156 channels on an 8024x4352 sheet, produced by the offline packer
-    // (`collect-stream-candidates.ps1 -WithStreamLogos`). Regenerating the atlas means a new element
-    // revision (-v2) plus new pins here, never a silent re-upload under the same name.
-    private const val LOGO_SHEET_SHA256 = "9d0763379afabadf802051e4fa40ab81889d570a9774d6f3b26e7dc05749d404"
-    private const val LOGO_SHEET_MIN_SIZE = 6_645_666L
+    // Stream logo atlas integrity pins. Same S1445 change as the preview payload: the app fetches the
+    // tile pack (element revision v2, 1838 entries covering 2156 channels) cut from the 2026-07-26
+    // sheet, which stays published for third-party consumers.
+    private const val LOGO_PACK_SHA256 = "8edda619ea9528b132100714400316fa55508acada32fe7df42e02379a5b3049"
+    private const val LOGO_PACK_MIN_SIZE = 5_782_986L
     private const val LOGO_COORDS_SHA256 = "9e41cc7e72e283f815089da408b11af665cc08f10bc8bb18ff4b3935a7a1e4c4"
     private const val LOGO_COORDS_MIN_SIZE = 142_799L
 
@@ -146,7 +146,7 @@ object DeliverableDescriptorCatalog {
     fun streamLogoAtlas(): DeliverableSourceDescriptor = DeliverableSourceDescriptor(
         set = DeliverableSet.STREAM_LOGO_ATLAS,
         files = listOf(
-            resource("stream-logo-atlas.webp", LOGO_SHEET_SHA256, LOGO_SHEET_MIN_SIZE),
+            resource("stream-logo-tiles.zip", LOGO_PACK_SHA256, LOGO_PACK_MIN_SIZE, rev = "v2"),
             resource("stream-logo-coords.json", LOGO_COORDS_SHA256, LOGO_COORDS_MIN_SIZE)
         )
     )

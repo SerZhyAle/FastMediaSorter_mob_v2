@@ -11,8 +11,11 @@ import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
+import com.sza.fastmediasorter.domain.model.PermissionTask
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import timber.log.Timber
 
 /**
  * S0774: host-neutral in-app driver for screen video recording. Checks RECORD_AUDIO and (API 33+)
@@ -76,12 +79,12 @@ class MainScreenRecordingManager(
 
     /** Host RECORD_AUDIO launcher callback: continue the start flow on grant, surface denial otherwise. */
     fun onRecordAudioResult(granted: Boolean) {
-        if (granted) start() else showPermissionDenied()
+        if (granted) start() else showPermissionDenied(Manifest.permission.RECORD_AUDIO)
     }
 
     /** Host POST_NOTIFICATIONS launcher callback: the notification carries the stop control, so require it. */
     fun onPostNotificationsResult(granted: Boolean) {
-        if (granted) start() else showPermissionDenied()
+        if (granted) start() else showPermissionDenied(Manifest.permission.POST_NOTIFICATIONS)
     }
 
     private fun hasPermission(permission: String): Boolean =
@@ -126,10 +129,13 @@ class MainScreenRecordingManager(
         )
     }
 
-    private fun showPermissionDenied() {
+    // S1436: one message used to name the microphone and notifications together, so a denial never said
+    // which of the two was refused. Each denial now explains its own permission, in the registry's words.
+    private fun showPermissionDenied(permission: String) {
+        Timber.d("S1436: screen recording denial names $permission")
         Snackbar.make(
             activity.window.decorView.rootView,
-            R.string.screen_recording_permission_denied,
+            activity.permissionRationale(permission, PermissionTask.SCREEN_RECORDING),
             Snackbar.LENGTH_LONG
         ).show()
     }

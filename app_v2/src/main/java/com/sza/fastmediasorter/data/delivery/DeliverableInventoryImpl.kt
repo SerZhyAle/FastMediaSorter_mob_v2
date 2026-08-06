@@ -338,9 +338,9 @@ class DeliverableInventoryImpl @Inject constructor(
             DeliverableSet.TRANSLATION to 17_380_608L,
             DeliverableSet.AUDIO_VISUALIZATIONS to 6_100_000L,
             DeliverableSet.FFMPEG_DTS to 7_675_704L,
-            DeliverableSet.CHANNEL_PREVIEW_ATLAS to 30_000_000L,
-            // S1201: the 2026-07-26 sheet, 1838 tiles at 8024x4352, plus its sidecar.
-            DeliverableSet.STREAM_LOGO_ATLAS to 6_590_091L
+            // S1445: the tile packs replaced the sprite sheets as the fetched payload - pack + sidecar.
+            DeliverableSet.CHANNEL_PREVIEW_ATLAS to 10_975_853L,
+            DeliverableSet.STREAM_LOGO_ATLAS to 5_925_785L
         )
     }
 }

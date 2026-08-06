@@ -24,7 +24,7 @@ import java.io.File
 @Config(sdk = [34])
 class StreamLogoAtlasSlicerTest {
 
-    private val slicer = StreamLogoAtlasSlicer { null }
+    private val slicer = StreamLogoAtlasSlicer({ null })
 
     @Test
     fun `rectFor matches the 136x136 59-col contract`() {

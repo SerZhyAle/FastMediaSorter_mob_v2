@@ -77,6 +77,15 @@ Manual spot-checks on the release artifact for seams the launch smoke does not r
 
 - Background work: WorkManager / foreground-service starts comply with Android 14/15 restrictions; declared foreground-service types are correct.
 - Permissions: photo/media access uses the selected-photos / granular media model; no legacy broad storage assumptions.
+- Permission parity (mechanical, blocks the release on failure). The manual permission audit this list used to carry is replaced by `PermissionRegistryManifestParityTest`, which compares the merged manifest against the permission registry in both directions and names the offending permission when they disagree. Run it on the three variants where the permission composition actually differs - the build-type axis, the flavor axis and the install-from-file axis:
+
+  ```powershell
+  .\gradlew.bat :app_v2:testStandardReleaseUnitTest --tests "*PermissionRegistryManifestParityTest"
+  .\gradlew.bat :app_v2:testLiteDebugUnitTest      --tests "*PermissionRegistryManifestParityTest"
+  .\gradlew.bat :app_v2:testNoLegalDebugUnitTest   --tests "*PermissionRegistryManifestParityTest"
+  ```
+
+  A failure is a release blocker, not a note: either the build declares a permission no screen can show the user, or a screen offers to grant one the build does not hold. Fix the registry row or the manifest; an entry in `PermissionManifestExemptions` is the third option and needs a written reason.
 - Battery optimization: persistent audio + scheduled operations survive Doze / app-standby as designed.
 - Network security: production cleartext / trust-anchor policy does not change runtime behavior versus debug.
 
@@ -132,7 +141,7 @@ Risk bucket -> required minimum evidence (strategic §6):
 
 - §6.1 flavor boundary drift -> static (`-CheckRegressions`) + the surface baseline section.
 - §6.2 release-vs-debug drift -> release-build (`standard-release-smoke.ps1`) + manual-device auth spot check.
-- §6.3 Play-policy drift -> play-console (operator checklist, Data Safety, Pre-launch, permission audit).
+- §6.3 Play-policy drift -> play-console (operator checklist, Data Safety, Pre-launch) + the mechanical permission parity check below, which replaced the manual permission audit.
 - §6.4 coverage illusion -> the explicit matrix above; gaps stay visible, never auto-PASS.
 - §6.5 production diagnostics gap -> static (mapping/symbol retention policy) + the evidence pack.
 

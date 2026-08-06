@@ -28,9 +28,15 @@ import java.io.IOException
  *
  * The [atlasFileProvider] is re-read on each (re)open, so [invalidate] after a download picks up the
  * new sheet.
+ *
+ * S1445: this sheet path is now the FALLBACK, for the same reason as in [ChannelPreviewAtlasSlicer] -
+ * a region decode out of a sprite sheet costs a share of a full-sheet decode. When a tile pack is
+ * installed, [tilePackReader] serves the tile; the sheet path stays for installs that have not taken
+ * the payload update.
  */
 class StreamLogoAtlasSlicer(
-    private val atlasFileProvider: () -> File?
+    private val atlasFileProvider: () -> File?,
+    private val tilePackReader: StreamTilePackReader? = null,
 ) {
     private val mutex = Mutex()
     private var decoder: BitmapRegionDecoder? = null
@@ -65,6 +71,8 @@ class StreamLogoAtlasSlicer(
      */
     suspend fun tileFor(index: Int): Bitmap? = withContext(Dispatchers.IO) {
         if (index < 0) return@withContext null
+        val pack = tilePackReader
+        if (pack != null && pack.hasPack()) return@withContext pack.tile(index)
         val activeDecoder = decoder() ?: return@withContext null
         val options = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
         // S1220: decoder() releases the mutex before returning, so invalidate() can recycle this
@@ -88,10 +96,15 @@ class StreamLogoAtlasSlicer(
     }
 
     /** Recycles the cached decoder so the next [tileFor] re-reads [atlasFileProvider] (post-download). */
-    suspend fun invalidate() = mutex.withLock {
-        decoder?.recycle()
-        decoder = null
-        opened = false
+    suspend fun invalidate() {
+        // The pack reader holds its own handle and tile cache, so a payload update has to reset both
+        // halves of this slicer or the stale one keeps answering.
+        tilePackReader?.invalidate()
+        mutex.withLock {
+            decoder?.recycle()
+            decoder = null
+            opened = false
+        }
     }
 
     private suspend fun decoder(): BitmapRegionDecoder? = mutex.withLock {

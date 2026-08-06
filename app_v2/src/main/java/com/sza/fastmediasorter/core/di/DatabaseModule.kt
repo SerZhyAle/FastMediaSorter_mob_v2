@@ -31,11 +31,13 @@ import com.sza.fastmediasorter.data.local.db.MIGRATION_42_43
 import com.sza.fastmediasorter.data.local.db.MIGRATION_43_44
 import com.sza.fastmediasorter.data.local.db.MIGRATION_44_45
 import com.sza.fastmediasorter.data.local.db.MIGRATION_45_46
+import com.sza.fastmediasorter.data.local.db.MIGRATION_46_47
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PlaybackPositionDao
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ScheduledOperationDao
+import com.sza.fastmediasorter.data.local.db.SensorSeriesDao
 import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
 import com.sza.fastmediasorter.data.local.db.StreamSourceDao
 import com.sza.fastmediasorter.data.local.db.StreamingCacheDao
@@ -123,7 +125,8 @@ object DatabaseModule {
                 MIGRATION_42_43,
                 MIGRATION_43_44,
                 MIGRATION_44_45,
-                MIGRATION_45_46
+                MIGRATION_45_46,
+                MIGRATION_46_47
             )
             // No fallbackToDestructiveMigration: a missing/failed migration now throws and is routed
             // through provideAppDatabase's recovery (backup + reset + user notice), not a silent
@@ -261,5 +264,11 @@ object DatabaseModule {
     @Singleton
     fun provideLauncherLaunchStatsDao(database: AppDatabase): LauncherLaunchStatsDao {
         return database.launcherLaunchStatsDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSensorSeriesDao(database: AppDatabase): SensorSeriesDao {
+        return database.sensorSeriesDao()
     }
 }

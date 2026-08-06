@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.resourceeditor
 
+import android.Manifest
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -19,6 +20,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.databinding.FragmentResourceEditorBinding
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.domain.model.ResourceConnectionStatus
 import com.sza.fastmediasorter.domain.model.ResourceConnectionTestResult
 import com.sza.fastmediasorter.domain.model.ResourceEditorMode
@@ -29,6 +31,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
 import com.sza.fastmediasorter.ui.common.ResourceProfileDialog
 import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.icon.ResourceIconDefaults
 import com.sza.fastmediasorter.ui.icon.ResourceIconRegistry
@@ -77,7 +80,7 @@ class ResourceEditorFragment : Fragment() {
             val viewBinding = _binding ?: return@registerForActivityResult
             Snackbar.make(
                 viewBinding.root,
-                R.string.permissions_denied_warning,
+                localResourceRationale(),
                 Snackbar.LENGTH_LONG,
             ).show()
         }
@@ -384,10 +387,20 @@ class ResourceEditorFragment : Fragment() {
         return isCreateMode && isLocalResource && !PermissionChecker.hasMediaPermissions(requireContext())
     }
 
+    /**
+     * S1436: the media-access explanation, with the sentence specific to creating a local resource
+     * appended from the registry. The row asked for is the storage one at every API level - which
+     * manifest name the platform wants there is a detail the sentence does not depend on.
+     */
+    private fun localResourceRationale(): String = requireContext().permissionRationale(
+        Manifest.permission.READ_EXTERNAL_STORAGE,
+        PermissionTask.LOCAL_RESOURCE_CREATION,
+    )
+
     private fun showPermissionRequiredDialog() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.permissions_required_title)
-            .setMessage(R.string.permissions_required_for_local_resource)
+            .setMessage(localResourceRationale())
             .setPositiveButton(R.string.grant_permissions) { _, _ ->
                 pendingSaveAfterPermissionGrant = true
                 requestMediaPermissions()

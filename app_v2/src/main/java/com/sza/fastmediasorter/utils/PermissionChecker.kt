@@ -1,29 +1,12 @@
 package com.sza.fastmediasorter.utils
 
-import android.Manifest
 import android.content.Context
-import android.os.Build
 import androidx.core.content.ContextCompat
+import com.sza.fastmediasorter.core.util.StoragePermissionRule
 
 object PermissionChecker {
 
-    fun getRequiredMediaPermissions(): Array<String> {
-        return when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
-                arrayOf(
-                    Manifest.permission.READ_MEDIA_IMAGES,
-                    Manifest.permission.READ_MEDIA_VIDEO,
-                    Manifest.permission.READ_MEDIA_AUDIO
-                )
-            }
-
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
-                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-
-            else -> emptyArray()
-        }
-    }
+    fun getRequiredMediaPermissions(): Array<String> = StoragePermissionRule.requiredPermissions()
 
     fun hasMediaPermissions(context: Context): Boolean {
         val permissions = getRequiredMediaPermissions()

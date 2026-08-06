@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.PowerManager
+import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -53,6 +54,21 @@ class CheckPermissionStatusUseCase @Inject constructor(
                     Timber.d("S0429: permission registry reports notification access DENIED")
                     PermissionStatus.DENIED
                 }
+            // S1436: like the overlay below, an appop the generic arm cannot read. The SDK guard is for
+            // lint only - the entry's minSdk already keeps the row off older levels.
+            Manifest.permission.REQUEST_INSTALL_PACKAGES ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    appContext.packageManager.canRequestPackageInstalls()
+                ) {
+                    PermissionStatus.GRANTED
+                } else {
+                    PermissionStatus.DENIED
+                }
+            // S1436: an appop, not a runtime permission - checkSelfPermission below always reports
+            // DENIED for it, however the user answered on the overlay screen.
+            Manifest.permission.SYSTEM_ALERT_WINDOW ->
+                if (Settings.canDrawOverlays(appContext)) PermissionStatus.GRANTED
+                else PermissionStatus.DENIED
             Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS -> {
                 val pm = appContext.getSystemService(Context.POWER_SERVICE) as PowerManager
                 if (pm.isIgnoringBatteryOptimizations(appContext.packageName)) PermissionStatus.GRANTED

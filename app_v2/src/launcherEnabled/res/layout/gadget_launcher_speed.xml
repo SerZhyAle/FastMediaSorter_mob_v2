@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1179: the speed gadget. Sized by the desktop grid like every gadget, so nothing here sets a
+     fixed height - the value autosizes into whatever the cell hands it. The message line sits below
+     the value rather than replacing it, so a momentary loss of fix does not blank a readable tile. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="@dimen/margin_small">
+
+        <TextView
+            android:id="@+id/gadgetSpeedValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autoSizeMaxTextSize="40sp"
+            android:autoSizeMinTextSize="12sp"
+            android:autoSizeTextType="uniform"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold"
+            tools:ignore="UnusedAttribute"
+            tools:text="64 km/h" />
+
+        <TextView
+            android:id="@+id/gadgetSpeedMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="11sp"
+            android:visibility="gone"
+            tools:text="Waiting for a position.."
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+</merge>

@@ -1,10 +1,8 @@
 package com.sza.fastmediasorter.ui.welcome.helpers
 
-import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
@@ -14,19 +12,17 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.permissions.PermissionGrantIntentFactory
 import com.sza.fastmediasorter.databinding.PageWelcomePermissionsBinding
 import com.sza.fastmediasorter.domain.model.PermissionEntry
-import com.sza.fastmediasorter.domain.model.PermissionGroupHeader
 import com.sza.fastmediasorter.domain.model.PermissionStatus
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
 import com.sza.fastmediasorter.domain.repository.PermissionRequestMarkerRepository
+import com.sza.fastmediasorter.domain.usecase.BuildPermissionRowsUseCase
 import com.sza.fastmediasorter.domain.usecase.CheckPermissionStatusUseCase
 import com.sza.fastmediasorter.domain.usecase.PermissionAction
 import com.sza.fastmediasorter.domain.usecase.ResolvePermissionActionUseCase
 import com.sza.fastmediasorter.ui.common.permissions.PermissionDenialHandler
-import com.sza.fastmediasorter.ui.settings.fragments.PermissionRow
 import com.sza.fastmediasorter.ui.settings.fragments.PermissionRowAdapter
 import timber.log.Timber
 import javax.inject.Inject
@@ -45,6 +41,7 @@ class WelcomePermissionsManager @Inject constructor(
     private val registry: PermissionRegistryRepository,
     private val checkStatus: CheckPermissionStatusUseCase,
     private val resolveAction: ResolvePermissionActionUseCase,
+    private val buildRows: BuildPermissionRowsUseCase,
     private val requestMarker: PermissionRequestMarkerRepository,
     private val grantIntentFactory: PermissionGrantIntentFactory,
 ) {
@@ -126,6 +123,7 @@ class WelcomePermissionsManager @Inject constructor(
 
     /** Render the adaptive permission rows + grant-all affordance into the page. */
     fun bind(binding: PageWelcomePermissionsBinding) {
+        Timber.d("S1436: onboarding permissions page bound")
         this.binding = binding
         binding.rvPermissions.apply {
             layoutManager = LinearLayoutManager(binding.root.context)
@@ -252,7 +250,7 @@ class WelcomePermissionsManager @Inject constructor(
     /** Rebuild the rows from the cached adaptive set and update the grant-all CTA visibility. */
     private fun refreshRows() {
         val act = activity ?: return
-        adapter.refresh(buildRows(act))
+        adapter.refresh(buildRows(welcomeEntries, act))
         val hasPending = welcomeEntries.any { isRequestable(checkStatus(act, it)) }
         binding?.btnGrantAll?.visibility = if (hasPending) View.VISIBLE else View.GONE
     }
@@ -264,33 +262,6 @@ class WelcomePermissionsManager @Inject constructor(
      */
     private fun isRequestable(status: PermissionStatus): Boolean =
         status == PermissionStatus.NOT_YET_REQUESTED || status == PermissionStatus.DENIED
-
-    private fun buildRows(act: FragmentActivity): List<PermissionRow> {
-        val groups = registry.getGroups()
-        val rows = mutableListOf<PermissionRow>()
-        val required = welcomeEntries.filterNot { it.optional }
-        groups.forEach { header ->
-            val groupEntries = required.filter { it.group == header.group }
-            if (groupEntries.isEmpty()) return@forEach
-            rows += PermissionRow.Header(header)
-            groupEntries.forEach { entry ->
-                rows += PermissionRow.Entry(entry, checkStatus(act, entry))
-            }
-        }
-        val optional = welcomeEntries.filter { it.optional }
-        if (optional.isNotEmpty()) {
-            rows += PermissionRow.Header(
-                PermissionGroupHeader(
-                    group = optional.first().group,
-                    titleRes = R.string.perm_group_optional,
-                )
-            )
-            optional.forEach { entry ->
-                rows += PermissionRow.Entry(entry, checkStatus(act, entry))
-            }
-        }
-        return rows
-    }
 
     companion object {
         private const val STATE_GRANT_ALL_IN_PROGRESS = "welcome_perm_grant_all_in_progress"

@@ -2535,6 +2535,11 @@ scripts/streams/collect-stream-candidates.ps1
     -LogoAtlasPath                    [String] = 'delivery/stream-catalog/stream-logo-atlas.webp'
     -LogoCoordsPath                   [String] = 'delivery/stream-catalog/stream-logo-coords.json'
     -LogoLimit                        [Int32] = 0
+    -WithTilePacks                    [SwitchParameter]
+    -PublishTilePacks                 [SwitchParameter]
+    -PreviewTilePackPath              [String] = 'temp/channel-preview-tiles.zip'
+    -LogoTilePackPath                 [String] = 'temp/stream-logo-tiles.zip'
+    -TilePackQuality                  [Int32] = 80
     -FfmpegPath                       [String] = ''
     -MaxAtlasBytes                    [Int32] = 31457280
     -DeepSignal                       [SwitchParameter]

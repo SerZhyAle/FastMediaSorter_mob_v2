@@ -94,7 +94,6 @@ class ResolvePermissionActionUseCaseTest {
         manifestName = manifestName,
         titleRes = 0,
         descriptionRes = 0,
-        iconRes = 0,
         group = PermissionGroup.SYSTEM,
         optional = false,
     )

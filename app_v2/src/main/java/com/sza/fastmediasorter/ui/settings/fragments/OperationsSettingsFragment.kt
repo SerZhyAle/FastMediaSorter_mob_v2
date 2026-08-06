@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
+import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -28,6 +29,7 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.usecase.launcher.PlaceHomeWidgetOnLauncherDesktopUseCase
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
@@ -138,7 +140,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             viewBinding.rowMicRecordingEnabled.setCheckedSilently(false)
             Snackbar.make(
                 viewBinding.root,
-                R.string.mic_recording_permission_denied,
+                requireContext().permissionRationale(Manifest.permission.RECORD_AUDIO),
                 Snackbar.LENGTH_LONG,
             ).show()
         }

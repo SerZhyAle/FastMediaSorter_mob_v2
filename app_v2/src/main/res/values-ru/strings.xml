@@ -431,7 +431,6 @@
     <string name="manage_manage_media_permission">Управление разрешением «Управление медиа»</string>
     <string name="request_permissions">Запросить разрешения</string>
     <string name="permissions_required_title">Требуются разрешения</string>
-    <string name="permissions_required_for_local_resource">Для создания локального ресурса необходим доступ к медиа-файлам. Предоставьте разрешения для продолжения.</string>
     <string name="show_logs">Показать логи</string>
     <string name="support_images">Поддержка изображений</string>
     <string name="support_images_description">Поддержка статичных изображений</string>
@@ -626,8 +625,6 @@
     <string name="random_file_description">Случайный переход</string>
     <string name="finish">Готово</string>
     <string name="grant_permissions">Предоставить доступ</string>
-    <string name="permissions_denied_title">Требуется разрешение</string>
-    <string name="permissions_denied_warning">Без доступа к медиафайлам основной функционал приложения будет недоступен.</string>
     <string name="continue_anyway">Продолжить без разрешений</string>
 
     <!-- Welcome Feature Card Labels -->
@@ -637,11 +634,6 @@
     <string name="toast_panel_stereo_single_eye_applied">Стерео-контент обрезан до одного глаза</string>
 
     <!-- Permissions -->
-    <string name="permission_storage_title">Доступ к хранилищу</string>
-    <string name="permission_storage_rationale">FastMediaSorter требуется доступ к хранилищу для сканирования и отображения медиафайлов.</string>
-    <string name="permission_storage_rationale_r">FastMediaSorter требуется разрешение на управление всеми файлами для доступа к локальным папкам и медиафайлам.</string>
-    <string name="permission_internet_title">Сетевой доступ</string>
-    <string name="permission_internet_rationale">FastMediaSorter требуется доступ к сети для подключения к SMB/SFTP и облачным хранилищам.</string>
     <string name="local_network_permission_rationale_title">Доступ к локальной сети</string>
     <string name="local_network_permission_rationale_message">FastMediaSorter требует доступ к локальной сети для подключения к серверам SMB, SFTP, FTP и обнаружения устройств Chromecast.</string>
     <string name="local_network_permission_grant">Разрешить доступ к локальной сети</string>
@@ -689,7 +681,6 @@
     <string name="default_user">Пользователь по умолчанию</string>
     <string name="default_password">Пароль по умолчанию</string>
     <string name="skip_permission">Пропустить</string>
-    <string name="permissions_granted">Разрешения предоставлены. Приложение перезапустится.</string>
 
     <!-- Context Tooltips -->
     <string name="tooltip_slideshow_title">Интервал слайдшоу</string>
@@ -743,8 +734,6 @@
     <string name="all_files">Все файлы</string>
     <string name="tooltip_all_files_title">Режим файлового менеджера</string>
     <string name="tooltip_all_files_message">Показывать и управлять ВСЕМИ типами файлов в ресурсах (не только медиа). При включении автоматически поддерживаются изображения, видео, аудио, текст, документы, архивы и бинарные файлы.</string>
-    <string name="all_files_global_info">Режим всех файлов включен в Настройках. Все типы медиа поддерживаются автоматически.</string>
-    <string name="all_files_resource_info">Режим файлового менеджера включён для этого ресурса. Все типы файлов поддерживаются.</string>
     <string name="show_hidden_files">Показывать скрытые файлы</string>
     <string name="tooltip_show_hidden_files_title">Показывать скрытые файлы</string>
     <string name="help_show_hidden_files">Справка: показывать скрытые файлы</string>
@@ -1088,16 +1077,7 @@
     <string name="dialog_player_exit_pending_queue_stay">Остаться</string>
 
     <!-- MANAGE_MEDIA Permission -->
-    <string name="manage_media_title">Включить быстрые операции</string>
-    <string name="manage_media_explanation">FastMediaSorter создан для быстрой сортировки файлов. Для удаления и перемещения файлов одним касанием (без диалогов подтверждения) нужно разрешение «Управление медиафайлами».
-
-Без этого разрешения Android будет показывать диалог подтверждения для каждой операции.</string>
-    <string name="manage_media_grant">Разрешить</string>
-    <string name="manage_media_skip">Пропустить (показывать диалоги)</string>
-    <string name="manage_media_dont_ask">Больше не спрашивать</string>
     <string name="grant_manage_media_permission">Медиа-разрешения</string>
-    <string name="manage_media_permission_granted">Разрешение на управление медиа получено</string>
-    <string name="grant_notifications_permission">Уведомления</string>
     <string name="manage_notifications_permission">Управление уведомлениями</string>
     <string name="notification_permission_required_for_background">Разрешение на уведомления требуется для воспроизведения аудио в фоне. Предоставьте разрешение в системных настройках.</string>
     <string name="grant_battery_optimization_permission">Оптимизация батареи</string>
@@ -1342,8 +1322,6 @@
     <string name="tooltip_use_trash_message">При включённой опции удалённые локальные файлы перемещаются в скрытую папку .trash и могут быть восстановлены через Undo. На Android 12+ для некоторых общих папок нужен доступ MANAGE_MEDIA; без него корзина может перейти на окончательное удаление. При выключённой - файлы удаляются немедленно и место освобождается сразу. Сетевые и облачные файлы всегда удаляются окончательно.</string>
 
     <!-- Folder Selection & Permissions -->
-    <string name="all_files_access_required">Требуется полный доступ к папкам</string>
-    <string name="all_files_access_explanation">⚠️ Без разрешения \"Доступ ко всем файлам\" Android ограничивает выбор папок только стандартными (Документы, Загрузки, Изображения).\n\n✅ С этим разрешением вы сможете:\n• Выбрать ЛЮБУЮ папку на устройстве\n• Получить доступ к папкам Pictures, DCIM, Camera\n• Выбрать собственные папки для организации медиа\n\n🔒 Конфиденциальность: Приложение использует это только для просмотра ваших медиафайлов - никакие данные не собираются и не загружаются.\n\nПредоставьте разрешение на следующем экране для полного доступа к папкам.</string>
     <string name="continue_limited">Продолжить (Ограниченно)</string>
     <string name="folder_selection_limitations">⚠️ Ограниченный доступ к папкам\n\nБез разрешения \"Доступ ко всем файлам\" вы можете выбрать только стандартные папки Android.\n\nЧтобы выбрать любую папку на устройстве, пожалуйста, предоставьте разрешение когда будет предложено.</string>
     <string name="select_folder">Выбрать папку</string>
@@ -1352,7 +1330,6 @@
     <string name="browse_folders">Просмотр папок</string>
     <string name="folder_not_found">Папка не найдена</string>
     <string name="cannot_read_folder">Нет доступа к папке - проверьте разрешения</string>
-    <string name="android_media_requires_permission">⚠️ Папки Android/media требуют разрешения "Доступ ко всем файлам". Предоставьте разрешение для доступа к папкам WhatsApp, Telegram и других приложений.</string>
     <string name="quick_select_common_folders">Быстрый выбор стандартных папок</string>
     <string name="folder_root">📁 Корень (/storage/emulated/0)</string>
     <string name="folder_dcim">DCIM</string>
@@ -1888,9 +1865,6 @@
     <string name="tile_audio_play_music">Воспроизвести музыку</string>
 
     <!-- Scheduled Operations -->
-    <string name="perm_battery_optim_grant">Разрешить работу в фоне</string>
-    <string name="perm_battery_optim_manage">Управление оптимизацией батареи</string>
-    <string name="perm_battery_optim_hint">Требуется для надёжной работы операций по расписанию</string>
     <string name="perm_btn_grant_all">Выдать все</string>
     <string name="perm_btn_open_system_settings">Открыть настройки системы</string>
     <string name="permission_open_settings_for_feature">Чтобы включить «%1$s», откройте настройки приложения.</string>
@@ -1901,7 +1875,6 @@
     <string name="perm_group_microphone">Микрофон</string>
     <string name="perm_group_notification">Уведомления</string>
     <string name="perm_group_system">Система</string>
-    <string name="perm_group_vr">Виртуальная реальность</string>
     <!-- Permission status display -->
     <!-- Permission row action buttons -->
     <string name="perm_action_grant">Выдать</string>
@@ -1917,21 +1890,17 @@
     <string name="perm_title_read_media_audio">Доступ к музыке</string>
     <string name="perm_desc_read_media_audio">Музыка на устройстве</string>
     <string name="perm_title_manage_external_storage">Полное управление хранилищем</string>
-    <string name="perm_desc_manage_external_storage">Перемещение и удаление</string>
+    <string name="perm_desc_manage_external_storage">Доступ к любой папке, включая папки приложений</string>
     <string name="perm_title_manage_media">Управление медиафайлами</string>
     <string name="perm_desc_manage_media">Массовые правки медиа</string>
     <string name="perm_title_access_local_network">Доступ к локальной сети</string>
-    <string name="perm_desc_access_local_network">Серверы SMB и DLNA</string>
+    <string name="perm_desc_access_local_network">Серверы SMB, SFTP, FTP и DLNA</string>
     <string name="perm_title_record_audio">Микрофон</string>
-    <string name="perm_desc_record_audio">Голосовые заметки</string>
+    <string name="perm_desc_record_audio">Голосовые заметки и звук в записях</string>
     <string name="perm_title_post_notifications">Уведомления</string>
     <string name="perm_desc_post_notifications">Уведомления о прогрессе</string>
     <string name="perm_title_battery_optimization">Оптимизация аккумулятора</string>
     <string name="perm_desc_battery_optimization">Фоновая работа</string>
-    <string name="perm_title_hand_tracking">Отслеживание рук</string>
-    <string name="perm_desc_hand_tracking">Управление воспроизведением, просмотром файлов и навигацией по меню жестами на гарнитурах Meta Quest без физического контроллера.</string>
-    <string name="perm_title_headset_camera">Камера passthrough</string>
-    <string name="perm_desc_headset_camera">Доступ к камерам сквозного обзора на Meta Quest для отображения реального мира вокруг окна приложения в режиме смешанной реальности.</string>
     <!-- Print -->
     <string name="menu_print">Печать</string>
     <string name="error_print_unavailable">Служба печати не найдена. Поделитесь файлом или установите приложение для печати.</string>
@@ -2171,8 +2140,6 @@
     <string name="mic_recording_button_content_desc">Запись аудио</string>
     <string name="mic_recording_hold_hint">Удержите для записи</string>
     <string name="mic_recording_filename_title">Сохранить запись</string>
-    <string name="mic_recording_permission_rationale">Для записи аудио необходим доступ к микрофону</string>
-    <string name="mic_recording_permission_denied">Доступ к микрофону отклонён. Разрешите его в системных настройках.</string>
     <string name="mic_recording_saved">Запись сохранена: %s</string>
     <string name="mic_recording_error_save">Не удалось сохранить запись</string>
     <string name="mic_recording_error_start">Не удалось начать запись</string>
@@ -2406,12 +2373,11 @@
     <string name="quick_recorder_notification_channel">Запись голоса</string>
     <string name="quick_recorder_action_stop">Стоп</string>
     <string name="quick_recorder_error">Не удалось записать звук</string>
-    <string name="quick_recorder_permission_needed">Для записи нужен доступ к микрофону</string>
     <string name="quick_recorder_permission_settings">Включите доступ к микрофону в настройках</string>
     <string name="camera_ocr_crop_lang_ocr_desc">Язык распознавания</string>
     <string name="camera_ocr_crop_lang_target_desc">Язык перевода</string>
     <string name="perm_title_camera">Камера</string>
-    <string name="perm_desc_camera">Съёмка в приложении</string>
+    <string name="perm_desc_camera">Съёмка, распознавание текста и QR-коды</string>
     <string name="perm_group_camera">Камера</string>
     <string name="camera_permission_required">Чтобы снимать фото в приложении, нужен доступ к камере. Выдайте разрешение и попробуйте ещё раз.</string>
     <string name="setting_camera_to_resource_enabled_title">Включить съёмку фото</string>
@@ -2895,7 +2861,6 @@
     <string name="screen_recording_disclosure_title">Видеозапись экрана</string>
     <string name="screen_recording_disclosure_message">FastMediaSorter будет записывать всё, что отображается на экране, включая другие приложения, в видеофайл со звуком микрофона, пока вы не остановите запись. Запись продолжается в фоне. В начале каждой записи Android просит выбрать это приложение или весь экран, и этот шаг нельзя пропустить.</string>
     <string name="screen_recording_disclosure_start">Начать запись</string>
-    <string name="screen_recording_permission_denied">Для записи экрана нужны разрешения на микрофон и уведомления.</string>
     <string name="screen_recording_saved">Запись экрана сохранена: %1$s</string>
     <string name="screen_recording_error">Не удалось сохранить запись экрана.</string>
     <string name="streams_panel_disable_action">Отключить</string>
@@ -2960,7 +2925,6 @@
     <string name="companion_import_password_required">Введите пароль для этого сервера.</string>
     <string name="companion_qr_scan_hint">Наведите камеру на QR-код companion-приложения</string>
     <string name="companion_qr_scan_torch">Фонарик</string>
-    <string name="companion_qr_camera_denied">Для сканирования QR-кода нужен доступ к камере</string>
     <string name="vr_cinema_program_title">VR-кинотеатр</string>
     <string name="setting_gesture_zone_left_top_title">Левый край - верхняя полоса</string>
     <string name="setting_gesture_zone_left_bottom_title">Левый край - нижняя полоса</string>
@@ -3307,4 +3271,61 @@
     <string name="launcher_now_playing_access_message">FastMediaSorter будет читать медиасессию приложения, которое сейчас играет, - название трека, исполнителя и состояние воспроизведения, - чтобы гаджет мог показывать их и управлять воспроизведением. Android называет это разрешение доступом к уведомлениям, но приложение не читает уведомления, только медиасессию. Разрешение выдаётся на экране настроек Android, там же его можно отозвать.</string>
     <string name="perm_title_notification_listener">Доступ к уведомлениям</string>
     <string name="perm_desc_notification_listener">Позволяет гаджету «Сейчас играет» на рабочем столе лаунчера показывать то, что играет в других приложениях, и управлять воспроизведением. Приложение читает только медиасессии, но не содержимое уведомлений. Необязательное - выдаётся на экране настроек Android.</string>
+    <string name="perm_title_write_external_storage">Сохранение в память устройства</string>
+    <string name="perm_desc_write_external_storage">Запись файлов на Android 9 и старее</string>
+    <string name="perm_title_system_alert_window">Поверх других приложений</string>
+    <string name="perm_desc_system_alert_window">Полоса жестов поверх других приложений</string>
+    <string name="perm_title_request_install_packages">Установка приложений из файлов</string>
+    <string name="perm_desc_request_install_packages">Открытие APK-файла, найденного на устройстве</string>
+    <string name="perm_title_screen_capture_consent">Захват экрана</string>
+    <string name="perm_desc_screen_capture_consent">Система спрашивает при каждом запуске захвата - разрешить заранее нельзя</string>
+    <string name="perm_title_access_coarse_location">Приблизительное местоположение</string>
+    <string name="perm_desc_access_coarse_location">Грубые координаты для снятого в приложении фото</string>
+    <string name="perm_title_read_phone_state">Состояние телефона</string>
+    <string name="perm_desc_read_phone_state">Уровень сигнала в строке состояния лаунчера</string>
+    <string name="perm_rationale_manage_external_storage">Без этого разрешения Android ограничивает выбор папок стандартными - Документы, Загрузки, Изображения. С ним можно выбрать любую папку, включая DCIM, Camera и папки приложений вроде Android/media, и перемещать или удалять файлы в них. Оно используется только для просмотра и разбора ваших медиафайлов - ничего не собирается и никуда не отправляется.</string>
+    <string name="perm_addendum_manage_external_storage_folder_picking">Выдайте его на следующем экране и вернитесь сюда, чтобы выбрать папку.</string>
+    <string name="perm_rationale_read_external_storage">Приложению нужен доступ к хранилищу, чтобы находить и показывать медиафайлы и перемещать или удалять те, что вы разбираете.</string>
+    <string name="perm_addendum_read_external_storage_local_resource">Это нужно, чтобы создать локальный ресурс из папки на устройстве.</string>
+    <string name="perm_rationale_access_local_network">Приложение подключается к серверам SMB, SFTP, FTP и DLNA в вашей сети и находит их, просматривая устройства в ней. Без этого разрешения такие источники останутся недоступны; за пределы вашей сети приложение не обращается.</string>
+    <string name="perm_addendum_camera_qr_pairing">Для сканирования QR-кода companion-приложения нужна камера.</string>
+    <string name="perm_rationale_record_audio">Микрофон нужен для голосовых заметок и для звука в записи экрана. Без него запись не начнётся.</string>
+    <string name="perm_addendum_record_audio_screen_recording">Звук в записи экрана берётся с микрофона.</string>
+    <string name="perm_addendum_post_notifications_screen_recording">В уведомлении о записи находится кнопка остановки.</string>
+    <string name="perm_rationale_location">Местоположение используется только для записи координат в снимки и видео, снятые в приложении. Никуда ничего не отправляется.</string>
+    <string name="perm_addendum_post_notifications_scheduled_ops">Разрешить уведомления для отложенных операций</string>
+    <string name="perm_rationale_battery_optimization">Android может приостановить приложение в фоне, и тогда отложенная операция запустится с опозданием или вовсе не запустится. Исключение приложения из энергосбережения сохраняет расписание.</string>
+    <string name="launcher_gadget_compass">Компас</string>
+    <string name="launcher_gadget_speed">Скорость</string>
+    <string name="launcher_gadget_compass_cardinal_n">Север</string>
+    <string name="launcher_gadget_compass_cardinal_ne">Северо-восток</string>
+    <string name="launcher_gadget_compass_cardinal_e">Восток</string>
+    <string name="launcher_gadget_compass_cardinal_se">Юго-восток</string>
+    <string name="launcher_gadget_compass_cardinal_s">Юг</string>
+    <string name="launcher_gadget_compass_cardinal_sw">Юго-запад</string>
+    <string name="launcher_gadget_compass_cardinal_w">Запад</string>
+    <string name="launcher_gadget_compass_cardinal_nw">Северо-запад</string>
+    <string name="launcher_gadget_compass_heading">%1$d° %2$s</string>
+    <string name="launcher_gadget_compass_altitude">%1$d м</string>
+    <string name="launcher_gadget_compass_calibrate">Опишите телефоном восьмёрку</string>
+    <string name="launcher_gadget_speed_value">%1$d км/ч</string>
+    <string name="launcher_gadget_sensor_no_fix">Ждём координаты..</string>
+    <string name="launcher_gadget_sensor_no_permission">Геоданные выключены. Разрешите их в правах приложения.</string>
+    <string name="launcher_gadget_compass_description">Компас. Направление %1$s, высота %2$s</string>
+    <string name="launcher_gadget_speed_description">Текущая скорость: %1$s</string>
+    <string name="launcher_gadget_speed_chart">График скорости</string>
+    <string name="launcher_gadget_altitude_chart">График высоты</string>
+    <string name="launcher_gadget_chart_reset">Сброс</string>
+    <string name="launcher_gadget_chart_reset_description">Очищает график и начинает его заново</string>
+    <string name="launcher_gadget_chart_empty">Пока нет данных - график заполнится в движении.</string>
+    <string name="launcher_gadget_chart_distance">%1$s км</string>
+    <string name="launcher_gadget_chart_altitude_current">Сейчас %1$d м</string>
+    <string name="launcher_gadget_speed_chart_description">График скорости. Сейчас %1$s, %2$s с момента сброса</string>
+    <string name="launcher_gadget_altitude_chart_description">График высоты. Сейчас %1$s, %2$s с момента сброса, пройдено %3$s</string>
+    <string name="launcher_gadget_steps">Шаги</string>
+    <string name="launcher_gadget_steps_since_boot">С момента включения телефона</string>
+    <string name="launcher_gadget_steps_description">Шаги: %1$s с момента включения телефона</string>
+    <string name="perm_title_activity_recognition">Физическая активность</string>
+    <string name="perm_desc_activity_recognition">Счётчик шагов на рабочем столе лаунчера</string>
+    <string name="perm_rationale_activity_recognition">Гаджет шагов читает счётчик, который телефон ведёт сам. Ничего не записывается, никуда не отправляется и не хранится после удаления гаджета.</string>
 </resources>

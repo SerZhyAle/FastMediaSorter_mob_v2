@@ -54,6 +54,7 @@ import com.sza.fastmediasorter.ui.browse.managers.BrowseManagerInitializer
 import com.sza.fastmediasorter.ui.browse.managers.BrowseMicRecordingManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowsePassthroughCaptureProvider
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -82,7 +83,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         if (granted) {
             viewModel.state.value.resource?.let { micRecordingManager.startRecording(it) }
         } else {
-            Toast.makeText(this, R.string.mic_recording_permission_denied, Toast.LENGTH_LONG).show()
+            val message = permissionRationaleShort(Manifest.permission.RECORD_AUDIO)
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         }
     }
 

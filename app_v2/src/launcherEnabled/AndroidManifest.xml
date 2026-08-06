@@ -9,11 +9,16 @@
     No <queries> here - the MAIN/LAUNCHER visibility declaration the app registry needs already lives in
     the main manifest (S0623).
 
-    S1415 added the one permission below, and it is the only one this source set declares. It is requested
-    at run time, and only when the tray is about to show a SIM indicator; a refusal simply leaves both SIM
-    slots absent (strategic §7). No <uses-feature> accompanies it: READ_PHONE_STATE is not in the implied
-    feature requirements table, so no android.hardware.telephony is inferred and Play device reach is
-    unchanged.
+    S1415 added READ_PHONE_STATE below. It is requested at run time, and only when the tray is about to
+    show a SIM indicator; a refusal simply leaves both SIM slots absent (strategic §7). No <uses-feature>
+    accompanies it: READ_PHONE_STATE is not in the implied feature requirements table, so no
+    android.hardware.telephony is inferred and Play device reach is unchanged.
+
+    S1179 added ACTIVITY_RECOGNITION on the same terms: requested at run time, and only when the user
+    adds the steps gadget; a refusal leaves that tile on the desktop in an honest empty state. It is
+    declared here rather than in src/main because the flavors without a launcher have nothing that could
+    ever use it. No <uses-feature> either - a step-counter feature entry as required="false" buys nothing,
+    and a required="true" one would cut Play device reach for the whole app.
 
     S0429: the notification-listener service below is declared, never requested. It is the key
     MediaSessionManager demands before it will name another app's active media session, and it is inert
@@ -28,6 +33,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 
     <application>
         <activity

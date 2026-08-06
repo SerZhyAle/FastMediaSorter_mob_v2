@@ -44,6 +44,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppShortcutMenuManage
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherContactPickManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherEditModeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResizeManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSensorPermissionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTrayManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperManager
@@ -88,6 +89,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     // tray manager's decision (Rule 3).
     private val requestPhoneStatePermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
+    // S1179: a field initialiser for the same reason as the two above - it registers a permission
+    // contract. Which gadget needs which permission, and whether to ask at all, is the manager's
+    // decision (Rule 3); the activity only owns where the cell goes.
+    private val sensorPermissionManager = LauncherSensorPermissionManager(this)
 
     // A field initialiser, not setupViews(): BaseActivity posts that call, so it runs after the Activity
     // is STARTED and an activity-result contract registered there would throw. The operations are passed
@@ -577,6 +583,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     private fun placeGadget(gadgetKey: String, resourceId: Long?) {
+        sensorPermissionManager.placeAfterAsking(gadgetKey) { placeGadgetNow(gadgetKey, resourceId) }
+    }
+
+    private fun placeGadgetNow(gadgetKey: String, resourceId: Long?) {
         val gadget = gadgetRegistry.byKey(gadgetKey) ?: return
         placeAtPendingSlot(
             kind = LauncherCellKind.GADGET,

@@ -7,12 +7,15 @@ import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import timber.log.Timber
 
 /**
  * Owns the capture subgroup of the Operations tab: camera-photos, video-recording, and
@@ -68,7 +71,7 @@ class OperationsCaptureManager(
                     fragment.requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                explainThenRequestLocation()
                 return@setOnCheckedChangeListener
             }
             viewModel.updateSettings(viewModel.settings.value.copy(cameraGeotagEnabled = isChecked))
@@ -167,6 +170,24 @@ class OperationsCaptureManager(
                 }
             }
         }
+    }
+
+    /**
+     * S1436: the geotag toggle used to open the system dialog with nothing said first, so the one place
+     * that could explain why coordinates are wanted said nothing. The row goes back to off until the
+     * grant actually lands - the switch and the permission are the same state here, unlike the gesture
+     * overlay - and the explanation is the registry's, not this screen's.
+     */
+    private fun explainThenRequestLocation() {
+        Timber.d("S1436: geotag toggle explains location before requesting it")
+        binding.rowCameraGeotag.setCheckedSilently(false)
+        Snackbar.make(
+            binding.root,
+            fragment.requireContext().permissionRationale(Manifest.permission.ACCESS_FINE_LOCATION),
+            Snackbar.LENGTH_LONG,
+        ).setAction(R.string.grant_permission) {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }.show()
     }
 
     /** Applies the latest settings to the capture rows (camera photos, video, microphone). */

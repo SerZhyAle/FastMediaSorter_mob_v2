@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -13,6 +14,8 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.core.util.SettingsIntentLauncher
+import com.sza.fastmediasorter.core.util.StoragePermissionRule
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import timber.log.Timber
 
 /**
@@ -67,11 +70,15 @@ class MainStoragePermissionsHelper(
         // onSettingsResult() re-runs the startup check, which would otherwise stack a second
         // rationale on top of the one already on screen.
         if (rationaleDialog?.isShowing == true) return
-        val message = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            activity.getString(R.string.permission_storage_rationale_r)
+        // S1436: which permission is being explained follows the one storage rule, and the words come
+        // from that permission's registry row - this dialog no longer owns either decision.
+        val permission = if (StoragePermissionRule.requiresAllFilesAccess()) {
+            Manifest.permission.MANAGE_EXTERNAL_STORAGE
         } else {
-            activity.getString(R.string.permission_storage_rationale)
+            Manifest.permission.READ_EXTERNAL_STORAGE
         }
+        val message = activity.permissionRationale(permission)
+        Timber.d("S1436: storage rationale shown for $permission")
         rationaleDialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.permissions_required_title)
             .setMessage(message)

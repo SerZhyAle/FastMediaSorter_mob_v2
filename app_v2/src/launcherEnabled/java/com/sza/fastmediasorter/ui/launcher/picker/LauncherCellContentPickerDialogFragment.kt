@@ -167,7 +167,7 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         .takeIf { contactActionAvailability.isAvailable(action) }
         .also { Timber.d("S0428: category %s available=%b", action.name, it != null) }
 
-    private fun gadgetOptions(): List<Option> = gadgetRegistry.all().map { gadget ->
+    private fun gadgetOptions(): List<Option> = gadgetRegistry.available().map { gadget ->
         Option(
             id = GADGET_PREFIX + gadget.key,
             label = getString(gadget.labelRes),

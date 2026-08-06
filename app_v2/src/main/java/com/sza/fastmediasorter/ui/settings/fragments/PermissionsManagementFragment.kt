@@ -1,10 +1,8 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
-import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
@@ -22,6 +20,7 @@ import com.sza.fastmediasorter.domain.model.PermissionEntry
 import com.sza.fastmediasorter.domain.model.PermissionStatus
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
 import com.sza.fastmediasorter.domain.repository.PermissionRequestMarkerRepository
+import com.sza.fastmediasorter.domain.usecase.BuildPermissionRowsUseCase
 import com.sza.fastmediasorter.domain.usecase.CheckPermissionStatusUseCase
 import com.sza.fastmediasorter.domain.usecase.PermissionAction
 import com.sza.fastmediasorter.domain.usecase.ResolvePermissionActionUseCase
@@ -41,6 +40,8 @@ class PermissionsManagementFragment : Fragment() {
     @Inject lateinit var registry: PermissionRegistryRepository
 
     @Inject lateinit var checkStatus: CheckPermissionStatusUseCase
+
+    @Inject lateinit var buildRows: BuildPermissionRowsUseCase
 
     @Inject lateinit var resolveAction: ResolvePermissionActionUseCase
 
@@ -167,36 +168,7 @@ class PermissionsManagementFragment : Fragment() {
         updateGrantAllVisibility()
     }
 
-    private fun buildRows(): List<PermissionRow> {
-        val entries = registry.getEntries()
-        val headers = registry.getGroups()
-        val rows = mutableListOf<PermissionRow>()
-        val requiredEntries = entries.filterNot { it.optional }
-        headers.forEach { header ->
-            val groupEntries = requiredEntries.filter { it.group == header.group }
-            if (groupEntries.isEmpty()) return@forEach
-            rows += PermissionRow.Header(header)
-            groupEntries.forEach { entry ->
-                rows += PermissionRow.Entry(entry, checkStatus(requireContext(), entry))
-            }
-        }
-
-        val optionalEntries = entries.filter { it.optional }
-        if (optionalEntries.isNotEmpty()) {
-            rows += PermissionRow.Header(
-                com.sza.fastmediasorter.domain.model.PermissionGroupHeader(
-                    group = optionalEntries.first().group,
-                    titleRes = R.string.perm_group_optional,
-                )
-            )
-            optionalEntries.forEach { entry ->
-                rows += PermissionRow.Entry(entry, checkStatus(requireContext(), entry))
-            }
-        }
-        return rows
-    }
-
-    private fun refreshAdapter() = adapter.refresh(buildRows())
+    private fun refreshAdapter() = adapter.refresh(buildRows(registry.getEntries(), requireContext()))
 
     private fun updateGrantAllVisibility() {
         val hasPending = registry.getEntries().any { isRequestable(checkStatus(requireContext(), it)) }

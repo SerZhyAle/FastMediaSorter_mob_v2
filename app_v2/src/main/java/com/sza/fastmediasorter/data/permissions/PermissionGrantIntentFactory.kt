@@ -45,6 +45,14 @@ class PermissionGrantIntentFactory @Inject constructor(
                 } else {
                     null
                 }
+            Manifest.permission.REQUEST_INSTALL_PACKAGES ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    packageScopedIntent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)
+                } else {
+                    null
+                }
+            Manifest.permission.SYSTEM_ALERT_WINDOW ->
+                packageScopedIntent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
             Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS ->
                 packageScopedIntent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
             // S0429's registry row. Not package-scoped: the notification-access screen is a global list

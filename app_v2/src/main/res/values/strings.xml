@@ -327,7 +327,6 @@
     <string name="manage_manage_media_permission">Manage media management permission</string>
     <string name="request_permissions">Request permissions</string>
     <string name="permissions_required_title">Permissions required</string>
-    <string name="permissions_required_for_local_resource">To create a local resource, media file access is required. Grant permissions to continue.</string>
     <string name="show_logs">Show logs</string>
     <string name="open_documentation">Open Documentation</string>
     <string name="support_images">Support Images</string>
@@ -655,8 +654,6 @@ Close the player and try again.</string>
     <string name="random_file_description">Random Jump</string>
     <string name="finish">Finish</string>
     <string name="grant_permissions">Grant Access</string>
-    <string name="permissions_denied_title">Permission Required</string>
-    <string name="permissions_denied_warning">Without media access, core app features will be unavailable.</string>
     <string name="continue_anyway">Continue anyway</string>
 
     <!-- Welcome Feature Card Labels -->
@@ -670,11 +667,6 @@ Close the player and try again.</string>
     <string name="toast_panel_stereo_single_eye_applied">Stereo content cropped to one eye</string>
 
     <!-- Permissions -->
-    <string name="permission_storage_title">Storage Access</string>
-    <string name="permission_storage_rationale">FastMediaSorter needs access to your device storage to scan and display media files.</string>
-    <string name="permission_storage_rationale_r">FastMediaSorter needs permission to manage all files on your device to access local folders and media files.</string>
-    <string name="permission_internet_title">Network Access</string>
-    <string name="permission_internet_rationale">FastMediaSorter needs network access to connect to SMB/SFTP shares and cloud storage.</string>
     <string name="local_network_permission_rationale_title">Local Network Access</string>
     <string name="local_network_permission_rationale_message">FastMediaSorter needs local network access to connect to SMB, SFTP, and FTP servers, and to discover Chromecast devices on your network.</string>
     <string name="local_network_permission_grant">Grant local network access</string>
@@ -722,7 +714,6 @@ Close the player and try again.</string>
     <string name="default_user">Default User</string>
     <string name="default_password">Default Password</string>
     <string name="skip_permission">Skip</string>
-    <string name="permissions_granted">Permissions granted. App will restart.</string>
     <string name="storage_permission_denied_toast">Storage permissions not granted. Grant them in Settings → Permissions.</string>
 
     <!-- Network Input Validation -->
@@ -783,8 +774,6 @@ Close the player and try again.</string>
     <string name="all_files">All Files</string>
     <string name="tooltip_all_files_title">File Manager Mode</string>
     <string name="tooltip_all_files_message">Show and manage ALL file types in resources (not just media). When enabled, automatically supports images, video, audio, text, documents, archives, and binaries.</string>
-    <string name="all_files_global_info">All Files mode is enabled in Settings. All media types are automatically supported.</string>
-    <string name="all_files_resource_info">File Manager Mode is enabled for this resource. All file types are supported.</string>
     <string name="show_hidden_files">Show hidden files</string>
     <string name="tooltip_show_hidden_files_title">Show Hidden Files</string>
     <string name="help_show_hidden_files">Help: Show hidden files</string>
@@ -1176,17 +1165,10 @@ Close the player and try again.</string>
     <string name="error_delete_permission_required">Android needs your permission to delete this file. Confirm the next prompt.</string>
 
     <!-- MANAGE_MEDIA Permission -->
-    <string name="manage_media_title">Enable Quick File Operations</string>
-    <string name="manage_media_explanation">FastMediaSorter is designed for fast media sorting. To delete and move files with one tap (without confirmation dialogs), the app needs \"Media Management\" permission.\n\nWithout this permission, Android will show a confirmation dialog for each file operation.</string>
 
     <!-- All Files Access Permission -->
-    <string name="all_files_access_required">Full Folder Access Required</string>
-    <string name="all_files_access_explanation">⚠️ Without \"All files access\" permission, Android restricts folder selection to only standard folders (Documents, Downloads, Pictures).\n\n✅ With this permission, you can:\n• Choose ANY folder on your device\n• Access Pictures, DCIM, Camera folders\n• Select custom folders for organizing media\n\n🔒 Privacy: The app only uses this for browsing your media - no data is collected or uploaded.\n\nGrant permission in the next screen to unlock full folder access.</string>
     <string name="folder_selection_limitations">⚠️ Limited Folder Access\n\nWithout \"All files access\" permission, you can only select from standard Android folders.\n\nTo choose any folder on your device, please grant the permission when prompted.</string>
     <string name="continue_limited">Continue (Limited)</string>
-    <string name="manage_media_grant">Grant Permission</string>
-    <string name="manage_media_skip">Skip (show dialogs)</string>
-    <string name="manage_media_dont_ask">Don\'t ask again</string>
 
     <!-- Folder Selection Dialog -->
     <string name="select_folder">Select Folder</string>
@@ -1214,11 +1196,8 @@ Close the player and try again.</string>
     <string name="not_a_folder">This path is not a folder</string>
     <string name="cannot_read_folder">Cannot read folder - check permissions</string>
     <string name="folder_selected_successfully">Folder selected: %s</string>
-    <string name="android_media_requires_permission">⚠️ Android/media folders require "All Files Access" permission. Grant permission to access WhatsApp, Telegram and other app data folders.</string>
     <string name="android_media_folder_added_warning">⚠️ Android/media folder added. Note: These folders may have restricted access even with permissions. If scanning fails, the app may not be allowed to access this specific folder by the system.</string>
     <string name="grant_manage_media_permission">Media permission</string>
-    <string name="manage_media_permission_granted">Media Management permission granted</string>
-    <string name="grant_notifications_permission">Notification permission</string>
     <string name="manage_notifications_permission">Manage Notification Permission</string>
     <string name="notification_permission_required_for_background">Notification permission is required for background audio playback. Grant permission in system settings.</string>
     <string name="grant_battery_optimization_permission">Battery optimization</string>
@@ -1977,9 +1956,6 @@ Close the player and try again.</string>
     <string name="tile_audio_play_music">Play Music</string>
 
     <!-- Scheduled Operations -->
-    <string name="perm_battery_optim_grant">Allow background activity</string>
-    <string name="perm_battery_optim_manage">Manage battery optimization</string>
-    <string name="perm_battery_optim_hint">Required for reliable scheduled operations</string>
     <string name="perm_btn_grant_all">Grant All</string>
     <string name="perm_btn_open_system_settings">Open App Settings</string>
     <string name="permission_open_settings_for_feature">To enable %1$s, open App Settings.</string>
@@ -1990,7 +1966,6 @@ Close the player and try again.</string>
     <string name="perm_group_microphone">Microphone</string>
     <string name="perm_group_notification">Notifications</string>
     <string name="perm_group_system">System</string>
-    <string name="perm_group_vr">Virtual Reality</string>
     <!-- Permission status display -->
     <!-- Permission row action buttons -->
     <string name="perm_action_grant">Grant</string>
@@ -2006,21 +1981,17 @@ Close the player and try again.</string>
     <string name="perm_title_read_media_audio">Music access</string>
     <string name="perm_desc_read_media_audio">Music on this device</string>
     <string name="perm_title_manage_external_storage">Full storage management</string>
-    <string name="perm_desc_manage_external_storage">Move and delete files</string>
+    <string name="perm_desc_manage_external_storage">Access to any folder, including app folders</string>
     <string name="perm_title_manage_media">Media management</string>
     <string name="perm_desc_manage_media">Bulk media edits</string>
     <string name="perm_title_access_local_network">Local network access</string>
-    <string name="perm_desc_access_local_network">SMB and DLNA servers</string>
+    <string name="perm_desc_access_local_network">SMB, SFTP, FTP and DLNA servers</string>
     <string name="perm_title_record_audio">Microphone</string>
-    <string name="perm_desc_record_audio">Voice notes for media</string>
+    <string name="perm_desc_record_audio">Voice notes and sound in recordings</string>
     <string name="perm_title_post_notifications">Notifications</string>
     <string name="perm_desc_post_notifications">Progress notifications</string>
     <string name="perm_title_battery_optimization">Battery optimization</string>
     <string name="perm_desc_battery_optimization">Background work allowed</string>
-    <string name="perm_title_hand_tracking">Hand tracking</string>
-    <string name="perm_desc_hand_tracking">Use hand gestures to control playback, browse files and navigate menus on Meta Quest headsets without a physical controller.</string>
-    <string name="perm_title_headset_camera">Passthrough camera</string>
-    <string name="perm_desc_headset_camera">Access the passthrough cameras on Meta Quest to display the real world around the app window in mixed reality mode.</string>
 
     <!-- Now Playing UI (III.13) -->
     <string name="now_playing_label">Now Playing</string>
@@ -2238,8 +2209,6 @@ Close the player and try again.</string>
     <string name="mic_recording_button_content_desc">Record audio</string>
     <string name="mic_recording_hold_hint">Hold to record</string>
     <string name="mic_recording_filename_title">Save Recording</string>
-    <string name="mic_recording_permission_rationale">Microphone access is required to record audio</string>
-    <string name="mic_recording_permission_denied">Microphone permission denied. Grant it in system settings.</string>
     <string name="mic_recording_saved">Recording saved: %s</string>
     <string name="mic_recording_error_save">Failed to save recording</string>
     <string name="mic_recording_error_start">Failed to start recording</string>
@@ -2445,12 +2414,11 @@ Close the player and try again.</string>
     <string name="quick_recorder_notification_channel">Voice recording</string>
     <string name="quick_recorder_action_stop">Stop</string>
     <string name="quick_recorder_error">Could not record audio</string>
-    <string name="quick_recorder_permission_needed">Microphone access is needed to record</string>
     <string name="quick_recorder_permission_settings">Enable microphone access in Settings</string>
     <string name="camera_ocr_crop_lang_ocr_desc">OCR language</string>
     <string name="camera_ocr_crop_lang_target_desc">Translation language</string>
     <string name="perm_title_camera">Camera</string>
-    <string name="perm_desc_camera">Shoot inside the app</string>
+    <string name="perm_desc_camera">Shooting, text recognition and QR codes</string>
     <string name="perm_group_camera">Camera</string>
     <string name="camera_permission_required">Camera access is needed to take photos in the app. Grant the permission and try again.</string>
     <string name="setting_camera_to_resource_enabled_title">Enable photo capture</string>
@@ -2936,7 +2904,6 @@ Close the player and try again.</string>
     <string name="screen_recording_disclosure_title">Screen video recording</string>
     <string name="screen_recording_disclosure_message">FastMediaSorter will record everything shown on your screen, including other apps, to a video file with microphone audio until you stop it. Recording continues in the background. Android asks you to choose this app or the entire screen at the start of every recording, and this step cannot be skipped.</string>
     <string name="screen_recording_disclosure_start">Start recording</string>
-    <string name="screen_recording_permission_denied">Microphone and notification permissions are required to record the screen.</string>
     <string name="screen_recording_saved">Screen recording saved: %1$s</string>
     <string name="screen_recording_error">Could not save the screen recording.</string>
     <string name="streams_panel_disable_action">Disable</string>
@@ -3000,7 +2967,6 @@ Close the player and try again.</string>
     <string name="companion_import_password_required">Enter the password for this server.</string>
     <string name="companion_qr_scan_hint">Point the camera at the companion QR code</string>
     <string name="companion_qr_scan_torch">Torch</string>
-    <string name="companion_qr_camera_denied">Camera access is needed to scan the QR code</string>
     <string name="vr_cinema_program_title">VR Cinema</string>
     <string name="setting_gesture_zone_left_top_title">Left edge - upper band</string>
     <string name="setting_gesture_zone_left_bottom_title">Left edge - lower band</string>
@@ -3341,4 +3307,61 @@ Close the player and try again.</string>
     <string name="launcher_now_playing_access_message">FastMediaSorter reads the media session of whatever app is playing - the track title, the artist and the play state - so this gadget can show it and control playback. Android calls this permission notification access, but the app reads no notifications, only the media session. You grant it on an Android settings screen and can withdraw it there at any time.</string>
     <string name="perm_title_notification_listener">Notification access</string>
     <string name="perm_desc_notification_listener">Lets the Now Playing gadget on the launcher desktop show and control what other apps are playing. The app reads media sessions only, never the content of notifications. Optional - granted on an Android settings screen.</string>
+    <string name="perm_title_write_external_storage">Saving to device storage</string>
+    <string name="perm_desc_write_external_storage">Writing files on Android 9 and older</string>
+    <string name="perm_title_system_alert_window">Display over other apps</string>
+    <string name="perm_desc_system_alert_window">Gesture strip on top of other apps</string>
+    <string name="perm_title_request_install_packages">Install apps from files</string>
+    <string name="perm_desc_request_install_packages">Opening an APK file found on this device</string>
+    <string name="perm_title_screen_capture_consent">Screen capture</string>
+    <string name="perm_desc_screen_capture_consent">The system asks every time a capture starts - it cannot be allowed in advance</string>
+    <string name="perm_title_access_coarse_location">Approximate location</string>
+    <string name="perm_desc_access_coarse_location">Coarse coordinates for a photo taken in the app</string>
+    <string name="perm_title_read_phone_state">Phone status</string>
+    <string name="perm_desc_read_phone_state">Signal strength on the launcher status strip</string>
+    <string name="perm_rationale_manage_external_storage">Without this permission Android limits folder choice to Documents, Downloads and Pictures. With it you can pick any folder - including DCIM, Camera and app folders such as Android/media - and move or delete files there. It is used only to browse and organize your media; nothing is collected or sent anywhere.</string>
+    <string name="perm_addendum_manage_external_storage_folder_picking">Grant it on the next screen, then come back here to pick the folder.</string>
+    <string name="perm_rationale_read_external_storage">The app needs access to your device storage to find and show media files, and to move or delete the ones you sort.</string>
+    <string name="perm_addendum_read_external_storage_local_resource">This is needed to create a local resource from a folder on the device.</string>
+    <string name="perm_rationale_access_local_network">The app connects to SMB, SFTP, FTP and DLNA servers on your network, and finds them by looking for devices on it. Without this permission those sources stay unreachable; nothing outside your network is contacted.</string>
+    <string name="perm_addendum_camera_qr_pairing">Scanning a companion QR code needs the camera.</string>
+    <string name="perm_rationale_record_audio">The microphone records voice notes and the sound in a screen recording. Without it recording cannot start.</string>
+    <string name="perm_addendum_record_audio_screen_recording">A screen recording takes its sound from the microphone.</string>
+    <string name="perm_addendum_post_notifications_screen_recording">The recording notification carries the stop control.</string>
+    <string name="perm_rationale_location">Location is used only to write coordinates into the photos and videos you shoot in the app. Nothing is sent anywhere.</string>
+    <string name="perm_addendum_post_notifications_scheduled_ops">Allow notifications for scheduled operations</string>
+    <string name="perm_rationale_battery_optimization">Android may pause the app in the background, and a scheduled operation then runs late or not at all. Excluding the app from battery optimization keeps the schedule on time.</string>
+    <string name="launcher_gadget_compass">Compass</string>
+    <string name="launcher_gadget_speed">Speed</string>
+    <string name="launcher_gadget_compass_cardinal_n">North</string>
+    <string name="launcher_gadget_compass_cardinal_ne">Northeast</string>
+    <string name="launcher_gadget_compass_cardinal_e">East</string>
+    <string name="launcher_gadget_compass_cardinal_se">Southeast</string>
+    <string name="launcher_gadget_compass_cardinal_s">South</string>
+    <string name="launcher_gadget_compass_cardinal_sw">Southwest</string>
+    <string name="launcher_gadget_compass_cardinal_w">West</string>
+    <string name="launcher_gadget_compass_cardinal_nw">Northwest</string>
+    <string name="launcher_gadget_compass_heading">%1$d° %2$s</string>
+    <string name="launcher_gadget_compass_altitude">%1$d m</string>
+    <string name="launcher_gadget_compass_calibrate">Wave the phone in a figure eight</string>
+    <string name="launcher_gadget_speed_value">%1$d km/h</string>
+    <string name="launcher_gadget_sensor_no_fix">Waiting for a position..</string>
+    <string name="launcher_gadget_sensor_no_permission">Location is off. Allow it in app permissions.</string>
+    <string name="launcher_gadget_compass_description">Compass. Heading %1$s, altitude %2$s</string>
+    <string name="launcher_gadget_speed_description">Current speed: %1$s</string>
+    <string name="launcher_gadget_speed_chart">Speed chart</string>
+    <string name="launcher_gadget_altitude_chart">Altitude chart</string>
+    <string name="launcher_gadget_chart_reset">Reset</string>
+    <string name="launcher_gadget_chart_reset_description">Clears the chart and starts it again from now</string>
+    <string name="launcher_gadget_chart_empty">No readings yet - the chart fills as you move.</string>
+    <string name="launcher_gadget_chart_distance">%1$s km</string>
+    <string name="launcher_gadget_chart_altitude_current">Now %1$d m</string>
+    <string name="launcher_gadget_speed_chart_description">Speed chart. Now %1$s, %2$s since the reset</string>
+    <string name="launcher_gadget_altitude_chart_description">Altitude chart. Now %1$s, %2$s since the reset, %3$s travelled</string>
+    <string name="launcher_gadget_steps">Steps</string>
+    <string name="launcher_gadget_steps_since_boot">Since the phone started</string>
+    <string name="launcher_gadget_steps_description">Steps: %1$s since the phone started</string>
+    <string name="perm_title_activity_recognition">Physical activity</string>
+    <string name="perm_desc_activity_recognition">Step count on the launcher desktop</string>
+    <string name="perm_rationale_activity_recognition">The steps gadget reads the counter your phone already keeps. Nothing is recorded, sent anywhere, or kept after you remove the gadget.</string>
 </resources>

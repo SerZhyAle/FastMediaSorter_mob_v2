@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
 import com.sza.fastmediasorter.ui.launcher.gadget.di.HomeWidgetGadgets
+import com.sza.fastmediasorter.ui.launcher.gadget.di.SensorGadgets
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,13 +29,23 @@ class LauncherGadgetRegistry @Inject constructor(
     // hiltJavaCompile, long after `a.ps1 fk` has reported the Kotlin as clean. Same reason
     // ResolvePanelRouteAvailabilityUseCase writes Set<@JvmSuppressWildcards ScreenVideoRecordingController>.
     @HomeWidgetGadgets homeWidgets: List<@JvmSuppressWildcards LauncherGadget>,
+    // S1179: the sensor tiles arrive the same way and for the same two reasons - the constructor
+    // threshold, and the @JvmSuppressWildcards erasure trap documented above.
+    @SensorGadgets sensors: List<@JvmSuppressWildcards LauncherGadget>,
 ) {
 
     private val gadgets: List<LauncherGadget> =
-        listOf(clock, weather, playlist, streams, folderPreview) + homeWidgets
+        listOf(clock, weather, playlist, streams, folderPreview) + homeWidgets + sensors
 
     /** Picker order (Phase 07): cheapest and most universal first. */
     fun all(): List<LauncherGadget> = gadgets
+
+    /**
+     * S1179: what the picker offers - everything this device can actually show. Deliberately not the
+     * same list as [all]: a cell already on the desktop still resolves through [byKey] even if its
+     * sensor stops answering, so an existing desktop never loses a tile on upgrade.
+     */
+    fun available(): List<LauncherGadget> = gadgets.filter { it.isAvailable() }
 
     fun byKey(key: String): LauncherGadget? = gadgets.firstOrNull { it.key == key }
 
@@ -65,6 +76,13 @@ class LauncherGadgetRegistry @Inject constructor(
         const val KEY_PLAYLIST = "playlist"
         const val KEY_STREAMS = "streams"
         const val KEY_FOLDER_PREVIEW = "folder_preview"
+
+        // S1179: a key is a storage format written into a cell's `target` column - never renamed.
+        const val KEY_COMPASS = "compass"
+        const val KEY_SPEED = "speed"
+        const val KEY_SPEED_CHART = "speed_chart"
+        const val KEY_ALTITUDE_CHART = "altitude_chart"
+        const val KEY_STEPS = "steps"
 
         private const val SEPARATOR = ':'
     }

@@ -1,9 +1,7 @@
 package com.sza.fastmediasorter.ui.welcome
 
-import android.Manifest
 import android.animation.ValueAnimator
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.view.FocusFinder
 import android.view.KeyEvent
@@ -31,6 +29,7 @@ import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
@@ -654,32 +653,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         }
     }
 
-    private fun getRequiredMediaPermissions(): Array<String> {
-        return when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
-                arrayOf(
-                    Manifest.permission.READ_MEDIA_IMAGES,
-                    Manifest.permission.READ_MEDIA_VIDEO,
-                    Manifest.permission.READ_MEDIA_AUDIO
-                )
-            }
-
-            // API 29-32: WRITE_EXTERNAL_STORAGE not grantable on targetSdk 29+; READ only
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
-                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-
-            // API 23-28: both READ and WRITE required at runtime
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
-                arrayOf(
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                )
-            }
-
-            else -> emptyArray()
-        }
-    }
+    private fun getRequiredMediaPermissions(): Array<String> = StoragePermissionRule.requiredPermissions()
 
     private fun hasRequiredMediaPermissions(): Boolean {
         return getRequiredMediaPermissions().all { permission ->

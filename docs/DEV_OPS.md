@@ -421,8 +421,11 @@ Cast is disabled in `vr` (Horizon OS lacks the Google Play Services Cast module)
 | `ENABLE_LEAKCANARY`           | [-] | -   | -   |
 | `ENABLE_SCHEDULED_OPERATIONS` | [+] | [+] | [+] |
 | `ENABLE_BACKGROUND_AUDIO`     | [+] | [+] | [+] |
+| `DECLARES_BATTERY_OPTIMIZATION` | [+] | [+] | [-] |
 
 `ENABLE_LEAKCANARY` is debug-only (`debugImplementation`); field absent in staging/release.
+
+`DECLARES_BATTERY_OPTIMIZATION` (S1436) is the one flag here that mirrors the manifest rather than a feature: the release build strips `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, so code that would offer to grant it must read this flag rather than assume the permission is there. `DECLARES_OVERLAY_PERMISSION` and `DECLARES_SCREEN_CAPTURE` are the flavor-axis members of the same family - see `docs/FLAVOR_MATRIX.md`, which is generated from the `productFlavors` block. The permission registry filters its rows on all three, and `PermissionRegistryManifestParityTest` fails the build if a flag and the merged manifest ever disagree.
 
 ## DATABASE
 

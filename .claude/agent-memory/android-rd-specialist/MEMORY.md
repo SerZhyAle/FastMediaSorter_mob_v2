@@ -35,6 +35,8 @@ Pointers only - open a file when its hook matches. Billed every turn; `assert-me
 
 ## Build, flavors, gates
 - [Don't release someone else's CODE.LOCK](feedback_code_lock_release_ownership.md) · [No concurrent gradle](feedback_no_concurrent_gradle_invocations.md)
+- [Don't idle on a lock](feedback_do_not_idle_on_a_lock.md) - "не жди": do the lock-free remainder, take the lock last
+- [CODE.LOCK is per step, not per ticket](feedback_code_lock_is_per_step_not_per_ticket.md) - post-change releases it; silent background waiting gets your queue ticket evicted
 - [Fast checks](feedback_fast_checks_during_dev.md) + [no redundant flavor compile](feedback_no_redundant_flavor_compile.md)
 - [Flavor isolation](feedback_flavor_isolation_strict.md) · [Don't infer arch from BuildConfig](feedback_dont_infer_from_buildconfig_names.md) · [Push features to lowest flavor](feedback_push_features_to_lowest_flavor.md)
 - [Flavor grid is generated](project_flavor_matrix_cloud_correction.md) · [photos/lite OCR src sets](project_photos_flavor_ocr_break.md) · [Third-party branding ok](feedback_third_party_branding_not_a_blocker.md)
@@ -50,7 +52,8 @@ Pointers only - open a file when its hook matches. Billed every turn; `assert-me
 - [Check binding field types](feedback_check_generated_binding_types.md) - Button vs MaterialButton crashes · [No glob path in KDoc](feedback_kdoc_nested_comment_glob_path.md)
 
 ## detekt / lint / gates / logging
-- detekt, by symptom: [in post-change](project_detekt_gate_in_post_change.md) · [dirty tree](feedback_detekt_gate_dirty_tree.md) · [-ScopeToFile](feedback_closure_on_dirty_tree.md) · [clean first time](feedback_write_detekt_clean_first_time.md) · [resurface](feedback_detekt_baseline_signature_resurface.md) · [ktlint imports](project_detekt_ktlint_import_layout.md) · [line shift](feedback_detekt_scoped_gate_line_shift.md) · [untouched debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) · [ONE file](feedback_post_change_scopes_detekt_to_one_file.md) · [hand-edit ignored](project_detekt_baseline_hand_edit_daemon_stale.md) · [stale report](feedback_post_change_detekt_stale_report.md) · [exit 0 sans -Gate](feedback_assert_detekt_exit_zero_without_gate.md)
+- **OPEN BEFORE WRITING ANY KOTLIN:** [detekt-clean first time](feedback_write_detekt_clean_first_time.md) - ReturnCount>2, MagicNumber, >120-char lines, brace-less if/else. Reading it after the gate fails is too late.
+- detekt, by symptom: [in post-change](project_detekt_gate_in_post_change.md) · [dirty tree](feedback_detekt_gate_dirty_tree.md) · [-ScopeToFile](feedback_closure_on_dirty_tree.md) · [resurface](feedback_detekt_baseline_signature_resurface.md) · [ktlint imports](project_detekt_ktlint_import_layout.md) · [line shift](feedback_detekt_scoped_gate_line_shift.md) · [untouched debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) · [ONE file](feedback_post_change_scopes_detekt_to_one_file.md) · [hand-edit ignored](project_detekt_baseline_hand_edit_daemon_stale.md) · [stale report](feedback_post_change_detekt_stale_report.md) · [exit 0 sans -Gate](feedback_assert_detekt_exit_zero_without_gate.md)
 - [Debt-ticket premise decays](feedback_detekt_debt_ticket_premise_decays.md) S1328 - baseline regen voids counts
 - [lint tests enforce FQN resolution](project_lint_test_modes_enforce_resolution.md) · [lint baseline matches fuzzily](project_lint_baseline_matching_and_runner.md) S1195
 - [Stale test-results XML](feedback_stale_test_results_xml.md) · [fu OOMs mid-run](project_unit_suite_oom_truncation.md) S1244 - verify per class
@@ -82,6 +85,7 @@ Pointers only - open a file when its hook matches. Billed every turn; `assert-me
 ## Streams / VR / players
 - [Link-download present() dead](project_link_download_present_suppressed.md) S0980 · [Ship every live channel](feedback_stream_catalog_all_live_channels.md) + [publish](reference_stream_catalog_publish.md)
 - [Favicon atlas](project_stream_favicon_atlas_delivery.md) + [publish](project_stream_catalog_atlas_publish.md) - no atlas.png wipes favicons
+- [Artwork ships as tile packs](project_stream_artwork_tile_packs.md) S1445 - a sprite sheet has no random access
 - [Streams device-test gate](project_streams_device_test_gate.md) · [radio vs video player](project_stream_radio_vs_video_player_split.md)
 - [VR inclusion hierarchy](project_vr_inclusion_hierarchy.md) - `src/vr` ships in TWO flavors · [supportsVrPlayer noLegal-only](project_supportsvrplayer_nolegal_only.md)
 - ["VR" = device or flavor?](project_xr_device_guard_lives_in_main.md) - ask first; Quest sideloads standard too

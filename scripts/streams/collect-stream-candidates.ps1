@@ -138,6 +138,16 @@ param(
     [string]$LogoCoordsPath = 'delivery/stream-catalog/stream-logo-coords.json',
     [int]$LogoLimit = 0,
 
+    # S1445 tile packs. A sprite sheet is not randomly addressable - a WebP decoder walks the stream
+    # from the top to reach a row - so the app now reads one small image per tile out of a ZIP
+    # container instead of region-decoding the sheet. The pack is cut FROM the sheet, so tile indices
+    # cannot drift from the published url->index sidecar.
+    [switch]$WithTilePacks,
+    [switch]$PublishTilePacks,
+    [string]$PreviewTilePackPath = 'temp/channel-preview-tiles.zip',
+    [string]$LogoTilePackPath = 'temp/stream-logo-tiles.zip',
+    [int]$TilePackQuality = 80,
+
     # Explicit ffmpeg binary; empty means auto-discovery (PATH, then the usual install roots).
     [string]$FfmpegPath = '',
     # Atlas size ceiling enforced before publish. This must match the app-side import cap. Over the cap
@@ -1746,6 +1756,136 @@ function Invoke-BuildStreamLogoAtlasRun {
     Build-StreamLogoAtlas -Rows $rows | Out-Null
 }
 
+# --- S1445 tile packs (offline repack of a sprite sheet into a random-access container) ----------
+
+# Cut a finished sprite sheet into one image per slot and pack them into a ZIP whose entry name is
+# the slot index as a plain decimal string with no extension - the contract StreamTilePackReader
+# reads. Entries are stored uncompressed: the tiles are already compressed images, and stored entries
+# keep ZipFile's random access cheap on device.
+#
+# The cut is driven by the sheet itself rather than by the source frames, so the tile indices stay
+# exactly the ones the published url->index sidecar already points at.
+function Build-TilePackFromSheet {
+    param(
+        [Parameter(Mandatory = $true)][string]$SheetPath,
+        [Parameter(Mandatory = $true)][string]$CoordsFile,
+        [Parameter(Mandatory = $true)][int]$TileW,
+        [Parameter(Mandatory = $true)][int]$TileH,
+        [Parameter(Mandatory = $true)][int]$Cols,
+        [Parameter(Mandatory = $true)][string]$OutZip,
+        [int]$Quality = $TilePackQuality,
+        # `untile` refuses a grid whose tile size is not a whole number of chroma blocks, and the
+        # preview tile is 135 px tall - odd. Converting to a non-subsampled format first sidesteps
+        # that; `rgba` is required for the logo sheet, whose transparent margins are the whole point.
+        [string]$PixelFormat = 'rgb24'
+    )
+
+    foreach ($f in @($SheetPath, $CoordsFile)) {
+        if (-not (Test-Path $f)) { throw "Tile pack input missing: $f" }
+    }
+
+    $ffmpeg = Get-FfmpegExe
+    $sheetFull = (Resolve-Path $SheetPath).Path
+
+    # ffmpeg prints the stream line only on stderr; the sheet dimensions decide the untile grid, and
+    # guessing them from the sidecar would silently mis-cut a sheet whose last row is partly empty.
+    $probe = & $ffmpeg -hide_banner -i $sheetFull -f null - 2>&1 | Out-String
+    $match = [regex]::Match($probe, 'Stream #0:0.*?,\s(\d{3,5})x(\d{3,5})')
+    if (-not $match.Success) { throw "Could not read the sheet dimensions of $SheetPath from ffmpeg output." }
+    $sheetW = [int]$match.Groups[1].Value
+    $sheetH = [int]$match.Groups[2].Value
+    if ($sheetW % $TileW -ne 0 -or $sheetH % $TileH -ne 0) {
+        throw ("Sheet {0}x{1} is not a whole number of {2}x{3} tiles - geometry contract broken." -f $sheetW, $sheetH, $TileW, $TileH)
+    }
+    $sheetCols = [int]($sheetW / $TileW)
+    if ($sheetCols -ne $Cols) {
+        throw ("Sheet has {0} columns, the app contract says {1} - refusing to cut." -f $sheetCols, $Cols)
+    }
+    $rows = [int]($sheetH / $TileH)
+
+    $wanted = [System.Collections.Generic.HashSet[int]]::new()
+    $coords = Get-Content $CoordsFile -Raw | ConvertFrom-Json
+    foreach ($prop in $coords.PSObject.Properties) { $null = $wanted.Add([int]$prop.Value) }
+
+    $stage = Join-Path 'temp' ('tile-pack-' + [System.IO.Path]::GetFileNameWithoutExtension($OutZip))
+    if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
+    $cutDir = Join-Path $stage 'cut'
+    $packDir = Join-Path $stage 'pack'
+    New-Item -ItemType Directory -Path $cutDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $packDir -Force | Out-Null
+
+    Write-Host ("Tile pack: cutting {0}x{1} into {2}x{3} tiles ({4} slot(s), {5} wanted) .." -f `
+            $sheetW, $sheetH, $Cols, $rows, ($Cols * $rows), $wanted.Count) -ForegroundColor Yellow
+    # One ffmpeg pass: untile emits the whole grid in row-major order, which is the order the packer
+    # laid the tiles down in (col = index % cols), so frame N is slot N.
+    & $ffmpeg -hide_banner -loglevel error -y -i $sheetFull -vf ("format={0},untile={1}x{2}" -f $PixelFormat, $Cols, $rows) `
+        -c:v libwebp -quality $Quality -compression_level 6 -start_number 0 (Join-Path $cutDir '%06d.webp')
+    if ($LASTEXITCODE -ne 0) { throw "ffmpeg untile failed (exit $LASTEXITCODE)" }
+
+    $kept = 0
+    foreach ($index in ($wanted | Sort-Object)) {
+        $cut = Join-Path $cutDir ('{0:D6}.webp' -f $index)
+        if (-not (Test-Path $cut)) {
+            Write-Warning ("Tile pack: slot {0} has no cut tile - skipped." -f $index)
+            continue
+        }
+        Move-Item $cut (Join-Path $packDir ([string]$index)) -Force
+        $kept++
+    }
+    if ($kept -eq 0) { throw 'Tile pack: no tiles survived the cut - refusing to write an empty pack.' }
+
+    Backup-IfExists -Path $OutZip | Out-Null
+    if (Test-Path $OutZip) { Remove-Item $OutZip -Force }
+    Compress-Archive -Path (Join-Path $packDir '*') -DestinationPath $OutZip -CompressionLevel NoCompression
+    Remove-Item $cutDir -Recurse -Force
+
+    $packBytes = (Get-Item $OutZip).Length
+    $sheetBytes = (Get-Item $sheetFull).Length
+    $hash = (Get-FileHash -Algorithm SHA256 -Path $OutZip).Hash.ToLowerInvariant()
+    Write-Host ''
+    Write-Host ("Tile pack: {0} entr(ies) -> {1}" -f $kept, (Resolve-Path $OutZip).Path) -ForegroundColor Green
+    Write-Host ("    sha256 = {0}" -f $hash) -ForegroundColor DarkGray
+    Write-Host ("    bytes  = {0:N0} (sheet was {1:N0}; {2:P0} of it)" -f $packBytes, $sheetBytes, ($packBytes / $sheetBytes)) -ForegroundColor DarkGray
+    return $kept
+}
+
+function Invoke-BuildTilePacksRun {
+    Build-TilePackFromSheet -SheetPath $PreviewAtlasPath -CoordsFile $PreviewCoordsPath `
+        -TileW $script:PreviewTileW -TileH $script:PreviewTileH -Cols $script:PreviewCols `
+        -OutZip $PreviewTilePackPath | Out-Null
+    Build-TilePackFromSheet -SheetPath $LogoAtlasPath -CoordsFile $LogoCoordsPath `
+        -TileW $script:LogoTileW -TileH $script:LogoTileH -Cols $script:LogoCols `
+        -OutZip $LogoTilePackPath -PixelFormat 'rgba' | Out-Null
+}
+
+# Upload both packs as their own release assets, alongside the sheets, which stay published unchanged
+# for third-party consumers of the catalog.
+function Invoke-PublishTilePacks {
+    param([string]$PreviewPack = $PreviewTilePackPath, [string]$LogoPack = $LogoTilePackPath, [string]$Tag = $PublishTag)
+    foreach ($f in @($PreviewPack, $LogoPack)) {
+        if (-not (Test-Path $f)) { throw "Tile pack missing for publish: $f (run with -WithTilePacks first)" }
+    }
+    $ghExe = Get-GhExe
+    $stageDir = 'temp/tile-pack-publish'
+    if (Test-Path $stageDir) { Remove-Item $stageDir -Recurse -Force }
+    New-Item -ItemType Directory -Path $stageDir -Force | Out-Null
+    # The remote asset name carries the element revision, matching DeliverableDescriptorCatalog's
+    # withRev(); the on-device file name stays unversioned.
+    $previewAsset = Join-Path $stageDir 'channel-preview-tiles-v2.zip'
+    $logoAsset = Join-Path $stageDir 'stream-logo-tiles-v2.zip'
+    Copy-Item $PreviewPack $previewAsset -Force
+    Copy-Item $LogoPack $logoAsset -Force
+
+    Write-Host ("Publishing tile packs to release {0} (--clobber) .." -f $Tag) -ForegroundColor Cyan
+    & $ghExe release upload $Tag $previewAsset $logoAsset --clobber
+    if ($LASTEXITCODE -ne 0) { throw "gh release upload failed (exit $LASTEXITCODE)" }
+    foreach ($f in @($previewAsset, $logoAsset)) {
+        $h = (Get-FileHash -Algorithm SHA256 -Path $f).Hash.ToLowerInvariant()
+        Write-Host ("Published {0} ({1:N0} bytes)" -f (Split-Path -Leaf $f), (Get-Item $f).Length) -ForegroundColor Green
+        Write-Host ("    sha256 = {0}" -f $h) -ForegroundColor DarkGray
+    }
+}
+
 function Invoke-CatalogMaintenance {
     if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
     $allRows = @(Import-Csv -Path $ExistingCsv)
@@ -1923,6 +2063,18 @@ if ($WithChannelPreviews) {
 }
 if ($PublishPreviewAtlas) {
     Invoke-PublishChannelPreviewAtlas
+    return
+}
+
+# S1445: repacking a finished sheet into tile packs is its own mode too - it must never ride along
+# with a catalog refresh, because it publishes a payload the app pins by hash.
+if ($WithTilePacks) {
+    Invoke-BuildTilePacksRun
+    if ($PublishTilePacks) { Invoke-PublishTilePacks }
+    return
+}
+if ($PublishTilePacks) {
+    Invoke-PublishTilePacks
     return
 }
 
