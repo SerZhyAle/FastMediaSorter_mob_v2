@@ -56,6 +56,13 @@ if ($Slug) {
     if ($Slug -match '^spec_') { throw "Invalid -Slug '$Slug' - must not start with 'spec_'." }
 }
 
+# S1437: the read, the id allocation, the duplicate check and the write are one critical section.
+# New-CatalogId is "max + 1" with no reservation, so two concurrent inserts outside this lock can
+# compute the same id, and the later write would drop the earlier record entirely.
+# Released on the success path below; a throw hits the trap above and exits, and the OS releases
+# the mutex with the process.
+Enter-CatalogLock
+
 $records = Read-Catalog
 
 if (-not $Id) {
@@ -97,6 +104,8 @@ $list = [System.Collections.Generic.List[object]]::new()
 foreach ($r in $records) { $list.Add($r) }
 $list.Add($record)
 Write-Catalog -Records $list.ToArray()
+
+Exit-CatalogLock
 
 Write-Output $Id
 exit 0

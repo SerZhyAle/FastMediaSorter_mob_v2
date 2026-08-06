@@ -395,6 +395,16 @@ data class AppSettings(
     val launcherTaskbarShowPinned: Boolean = true,
     val launcherTaskbarShowTray: Boolean = true,
     val launcherReplaceSystemStatusArea: Boolean = false,
+    // S1415: composition of the tray itself, one switch per indicator, in the tray's left-to-right order.
+    // [launcherTaskbarShowTray] above stays the master switch for the whole block; these only decide what
+    // the block contains once it is shown. All default ON so an upgrade looks exactly like the old tray
+    // plus the indicators the device can actually report.
+    val launcherTrayShowClock: Boolean = true,
+    val launcherTrayShowBluetooth: Boolean = true,
+    val launcherTrayShowSim1: Boolean = true,
+    val launcherTrayShowSim2: Boolean = true,
+    val launcherTrayShowNetwork: Boolean = true,
+    val launcherTrayShowBattery: Boolean = true,
     // S0404: one-shot - true once the first-rotation hint has been shown, so it never repeats. No UI row
     // (invisible to the settings-doc gate); it is a remembered event, not a user-facing toggle.
     val launcherRotationHintShown: Boolean = false,

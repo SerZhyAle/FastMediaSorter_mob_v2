@@ -93,7 +93,9 @@ This is a fast self-review scoped to one phase, not a replacement for `/spec-che
 
 Open before calling `scripts/agent_continuity/session-snapshot.ps1` at a phase boundary.
 
-Pass `-Ticket <Sxxxx>` (active spec id), `-Goal "<phase title>"` (just-finished phase title), `-FilesTouched @(<file1>, <file2>, ...)` (from this phase's `Files Touched` table), `-NextStep "<cursor>"` (next step printed in chat, or `phase-complete` when whole phase was the final one).
+Pass `-Ticket <Sxxxx>` (active spec id), `-Goal "<phase title>"` (just-finished phase title), `-FilesTouched` (from this phase's `Files Touched` table), `-NextStep "<cursor>"` (next step printed in chat, or `phase-complete` when whole phase was the final one).
+
+`-FilesTouched` takes **a comma-joined string** when the script is run the usual way, `pwsh -NoProfile -File ...`: that invocation hands the script flat strings, so a real `@(a, b, c)` array arrives as separate tokens. Until 2026-08-06 those extra tokens bound to `-Decisions` and `-Blockers` by declaration order and the script still exited 0, writing a snapshot that named one file and filed the rest under the wrong headings (found in S0429). The script now binds by name only, so that shape fails loudly instead - pass `-FilesTouched "a.kt,b.kt,c.kt"`, or call it through the `&` operator where a genuine array survives.
 
 ---
 

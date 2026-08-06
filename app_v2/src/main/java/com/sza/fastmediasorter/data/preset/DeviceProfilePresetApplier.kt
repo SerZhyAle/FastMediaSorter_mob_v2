@@ -314,6 +314,24 @@ class DeviceProfilePresetApplier @Inject constructor(
             "launcherReplaceSystemStatusArea" -> applyLauncherField(field, raw, settings) { s ->
                 s.copy(launcherReplaceSystemStatusArea = raw.toBool())
             }
+            "launcherTrayShowClock" -> applyLauncherField(field, raw, settings) { s ->
+                s.copy(launcherTrayShowClock = raw.toBool())
+            }
+            "launcherTrayShowBluetooth" -> applyLauncherField(field, raw, settings) { s ->
+                s.copy(launcherTrayShowBluetooth = raw.toBool())
+            }
+            "launcherTrayShowSim1" -> applyLauncherField(field, raw, settings) { s ->
+                s.copy(launcherTrayShowSim1 = raw.toBool())
+            }
+            "launcherTrayShowSim2" -> applyLauncherField(field, raw, settings) { s ->
+                s.copy(launcherTrayShowSim2 = raw.toBool())
+            }
+            "launcherTrayShowNetwork" -> applyLauncherField(field, raw, settings) { s ->
+                s.copy(launcherTrayShowNetwork = raw.toBool())
+            }
+            "launcherTrayShowBattery" -> applyLauncherField(field, raw, settings) { s ->
+                s.copy(launcherTrayShowBattery = raw.toBool())
+            }
             "launcherDesktopLocked" -> applyLauncherField(field, raw, settings) { s ->
                 s.copy(launcherDesktopLocked = raw.toBool())
             }

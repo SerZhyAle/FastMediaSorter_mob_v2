@@ -271,7 +271,7 @@
 
 | Constraint                              | Details                                                    |
 |:----------------------------------------|:-----------------------------------------------------------|
-| JDK version                             | 17 or 21 only. JDK 25+ is **incompatible** with the current Gradle 9.4.1 / AGP 9.2.1 toolchain |
+| JDK version                             | 17, 21, or 25. JDK 26+ is **incompatible** with the current Gradle 9.4.1 / AGP 9.2.1 toolchain |
 | Kotlin ↔ Compose compiler match         | Kotlin 1.9.24 requires Compose Compiler 1.5.14 exactly     |
 | 16 KB page alignment                    | Mandatory for Google Play since Nov 1, 2025 (Android 15+)  |
 | `Log.d()` prohibited                    | Use `Timber` exclusively                                   |

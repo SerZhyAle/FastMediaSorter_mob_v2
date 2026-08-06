@@ -212,6 +212,12 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_LAUNCHER_TASKBAR_SHOW_RECENTS = booleanPreferencesKey("launcher_taskbar_show_recents")
         private val KEY_LAUNCHER_TASKBAR_SHOW_PINNED = booleanPreferencesKey("launcher_taskbar_show_pinned")
         private val KEY_LAUNCHER_TASKBAR_SHOW_TRAY = booleanPreferencesKey("launcher_taskbar_show_tray")
+        private val KEY_LAUNCHER_TRAY_SHOW_CLOCK = booleanPreferencesKey("launcher_tray_show_clock")
+        private val KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH = booleanPreferencesKey("launcher_tray_show_bluetooth")
+        private val KEY_LAUNCHER_TRAY_SHOW_SIM1 = booleanPreferencesKey("launcher_tray_show_sim1")
+        private val KEY_LAUNCHER_TRAY_SHOW_SIM2 = booleanPreferencesKey("launcher_tray_show_sim2")
+        private val KEY_LAUNCHER_TRAY_SHOW_NETWORK = booleanPreferencesKey("launcher_tray_show_network")
+        private val KEY_LAUNCHER_TRAY_SHOW_BATTERY = booleanPreferencesKey("launcher_tray_show_battery")
         private val KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA =
             booleanPreferencesKey("launcher_replace_system_status_area")
         private val KEY_LAUNCHER_ROTATION_HINT_SHOWN = booleanPreferencesKey("launcher_rotation_hint_shown")
@@ -567,6 +573,12 @@ class SettingsRepositoryImpl @Inject constructor(
                     launcherTaskbarShowRecents = preferences[KEY_LAUNCHER_TASKBAR_SHOW_RECENTS] ?: true,
                     launcherTaskbarShowPinned = preferences[KEY_LAUNCHER_TASKBAR_SHOW_PINNED] ?: true,
                     launcherTaskbarShowTray = preferences[KEY_LAUNCHER_TASKBAR_SHOW_TRAY] ?: true,
+                    launcherTrayShowClock = preferences[KEY_LAUNCHER_TRAY_SHOW_CLOCK] ?: true,
+                    launcherTrayShowBluetooth = preferences[KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH] ?: true,
+                    launcherTrayShowSim1 = preferences[KEY_LAUNCHER_TRAY_SHOW_SIM1] ?: true,
+                    launcherTrayShowSim2 = preferences[KEY_LAUNCHER_TRAY_SHOW_SIM2] ?: true,
+                    launcherTrayShowNetwork = preferences[KEY_LAUNCHER_TRAY_SHOW_NETWORK] ?: true,
+                    launcherTrayShowBattery = preferences[KEY_LAUNCHER_TRAY_SHOW_BATTERY] ?: true,
                     launcherReplaceSystemStatusArea =
                         preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] ?: false,
                     launcherRotationHintShown = preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] ?: false,
@@ -784,6 +796,12 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_LAUNCHER_TASKBAR_SHOW_RECENTS] = settings.launcherTaskbarShowRecents
             preferences[KEY_LAUNCHER_TASKBAR_SHOW_PINNED] = settings.launcherTaskbarShowPinned
             preferences[KEY_LAUNCHER_TASKBAR_SHOW_TRAY] = settings.launcherTaskbarShowTray
+            preferences[KEY_LAUNCHER_TRAY_SHOW_CLOCK] = settings.launcherTrayShowClock
+            preferences[KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH] = settings.launcherTrayShowBluetooth
+            preferences[KEY_LAUNCHER_TRAY_SHOW_SIM1] = settings.launcherTrayShowSim1
+            preferences[KEY_LAUNCHER_TRAY_SHOW_SIM2] = settings.launcherTrayShowSim2
+            preferences[KEY_LAUNCHER_TRAY_SHOW_NETWORK] = settings.launcherTrayShowNetwork
+            preferences[KEY_LAUNCHER_TRAY_SHOW_BATTERY] = settings.launcherTrayShowBattery
             preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] = settings.launcherReplaceSystemStatusArea
             preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] = settings.launcherRotationHintShown
             preferences[KEY_LAUNCHER_DESKTOP_LOCKED] = settings.launcherDesktopLocked

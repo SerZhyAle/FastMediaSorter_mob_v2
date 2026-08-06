@@ -77,7 +77,6 @@ class CommandPanelController(
         fun onGoogleLensClicked()
         fun onCopyTextClicked()
         fun onEditTextClicked()
-        fun onOcrSettingsClicked()
         fun onTranslationSettingsClicked()
         fun onSleepTimerClicked()
         fun onReopenEncodingClicked()
@@ -636,32 +635,6 @@ class CommandPanelController(
             val cmd = CommandPanelLayoutPlanner.PlayerCommand.entries.find { it.menuItemId == menuItem.itemId }
             if (cmd != null) handleOverflowCommand(cmd)
             true
-        }
-
-        // Long-click shortcut: OCR settings / translation settings
-        try {
-            val listView = (popup.menu as? androidx.appcompat.view.menu.MenuBuilder)?.let { _ ->
-                popup.javaClass.getDeclaredField("mPopup")
-                    .apply { isAccessible = true }
-                    .get(popup)
-                    ?.javaClass
-                    ?.getDeclaredMethod("getListView")
-                    ?.invoke(
-                        popup.javaClass.getDeclaredField("mPopup")
-                            .apply { isAccessible = true }
-                            .get(popup)
-                    ) as? android.widget.ListView
-            }
-            listView?.setOnItemLongClickListener { _, _, position, _ ->
-                val menuItem = popup.menu.getItem(position)
-                when (menuItem.itemId) {
-                    R.id.menu_ocr -> { callback.onOcrSettingsClicked(); popup.dismiss(); true }
-                    R.id.menu_translate -> { callback.onTranslationSettingsClicked(); popup.dismiss(); true }
-                    else -> false
-                }
-            }
-        } catch (e: Exception) {
-            Timber.w("Failed to set long click listener for menu: ${e.message}")
         }
 
         // Async translate icon: update language-pair badge then show popup

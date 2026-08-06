@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.launcher
 
+import android.Manifest
+import android.content.Intent
 import android.content.res.Configuration
 import android.view.Gravity
 import android.view.View
@@ -7,6 +9,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -18,12 +21,15 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityLauncherHomeBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
+import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.AppPickerDialogFragment
@@ -47,6 +53,7 @@ import com.sza.fastmediasorter.ui.launcher.picker.LauncherResourceModePickerDial
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherScheduledOpPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
+import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -70,6 +77,17 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     @Inject
     lateinit var gadgetRegistry: LauncherGadgetRegistry
+
+    // S1402: the desktop can now carry the "leave launcher mode" action, and handing the home role back
+    // is this manager's job - the same one the Start menu row uses.
+    @Inject
+    lateinit var roleManager: LauncherRoleManager
+
+    // S1415: registered here for the same reason as contactPickManager below - a contract registered after
+    // the Activity is STARTED throws. The activity only owns the launcher; whether and when to ask is the
+    // tray manager's decision (Rule 3).
+    private val requestPhoneStatePermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     // A field initialiser, not setupViews(): BaseActivity posts that call, so it runs after the Activity
     // is STARTED and an activity-result contract registered there would throw. The operations are passed
@@ -118,6 +136,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     // The add-flow spans several dialogs that each dismiss before the next opens, and the shared panel
     // pickers carry no grid coordinate, so the target square (and, for a resource gadget, the gadget key)
     // is held here between steps. One flow runs at a time - the chooser is modal.
+    // S1209: [NO_SLOT] in either coordinate means the flow started from the taskbar "+", where the user
+    // pointed at no square and the repository picks the position.
     private var pendingRow: Int = 0
     private var pendingCol: Int = 0
     private var pendingGadgetKey: String? = null
@@ -144,7 +164,13 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         applyGridGeometry()
         seedDesktopIfNeeded()
 
-        LauncherTrayManager(this, binding.launcherTaskbar).bind(viewModel.replaceSystemStatusArea)
+        LauncherTrayManager(
+            lifecycleOwner = this,
+            binding = binding.launcherTaskbar,
+            onRequestPhoneStatePermission = {
+                requestPhoneStatePermission.launch(Manifest.permission.READ_PHONE_STATE)
+            },
+        ).bind(viewModel.replaceSystemStatusArea, viewModel.trayComposition)
         collectOnLifecycle(viewModel.replaceSystemStatusArea) { applyStatusBarPolicy(it) }
         taskbarManager = LauncherTaskbarManager(
             lifecycleOwner = this,
@@ -159,8 +185,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             desktop = binding.launcherDesktop,
             // S1412: the button moved onto the taskbar, so it is reached through the included layout.
             doneButton = binding.launcherTaskbar.launcherEditDone,
+            addCellButton = binding.launcherTaskbar.launcherAddCell,
             snackbarAnchor = binding.launcherRoot,
             viewModel = viewModel,
+            onAddCellClick = { openContentPicker(NO_SLOT, NO_SLOT) },
         )
         editModeManager.attach()
         Timber.d("S1412: edit-done button bound from the taskbar layout")
@@ -215,12 +243,20 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     LauncherScheduledOpPickerDialogFragment.newInstance(),
                     LauncherScheduledOpPickerDialogFragment.TAG,
                 )
-                // The manager owns the whole ask-action / pick-contact / choose-channel chain; the cell
-                // it lands on is still pendingRow/pendingCol, like every other kind.
-                LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT ->
-                    contactPickManager.start()
+                // The manager owns the pick-contact / choose-channel chain; the cell it lands on is
+                // still pendingRow/pendingCol, like every other kind.
+                LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_PROFILE ->
+                    contactPickManager.start(LauncherContactAction.PROFILE)
+                LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_DIAL ->
+                    contactPickManager.start(LauncherContactAction.DIAL)
+                LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_SMS ->
+                    contactPickManager.start(LauncherContactAction.SMS)
+                LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_MESSAGE ->
+                    contactPickManager.start(LauncherContactAction.MESSAGE)
                 LauncherCellContentPickerDialogFragment.CATEGORY_GADGET ->
                     onGadgetChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_GADGET_KEY))
+                LauncherCellContentPickerDialogFragment.CATEGORY_ACTION ->
+                    onLauncherActionChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_ACTION_KEY))
             }
         }
         supportFragmentManager.setFragmentResultListener(REQ_APP, this) { _, bundle ->
@@ -269,7 +305,14 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             pinned = viewModel.pinnedIcons,
             composition = viewModel.taskbarComposition,
         )
-        collectOnLifecycle(viewModel.cells) { renderDesktop() }
+        collectOnLifecycle(viewModel.cells) { cells ->
+            renderDesktop()
+            // S1400: an empty desktop is the only signal this surface gets when a reset wipes the
+            // cells underneath it. Which of the two empty states it is, the seed use case decides from
+            // the persisted flags: a reset lowers them and the starter set comes back, while a desktop
+            // the user emptied by hand keeps them raised and stays empty.
+            if (cells.isEmpty()) seedDesktopIfNeeded()
+        }
         // Entering/leaving edit mode adds or drops the empty slots and remove badges on the desktop and
         // the unpin "X" / trailing "+" on the taskbar, so re-render both.
         collectOnLifecycle(viewModel.editMode) { editMode ->
@@ -290,6 +333,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     startActivity(SettingsActivity.openStreamsSectionIntent(this))
                     Toast.makeText(this, R.string.launcher_edit_streams_enable_first, Toast.LENGTH_LONG).show()
                 }
+                is LauncherHomeEvent.PerformLauncherAction -> performLauncherAction(event.actionKey)
                 is LauncherHomeEvent.ConfirmScheduledOp -> {
                     // Buttons are theme-styled (S0538 confirm/cancel pair via materialAlertDialogTheme),
                     // not per-call, matching the launcher exit-confirm dialog.
@@ -308,6 +352,37 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     override fun onResumeWithViews() {
         viewModel.onHomeResumed()
+    }
+
+    /**
+     * S1402: a launcher-action cell does exactly what its namesake row in the Start menu does - same
+     * screen, same dialog, same confirmation before the device stops using us as its home screen.
+     */
+    private fun performLauncherAction(actionKey: String) {
+        when (actionKey) {
+            LauncherActionCatalog.KEY_APP_SETTINGS ->
+                startActivity(Intent(this, SettingsActivity::class.java))
+
+            LauncherActionCatalog.KEY_LAUNCHER_SETTINGS ->
+                LauncherSettingsDialogFragment()
+                    .show(supportFragmentManager, LauncherSettingsDialogFragment.TAG)
+
+            LauncherActionCatalog.KEY_EXIT_LAUNCHER_MODE -> confirmExitLauncherMode()
+        }
+    }
+
+    private fun confirmExitLauncherMode() {
+        // Buttons are theme-styled (S0538 confirm/cancel pair via materialAlertDialogTheme), matching
+        // the Start menu's own exit dialog rather than restyling per call.
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.launcher_menu_exit_confirm_title)
+            .setMessage(R.string.launcher_menu_exit_confirm_message)
+            .setPositiveButton(R.string.launcher_menu_exit_confirm_action) { _, _ ->
+                roleManager.disableMode()
+                roleManager.openHomeChooser(this)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     /**
@@ -430,7 +505,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         LauncherStartMenuFragment().show(supportFragmentManager, LauncherStartMenuFragment.TAG)
     }
 
-    /** Entry point from an empty-slot tap (edit mode only): pick what goes in this square. */
+    /**
+     * Entry point for both add flows (edit mode only): an empty-slot tap passes that square, the taskbar
+     * "+" passes [NO_SLOT] for both coordinates and lets the repository choose the position.
+     */
     private fun openContentPicker(row: Int, col: Int) {
         openPicker(
             LauncherCellContentPickerDialogFragment.newInstance(row, col),
@@ -454,6 +532,21 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
      * just-dismissed level-one dialog is not mistaken for it). With a key, place it - a resource gadget
      * first picks its resource (filtered to what it can hold), the rest go straight down.
      */
+    /**
+     * S1402: two levels, exactly like the gadget flow - the category row opens the list of actions, and
+     * the second pass carries the chosen key.
+     */
+    private fun onLauncherActionChosen(actionKey: String?) {
+        if (actionKey == null) {
+            openPicker(
+                LauncherCellContentPickerDialogFragment.newActionInstance(pendingRow, pendingCol),
+                LauncherCellContentPickerDialogFragment.TAG_ACTION,
+            )
+            return
+        }
+        addShortcut(LauncherCellCommand.LauncherAction(actionKey))
+    }
+
     private fun onGadgetChosen(gadgetKey: String?) {
         if (gadgetKey == null) {
             openPicker(
@@ -485,15 +578,49 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     private fun placeGadget(gadgetKey: String, resourceId: Long?) {
         val gadget = gadgetRegistry.byKey(gadgetKey) ?: return
-        viewModel.addCell(
-            rowIndex = pendingRow,
-            colIndex = pendingCol,
+        placeAtPendingSlot(
             kind = LauncherCellKind.GADGET,
             target = gadgetRegistry.encodeTarget(gadgetKey, resourceId?.toString()),
             spanW = gadget.defaultSpanW,
             spanH = gadget.defaultSpanH,
             rememberFileListResourceId = resourceId,
         )
+    }
+
+    /**
+     * S1209: the single write for every add flow, so the two entry points cannot drift apart. Which
+     * repository operation runs is decided by whether a square was pointed at, and the column count goes
+     * with the slotless one because the grid width belongs to the screen rendering the desktop, not to
+     * the stored desktop (see `LauncherDesktopRepository.addCellInFirstFreeSlot`).
+     */
+    private fun placeAtPendingSlot(
+        kind: LauncherCellKind,
+        target: String,
+        spanW: Int,
+        spanH: Int,
+        rememberFileListResourceId: Long? = null,
+    ) {
+        Timber.d("S1209: placing cell, slotless=%s", pendingRow == NO_SLOT)
+        if (pendingRow == NO_SLOT) {
+            viewModel.addCellInFirstFreeSlot(
+                columns = currentColumns(),
+                kind = kind,
+                target = target,
+                spanW = spanW,
+                spanH = spanH,
+                rememberFileListResourceId = rememberFileListResourceId,
+            )
+        } else {
+            viewModel.addCell(
+                rowIndex = pendingRow,
+                colIndex = pendingCol,
+                kind = kind,
+                target = target,
+                spanW = spanW,
+                spanH = spanH,
+                rememberFileListResourceId = rememberFileListResourceId,
+            )
+        }
     }
 
     /** The resource chain: pick a resource, then its mode for a shortcut, or hand it to a gadget. */
@@ -544,9 +671,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     /** The weather gadget carries its place in the target, so it bypasses [placeGadget]'s resource id. */
     private fun placeWeatherGadget(encodedLocation: String) {
         val gadget = gadgetRegistry.byKey(LauncherGadgetRegistry.KEY_WEATHER) ?: return
-        viewModel.addCell(
-            rowIndex = pendingRow,
-            colIndex = pendingCol,
+        placeAtPendingSlot(
             kind = LauncherCellKind.GADGET,
             target = gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_WEATHER, encodedLocation),
             spanW = gadget.defaultSpanW,
@@ -555,9 +680,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     private fun addShortcut(command: LauncherCellCommand) {
-        viewModel.addCell(
-            rowIndex = pendingRow,
-            colIndex = pendingCol,
+        placeAtPendingSlot(
             kind = LauncherCellKind.SHORTCUT,
             target = command.encode(),
             spanW = 1,
@@ -662,5 +785,13 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         const val REQ_RESOURCE_GADGET = "launcher_add_resource_gadget"
         const val REQ_PIN_APP = "launcher_pin_app"
         const val REQ_WEATHER_LOCATION = "launcher_weather_location"
+
+        /**
+         * S1209: "no square was pointed at" travelling through the picker's row/col arguments. A
+         * sentinel rather than a parallel boolean field, because the picker round-trips the coordinates
+         * through its result bundle and a separate flag could desync from them - a slotless flow that
+         * came back carrying row 0 would silently overwrite the top-left square.
+         */
+        const val NO_SLOT = -1
     }
 }

@@ -11,4 +11,7 @@ interface LauncherPinsRepository {
     suspend fun setPin(position: Int, command: LauncherCellCommand)
 
     suspend fun removePin(position: Int)
+
+    /** Drops every pin, leaving the strip in the state a fresh install has. */
+    suspend fun clearPins()
 }

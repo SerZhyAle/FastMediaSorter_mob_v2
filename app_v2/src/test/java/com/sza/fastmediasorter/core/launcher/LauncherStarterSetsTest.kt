@@ -27,12 +27,24 @@ class LauncherStarterSetsTest {
         InternalRouteCatalog.KEY_OCR to true,
     )
 
+    // S1402: the tail every profile ends with - the utilities, then the four launcher actions. Named
+    // once so a fifth action is one edit here, not five.
+    private val commonTail = listOf(
+        "fn:favorites",
+        "os:settings",
+        "app:__self__",
+        "act:app_settings",
+        "act:launcher_settings",
+        "act:edit_desktop",
+        "act:exit_launcher_mode",
+    )
+
     // ── itemsFor ────────────────────────────────────────────────────────────
 
     @Test
     fun `every set opens with a clock and closes with the common tail`() {
         val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap())
-        assertEquals(listOf("clock", "fn:favorites", "os:settings", "app:__self__"), items.map { it.target })
+        assertEquals(listOf("clock") + commonTail, items.map { it.target })
         assertEquals(LauncherCellKind.GADGET, items.first().kind)
     }
 
@@ -55,8 +67,7 @@ class LauncherStarterSetsTest {
                 "clock",
                 "res:1:BROWSE", "res:2:BROWSE", "res:3:BROWSE", "res:4:BROWSE", "res:5:BROWSE", "res:6:BROWSE",
                 "fn:streams", "fn:quick_camera", "fn:quick_voice", "fn:calculator", "fn:ocr",
-                "fn:favorites", "os:settings", "app:__self__",
-            ),
+            ) + commonTail,
             items.map { it.target },
         )
     }
@@ -69,7 +80,7 @@ class LauncherStarterSetsTest {
             mapOf(InternalRouteCatalog.KEY_CALCULATOR to true), // only calculator compiled in
         )
         assertEquals(
-            listOf("clock", "res:1:BROWSE", "fn:calculator", "fn:favorites", "os:settings", "app:__self__"),
+            listOf("clock", "res:1:BROWSE", "fn:calculator") + commonTail,
             items.map { it.target },
         )
     }
@@ -82,7 +93,7 @@ class LauncherStarterSetsTest {
             emptyMap(),
         )
         assertEquals(
-            listOf("clock", "folder_preview:5", "res:5:SLIDESHOW", "fn:favorites", "os:settings", "app:__self__"),
+            listOf("clock", "folder_preview:5", "res:5:SLIDESHOW") + commonTail,
             items.map { it.target },
         )
     }
@@ -90,7 +101,7 @@ class LauncherStarterSetsTest {
     @Test
     fun `null id dependencies are skipped, never seeded as dangling cells`() {
         val items = LauncherStarterSets.itemsFor(DeviceProfileType.PHOTO_FRAME, StarterResources(), emptyMap())
-        assertEquals(listOf("clock", "fn:favorites", "os:settings", "app:__self__"), items.map { it.target })
+        assertEquals(listOf("clock") + commonTail, items.map { it.target })
     }
 
     @Test
@@ -101,10 +112,7 @@ class LauncherStarterSetsTest {
             mapOf(InternalRouteCatalog.KEY_STREAMS to true),
         )
         assertEquals(
-            listOf(
-                "clock", "res:7:BROWSE", "playlist:7", "streams", "fn:streams",
-                "fn:favorites", "os:settings", "app:__self__",
-            ),
+            listOf("clock", "res:7:BROWSE", "playlist:7", "streams", "fn:streams") + commonTail,
             withStreams.map { it.target },
         )
         val withoutStreams = LauncherStarterSets.itemsFor(

@@ -3,12 +3,16 @@ package com.sza.fastmediasorter.ui.launcher.helpers
 import android.annotation.SuppressLint
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup
+import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
+import timber.log.Timber
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -45,13 +49,16 @@ class LauncherResizeManager(
 
     // A resize handle is a drag target, not a click target; it carries its own contentDescription for
     // TalkBack, so the ClickableViewAccessibility lint (which wants performClick) does not apply.
+    // S1404 keeps that true: a tap here changes nothing, it only explains that the handle is dragged,
+    // and TalkBack already reads that intent out of the contentDescription.
     @SuppressLint("ClickableViewAccessibility")
     fun attachHandle(handle: View, cellUi: LauncherCellUi) {
         handle.setOnTouchListener { _, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> onDown(event, cellUi)
                 MotionEvent.ACTION_MOVE -> onMove(event)
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> onUp()
+                MotionEvent.ACTION_UP -> onUp(event, canceled = false)
+                MotionEvent.ACTION_CANCEL -> onUp(event, canceled = true)
                 else -> false
             }
         }
@@ -95,14 +102,27 @@ class LauncherResizeManager(
         return true
     }
 
-    private fun onUp(): Boolean {
+    private fun onUp(event: MotionEvent, canceled: Boolean): Boolean {
         (viewport as? ViewGroup)?.requestDisallowInterceptTouchEvent(false)
         preview?.let { container.removeView(it) }
         preview = null
         if (candW != baseW || candH != baseH) {
             viewModel.resizeCell(activeCellId, candW, candH)
+        } else if (!canceled && isTap(event)) {
+            Timber.d("S1404: resize handle tapped, showing the drag hint")
+            Snackbar.make(container, R.string.launcher_edit_resize_hint_drag, Snackbar.LENGTH_SHORT).show()
         }
         return true
+    }
+
+    /**
+     * S1404: an unchanged size alone does not mean a tap - a real drag can wander and come back to the
+     * size it started from, and answering that with "drag me" would be wrong. Travel within the system
+     * slop is what separates the finger that never moved from the one that did.
+     */
+    private fun isTap(event: MotionEvent): Boolean {
+        val slop = ViewConfiguration.get(container.context).scaledTouchSlop
+        return abs(event.rawX - downRawX) <= slop && abs(event.rawY - downRawY) <= slop
     }
 
     private fun addPreview() {

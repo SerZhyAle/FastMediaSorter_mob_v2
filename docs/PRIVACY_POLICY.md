@@ -140,6 +140,10 @@ The app requests minimum necessary permissions:
 
 - `READ_CONTACTS`: Optional, used only to show a pinned contact's name and photo on the launcher (Settings > Permissions > Contacts); denying it keeps a plain initial in place of the photo.
 
+### Phone State Permission
+
+- `READ_PHONE_STATE`: Optional, used only to show the SIM signal level in the launcher's own status area. The level is read on the device and never leaves it - nothing is stored, sent, or shared. Denying it simply hides both SIM indicators; the rest of the status area is unaffected.
+
 ### Other Permissions
 
 - `WAKE_LOCK`: Keep screen on during playback (user-controlled in Settings)  

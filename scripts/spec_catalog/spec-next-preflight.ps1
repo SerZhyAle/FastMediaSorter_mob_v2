@@ -135,12 +135,44 @@ if ($skipRaw -and $skipRaw.Trim() -ne '{}') {
     }
 }
 
-# 4. Drop skip-cached + excluded ids from the ranked list (record what was dropped)
+# 3.5. Load ticket leases held by OTHER live sessions (S1437, read-only consume).
+# Our own leases must not exclude us, or a resuming session cannot get back to its own ticket.
+# A missing or failing lease store yields an empty set: the picker still works without it.
+$leaseSet = @{}
+$leasedDetail = @()
+$leasePath = Join-Path $PSScriptRoot 'ticket-lease.ps1'
+if (Test-Path -LiteralPath $leasePath) {
+    $leaseRaw = & $pwshExe -NoProfile -File $leasePath -Verb Status -Json 2>$null
+    if ($leaseRaw) {
+        try {
+            foreach ($l in @($leaseRaw | ConvertFrom-Json)) {
+                if ($l.mine) { continue }
+                $leaseSet[[string]$l.id] = $l
+            }
+        } catch {
+            # Malformed lease output is non-fatal for selection; surface as no leases.
+            $leaseSet = @{}
+        }
+    }
+}
+
+# 4. Drop skip-cached + excluded + leased ids from the ranked list (record what was dropped)
 $skipCachedIds = @()
 $rankedLive = New-Object System.Collections.Generic.List[object]
 foreach ($r in $ranked) {
     if ($skipCache.Contains($r.id)) { $skipCachedIds += $r.id; continue }
     if ($excludeSet.ContainsKey($r.id)) { continue }
+    if ($leaseSet.ContainsKey($r.id)) {
+        $held = $leaseSet[$r.id]
+        $leasedDetail += [PSCustomObject]@{
+            id                = [string]$r.id
+            sessionId         = [string]$held.sessionId
+            host              = [string]$held.host
+            reason            = [string]$held.reason
+            last_seen_minutes = $held.lastSeenMinutes
+        }
+        continue
+    }
     $rankedLive.Add($r)
 }
 
@@ -224,9 +256,19 @@ $result = [PSCustomObject]@{
     skip_cache     = $skipCacheOut
     skip_cached_ids = @($skipCachedIds)
     excluded_ids   = @($normalizedExcludeIds)
+    leased_ids     = @($leasedDetail)
     auto_skipped   = @($autoSkipped)
     malformed      = @($malformed)
     selected       = $selected
+    # S1437: why nothing was selected, when nothing was. 'all-leased' means the queue is BUSY,
+    # not finished - siblings hold every candidate and re-running later gets one. Reporting that
+    # as plain exhaustion would tell the owner the work is done while three sessions are on it.
+    selected_none_reason = $(
+        if ($selected) { $null }
+        elseif ($eligible.Count -eq 0) { 'queue-exhausted' }
+        elseif ($rankedLive.Count -eq 0 -and $leasedDetail.Count -gt 0) { 'all-leased' }
+        else { 'no-candidate' }
+    )
 }
 
 if ($Format -eq 'json') {
@@ -237,6 +279,10 @@ if ($Format -eq 'json') {
     Write-Host "  order: PLAN/RELEASE_QUEUE.md (package, then line order) | current release: $(Get-CurrentRelease)" -ForegroundColor DarkGray
     if ($skipCachedIds.Count -gt 0) {
         Write-Host "  skip-cached out: $($skipCachedIds -join ', ')" -ForegroundColor DarkGray
+    }
+    foreach ($l in $leasedDetail) {
+        $seen = if ($null -ne $l.last_seen_minutes) { "last seen $($l.last_seen_minutes) min ago" } else { 'last seen unknown' }
+        Write-Host "  [leased] $($l.id) - held by session $($l.sessionId) on $($l.host) ($seen)" -ForegroundColor DarkCyan
     }
     foreach ($a in $autoSkipped) {
         Write-Host "  [auto-skip] $($a.id) - $($a.reason): $($a.detail)" -ForegroundColor Yellow
@@ -254,7 +300,14 @@ if ($Format -eq 'json') {
             Write-Host "    drift: $($selected.drift.verdict) (commits=$($selected.drift.commits_count) markers=$($selected.drift.markers_count))" -ForegroundColor DarkGray
         }
     } else {
-        Write-Host "  SELECTED: none (eligible set exhausted)" -ForegroundColor DarkGray
+        switch ($result.selected_none_reason) {
+            'all-leased' {
+                Write-Host "  SELECTED: none - every eligible ticket is held by a live sibling session." -ForegroundColor Yellow
+                Write-Host "            The queue is busy, not finished. Re-run later to pick one up." -ForegroundColor Yellow
+            }
+            'queue-exhausted' { Write-Host "  SELECTED: none (eligible set exhausted)" -ForegroundColor DarkGray }
+            default           { Write-Host "  SELECTED: none (no candidate survived the walk)" -ForegroundColor DarkGray }
+        }
     }
 }
 

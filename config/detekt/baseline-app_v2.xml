@@ -3913,6 +3913,7 @@
     <ID>MagicNumber:CommandPanelLayoutPlanner.kt$CommandPanelLayoutPlanner.PlayerCommand.OCR_IMAGE$420</ID>
     <ID>MagicNumber:CommandPanelLayoutPlanner.kt$CommandPanelLayoutPlanner.PlayerCommand.OCR_OFFICE$394</ID>
     <ID>MagicNumber:CommandPanelLayoutPlanner.kt$CommandPanelLayoutPlanner.PlayerCommand.OCR_PDF$290</ID>
+    <ID>MagicNumber:CommandPanelLayoutPlanner.kt$CommandPanelLayoutPlanner.PlayerCommand.OFFICE_TEXT_SETTINGS$393</ID>
     <ID>MagicNumber:CommandPanelLayoutPlanner.kt$CommandPanelLayoutPlanner.PlayerCommand.OPEN_IN_SEPARATE_WINDOW$610</ID>
     <ID>MagicNumber:CommandPanelLayoutPlanner.kt$CommandPanelLayoutPlanner.PlayerCommand.OPEN_IN_VR$605</ID>
     <ID>MagicNumber:CommandPanelLayoutPlanner.kt$CommandPanelLayoutPlanner.PlayerCommand.PDF_COLOR_MODE$560</ID>

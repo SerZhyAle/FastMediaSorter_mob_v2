@@ -282,12 +282,6 @@ class PlayerCommandPanelCallbackImpl(
         activity.activityBinding.btnEditTextCmd.performClick()
     }
 
-    override fun onOcrSettingsClicked() {
-        // Long-press on OCR shows translation settings (same as translate button)
-        Timber.d("OCR settings requested - showing translation settings dialog")
-        activity.translationButtonManager.showTranslationSettingsDialog()
-    }
-
     override fun onTranslationSettingsClicked() {
         activity.translationButtonManager.showTranslationSettingsDialog()
     }

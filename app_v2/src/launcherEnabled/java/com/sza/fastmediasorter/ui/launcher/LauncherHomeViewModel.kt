@@ -7,6 +7,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.launcher.AppShortcut
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
@@ -24,6 +25,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCas
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarComposition
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarIcon
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -56,6 +58,13 @@ sealed interface LauncherHomeEvent {
 
     /** A scheduled-op cell was tapped: confirm before running (it may modify or delete files). */
     data class ConfirmScheduledOp(val operationId: Long) : LauncherHomeEvent
+
+    /**
+     * S1402: a launcher-action cell was tapped and needs the activity - a screen to start, a dialog to
+     * show, or the home role to hand back. Edit mode is not here: the ViewModel owns that state and
+     * flips it itself.
+     */
+    data class PerformLauncherAction(val actionKey: String) : LauncherHomeEvent
 }
 
 @HiltViewModel
@@ -180,6 +189,15 @@ class LauncherHomeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     /**
+     * S1415: which indicators the tray shows, one switch per indicator. Only decides whether an indicator
+     * is subscribed at all - a switched-off indicator holds neither receiver nor callback (strategic §5.2).
+     */
+    val trayComposition: StateFlow<LauncherTrayComposition> = settingsRepository.getSettings()
+        .map { LauncherTrayComposition.from(it) }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, LauncherTrayComposition.from(AppSettings()))
+
+    /**
      * One-shot: true once the first-rotation hint has been shown, so it never repeats. Seeds the edit
      * manager's decision on the next orientation change; the write goes back through settings so it
      * survives a process kill.
@@ -234,6 +252,45 @@ class LauncherHomeViewModel @Inject constructor(
                     labelOverride = null,
                     addedAt = System.currentTimeMillis(),
                 )
+            )
+        }
+    }
+
+    /**
+     * S1209: the second add entry, the one with no square behind it. The repository scans row-major for
+     * the first free position and opens a new row under everything when no existing row has room, so a
+     * desktop whose visible part is full still takes a new cell. [addCell] stays the path for a square
+     * the user pointed at, and both write through the same repository - the rule for where a new cell
+     * lands has one home.
+     *
+     * The column count is passed in rather than read back from desktop state because it belongs to the
+     * screen currently rendering the desktop, which is the contract the repository operation documents.
+     */
+    fun addCellInFirstFreeSlot(
+        columns: Int,
+        kind: LauncherCellKind,
+        target: String,
+        spanW: Int,
+        spanH: Int,
+        rememberFileListResourceId: Long? = null,
+    ) {
+        viewModelScope.launch {
+            rememberResourceFileList(rememberFileListResourceId)
+            desktopDependencies.desktopRepository.addCellInFirstFreeSlot(
+                LauncherCell(
+                    id = 0,
+                    orientation = _orientation.value,
+                    // Ignored: the repository scans for the anchor and overwrites both.
+                    rowIndex = 0,
+                    colIndex = 0,
+                    spanW = spanW,
+                    spanH = spanH,
+                    kind = kind,
+                    target = target,
+                    labelOverride = null,
+                    addedAt = System.currentTimeMillis(),
+                ),
+                columns,
             )
         }
     }
@@ -346,22 +403,43 @@ class LauncherHomeViewModel @Inject constructor(
         // entry point, and ExecuteLauncherCommandUseCase deliberately refuses ScheduledOp because it can
         // only start activities. While the branch lived in the tap handler, the same operation pinned to
         // the taskbar or opened from the Start menu fell through to a bare "cannot open".
-        if (command is LauncherCellCommand.ScheduledOp) {
-            Timber.d("S1170: scheduled op %d asks for confirmation", command.operationId)
-            viewModelScope.launch {
-                _events.send(LauncherHomeEvent.ConfirmScheduledOp(command.operationId))
+        // S1402: the second branch is here for the same reason - a launcher action pinned to the taskbar
+        // or opened from the Start menu reaches commands through this one funnel, and the shared executor
+        // has no Intent to start for it either. Written as one `when` rather than guard-and-return:
+        // the third early return crossed detekt's ReturnCount limit.
+        when {
+            command is LauncherCellCommand.ScheduledOp -> {
+                Timber.d("S1170: scheduled op %d asks for confirmation", command.operationId)
+                viewModelScope.launch {
+                    _events.send(LauncherHomeEvent.ConfirmScheduledOp(command.operationId))
+                }
             }
+
+            command is LauncherCellCommand.LauncherAction -> runLauncherAction(command.actionKey)
+
+            !launchInFlight -> {
+                launchInFlight = true
+                viewModelScope.launch {
+                    if (!executeCommand.launch(command)) {
+                        // Nothing opened, so nothing will bring the user back: re-arm now or the cell
+                        // would stay dead until the next resume.
+                        launchInFlight = false
+                        _events.send(LauncherHomeEvent.Message(R.string.launcher_home_cannot_open))
+                    }
+                }
+            }
+        }
+    }
+
+    /** Edit mode is state this ViewModel already owns; everything else needs the activity. */
+    private fun runLauncherAction(actionKey: String) {
+        Timber.d("S1402: launcher action cell tapped: %s", actionKey)
+        if (actionKey == LauncherActionCatalog.KEY_EDIT_DESKTOP) {
+            setEditMode(true)
             return
         }
-        if (launchInFlight) return
-        launchInFlight = true
         viewModelScope.launch {
-            if (!executeCommand.launch(command)) {
-                // Nothing opened, so nothing will bring the user back: re-arm now or the cell
-                // would stay dead until the next resume.
-                launchInFlight = false
-                _events.send(LauncherHomeEvent.Message(R.string.launcher_home_cannot_open))
-            }
+            _events.send(LauncherHomeEvent.PerformLauncherAction(actionKey))
         }
     }
 
@@ -389,17 +467,20 @@ class LauncherHomeViewModel @Inject constructor(
         }
     }
 
-    // Runs once per process; the repository's seedIfEmpty also guards, so a real desktop is never
-    // overwritten. Columns are resolved INSIDE the coroutine from the real persisted density
-    // (getSettings().first()), not densityFactor.value - that StateFlow's initial default is still in
-    // place at seed time until the async DataStore read lands, and seeding is one-shot, so a wrong
-    // column count would misplace/overlap cells permanently (audit 2026-07-17, P1).
-    private var seedTriggered = false
-
-    /** First entry only: seed an empty desktop with the profile's starter set (ADR-4). */
+    /**
+     * Seeds an empty desktop with the profile's starter set (ADR-4).
+     *
+     * Re-entry is guarded by the persisted seeded flags inside the seed use case, not by an in-memory
+     * one-shot. S1400 needs exactly that difference: a reset lowers those flags, so the seed must be
+     * able to run again in the same process, while a desktop the user emptied by hand keeps them
+     * raised and is left alone.
+     *
+     * Columns are resolved INSIDE the coroutine from the real persisted density
+     * (getSettings().first()), not densityFactor.value - that StateFlow's initial default is still in
+     * place at seed time until the async DataStore read lands, and a wrong column count would
+     * misplace/overlap cells permanently (audit 2026-07-17, P1).
+     */
     fun seedDesktopIfNeeded(widthDp: Float, heightDp: Float, startedPortrait: Boolean) {
-        if (seedTriggered) return
-        seedTriggered = true
         viewModelScope.launch {
             val density = settingsRepository.getSettings().first().launcherDensityFactor
             val widthColumns = LauncherGridGeometry.columns(widthDp, density)

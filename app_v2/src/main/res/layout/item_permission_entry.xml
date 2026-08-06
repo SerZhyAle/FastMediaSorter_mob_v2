@@ -1,55 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- S1426: compact permission row shared by the onboarding page and the settings screen - state
+     indicator plus title on line one, a single-line description on line two, action button pinned
+     right at the vertical centre. The separate "Status: .." line is gone; its meaning is carried by
+     the indicator and the button label. The row is width-agnostic and has no landscape variant in
+     any configuration bucket - the two host layouts own their own orientation variants. -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:baselineAligned="false"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
     android:paddingStart="12dp"
     android:paddingEnd="12dp"
     android:paddingTop="6dp"
     android:paddingBottom="6dp">
 
-    <TextView
-        android:id="@+id/tv_perm_entry_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="14sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/tv_perm_entry_desc"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:textSize="12sp"
-        android:textColor="?android:attr/textColorSecondary"
-        android:visibility="gone" />
+    <ImageView
+        android:id="@+id/iv_perm_state"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="12dp"
+        android:contentDescription="@string/perm_state_missing"
+        android:src="@drawable/ic_perm_state_missing" />
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/tv_perm_entry_status"
-            android:layout_width="0dp"
+            android:id="@+id/tv_perm_entry_title"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="12sp"
-            android:textColor="?android:attr/textColorSecondary" />
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_perm_action"
-            style="@style/Widget.FastMediaSorter.Button.Filled"
-            android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/tv_perm_entry_desc"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minWidth="80dp"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:textSize="12sp" />
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="12sp"
+            android:visibility="gone" />
 
     </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_perm_action"
+        style="@style/Widget.FastMediaSorter.Button.Filled"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:minWidth="80dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:textSize="12sp" />
 
 </LinearLayout>

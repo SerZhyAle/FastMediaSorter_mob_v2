@@ -58,6 +58,7 @@ class LaunchAppLaunchPanelTileUseCase @Inject constructor(
     }
 
     private fun startIntent(intent: Intent): Boolean {
+        Timber.d("S1435: panel tile funnel starts %s", intent.component ?: intent.action)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         return runCatching {
             context.startActivity(intent)

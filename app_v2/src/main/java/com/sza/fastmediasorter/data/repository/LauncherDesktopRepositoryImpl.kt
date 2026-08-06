@@ -210,6 +210,17 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun clearAll() {
+        withContext(Dispatchers.IO) {
+            // One transaction: a crash between the two deletes would otherwise leave an empty desktop
+            // still flagged as seeded, and the starter set would never come back.
+            db.withTransaction {
+                cellDao.deleteAll()
+                stateDao.deleteAll()
+            }
+        }
+    }
+
     override suspend fun state(): LauncherDesktopState = withContext(Dispatchers.IO) {
         (stateDao.get() ?: DEFAULT_STATE).toDomain()
     }

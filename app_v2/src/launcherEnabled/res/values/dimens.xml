@@ -39,4 +39,16 @@
     <!-- S1173: lift restored on a shortcut cell while the desktop is being edited. Matches the gadget
          card's own elevation, so both kinds read as the same surface while arranging. -->
     <dimen name="launcher_cell_edit_elevation">2dp</dimen>
+
+    <!-- S1209: band at the top and bottom of the scroll viewport inside which a drag auto-scrolls the
+         desktop. One finger wide, the platform's minimum touch target, and deliberately under the
+         smallest cell (~63dp at the highest density factor) so the band never swallows a whole row -
+         a drag hovering over the last visible row must still be able to sit still. -->
+    <dimen name="launcher_drag_autoscroll_band">48dp</dimen>
+
+    <!-- S1414: shortcut caption size. The smallest the app uses for a cell caption (the stream grid
+         cell already runs at this size); a cell can be ~63dp across, so every point of size costs
+         characters before the ellipsis - and the caption is the only thing telling two cells with the
+         same icon apart. -->
+    <dimen name="launcher_cell_label_text_size">10sp</dimen>
 </resources>

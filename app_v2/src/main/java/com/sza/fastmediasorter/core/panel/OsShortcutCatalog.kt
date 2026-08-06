@@ -48,7 +48,10 @@ object OsShortcutCatalog {
     // simply never renders. So the suppression is safe here.
     @SuppressLint("InlinedApi")
     private val targets: List<Target> = listOf(
-        Target(KEY_SETTINGS, R.string.app_launch_panel_os_settings, R.drawable.ic_settings) {
+        // S1405: the robot, not a gear. The gear means "this app's own settings" everywhere else in the
+        // product, and on the launcher's Start menu the two rows sit next to each other - identical
+        // glyphs made the pair readable only by its caption.
+        Target(KEY_SETTINGS, R.string.app_launch_panel_os_settings, R.drawable.ic_android) {
             Intent(Settings.ACTION_SETTINGS)
         },
         Target(KEY_WIFI, R.string.app_launch_panel_os_wifi, R.drawable.ic_wifi) {

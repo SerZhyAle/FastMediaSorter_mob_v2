@@ -67,6 +67,10 @@ class InstalledAppsRepositoryImpl @Inject constructor(
             }
             .flowOn(Dispatchers.IO)
 
+    override suspend fun clearLaunchStats() = withContext(Dispatchers.IO) {
+        statsDao.deleteAll()
+    }
+
     private fun toModel(entity: InstalledAppEntity) = InstalledApp(
         packageName = entity.packageName,
         label = entity.label,

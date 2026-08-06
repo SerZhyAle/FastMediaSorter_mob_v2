@@ -284,6 +284,12 @@ _Settings -> General -> System launcher settings_
 | Show pinned apps | Shows pinned apps on the launcher desktop. |
 | Show recent apps | Shows recently used apps on the launcher desktop. |
 | Show clock and status | Shows the clock and status indicators in the launcher's tray area. |
+| Battery | Shows the battery charge in the launcher tray as a number in an outline, yellow below 30 percent, red below 15, blinking below 10. |
+| Bluetooth | Shows a Bluetooth icon in the launcher tray while the adapter is on. |
+| Clock | Shows the clock in the launcher tray. |
+| Network type | Shows the current connection type - Wi-Fi, mobile or wired - in the launcher tray. |
+| SIM 1 signal | Shows the signal level of the first SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or without a SIM in the slot. |
+| SIM 2 signal | Shows the signal level of the second SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or on a single-SIM device. |
 | Desktop wallpaper | Chooses the launcher desktop's wallpaper. |
 
 ## Edge gestures

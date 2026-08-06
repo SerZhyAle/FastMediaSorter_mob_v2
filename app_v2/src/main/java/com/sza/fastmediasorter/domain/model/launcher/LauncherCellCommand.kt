@@ -23,6 +23,8 @@ enum class LauncherResourceMode {
  * - `stream:<streamId>`  - play a channel from the stream catalog.
  * - `os:<targetKey>`     - a curated OS system target (keys from `OsShortcutCatalog`).
  * - `op:<id>`            - trigger a saved scheduled operation (S1103).
+ * - `act:<actionKey>`    - an action on the launcher itself (keys from `LauncherActionCatalog`, S1402).
+ * - `pin:<pkg>:<id>:<label>` - a shortcut another app asked us to pin (S1205).
  */
 sealed interface LauncherCellCommand {
 
@@ -56,6 +58,15 @@ sealed interface LauncherCellCommand {
     }
 
     /**
+     * S1402: an action on the launcher itself - open its settings, edit the desktop, leave the mode.
+     * Like [ScheduledOp] it cannot be started as an Intent, so the launcher host executes it; the
+     * shared executor refuses it on purpose.
+     */
+    data class LauncherAction(val actionKey: String) : LauncherCellCommand {
+        override fun encode(): String = "$PREFIX_LAUNCHER_ACTION$actionKey"
+    }
+
+    /**
      * S1170: one favourite file, opened in its own resource's player exactly where it sits.
      *
      * [Resource] cannot stand in for this: it opens a resource at its start, while the favourites list -
@@ -84,6 +95,23 @@ sealed interface LauncherCellCommand {
         ).joinToString(SEPARATOR) { encodeField(it) }
     }
 
+    /**
+     * S1205: a shortcut a third-party app asked the launcher to pin, started later by its identifier.
+     *
+     * [label] is a snapshot rather than a lookup, for the same reason [Contact] snapshots a person:
+     * the caption has to survive the shortcut itself going away, which is the whole point of keeping
+     * the cell when its target disappears. Every field is percent-encoded before being joined, because
+     * a publisher's own label may legitimately contain the separator or a newline.
+     */
+    data class PinnedShortcut(
+        val packageName: String,
+        val shortcutId: String,
+        val label: String,
+    ) : LauncherCellCommand {
+        override fun encode(): String = PREFIX_PIN + listOf(packageName, shortcutId, label)
+            .joinToString(SEPARATOR) { encodeField(it) }
+    }
+
     companion object {
         const val PREFIX_APP = "app:"
         const val PREFIX_FEATURE = "fn:"
@@ -93,6 +121,8 @@ sealed interface LauncherCellCommand {
         const val PREFIX_SCHEDULED_OP = "op:"
         const val PREFIX_FAVORITE_FILE = "fav:"
         const val PREFIX_CONTACT = "contact:"
+        const val PREFIX_LAUNCHER_ACTION = "act:"
+        const val PREFIX_PIN = "pin:"
 
         private const val SEPARATOR = ":"
 
@@ -105,6 +135,12 @@ sealed interface LauncherCellCommand {
         private const val FIELD_MESSAGE_PACKAGE = 4
         private const val FIELD_DISPLAY_NAME = 5
         private const val CONTACT_FIELD_COUNT = 6
+
+        // Field layout of a [PinnedShortcut] target, same append-never-reorder rule as [Contact].
+        private const val FIELD_PIN_PACKAGE = 0
+        private const val FIELD_PIN_SHORTCUT_ID = 1
+        private const val FIELD_PIN_LABEL = 2
+        private const val PIN_FIELD_COUNT = 3
 
         /** Tolerant decode: unknown prefix, empty payload, bad id or unknown mode all yield null. */
         fun decode(raw: String?): LauncherCellCommand? {
@@ -127,11 +163,18 @@ sealed interface LauncherCellCommand {
                 value.startsWith(PREFIX_SCHEDULED_OP) ->
                     value.removePrefix(PREFIX_SCHEDULED_OP).toLongOrNull()?.let { ScheduledOp(it) }
 
+                value.startsWith(PREFIX_LAUNCHER_ACTION) ->
+                    value.removePrefix(PREFIX_LAUNCHER_ACTION).takeIf { it.isNotEmpty() }
+                        ?.let { LauncherAction(it) }
+
                 value.startsWith(PREFIX_FAVORITE_FILE) ->
                     decodeFavoriteFile(value.removePrefix(PREFIX_FAVORITE_FILE))
 
                 value.startsWith(PREFIX_CONTACT) ->
                     decodeContact(value.removePrefix(PREFIX_CONTACT))
+
+                value.startsWith(PREFIX_PIN) ->
+                    decodePinnedShortcut(value.removePrefix(PREFIX_PIN))
 
                 else -> null
             }
@@ -173,6 +216,23 @@ sealed interface LauncherCellCommand {
                         displayName = decodeField(fields[FIELD_DISPLAY_NAME]),
                     )
                 )
+            }
+        }
+
+        /**
+         * Tolerant like [decodeContact]. An empty package or shortcut id yields null because neither
+         * can address anything, while an empty label is a real state - a publisher may ship a shortcut
+         * with no caption at all, and the cell still has to render.
+         */
+        private fun decodePinnedShortcut(payload: String): PinnedShortcut? {
+            val fields = payload.split(SEPARATOR)
+            if (fields.size != PIN_FIELD_COUNT) return null
+            val packageName = decodeField(fields[FIELD_PIN_PACKAGE])
+            val shortcutId = decodeField(fields[FIELD_PIN_SHORTCUT_ID])
+            return if (packageName.isEmpty() || shortcutId.isEmpty()) {
+                null
+            } else {
+                PinnedShortcut(packageName, shortcutId, decodeField(fields[FIELD_PIN_LABEL]))
             }
         }
 

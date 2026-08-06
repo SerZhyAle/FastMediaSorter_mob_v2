@@ -37,6 +37,12 @@ class LauncherJournalRepositoryImpl @Inject constructor(
             }
             .distinctUntilChanged()
 
+    override suspend fun clearJournal() {
+        withContext(Dispatchers.IO) {
+            dao.deleteAll()
+        }
+    }
+
     private companion object {
         const val MAX_JOURNAL_ROWS = 50
 

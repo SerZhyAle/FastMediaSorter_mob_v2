@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1415: frame around the charge number. Transparent fill and a stroke only, so a backgroundTintList
+     set from code recolours the whole frame when the charge crosses a warning threshold. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <solid android:color="@android:color/transparent" />
+
+    <stroke
+        android:width="1dp"
+        android:color="?attr/colorOnSurface" />
+
+    <corners android:radius="3dp" />
+
+</shape>

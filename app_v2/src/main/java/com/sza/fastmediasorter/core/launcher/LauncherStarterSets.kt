@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.launcher
 
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
+import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
@@ -177,11 +178,16 @@ object LauncherStarterSets {
     private fun resourceShortcut(id: Long, mode: LauncherResourceMode) =
         shortcut(LauncherCellCommand.Resource(id, mode))
 
+    /**
+     * S1402: the four launcher actions join the tail rather than lead the set. They belong with the other
+     * utilities already here - favourites, system settings, the app itself - and putting four of them
+     * first would push the clock and the lists below the fold on the one screen opened for those.
+     */
     private fun commonTail(): List<StarterItem> = listOf(
         shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_FAVORITES)),
         shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_SETTINGS)),
         shortcut(LauncherCellCommand.App(OWN_APP_TOKEN)),
-    )
+    ) + LauncherActionCatalog.all.map { shortcut(LauncherCellCommand.LauncherAction(it.key)) }
 
     private fun shortcut(command: LauncherCellCommand) =
         StarterItem(LauncherCellKind.SHORTCUT, command.encode())

@@ -6,10 +6,28 @@
     and brings up the system "Always / Just once" chooser (strategic ADR-2). Disabling it again
     hands the device back to the previous launcher.
 
-    No new permissions and no <queries> here - the MAIN/LAUNCHER visibility declaration the app
-    registry needs already lives in the main manifest (S0623).
+    No <queries> here - the MAIN/LAUNCHER visibility declaration the app registry needs already lives in
+    the main manifest (S0623).
+
+    S1415 added the one permission below, and it is the only one this source set declares. It is requested
+    at run time, and only when the tray is about to show a SIM indicator; a refusal simply leaves both SIM
+    slots absent (strategic §7). No <uses-feature> accompanies it: READ_PHONE_STATE is not in the implied
+    feature requirements table, so no android.hardware.telephony is inferred and Play device reach is
+    unchanged.
+
+    S0429: the notification-listener service below is declared, never requested. It is the key
+    MediaSessionManager demands before it will name another app's active media session, and it is inert
+    until the user turns notification access on in system settings - which the Now Playing gadget offers
+    behind a disclosure dialog. No <uses-permission> accompanies it: BIND_NOTIFICATION_LISTENER_SERVICE
+    is held by the service declaration, not asked for by the app.
+
+    S1205: the pin-request host below ships ENABLED, unlike the HOME activity. The system delivers
+    ACTION_CONFIRM_PIN_SHORTCUT only to the launcher currently holding the home role, so the component
+    is inert until that role is ours and needs no enable/disable lever of its own.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application>
         <activity
@@ -26,6 +44,28 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name="com.sza.fastmediasorter.ui.launcher.pin.LauncherPinRequestActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.FastMediaSorter.Transparent">
+            <intent-filter>
+                <action android:name="android.content.pm.action.CONFIRM_PIN_SHORTCUT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name="com.sza.fastmediasorter.ui.launcher.gadget.nowplaying.MediaSessionAccessService"
+            android:exported="false"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

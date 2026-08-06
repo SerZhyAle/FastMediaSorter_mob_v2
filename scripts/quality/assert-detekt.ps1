@@ -90,7 +90,11 @@ $reportModules = if ($PSBoundParameters.ContainsKey('Module')) { @($Module) } el
 $lockReason = if ($PSBoundParameters.ContainsKey('Module')) { "assert-detekt.ps1 -Module $Module" } else { "assert-detekt.ps1 (app_v2 + wear)" }
 . (Join-Path $repoRoot "scripts/utils/agent-lock.ps1")
 . (Join-Path $repoRoot "scripts/utils/process-timeout.ps1")
-Enter-BuildLockOrExit -Reason $lockReason
+# S1432: queues rather than failing fast. A gate that refuses because a sibling session is mid
+# build reports "could not verify" at the exact moment a ticket is being closed, and that reads
+# as a defect in the change under review. The ceiling is shorter than a build's, because a gate
+# that waits an hour has stopped being a gate.
+Enter-BuildLockOrExit -Reason $lockReason -WaitTimeoutSeconds 900
 
 Push-Location $repoRoot
 try {

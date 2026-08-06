@@ -23,6 +23,7 @@ Regenerate with `pwsh -NoProfile -File scripts/docs/generate-flavor-matrix.ps1`.
 |:-----|:----:|:----:|:----:|:----:|:----:|:----:|
 | `IS_NO_LEGAL_FLAVOR` | [-]* | [+] | [-]* | [-]* | [-]* | [-]* |
 | `SUPPORT_LAUNCHER` | [+] | [+] | [-]* | [-]* | [-]* | [-]* |
+| `DECLARES_BATTERY_OPTIMIZATION` | [+]* | [+]* | [+]* | [+]* | [+]* | [+]* |
 | `SUPPORT_VIDEO` | [+] | [+] | [+] | [-] | [+] | [+] |
 | `SUPPORT_AUDIO` | [+] | [+] | [+] | [-] | [+] | [+] |
 | `SUPPORT_STREAMS` | [+] | [+] | [-] | [-] | [+] | [+] |

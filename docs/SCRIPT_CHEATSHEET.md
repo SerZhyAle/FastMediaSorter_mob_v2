@@ -1543,9 +1543,11 @@ S0815 Phase 04 - icon inventory / asset / legend drift gate.
 scripts/quality/assert-icon-inventory-sync.ps1
   S0815 Phase 04 - icon inventory / asset / legend drift gate.
   Params:
-    -Gate                      [SwitchParameter]
-    -IncludeExportTest         [SwitchParameter]
-    -RepoRoot                  [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate                        [SwitchParameter]
+    -IncludeExportTest           [SwitchParameter]
+    -RegenerateInventory         [SwitchParameter]
+    -RepoRoot                    [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - every enforced check passed, or the inventory was regenerated.; 1 - a check failed.; 2 - regeneration could not run (gradle returned non-zero).
 ```
 
 ### assert-layout-hardcoded-colors.ps1
@@ -2413,7 +2415,6 @@ scripts/spec_catalog/spec-next-session.ps1
     -Threshold              [Int32] = 300000
     -Force                  [SwitchParameter]
     -StaleMinutes           [Int32] = 45
-  Exit: 0 - ok.; 1 - error (missing state file where one is required, write failure).
 ```
 
 ### stats.ps1
@@ -2422,6 +2423,19 @@ scripts/spec_catalog/spec-next-session.ps1
 scripts/spec_catalog/stats.ps1
   Params:
     -Format         [String] = 'table'  {table|json}
+```
+
+### ticket-lease.ps1
+
+```
+scripts/spec_catalog/ticket-lease.ps1
+  Params:
+    -Verb          (req)  [String]  {Claim|Release|List|Status|Sweep}
+    -Id                   [String]
+    -Reason               [String] = 'spec-picker'
+    -Json                 [SwitchParameter]
+    -StaleMinutes         [Int32] = 0
+  Exit: 0 - done: claimed, released, or reported.; 1 - error: unreadable store, bad argument shape, write failure.; 3 - claim lost: a live foreign session already holds this ticket.; 4 - release refused: a live foreign session owns this lease.
 ```
 
 ### unverified-backlog.ps1
@@ -2636,13 +2650,14 @@ scripts/utils/create-run-configs.ps1
 ```
 
 ### enter-code-lock.ps1
-Acquire temp/CODE.LOCK before starting a multi-file source (Kotlin/XML/build-file) edit.
 
 ```
 scripts/utils/enter-code-lock.ps1
-  Acquire temp/CODE.LOCK before starting a multi-file source (Kotlin/XML/build-file) edit.
   Params:
-    -Reason  (req)  [String]
+    -Reason              (req)  [String]
+    -Wait                       [SwitchParameter]
+    -WaitTimeoutSeconds         [Int32] = 1200
+  Exit: 0 - lock acquired, start editing.; 4 - queued: another session holds it. Your ticket is in the queue; wait for your turn with
 ```
 
 ### exit-code-lock.ps1
@@ -2802,6 +2817,7 @@ scripts/utils/lock-status.ps1
     -Name                (req)  [String]  {Build|Code}
     -Json                       [SwitchParameter]
     -StrictExit                 [SwitchParameter]
+    -Queue                      [SwitchParameter]
     -Wait                       [SwitchParameter]
     -WaitTimeoutSeconds         [Int32] = 900
     -PollSeconds                [Int32] = 2
@@ -2990,5 +3006,17 @@ scripts/utils/setup-avd-for-tests.ps1
 ```
 scripts/utils/update_docs_frontmatter.ps1
   (no param block)
+```
+
+### wait-for-lock-turn.ps1
+
+```
+scripts/utils/wait-for-lock-turn.ps1
+  Params:
+    -Name                (req)  [String]  {Build|Code}
+    -Reason              (req)  [String]
+    -WaitTimeoutSeconds         [Int32] = 3600
+    -PollSeconds                [Int32] = 5
+  Exit: 0 - granted: it is this session's turn, ticket left in place for the caller.; 2 - timed out: nothing was acquired, ticket removed.; 3 - evicted: the ticket was dropped while waiting (session judged gone), ticket removed.; 4 - could not enqueue.
 ```
 

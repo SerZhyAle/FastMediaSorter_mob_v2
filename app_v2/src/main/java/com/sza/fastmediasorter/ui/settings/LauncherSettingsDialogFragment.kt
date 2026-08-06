@@ -9,6 +9,8 @@ import android.view.Window
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
@@ -18,6 +20,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -35,6 +38,10 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     private val binding get() = requireNotNull(_binding)
 
     private val viewModel: SettingsViewModel by activityViewModels()
+
+    // S1400: dialog-scoped, so the reset action does not have to be threaded through the shared
+    // settings ViewModel's already-oversized constructor.
+    private val launcherViewModel: LauncherSettingsViewModel by viewModels()
 
     @Inject
     lateinit var launcherModeContract: LauncherModeContract
@@ -96,6 +103,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(launcherTaskbarShowTray = isChecked))
         }
+        setupTrayRows()
         binding.rowLauncherReplaceStatusArea.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(
@@ -141,6 +149,54 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             val host = activity ?: return@setOnClickListener
             launcherRoleManager.openHomeChooser(host)
         }
+        binding.btnResetLauncher.setOnClickListener { confirmReset() }
+    }
+
+    /** S1415: the six tray-composition rows, kept out of [setupRows] so neither function grows past its limit. */
+    private fun setupTrayRows() {
+        binding.rowLauncherTrayClock.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(launcherTrayShowClock = isChecked))
+        }
+        binding.rowLauncherTrayBluetooth.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(launcherTrayShowBluetooth = isChecked))
+        }
+        binding.rowLauncherTraySim1.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(launcherTrayShowSim1 = isChecked))
+        }
+        binding.rowLauncherTraySim2.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(launcherTrayShowSim2 = isChecked))
+        }
+        binding.rowLauncherTrayNetwork.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(launcherTrayShowNetwork = isChecked))
+        }
+        binding.rowLauncherTrayBattery.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(launcherTrayShowBattery = isChecked))
+        }
+    }
+
+    /**
+     * S1400: every other control here applies immediately, so the one destructive action is the only
+     * one that asks first.
+     */
+    private fun confirmReset() {
+        MaterialAlertDialogBuilder(
+            requireContext(),
+            R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive,
+        )
+            .setTitle(R.string.launcher_settings_reset_title)
+            .setMessage(R.string.launcher_settings_reset_message)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                Timber.d("S1400: launcher reset confirmed in the settings dialog")
+                launcherViewModel.resetToDefaults()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun observeSettings() {
@@ -149,12 +205,29 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             binding.rowLauncherShowRecents.setCheckedSilently(settings.launcherTaskbarShowRecents)
             binding.rowLauncherShowPinned.setCheckedSilently(settings.launcherTaskbarShowPinned)
             binding.rowLauncherShowTray.setCheckedSilently(settings.launcherTaskbarShowTray)
+            binding.rowLauncherTrayClock.setCheckedSilently(settings.launcherTrayShowClock)
+            binding.rowLauncherTrayBluetooth.setCheckedSilently(settings.launcherTrayShowBluetooth)
+            binding.rowLauncherTraySim1.setCheckedSilently(settings.launcherTrayShowSim1)
+            binding.rowLauncherTraySim2.setCheckedSilently(settings.launcherTrayShowSim2)
+            binding.rowLauncherTrayNetwork.setCheckedSilently(settings.launcherTrayShowNetwork)
+            binding.rowLauncherTrayBattery.setCheckedSilently(settings.launcherTrayShowBattery)
             binding.rowLauncherReplaceStatusArea.setCheckedSilently(settings.launcherReplaceSystemStatusArea)
             binding.rowLauncherLockDesktop.setCheckedSilently(settings.launcherDesktopLocked)
             val densityIndex = AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(settings.launcherDensityFactor)
             binding.rowLauncherDensity.setSelection(if (densityIndex >= 0) densityIndex else DENSITY_DEFAULT_INDEX)
             renderWallpaperRow(settings)
             isUpdatingFromSettings = false
+        }
+        collectOnLifecycle(launcherViewModel.resetResult) { succeeded ->
+            Snackbar.make(
+                binding.root,
+                if (succeeded) {
+                    R.string.launcher_settings_reset_success
+                } else {
+                    R.string.launcher_settings_reset_failed
+                },
+                Snackbar.LENGTH_LONG,
+            ).show()
         }
         collectOnLifecycle(viewModel.launcherWallpaperImportFailed) {
             // The stored mode never changed, so the row has to be walked back off "My image" by hand.

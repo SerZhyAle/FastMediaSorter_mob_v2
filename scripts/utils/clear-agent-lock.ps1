@@ -24,6 +24,20 @@ param(
 $ErrorActionPreference = "Stop"
 . "$PSScriptRoot\agent-lock.ps1"
 
+# S1432: the queue behind the lock is cleared alongside it - a ticket stranded behind a cleared
+# lock would keep its session at the head and stall everyone else.
+$queueDir = Get-AgentLockQueueDir -Name $Name
+if ($Force) {
+    $dropped = @(Get-ChildItem -LiteralPath $queueDir -Filter '*.json' -ErrorAction SilentlyContinue).Count
+    Get-ChildItem -LiteralPath $queueDir -Filter '*.json' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    Write-Host "$Name queue: $dropped ticket(s) removed (-Force)." -ForegroundColor Yellow
+}
+else {
+    $evicted = Remove-StaleAgentLockTickets -Name $Name
+    $surviving = @(Get-AgentLockQueue -Name $Name).Count
+    Write-Host "$Name queue: $evicted stale ticket(s) evicted, $surviving still waiting." -ForegroundColor Gray
+}
+
 $status = Get-AgentLockStatus -Name $Name
 if (-not $status.Exists) {
     Write-Host "$Name.LOCK is already free." -ForegroundColor Green

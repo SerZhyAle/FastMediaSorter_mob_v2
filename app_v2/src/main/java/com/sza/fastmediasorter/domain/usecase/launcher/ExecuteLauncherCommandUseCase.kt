@@ -7,6 +7,7 @@ import android.net.Uri
 import android.provider.ContactsContract
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
+import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
@@ -32,9 +33,11 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
     private val resolveRouteAvailability: ResolvePanelRouteAvailabilityUseCase,
     private val streamSourceRepository: StreamSourceRepository,
     private val journal: LauncherJournalRepository,
+    private val appShortcutDataSource: AppShortcutDataSource,
 ) {
 
     suspend fun launch(command: LauncherCellCommand): Boolean {
+        Timber.d("S1435: launcher command funnel entered, command=%s", command)
         val started = when (command) {
             is LauncherCellCommand.App -> launchPackage(command.packageName)
             is LauncherCellCommand.Feature -> launchFeature(command.routeKey)
@@ -46,9 +49,13 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             // favourites table a moment ago, so a second existence probe only delays the open.
             is LauncherCellCommand.FavoriteFile -> startIntent(favoriteFileIntent(command))
             is LauncherCellCommand.Contact -> launchContact(command.target)
+            is LauncherCellCommand.PinnedShortcut -> launchPinnedShortcut(command)
             // S1103: a scheduled op may modify or delete files, so it is confirmed then run from the
             // launcher UI path (ViewModel), never launched generically here.
             is LauncherCellCommand.ScheduledOp -> false
+            // S1402: editing the desktop and leaving launcher mode only exist inside a running launcher,
+            // so there is no Intent to start - the host intercepts this kind before it ever reaches here.
+            is LauncherCellCommand.LauncherAction -> false
         }
         if (started) journal.record(command)
         return started
@@ -102,11 +109,12 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
     }
 
     /**
-     * S1176: the three contact outcomes, each resolved before it is started.
+     * S1176: the four contact outcomes, each resolved before it is started.
      *
-     * The app holds no contacts permission: everything here rides the one-time grant the system picker
-     * already gave on the picked record, and `DIAL` opens the dialler pre-filled rather than placing the
-     * call (ADR-3) - placing one would need `CALL_PHONE`, which stays undeclared.
+     * Nothing here needs a permission: every target was captured under the one-time grant the system
+     * picker gave on the picked record. `DIAL` opens the dialler pre-filled and `SMS` opens the
+     * messaging app pre-addressed rather than acting (ADR-3) - doing either would need `CALL_PHONE` or
+     * `SEND_SMS`, and both stay undeclared.
      *
      * Nothing about the person reaches the log. The name, the number and the lookup key are all user
      * data that would otherwise sit in a bug report; the action kind is enough to diagnose a dead cell.
@@ -137,6 +145,12 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
                 Intent.ACTION_DIAL,
                 Uri.fromParts(TEL_SCHEME, target.phoneNumber, null),
             )
+            // The number rides in the URI, not in an extra: some handlers ignore EXTRA_PHONE_NUMBER
+            // and open an empty compose screen instead (strategic §8).
+            LauncherContactAction.SMS -> Intent(
+                Intent.ACTION_SENDTO,
+                Uri.fromParts(SMS_SCHEME, target.phoneNumber, null),
+            )
             // The picked row addressed through the app that registered it: a messaging data row is
             // meaningless to any other handler, so the package is part of the target, not a hint.
             LauncherContactAction.MESSAGE -> Intent(Intent.ACTION_VIEW).apply {
@@ -159,6 +173,13 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
         )
     }
 
+    /**
+     * S1205: started by identifier, never by intent - a pinned shortcut's own intent is readable only
+     * by the platform, which is exactly why it was never copied into the cell.
+     */
+    private fun launchPinnedShortcut(command: LauncherCellCommand.PinnedShortcut): Boolean =
+        appShortcutDataSource.start(command.packageName, command.shortcutId, sourceBounds = null)
+
     private fun launchPackage(packageName: String): Boolean {
         val intent = context.packageManager.getLaunchIntentForPackage(packageName)
         if (intent == null) {
@@ -170,6 +191,7 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
 
     private companion object {
         const val TEL_SCHEME = "tel"
+        const val SMS_SCHEME = "smsto"
     }
 
     private fun startIntent(intent: Intent): Boolean {

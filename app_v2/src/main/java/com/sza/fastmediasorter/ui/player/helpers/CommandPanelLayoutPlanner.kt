@@ -161,6 +161,18 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         // OFFICE: overflow-only to avoid reusing text/PDF inline buttons with mismatched listeners.
         TRANSLATE_OFFICE(392, R.id.menu_translate, false, R.string.translate,
             R.drawable.ic_translate, R.string.big_btn_short_translate),
+        // S1406: emitted ungated by isOffice, like the other *_TEXT_SETTINGS entries - this is the
+        // dialog the user opens to turn translation back on, so gating it on the setting would
+        // strand them. Office was the one type without it, which is why a hidden long-press on the
+        // OCR row had to stand in for it.
+        OFFICE_TEXT_SETTINGS(
+            393,
+            R.id.menu_text_settings,
+            false,
+            R.string.translation_settings,
+            R.drawable.ic_book,
+            R.string.big_btn_short_text_settings
+        ),
         OCR_OFFICE(394, R.id.menu_ocr, false, R.string.ocr_button_description, R.drawable.ic_ocr,
             R.string.big_btn_short_ocr),
 
@@ -320,6 +332,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             if (isEpub && state.enableOcr) add(PlayerCommand.OCR_EPUB)
 
             if (isOffice && state.enableTranslation) add(PlayerCommand.TRANSLATE_OFFICE)
+            if (isOffice) add(PlayerCommand.OFFICE_TEXT_SETTINGS)
             if (isOffice && state.enableOcr) add(PlayerCommand.OCR_OFFICE)
 
             if (isImage && state.enableTranslation) add(PlayerCommand.TRANSLATE_IMAGE)

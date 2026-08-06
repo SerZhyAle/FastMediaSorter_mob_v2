@@ -45,7 +45,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_widget_random_music.svg" alt="ic_widget_random_music" width="24" height="24"> | Случайная музыка |
 | <img src="icons/svg/ic_widget_scheduled_tasks.svg" alt="ic_widget_scheduled_tasks" width="24" height="24"> | Задачи по расписанию |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Видеозапись экрана |
-| <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Настройки |
+| <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Настройки |
 | <img src="icons/svg/ic_volume_up.svg" alt="ic_volume_up" width="24" height="24"> | Звук |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Начать видеозапись |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Хранилище |

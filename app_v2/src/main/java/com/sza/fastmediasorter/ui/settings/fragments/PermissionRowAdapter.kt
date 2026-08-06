@@ -1,13 +1,15 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
 import android.content.res.ColorStateList
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
-import android.util.TypedValue
 import androidx.core.content.ContextCompat
+import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.PermissionEntry
@@ -79,25 +81,20 @@ class PermissionRowAdapter(
                     visibility = View.GONE
                 }
             }
-            val statusLabel = when (status) {
-                PermissionStatus.GRANTED -> ctx.getString(R.string.perm_status_granted)
-                PermissionStatus.DENIED -> ctx.getString(R.string.perm_status_denied)
-                PermissionStatus.PERMANENTLY_DENIED -> ctx.getString(R.string.perm_status_permanently_denied)
-                PermissionStatus.NOT_APPLICABLE -> ctx.getString(R.string.perm_status_not_applicable)
-            }
-            itemView.findViewById<TextView>(R.id.tv_perm_entry_status)?.text =
-                ctx.getString(R.string.perm_current_status, statusLabel)
+            bindStateIndicator(status)
             itemView.findViewById<Button>(R.id.btn_perm_action)?.apply {
                 text = when (status) {
                     PermissionStatus.GRANTED -> ctx.getString(R.string.perm_action_manage)
+                    PermissionStatus.NOT_YET_REQUESTED,
                     PermissionStatus.DENIED -> ctx.getString(R.string.perm_action_grant)
                     PermissionStatus.PERMANENTLY_DENIED -> ctx.getString(R.string.perm_action_settings)
-                    PermissionStatus.NOT_APPLICABLE -> ""
+                    PermissionStatus.NOT_APPLICABLE,
+                    PermissionStatus.ASKED_EACH_TIME -> ""
                 }
                 // GRANT button is orange to signal an action is needed;
                 // MANAGE / SETTINGS use the default primary color.
                 backgroundTintList = ColorStateList.valueOf(
-                    if (status == PermissionStatus.DENIED) {
+                    if (status == PermissionStatus.DENIED || status == PermissionStatus.NOT_YET_REQUESTED) {
                         ContextCompat.getColor(ctx, R.color.warning_color)
                     } else {
                         val tv = TypedValue()
@@ -105,9 +102,64 @@ class PermissionRowAdapter(
                         tv.data
                     }
                 )
-                visibility = if (status == PermissionStatus.NOT_APPLICABLE) View.GONE else View.VISIBLE
+                // ASKED_EACH_TIME has no grant to offer (S1436): the row is informational, so the
+                // button is hidden rather than shown disabled - a dead control reads as a bug.
+                visibility = when (status) {
+                    PermissionStatus.NOT_APPLICABLE,
+                    PermissionStatus.ASKED_EACH_TIME -> View.GONE
+                    else -> View.VISIBLE
+                }
                 setOnClickListener { onActionClick(entry, status) }
             }
+        }
+
+        /**
+         * Shape and colour both encode the state and the content description carries it for TalkBack,
+         * so the row stays readable for a colour-blind user and on a greyscale screenshot: a filled
+         * check = granted, a hollow ring = not granted yet, a padlock = blocked in system settings.
+         * NOT_APPLICABLE hides the indicator - such a row never reaches the list today, and an empty
+         * slot is honest if one ever does. ASKED_EACH_TIME (S1436) reuses the not-granted shape and
+         * colour but says so in words: the state is real and permanent, not a pending grant, and no
+         * new icon is introduced for it because the row carries no action to distinguish.
+         */
+        private fun bindStateIndicator(status: PermissionStatus) {
+            val indicator = itemView.findViewById<ImageView>(R.id.iv_perm_state) ?: return
+            if (status == PermissionStatus.NOT_APPLICABLE) {
+                indicator.visibility = View.INVISIBLE
+                return
+            }
+            val ctx = indicator.context
+            val (iconRes, colorRes, descRes) = when (status) {
+                PermissionStatus.GRANTED -> Triple(
+                    R.drawable.ic_perm_state_granted,
+                    R.color.perm_state_granted,
+                    R.string.perm_state_granted,
+                )
+                PermissionStatus.PERMANENTLY_DENIED -> Triple(
+                    R.drawable.ic_perm_state_blocked,
+                    R.color.perm_state_blocked,
+                    R.string.perm_state_blocked,
+                )
+                PermissionStatus.ASKED_EACH_TIME -> Triple(
+                    R.drawable.ic_perm_state_missing,
+                    R.color.perm_state_missing,
+                    R.string.perm_state_asked_each_time,
+                )
+                PermissionStatus.NOT_YET_REQUESTED,
+                PermissionStatus.DENIED,
+                PermissionStatus.NOT_APPLICABLE -> Triple(
+                    R.drawable.ic_perm_state_missing,
+                    R.color.perm_state_missing,
+                    R.string.perm_state_missing,
+                )
+            }
+            indicator.visibility = View.VISIBLE
+            indicator.setImageResource(iconRes)
+            ImageViewCompat.setImageTintList(
+                indicator,
+                ColorStateList.valueOf(ContextCompat.getColor(ctx, colorRes)),
+            )
+            indicator.contentDescription = ctx.getString(descRes)
         }
     }
 }

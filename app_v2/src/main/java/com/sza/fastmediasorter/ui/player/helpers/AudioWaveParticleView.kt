@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.animation.ValueAnimator
 import android.app.ActivityManager
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -11,6 +12,7 @@ import android.graphics.Path
 import android.os.Build
 import android.provider.Settings
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
 import android.view.animation.LinearInterpolator
 import timber.log.Timber
@@ -26,8 +28,12 @@ import kotlin.random.Random
  * Algorithm:
  *  - 5–12 sine-wave paths drawn per frame (count, stroke, amplitude, color randomized per session).
  *  - 15–55 drifting particles that bounce off view edges (count, size, speed, hue randomized).
- *  - Motion-blur trail effect via a semi-transparent black overlay drawn onto an
- *    off-screen Bitmap each frame, avoiding expensive post-processing blur filters.
+ *  - Motion-blur trail effect via a semi-transparent overlay drawn onto an off-screen Bitmap each
+ *    frame, avoiding expensive post-processing blur filters.
+ *
+ * S1287: the palette follows the host's theme. The buffer fill, the trail overlay and the lightness of
+ * waves and particles are mirrored for a light theme - dark strokes on a light field - so the animation
+ * stops being a black rectangle on a light screen. Hues are untouched; do not restore a hardcoded black.
  *
  * All visual parameters are re-randomized on each fresh [startAnimation] call so every
  * playback session looks distinct.
@@ -83,7 +89,30 @@ class AudioWaveParticleView @JvmOverloads constructor(
 
         // Default when the animator scale cannot be read; matches the platform default.
         private const val ANIMATOR_SCALE_DEFAULT = 1f
+
+        // S1287: the palette is mirrored across the lightness scale, never across the hue wheel - a
+        // literal negative of a random rainbow reads as a different animation, not an inverted one.
+        // The dark values are the originals; the light ones are their reflections.
+        private const val FADE_ALPHA = 38
+        private const val FADE_CHANNEL_DARK = 10
+        private const val FADE_CHANNEL_LIGHT = 245
+        private const val WAVE_LIGHTNESS_DARK = 0.65f
+        private const val WAVE_LIGHTNESS_LIGHT = 0.35f
+        private const val PARTICLE_LIGHTNESS_DARK = 0.70f
+        private const val PARTICLE_LIGHTNESS_LIGHT = 0.30f
     }
+
+    /**
+     * S1287: true when the host screen runs a light theme. Read from the theme rather than from the
+     * system night mode, because the app carries its own theme setting and the two can disagree -
+     * trusting the system alone would leave a black rectangle on a light screen. The night mask is the
+     * fallback, which is correct: with no explicit choice the theme follows the system anyway.
+     */
+    private val lightTheme: Boolean = resolveLightTheme(context)
+
+    private val bufferFillColor = if (lightTheme) Color.WHITE else Color.BLACK
+    private val waveLightness = if (lightTheme) WAVE_LIGHTNESS_LIGHT else WAVE_LIGHTNESS_DARK
+    private val particleLightness = if (lightTheme) PARTICLE_LIGHTNESS_LIGHT else PARTICLE_LIGHTNESS_DARK
 
     /**
      * True if [startAnimation] was called while the View had no size yet (layout pending).
@@ -161,9 +190,11 @@ class AudioWaveParticleView @JvmOverloads constructor(
     private var offBitmap: Bitmap? = null
     private var offCanvas: Canvas? = null
 
-    // rgba(10, 10, 10, 0.15) ≈ argb(38, 10, 10, 10) - semi-transparent black overlay
+    // A translucent wash of the background's own colour: it pulls the previous frame towards the fill
+    // rather than towards grey, which is what keeps the trail clean in either theme.
     private val fadeOverlayPaint = Paint().apply {
-        color = Color.argb(38, 10, 10, 10)
+        val channel = if (lightTheme) FADE_CHANNEL_LIGHT else FADE_CHANNEL_DARK
+        color = Color.argb(FADE_ALPHA, channel, channel, channel)
         style = Paint.Style.FILL
     }
 
@@ -201,7 +232,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
         if (w <= 0 || h <= 0) return
         offBitmap?.recycle()
         offBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        offCanvas = Canvas(offBitmap!!).also { it.drawColor(Color.BLACK) }
+        offCanvas = Canvas(offBitmap!!).also { it.drawColor(bufferFillColor) }
         initParticles(w, h)
         // Deferred start: startAnimation() was called before layout completed
         if (pendingStart) {
@@ -344,7 +375,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
         animator.cancel()
         time = 0f
         startupFrameCount = 0
-        offCanvas?.drawColor(Color.BLACK)
+        offCanvas?.drawColor(bufferFillColor)
         invalidate()
     }
 
@@ -392,7 +423,8 @@ class AudioWaveParticleView @JvmOverloads constructor(
                 }
                 distance += stepPx
             }
-            wavePaint.color = hslToArgb((baseWaveHue + j * waveHueStep) % 360f, 0.80f, 0.65f, waveAlpha)
+            wavePaint.color =
+                hslToArgb((baseWaveHue + j * waveHueStep) % 360f, 0.80f, waveLightness, waveAlpha)
             oc.drawPath(wavePath, wavePaint)
         }
 
@@ -402,12 +434,26 @@ class AudioWaveParticleView @JvmOverloads constructor(
             p.y += p.vy
             if (p.x < 0f || p.x > w) p.vx = -p.vx
             if (p.y < 0f || p.y > h) p.vy = -p.vy
-            particlePaint.color = hslToArgb(p.hue, 0.90f, 0.70f, 0.38f + 0.32f * startupGain)
+            particlePaint.color =
+                hslToArgb(p.hue, 0.90f, particleLightness, 0.38f + 0.32f * startupGain)
             oc.drawCircle(p.x, p.y, p.radius, particlePaint)
         }
     }
 
     // ──────────────────── Color ────────────────────
+
+    /**
+     * S1287: the theme's own answer first, the system night mode second. Returning `false` on both
+     * failures is deliberate - it lands on the palette this view has always drawn.
+     */
+    private fun resolveLightTheme(context: Context): Boolean {
+        val value = TypedValue()
+        if (context.theme.resolveAttribute(androidx.appcompat.R.attr.isLightTheme, value, true)) {
+            return value.data != 0
+        }
+        val nightMask = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        return nightMask != Configuration.UI_MODE_NIGHT_YES
+    }
 
     /** Converts HSL + alpha to an ARGB integer. h: [0,360], s/l/a: [0,1]. */
     private fun hslToArgb(h: Float, s: Float, l: Float, a: Float): Int {

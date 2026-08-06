@@ -2001,6 +2001,66 @@
       "titleUk": "Показувати годинник і статус"
     },
     {
+      "key": "rowLauncherTrayBattery",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Battery",
+      "titleRu": "Батарея",
+      "titleUk": "Батарея"
+    },
+    {
+      "key": "rowLauncherTrayBluetooth",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Bluetooth",
+      "titleRu": "Bluetooth",
+      "titleUk": "Bluetooth"
+    },
+    {
+      "key": "rowLauncherTrayClock",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Clock",
+      "titleRu": "Часы",
+      "titleUk": "Годинник"
+    },
+    {
+      "key": "rowLauncherTrayNetwork",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Network type",
+      "titleRu": "Тип сети",
+      "titleUk": "Тип мережі"
+    },
+    {
+      "key": "rowLauncherTraySim1",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "SIM 1 signal",
+      "titleRu": "Сигнал SIM 1",
+      "titleUk": "Сигнал SIM 1"
+    },
+    {
+      "key": "rowLauncherTraySim2",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "SIM 2 signal",
+      "titleRu": "Сигнал SIM 2",
+      "titleUk": "Сигнал SIM 2"
+    },
+    {
       "key": "rowLauncherWallpaper",
       "sectionId": "launcher",
       "destination": "GENERAL",

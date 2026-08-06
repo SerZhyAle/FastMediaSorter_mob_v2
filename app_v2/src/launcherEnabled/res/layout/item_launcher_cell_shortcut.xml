@@ -89,7 +89,7 @@
             android:gravity="center"
             android:maxLines="1"
             android:textColor="?attr/colorOnSurface"
-            android:textSize="12sp"
+            android:textSize="@dimen/launcher_cell_label_text_size"
             app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Photos" />
 

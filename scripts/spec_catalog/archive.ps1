@@ -102,6 +102,9 @@ foreach ($tacticalDir in $tacticalDirs) {
 
 # Mark Archived in journal, preserve optional fields
 $allRecords = [System.Collections.Generic.List[object]]::new()
+# S1437: read -> mutate -> write is one critical section. Two processes holding the same
+# snapshot lose one change entirely - the later write replaces the whole journal.
+Enter-CatalogLock
 foreach ($r in (Read-Catalog)) { $allRecords.Add($r) }
 
 $idx = -1
@@ -140,5 +143,7 @@ $remaining = @($allRecords | Where-Object { $_.id -ne $Id })
 Write-Catalog -Records ([object[]]$remaining)
 
 $movedStr = if ($moved.Count -gt 0) { $moved -join ', ' } else { '(no files found)' }
+Exit-CatalogLock
+
 Write-Output ("$Id archived [priority -> 0]. Moved: $movedStr -> temp/done/")
 exit 0

@@ -24,6 +24,11 @@ object SearchableOptionPickerWindow {
     private const val MAX_WIDTH_DP = 560f
     private const val HEIGHT_FRACTION = 0.8f
 
+    // S1095's values, kept exactly: a cell narrower than this ellipsizes an ordinary app or resource
+    // name, and two columns is what makes a phone-width dialog worth gridding at all.
+    private const val MIN_CELL_DP = 160f
+    private const val MIN_COLUMNS = 2
+
     /** Full treatment for a self-drawn host: opaque card, capped height, centered sized window. */
     fun apply(dialog: Dialog?, binding: DialogSearchableOptionPickerBinding) {
         binding.root.setBackgroundResource(R.drawable.bg_option_picker_surface)
@@ -55,4 +60,22 @@ object SearchableOptionPickerWindow {
         (metrics.widthPixels * WIDTH_FRACTION).toInt(),
         (metrics.density * MAX_WIDTH_DP).toInt(),
     )
+
+    /**
+     * S1413: how many columns a grid host should ask the controller for - as many [minCellDp]-wide cells
+     * as [widthPx] allows, never fewer than [minColumns].
+     *
+     * It lives here rather than in the host or the controller because the answer is only correct against
+     * the width this object actually gives the window. S1095 kept a private copy inside the app picker,
+     * and the next host that wanted a grid had no way to reuse it - which is why the resource picker
+     * stayed a single column until this ticket.
+     */
+    fun columnsFor(
+        metrics: DisplayMetrics,
+        minCellDp: Float = MIN_CELL_DP,
+        minColumns: Int = MIN_COLUMNS,
+    ): Int {
+        val widthDp = widthPx(metrics) / metrics.density
+        return (widthDp / minCellDp).toInt().coerceAtLeast(minColumns)
+    }
 }

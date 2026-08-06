@@ -1,10 +1,18 @@
 package com.sza.fastmediasorter.domain.model.launcher
 
-/** What a contact cell does when tapped. One target kind, three outcomes (strategic ADR-4). */
+/**
+ * What a contact cell does when tapped. One target kind, four outcomes (strategic ADR-4).
+ *
+ * The order is a persistence format: [LauncherCellCommand.Contact] stores the entry by name, so a new
+ * action is appended and an existing one is never reordered or renamed.
+ */
 enum class LauncherContactAction {
     PROFILE,
     DIAL,
     MESSAGE,
+
+    /** S0428: hands the number to the system messaging app, which [MESSAGE] cannot - it needs a thread. */
+    SMS,
 }
 
 /**
@@ -13,9 +21,9 @@ enum class LauncherContactAction {
  * **This is a snapshot, and that is the whole design (ADR-1).** The values here were read once, from
  * the record the system contact picker handed back under its own one-time grant. Nothing re-reads the
  * address book afterwards, so a contact later renamed, re-numbered or deleted keeps showing the old
- * label on the cell until the user re-pins it. That staleness is the deliberate price of never asking
- * for `READ_CONTACTS` - the app holds no contacts permission at all, and a live cell would require one.
- * S1206 is where a refresh path, if it is ever wanted, belongs.
+ * label on the cell until the user re-pins it. `READ_CONTACTS` is declared and optional since S1335,
+ * but nothing here asks for it: the pick reads under the picker's own grant, so a cell costs the user
+ * no permission at all. S1206 is where a live refresh path, if it is ever wanted, belongs.
  *
  * Fields are per-action and only one of them is load-bearing at a time: [lookupKey] opens the profile,
  * [phoneNumber] fills the dialler, and [messageDataId] + [messagePackage] address the exact messaging
@@ -40,7 +48,7 @@ data class LauncherContactTarget(
     val isUsable: Boolean
         get() = when (action) {
             LauncherContactAction.PROFILE -> lookupKey.isNotEmpty()
-            LauncherContactAction.DIAL -> phoneNumber.isNotEmpty()
+            LauncherContactAction.DIAL, LauncherContactAction.SMS -> phoneNumber.isNotEmpty()
             LauncherContactAction.MESSAGE -> messageDataId != NO_DATA_ID && messagePackage.isNotEmpty()
         }
 

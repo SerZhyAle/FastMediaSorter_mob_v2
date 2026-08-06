@@ -14,6 +14,7 @@
   "flags": [
     "IS_NO_LEGAL_FLAVOR",
     "SUPPORT_LAUNCHER",
+    "DECLARES_BATTERY_OPTIMIZATION",
     "SUPPORT_VIDEO",
     "SUPPORT_AUDIO",
     "SUPPORT_STREAMS",
@@ -42,12 +43,14 @@
   },
   "defaults": {
     "IS_NO_LEGAL_FLAVOR": false,
-    "SUPPORT_LAUNCHER": false
+    "SUPPORT_LAUNCHER": false,
+    "DECLARES_BATTERY_OPTIMIZATION": true
   },
   "matrix": {
     "standard": {
       "IS_NO_LEGAL_FLAVOR": false,
       "SUPPORT_LAUNCHER": true,
+      "DECLARES_BATTERY_OPTIMIZATION": true,
       "SUPPORT_VIDEO": true,
       "SUPPORT_AUDIO": true,
       "SUPPORT_STREAMS": true,
@@ -69,6 +72,7 @@
     "noLegal": {
       "IS_NO_LEGAL_FLAVOR": true,
       "SUPPORT_LAUNCHER": true,
+      "DECLARES_BATTERY_OPTIMIZATION": true,
       "SUPPORT_VIDEO": true,
       "SUPPORT_AUDIO": true,
       "SUPPORT_STREAMS": true,
@@ -90,6 +94,7 @@
     "lite": {
       "IS_NO_LEGAL_FLAVOR": false,
       "SUPPORT_LAUNCHER": false,
+      "DECLARES_BATTERY_OPTIMIZATION": true,
       "SUPPORT_VIDEO": true,
       "SUPPORT_AUDIO": true,
       "SUPPORT_STREAMS": false,
@@ -111,6 +116,7 @@
     "photos": {
       "IS_NO_LEGAL_FLAVOR": false,
       "SUPPORT_LAUNCHER": false,
+      "DECLARES_BATTERY_OPTIMIZATION": true,
       "SUPPORT_VIDEO": false,
       "SUPPORT_AUDIO": false,
       "SUPPORT_STREAMS": false,
@@ -132,6 +138,7 @@
     "legacy": {
       "IS_NO_LEGAL_FLAVOR": false,
       "SUPPORT_LAUNCHER": false,
+      "DECLARES_BATTERY_OPTIMIZATION": true,
       "SUPPORT_VIDEO": true,
       "SUPPORT_AUDIO": true,
       "SUPPORT_STREAMS": true,
@@ -153,6 +160,7 @@
     "vr": {
       "IS_NO_LEGAL_FLAVOR": false,
       "SUPPORT_LAUNCHER": false,
+      "DECLARES_BATTERY_OPTIMIZATION": true,
       "SUPPORT_VIDEO": true,
       "SUPPORT_AUDIO": true,
       "SUPPORT_STREAMS": true,
@@ -176,6 +184,7 @@
     "standard": {
       "IS_NO_LEGAL_FLAVOR": "defaultConfig",
       "SUPPORT_LAUNCHER": "flavor",
+      "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",
       "SUPPORT_VIDEO": "flavor",
       "SUPPORT_AUDIO": "flavor",
       "SUPPORT_STREAMS": "flavor",
@@ -197,6 +206,7 @@
     "noLegal": {
       "IS_NO_LEGAL_FLAVOR": "flavor",
       "SUPPORT_LAUNCHER": "flavor",
+      "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",
       "SUPPORT_VIDEO": "flavor",
       "SUPPORT_AUDIO": "flavor",
       "SUPPORT_STREAMS": "flavor",
@@ -218,6 +228,7 @@
     "lite": {
       "IS_NO_LEGAL_FLAVOR": "defaultConfig",
       "SUPPORT_LAUNCHER": "defaultConfig",
+      "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",
       "SUPPORT_VIDEO": "flavor",
       "SUPPORT_AUDIO": "flavor",
       "SUPPORT_STREAMS": "flavor",
@@ -239,6 +250,7 @@
     "photos": {
       "IS_NO_LEGAL_FLAVOR": "defaultConfig",
       "SUPPORT_LAUNCHER": "defaultConfig",
+      "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",
       "SUPPORT_VIDEO": "flavor",
       "SUPPORT_AUDIO": "flavor",
       "SUPPORT_STREAMS": "flavor",
@@ -260,6 +272,7 @@
     "legacy": {
       "IS_NO_LEGAL_FLAVOR": "defaultConfig",
       "SUPPORT_LAUNCHER": "defaultConfig",
+      "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",
       "SUPPORT_VIDEO": "flavor",
       "SUPPORT_AUDIO": "flavor",
       "SUPPORT_STREAMS": "flavor",
@@ -281,6 +294,7 @@
     "vr": {
       "IS_NO_LEGAL_FLAVOR": "defaultConfig",
       "SUPPORT_LAUNCHER": "defaultConfig",
+      "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",
       "SUPPORT_VIDEO": "flavor",
       "SUPPORT_AUDIO": "flavor",
       "SUPPORT_STREAMS": "flavor",

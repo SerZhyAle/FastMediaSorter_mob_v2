@@ -80,6 +80,7 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
         inputManager = GameInputManager(
             onDirection = { direction -> viewModel.move(direction) },
             onPrimaryAction = { handleResetAction() },
+            onRestartLevel = { viewModel.restartCurrentLevel() },
             onBack = { finish() }
         )
         inputManager.attachBoard(boardView)

@@ -78,14 +78,23 @@ class PermissionRegistryRepositoryImplTest {
     }
 
     @Test
-    fun `every declared flavor-gate names an existing boolean BuildConfig field`() {
-        // Guards against a typo'd / removed flavorGates string silently dropping a permission:
+    fun `every declared build-gate names an existing boolean BuildConfig field`() {
+        // Guards against a typo'd / removed buildGates string silently dropping a permission:
         // such a name resolves on no variant, so this standardDebug run fails fast on it.
         val byName = BuildConfig::class.java.fields.associateBy { it.name }
-        repo.declaredFlavorGateFields.forEach { fieldName ->
+        repo.declaredBuildGateFields.forEach { fieldName ->
             val field = byName[fieldName]
-            assertNotNull("Permission flavor-gate references unknown BuildConfig field: $fieldName", field)
-            assertEquals("Flavor-gate field $fieldName must be boolean type", java.lang.Boolean.TYPE, field!!.type)
+            assertNotNull("Permission build-gate references unknown BuildConfig field: $fieldName", field)
+            assertEquals("Build-gate field $fieldName must be boolean type", java.lang.Boolean.TYPE, field!!.type)
         }
+    }
+
+    @Test
+    fun `every declared build-gate resolves through a mapped value, not the fallback`() {
+        // The BuildConfig-field check above cannot catch a name that exists but has no value in the
+        // resolver: such a gate falls through to false on every variant and silently hides its
+        // permission. Assert the resolver is total over the declared set instead.
+        val unmapped = repo.declaredBuildGateFields - repo.mappedBuildGateFields
+        assertTrue("Build-gates with no value in the resolver: $unmapped", unmapped.isEmpty())
     }
 }

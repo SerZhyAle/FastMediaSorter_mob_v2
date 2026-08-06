@@ -7,16 +7,22 @@
 #   them and every resume had to re-derive state from scratch. This script
 #   persists that state to disk so a reset is just a resume.
 #
-# Ownership (S1396):
-#   The state path is fixed, so two concurrent /spec-next sessions would otherwise share
-#   one file: the second session's -Verb Init silently wiped the first one's processed set,
-#   tally and device facts (observed 2026-08-05). The owner here is NOT an OS process - each
-#   invocation is a separate short-lived pwsh.exe and nothing survives between them - so
-#   BUILD.LOCK's pid-liveness model does not apply. Ownership is keyed on the agent session
-#   id instead, and liveness is read off that session's transcript file. No session id in the
-#   environment -> ownership is undefined and every check below is a no-op.
+# Ownership (S1396, revised by S1437):
+#   The state path used to be fixed, so two concurrent /spec-next sessions shared one file and
+#   the second session's -Verb Init silently wiped the first one's processed set, tally and
+#   device facts (observed 2026-08-05). S1396 answered that by stamping an owner and refusing
+#   the second session; S1437 answers it properly by giving each session its own file, so both
+#   run and neither refuses. Duplicate ticket pickup - the reason the refusal existed - is now
+#   prevented one layer up by the ticket lease (scripts/spec_catalog/ticket-lease.ps1).
 #
-# Storage: temp/spec-next-session.json
+#   The owner is NOT an OS process - each invocation is a separate short-lived pwsh.exe and
+#   nothing survives between them - so BUILD.LOCK's pid-liveness model does not apply.
+#   Ownership is keyed on the agent session id, and the liveness VERDICT comes from
+#   Get-AgentTicketLiveness in scripts/utils/agent-lock.ps1 rather than from a second copy of
+#   the rule here. No session id in the environment -> ownership is undefined and the checks
+#   below are no-ops.
+#
+# Storage: temp/spec-next-session.<sessionId>.json (one per session)
 # Schema (one session record):
 #   {
 #     "round": 1,
@@ -26,6 +32,9 @@
 #     "selectedDevice": null,
 #     "owner": { "sessionId": "<uuid>", "host": "PC", "pid": 1234,
 #                "stampedAt": "2026-08-01T11:40:00", "lastSeenAt": "2026-08-01T11:55:00" },
+#     "handoffAt": null,   // set by -Verb Handoff = "parked, waiting to be resumed" (S1437);
+#                          // cleared by -Verb Resume. The one signal that separates a round
+#                          // stopped for a context reset from a sibling working right now.
 #     "processed": [
 #       { "id": "S1339", "outcome": "verified", "note": "", "firstAt": "2026-08-01T11:50:00",
 #         "at": "2026-08-01T11:55:00" }
@@ -60,7 +69,9 @@
 #   1 - error (missing state file where one is required, write failure).
 #   2 - cannot verify (bad -Id on Record; CheckContext could not determine tokens).
 #   3 - threshold crossed (CheckContext only).
-#   4 - refused: a live foreign owner holds the state file (Init only; -Force overrides).
+#   (4 was "refused: a live foreign owner holds the state file". Retired in S1437 - the state
+#    file is per session now, so there is no foreign owner to refuse. Not reused, so an old
+#    caller still testing for 4 reads a code this script can no longer return.)
 
 [CmdletBinding()]
 param(
@@ -81,7 +92,9 @@ param(
 
     [int]$Threshold = 300000,
 
-    # Take the state file over from a live foreign owner (Init only).
+    # Deprecated since S1437, accepted as a no-op: the state file is per session, so there is
+    # nothing to take over. Kept so a stored command line carrying it does not fail on an
+    # unknown parameter.
     [switch]$Force,
 
     # How long an owner's last sign of life may be before it counts as gone. Deliberately
@@ -92,12 +105,66 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Get-AgentTicketLiveness: the one home for "is that session still alive" (S1437).
+. (Join-Path $PSScriptRoot '..\utils\agent-lock.ps1')
+
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $tempDir = Join-Path $root 'temp'
 if (-not (Test-Path $tempDir)) {
     New-Item -ItemType Directory -Path $tempDir | Out-Null
 }
-$statePath = Join-Path $tempDir 'spec-next-session.json'
+# S1437: the round state is per SESSION, so two pickers can run at once. Before this it was one
+# file for the whole repo, and the second session was refused at Init - a stub placed against
+# ticket duplication, which the ticket lease now prevents properly.
+# No session id in the environment -> same pid- fallback agent-lock.ps1 uses, so the path always
+# resolves. The legacy single-file state is adopted on first Init/Resume, never orphaned.
+$sessionKey = if ([string]::IsNullOrWhiteSpace($env:CLAUDE_CODE_SESSION_ID)) { "pid-$PID" } else { $env:CLAUDE_CODE_SESSION_ID }
+$statePath = Join-Path $tempDir "spec-next-session.$sessionKey.json"
+$legacyStatePath = Join-Path $tempDir 'spec-next-session.json'
+
+function Import-ResumableSessionState {
+    <#
+        Adopt an existing round into THIS session's state file.
+
+        Two cases, one mechanism:
+          - the pre-S1437 single file (temp/spec-next-session.json), for a round in flight across
+            the upgrade;
+          - another session's per-session file whose owner is gone - which is the NORMAL resume
+            path, because /clear gives the resuming agent a NEW session id, so the round it is
+            resuming is always filed under the OLD one. Without this, /spec-next --resume after a
+            threshold stop would find nothing and lose the round the state file exists to save.
+
+        A file owned by a session that is still ALIVE is never taken: that is a sibling working
+        its own round, not an orphan. Newest adoptable file wins when several qualify.
+        Only ever runs when this session has no state of its own, so it cannot clobber live state.
+    #>
+    if (Test-Path -LiteralPath $statePath) { return $false }
+
+    $candidates = @()
+    if (Test-Path -LiteralPath $legacyStatePath) { $candidates += (Get-Item -LiteralPath $legacyStatePath) }
+    $candidates += @(Get-ChildItem -LiteralPath $tempDir -Filter 'spec-next-session.*.json' -ErrorAction SilentlyContinue)
+
+    $adoptable = @()
+    foreach ($c in $candidates) {
+        if ($c.FullName -eq $statePath) { continue }
+        $peek = $null
+        try { $peek = Get-Content -LiteralPath $c.FullName -Raw -ErrorAction Stop | ConvertFrom-Json } catch { continue }
+        $parked = [bool]$peek.handoffAt
+        if (-not $parked -and (Get-OwnerCheck $peek).status -eq 'foreign-live') { continue }
+        $adoptable += $c
+    }
+    if ($adoptable.Count -eq 0) { return $false }
+
+    $winner = ($adoptable | Sort-Object LastWriteTime -Descending)[0]
+    try {
+        Move-Item -LiteralPath $winner.FullName -Destination $statePath -Force
+        return $true
+    }
+    catch {
+        # Non-fatal: a fresh round is a worse outcome than a failed move, but not a broken one.
+        return $false
+    }
+}
 
 function Read-State {
     if (-not (Test-Path $statePath)) { return $null }
@@ -149,31 +216,38 @@ function Get-OwnerCheck($state) {
     #   foreign-live  - another session, still showing signs of life
     #   foreign-stale - another session, gone
     #   undetermined  - we have no session id, so "mine" and "theirs" are indistinguishable
-    $sessionId = $env:CLAUDE_CODE_SESSION_ID
     $owner = if ($state) { $state.owner } else { $null }
+    # 'none' stays local: it describes an ABSENT state file, which is not a statement about any
+    # session's liveness and so is not something the shared helper models.
     if (-not $owner -or -not $owner.sessionId) {
         return [PSCustomObject]@{ status = 'none'; owner = $null; ageMinutes = $null }
     }
-    if (-not $sessionId) {
-        return [PSCustomObject]@{ status = 'undetermined'; owner = $owner; ageMinutes = $null }
-    }
-    if ($owner.sessionId -eq $sessionId) {
-        return [PSCustomObject]@{ status = 'self'; owner = $owner; ageMinutes = 0 }
-    }
-    # A live agent session appends to its transcript on every turn, so the file's write time
-    # is the closest thing to a heartbeat. Fall back to our own stamp when the transcript is
-    # unreachable (different machine, pruned history).
-    $lastSeen = $null
+
+    # S1437: the verdict comes from agent-lock.ps1's Get-AgentTicketLiveness - the single home
+    # for "what counts as alive". A second copy of that rule here drifted from it by definition.
     $transcript = Get-SessionTranscript -SessionId $owner.sessionId
-    if ($transcript) { $lastSeen = $transcript.LastWriteTime }
-    if ($null -eq $lastSeen -and $owner.lastSeenAt) {
-        try { $lastSeen = [datetime]::Parse($owner.lastSeenAt) } catch { $lastSeen = $null }
+    $shim = [pscustomobject]@{
+        sessionId      = $owner.sessionId
+        transcriptPath = $(if ($transcript) { $transcript.FullName } else { $null })
+        enqueuedAt     = $(
+            if ($owner.lastSeenAt) {
+                try { [DateTimeOffset]::new([datetime]::Parse($owner.lastSeenAt)).ToUnixTimeMilliseconds() } catch { $null }
+            } else { $null }
+        )
     }
-    if ($null -eq $lastSeen) {
-        return [PSCustomObject]@{ status = 'foreign-stale'; owner = $owner; ageMinutes = $null }
+    $status = Get-AgentTicketLiveness -Ticket $shim -StaleMinutes $StaleMinutes
+
+    # ageMinutes is display-only (Format-Owner), so it is derived here rather than asked of the
+    # helper, which returns a verdict and not a measurement.
+    $ageMinutes = $null
+    if ($status -eq 'self') { $ageMinutes = 0 }
+    else {
+        $lastSeen = if ($transcript) { $transcript.LastWriteTime } else { $null }
+        if ($null -eq $lastSeen -and $owner.lastSeenAt) {
+            try { $lastSeen = [datetime]::Parse($owner.lastSeenAt) } catch { $lastSeen = $null }
+        }
+        if ($lastSeen) { $ageMinutes = [math]::Round(((Get-Date) - $lastSeen).TotalMinutes, 1) }
     }
-    $ageMinutes = [math]::Round(((Get-Date) - $lastSeen).TotalMinutes, 1)
-    $status = if ($ageMinutes -le $StaleMinutes) { 'foreign-live' } else { 'foreign-stale' }
     return [PSCustomObject]@{ status = $status; owner = $owner; ageMinutes = $ageMinutes }
 }
 
@@ -238,15 +312,11 @@ function Get-ContextCheck([int]$ThresholdOverride, [bool]$ThresholdExplicit) {
 
 switch ($Verb) {
     'Init' {
-        $existing = Read-State
-        $check = Get-OwnerCheck $existing
-        if ($check.status -eq 'foreign-live' -and -not $Force) {
-            Write-Error "spec-next-session: refusing to overwrite state owned by $(Format-Owner $check). Use -Verb Resume to continue that session (the normal path after /clear), or -Force to take the file over." -ErrorAction Continue
-            exit 4
-        }
-        if ($check.status -eq 'foreign-live') {
-            Write-Output "spec-next-session: -Force displaced $(Format-Owner $check)"
-        }
+        # S1437: no refusal here any more. The state file is this session's own, so there is no
+        # foreign owner to collide with; duplicate ticket pickup is prevented by the lease
+        # (scripts/spec_catalog/ticket-lease.ps1), which is the thing the old refusal stood in for.
+        # No adoption here on purpose: Init means a FRESH round and overwrites state anyway.
+        # Continuing an existing round is -Verb Resume's job, and that is where adoption lives.
         $state = [PSCustomObject]@{
             round          = 1
             startedAt      = (Get-Date).ToString('s')
@@ -268,6 +338,9 @@ switch ($Verb) {
         exit 0
     }
     'Resume' {
+        # Reported as a JSON field, never as a console line: this verb's stdout is a contract the
+        # driver parses, and a prose line in front of it turns a working resume into a parse error.
+        $adoptedLegacy = [bool](Import-ResumableSessionState)
         $state = Read-State
         if (-not $state) {
             Write-Error "spec-next-session: no session state to resume - run -Verb Init first" -ErrorAction Continue
@@ -281,6 +354,9 @@ switch ($Verb) {
         $check = Get-OwnerCheck $state
         $previousOwner = if ($check.status -in @('foreign-live', 'foreign-stale')) { $check.owner.sessionId } else { $null }
         $state.round = [int]$state.round + 1
+        # The round is picked up, so it is no longer parked - a stale marker would let a third
+        # session adopt it out from under this one.
+        if ($state.PSObject.Properties['handoffAt']) { $state.handoffAt = $null }
         $state = Set-OwnerStamp $state
         Write-State $state
         $processedIds = @($state.processed | ForEach-Object { $_.id })
@@ -290,6 +366,7 @@ switch ($Verb) {
             selectedDevice = $state.selectedDevice
             round          = $state.round
             previousOwner  = $previousOwner
+            adoptedLegacy  = $adoptedLegacy
         }
         $out | ConvertTo-Json -Compress
         exit 0
@@ -396,6 +473,17 @@ switch ($Verb) {
         $processed = @($state.processed)
         $processedIds = @($processed | ForEach-Object { $_.id })
 
+        # S1437: mark the round PARKED for pickup. After a context reset the resuming agent
+        # carries a new session id, and this session's transcript is seconds old - so liveness
+        # alone cannot tell "just stopped, waiting to be resumed" from "a sibling working right
+        # now". This stamp is the difference, and -Verb Resume adopts only on it (or on an owner
+        # that has genuinely gone stale). Without it, resume either loses the round or steals a
+        # sibling's - there is no third answer available from liveness.
+        $handoffAt = (Get-Date).ToString('s')
+        if ($state.PSObject.Properties['handoffAt']) { $state.handoffAt = $handoffAt }
+        else { $state | Add-Member -NotePropertyName handoffAt -NotePropertyValue $handoffAt }
+        Write-State $state
+
         Write-Output 'spec-next: context-threshold stop'
         Write-Output ''
         # A session can accumulate many single-ticket rounds before one threshold
@@ -444,7 +532,7 @@ switch ($Verb) {
         Write-Output ''
 
         Write-Output 'Recommended commands, in order:'
-        Write-Output '  1. /clear - all state is on disk (temp/spec-next-session.json); a /compact summary would only re-carry what the files already hold.'
+        Write-Output "  1. /clear - all state is on disk ($statePath); a /compact summary would only re-carry what the files already hold."
         Write-Output '  2. /spec-next --resume - continue bounded.'
         Write-Output '  3. /spec-do --resume - continue unbounded (deliberate escape hatch, spends tokens on purpose).'
         Write-Output ''

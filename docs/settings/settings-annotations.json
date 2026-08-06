@@ -1184,6 +1184,36 @@
     "ru": "Показывает часы и индикаторы статуса в области трея лаунчера.",
     "uk": "Показує годинник та індикатори статусу в області трея лаунчера."
   },
+  "rowLauncherTrayBattery": {
+    "en": "Shows the battery charge in the launcher tray as a number in an outline, yellow below 30 percent, red below 15, blinking below 10.",
+    "ru": "Показывает заряд батареи в трее лаунчера числом в обводке: ниже 30 процентов - жёлтым, ниже 15 - красным, ниже 10 - мигающим.",
+    "uk": "Показує заряд батареї в треї лаунчера числом в обводці: нижче 30 відсотків - жовтим, нижче 15 - червоним, нижче 10 - миготливим."
+  },
+  "rowLauncherTrayBluetooth": {
+    "en": "Shows a Bluetooth icon in the launcher tray while the adapter is on.",
+    "ru": "Показывает значок Bluetooth в трее лаунчера, пока адаптер включён.",
+    "uk": "Показує значок Bluetooth у треї лаунчера, поки адаптер увімкнено."
+  },
+  "rowLauncherTrayClock": {
+    "en": "Shows the clock in the launcher tray.",
+    "ru": "Показывает часы в трее лаунчера.",
+    "uk": "Показує годинник у треї лаунчера."
+  },
+  "rowLauncherTrayNetwork": {
+    "en": "Shows the current connection type - Wi-Fi, mobile or wired - in the launcher tray.",
+    "ru": "Показывает тип текущего подключения - Wi-Fi, мобильное или проводное - в трее лаунчера.",
+    "uk": "Показує тип поточного підключення - Wi-Fi, мобільне або дротове - у треї лаунчера."
+  },
+  "rowLauncherTraySim1": {
+    "en": "Shows the signal level of the first SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or without a SIM in the slot.",
+    "ru": "Показывает уровень сигнала первой SIM в трее лаунчера. Нужно разрешение на чтение состояния телефона; без него или без SIM в слоте индикатора нет.",
+    "uk": "Показує рівень сигналу першої SIM у треї лаунчера. Потрібен дозвіл на читання стану телефона; без нього або без SIM у слоті індикатора немає."
+  },
+  "rowLauncherTraySim2": {
+    "en": "Shows the signal level of the second SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or on a single-SIM device.",
+    "ru": "Показывает уровень сигнала второй SIM в трее лаунчера. Нужно разрешение на чтение состояния телефона; без него или на устройстве с одной SIM индикатора нет.",
+    "uk": "Показує рівень сигналу другої SIM у треї лаунчера. Потрібен дозвіл на читання стану телефона; без нього або на пристрої з однією SIM індикатора немає."
+  },
   "rowLauncherWallpaper": {
     "en": "Chooses the launcher desktop's wallpaper.",
     "ru": "Выбирает заставку рабочего стола лаунчера.",

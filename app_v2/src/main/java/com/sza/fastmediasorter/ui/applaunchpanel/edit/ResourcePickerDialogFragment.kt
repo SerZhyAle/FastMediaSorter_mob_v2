@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.applaunchpanel.edit
 
 import android.app.Dialog
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -25,6 +26,7 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.flow
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -74,11 +76,34 @@ class ResourcePickerDialogFragment : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.tvOptionPickerTitle.text = getString(R.string.app_launch_panel_picker_resource_title)
         binding.tvOptionPickerTitle.isVisible = true
+        val columns = SearchableOptionPickerWindow.columnsFor(resources.displayMetrics)
+        Timber.d("S1413: resource picker attached with %d columns", columns)
         collectOnLifecycle(flow { emit(buildOptions()) }) { options ->
-            SearchableOptionPickerController.attach(binding, options, selectedId = null, resetRow = null) { picked ->
+            SearchableOptionPickerController.attach(
+                binding = binding,
+                options = options,
+                selectedId = null,
+                resetRow = null,
+                columns = columns,
+            ) { picked ->
                 picked?.let { onResourcePicked(it.id) }
             }
         }
+    }
+
+    /**
+     * S1413: a host that absorbs rotation through android:configChanges never recreates this dialog, so
+     * the column count derived in [onViewCreated] would stay at the portrait value on a screen twice as
+     * wide. Only the span count changes - re-attaching would throw away the user's search text.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (_binding == null) return
+        SearchableOptionPickerWindow.apply(dialog, binding)
+        SearchableOptionPickerController.reflowColumns(
+            binding,
+            SearchableOptionPickerWindow.columnsFor(resources.displayMetrics),
+        )
     }
 
     private suspend fun buildOptions(): List<Option> =

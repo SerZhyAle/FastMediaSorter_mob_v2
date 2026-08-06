@@ -72,7 +72,7 @@
             android:foreground="@drawable/focus_button_background"
             android:gravity="start|center_vertical"
             android:text="@string/launcher_menu_android_settings"
-            app:icon="@drawable/ic_settings"
+            app:icon="@drawable/ic_android"
             app:iconGravity="start" />
 
         <com.google.android.material.button.MaterialButton

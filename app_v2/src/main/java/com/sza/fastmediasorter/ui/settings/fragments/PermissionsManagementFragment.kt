@@ -17,10 +17,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.MaterialToolbar
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.permissions.PermissionGrantIntentFactory
 import com.sza.fastmediasorter.domain.model.PermissionEntry
 import com.sza.fastmediasorter.domain.model.PermissionStatus
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
+import com.sza.fastmediasorter.domain.repository.PermissionRequestMarkerRepository
 import com.sza.fastmediasorter.domain.usecase.CheckPermissionStatusUseCase
+import com.sza.fastmediasorter.domain.usecase.PermissionAction
+import com.sza.fastmediasorter.domain.usecase.ResolvePermissionActionUseCase
 import com.sza.fastmediasorter.ui.common.permissions.PermissionDenialHandler
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -35,15 +39,14 @@ class PermissionsManagementFragment : Fragment() {
     }
 
     @Inject lateinit var registry: PermissionRegistryRepository
+
     @Inject lateinit var checkStatus: CheckPermissionStatusUseCase
 
-    // These permissions cannot be granted via requestPermission() - each requires a dedicated
-    // system settings screen. Batch-requesting them via requestMultiplePermissions() is silently ignored.
-    private val specialGrantPermissions = setOf(
-        Manifest.permission.MANAGE_EXTERNAL_STORAGE,
-        Manifest.permission.MANAGE_MEDIA,
-        Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-    )
+    @Inject lateinit var resolveAction: ResolvePermissionActionUseCase
+
+    @Inject lateinit var requestMarker: PermissionRequestMarkerRepository
+
+    @Inject lateinit var grantIntentFactory: PermissionGrantIntentFactory
 
     private lateinit var adapter: PermissionRowAdapter
 
@@ -99,14 +102,19 @@ class PermissionsManagementFragment : Fragment() {
         }
 
         adapter = PermissionRowAdapter { entry, status ->
-            when (status) {
-                PermissionStatus.DENIED -> {
-                    if (entry.manifestName in specialGrantPermissions) launchSpecialGrantSettings(entry)
-                    else requestSingle.launch(entry.manifestName)
-                }
-                PermissionStatus.PERMANENTLY_DENIED -> PermissionDenialHandler.handle(this, entry)
-                PermissionStatus.GRANTED -> openAppSettings()
-                PermissionStatus.NOT_APPLICABLE -> Unit
+            when (resolveAction(entry, status)) {
+                PermissionAction.RequestFromSystem -> requestPermission(entry)
+                PermissionAction.OpenSpecialGrantScreen -> launchSpecialGrantSettings(entry)
+                // Both a permanent denial and an already granted permission end on the app settings
+                // page; the denial is explained by a snackbar first, so the user learns why the
+                // system dialog will not come back.
+                PermissionAction.OpenAppSettings ->
+                    if (status == PermissionStatus.PERMANENTLY_DENIED) {
+                        PermissionDenialHandler.handle(this, entry, status)
+                    } else {
+                        openAppSettings()
+                    }
+                PermissionAction.None -> Unit
             }
         }
 
@@ -122,14 +130,13 @@ class PermissionsManagementFragment : Fragment() {
             shownSpecialInRun.clear()
             // Exclude special permissions - they require dedicated system settings screens
             // and are silently ignored when passed to requestMultiplePermissions().
-            val denied = registry.getEntries()
-                .filter { checkStatus(requireContext(), it) == PermissionStatus.DENIED }
-                .filter { it.manifestName !in specialGrantPermissions }
-                .map { it.manifestName }
-                .toTypedArray()
-            if (denied.isNotEmpty()) {
+            val requestable = registry.getEntries()
+                .filterNot { resolveAction.isSpecialGrant(it) }
+                .filter { isRequestable(checkStatus(requireContext(), it)) }
+            if (requestable.isNotEmpty()) {
+                requestable.forEach { requestMarker.markRequested(it.id) }
                 // launchNextSpecialPermission() is called in the requestMultiple callback.
-                requestMultiple.launch(denied)
+                requestMultiple.launch(requestable.map { it.manifestName }.toTypedArray())
             } else {
                 // No regular permissions left - open the first pending special permission directly.
                 launchNextSpecialPermission()
@@ -192,8 +199,21 @@ class PermissionsManagementFragment : Fragment() {
     private fun refreshAdapter() = adapter.refresh(buildRows())
 
     private fun updateGrantAllVisibility() {
-        val hasDenied = registry.getEntries().any { checkStatus(requireContext(), it) == PermissionStatus.DENIED }
-        view?.findViewById<Button>(R.id.btn_grant_all)?.visibility = if (hasDenied) View.VISIBLE else View.GONE
+        val hasPending = registry.getEntries().any { isRequestable(checkStatus(requireContext(), it)) }
+        view?.findViewById<Button>(R.id.btn_grant_all)?.visibility = if (hasPending) View.VISIBLE else View.GONE
+    }
+
+    /**
+     * A grant-all run can still change something only while the system would show a request. The same
+     * predicate drives the batch contents and the button's visibility, so the button never promises a
+     * run that would do nothing.
+     */
+    private fun isRequestable(status: PermissionStatus): Boolean =
+        status == PermissionStatus.NOT_YET_REQUESTED || status == PermissionStatus.DENIED
+
+    private fun requestPermission(entry: PermissionEntry) {
+        requestMarker.markRequested(entry.id)
+        requestSingle.launch(entry.manifestName)
     }
 
     /**
@@ -202,7 +222,7 @@ class PermissionsManagementFragment : Fragment() {
      */
     private fun launchNextSpecialPermission() {
         val entry = registry.getEntries()
-            .filter { it.manifestName in specialGrantPermissions }
+            .filter { resolveAction.isSpecialGrant(it) }
             .filter { it.manifestName !in shownSpecialInRun }
             .firstOrNull { checkStatus(requireContext(), it) == PermissionStatus.DENIED }
         if (entry != null) {
@@ -216,43 +236,13 @@ class PermissionsManagementFragment : Fragment() {
     }
 
     private fun launchSpecialGrantSettings(entry: PermissionEntry) {
-        val pkg = requireContext().packageName
-        val intent = when (entry.manifestName) {
-            Manifest.permission.MANAGE_EXTERNAL_STORAGE -> when {
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> try {
-                    Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
-                        data = Uri.parse("package:$pkg")
-                    }
-                } catch (e: Exception) {
-                    Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                }
-                else -> null
-            }
-            Manifest.permission.MANAGE_MEDIA -> when {
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
-                    Intent(Settings.ACTION_REQUEST_MANAGE_MEDIA).apply {
-                        data = Uri.parse("package:$pkg")
-                    }
-                else -> null
-            }
-            Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS ->
-                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                    data = Uri.parse("package:$pkg")
-                }
-            else -> null
-        }
-        val target = intent ?: Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = Uri.fromParts("package", pkg, null)
-        }
-        Timber.d("launchSpecialGrantSettings: ${entry.manifestName} → ${target.action}")
+        val target = grantIntentFactory.grantIntent(entry)
         try {
             specialSettingsLauncher.launch(target)
         } catch (e: ActivityNotFoundException) {
             // Some ROMs / emulators do not provide an activity for this intent action.
             Timber.e(e, "launchSpecialGrantSettings: no activity for ${target.action}, falling back to app settings")
-            specialSettingsLauncher.launch(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", pkg, null)
-            })
+            specialSettingsLauncher.launch(grantIntentFactory.appDetailsIntent())
         }
     }
 

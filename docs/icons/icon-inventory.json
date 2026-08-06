@@ -699,7 +699,7 @@
     "surface": "program-nav",
     "key": "settings",
     "feature": "app_launch_panel_os_settings",
-    "drawable": "ic_settings",
+    "drawable": "ic_android",
     "assetFormat": "vector",
     "public": true
   },

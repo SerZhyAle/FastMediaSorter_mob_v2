@@ -36,4 +36,10 @@ interface InstalledAppsRepository {
 
     /** Launch counters keyed by the encoded command, feeding the "most used" order. */
     fun observeLaunchStats(): Flow<Map<String, LaunchStats>>
+
+    /**
+     * Drops every launch counter. The cached app list is deliberately untouched: it mirrors what is
+     * installed on the device and rebuilds itself, while the counters are launcher-owned history.
+     */
+    suspend fun clearLaunchStats()
 }

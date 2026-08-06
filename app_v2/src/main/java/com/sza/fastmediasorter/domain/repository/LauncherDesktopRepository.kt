@@ -79,6 +79,14 @@ interface LauncherDesktopRepository {
      */
     suspend fun seedIfEmpty(orientation: LauncherOrientation, cells: List<LauncherCell>): Boolean
 
+    /**
+     * Drops every cell of BOTH orientations together with the desktop-wide state row, so the seeded
+     * flags and the stored column widths go with it. A later [seedIfEmpty] therefore seeds again -
+     * that is what makes the one-time starter set repeatable for a reset. Read [state] before calling
+     * this: the column widths are gone afterwards.
+     */
+    suspend fun clearAll()
+
     suspend fun state(): LauncherDesktopState
 
     suspend fun updateColumns(orientation: LauncherOrientation, columns: Int)

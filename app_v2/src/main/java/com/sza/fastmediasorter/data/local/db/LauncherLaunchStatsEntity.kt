@@ -55,4 +55,7 @@ interface LauncherLaunchStatsDao {
 
     @Query("DELETE FROM launcher_launch_stats WHERE target = :target")
     suspend fun deleteByTarget(target: String)
+
+    @Query("DELETE FROM launcher_launch_stats")
+    suspend fun deleteAll()
 }

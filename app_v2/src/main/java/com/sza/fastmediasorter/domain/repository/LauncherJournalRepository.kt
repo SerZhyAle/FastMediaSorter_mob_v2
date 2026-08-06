@@ -14,4 +14,7 @@ interface LauncherJournalRepository {
      * model - everything the user opened from the launcher, not third-party apps alone.
      */
     fun recentCommands(limit: Int): Flow<List<LauncherCellCommand>>
+
+    /** Drops the whole journal, leaving the recent strip in the state a fresh install has. */
+    suspend fun clearJournal()
 }

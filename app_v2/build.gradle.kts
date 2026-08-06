@@ -1,3 +1,4 @@
+import com.android.build.api.variant.BuildConfigField
 import java.io.FileInputStream
 import java.io.File
 import java.util.Properties
@@ -267,6 +268,13 @@ android {
         buildConfigField("String", "BUILD_TIME", "\"Unknown\"")
         buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "false")
         buildConfigField("boolean", "SUPPORT_LAUNCHER", "false")
+        // S1436: manifest-composition axis the permission registry filters on. Stripped from the
+        // release manifest only (src/release/AndroidManifest.xml), so the default is true and the
+        // release build type is the single override. Resolved at compile time, never by reflection -
+        // see PermissionRegistryRepositoryImpl.resolveBuildGate and the S0970 incident.
+        // The two flavor-and-switch axes are set per variant in androidComponents.onVariants below,
+        // beside the manifest injections they mirror, because their value is not a literal.
+        buildConfigField("boolean", "DECLARES_BATTERY_OPTIMIZATION", "true")
     }
     
     // Product Flavors: Different app versions for different use cases.
@@ -810,6 +818,9 @@ android {
             buildConfigField("boolean", "LOG_LINK_DOWNLOAD", "false")
             buildConfigField("boolean", "ENABLE_SCHEDULED_OPERATIONS", "true")
             buildConfigField("boolean", "ENABLE_BACKGROUND_AUDIO", "true")
+            // S1436: src/release/AndroidManifest.xml removes REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+            // so no registry row and no in-feature prompt for it may appear in a release build.
+            buildConfigField("boolean", "DECLARES_BATTERY_OPTIMIZATION", "false")
             ndk {
                 debugSymbolLevel = "FULL"
                 // ABI selection is flavor-local (see productFlavors block) - AGP merges
@@ -838,6 +849,10 @@ android {
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-STAGING"
             matchingFallbacks += listOf("release")
+            // S1436: initWith copies the release value, but the manifest removal is keyed on the
+            // src/release source set, which this build type does not use - it still declares the
+            // permission, so the axis is restored explicitly.
+            buildConfigField("boolean", "DECLARES_BATTERY_OPTIMIZATION", "true")
         }
         create("benchmark") {
             initWith(getByName("release"))
@@ -846,6 +861,8 @@ android {
             isShrinkResources = true
             versionNameSuffix = "-BENCHMARK"
             matchingFallbacks += listOf("release")
+            // S1436: same as staging - src/release does not apply to this build type.
+            buildConfigField("boolean", "DECLARES_BATTERY_OPTIMIZATION", "true")
             signingConfig = if (hasCustomDebugKeystore) {
                 signingConfigs.getByName("debugCustom")
             } else {
@@ -1084,6 +1101,23 @@ androidComponents {
             // S0672: QS-tile fallback manifest (TileService declaration, no specialUse / SYSTEM_ALERT_WINDOW).
             variant.sources.manifests.addStaticManifestFile("src/standardEdgeTile/AndroidManifest.xml")
         }
+
+        // S1436: the two manifest-composition axes whose value is not a literal. Set here rather
+        // than in productFlavors so each sits beside the injection condition it mirrors and cannot
+        // drift from it: DECLARES_SCREEN_CAPTURE repeats injectSharedCaptureManifest above, and
+        // DECLARES_OVERLAY_PERMISSION covers the SPECIAL_USE overlay host plus noLegal's own
+        // SYSTEM_ALERT_WINDOW declaration. The permission registry reads both to decide whether a
+        // row may appear; a build that does not declare the permission must not offer to grant it.
+        variant.buildConfigFields?.put(
+            "DECLARES_SCREEN_CAPTURE",
+            BuildConfigField("boolean", injectSharedCaptureManifest, "S1436: MediaProjection capture manifest is merged into this variant"),
+        )
+        val declaresOverlayPermission =
+            flavorName == "noLegal" || (flavorName == "standard" && edgeGestureOverlayStandardEnabled)
+        variant.buildConfigFields?.put(
+            "DECLARES_OVERLAY_PERMISSION",
+            BuildConfigField("boolean", declaresOverlayPermission, "S1436: SYSTEM_ALERT_WINDOW is declared in this variant"),
+        )
 
         // S0386: keep native payloads bundled until per-set descriptors and ABI-complete hosting
         // are ready. The delivery UI/runtime remains wired, but stripping these artifacts here

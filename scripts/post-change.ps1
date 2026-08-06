@@ -373,8 +373,15 @@ Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColo
 
 # S1372: keyed on the whole set - a resource file is rarely the first path a caller names, and
 # resolving the source set from $File alone judges the wrong flavor in a mixed close.
+# S1209: among resource files, a changed strings file wins. Both consumers below are strings gates, and
+# a flavor source set almost never carries its own values/ dir - a close that names a layout under
+# src/<flavor>/res and its keys under src/main/res used to audit the flavor and fail on locale dirs that
+# do not exist, reporting a defect in the caller's change that was really a resolution bug here.
 $resourceSourceSet = $null
-$resourceSourceSetFile = Get-FirstChangedFileMatch '^[^/]+/src/([^/]+)/res/'
+$resourceSourceSetFile = Get-FirstChangedFileMatch '^[^/]+/src/([^/]+)/res/values[^/]*/strings[^/]*\.xml$'
+if (-not $resourceSourceSetFile) {
+    $resourceSourceSetFile = Get-FirstChangedFileMatch '^[^/]+/src/([^/]+)/res/'
+}
 if ($resourceSourceSetFile -and $resourceSourceSetFile -match '^[^/]+/src/([^/]+)/res/') {
     $resourceSourceSet = $Matches[1]
 }

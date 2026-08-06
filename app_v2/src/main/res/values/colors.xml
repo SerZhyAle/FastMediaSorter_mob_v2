@@ -411,6 +411,13 @@
     <color name="stream_status_failed">#FFC62828</color>  <!-- Red 800 - last play failed -->
     <color name="stream_status_unknown">#FFF9A825</color> <!-- Amber 800 - not yet played -->
 
+    <!-- S1426: permission row state indicator. Mid tones (600/700 level) so a single value stays
+         legible on both the light and the dark surface the row sits on; the icon shapes carry the
+         meaning as well, so these are reinforcement, not the only signal. -->
+    <color name="perm_state_granted">#FF43A047</color>    <!-- Green 600 - permission is granted -->
+    <color name="perm_state_missing">#FFFFA000</color>    <!-- Amber 700 - not granted yet -->
+    <color name="perm_state_blocked">#FFE53935</color>    <!-- Red 600 - blocked in system settings -->
+
     <!-- S0701: translucent dark disc behind grid-tile overlays (status dot + overflow) so they stay
          legible on top of an arbitrary captured video frame or favicon. -->
     <color name="stream_grid_overlay_scrim">#99000000</color>

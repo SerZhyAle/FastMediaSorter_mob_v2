@@ -77,6 +77,15 @@ object SearchableOptionPickerController {
         applySearchVisibilityOnFit(binding)
     }
 
+    /**
+     * S1413: re-flow an already-attached grid to [columns] - what a host calls when its window changed
+     * width. Deliberately not a re-[attach]: rebuilding the list would discard the user's search text
+     * and their scroll position. A single-column picker has no grid to re-flow and is left alone.
+     */
+    fun reflowColumns(binding: DialogSearchableOptionPickerBinding, columns: Int) {
+        (binding.recyclerOptions.layoutManager as? GridLayoutManager)?.spanCount = columns
+    }
+
     /** Bring the selected option into view (upper third) on open; no-op when nothing is selected. */
     private fun scrollToSelected(recycler: RecyclerView, rows: List<Option>, selectedId: String?) {
         val target = selectedId ?: return

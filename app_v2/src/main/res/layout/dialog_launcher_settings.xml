@@ -32,6 +32,16 @@
                 android:textStyle="bold" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnResetLauncher"
+                style="@style/Widget.FastMediaSorter.Button.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:contentDescription="@string/launcher_settings_reset_button_description"
+                android:focusable="true"
+                app:icon="@drawable/ic_restore_defaults" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClose"
                 style="@style/Widget.FastMediaSorter.Button.DialogCancel"
                 android:layout_width="wrap_content"
@@ -61,6 +71,54 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_small"
             app:str_title="@string/launcher_settings_show_tray_title" />
+
+        <!-- S1415: the tray's own composition, in the order the icons appear left to right. Placed under the
+             tray toggle above, which is the master switch for the whole block - these only decide what the
+             block contains. Grouping this run of rows belongs to S1410, not here. -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowLauncherTrayClock"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            app:str_title="@string/launcher_settings_tray_clock_title" />
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowLauncherTrayBluetooth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            app:str_subtitle="@string/launcher_settings_tray_bluetooth_subtitle"
+            app:str_title="@string/launcher_settings_tray_bluetooth_title" />
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowLauncherTraySim1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            app:str_subtitle="@string/launcher_settings_tray_sim_subtitle"
+            app:str_title="@string/launcher_settings_tray_sim1_title" />
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowLauncherTraySim2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            app:str_subtitle="@string/launcher_settings_tray_sim_subtitle"
+            app:str_title="@string/launcher_settings_tray_sim2_title" />
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowLauncherTrayNetwork"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            app:str_title="@string/launcher_settings_tray_network_title" />
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowLauncherTrayBattery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            app:str_title="@string/launcher_settings_tray_battery_title" />
 
         <!-- S1087: sits next to the tray toggle because both decide what the launcher's own top area
              shows; OFF keeps the Android status bar and drops the duplicate FMS indicators. -->

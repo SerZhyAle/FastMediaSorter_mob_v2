@@ -30,4 +30,7 @@ interface LauncherStateDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entity: LauncherStateEntity)
+
+    @Query("DELETE FROM launcher_state")
+    suspend fun deleteAll()
 }

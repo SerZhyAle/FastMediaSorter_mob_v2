@@ -7,12 +7,13 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.domain.model.PermissionEntry
+import com.sza.fastmediasorter.domain.model.PermissionGrantKind
 import com.sza.fastmediasorter.domain.model.PermissionGroup
 import com.sza.fastmediasorter.domain.model.PermissionGroupHeader
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import timber.log.Timber
 
 @Singleton
 class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistryRepository {
@@ -61,8 +62,10 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             titleRes = R.string.perm_title_manage_external_storage,
             descriptionRes = R.string.perm_desc_manage_external_storage,
             iconRes = 0,
-            group = PermissionGroup.STORAGE, optional = false,
+            group = PermissionGroup.STORAGE,
+            optional = false,
             minSdk = 30,
+            grantKind = PermissionGrantKind.SYSTEM_SCREEN,
         ),
         PermissionEntry(
             id = "manage_media",
@@ -70,8 +73,10 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             titleRes = R.string.perm_title_manage_media,
             descriptionRes = R.string.perm_desc_manage_media,
             iconRes = 0,
-            group = PermissionGroup.STORAGE, optional = false,
+            group = PermissionGroup.STORAGE,
+            optional = false,
             minSdk = 31,
+            grantKind = PermissionGrantKind.SYSTEM_SCREEN,
         ),
         // NETWORK
         PermissionEntry(
@@ -82,7 +87,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             iconRes = 0,
             group = PermissionGroup.NETWORK, optional = true,
             minSdk = 37,
-            flavorGates = setOf("SUPPORT_LOCAL_NETWORK"),
+            buildGates = setOf("SUPPORT_LOCAL_NETWORK"),
         ),
         // CONTACTS
         PermissionEntry(
@@ -93,7 +98,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             iconRes = 0,
             group = PermissionGroup.CONTACTS,
             optional = true,
-            flavorGates = setOf("SUPPORT_LAUNCHER"),
+            buildGates = setOf("SUPPORT_LAUNCHER"),
         ),
         // CAMERA
         PermissionEntry(
@@ -126,8 +131,9 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             titleRes = R.string.perm_title_record_audio,
             descriptionRes = R.string.perm_desc_record_audio,
             iconRes = 0,
-            group = PermissionGroup.MICROPHONE, optional = true,
-            flavorGates = setOf("SUPPORT_AUDIO"),
+            group = PermissionGroup.MICROPHONE,
+            optional = true,
+            buildGates = setOf("SUPPORT_AUDIO"),
         ),
         // NOTIFICATION
         PermissionEntry(
@@ -138,7 +144,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             iconRes = 0,
             group = PermissionGroup.NOTIFICATION, optional = true,
             minSdk = 33,
-            flavorGates = setOf("ENABLE_PERSISTENT_AUDIO_PLAYBACK"),
+            buildGates = setOf("ENABLE_PERSISTENT_AUDIO_PLAYBACK"),
         ),
         // SYSTEM
         PermissionEntry(
@@ -147,7 +153,24 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             titleRes = R.string.perm_title_battery_optimization,
             descriptionRes = R.string.perm_desc_battery_optimization,
             iconRes = 0,
-            group = PermissionGroup.SYSTEM, optional = true,
+            group = PermissionGroup.SYSTEM,
+            optional = true,
+            grantKind = PermissionGrantKind.SYSTEM_SCREEN,
+        ),
+        // S0429: the manifest name is a label here, not a request. BIND_NOTIFICATION_LISTENER_SERVICE is
+        // held by the <service> declaration in src/launcherEnabled and can only be turned on by the user
+        // on a system screen - exactly how manage_external_storage above is listed. It earns its row so
+        // the capability is enumerated where a user looks for it, not only where it was switched on.
+        PermissionEntry(
+            id = "notification_listener",
+            manifestName = Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE,
+            titleRes = R.string.perm_title_notification_listener,
+            descriptionRes = R.string.perm_desc_notification_listener,
+            iconRes = 0,
+            group = PermissionGroup.SYSTEM,
+            optional = true,
+            buildGates = setOf("SUPPORT_LAUNCHER"),
+            grantKind = PermissionGrantKind.SYSTEM_SCREEN,
         ),
         // S0241: VR group entries (hand_tracking, headset_camera) removed with the OpenXR stack.
     )
@@ -156,7 +179,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
         allEntries.filter { entry ->
             entry.minSdk <= Build.VERSION.SDK_INT &&
             entry.maxSdk >= Build.VERSION.SDK_INT &&
-            evaluateFlavorGates(entry.flavorGates)
+            evaluateBuildGates(entry.buildGates)
         }
 
     override fun getWelcomeEntries(): List<PermissionEntry> {
@@ -207,14 +230,14 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             }
     }
 
-    /** Every BuildConfig field name referenced by an entry's flavor gates. Lets a test assert each resolves. */
+    /** Every BuildConfig field name referenced by an entry's build gates. Lets a test assert each resolves. */
     @get:VisibleForTesting
-    val declaredFlavorGateFields: Set<String>
-        get() = allEntries.flatMapTo(mutableSetOf()) { it.flavorGates }
+    val declaredBuildGateFields: Set<String>
+        get() = allEntries.flatMapTo(mutableSetOf()) { it.buildGates }
 
-    private fun evaluateFlavorGates(gates: Set<String>): Boolean {
+    private fun evaluateBuildGates(gates: Set<String>): Boolean {
         if (gates.isEmpty()) return true
-        return gates.all { fieldName -> resolveFlavorGate(fieldName) }
+        return gates.all { fieldName -> resolveBuildGate(fieldName) }
     }
 
     /**
@@ -224,21 +247,38 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
      * NoSuchFieldException on a minified release build - the old code then logged
      * "unknown BuildConfig field" and silently disabled the permission (e.g. audio) on every release.
      * Direct references survive R8 with the correct inlined value. An unmapped name is a developer
-     * error (a new gate string without a matching arm here); surface it and keep the safe default.
+     * error (a new gate string with no entry here); surface it and keep the safe default.
      */
     // S1379: these direct reads deliberately stay. This is a NAME-to-value table, not a consumer
     // guard - the caller supplies a gate string and this is the one place that resolves it. Routing
     // it through the capability contract would mean giving that contract a string lookup it does not
     // have, and would still leave the direct read somewhere. Consumer guards go through
     // CapabilityAvailability instead.
-    private fun resolveFlavorGate(fieldName: String): Boolean = when (fieldName) {
-        "SUPPORT_AUDIO" -> BuildConfig.SUPPORT_AUDIO
-        "SUPPORT_LOCAL_NETWORK" -> BuildConfig.SUPPORT_LOCAL_NETWORK
-        "ENABLE_PERSISTENT_AUDIO_PLAYBACK" -> BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
-        "SUPPORT_LAUNCHER" -> BuildConfig.SUPPORT_LAUNCHER
-        else -> {
-            Timber.e("Permission flavor-gate references unmapped BuildConfig field: %s", fieldName)
+    private val buildGateValues: Map<String, Boolean> = mapOf(
+        "SUPPORT_AUDIO" to BuildConfig.SUPPORT_AUDIO,
+        "SUPPORT_MIC_RECORDING" to BuildConfig.SUPPORT_MIC_RECORDING,
+        "SUPPORT_LOCAL_NETWORK" to BuildConfig.SUPPORT_LOCAL_NETWORK,
+        "ENABLE_PERSISTENT_AUDIO_PLAYBACK" to BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK,
+        "SUPPORT_LAUNCHER" to BuildConfig.SUPPORT_LAUNCHER,
+        "IS_NO_LEGAL_FLAVOR" to BuildConfig.IS_NO_LEGAL_FLAVOR,
+        "DECLARES_SCREEN_CAPTURE" to BuildConfig.DECLARES_SCREEN_CAPTURE,
+        "DECLARES_OVERLAY_PERMISSION" to BuildConfig.DECLARES_OVERLAY_PERMISSION,
+        "DECLARES_BATTERY_OPTIMIZATION" to BuildConfig.DECLARES_BATTERY_OPTIMIZATION,
+    )
+
+    /**
+     * The gate names this class can resolve. A test asserts [declaredBuildGateFields] is a subset,
+     * which is what catches a gate string that has no value here: the old check only proved a
+     * BuildConfig field of that name existed, so a name that was real but unmapped still fell
+     * through to `false` and silently dropped its permission.
+     */
+    @get:VisibleForTesting
+    val mappedBuildGateFields: Set<String>
+        get() = buildGateValues.keys
+
+    private fun resolveBuildGate(fieldName: String): Boolean =
+        buildGateValues[fieldName] ?: run {
+            Timber.e("Permission build-gate references unmapped BuildConfig field: %s", fieldName)
             false
         }
-    }
 }

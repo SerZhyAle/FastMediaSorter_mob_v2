@@ -44,6 +44,9 @@ interface LauncherCellDao {
     @Query("DELETE FROM launcher_cells WHERE id = :id")
     suspend fun deleteById(id: Long)
 
+    @Query("DELETE FROM launcher_cells")
+    suspend fun deleteAll()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entities: List<LauncherCellEntity>)
 

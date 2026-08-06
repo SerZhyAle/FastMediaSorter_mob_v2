@@ -1,4 +1,8 @@
-[CmdletBinding()]
+# PositionalBinding = $false is load-bearing, not style. Called as `pwsh -File this.ps1 -FilesTouched a b c`,
+# every token after the first bound to -FilesTouched only by accident of declaration order: with positional
+# binding on, file #2 landed in -Decisions and file #3 in -Blockers, and the script still exited 0 - a
+# corrupted snapshot that reported success. Named-only binding turns that into a hard error (S0429, 2026-08-06).
+[CmdletBinding(PositionalBinding = $false)]
 param(
     [Parameter(Mandatory = $true)]
     [string] $Goal,
@@ -52,8 +56,12 @@ function Section([string]$Header, [string]$Body) {
 function FilesSection([string]$Header, [string[]]$Items) {
     if ($null -eq $Items -or $Items.Count -eq 0) { return @($Header, '-', '') }
     $lines = @($Header)
-    foreach ($i in $Items) {
-        if (-not [string]::IsNullOrWhiteSpace($i)) { $lines += "- $i" }
+    # A `pwsh -File` caller cannot pass a real array - the shell hands over flat strings - so a comma-joined
+    # list is the only multi-file form available to it. Splitting here gives that caller a working path now
+    # that positional binding no longer silently absorbs the extra tokens into -Decisions and -Blockers.
+    foreach ($i in ($Items -split ',')) {
+        $entry = $i.Trim()
+        if (-not [string]::IsNullOrWhiteSpace($entry)) { $lines += "- $entry" }
     }
     $lines += ''
     return $lines

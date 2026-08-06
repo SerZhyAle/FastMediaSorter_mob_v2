@@ -44,6 +44,9 @@ if ($PSBoundParameters.ContainsKey('Priority')) {
 # Resolve from the active journal first, then the archive journal (so updating
 # or reviving an Archived ticket still works under the split).
 $records = [System.Collections.Generic.List[object]]::new()
+# S1437: read -> mutate -> write is one critical section. Two processes holding the same
+# snapshot lose one change entirely - the later write replaces the whole journal.
+Enter-CatalogLock
 foreach ($r in (Read-Catalog)) { $records.Add($r) }
 
 $idx = -1
@@ -172,6 +175,8 @@ if ($statusChanged -or $noteExplicit) {
         Write-Host ("  header synced -> {0}{1}" -f $updated.status, $noteHint) -ForegroundColor DarkGray
     }
 }
+
+Exit-CatalogLock
 
 Write-Output ("{0} {1} -> {2}" -f $Id, $oldStatus, $updated.status)
 exit 0

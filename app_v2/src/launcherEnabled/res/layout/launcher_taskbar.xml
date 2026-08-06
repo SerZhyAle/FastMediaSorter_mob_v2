@@ -98,6 +98,36 @@
             android:textSize="14sp"
             tools:text="12:45" />
 
+        <!-- S1415: the six slots in the order the owner fixed (strategic §3.3) - clock, Bluetooth, SIM1,
+             SIM2, network type, battery. Bluetooth and the two SIM slots start GONE: each appears only once
+             its own source reports a value, so an unreadable indicator is absent rather than empty (ADR-1). -->
+        <ImageView
+            android:id="@+id/trayBluetooth"
+            android:layout_width="@dimen/launcher_tray_icon_size"
+            android:layout_height="@dimen/launcher_tray_icon_size"
+            android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
+            android:visibility="gone"
+            tools:src="@drawable/ic_bluetooth"
+            tools:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/traySim1"
+            android:layout_width="@dimen/launcher_tray_icon_size"
+            android:layout_height="@dimen/launcher_tray_icon_size"
+            android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
+            android:visibility="gone"
+            tools:src="@drawable/ic_signal_cellular"
+            tools:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/traySim2"
+            android:layout_width="@dimen/launcher_tray_icon_size"
+            android:layout_height="@dimen/launcher_tray_icon_size"
+            android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
+            android:visibility="gone"
+            tools:src="@drawable/ic_signal_cellular"
+            tools:visibility="visible" />
+
         <ImageView
             android:id="@+id/trayNetwork"
             android:layout_width="@dimen/launcher_tray_icon_size"
@@ -105,23 +135,52 @@
             android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
             tools:src="@drawable/ic_wifi" />
 
-        <ImageView
-            android:id="@+id/trayBattery"
-            android:layout_width="@dimen/launcher_tray_icon_size"
-            android:layout_height="@dimen/launcher_tray_icon_size"
-            android:importantForAccessibility="no"
-            tools:src="@drawable/ic_battery" />
-
         <TextView
-            android:id="@+id/trayBatteryPercent"
+            android:id="@+id/trayBatteryLevel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="2dp"
+            android:background="@drawable/launcher_tray_battery_outline"
+            android:paddingStart="4dp"
+            android:paddingTop="1dp"
+            android:paddingEnd="4dp"
+            android:paddingBottom="1dp"
             android:textColor="?attr/colorOnSurface"
             android:textSize="12sp"
-            tools:text="86%" />
+            tools:text="86" />
 
     </LinearLayout>
+
+    <!-- S1209: the slotless add, chosen by the owner over a Start-menu row and a desktop gesture
+         (strategic §6.5). It sits beside Done and follows the same GONE-at-rest rule, because both are
+         edit-mode chrome for the desktop rather than taskbar content.
+         Labelled, not icon-only (owner, 2026-08-06, after seeing it on a device): the tray beside it can
+         be empty, which puts this "+" flush against the pinned strip's own "+", and edit mode paints a
+         third "+" on every empty square. The word is what separates the three. It costs width only while
+         editing, and the weighted strip block above absorbs it. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/launcherAddCell"
+        style="@style/Widget.FastMediaSorter.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:ellipsize="end"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:insetLeft="0dp"
+        android:insetRight="0dp"
+        android:maxLines="1"
+        android:minHeight="0dp"
+        android:nextFocusUp="@id/launcherDesktop"
+        android:nextFocusLeft="@id/trayContainer"
+        android:nextFocusRight="@id/launcherEditDone"
+        android:paddingStart="@dimen/launcher_taskbar_item_spacing"
+        android:paddingEnd="@dimen/launcher_taskbar_item_spacing"
+        android:text="@string/launcher_add_cell"
+        android:visibility="gone"
+        app:icon="@drawable/ic_add"
+        app:iconGravity="textStart" />
 
     <!-- S1412: last element of the bar, so it sits bottom-right and below every desktop cell (owner,
          2026-08-05). It used to float over the grid's top-right corner and covered up to two cells,
@@ -141,7 +200,7 @@
         android:insetRight="0dp"
         android:minHeight="0dp"
         android:nextFocusUp="@id/launcherDesktop"
-        android:nextFocusLeft="@id/trayContainer"
+        android:nextFocusLeft="@id/launcherAddCell"
         android:paddingStart="@dimen/launcher_taskbar_item_spacing"
         android:paddingEnd="@dimen/launcher_taskbar_item_spacing"
         android:text="@string/launcher_edit_done"

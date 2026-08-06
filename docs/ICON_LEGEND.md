@@ -45,7 +45,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_widget_random_music.svg" alt="ic_widget_random_music" width="24" height="24"> | Random Music |
 | <img src="icons/svg/ic_widget_scheduled_tasks.svg" alt="ic_widget_scheduled_tasks" width="24" height="24"> | Scheduled Tasks |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen video recording |
-| <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Settings |
+| <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Settings |
 | <img src="icons/svg/ic_volume_up.svg" alt="ic_volume_up" width="24" height="24"> | Sound |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Start video recording |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Storage |

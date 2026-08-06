@@ -359,6 +359,16 @@ function Get-SourceRules {
                 -Baseline 'flavor-flag-baseline.txt' `
                 -ExcludeNames @('PermissionRegistryRepositoryImpl.kt') `
                 -FailMessage 'new flavor flag read in src/main. Use an interface plus a flavor source set (CLAUDE.md Rule 14).'),
+        # S1406: the player overflow menu reached PopupMenu's private mPopup field by reflection to
+        # hang a long-press on the popup's internal ListView, inside a broad catch. Restricted-API
+        # access that fails SILENTLY - an AppCompat update would drop the affordance with no signal,
+        # and the catch guaranteed nobody would notice. Scoped to AppCompat menu internals on
+        # purpose: DeliveredNativeLibraryLoader (BaseDexClassLoader) and the FastMediaSorterApp
+        # settings dump reflect legitimately and must stay unflagged.
+        (New-RegexRule -Name 'restricted-menu-reflection' `
+                -Pattern ([regex]'(?:getDeclaredField|getDeclaredMethod)\s*\(\s*"(?:mPopup|mMenuItems|mMenuView|getListView)"|androidx\.appcompat\.view\.menu\.') `
+                -Baseline 'restricted-menu-reflection-baseline.txt' `
+                -FailMessage 'new reflection into AppCompat menu internals introduced. It breaks silently on an AppCompat update - model the affordance as a menu command instead (S1406).'),
         [pscustomobject]@{
             Name        = 'public-mutable-flow'
             Extensions  = @('.kt')

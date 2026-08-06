@@ -165,6 +165,84 @@ function Write-JsonlFile {
     Move-Item -LiteralPath $tmp -Destination $Path -Force
 }
 
+# ── Cross-process serialization (S1437) ──────────────────────────────────────────────────────
+#
+# Write-JsonlFile above is atomic against a TORN read - temp file plus rename - and that was
+# never the failure. The failure is a lost update: two processes call Read-Catalog, both hold the
+# same snapshot, and the second Write-Catalog replaces the whole file with its own stale base
+# plus its own change. The first change vanishes with no error. So the critical section has to
+# span read -> mutate -> write, which is why this is a caller-level lock and not something
+# Write-Catalog could do on its own.
+#
+# A system mutex, not a lock file: a journal rewrite is milliseconds, while the BUILD/CODE lock
+# family is sized for edits and builds (3-60 min windows, queue directories, reservations) and
+# would be absurd here. The mutex also dies with its process, so a crashed holder cannot wedge
+# the catalog - that is what the AbandonedMutexException branch is for.
+
+$script:CatalogMutex = $null
+
+function Get-CatalogMutexName {
+    # Per-checkout, so two clones on one machine do not serialize against each other. Mutex names
+    # cannot contain '\' beyond the Global\ prefix, hence the hash rather than the path.
+    $hash = [System.BitConverter]::ToString(
+        [System.Security.Cryptography.MD5]::HashData([System.Text.Encoding]::UTF8.GetBytes($script:RepoRoot.ToLowerInvariant()))
+    ).Replace('-', '')
+    return "Global\FMS-SpecCatalog-$hash"
+}
+
+function Enter-CatalogLock {
+    <#
+    .SYNOPSIS
+        Take the catalog write lock. Pair with Exit-CatalogLock in a finally.
+    #>
+    param([int]$TimeoutSeconds = 30)
+
+    if ($script:CatalogMutex) { return }   # re-entrant within one process
+    $mutex = New-Object System.Threading.Mutex($false, (Get-CatalogMutexName))
+    $acquired = $false
+    try {
+        $acquired = $mutex.WaitOne([TimeSpan]::FromSeconds($TimeoutSeconds))
+    }
+    catch [System.Threading.AbandonedMutexException] {
+        # The previous holder died mid-write. The mutex is ours; the journal itself is intact
+        # because every write lands by rename. Proceeding is correct - refusing would wedge the
+        # catalog until a reboot.
+        $acquired = $true
+    }
+    if (-not $acquired) {
+        $mutex.Dispose()
+        throw "Catalog is locked by another process (waited ${TimeoutSeconds}s). Journal: $script:CatalogPath"
+    }
+    $script:CatalogMutex = $mutex
+}
+
+function Exit-CatalogLock {
+    # Safe to call unconditionally from a finally, including when the lock was never taken.
+    if (-not $script:CatalogMutex) { return }
+    try { $script:CatalogMutex.ReleaseMutex() } catch { }
+    $script:CatalogMutex.Dispose()
+    $script:CatalogMutex = $null
+}
+
+function Invoke-CatalogTransaction {
+    <#
+    .SYNOPSIS
+        Run a scriptblock holding the catalog write lock.
+    .DESCRIPTION
+        Convenience wrapper for callers whose whole mutation fits one scriptblock. A caller that
+        needs its variables in its OWN scope - most of the mutators do, because they exit or
+        print after writing - should use Enter-CatalogLock / Exit-CatalogLock with try/finally
+        instead, since a scriptblock runs in a child scope and its assignments do not escape.
+    #>
+    param(
+        [Parameter(Mandatory)][scriptblock]$Body,
+        [int]$TimeoutSeconds = 30
+    )
+    Enter-CatalogLock -TimeoutSeconds $TimeoutSeconds
+    try { & $Body }
+    finally { Exit-CatalogLock }
+}
+
 function Write-Catalog {
     # Writes the ACTIVE journal only. Archive records are never passed here.
     param([Parameter(Mandatory)][object[]] $Records)

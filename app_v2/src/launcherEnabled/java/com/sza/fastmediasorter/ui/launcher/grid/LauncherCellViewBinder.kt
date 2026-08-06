@@ -263,6 +263,11 @@ class LauncherCellViewBinder(
                 binding.cellIcon.setImageResource(visual.iconRes ?: R.drawable.ic_launcher_mode)
             }
         }
+        Timber.d(
+            "S1414: shortcut caption '%s' at %.1fpx",
+            binding.cellLabel.text,
+            binding.cellLabel.textSize,
+        )
         bindMonogram(binding, visual?.monogramSeed)
         bindModeBadge(binding, item.modeBadge)
         binding.root.contentDescription = describe(binding, item)

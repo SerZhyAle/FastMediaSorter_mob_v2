@@ -35,4 +35,10 @@ class LauncherPinsRepositoryImpl @Inject constructor(
             dao.deleteByPosition(position)
         }
     }
+
+    override suspend fun clearPins() {
+        withContext(Dispatchers.IO) {
+            dao.deleteAll()
+        }
+    }
 }
