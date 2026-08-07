@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.statistics.StatisticsActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
+import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -171,7 +172,7 @@ class GeneralSettingsViewSetupHelper(
                         isUpdatingSpinner.set(false)
                         dialog.dismiss()
                     }
-                    .show()
+                    .showBoundTo(fragment)
             }
         }
         // S0911: main-window programs panel toggle (moved from Operations > Additional Programs).
@@ -301,7 +302,7 @@ class GeneralSettingsViewSetupHelper(
                 isUpdatingSpinner.set(false)
                 dialog.dismiss()
             }
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun groupHasResources(types: List<ResourceType>): Boolean =
@@ -563,7 +564,7 @@ class GeneralSettingsViewSetupHelper(
                 .setMessage(R.string.import_resources_message)
                 .setPositiveButton(R.string.yes) { _, _ -> viewModel.importSzaResources(fragment.requireContext()) }
                 .setNegativeButton(R.string.no, null)
-                .show()
+                .showBoundTo(fragment)
         }
     }
 
@@ -692,7 +693,7 @@ class GeneralSettingsViewSetupHelper(
             // its value only changes once the observer sees the saved setting.
             .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
             .setCancelable(false)
-            .show()
+            .showBoundTo(fragment)
     }
 
     // S1190: an install from Play carries only the locales the device asked for, so a language the

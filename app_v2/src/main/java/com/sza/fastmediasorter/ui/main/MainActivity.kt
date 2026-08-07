@@ -1287,15 +1287,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun showDeleteConfirmation(resource: com.sza.fastmediasorter.domain.model.MediaResource) {
-        if (isFinishing || isDestroyed) return
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
-            .setTitle(R.string.delete_resource_title)
-            .setMessage(getString(R.string.delete_resource_message, resource.name))
-            .setPositiveButton(R.string.delete) { _, _ ->
-                viewModel.deleteResource(resource)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        // S1424: the dialog itself moved to a shared object so the launcher desktop asks the same
+        // question instead of a copy of it.
+        com.sza.fastmediasorter.ui.main.helpers.ResourceDeleteConfirmation.show(this, resource.name) {
+            viewModel.deleteResource(resource)
+        }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

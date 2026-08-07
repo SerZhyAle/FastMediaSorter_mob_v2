@@ -7,7 +7,7 @@ metadata:
 
 Build baseline values (source of truth: `app_v2/build.gradle.kts`, `gradle/libs.versions.toml`):
 
-- `compileSdk` = 35 (all flavors)
+- `compileSdk` = 36 (all flavors)
 - `targetSdk` = 35 (all flavors)
 - `minSdk` standard = 26 (Android 8.0+)
 - `minSdk` lite = 26

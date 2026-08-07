@@ -40,24 +40,34 @@ import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetHost
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
-import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppShortcutMenuManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAllAppsGestureManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppActionMenuManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherCellActionMenuManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherContactPickManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherEditModeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResizeManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceActionManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceCreateManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceOperations
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSensorPermissionManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherStatusStripManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherStreamActionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTrayManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperManager
+import com.sza.fastmediasorter.ui.launcher.menu.LauncherAllAppsFragment
 import com.sza.fastmediasorter.ui.launcher.menu.LauncherStartMenuFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherCellContentPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherResourceModePickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherScheduledOpPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
+import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -79,10 +89,30 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     @Inject
     lateinit var gadgetRegistry: LauncherGadgetRegistry
 
+    // S1421: the one node that owns the freed status band (ADR-2). Injected rather than built here because
+    // it needs the singleton signal registry; the activity only hands it the view and the lifecycle.
+    @Inject
+    lateinit var statusStripManager: LauncherStatusStripManager
+
     // S1402: the desktop can now carry the "leave launcher mode" action, and handing the home role back
     // is this manager's job - the same one the Start menu row uses.
     @Inject
     lateinit var roleManager: LauncherRoleManager
+
+    // S1423: the one shared launch every home-screen entry point uses; this host never builds the
+    // Add Resource intent itself.
+    @Inject
+    lateinit var resourceCreateManager: LauncherResourceCreateManager
+
+    // S1424: the same pin request the main window's "Add to home screen" makes, so the desktop's copy
+    // of that row produces an identical shortcut rather than a lookalike.
+    @Inject
+    lateinit var resourceShortcutPinManager: ResourceShortcutPinManager
+
+    // S1424: activity-scoped, and it watches XR availability from its own init block - so it must be
+    // injected rather than built, or the desktop would read a state nobody is collecting.
+    @Inject
+    lateinit var resourceVrCinema: ResourceVrCinemaLaunchManager
 
     // S1415: registered here for the same reason as contactPickManager below - a contract registered after
     // the Activity is STARTED throws. The activity only owns the launcher; whether and when to ask is the
@@ -115,7 +145,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // resizeManager is lateinit for the same reason: a resize handle only exists on a gadget cell in
         // edit mode, rendered after setupViews() has built the manager.
         onAttachResizeHandle = { handle, cellUi -> resizeManager.attachHandle(handle, cellUi) },
-        onCellLongPress = { view, cellUi -> showAppShortcuts(view, cellUi) },
+        onCellLongPress = { view, cellUi -> showCellActions(view, cellUi) },
     )
 
     private lateinit var taskbarManager: LauncherTaskbarManager
@@ -129,10 +159,59 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     // Built lazily on the first long press: most Home visits never open the popup at all.
     private val shortcutMenuManager by lazy {
-        LauncherAppShortcutMenuManager(
-            lifecycleScope,
-            { packageName -> viewModel.appShortcutsOf(packageName) },
-            { shortcut, bounds -> viewModel.launchAppShortcut(shortcut, bounds) },
+        LauncherAppActionMenuManager(
+            scope = lifecycleScope,
+            queryAppShortcuts = { packageName -> viewModel.appShortcutsOf(packageName) },
+            startAppShortcut = { shortcut, bounds -> viewModel.launchAppShortcut(shortcut, bounds) },
+            launchApp = { packageName -> viewModel.run(LauncherCellCommand.App(packageName)) },
+            // The column count belongs to the screen drawing the desktop, not to the stored desktop,
+            // so it is read at the moment of the tap rather than captured when the menu was built.
+            placeOnDesktop = { packageName -> viewModel.placeAppOnDesktop(packageName, currentColumns()) },
+            pinToTaskbar = { packageName -> viewModel.pinAppToTaskbar(packageName) },
+            appInfoIntent = { packageName -> viewModel.appInfoIntent(packageName) },
+            uninstallIntent = { packageName -> viewModel.uninstallIntent(packageName) },
+        )
+    }
+
+    // S1424: lazy for the same reason as shortcutMenuManager above - a Home visit that never long
+    // presses a resource cell builds neither of these.
+    private val resourceActionManager by lazy {
+        LauncherResourceActionManager(
+            activity = this,
+            scope = lifecycleScope,
+            loadResource = { resourceId -> viewModel.resourceById(resourceId) },
+            runCommand = { command -> viewModel.run(command) },
+            deleteResource = { resourceId -> viewModel.deleteResource(resourceId) },
+            shortcutPinManager = resourceShortcutPinManager,
+            vrCinema = resourceVrCinema,
+            operations = LauncherResourceOperations(
+                scan = { resource -> viewModel.scanResource(resource) },
+                export = { resourceId, target -> viewModel.exportResource(resourceId, target) },
+                exportCompanionConfig = { resource, includePassword ->
+                    viewModel.exportCompanionConfig(resource, includePassword)
+                },
+                companionQrPayload = { resource, includePassword ->
+                    viewModel.companionQrPayload(resource, includePassword)
+                },
+            ),
+        )
+    }
+
+    private val streamActionManager by lazy {
+        LauncherStreamActionManager(
+            activity = this,
+            loadStream = { streamId -> viewModel.streamById(streamId) },
+            loadPinnedStreams = { viewModel.pinnedStreams() },
+            togglePin = { source -> viewModel.toggleStreamPin(source) },
+            removeStream = { source -> viewModel.removeStream(source) },
+        )
+    }
+
+    private val cellActionMenuManager by lazy {
+        LauncherCellActionMenuManager(
+            scope = lifecycleScope,
+            resourceRows = { resourceId -> resourceActionManager.rowsFor(resourceId) },
+            streamRows = { streamId -> streamActionManager.rowsFor(streamId) },
         )
     }
 
@@ -177,12 +256,19 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 requestPhoneStatePermission.launch(Manifest.permission.READ_PHONE_STATE)
             },
         ).bind(viewModel.replaceSystemStatusArea, viewModel.trayComposition)
+        statusStripManager.bind(
+            binding.launcherStatusStrip,
+            this,
+            supportFragmentManager,
+            viewModel.replaceSystemStatusArea,
+        )
         collectOnLifecycle(viewModel.replaceSystemStatusArea) { applyStatusBarPolicy(it) }
         taskbarManager = LauncherTaskbarManager(
             lifecycleOwner = this,
             binding = binding.launcherTaskbar,
             onCommand = { viewModel.run(it) },
             onStartClick = { showStartMenu() },
+            onAllAppsClick = { showAllApps() },
             onAddPin = { openPinAppPicker() },
             onRemovePin = { viewModel.removePin(it) },
         )
@@ -214,6 +300,13 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             gadgetRegistry = gadgetRegistry,
             viewModel = viewModel,
         )
+        LauncherAllAppsGestureManager(
+            container = binding.launcherDesktop,
+            viewport = binding.launcherGridScroll,
+            // Edit mode is for arranging the desktop; a swipe there belongs to the drag, not to us.
+            isEnabled = { !viewModel.editMode.value },
+            onOpen = { showAllApps() },
+        ).attach()
         lastOrientation = currentOrientation()
         registerAddFlowListeners()
     }
@@ -238,7 +331,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     InternalRoutePickerDialogFragment.TAG,
                 )
                 LauncherCellContentPickerDialogFragment.CATEGORY_RESOURCE -> openPicker(
-                    ResourcePickerDialogFragment.newInstance(REQ_RESOURCE_SHORTCUT),
+                    // S1423: only this picker offers "Create new.." - it is the placement step, so a
+                    // resource created here is exactly what the user wanted on the desktop.
+                    ResourcePickerDialogFragment.newInstance(REQ_RESOURCE_SHORTCUT, allowCreateNew = true),
                     ResourcePickerDialogFragment.TAG,
                 )
                 LauncherCellContentPickerDialogFragment.CATEGORY_STREAM ->
@@ -395,11 +490,34 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
      * S0427: expands an installed app's published quick actions. Only an app cell has them, and only at
      * rest - in edit mode the same gesture belongs to the drag that rearranges the desktop.
      */
-    private fun showAppShortcuts(view: View, cellUi: LauncherCellUi): Boolean {
-        val command = LauncherCellCommand.decode(cellUi.cell.target) as? LauncherCellCommand.App
-        if (viewModel.editMode.value || command == null) return false
-        shortcutMenuManager.show(view, command.packageName)
-        return true
+    /**
+     * S1424: one long-press handler that picks the action provider by command kind (strategic 5.1.1).
+     *
+     * Everything it does not name returns false, which leaves that cell behaving exactly as it does
+     * today - including the pinned third-party shortcut, whose resource id survives only inside a
+     * string convention and is deliberately out of scope (strategic 2, Non-goals).
+     */
+    private fun showCellActions(view: View, cellUi: LauncherCellUi): Boolean {
+        if (viewModel.editMode.value) return false
+        Timber.d("S1424: cell menu target=%s", cellUi.cell.target)
+        return when (val command = LauncherCellCommand.decode(cellUi.cell.target)) {
+            is LauncherCellCommand.App -> {
+                shortcutMenuManager.show(view, command.packageName)
+                true
+            }
+
+            is LauncherCellCommand.Resource -> {
+                cellActionMenuManager.showForResource(view, command.resourceId)
+                true
+            }
+
+            is LauncherCellCommand.Stream -> {
+                cellActionMenuManager.showForStream(view, command.streamId)
+                true
+            }
+
+            else -> false
+        }
     }
 
     override fun onStart() {
@@ -417,8 +535,17 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // Symmetric with the long press that opened it: a popup must not survive the surface leaving
         // the foreground, or it reappears over whatever the user opened next.
         shortcutMenuManager.dismiss()
+        // S1424: same edge, same reason - the resource menu is anchored to a cell of this surface.
+        cellActionMenuManager.dismiss()
         // S1101: symmetric with onStart - an animated wallpaper must not keep drawing off-screen.
         if (::wallpaperManager.isInitialized) wallpaperManager.onStop()
+    }
+
+    override fun onDestroy() {
+        // S1421: the manager holds the strip's binding, so it drops it here rather than leaving a destroyed
+        // hierarchy reachable for as long as anything still references the manager.
+        statusStripManager.unbind()
+        super.onDestroy()
     }
 
     /**
@@ -509,6 +636,15 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // The sheet is modal; a second tap while it is up must not stack another one.
         if (supportFragmentManager.findFragmentByTag(LauncherStartMenuFragment.TAG) != null) return
         LauncherStartMenuFragment().show(supportFragmentManager, LauncherStartMenuFragment.TAG)
+    }
+
+    /** S1401: the app list, reached from the taskbar button and from the swipe-up gesture alike. */
+    private fun showAllApps() {
+        // The desktop stays touchable behind the screen, so the button and the gesture must not each
+        // open their own instance - the same guard the Start menu carries.
+        if (supportFragmentManager.findFragmentByTag(LauncherAllAppsFragment.TAG) != null) return
+        Timber.d("S1401: all-apps screen opened from the home surface")
+        LauncherAllAppsFragment().show(supportFragmentManager, LauncherAllAppsFragment.TAG)
     }
 
     /**
@@ -636,6 +772,12 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     /** The resource chain: pick a resource, then its mode for a shortcut, or hand it to a gadget. */
     private fun registerResourceListeners() {
         supportFragmentManager.setFragmentResultListener(REQ_RESOURCE_SHORTCUT, this) { _, bundle ->
+            // S1423: "Create new.." carries no resource id - the shortcut is pinned by the creation
+            // flow itself, so there is no mode to pick and no cell to place here.
+            if (bundle.getBoolean(ResourcePickerDialogFragment.RESULT_CREATE_NEW, false)) {
+                resourceCreateManager.startCreateResource(this)
+                return@setFragmentResultListener
+            }
             val resourceId = bundle.getLong(ResourcePickerDialogFragment.RESULT_RESOURCE_ID)
             openPicker(
                 LauncherResourceModePickerDialogFragment.newInstance(resourceId),

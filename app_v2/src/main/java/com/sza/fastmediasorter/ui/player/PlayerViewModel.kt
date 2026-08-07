@@ -756,9 +756,17 @@ class PlayerViewModel @Inject constructor(
      * State-only; the host reads [PlayerState.sessionRotationAngle] and applies it to the live surface
      * (video effect + image view). Not persisted; the screen sensor and file bytes are untouched.
      */
-    fun rotateSession90() {
+    fun rotateSession90() = rotateSessionBy(ROTATION_STEP_DEGREES)
+
+    /** S1364: the counter-clockwise twin of [rotateSession90] (0->270->180->90->0). */
+    fun rotateSessionCounter90() = rotateSessionBy(-ROTATION_STEP_DEGREES)
+
+    // Kotlin's % keeps the dividend's sign, so a negative step would store a negative angle and the
+    // host applies sessionRotationAngle absolutely. The second modulo folds it back into 0..359.
+    private fun rotateSessionBy(stepDegrees: Int) {
         updateState {
-            it.copy(sessionRotationAngle = (it.sessionRotationAngle + ROTATION_STEP_DEGREES) % FULL_ROTATION_DEGREES)
+            val next = (it.sessionRotationAngle + stepDegrees) % FULL_ROTATION_DEGREES
+            it.copy(sessionRotationAngle = (next + FULL_ROTATION_DEGREES) % FULL_ROTATION_DEGREES)
         }
     }
 

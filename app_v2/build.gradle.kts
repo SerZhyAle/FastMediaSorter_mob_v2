@@ -157,8 +157,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260804153
-val defaultAppVersionName = "2.60.8041.533"
+val defaultAppVersionCode = 260807163
+val defaultAppVersionName = "2.60.8071.632"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -336,6 +336,7 @@ android {
             // 16 KB compatible - safe for Google Play.
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "SUPPORT_LAUNCHER", "true")
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "true")  // S1433: Network Monitor program
         }
 
         // ===== NO-LEGAL (Sideload-only full build: standard + VR + GPL extractors) =====
@@ -410,6 +411,7 @@ android {
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "true")
             buildConfigField("boolean", "SUPPORT_LAUNCHER", "true")
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "true")  // S1433: Network Monitor program
         }
 
         // ===== LITE (Lightweight, Local Files Only) =====
@@ -436,6 +438,7 @@ android {
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in lite
             buildConfigField("boolean", "SUPPORT_CAST", "true")
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in lite
         }
 
         // ===== PHOTOS (Images Only, with Cloud Support) =====
@@ -462,6 +465,7 @@ android {
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in photos
             buildConfigField("boolean", "SUPPORT_CAST", "true")
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in photos
         }
 
         // ===== LEGACY (Full Features, Android 6.0+) =====
@@ -492,6 +496,7 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "SUPPORT_CAST", "true")
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in legacy
         }
 
         // ===== VR (Full Features + OpenXR Headset Rendering) =====
@@ -552,6 +557,7 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // Headset has no paired watch
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "SUPPORT_CAST", "false") // Horizon OS lacks Google Play Services Cast module
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in vr
         }
 
         // S0250: flavor `vrUnlicensed` was archived (2026-05-19). Its role - sideload-only
@@ -574,6 +580,32 @@ android {
         getByName("androidTest") {
             assets.directories.add("schemas")
         }
+        // S1450: the shared src/test set is compiled for EVERY flavor, so a test for a class that
+        // lives in a flavor-scoped set (src/streamingEnabled, src/cloudEnabled) broke unit-test
+        // COMPILATION on the flavors that mount the disabled counterpart - no test could run at all
+        // on lite, PermissionRegistryManifestParityTest included, which is release-blocking per
+        // docs/RELEASE_READINESS_STANDARD.md. These two test sets mirror, one for one, the main
+        // source-set mounts below: a test lands here instead of src/test whenever its subject is
+        // flavor-scoped. AGP picks up src/test<Flavor>/java by convention (see src/testStandard,
+        // src/testNoLegal, src/testVr); only a set shared by SEVERAL flavors needs mounting.
+        // S1455: testDocumentsEnabled is the behavioural sibling. Its subject is
+        // OfficeDocumentFamilyCatalog - one FQCN with six per-flavor copies, empty on lite and photos -
+        // so a test of it compiles everywhere and fails only where the catalog is empty, rather than
+        // breaking compilation the way S1450's cases did. These four flavors are exactly where
+        // SUPPORT_DOCUMENTS is on, which matches SUPPORT_STREAMS one for one.
+        listOf("testStandard", "testNoLegal", "testLegacy", "testVr").forEach { unitTestSet ->
+            getByName(unitTestSet) {
+                kotlin.directories.add("src/testStreamingEnabled/java")
+                kotlin.directories.add("src/testCloudEnabled/java")
+                kotlin.directories.add("src/testDocumentsEnabled/java")
+            }
+        }
+        // photos mounts cloudEnabled but streamingDisabled, so it gets the cloud tests only.
+        getByName("testPhotos") {
+            kotlin.directories.add("src/testCloudEnabled/java")
+        }
+        // lite mounts streamingDisabled AND cloudDisabled - it mounts neither test set, which is
+        // exactly what makes its unit tests compilable again.
         getByName("standard") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
@@ -613,6 +645,9 @@ android {
             // without it mount src/launcherDisabled, which binds the no-op capability contract.
             kotlin.directories.add("src/launcherEnabled/java")
             res.directories.add("src/launcherEnabled/res")
+            // S1433: Network Monitor program. Flavors without it mount src/networkMonitorDisabled,
+            // which binds the no-op capability contract.
+            kotlin.directories.add("src/networkMonitor/java")
         }
         getByName("noLegal") {
             // S0156: noLegal = standard + VR + sideload-only capabilities.
@@ -641,6 +676,8 @@ android {
             // S0404: launcher-mode home surface - noLegal is the all-inclusive sideload superset.
             kotlin.directories.add("src/launcherEnabled/java")
             res.directories.add("src/launcherEnabled/res")
+            // S1433: Network Monitor program - part of the sideload superset.
+            kotlin.directories.add("src/networkMonitor/java")
         }
         getByName("legacy") {
             kotlin.directories.add("src/streamingEnabled/java")
@@ -655,6 +692,8 @@ android {
             kotlin.directories.add("src/vrStub/java")
             // S0404: no launcher-mode surface in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/launcherDisabled/java")
+            // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
+            kotlin.directories.add("src/networkMonitorDisabled/java")
         }
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
@@ -670,6 +709,8 @@ android {
             // S0404: vr has its own OpenXR shell and the headset's system launcher - no Android
             // launcher mode here (strategic ADR-1). Mount the no-op capability contract.
             kotlin.directories.add("src/launcherDisabled/java")
+            // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
+            kotlin.directories.add("src/networkMonitorDisabled/java")
         }
         getByName("photos") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -684,6 +725,8 @@ android {
             // from SPECIAL_USE/SYSTEM_ALERT_WINDOW); not mounted into the photos store flavor.
             // S0404: no launcher-mode surface in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/launcherDisabled/java")
+            // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
+            kotlin.directories.add("src/networkMonitorDisabled/java")
         }
         getByName("lite") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -696,6 +739,8 @@ android {
             kotlin.directories.add("src/vrStub/java")
             // S0404: no launcher-mode surface in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/launcherDisabled/java")
+            // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
+            kotlin.directories.add("src/networkMonitorDisabled/java")
         }
     }
 
@@ -1079,6 +1124,9 @@ androidComponents {
         val launcherFlavors = setOf("standard", "noLegal")
         if (flavorName in launcherFlavors) {
             variant.sources.manifests.addStaticManifestFile("src/launcherEnabled/AndroidManifest.xml")
+            // S1433: same reason - src/networkMonitor is mounted by directory, so its permission
+            // manifest needs its own injection or the Monitor's grants never reach the merge.
+            variant.sources.manifests.addStaticManifestFile("src/networkMonitor/AndroidManifest.xml")
         }
 
         // S0559: the shared confirmable-capture engine manifest (consent activity + mediaProjection
@@ -1335,8 +1383,9 @@ dependencies {
     // Paging 3
     implementation("androidx.paging:paging-runtime-ktx:3.2.1")
     
-    // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    // DataStore - 1.1.x or newer is required: 1.0.0 persists via File.renameTo, which cannot
+    // replace an existing file on Windows, so every write after the first one fails (S1449).
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
     
     // DocumentFile for SAF support
     implementation("androidx.documentfile:documentfile:1.0.1")

@@ -127,7 +127,7 @@ Engineering effort estimate:
 - This is an inference, not a historical log. The estimate is driven by the size of the production code, `20` application variants across `app_v2` + `wear`, multiple network/cloud/media integrations, and the custom build/release automation around them
 
 ## Dependency Highlights
-- DI and persistence: Hilt `2.59`, Room `2.7.0`, WorkManager `2.9.0`, DataStore `1.0.0`
+- DI and persistence: Hilt `2.59`, Room `2.7.0`, WorkManager `2.9.0`, DataStore `1.1.7`
 - UI: Jetpack Compose BOM `2024.02.00`, Material 3, Activity `1.10.1`, Lifecycle `2.7.0`, ConstraintLayout `2.1.4`
 - Media: Media3 `1.2.1` (`exoplayer`, `ui`, `common`, `session`, `effect`, plus flavor-mounted `hls`, `dash`, `rtsp`, `midi`)
 - Imaging and capture: Glide `4.16.0`, Coil `2.5.0` (Wear), CameraX `1.5.3`, PhotoView `2.3.0`, ExifInterface `1.3.7`

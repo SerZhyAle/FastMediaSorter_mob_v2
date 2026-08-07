@@ -17,6 +17,9 @@
       - assert-qualifier-shadowing   (values-land key a smallestWidth bucket always outranks)
       - assert-tactical-step-form    (S1343 Why-field ratchet over PLAN/*/PHASE_*.md)
       - assert-flavor-matrix-docs    (S1392 doc flavor tables vs the generated capability snapshot)
+- assert-sdk-pin-claims        (S1438 SDK pins stated in prose vs the build files)
+      - assert-ctor-arg-slots        (S1470 primary constructors near the 255 argument-slot ceiling)
+      - assert-retired-dependency-names (S1489 prose naming a dependency the project replaced)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
@@ -68,6 +71,11 @@ $gates = [ordered]@{
     # S1075: dev/TECH_REQUIREMENTS.md pins vs Gradle truth. Static parse of build files
     # + one doc; no gradle daemon. Catches a dependency bump that forgot the doc.
     'assert-doc-pin-drift.ps1'                  = @('-Quiet')
+    # S1438: SDK pins stated in ORDINARY PROSE, which the managed-block gate above cannot see -
+    # an index line, an architecture bullet, an agent definition, agent memory. Eight copies said
+    # compileSdk 35 while Gradle compiled against 36, and an agent reading one concludes an API is
+    # unavailable. Reads the value from the build file every run, so it can never itself go stale.
+    'assert-sdk-pin-claims.ps1'                 = @('-Quiet')
     # S1216: device-profile preset matrix vs AppSettings, the non-presettable registry and the
     # applier branches. Data-file parse like the gate above, no gradle daemon. Catches a new
     # setting that never reached the matrix - the drift that left 40 fields uncovered.
@@ -81,6 +89,11 @@ $gates = [ordered]@{
     # invisible to the build and to lint, and it survived a year in dimens.xml. Parses a handful of
     # small values-*.xml files, no gradle daemon.
     'assert-qualifier-shadowing.ps1'            = @('-Quiet')
+    # S1470: primary constructors approaching the 255 argument-slot ceiling. AppSettings crossed it
+    # at one field per ticket; kotlinc and D8 both accepted the class and only the runtime verifier
+    # refused it, so the build stayed green while the app could not start at all. Source parse of
+    # two directories, no gradle daemon.
+    'assert-ctor-arg-slots.ps1'                 = @('-Quiet')
     # S1254: settings-dump secret masking layers - @field:SensitiveSetting on hint-matching
     # AppSettings fields, the dump's annotation check, and the S1187 keep rules. The keep rule
     # vanished once and the leak is only visible in logs exported from a stranger's device.
@@ -102,6 +115,12 @@ $gates = [ordered]@{
     # two rows until a sibling ticket happened to derive wording from the gates instead. Parses one
     # JSON plus four small docs, no gradle daemon.
     'assert-flavor-matrix-docs.ps1'             = @('-Quiet')
+    # S1489: a dependency the project retired, still named in prose. The pin gate above watches jsch
+    # but compares the VERSION in one gated row, which was correct the whole time - a version
+    # comparator cannot express "this name must not appear at all". So SSHJ survived the S0207/S0046
+    # migration in nine documents including the published privacy policy in three locales, plus two
+    # Kotlin comments. Regex over docs, dev, store_assets and the two source trees, no gradle daemon.
+    'assert-retired-dependency-names.ps1'       = @('-Quiet')
 }
 
 # S1338: these five accept -ChangedFiles and used to be invoked with no arguments at

@@ -16,10 +16,15 @@
       "Bash(echo \"EXIT=$?\")"
     ]
   },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "mobile-mcp"
+  ],
   "disabledMcpjsonServers": [],
   "statusLine": {
     "type": "command",
     "command": "pwsh -NoProfile -File .claude/statusline.ps1",
     "padding": 0
-  }
+  },
+  "outputStyle": "default"
 }

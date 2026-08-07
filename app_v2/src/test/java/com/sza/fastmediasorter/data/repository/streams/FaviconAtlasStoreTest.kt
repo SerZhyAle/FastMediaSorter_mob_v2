@@ -81,6 +81,8 @@ class FaviconAtlasStoreTest {
         classifier = mockk<StreamMediaKindClassifier>(relaxed = true),
         repository = mockk<StreamSourceRepository>(relaxed = true),
         faviconAtlasStore = store,
+        // S1469: these cases drive extractCatalog() directly, which never consults connectivity.
+        networkContextAnalyzer = mockk(relaxed = true),
     )
 
     private fun zipOf(vararg entries: Pair<String, ByteArray>): ByteArray {

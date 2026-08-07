@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.common.DeviceProfileUi
 import com.sza.fastmediasorter.ui.profile.DeviceProfilePickerDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.launch
 
@@ -46,7 +47,7 @@ class GeneralSettingsProfileHelper(
                                 viewModel.saveProfile(type, ensureAllFilesResource = true)
                             }
                             .setNegativeButton(R.string.no, null)
-                            .show()
+                            .showBoundTo(fragment)
                     }
                 }
         }

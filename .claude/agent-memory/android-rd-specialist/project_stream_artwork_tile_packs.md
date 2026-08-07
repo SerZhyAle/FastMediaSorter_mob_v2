@@ -6,8 +6,12 @@ metadata:
 ---
 
 Since 2026-08-06 (S1445) the app downloads `channel-preview-tiles.zip` and `stream-logo-tiles.zip`
-(release `delivery-so-v1`, asset revision `-v2`), NOT the `*-atlas-v1.webp` sprite sheets. The sheets
-are still published unchanged for third-party consumers of the catalog; only the app moved.
+(release `delivery-so-v1`), NOT the `*-atlas-*.webp` sprite sheets. The sheets are still published for
+third-party consumers of the catalog; only the app moved.
+
+**Current revisions (2026-08-07 rebuild):** packs `-v3`, coords `-v2`, sheets `-v2`. 1949 preview
+entries (11 213 000 B) and 2006 logo entries covering 2350 channels (6 316 756 B). Every earlier
+revision stays published untouched - a rebuild NEVER clobbers a name an installed app pins.
 
 **Why:** a sprite sheet is not randomly addressable. `BitmapRegionDecoder.decodeRegion` over WebP (and
 JPEG) walks the stream from the top to reach the requested row, so one tile costs a share of a full

@@ -126,9 +126,9 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_crop.svg" alt="ic_crop" width="24" height="24"> | Вырезать |
 | <img src="icons/svg/ic_crop_to_file.svg" alt="ic_crop_to_file" width="24" height="24"> | Вырезать в файл |
 | <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | Удалить |
-| <img src="icons/svg/ic_draw_overlay.svg" alt="ic_draw_overlay" width="24" height="24"> | Рисовать |
-| (системный значок) | Редактировать |
-| (системный значок) | Редактировать |
+| <img src="icons/svg/ic_draw_overlay.svg" alt="ic_draw_overlay" width="24" height="24"> | Рисование |
+| (системный значок) | Коррекция |
+| (системный значок) | Текст файла |
 | <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Настройки чтения |
 | (системный значок) | Поиск по всем главам |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Настройки текста |
@@ -143,6 +143,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Извлечь текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Извлечь текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Извлечь текст |
+| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Настройки текста |
 | <img src="icons/svg/ic_open_in_browse.svg" alt="ic_open_in_browse" width="24" height="24"> | Открыть в новом окне |
 | <img src="icons/svg/ic_night_mode.svg" alt="ic_night_mode" width="24" height="24"> | Ночной режим |
 | <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Режим прокрутки |
@@ -155,7 +156,8 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Переименовать |
 | (системный значок) | Открыть с кодировкой.. |
 | <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Повернуть на 90° |
-| <img src="icons/svg/ic_rotation_unlocked.svg" alt="ic_rotation_unlocked" width="24" height="24"> | Поворот |
+| <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Повернуть на -90° |
+| <img src="icons/svg/ic_rotation_unlocked.svg" alt="ic_rotation_unlocked" width="24" height="24"> | Автоповорот экрана |
 | <img src="icons/svg/ic_save_frame.svg" alt="ic_save_frame" width="24" height="24"> | Сохранить кадр |
 | (системный значок) | Поиск |
 | (системный значок) | Поиск |

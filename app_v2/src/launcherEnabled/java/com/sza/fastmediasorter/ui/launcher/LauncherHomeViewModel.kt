@@ -8,7 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
+import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.launcher.AppShortcut
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
@@ -19,6 +21,8 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.ExecuteScheduledOperationUseCase
+import com.sza.fastmediasorter.domain.usecase.ExportResourcesToFileUseCase
+import com.sza.fastmediasorter.domain.usecase.companion.ExportCompanionConfigUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.ExecuteLauncherCommandUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.PickContactShortcutUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
@@ -26,6 +30,7 @@ import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarComposition
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarIcon
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
+import com.sza.fastmediasorter.ui.main.helpers.ResourceScanCoordinator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -42,6 +47,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -72,6 +78,8 @@ class LauncherHomeViewModel @Inject constructor(
     private val desktopDependencies: LauncherDesktopDependencies,
     private val taskbarDependencies: LauncherTaskbarDependencies,
     private val shortcutDependencies: LauncherShortcutDependencies,
+    // S1424: everything the resource/channel long-press menu needs that is not an intent.
+    private val cellMenuDependencies: LauncherCellMenuDependencies,
     private val executeCommand: ExecuteLauncherCommandUseCase,
     private val settingsRepository: SettingsRepository,
     private val observeStreams: ObserveStreamSourcesUseCase,
@@ -161,16 +169,13 @@ class LauncherHomeViewModel @Inject constructor(
      */
     val wallpaper: StateFlow<LauncherWallpaper> = settingsRepository.getSettings()
         .map { settings ->
-            when (settings.launcherWallpaperMode) {
-                AppSettings.LAUNCHER_WALLPAPER_NONE -> LauncherWallpaper.None
-                AppSettings.LAUNCHER_WALLPAPER_IMAGE ->
-                    settings.launcherWallpaperImagePath
-                        .takeIf { it.isNotBlank() && File(it).isFile }
-                        ?.let { LauncherWallpaper.Image(it) }
-                        ?: LauncherWallpaper.Branded
-
-                else -> LauncherWallpaper.Branded
-            }
+            val imageAvailable = settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_IMAGE &&
+                settings.launcherWallpaperImagePath.isNotBlank() && File(settings.launcherWallpaperImagePath).isFile
+            resolveLauncherWallpaper(
+                mode = settings.launcherWallpaperMode,
+                imagePath = settings.launcherWallpaperImagePath,
+                imageAvailable = imageAvailable,
+            )
         }
         .distinctUntilChanged()
         .flowOn(Dispatchers.IO)
@@ -443,6 +448,106 @@ class LauncherHomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S1424: the long-press menu needs the resource behind a cell to decide which rows it offers -
+     * the cell stores the identifier and nothing more. Off the main thread, because a network
+     * resource's row can be a disk read.
+     */
+    suspend fun resourceById(resourceId: Long): MediaResource? = withContext(Dispatchers.IO) {
+        desktopDependencies.resourceRepository.getResourceById(resourceId)
+    }
+
+    /**
+     * S1424: reached only after the shared confirmation dialog, which the desktop raises rather than
+     * copies (strategic 6.2).
+     *
+     * The cell itself is left where it is on purpose: a cell whose target has gone renders as
+     * unavailable, which is what every other vanished target already does, and silently rearranging
+     * the desktop under a delete would be a second surprise on top of the first.
+     */
+    fun deleteResource(resourceId: Long) {
+        viewModelScope.launch {
+            val result = cellMenuDependencies.deleteResource(resourceId)
+            if (result.isFailure) {
+                Timber.e(result.exceptionOrNull(), "Deleting resource %d from the desktop failed", resourceId)
+            }
+            _events.send(
+                LauncherHomeEvent.Message(
+                    if (result.isSuccess) R.string.resource_deleted else R.string.error_unknown,
+                ),
+            )
+        }
+    }
+
+    /**
+     * S1424: the channel behind a `stream:` cell, or null when it is gone from the catalog. Read from
+     * the same flow the picker reads, so the desktop menu cannot describe a channel the streams
+     * screen has already dropped.
+     */
+    suspend fun streamById(streamId: String): StreamSourceEntity? =
+        observeStreams().first().firstOrNull { it.id == streamId }
+
+    /** S1424: the pinned block is what decides whether a channel's reorder rows have anywhere to go. */
+    suspend fun pinnedStreams(): List<StreamSourceEntity> = observeStreams().first().filter { it.pinned }
+
+    /** S1424: same toggle the streams screen offers - pins to top if loose, unpins if pinned. */
+    fun toggleStreamPin(source: StreamSourceEntity) {
+        viewModelScope.launch {
+            if (source.pinned) {
+                cellMenuDependencies.unpinStreamSource(source.id)
+            } else {
+                cellMenuDependencies.pinStreamSource(source.id)
+            }
+        }
+    }
+
+    /**
+     * S1424: reached only after the shared confirmation dialog (strategic 6.2). The persisted last
+     * frame goes with the channel, exactly as it does on the streams screen (S0712) - otherwise a
+     * removal from the desktop would leave an orphan file behind.
+     */
+    fun removeStream(source: StreamSourceEntity) {
+        viewModelScope.launch {
+            cellMenuDependencies.removeStreamSource(source)
+            cellMenuDependencies.streamFrameStore.remove(source.url)
+            // The streams screen needs no message - the row vanishes from its list. A desktop cell
+            // does not vanish; it turns unavailable, which alone would not read as "I removed it".
+            _events.send(LauncherHomeEvent.Message(R.string.launcher_home_channel_removed))
+        }
+    }
+
+    /**
+     * S1424: rescans one resource and reports whether it is reachable. The desktop shows the same
+     * "unavailable" message the main window shows; an available resource says nothing, because the
+     * scan's whole effect is the refreshed record behind the cell.
+     */
+    suspend fun scanResource(resource: MediaResource): Boolean = withContext(Dispatchers.IO) {
+        val result = cellMenuDependencies.scanCoordinator.scanAndRefreshSingleResource(resource)
+        result is ResourceScanCoordinator.SingleScanResult.Available
+    }
+
+    /**
+     * S1424: writes the exported resource to [target] and reports whether anything landed there.
+     *
+     * The caller owns the file, because the cache directory and the share sheet both belong to the
+     * Activity; this end owns only the export itself.
+     */
+    suspend fun exportResource(resourceId: Long, target: Uri): Boolean {
+        val result = cellMenuDependencies.exportResourcesToFile(listOf(resourceId), target)
+        return result is ExportResourcesToFileUseCase.ExportResult.Success && result.exported > 0
+    }
+
+    /** S1424: the SFTP access payload as a file, or null when it could not be written. */
+    suspend fun exportCompanionConfig(resource: MediaResource, includePassword: Boolean): File? =
+        cellMenuDependencies.exportCompanionConfig(resource, includePassword).getOrNull()
+
+    /** S1424: the same access payload as a QR string, or null when it could not be built. */
+    suspend fun companionQrPayload(
+        resource: MediaResource,
+        includePassword: Boolean,
+    ): ExportCompanionConfigUseCase.CompanionQrExport? =
+        cellMenuDependencies.exportCompanionConfig.exportQrPayload(resource, includePassword).getOrNull()
+
     private fun emitCannotOpen() {
         viewModelScope.launch {
             _events.send(LauncherHomeEvent.Message(R.string.launcher_home_cannot_open))
@@ -491,6 +596,51 @@ class LauncherHomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S1401: puts [packageName] on the first free square of the current orientation. The placement
+     * lives here rather than in the menu for the same reason the add flow does - a data mutation stays
+     * visible to every reader of the desktop stream instead of hiding inside a popup.
+     */
+    fun placeAppOnDesktop(packageName: String, columns: Int) {
+        viewModelScope.launch {
+            val placed = desktopDependencies.desktopRepository.addCellInFirstFreeSlot(
+                LauncherCell(
+                    id = 0,
+                    orientation = _orientation.value,
+                    // Ignored: the repository scans for the anchor and overwrites both.
+                    rowIndex = 0,
+                    colIndex = 0,
+                    spanW = 1,
+                    spanH = 1,
+                    kind = LauncherCellKind.SHORTCUT,
+                    target = LauncherCellCommand.App(packageName).encode(),
+                    labelOverride = null,
+                    addedAt = System.currentTimeMillis(),
+                ),
+                columns,
+            )
+            if (placed == null) {
+                _events.send(LauncherHomeEvent.Message(R.string.launcher_app_action_desktop_full))
+            }
+        }
+    }
+
+    /** S1401: the menu's "Pin to taskbar" - same pin path the taskbar's own "+" uses. */
+    fun pinAppToTaskbar(packageName: String) {
+        addPin(LauncherCellCommand.App(packageName))
+        viewModelScope.launch {
+            _events.send(LauncherHomeEvent.Message(R.string.launcher_app_action_pinned))
+        }
+    }
+
+    /** S1401: null when no installed activity can show this app's details page. */
+    fun appInfoIntent(packageName: String): Intent? =
+        shortcutDependencies.buildAppSystemActionIntent.appInfoIntent(packageName)
+
+    /** S1401: null for a system app, and for any device whose build offers no uninstall screen. */
+    fun uninstallIntent(packageName: String): Intent? =
+        shortcutDependencies.buildAppSystemActionIntent.uninstallIntent(packageName)
+
     /** S0427 long-press popup: the quick actions [packageName] publishes, empty when it publishes none. */
     suspend fun appShortcutsOf(packageName: String): List<AppShortcut> =
         shortcutDependencies.queryAppShortcuts(packageName)
@@ -516,4 +666,18 @@ class LauncherHomeViewModel @Inject constructor(
         /** As many recents as fit a phone taskbar beside the Start button and the tray. */
         const val RECENTS_LIMIT = 6
     }
+}
+
+/** Pure setting-to-render-model mapping; image availability is supplied because the file probe is I/O. */
+internal fun resolveLauncherWallpaper(
+    mode: String,
+    imagePath: String,
+    imageAvailable: Boolean,
+): LauncherWallpaper = when (mode) {
+    AppSettings.LAUNCHER_WALLPAPER_NONE -> LauncherWallpaper.None
+    AppSettings.LAUNCHER_WALLPAPER_STATIC_STRIPES -> LauncherWallpaper.StaticStripes
+    AppSettings.LAUNCHER_WALLPAPER_IMAGE ->
+        imagePath.takeIf { imageAvailable }?.let { LauncherWallpaper.Image(it) } ?: LauncherWallpaper.Branded
+
+    else -> LauncherWallpaper.Branded
 }

@@ -14,6 +14,14 @@
         android:name="android.permission.ACCESS_LOCAL_NETWORK"
         tools:node="remove" />
 
+    <!-- S1454: the only seam onto ContactsContract is ContactSnapshotDataSource, reached solely from
+         src/launcherEnabled, which lite does not mount - so the permission was declared and could
+         never be used here. Dropped rather than left declared, per canon invariant 13.
+         NOT mirrored into src/standard or src/noLegal: both mount launcherEnabled and reach it. -->
+    <uses-permission
+        android:name="android.permission.READ_CONTACTS"
+        tools:node="remove" />
+
     <application>
 
         <!-- Remove MediaButtonRestartReceiver from lite -->

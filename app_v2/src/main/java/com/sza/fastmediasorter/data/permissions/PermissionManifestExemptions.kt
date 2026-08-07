@@ -48,10 +48,19 @@ object PermissionManifestExemptions {
         "com.oculus.permission.HAND_TRACKING" to
             "Granted by the headset at install; there is no runtime dialog and no system screen to send the user to.",
         "android.permission.RECORD_AUDIO" to
-            "Temporary, and only true where SUPPORT_MIC_RECORDING is false - lite and photos declare it through " +
-            "src/main while having no microphone feature. That is a manifest defect tracked as S1442, not a " +
-            "permanent exemption: S1442 removes the declaration and this entry with it. Everywhere else the " +
-            "permission has a row.",
+            "Only lite reaches this branch. It declares the permission and uses it - camera video records with " +
+            "audio there (SUPPORT_VIDEO is true) - but the registry gates the row on SUPPORT_MIC_RECORDING, " +
+            "which names the voice-note feature S0100 excluded from lite, not the microphone as such. The row " +
+            "gate is the wrong flag and is tracked as S1459; until it moves, the permission is legitimately " +
+            "declared with no row. photos declares it nowhere (S1442 removed it: no video mode, so no mic path " +
+            "at all). Everywhere else the permission has a row.",
+        "android.permission.POST_NOTIFICATIONS" to
+            "Same shape as RECORD_AUDIO above: declared and used, row hidden by too narrow a gate. Builds " +
+            "without persistent audio playback still post notifications - ScheduledOperationsWorker creates " +
+            "its channel and notifies unconditionally, and onboarding asks for this permission past the gate " +
+            "via shownInWelcomeDespiteGates - but the row's only gate is ENABLE_PERSISTENT_AUDIO_PLAYBACK, " +
+            "which names one use and not the other. Widening that gate changes what the permissions screen " +
+            "lists, so it is a separate change; until then the declaration is legitimate with no row.",
     )
 
     /**

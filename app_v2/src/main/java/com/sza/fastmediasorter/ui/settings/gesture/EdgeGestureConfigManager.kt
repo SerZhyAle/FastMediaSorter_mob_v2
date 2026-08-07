@@ -348,10 +348,14 @@ class EdgeGestureConfigManager(
     }
 
     private fun applyEnabled(s: AppSettings, zone: ScreenshotGestureZone, enabled: Boolean): AppSettings = when (zone) {
-        ScreenshotGestureZone.LEFT_TOP -> s.copy(screenshotGestureZoneLeftTopEnabled = enabled)
-        ScreenshotGestureZone.LEFT_BOTTOM -> s.copy(screenshotGestureZoneLeftBottomEnabled = enabled)
-        ScreenshotGestureZone.RIGHT_TOP -> s.copy(screenshotGestureZoneRightTopEnabled = enabled)
-        ScreenshotGestureZone.RIGHT_BOTTOM -> s.copy(screenshotGestureZoneRightBottomEnabled = enabled)
+        ScreenshotGestureZone.LEFT_TOP ->
+            s.copy(screenshotGesture = s.screenshotGesture.copy(zoneLeftTopEnabled = enabled))
+        ScreenshotGestureZone.LEFT_BOTTOM ->
+            s.copy(screenshotGesture = s.screenshotGesture.copy(zoneLeftBottomEnabled = enabled))
+        ScreenshotGestureZone.RIGHT_TOP ->
+            s.copy(screenshotGesture = s.screenshotGesture.copy(zoneRightTopEnabled = enabled))
+        ScreenshotGestureZone.RIGHT_BOTTOM ->
+            s.copy(screenshotGesture = s.screenshotGesture.copy(zoneRightBottomEnabled = enabled))
     }
 
     private fun applyStripVisible(
@@ -359,10 +363,14 @@ class EdgeGestureConfigManager(
         zone: ScreenshotGestureZone,
         visible: Boolean,
     ): AppSettings = when (zone) {
-        ScreenshotGestureZone.LEFT_TOP -> s.copy(screenshotGestureZoneLeftTopStripVisible = visible)
-        ScreenshotGestureZone.LEFT_BOTTOM -> s.copy(screenshotGestureZoneLeftBottomStripVisible = visible)
-        ScreenshotGestureZone.RIGHT_TOP -> s.copy(screenshotGestureZoneRightTopStripVisible = visible)
-        ScreenshotGestureZone.RIGHT_BOTTOM -> s.copy(screenshotGestureZoneRightBottomStripVisible = visible)
+        ScreenshotGestureZone.LEFT_TOP ->
+            s.copy(screenshotGesture = s.screenshotGesture.copy(zoneLeftTopStripVisible = visible))
+        ScreenshotGestureZone.LEFT_BOTTOM ->
+            s.copy(screenshotGesture = s.screenshotGesture.copy(zoneLeftBottomStripVisible = visible))
+        ScreenshotGestureZone.RIGHT_TOP ->
+            s.copy(screenshotGesture = s.screenshotGesture.copy(zoneRightTopStripVisible = visible))
+        ScreenshotGestureZone.RIGHT_BOTTOM ->
+            s.copy(screenshotGesture = s.screenshotGesture.copy(zoneRightBottomStripVisible = visible))
     }
 
     private fun applyAction(
@@ -372,24 +380,36 @@ class EdgeGestureConfigManager(
         action: ScreenshotGestureAction,
     ): AppSettings = when (zone) {
         ScreenshotGestureZone.LEFT_TOP -> when (direction) {
-            ScreenshotGestureDirection.UP -> s.copy(screenshotGestureLeftTopUp = action)
-            ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGestureLeftTopRight = action)
-            ScreenshotGestureDirection.DOWN -> s.copy(screenshotGestureLeftTopDown = action)
+            ScreenshotGestureDirection.UP ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(leftTopUp = action))
+            ScreenshotGestureDirection.RIGHT ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(leftTopRight = action))
+            ScreenshotGestureDirection.DOWN ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(leftTopDown = action))
         }
         ScreenshotGestureZone.LEFT_BOTTOM -> when (direction) {
-            ScreenshotGestureDirection.UP -> s.copy(screenshotGestureLeftBottomUp = action)
-            ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGestureLeftBottomRight = action)
-            ScreenshotGestureDirection.DOWN -> s.copy(screenshotGestureLeftBottomDown = action)
+            ScreenshotGestureDirection.UP ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(leftBottomUp = action))
+            ScreenshotGestureDirection.RIGHT ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(leftBottomRight = action))
+            ScreenshotGestureDirection.DOWN ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(leftBottomDown = action))
         }
         ScreenshotGestureZone.RIGHT_TOP -> when (direction) {
-            ScreenshotGestureDirection.UP -> s.copy(screenshotGestureRightTopUp = action)
-            ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGestureRightTopRight = action)
-            ScreenshotGestureDirection.DOWN -> s.copy(screenshotGestureRightTopDown = action)
+            ScreenshotGestureDirection.UP ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(rightTopUp = action))
+            ScreenshotGestureDirection.RIGHT ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(rightTopRight = action))
+            ScreenshotGestureDirection.DOWN ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(rightTopDown = action))
         }
         ScreenshotGestureZone.RIGHT_BOTTOM -> when (direction) {
-            ScreenshotGestureDirection.UP -> s.copy(screenshotGestureRightBottomUp = action)
-            ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGestureRightBottomRight = action)
-            ScreenshotGestureDirection.DOWN -> s.copy(screenshotGestureRightBottomDown = action)
+            ScreenshotGestureDirection.UP ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(rightBottomUp = action))
+            ScreenshotGestureDirection.RIGHT ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(rightBottomRight = action))
+            ScreenshotGestureDirection.DOWN ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(rightBottomDown = action))
         }
     }
 
@@ -401,24 +421,36 @@ class EdgeGestureConfigManager(
         payload: String,
     ): AppSettings = when (zone) {
         ScreenshotGestureZone.LEFT_TOP -> when (direction) {
-            ScreenshotGestureDirection.UP -> s.copy(screenshotGesturePayloadLeftTopUp = payload)
-            ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGesturePayloadLeftTopRight = payload)
-            ScreenshotGestureDirection.DOWN -> s.copy(screenshotGesturePayloadLeftTopDown = payload)
+            ScreenshotGestureDirection.UP ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(payloadLeftTopUp = payload))
+            ScreenshotGestureDirection.RIGHT ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(payloadLeftTopRight = payload))
+            ScreenshotGestureDirection.DOWN ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(payloadLeftTopDown = payload))
         }
         ScreenshotGestureZone.LEFT_BOTTOM -> when (direction) {
-            ScreenshotGestureDirection.UP -> s.copy(screenshotGesturePayloadLeftBottomUp = payload)
-            ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGesturePayloadLeftBottomRight = payload)
-            ScreenshotGestureDirection.DOWN -> s.copy(screenshotGesturePayloadLeftBottomDown = payload)
+            ScreenshotGestureDirection.UP ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(payloadLeftBottomUp = payload))
+            ScreenshotGestureDirection.RIGHT ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(payloadLeftBottomRight = payload))
+            ScreenshotGestureDirection.DOWN ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(payloadLeftBottomDown = payload))
         }
         ScreenshotGestureZone.RIGHT_TOP -> when (direction) {
-            ScreenshotGestureDirection.UP -> s.copy(screenshotGesturePayloadRightTopUp = payload)
-            ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGesturePayloadRightTopRight = payload)
-            ScreenshotGestureDirection.DOWN -> s.copy(screenshotGesturePayloadRightTopDown = payload)
+            ScreenshotGestureDirection.UP ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(payloadRightTopUp = payload))
+            ScreenshotGestureDirection.RIGHT ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(payloadRightTopRight = payload))
+            ScreenshotGestureDirection.DOWN ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(payloadRightTopDown = payload))
         }
         ScreenshotGestureZone.RIGHT_BOTTOM -> when (direction) {
-            ScreenshotGestureDirection.UP -> s.copy(screenshotGesturePayloadRightBottomUp = payload)
-            ScreenshotGestureDirection.RIGHT -> s.copy(screenshotGesturePayloadRightBottomRight = payload)
-            ScreenshotGestureDirection.DOWN -> s.copy(screenshotGesturePayloadRightBottomDown = payload)
+            ScreenshotGestureDirection.UP ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(payloadRightBottomUp = payload))
+            ScreenshotGestureDirection.RIGHT ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(payloadRightBottomRight = payload))
+            ScreenshotGestureDirection.DOWN ->
+                s.copy(screenshotGesture = s.screenshotGesture.copy(payloadRightBottomDown = payload))
         }
     }
 

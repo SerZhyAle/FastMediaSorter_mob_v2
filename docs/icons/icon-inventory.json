@@ -66,7 +66,7 @@
   {
     "surface": "player-command",
     "key": "EDIT",
-    "feature": "edit",
+    "feature": "menu_edit_adjust",
     "drawable": "ic_menu_edit",
     "assetFormat": "framework",
     "public": true
@@ -74,7 +74,7 @@
   {
     "surface": "player-command",
     "key": "EDIT_TEXT",
-    "feature": "edit",
+    "feature": "menu_edit_file_text",
     "drawable": "ic_menu_edit",
     "assetFormat": "framework",
     "public": true
@@ -193,6 +193,14 @@
   },
   {
     "surface": "player-command",
+    "key": "OFFICE_TEXT_SETTINGS",
+    "feature": "translation_settings",
+    "drawable": "ic_book",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
     "key": "OPEN_IN_SEPARATE_WINDOW",
     "feature": "action_open_in_separate_window",
     "drawable": "ic_open_in_browse",
@@ -297,8 +305,16 @@
   },
   {
     "surface": "player-command",
+    "key": "ROTATE_CONTENT_CCW",
+    "feature": "rotate_content_ccw_title",
+    "drawable": "ic_rotate_90",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
     "key": "ROTATION_TOGGLE",
-    "feature": "rotation_toggle_title",
+    "feature": "menu_autorotate_screen_title",
     "drawable": "ic_rotation_unlocked",
     "assetFormat": "vector",
     "public": true

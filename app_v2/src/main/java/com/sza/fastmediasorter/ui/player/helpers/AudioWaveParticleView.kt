@@ -40,6 +40,7 @@ import kotlin.random.Random
  *
  * Public lifecycle API mirrors [AudioBreathingBarsView]:
  *  - [startAnimation] - called when audio starts playing
+ *  - [renderFreshStaticFrame] - draws one settled randomized frame without animation
  *  - [pauseAnimation] - called when audio is paused (retains last frame)
  *  - [stopAndReset]   - cancels animator, clears buffer, resets time
  */
@@ -119,6 +120,9 @@ class AudioWaveParticleView @JvmOverloads constructor(
      * The deferred start fires in [onSizeChanged] once real dimensions are known.
      */
     private var pendingStart = false
+
+    /** True when a static frame was requested before this view received a real size. */
+    private var pendingStaticFrame = false
 
     /** True if ActivityManager reports this as a low-RAM device. Set once in init{}. */
     private val isLowRam: Boolean
@@ -234,6 +238,11 @@ class AudioWaveParticleView @JvmOverloads constructor(
         offBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         offCanvas = Canvas(offBitmap!!).also { it.drawColor(bufferFillColor) }
         initParticles(w, h)
+        if (pendingStaticFrame) {
+            pendingStaticFrame = false
+            renderFreshStaticFrame()
+            return
+        }
         // Deferred start: startAnimation() was called before layout completed
         if (pendingStart) {
             pendingStart = false
@@ -339,10 +348,12 @@ class AudioWaveParticleView @JvmOverloads constructor(
     fun startAnimation() {
         when {
             animator.isPaused -> {
+                pendingStaticFrame = false
                 pendingStart = false
                 animator.resume()
             }
             !animator.isRunning -> {
+                pendingStaticFrame = false
                 randomizeParams()
                 startupFrameCount = 0
                 val w = width
@@ -366,12 +377,32 @@ class AudioWaveParticleView @JvmOverloads constructor(
         }
     }
 
+    /** Draws one newly randomized settled frame without starting the animator. */
+    fun renderFreshStaticFrame() {
+        pendingStart = false
+        animator.cancel()
+        time = 0f
+        startupFrameCount = 0
+        val w = width
+        val h = height
+        if (w <= 0 || h <= 0) {
+            pendingStaticFrame = true
+            return
+        }
+        pendingStaticFrame = false
+        randomizeParams()
+        initParticles(w, h)
+        offCanvas?.drawColor(bufferFillColor)
+        renderStaticFrame()
+    }
+
     fun pauseAnimation() {
         if (animator.isRunning && !animator.isPaused) animator.pause()
     }
 
     fun stopAndReset() {
         pendingStart = false
+        pendingStaticFrame = false
         animator.cancel()
         time = 0f
         startupFrameCount = 0

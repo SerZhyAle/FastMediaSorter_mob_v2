@@ -122,7 +122,7 @@
 | `room-runtime`                  | 2.7.0      | SQLite ORM                         |
 | `room-ktx`                     | 2.7.0      | Room coroutines support            |
 | `room-compiler`                | 2.7.0      | Room annotation processor          |
-| `datastore-preferences`        | 1.0.0      | Key-value preferences store        |
+| `datastore-preferences`        | 1.1.7      | Key-value preferences store        |
 | `paging-runtime-ktx`           | 3.2.1      | Paging 3 library                   |
 | Room DB version                  | 47         | Current schema version (see AppDatabase.kt) |
 
@@ -289,7 +289,7 @@
 | Glide memory cache                      | `heap × 10%` with 64 MB cap                               |
 | Memory tier                             | Heap-aware: downgrades tier on small heap devices          |
 | FTP active mode                         | Fallback to active mode if passive fails                   |
-| SFTP coroutine check                    | Must check `Job.isActive` in SSHJ callbacks                |
+| SFTP coroutine check                    | Must check `Job.isActive` in JSch callbacks                |
 | SMB connection pooling                  | Managed by `SmbConnectionManager`                          |
 | Cloud path prefix                       | `cloud://` for cloud resources, `smb://`/`sftp://`/`ftp://` for network |
 | Secret masking                          | Tokens/passwords auto-replaced with `***` in logs          |

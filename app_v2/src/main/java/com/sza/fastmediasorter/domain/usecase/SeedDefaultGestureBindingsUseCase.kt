@@ -23,9 +23,11 @@ class SeedDefaultGestureBindingsUseCase @Inject constructor(
         val current = settingsRepository.getSettings().first()
         settingsRepository.updateSettings(
             current.copy(
-                screenshotGestureLeftTopUp = ScreenshotGestureAction.OPEN_PANEL,
-                screenshotGestureLeftTopRight = ScreenshotGestureAction.OPEN_IN_DRAW,
-                screenshotGestureLeftTopDown = ScreenshotGestureAction.SILENT_SCREENSHOT,
+                screenshotGesture = current.screenshotGesture.copy(
+                    leftTopUp = ScreenshotGestureAction.OPEN_PANEL,
+                    leftTopRight = ScreenshotGestureAction.OPEN_IN_DRAW,
+                    leftTopDown = ScreenshotGestureAction.SILENT_SCREENSHOT,
+                )
             )
         )
         Timber.i("Seeded default LEFT_TOP edge-band gesture bindings on first run")

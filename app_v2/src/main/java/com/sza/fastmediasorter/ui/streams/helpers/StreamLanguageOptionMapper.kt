@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.streams.helpers
 
+import android.content.Context
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
 import java.util.Locale
@@ -43,6 +44,15 @@ object StreamLanguageOptionMapper {
     /** Builds flag-less options from plain category strings (id == the raw value, matched verbatim). */
     fun categoryOptions(categories: List<String>): List<Option> =
         categories.map { Option(id = it, label = it) }
+
+    /**
+     * S1477: rubric options carry the catalog id (what [StreamsFilter] matches) but a localized label,
+     * re-sorted by that label - the incoming facet list is alphabetical in English, which is the wrong
+     * order once the labels are Russian or Ukrainian.
+     */
+    fun rubricOptions(context: Context, rubrics: List<String>): List<Option> =
+        rubrics.map { rubric -> Option(id = rubric, label = StreamTopicRubricCatalog.label(context, rubric) ?: rubric) }
+            .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.label })
 
     private fun displayCase(name: String): String =
         name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString() }

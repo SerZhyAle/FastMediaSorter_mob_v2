@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import androidx.annotation.StringRes
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isVisible
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
@@ -273,7 +275,24 @@ class LauncherCellViewBinder(
         binding.root.contentDescription = describe(binding, item)
         binding.root.setOnClickListener { onCellClick(item) }
         binding.root.setOnLongClickListener { onCellLongPress(binding.root, item) }
+        nameLongPressForAccessibility(binding.root, item)
         return binding.root
+    }
+
+    /**
+     * S1424: the long press must not be the only way into a cell's menu (strategic 6.3).
+     *
+     * Naming the platform's own long-click action both announces what the gesture does and puts the
+     * menu in the accessibility actions list, so a screen-reader user reaches it without performing
+     * a timed gesture. It is attached here, before any command kind is read, so app cells get it
+     * too - a menu only some neighbouring cells announced would be worse than none.
+     */
+    private fun nameLongPressForAccessibility(view: View, item: LauncherCellUi) {
+        ViewCompat.replaceAccessibilityAction(
+            view,
+            AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_LONG_CLICK,
+            view.context.getString(R.string.launcher_home_cell_actions),
+        ) { _, _ -> onCellLongPress(view, item) }
     }
 
     private fun bindGadget(

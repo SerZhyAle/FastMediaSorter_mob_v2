@@ -386,6 +386,11 @@ class PlayerCommandPanelCallbackImpl(
         activity.applyContentRotation(newAngle)
     }
 
+    override fun onRotateContentCounter90Clicked() {
+        viewModel.rotateSessionCounter90()
+        activity.applyContentRotation(viewModel.state.value.sessionRotationAngle)
+    }
+
     // Builds a content:// URI for a local file via FileProvider; returns null for network paths
     // where async download would be needed (network sharing remains via the legacy share path).
     private fun buildShareUri(path: String): Uri? {

@@ -23,6 +23,7 @@
 - [Never call scaffolding "done"](feedback_no_scaffolding_as_done.md) - if the headline button doesn't do its job, the phase stays open; don't invite device tests for a no-op
 - [Check generated binding field types before injecting compat views](feedback_check_generated_binding_types.md) - Button vs MaterialButton crashes silently after .bind(root); read FooBinding.java first
 - [pwsh-bash dollar-escape trap](feedback_pwsh_bash_dollar_escape_trap.md) - inside bash -Command "...", `\$LASTEXITCODE` collapses to empty; use newline-separated -Command or single-quoted bash
-- [minSdk per flavor](project_minsdk_flavors.md) - standard/lite/photos = 26; legacy = 23; wear = 28; compileSdk = 35 everywhere
+- [minSdk per flavor](project_minsdk_flavors.md) - standard/lite/photos = 26; legacy = 23; wear = 28; compileSdk = 36 everywhere
 - [Author style: .. and Ё](user_author_style.md) - use `..` not `...`; always use `ё`/`Ё` in Russian where grammatically correct
 - [pwsh 7 path](feedback_pwsh_path.md) - PS7 is at /c/Program Files/PowerShell/7/pwsh.exe and is NOT on Bash PATH; use the full quoted path
+- [Bash Windows-backslash + $VAR trap](feedback_bash_windows_backslash_dollar_trap.md) - `\${TS}` in a Windows-style path eats the backslash and skips expansion, silently, exit 0; use forward slashes

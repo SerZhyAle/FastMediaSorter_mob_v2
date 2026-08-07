@@ -12,6 +12,31 @@
       not declared in this store flavor (the src/screenCapture* source sets are not mounted here).
     -->
 
+    <!-- S1442: photos reaches no microphone path at all - SUPPORT_MIC_RECORDING=false removes the
+         voice-note surfaces and SUPPORT_VIDEO=false closes the camera video mode, the one place that
+         would still request the mic. Dropped rather than left declared, per canon invariant 13.
+         NOT mirrored into src/lite: SUPPORT_VIDEO is true there, so camera video legitimately records
+         with audio and the permission is in use. -->
+    <uses-permission
+        android:name="android.permission.RECORD_AUDIO"
+        tools:node="remove" />
+
+    <!-- S1454: same closure as the lite overlay. The only seam onto ContactsContract is
+         ContactSnapshotDataSource, reached solely from src/launcherEnabled, which photos does not
+         mount - so the permission was declared and could never be used here. Dropped rather than
+         left declared, per canon invariant 13. -->
+    <uses-permission
+        android:name="android.permission.READ_CONTACTS"
+        tools:node="remove" />
+
+    <!-- S1442: the microphone opt-out in src/main exists only to cancel the implicit hardware
+         requirement RECORD_AUDIO adds on Google Play. With the permission gone that requirement is
+         gone too, so the opt-out is dead weight here (Rule 20). Removing a required="false" feature
+         cannot narrow device reach - such a declaration never filtered anything. -->
+    <uses-feature
+        android:name="android.hardware.microphone"
+        tools:node="remove" />
+
     <application>
 
         <!-- Remove Random Music Widget from photos flavor (no audio support) -->

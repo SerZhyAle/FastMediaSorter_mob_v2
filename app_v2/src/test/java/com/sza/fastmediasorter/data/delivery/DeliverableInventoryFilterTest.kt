@@ -60,6 +60,7 @@ class DeliverableInventoryFilterTest {
             importStreamCatalogUseCase = importStreamCatalogUseCase,
             bundled = bundled,
             descriptors = descriptors,
+            artworkManifest = mockk(relaxed = true),
             appContext = appContext
         )
     }

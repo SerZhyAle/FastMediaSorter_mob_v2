@@ -74,10 +74,17 @@ class PermissionRegistryManifestParityTest {
         // An exemption for a permission that is neither declared nor a row is dead weight, and dead
         // weight in this file is how a parity gate quietly stops covering things.
         val declared = declaredPermissions()
-        val rows = repo.entriesForBuild.map { it.manifestName }.toSet()
-        val stale = PermissionManifestExemptions.rowWithoutDeclaration.keys.filterNot { it in rows }
+        // S1454: matched against every row the registry defines, not the gate-filtered set. A row whose
+        // build gate is off in this variant has not stopped existing - on lite the notification-listener
+        // row and the <service> it excuses are both absent together, which is consistency, not staleness.
+        val stale = PermissionManifestExemptions.rowWithoutDeclaration.keys
+            .filterNot { it in repo.allRowManifestNames }
 
-        assertTrue("Exemptions for rows that no longer exist: $stale", stale.isEmpty())
+        assertTrue(
+            "Exemptions for rows that no longer exist: $stale. A row merely gated off in this variant is " +
+                "not stale - only a row deleted from the registry is.",
+            stale.isEmpty(),
+        )
         // declaredWithoutRow is not checked the same way: it legitimately lists permissions this
         // variant does not declare, because one list covers every flavor.
         assertTrue(

@@ -41,10 +41,17 @@ class PermissionRegistryRepositoryImplTest {
     }
 
     @Test
-    fun `getGroups returns only groups that have applicable entries`() {
+    fun `getGroups covers every group that has applicable entries`() {
         val groups = repo.getGroups().map { it.group }.toSet()
         val entryGroups = repo.getEntries().map { it.group }.toSet()
-        assertTrue(groups == entryGroups)
+        // S1454: containment, not equality. getGroups() deliberately keeps the header of a group whose
+        // only entry is flavor-gated-out, so the welcome set can render an entry marked
+        // shownInWelcomeDespiteGates; BuildPermissionRowsUseCase drops a header that resolves to no
+        // entries. Equality only held on flavors where every group happens to keep a gate-passing entry.
+        assertTrue(
+            "a group with applicable entries must have a header: ${entryGroups - groups}",
+            groups.containsAll(entryGroups),
+        )
         // STORAGE always has entries on API 33.
         assertTrue(PermissionGroup.STORAGE in groups)
     }
@@ -70,6 +77,14 @@ class PermissionRegistryRepositoryImplTest {
     @Test
     fun `S1335 registers the read-contacts permission in registry, onboarding and groups`() {
         val contacts = repo.getEntries().firstOrNull { it.id == "read_contacts" }
+        // S1454: the row is gated on SUPPORT_LAUNCHER, and a build without the launcher does not compile
+        // in the only seam onto ContactsContract - so on those flavors its absence is the correct state,
+        // and lite additionally strips the manifest declaration. Assert that direction rather than skip
+        // it, so the gate stays covered from both sides.
+        if (!BuildConfig.SUPPORT_LAUNCHER) {
+            assertTrue("read_contacts must not be offered where the launcher is absent", contacts == null)
+            return
+        }
         assertNotNull("read_contacts must be registered", contacts)
         assertEquals(PermissionGroup.CONTACTS, contacts!!.group)
         assertTrue("read_contacts must be optional", contacts.optional)

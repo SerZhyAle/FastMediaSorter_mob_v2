@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
 import com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -133,7 +134,7 @@ class GeneralSettingsPrefetchHelper(
                     .setTitle(R.string.pref_streaming_clear_now)
                     .setMessage(ctx.getString(R.string.streaming_cache_empty))
                     .setPositiveButton(android.R.string.ok, null)
-                    .show()
+                    .showBoundTo(fragment)
                 return@launch
             }
 
@@ -155,7 +156,7 @@ class GeneralSettingsPrefetchHelper(
                     }
                 }
                 .setNegativeButton(R.string.cancel, null)
-                .show()
+                .showBoundTo(fragment)
         }
     }
 

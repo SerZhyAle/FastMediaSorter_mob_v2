@@ -222,7 +222,7 @@ You have full control over your data:
 The app uses open-source libraries for functionality (not data collection):
 
 - **SMBJ**: SMB/CIFS network protocol
-- **SSHJ**: SFTP protocol
+- **JSch**: SFTP protocol
 - **Apache Commons Net**: FTP protocol
 - **BouncyCastle**: Cryptography
 - **Glide**: Image loading and caching

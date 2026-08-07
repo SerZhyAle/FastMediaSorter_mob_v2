@@ -41,6 +41,15 @@ class PayloadIntegrityVerifier @Inject constructor() {
             if (size > MAX_UNVERIFIED_RESOURCE_BYTES) {
                 return fail(expected.fileName, "unverified resource too large: $size > $MAX_UNVERIFIED_RESOURCE_BYTES")
             }
+            // S1483: an unpinned ZIP is a tile pack, and without a hash the size bounds alone would
+            // accept a truncated download - which would then overwrite working artwork with a file
+            // that decodes to nothing. Check the container contract instead: the archive opens, it
+            // holds entries, and every entry name is the decimal slot index StreamTilePackReader
+            // looks up. That is the same class of structural check the catalog import applies to
+            // streams.csv, and it is what replaces the pin rather than nothing replacing it.
+            if (expected.fileName.endsWith(".zip", ignoreCase = true)) {
+                return verifyTilePack(file, expected.fileName)
+            }
             return Result.Verified
         }
         val actual = sha256(file)
@@ -48,6 +57,28 @@ class PayloadIntegrityVerifier @Inject constructor() {
             return fail(expected.fileName, "SHA-256 mismatch")
         }
         return Result.Verified
+    }
+
+    /**
+     * S1483: structural verification of a tile pack. Every entry name must be a plain decimal slot
+     * index - the container contract the reader and the offline packer share - so a zip of ordinary
+     * files, an HTML error page saved as `.zip`, or a truncated download is rejected here rather than
+     * discovered later as blank cells in the grid.
+     */
+    private fun verifyTilePack(file: File, fileName: String): Result = try {
+        java.util.zip.ZipFile(file).use { zip ->
+            val entries = zip.entries().toList()
+            when {
+                entries.isEmpty() -> fail(fileName, "tile pack has no entries")
+                entries.any { it.name.toIntOrNull() == null } ->
+                    fail(fileName, "tile pack entry name is not a slot index")
+                else -> Result.Verified
+            }
+        }
+    } catch (e: java.io.IOException) {
+        // A truncated or non-zip payload throws ZipException/IOException here; that is precisely the
+        // case this check exists for, so it is a verdict rather than an error to propagate.
+        fail(fileName, "tile pack unreadable: ${e.message}")
     }
 
     private fun fail(fileName: String, reason: String): Result.Failed {

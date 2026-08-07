@@ -264,11 +264,16 @@ foreach ($path in $targets) {
     }
 
     # --- MagicNumber ---------------------------------------------------------
-    # detekt's bundled config excludes whole test source dirs from MagicNumber. Note it
-    # excludes them by DIRECTORY, so src/test and src/androidTest are out while a flavor
-    # test set such as src/testNoLegal is still judged - the report proves both.
+    # detekt excludes whole test source dirs from MagicNumber by DIRECTORY. This preflight has to
+    # mirror whatever config/detekt/detekt.yml declares, or it reports findings the authoritative
+    # gate does not - and a preflight that disagrees with the gate it previews trains people to
+    # ignore it. S1450 widened the config's pattern to '**/test*/**' because the bundled default
+    # ('**/test/**') matched src/test but missed every flavor unit-test source set - src/testStandard,
+    # src/testNoLegal, src/testStreamingEnabled, src/testCloudEnabled. The 'test[A-Za-z0-9]*'
+    # alternative below tracks that widening; androidTest and the rest stay listed separately
+    # because they do not start with 'test'.
     $relPath = $path.Replace($RepoRoot, '').TrimStart('\', '/').Replace('\', '/')
-    if ($relPath -match '/(test|androidTest|commonTest|jvmTest|jsTest|iosTest|androidUnitTest|androidInstrumentedTest)/') { continue }
+    if ($relPath -match '/(test[A-Za-z0-9]*|androidTest|commonTest|jvmTest|jsTest|iosTest|androidUnitTest|androidInstrumentedTest)/') { continue }
     $companionDepth = -1
     $depth = 0
     $inCompanionProperty = $false

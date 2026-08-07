@@ -47,6 +47,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             "showSmallControls" -> settings.copy(showSmallControls = raw.toBool())
             "enableCalculator" -> settings.copy(enableCalculator = raw.toBool())
             "embeddedGameEnabled" -> settings.copy(embeddedGameEnabled = raw.toBool())
+            "enableNetworkMonitor" -> settings.copy(enableNetworkMonitor = raw.toBool())
             "isCacheSizeUserModified" -> settings.copy(isCacheSizeUserModified = raw.toBool())
             "enableBackgroundSync" -> settings.copy(enableBackgroundSync = raw.toBool())
             "enableStreams" -> settings.copy(enableStreams = raw.toBool())
@@ -235,58 +236,85 @@ class DeviceProfilePresetApplier @Inject constructor(
 
             // ── S0847 capture bands: per-zone action, one branch per zone/direction ───
             "screenshotGestureLeftTopDown" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftTopDown = it) }
-                    ?: skip(field, raw, settings)
+                raw.toScreenshotGestureActionOrNull()?.let {
+                    settings.copy(screenshotGesture = settings.screenshotGesture.copy(leftTopDown = it))
+                } ?: skip(field, raw, settings)
             "screenshotGestureLeftTopRight" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftTopRight = it) }
-                    ?: skip(field, raw, settings)
+                raw.toScreenshotGestureActionOrNull()?.let {
+                    settings.copy(screenshotGesture = settings.screenshotGesture.copy(leftTopRight = it))
+                } ?: skip(field, raw, settings)
             "screenshotGestureLeftTopUp" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftTopUp = it) }
-                    ?: skip(field, raw, settings)
+                raw.toScreenshotGestureActionOrNull()?.let {
+                    settings.copy(screenshotGesture = settings.screenshotGesture.copy(leftTopUp = it))
+                } ?: skip(field, raw, settings)
             "screenshotGestureLeftBottomDown" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftBottomDown = it) }
-                    ?: skip(field, raw, settings)
+                raw.toScreenshotGestureActionOrNull()?.let {
+                    settings.copy(screenshotGesture = settings.screenshotGesture.copy(leftBottomDown = it))
+                } ?: skip(field, raw, settings)
             "screenshotGestureLeftBottomRight" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftBottomRight = it) }
-                    ?: skip(field, raw, settings)
+                raw.toScreenshotGestureActionOrNull()?.let {
+                    settings.copy(screenshotGesture = settings.screenshotGesture.copy(leftBottomRight = it))
+                } ?: skip(field, raw, settings)
             "screenshotGestureLeftBottomUp" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureLeftBottomUp = it) }
-                    ?: skip(field, raw, settings)
+                raw.toScreenshotGestureActionOrNull()?.let {
+                    settings.copy(screenshotGesture = settings.screenshotGesture.copy(leftBottomUp = it))
+                } ?: skip(field, raw, settings)
             "screenshotGestureRightTopDown" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureRightTopDown = it) }
-                    ?: skip(field, raw, settings)
+                raw.toScreenshotGestureActionOrNull()?.let {
+                    settings.copy(screenshotGesture = settings.screenshotGesture.copy(rightTopDown = it))
+                } ?: skip(field, raw, settings)
             "screenshotGestureRightTopRight" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureRightTopRight = it) }
-                    ?: skip(field, raw, settings)
+                raw.toScreenshotGestureActionOrNull()?.let {
+                    settings.copy(screenshotGesture = settings.screenshotGesture.copy(rightTopRight = it))
+                } ?: skip(field, raw, settings)
             "screenshotGestureRightTopUp" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureRightTopUp = it) }
-                    ?: skip(field, raw, settings)
+                raw.toScreenshotGestureActionOrNull()?.let {
+                    settings.copy(screenshotGesture = settings.screenshotGesture.copy(rightTopUp = it))
+                } ?: skip(field, raw, settings)
             "screenshotGestureRightBottomDown" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureRightBottomDown = it) }
-                    ?: skip(field, raw, settings)
+                raw.toScreenshotGestureActionOrNull()?.let {
+                    settings.copy(screenshotGesture = settings.screenshotGesture.copy(rightBottomDown = it))
+                } ?: skip(field, raw, settings)
             "screenshotGestureRightBottomRight" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureRightBottomRight = it) }
-                    ?: skip(field, raw, settings)
+                raw.toScreenshotGestureActionOrNull()?.let {
+                    settings.copy(screenshotGesture = settings.screenshotGesture.copy(rightBottomRight = it))
+                } ?: skip(field, raw, settings)
             "screenshotGestureRightBottomUp" ->
-                raw.toScreenshotGestureActionOrNull()?.let { settings.copy(screenshotGestureRightBottomUp = it) }
-                    ?: skip(field, raw, settings)
+                raw.toScreenshotGestureActionOrNull()?.let {
+                    settings.copy(screenshotGesture = settings.screenshotGesture.copy(rightBottomUp = it))
+                } ?: skip(field, raw, settings)
 
             // ── S1216 Booleans: capture bands, main-window panels, initial panel state ───
-            "screenshotGestureZoneLeftTopEnabled" -> settings.copy(screenshotGestureZoneLeftTopEnabled = raw.toBool())
+            "screenshotGestureZoneLeftTopEnabled" ->
+                settings.copy(screenshotGesture = settings.screenshotGesture.copy(zoneLeftTopEnabled = raw.toBool()))
             "screenshotGestureZoneLeftBottomEnabled" ->
-                settings.copy(screenshotGestureZoneLeftBottomEnabled = raw.toBool())
+                settings.copy(
+                    screenshotGesture = settings.screenshotGesture.copy(zoneLeftBottomEnabled = raw.toBool())
+                )
             "screenshotGestureZoneRightTopEnabled" ->
-                settings.copy(screenshotGestureZoneRightTopEnabled = raw.toBool())
+                settings.copy(
+                    screenshotGesture = settings.screenshotGesture.copy(zoneRightTopEnabled = raw.toBool())
+                )
             "screenshotGestureZoneRightBottomEnabled" ->
-                settings.copy(screenshotGestureZoneRightBottomEnabled = raw.toBool())
+                settings.copy(
+                    screenshotGesture = settings.screenshotGesture.copy(zoneRightBottomEnabled = raw.toBool())
+                )
             "screenshotGestureZoneLeftTopStripVisible" ->
-                settings.copy(screenshotGestureZoneLeftTopStripVisible = raw.toBool())
+                settings.copy(
+                    screenshotGesture = settings.screenshotGesture.copy(zoneLeftTopStripVisible = raw.toBool())
+                )
             "screenshotGestureZoneLeftBottomStripVisible" ->
-                settings.copy(screenshotGestureZoneLeftBottomStripVisible = raw.toBool())
+                settings.copy(
+                    screenshotGesture = settings.screenshotGesture.copy(zoneLeftBottomStripVisible = raw.toBool())
+                )
             "screenshotGestureZoneRightTopStripVisible" ->
-                settings.copy(screenshotGestureZoneRightTopStripVisible = raw.toBool())
+                settings.copy(
+                    screenshotGesture = settings.screenshotGesture.copy(zoneRightTopStripVisible = raw.toBool())
+                )
             "screenshotGestureZoneRightBottomStripVisible" ->
-                settings.copy(screenshotGestureZoneRightBottomStripVisible = raw.toBool())
+                settings.copy(
+                    screenshotGesture = settings.screenshotGesture.copy(zoneRightBottomStripVisible = raw.toBool())
+                )
             "showProgramsPanelInMainWindow" -> settings.copy(showProgramsPanelInMainWindow = raw.toBool())
             "showStreamsPanelInMainWindow" -> settings.copy(showStreamsPanelInMainWindow = raw.toBool())
             "screenRecordingEnabled" -> settings.copy(screenRecordingEnabled = raw.toBool())

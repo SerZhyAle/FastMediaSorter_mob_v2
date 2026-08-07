@@ -447,8 +447,8 @@ CI workflow:
 - **Медіа**: ExoPlayer (Media3 1.2.1)
 - **Зображення**: Glide 4.16.0 з кастомним NetworkFileModelLoader
 - **Мережеві протоколи**:
-  - SMB: SMBJ 0.12.1 з BouncyCastle 1.78.1
-  - SFTP: SSHJ 0.37.0 з EdDSA 0.3.0
+  - SMB: SMBJ 0.12.1 з BouncyCastle (транзитивно)
+  - SFTP: JSch 0.2.26 (форк com.github.mwiede, Ed25519 вбудований)
   - FTP: Apache Commons Net 3.10.0
 - **Хмара**: Google Drive API, OneDrive (MSAL), Dropbox API з OAuth 2.0
 

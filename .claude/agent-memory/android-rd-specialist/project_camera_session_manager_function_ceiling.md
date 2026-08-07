@@ -1,11 +1,15 @@
 ---
 name: camera-session-manager-function-ceiling
-description: CameraCaptureSessionManager lives against detekt's 40-function TooManyFunctions ceiling - S1262 bought 6 slots back by turning the current* getters into val properties
+description: CameraCaptureSessionManager sits against THREE detekt ceilings at once - TooManyFunctions (40), LargeClass, and LongMethod on bindToLifecycle (80) - and the escape is a private top-level function
 metadata:
   type: project
 ---
 
 **Current state (2026-07-31, after S1262 phase 03): 36 functions of 40.** There is room again, but the class is 1000+ LOC and will re-approach the ceiling with the next feature.
+
+**2026-08-07 (S1457): the function count is no longer the binding constraint - `LargeClass` and `LongMethod` are.** Adding ~9 net code lines inside `bindToLifecycle` fired BOTH `LargeClass` on the class and `LongMethod` on `bindToLifecycle` (88, max 80) as *new* findings, so `bindToLifecycle` was sitting at ~79 of 80 before the change. Budget accordingly: **a change that lands more than one or two code lines inside `bindToLifecycle` must extract something in the same edit**, or it costs an extra full detekt cycle to discover. Comments appear not to count toward the `LongMethod` line total; code lines do.
+
+What worked, and is the pattern to repeat: move a self-contained block to a **private top-level function in the same file** - it drains both the method and the class at once. S1457 extracted two (`Camera.restoreZoomRatio`, `ExtensionsManager?.offeredExtensions`), which took `bindToLifecycle` from 88 to comfortably under 80 and cleared `LargeClass` with it. Extension-receiver form works well here: the block reads only the object it acts on, not session state.
 
 `ui/cameracapture/helpers/CameraCaptureSessionManager.kt` used to sit at **exactly 39-40 functions**, and detekt's `TooManyFunctions` threshold for classes is 40 (it fails **at** 40, not above it). Adding even one small private helper tripped the gate.
 

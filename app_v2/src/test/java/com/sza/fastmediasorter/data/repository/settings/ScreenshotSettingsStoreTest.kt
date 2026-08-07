@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.repository.settings
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureSettings
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -35,7 +36,7 @@ class ScreenshotSettingsStoreTest {
     @Test
     fun `saved payload for one slot round-trips and leaves other slots empty`() {
         val url = "https://example.com/open"
-        val settings = AppSettings(screenshotGesturePayloadRightBottomUp = url)
+        val settings = AppSettings(screenshotGesture = ScreenshotGestureSettings(payloadRightBottomUp = url))
 
         val prefs = mutablePreferencesOf()
         ScreenshotSettingsStore.write(prefs, settings)
@@ -43,7 +44,9 @@ class ScreenshotSettingsStoreTest {
 
         assertEquals(url, values.payloadRightBottomUp)
         // The written value re-reads through the AppSettings accessor for the same slot.
-        val loaded = AppSettings(screenshotGesturePayloadRightBottomUp = values.payloadRightBottomUp)
+        val loaded = AppSettings(
+            screenshotGesture = ScreenshotGestureSettings(payloadRightBottomUp = values.payloadRightBottomUp)
+        )
         assertEquals(
             url,
             loaded.screenshotGesturePayload(

@@ -1,8 +1,9 @@
 package com.sza.fastmediasorter.ui.streams.helpers
 
-import android.view.View
-import com.google.android.material.snackbar.Snackbar
+import android.content.Context
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.delivery.ArtworkManifestSource
 import com.sza.fastmediasorter.domain.delivery.DeliverableInventory
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DownloadProgress
@@ -11,24 +12,32 @@ import com.sza.fastmediasorter.domain.delivery.ExtensionStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * S1154: after a stream-catalog import, offers to download an artwork atlas when it is not already
  * installed. The offer routes through [DeliverableInventory] so download progress + delete stay the real
- * WorkManager path (the Extensions Manager row and the tray notification), and reuses the same
- * dismissible Snackbar-with-action affordance as the catalog-refresh suggestion - no one-off dialog.
+ * WorkManager path (the Extensions Manager row and the tray notification).
  *
  * S1201: one instance per payload ([set] + [messageRes]) rather than one hard-coded to the preview
  * atlas. The two atlases are downloaded and refused independently, so their offers must be too.
  *
- * Owns all the decision logic (install-state check, once-per-session latch); the Activity only forwards
- * the `CatalogUpdated` event and supplies the anchor view (Rule 3/5).
+ * S1481: the offer is a modal dialog, not a Snackbar. The Snackbar shipped in S1154 and was raised
+ * twice as missed - it appears at the bottom edge, at the same moment as the "catalog updated" toast,
+ * and asking for pictures after a refresh is not an incidental notice the user can be expected to
+ * catch out of the corner of their eye. Both payloads are now offered on every catalog update: the
+ * second dialog follows the first one's dismissal, so they queue instead of overlapping.
+ *
+ * Owns all the decision logic (install-state check, per-session latch); the Activity only forwards the
+ * `CatalogUpdated` event and supplies the context (Rule 3/5).
  */
 class StreamAtlasPromptManager(
     private val inventory: DeliverableInventory,
     private val scope: CoroutineScope,
     private val set: DeliverableSet,
     @androidx.annotation.StringRes private val messageRes: Int,
+    // S1483: supplies the payload size shown in the offer; already fetched for the staleness verdict.
+    private val manifest: ArtworkManifestSource,
     // Invoked once the payload is on disk, so the caller can pick it up without reopening the screen.
     private val onAtlasInstalled: suspend () -> Unit = {},
 ) {
@@ -38,25 +47,30 @@ class StreamAtlasPromptManager(
     /**
      * Offer the atlas download when it is not installed / in-flight and not already offered.
      *
-     * [onNothingToOffer] runs when this payload has nothing to ask about - it is already installed, a
-     * download is running, or this build has no such row. That is the hand-off point for a second
-     * payload's offer: chaining on it keeps at most one Snackbar on screen, so the offers cannot stack
-     * or replace one another. An offer already on screen does NOT cascade - it is still awaiting an
-     * answer.
+     * [onOfferSettled] runs once this payload can no longer produce a dialog: it had nothing to ask
+     * about (already installed, a download is running, or this build has no such row), or its dialog
+     * was answered. It is the hand-off point for the next payload's offer, so the two dialogs queue
+     * rather than stack on top of each other.
      */
-    fun maybeOffer(anchor: View, onNothingToOffer: (() -> Unit)? = null) {
-        if (offered) return
+    fun maybeOffer(context: Context, onOfferSettled: (() -> Unit)? = null) {
+        if (offered) {
+            onOfferSettled?.invoke()
+            return
+        }
         val item = atlasItem() ?: run {
-            onNothingToOffer?.invoke()
+            onOfferSettled?.invoke()
             return
         }
         scope.launch {
             val status = item.statusFlow.first()
             if (status is ExtensionStatus.Installed || status is ExtensionStatus.Downloading) {
-                onNothingToOffer?.invoke()
+                onOfferSettled?.invoke()
                 return@launch
             }
-            if (offered) return@launch
+            if (offered) {
+                onOfferSettled?.invoke()
+                return@launch
+            }
             offered = true
             // S1200: an installed-but-stale payload is the case the owner hit - "already installed"
             // used to silence the offer, so a rebuilt atlas reached nobody. Same offer, different
@@ -66,19 +80,34 @@ class StreamAtlasPromptManager(
             } else {
                 messageRes
             }
-            // INDEFINITE: the offer fires together with the "catalog updated" toast, and a timed
-            // Snackbar behind that toast was easy to miss entirely (owner report 2026-07-26). It now
-            // waits for a decision - accept, or swipe it away.
-            Snackbar.make(anchor, message, Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.streams_atlas_prompt_action) { startDownload(item) }
-                .addCallback(object : Snackbar.Callback() {
-                    override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
-                        // Only an accepted offer stays latched. A swipe/replacement dismissal must not
-                        // silence the atlas for the rest of the session: every later catalog update
-                        // offers it again until it is actually installed.
-                        if (event != DISMISS_EVENT_ACTION) offered = false
-                    }
-                })
+            // S1483: name the size. These payloads are 8-11 MB and used to start downloading with no
+            // indication of that; the manifest already carries the number, so asking costs nothing.
+            val megabytes = manifest.sizeOf(set)?.let { (it + BYTES_PER_MB - 1) / BYTES_PER_MB }
+            val body = context.getString(message).let { text ->
+                if (megabytes == null || megabytes <= 0L) {
+                    text
+                } else {
+                    text + "\n\n" + context.getString(R.string.streams_atlas_prompt_size, megabytes.toInt())
+                }
+            }
+            Timber.d("S1483: offering %s, status=%s, size=%s MB", set, status, megabytes)
+            var accepted = false
+            MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.streams_atlas_prompt_title)
+                .setMessage(body)
+                .setPositiveButton(R.string.streams_atlas_prompt_action) { _, _ ->
+                    accepted = true
+                    startDownload(item)
+                }
+                .setNegativeButton(R.string.later, null)
+                .setOnDismissListener {
+                    // Anything other than accepting - "Later", back, a tap outside - releases the latch,
+                    // so the next catalog update asks again. Only an accepted offer stays latched, and
+                    // by then the payload is downloading anyway. This is what "offer after every
+                    // refresh" has to mean, or a single stray dismissal mutes it for the session.
+                    if (!accepted) offered = false
+                    onOfferSettled?.invoke()
+                }
                 .show()
         }
     }
@@ -93,6 +122,10 @@ class StreamAtlasPromptManager(
                 if (progress == DownloadProgress.Installed) onAtlasInstalled()
             }
         }
+    }
+
+    private companion object {
+        const val BYTES_PER_MB = 1024L * 1024L
     }
 
     private fun atlasItem(): ExtensionItem.Module? =

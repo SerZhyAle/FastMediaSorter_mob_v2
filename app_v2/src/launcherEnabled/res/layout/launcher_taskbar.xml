@@ -31,12 +31,37 @@
         android:insetRight="0dp"
         android:minHeight="0dp"
         android:nextFocusUp="@id/launcherDesktop"
-        android:nextFocusRight="@id/taskbarRecents"
+        android:nextFocusRight="@id/btnAllApps"
         android:paddingStart="@dimen/launcher_taskbar_item_spacing"
         android:paddingEnd="@dimen/launcher_taskbar_item_spacing"
         android:text="@string/launcher_taskbar_start"
         app:icon="@drawable/ic_launcher_mode"
         app:iconGravity="start" />
+
+    <!-- S1401: opens the full-screen app list. Icon-only (owner, 2026-08-05) and deliberately OUTSIDE
+         the weighted strip block below, so a long recents strip can never squeeze it away. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAllApps"
+        style="@style/Widget.FastMediaSorter.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:contentDescription="@string/launcher_menu_all_apps"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:insetLeft="0dp"
+        android:insetRight="0dp"
+        android:minHeight="0dp"
+        android:nextFocusUp="@id/launcherDesktop"
+        android:nextFocusLeft="@id/btnStart"
+        android:nextFocusRight="@id/taskbarRecents"
+        android:paddingStart="@dimen/launcher_taskbar_item_spacing"
+        android:paddingEnd="@dimen/launcher_taskbar_item_spacing"
+        app:icon="@drawable/ic_view_grid"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp" />
 
     <!-- Both strips live inside one weighted block so they can only ever consume the slack left by the
          Start button and the tray. A wrap_content strip placed directly in the bar is measured against the
@@ -61,7 +86,7 @@
             android:clipToPadding="false"
             android:fadingEdgeLength="@dimen/main_panel_fading_edge"
             android:nextFocusUp="@id/launcherDesktop"
-            android:nextFocusLeft="@id/btnStart"
+            android:nextFocusLeft="@id/btnAllApps"
             android:nextFocusRight="@id/taskbarPinned"
             android:requiresFadingEdge="horizontal"
             tools:listitem="@layout/item_launcher_taskbar_icon" />

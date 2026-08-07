@@ -12,7 +12,7 @@
 - [VR inclusion hierarchy: standard ⊂ vr ⊂ noLegal](project_vr_inclusion_hierarchy.md) - S0240 architecture; noLegal inherits src/vr/; vrUnlicensed archived in S0250
 - [Never call scaffolding "done"](feedback_no_scaffolding_as_done.md) - distinguish "contract exists" from "behavior works" in the Current Architecture vs Risks sections
 - [pwsh-bash dollar-escape trap](feedback_pwsh_bash_dollar_escape_trap.md) - inside bash `-Command "..."`, `\$LASTEXITCODE` collapses to empty and PowerShell parse fails silently; use newline-separated or single-quoted forms
-- [minSdk per flavor](project_minsdk_flavors.md) - 26 standard/lite/photos, 23 legacy, 28 wear; compileSdk=35 universal; cite per-flavor in API Level Constraints
+- [minSdk per flavor](project_minsdk_flavors.md) - 26 standard/lite/photos, 23 legacy, 28 wear; compileSdk=36 universal; cite per-flavor in API Level Constraints
 - [Author style: .. and Ё](user_author_style.md) - use `..` not `...`; always use `ё`/`Ё` in Russian; intentional style, not typos
 - [pwsh 7 path](feedback_pwsh_path.md) - pwsh 7 at `/c/Program Files/PowerShell/7/pwsh.exe`, not on bash PATH; full quoted path for PS7-only scripts
 - [Timber.d("Sxxxx:") tags are live test markers](feedback_timber_tags_before_test.md) - when grepping, cross-check spec status via select.ps1 before drawing conclusions

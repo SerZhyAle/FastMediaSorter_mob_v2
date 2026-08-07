@@ -50,15 +50,7 @@ internal class CameraUseCaseFactory(
                 it.surfaceProvider = previewView.surfaceProvider
                 it.targetRotation = targetRotation
             }
-        val imageCapture = if (videoMode) {
-            null
-        } else {
-            ImageCapture.Builder()
-                .setResolutionSelector(buildResolutionSelector(preferHighResolution))
-                .applyPhysicalCameraId()
-                .build()
-                .also { it.targetRotation = targetRotation }
-        }
+        val imageCapture = if (videoMode) null else createPhotoCapture()
         val videoCapture = if (videoMode) {
             VideoCapture.withOutput(Recorder.Builder().build())
                 .also { it.targetRotation = targetRotation }
@@ -76,6 +68,22 @@ internal class CameraUseCaseFactory(
             .build()
         return CameraUseCases(preview, imageCapture, videoCapture, group)
     }
+
+    /**
+     * S1478: the image capture on its own, for a caller that has no preview surface to give - the
+     * headless shot. It is the same use case [create] binds, built from the same resolution selector
+     * and the same physical-lens id, so the two capture routes cannot drift apart the way they did
+     * while the headless path owned a second builder. CameraX defaults to
+     * [ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY]; stating it here makes the shared choice visible
+     * instead of leaving each route to inherit it silently.
+     */
+    fun createPhotoCapture(): ImageCapture =
+        ImageCapture.Builder()
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .setResolutionSelector(buildResolutionSelector(preferHighResolution))
+            .applyPhysicalCameraId()
+            .build()
+            .also { it.targetRotation = targetRotation }
 
     /**
      * S1189: no-op unless a physical lens was chosen and the pipeline can carry it, so a device
@@ -106,19 +114,31 @@ internal class CameraUseCaseFactory(
     }
 
     private fun effectiveAspectRatioInt(): Int =
-        if (videoMode) selectedAspectRatio ?: AspectRatio.RATIO_4_3 else AspectRatio.RATIO_4_3
+        if (videoMode) selectedAspectRatio ?: AspectRatio.RATIO_4_3 else PHOTO_ASPECT_RATIO
 
     private fun effectiveAspectRational(): Rational =
         if (effectiveAspectRatioInt() == AspectRatio.RATIO_16_9) RATIONAL_16_9 else RATIONAL_4_3
 
-    private fun resolutionMatchesAspect(size: Size, aspect: Int): Boolean {
-        if (size.height == 0) return false
-        val ratio = size.width.toFloat() / size.height.toFloat()
-        val target = if (aspect == AspectRatio.RATIO_16_9) SIXTEEN_NINE else FOUR_THREE
-        return kotlin.math.abs(ratio - target) < ASPECT_MATCH_EPSILON
-    }
-
     companion object {
+
+        /**
+         * S1066: photo capture always requests the full 4:3 sensor stream - a 16:9 selection is
+         * realised by the result-frame overlay plus a post-capture crop, not by a narrower stream.
+         *
+         * S1457: public so the settings dialog can offer only resolutions this pipeline will honour.
+         * It used to hardcode its own list, and every mismatched pick was dropped by
+         * [resolutionMatchesAspect] below with nothing shown to the user.
+         */
+        val PHOTO_ASPECT_RATIO = AspectRatio.RATIO_4_3
+
+        /** True when [size] is close enough to [aspect] that the resolution strategy will apply it. */
+        fun resolutionMatchesAspect(size: Size, aspect: Int): Boolean {
+            if (size.height == 0) return false
+            val ratio = size.width.toFloat() / size.height.toFloat()
+            val target = if (aspect == AspectRatio.RATIO_16_9) SIXTEEN_NINE else FOUR_THREE
+            return kotlin.math.abs(ratio - target) < ASPECT_MATCH_EPSILON
+        }
+
         fun selectorFor(info: CameraInfo): CameraSelector =
             CameraSelector.Builder()
                 .addCameraFilter { infos -> infos.filter { it == info } }

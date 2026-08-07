@@ -40,6 +40,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $RepoRoot "scripts/utils/agent-lock.ps1")
+. (Join-Path $RepoRoot "scripts/builders/gradle-run-verdict.ps1")
 
 function Fail([string] $stage, [string] $detail) {
     Write-Host "settings-doc-sync: FAIL at stage '$stage'" -ForegroundColor Red
@@ -99,16 +100,32 @@ if (-not $SkipManifestTest -and $manifestAffected) {
     Enter-BuildLockOrExit -Reason "assert-settings-doc-sync.ps1 (SettingsManifestExportTest)" -Wait
     Push-Location $RepoRoot
     try {
-        & ".\gradlew.bat" ":app_v2:testStandardDebugUnitTest" "--tests" "*SettingsManifestExportTest" | Out-Null
+        # S1464: the worker-death signature lives in this output, and it used to go to Out-Null - the
+        # gate threw away the one direct sign of "the run never happened" and then guessed from the
+        # report file's timestamp.
+        $manifestOutput = @(& ".\gradlew.bat" ":app_v2:testStandardDebugUnitTest" "--tests" "*SettingsManifestExportTest" 2>&1 | ForEach-Object { [string]$_ })
         $manifestExit = $LASTEXITCODE
     } finally { Pop-Location; Exit-AgentLock -Name Build }
     if ($manifestExit -ne 0) {
-        # A non-zero gradle exit means the test asserted drift OR the build never got that far
-        # (a kapt/compile failure anywhere in app_v2 fails the same way). Only a report written
-        # by THIS run proves the test actually executed and judged the manifest.
-        $ran = (Test-Path $reportFile) -and ((Get-Item $reportFile).LastWriteTime -ge $runStart)
-        if (-not $ran) {
+        # A non-zero gradle exit means the test asserted drift OR the run never got that far - a
+        # compile failure, or a dead test worker. Each of those is "did not look", and saying
+        # "the manifest is stale" instead sends the reader hunting a difference nobody measured.
+        if (Test-GradleWorkerDeath -Lines $manifestOutput) {
+            CannotVerify 'manifest-fresh' "the Gradle test worker died, so SettingsManifestExportTest never judged anything (see PLAN/S1463). No claim is made about settings-manifest.json freshness."
+        }
+        $fresh = (Test-Path $reportFile) -and ((Get-Item $reportFile).LastWriteTime -ge $runStart)
+        if (-not $fresh) {
             CannotVerify 'manifest-fresh' "the SettingsManifestExportTest never ran - app_v2 failed to build. Fix the build, then re-run; no claim is made about settings-manifest.json freshness."
+        }
+        # S1464: a fresh report is not a finished test. A worker that dies after the test body leaves
+        # exactly this - correct timestamp, skipped="1", failures="0" - and the old check read it as
+        # proof of execution, then blamed the manifest.
+        $outcome = Get-JUnitSuiteOutcome -ReportPath $reportFile
+        if (-not $outcome.Executed) {
+            CannotVerify 'manifest-fresh' "the SettingsManifestExportTest report exists but proves nothing - $($outcome.Reason). No claim is made about settings-manifest.json freshness."
+        }
+        if (-not $outcome.Failed) {
+            CannotVerify 'manifest-fresh' "the SettingsManifestExportTest ran and recorded no failure, yet the task went red - the failure is elsewhere in the run, not in the manifest."
         }
         Fail 'manifest-fresh' 'committed settings-manifest.json differs from the live scan - regenerate with -Dsettings.manifest.generate=true'
     }

@@ -1,6 +1,6 @@
 # FastMediaSorter v2 🚀
 
-![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-purple?style=flat-square&logo=kotlin)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple?style=flat-square&logo=kotlin)
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
@@ -475,10 +475,10 @@ Tests run automatically on every push via GitHub Actions. See [`.github/workflow
 - **Database**: Room (version 6 with cloud provider support)
 - **Navigation**: AndroidX Navigation Component
 - **Media**: ExoPlayer (Media3 1.2.1)
-- **Image Loading**: Glide 4.15.1 with custom NetworkFileModelLoader
+- **Image Loading**: Glide 4.16.0 with custom NetworkFileModelLoader
 - **Network Protocols**:
-  - SMB: SMBJ 0.12.1 with BouncyCastle 1.78.1
-  - SFTP: SSHJ 0.37.0 with EdDSA 0.3.0
+  - SMB: SMBJ 0.12.1 with BouncyCastle (transitive)
+  - SFTP: JSch 0.2.26 (com.github.mwiede fork, Ed25519 built in)
   - FTP: Apache Commons Net 3.10.0
 - **Cloud**: Google Drive API, OneDrive (MSAL), Dropbox API with OAuth 2.0
 - **OCR & Translation**:

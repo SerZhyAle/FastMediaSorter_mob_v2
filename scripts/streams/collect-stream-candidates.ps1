@@ -68,8 +68,16 @@
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('official', 'livetv', 'genres', 'geo', 'webcam')]
+    # The S1476 axes (iptvcam..xiph) are opt-in only: they are not in the default set, so a routine
+    # collection run keeps its current cost and shape.
+    [ValidateSet('official', 'livetv', 'genres', 'geo', 'webcam',
+        'iptvcam', 'tfl', 'webradiodb', 'radioparadise', 'akc', 'lautfm', 'xiph')]
     [string[]]$Axis = @('official', 'livetv', 'genres', 'geo', 'webcam'),
+
+    # How many laut.fm station images to pull into the artwork cache during an ingest. 0 = none.
+    # A budget rather than "all": the logo sheet holds 3540 tiles total, so fetching 15k images would
+    # spend hours downloading artwork that has nowhere to land.
+    [int]$LautFmImageBudget = 0,
 
     [int]$PerQuery = 20,
     [int]$LivenessTimeoutSec = 12,
@@ -112,6 +120,24 @@ param(
     # re-crawling ~2900 sites. Cached by homepage, so an interrupted run resumes.
     [string]$LogoCacheDir = 'temp/stream-logo-src',
     [switch]$RefreshLogoCache,
+    # A row with no homepage still carries a stream URL. -DomainFallback derives an artwork homepage
+    # from that URL's registrable domain, so a broadcaster that published only a stream link still gets
+    # an icon. Hosts belonging to a CDN, a stream-hosting panel or a bare IP are excluded - their
+    # favicon is the provider's, and stamping it on dozens of unrelated channels reads as a bug.
+    [switch]$DomainFallback,
+    # Fill the artwork cache and stop: no atlas, no CSV write, no upload. Safe to run alongside another
+    # artwork pass because the cache is one file per homepage, so the two never write the same path.
+    [switch]$WarmArtworkCache,
+    # Build atlases from what the cache already holds and crawl nothing. The catalog now carries
+    # sources whose stations each have their own homepage on one platform (laut.fm): crawling those
+    # would cost hours for artwork the sheets have no room for, while the images that matter are
+    # seeded from the source's own API. Use this to rebuild after such an ingest.
+    [switch]$ArtworkCacheOnly,
+
+    # Fold every `topic` cell into the closed rubric set (S1477) and rewrite streams.csv. Its own mode:
+    # it rewrites a shipped column, so it must never ride along with a discovery or artwork run.
+    # Combine with -Publish to upload the rewritten catalog, or run it alone to review the diff first.
+    [switch]$NormalizeTopics,
 
     # S1154 PHASE_06 channel-preview atlas. Captures one frame per VIDEO channel with ffmpeg, packs the
     # frames into the 240x135 / 34-column sheet the app's ChannelPreviewAtlasSlicer expects, and writes
@@ -144,6 +170,19 @@ param(
     # cannot drift from the published url->index sidecar.
     [switch]$WithTilePacks,
     [switch]$PublishTilePacks,
+    # Element revisions of the published artwork assets. They are parameters rather than literals
+    # because a rebuild MUST land under a new name: the app pins each payload by SHA-256, so a
+    # re-upload under the published name breaks integrity for every install already pinned to it
+    # (S1200). Bump the one you rebuilt, leave the other alone, and paste the printed pins into
+    # DeliverableDescriptorCatalog.
+    [string]$TilePackRev = 'v4',
+    [string]$SheetRev = 'v3',
+    [string]$CoordsRev = 'v3',
+    # Which artwork payload a publish touches. Republishing an unchanged payload is not harmless:
+    # the zip is not byte-reproducible, so it would burn a revision and force a pin change for
+    # content that did not change.
+    [ValidateSet('both', 'preview', 'logo')]
+    [string]$ArtworkPayload = 'both',
     [string]$PreviewTilePackPath = 'temp/channel-preview-tiles.zip',
     [string]$LogoTilePackPath = 'temp/stream-logo-tiles.zip',
     [int]$TilePackQuality = 80,
@@ -276,6 +315,126 @@ function Show-LivenessSummary {
 }
 
 # Map iptv-org category id -> our topic vocabulary.
+# --- Topic rubrics (S1477) ----------------------------------------------------------------------
+# The catalog's `topic` cell is what the app shows as a "rubric" facet, and every source hands us its
+# own free text: radio-browser tags, laut.fm genres, iptv-org categories, a station's own strapline.
+# Left alone that produced 436 distinct rubrics over 3916 rows, 333 of them used once or twice - a
+# picker nobody can use. Every topic is folded into the closed set below, at ingest and on demand.
+#
+# Two ordered stages, because neither alone is honest:
+#  - the exact table pins values whose plain reading is wrong ("Adult Contemporary" is a pop format,
+#    not adult content; "Chr" is Contemporary Hit Radio; "Blues Rock" belongs with rock, not blues);
+#  - the pattern list then catches the long tail, and its ORDER is the specificity ranking. A rule
+#    higher up wins, so 'metal' must be tested before 'rock' and 'adult contemporary' before 'adult'.
+$script:TopicRubricExact = @{
+    'adult contemporary' = 'Pop'; 'soft adult contemporary' = 'Pop'; 'chr' = 'Pop'; 'am pop' = 'Pop'
+    'top 40' = 'Pop'; 'top hits' = 'Pop'; 'hits' = 'Pop'; 'charts' = 'Pop'; 'city pop' = 'Pop'
+    'blues rock' = 'Rock'; 'gothic' = 'Rock'; 'darkwave' = 'Rock'; 'dark wave' = 'Rock'
+    'new wave' = 'Rock'; 'aor' = 'Rock'; 'indy' = 'Rock'; 'anarchy' = 'Rock'
+    # Pinned, not pattern-matched: a bare 'alternative' is a rock format, but 'alternative country'
+    # must still reach the country rule, so the word cannot become a Rock pattern.
+    'alternative' = 'Rock'; 'classic alternative' = 'Rock'; 'experimental' = 'Rock'
+    # A seasonal pop format, not devotional programming - 'christ' would otherwise send it to Religious.
+    'christmas music' = 'Pop'; 'holiday music (nov-dec)' = 'Pop'
+    'anni 80' = 'Oldies'
+    'hardcore' = 'Metal'; 'deathcore' = 'Metal'
+    'beats' = 'Electronic'; 'mixes' = 'Electronic'; 'party' = 'Electronic'; 'balearic' = 'Electronic'
+    'abstract' = 'Electronic'; 'garage' = 'Electronic'; 'ebm' = 'Electronic'
+    'acoustic' = 'Chillout'; 'chilled trap' = 'Chillout'
+    'vocal' = 'Jazz & Blues'; 'all-vinyl' = 'Jazz & Blues'
+    'classics' = 'Classical'; 'blasmusik' = 'Classical'; 'orquestrada' = 'Classical'
+    'evergreens' = 'Oldies'; 'discography' = 'Oldies'; 'archive' = 'Oldies'
+    'calypso' = 'World'; 'roma' = 'World'; 'galicia' = 'World'; 'breton' = 'World'
+    'amchikonkani' = 'World'; 'akan' = 'World'; 'amharic' = 'World'
+    'الموسيقى العربية' = 'World'; 'arab music' = 'World'; 'arabic music' = 'World'
+    'military' = 'Talk'; 'conspiracies' = 'Talk'; 'artists' = 'Talk'; 'p4' = 'Talk'
+    'legislative' = 'Talk'; 'conservative' = 'Talk'; 'public' = 'Talk'
+    'fantasy' = 'Movies & Series'; 'video games' = 'Movies & Series'; 'disney' = 'Kids'
+    'life guide' = 'Lifestyle'; 'romance' = 'Lifestyle'; 'auto' = 'Lifestyle'; 'bikers' = 'Lifestyle'
+    'commercial' = 'Business'; 'explicit' = 'Adult'
+    'eclectic' = 'General'; 'variety' = 'General'; 'music' = 'General'; 'misc' = 'General'
+    'others' = 'General'; 'undefined' = 'General'; 'bizzare' = 'General'; 'aris' = 'General'
+    'ai' = 'General'; 'acir' = 'General'; 'adazoa' = 'General'; 'apache 207' = 'Hip-hop'
+    # Its own rubric rather than 'Webcam': a TfL camera republishes a short clip, so it is not the
+    # continuous feed the webcam rubric promises, and the owner asked for it to stay distinguishable.
+    'traffic cams' = 'Traffic cams'; 'traffic' = 'Traffic cams'
+}
+
+# Ordered specificity ranking; first match wins. Patterns are matched against the lowercased topic.
+$script:TopicRubricRules = @(
+    @{ P = 'test pattern|^m3u8$|^https?:|^#$|^\d+kbps$'; R = 'Test' }
+    @{ P = 'quran|قران|القرآن|islam|اسلامي|christ|gospel|bible|biblia|catholic|evangel|adventist|baptist|^ccm$|religio|cristian|alistair begg'; R = 'Religious' }
+    @{ P = 'webcam|outdoor|traffic|^zoo|beach|weather|nature cam'; R = 'Webcam' }
+    @{ P = 'metal|deathcore'; R = 'Metal' }
+    @{ P = 'rap|hip.?hop|^trap$|^drill$|g-funk|deutschrap'; R = 'Hip-hop' }
+    @{ P = 'punk|rock|grunge|deutschrock'; R = 'Rock' }
+    @{ P = 'jazz|blues|bebop|bossa'; R = 'Jazz & Blues' }
+    @{ P = 'classic(al)? music|opera|choral|orchestr|symphon|medieval|ancient music|cl[aá]ssic[oa]'; R = 'Classical' }
+    @{ P = 'techno|house|trance|electro|^edm$|drum ?(and|&) ?bass|breakbeat|broken beat|chiptune|^dance|dance classics|club|^#?dj$|mashup'; R = 'Electronic' }
+    @{ P = 'ambient|chill|lo-?fi|lounge|relax'; R = 'Chillout' }
+    @{ P = 'soul|funk|r ?& ?b|rnb|boogie|amapiano|groovy'; R = 'R&B & Soul' }
+    @{ P = 'reggae|dancehall|^ska$'; R = 'Reggae' }
+    @{ P = 'country|folk|bluegrass|americana|celtic|ethnic|etnic|türkü|aboriginal|nordic'; R = 'Country & Folk' }
+    @{ P = 'latin|salsa|bachata|cumbia|reggaeton|sertanej|pagode|^banda$|brasil|bras[ií]lia|mexic|tango|fiesta|clásicos|clasicos|baladas|argentin|bogota|buenos aires|^chile$|ciudad de m'; R = 'Latin' }
+    @{ P = 'afro|afric|arab|bolly|india|indones|dangdut|koplo|campursari|yogyakarta|greek|chines|korea|^kpop$|^enka$|filipino|bangla|balkan|bosnia|biesiada|chanson|musique|müzik|world|international|^opm$|^turkey$|anadolu'; R = 'World' }
+    @{ P = 'oldies|nostalgi|golden|^classic hits|^classic$|disco'; R = 'Oldies' }
+    @{ P = '^#?(19|20)?\d{2}''?(s|er)\b|^\d{4}''?s'; R = 'Oldies' }
+    @{ P = 'j-?pop|^pop|pop music|pop$|charts|hits|ballad'; R = 'Pop' }
+    @{ P = 'news|noticia|actualidad|^infos?$|informa'; R = 'News' }
+    @{ P = 'talk|podcast|audiobook|^books?$|drama|politic|debate|speech|public radio|culture|cultural'; R = 'Talk' }
+    @{ P = 'sport|futbol|futebol|soccer|hockey|baseball|deporte|desporto|^spor$|era spor'; R = 'Sports' }
+    @{ P = 'kids|child|crian|fairytale|cartoon'; R = 'Kids' }
+    @{ P = 'movie|series|cinema|^film|anime'; R = 'Movies & Series' }
+    @{ P = 'document|science|space|history'; R = 'Documentary' }
+    @{ P = 'educat|learn|school|universit'; R = 'Education' }
+    @{ P = 'comedy|humor'; R = 'Comedy' }
+    @{ P = 'business|finance|econom'; R = 'Business' }
+    @{ P = 'shop'; R = 'Shopping' }
+    @{ P = 'lifestyle|cooking|^food|health|fashion'; R = 'Lifestyle' }
+    @{ P = 'adult'; R = 'Adult' }
+    @{ P = '^\d{2,4}([.,]\d+)?\s*(fm|am|mhz|khz)?$|^(fm|am)\b|\bfm\b|\bam\d|local|region|community radio|public radio|iheart|bauer radio|sveriges|duna|full service'; R = 'Local radio' }
+)
+
+# Write one already-known artwork URL straight into the crawl cache, under the key the atlas builders
+# derive from a homepage. This is for a source that publishes a per-station image (laut.fm): crawling
+# its pages would cost hours and return the platform's own icon, identical for every station on it.
+# Never overwrites: an image already in the cache was either crawled or seeded, and both beat a refetch.
+function Save-ArtworkFromUrl {
+    param([string]$Homepage, [string]$ImageUrl)
+    if ([string]::IsNullOrWhiteSpace($Homepage) -or [string]::IsNullOrWhiteSpace($ImageUrl)) { return $false }
+    if (-not (Test-Path $LogoCacheDir)) { New-Item -ItemType Directory -Path $LogoCacheDir -Force | Out-Null }
+    $cacheFile = Get-LogoCacheFile -homepage $Homepage -dir (Resolve-Path $LogoCacheDir).Path
+    if (Test-Path $cacheFile) { return $false }
+    try {
+        $resp = Invoke-WebRequest -Uri $ImageUrl -UseBasicParsing -Headers @{ 'User-Agent' = $ua } `
+            -ConnectionTimeoutSeconds $FaviconTimeoutSec -OperationTimeoutSeconds ($FaviconTimeoutSec * 2) `
+            -MaximumRedirection 4 -ErrorAction Stop
+        $bytes = $resp.Content
+        if ($bytes -is [string]) { $bytes = [System.Text.Encoding]::UTF8.GetBytes($bytes) }
+        if (-not $bytes -or $bytes.Length -lt 256) { return $false }
+        [System.IO.File]::WriteAllBytes($cacheFile, [byte[]]$bytes)
+        return $true
+    }
+    catch { return $false }
+}
+
+# Fold one source-supplied topic into the closed rubric set. Everything unrecognised becomes 'General'
+# rather than surviving as its own rubric - a rubric used by one station is noise in the picker.
+function Get-CanonicalTopic {
+    param([string]$topic)
+    if ([string]::IsNullOrWhiteSpace($topic)) { return 'General' }
+    # Typographic apostrophes are folded to the straight one FIRST, so every pattern below can assume a
+    # single spelling. They must be written as escapes: PowerShell treats U+2018/U+2019 as string
+    # delimiters, so a literal one inside a quoted pattern silently ends the string.
+    $curly = "[`u{2018}`u{2019}`u{0060}`u{00B4}]"
+    $normalized = ($topic -replace $curly, "'").Trim().ToLowerInvariant() -replace '\s+', ' '
+    if ($script:TopicRubricExact.ContainsKey($normalized)) { return $script:TopicRubricExact[$normalized] }
+    foreach ($rule in $script:TopicRubricRules) {
+        if ($normalized -match $rule.P) { return $rule.R }
+    }
+    return 'General'
+}
+
 function Map-IptvTopic([string]$cat) {
     switch ($cat) {
         'news' { 'News' }
@@ -853,6 +1012,211 @@ function Get-IptvCandidates {
     return $out
 }
 
+# --- S1476 keyless community sources ------------------------------------------------------------
+# Every source below was verified keyless on 2026-08-07: no token, no registration, no rate-limit
+# challenge. That is the standing constraint, not a preference - a key-walled directory is out no
+# matter how good its data. Each axis is opt-in via -Axis: none of them runs on a routine collection.
+
+# Public webcams already sitting in the iptv-org index. `Get-IptvCandidates` cannot reach them: it
+# requires a channel to appear in the maintained broadcaster allowlist, which no webcam ever will.
+# This walks the same downloaded index with the OPPOSITE gate - category, not provenance - and keeps
+# the header-gated drop, because a feed needing a Referer/User-Agent is unplayable for the app.
+function Get-IptvWebcamCandidates {
+    param([string]$axis)
+    Initialize-Iptv
+    $wanted = @('weather', 'outdoor', 'travel', 'relax')
+    $seenChannel = @{}
+    $out = @()
+    foreach ($s in $script:IptvStreams) {
+        $url = $s.url
+        if ([string]::IsNullOrWhiteSpace($url)) { continue }
+        if ($s.referrer -or $s.user_agent) { continue }
+        $cid = $s.channel
+        if ([string]::IsNullOrWhiteSpace($cid)) { continue }
+        $c = $script:IptvChannels[$cid]
+        if ($null -eq $c -or $c.closed) { continue }
+        if ($seenChannel.ContainsKey($cid)) { continue }
+        $cats = @($c.categories)
+        if (-not ($cats | Where-Object { $wanted -contains $_ })) { continue }
+        $seenChannel[$cid] = $true
+        $fmt = Get-FormatFromUrl $url
+        $lang = if ($c.languages -and @($c.languages).Count) { [string]@($c.languages)[0] } else { '' }
+        $out += New-Candidate -axis $axis -category 'Live TV' -topic 'Webcam' `
+            -name $c.name -url $url -mediaKind 'VIDEO' -protocol (Get-ProtocolFromUrl $url $fmt) `
+            -format $fmt -bitrate '' -isLive $true -language $lang `
+            -country ($c.country) -homepage ($c.website) -sourceKind 'COMMUNITY' `
+            -licenseNote 'Publicly advertised webcam feed indexed by iptv-org' `
+            -notes ("iptv-org webcam; channel=$cid; categories=$($cats -join '|')") `
+            -confidence 'medium' -score 0
+    }
+    return $out
+}
+
+# Transport for London traffic cameras. These are NOT live streams - each is a short MP4 clip the
+# camera re-publishes every few minutes - so they ship with is_live=false and their own rubric. A
+# looping clip presented as an live channel would break the promise the rest of the catalog makes.
+function Get-TflJamCams {
+    param([string]$axis)
+    $places = @()
+    try { $places = Invoke-RestMethod -Uri 'https://api.tfl.gov.uk/Place/Type/JamCam' -TimeoutSec 90 -Headers @{ 'User-Agent' = $ua } }
+    catch { Write-Warning "TfL JamCam index failed: $($_.Exception.Message)"; return @() }
+    $out = @()
+    foreach ($p in $places) {
+        $videoProp = @($p.additionalProperties | Where-Object { $_.key -eq 'videoUrl' }) | Select-Object -First 1
+        $url = [string]$videoProp.value
+        if ([string]::IsNullOrWhiteSpace($url)) { continue }
+        $name = ([string]$p.commonName -replace '^JamCams\s*', '').Trim()
+        if ([string]::IsNullOrWhiteSpace($name)) { $name = [string]$p.id }
+        $out += New-Candidate -axis $axis -category 'Live TV' -topic 'Traffic cams' `
+            -name ("London: {0}" -f $name) -url $url -mediaKind 'VIDEO' -protocol 'HTTP' `
+            -format 'mp4' -bitrate '' -isLive $false -language 'english' -country 'GB' `
+            -homepage 'https://tfl.gov.uk/traffic/status/' -sourceKind 'PUBLIC_INSTITUTION' `
+            -licenseNote 'Transport for London open data, Open Government Licence v3.0' `
+            -notes 'TfL JamCam: short clip refreshed every few minutes, not a continuous stream' `
+            -confidence 'high' -score 0
+    }
+    return $out
+}
+
+# WebRadioDB - small, curated, CI-validated. Its per-station metadata is the best in this report, so
+# it is worth ingesting even though it overlaps rows we already carry; the dedup pass sorts that out.
+function Get-WebRadioDbStations {
+    param([string]$axis)
+    $db = $null
+    try {
+        $db = Invoke-RestMethod -TimeoutSec 90 -Headers @{ 'User-Agent' = $ua } `
+            -Uri 'https://jcorporation.github.io/webradiodb/db/index/webradiodb-combined.min.json'
+    }
+    catch { Write-Warning "WebRadioDB index failed: $($_.Exception.Message)"; return @() }
+    # The combined index is a wrapper object; the stations live under `webradios`, itself keyed by
+    # stream uri rather than being an array - enumerate that member's property values.
+    $entries = if ($db -is [System.Array]) { $db }
+    elseif ($db.PSObject.Properties['webradios']) { @($db.webradios.PSObject.Properties | ForEach-Object { $_.Value }) }
+    else { @($db.PSObject.Properties | ForEach-Object { $_.Value }) }
+    $out = @()
+    foreach ($e in $entries) {
+        $url = [string]$e.StreamUri
+        if ([string]::IsNullOrWhiteSpace($url)) { continue }
+        $fmt = if ($e.Codec) { ([string]$e.Codec).ToLowerInvariant() } else { Get-FormatFromUrl $url }
+        $out += New-Candidate -axis $axis -category 'Radio' -topic (Get-CanonicalTopic ([string]$e.Genre)) `
+            -name ([string]$e.Name) -url $url -mediaKind 'AUDIO' -protocol (Get-ProtocolFromUrl $url $fmt) `
+            -format $fmt -bitrate ([string]$e.Bitrate) -isLive $true `
+            -language (([string]$e.Languages -split ',' | Select-Object -First 1).Trim().ToLowerInvariant()) `
+            -country ([string]$e.Country) -homepage ([string]$e.Homepage) -sourceKind 'COMMUNITY' `
+            -licenseNote 'WebRadioDB (jcorporation/webradiodb) open station index' `
+            -notes ("webradiodb; genre=$($e.Genre); region=$($e.Region)") -confidence 'medium' -score 0
+    }
+    return $out
+}
+
+# Radio Paradise publishes its own stream table for third-party players. Tiny but zero-maintenance,
+# and the same class of listener-funded station as the SomaFM rows already in the catalog.
+function Get-RadioParadiseStations {
+    param([string]$axis)
+    $list = $null
+    try { $list = Invoke-RestMethod -Uri 'https://api.radioparadise.com/api/list_streams' -TimeoutSec 30 -Headers @{ 'User-Agent' = $ua } }
+    catch { Write-Warning "Radio Paradise list failed: $($_.Exception.Message)"; return @() }
+    $out = @()
+    foreach ($channel in @($list.channels)) {
+        # Highest-quality non-FLAC variant: FLAC is far heavier than a mobile listener needs, and the
+        # app has no bandwidth negotiation to fall back from it.
+        $stream = @($channel.streams | Where-Object { $_.url -and [string]$_.label -notmatch 'flac' }) | Select-Object -Last 1
+        if (-not $stream) { continue }
+        # The API returns the url without a scheme.
+        $url = [string]$stream.url
+        if ($url -notmatch '^https?://') { $url = "https://$url" }
+        $out += New-Candidate -axis $axis -category 'Radio' -topic 'Eclectic' `
+            -name ("Radio Paradise - {0}" -f $channel.title) -url $url -mediaKind 'AUDIO' `
+            -protocol (Get-ProtocolFromUrl $url 'aac') -format 'aac' -bitrate '320' -isLive $true `
+            -language 'english' -country 'US' -homepage 'https://radioparadise.com/' `
+            -sourceKind 'COMMUNITY' -licenseNote 'Radio Paradise listener-funded station, public stream list' `
+            -notes ("radioparadise; channel={0}" -f $channel.chan) -confidence 'high' -score 0
+    }
+    return $out
+}
+
+# AKC's player endpoint has no index, so the broadcast ids are enumerated. Every id becomes a
+# candidate and the liveness gate decides: probing here would duplicate the pass that follows.
+function Get-AkcBroadcasts {
+    param([string]$axis, [int]$maxId = 240)
+    $out = @()
+    foreach ($id in 1..$maxId) {
+        $url = "https://install.akctvcontrol.com/speed/broadcast/$id/desktop-playlist.m3u8"
+        $out += New-Candidate -axis $axis -category 'Live TV' -topic 'Webcam' `
+            -name ("AKC live cam {0}" -f $id) -url $url -mediaKind 'VIDEO' -protocol 'HLS' `
+            -format 'm3u8' -bitrate '' -isLive $true -language 'english' -country 'US' `
+            -homepage 'https://www.akc.tv/' -sourceKind 'COMMUNITY' `
+            -licenseNote 'American Kennel Club public web player endpoint' `
+            -notes ("akc enumeration id=$id") -confidence 'low' -score 0
+    }
+    return $out
+}
+
+# laut.fm - the whole community station database in one request. Its artwork is a first-class API
+# field (`images.station_*`), which matters: every station's page_url is on the same laut.fm domain,
+# so the homepage favicon crawl would stamp one identical icon on all of them. The station image is
+# seeded straight into the artwork cache instead, keyed by the same homepage the atlas builders use.
+function Get-LautFmStations {
+    param([string]$axis, [int]$imageBudget = 0)
+    $stations = @()
+    try { $stations = Invoke-RestMethod -Uri 'https://api.laut.fm/stations' -TimeoutSec 300 -Headers @{ 'User-Agent' = $ua } }
+    catch { Write-Warning "laut.fm index failed: $($_.Exception.Message)"; return @() }
+    Write-Host ("    laut.fm: {0} station(s) in the index" -f $stations.Count) -ForegroundColor DarkGray
+    $out = @()
+    $imaged = 0
+    foreach ($s in $stations) {
+        if ($s.active -ne $true) { continue }
+        $url = [string]$s.stream_url
+        if ([string]::IsNullOrWhiteSpace($url)) { continue }
+        $homepage = [string]$s.page_url
+        $genre = if ($s.genres -and @($s.genres).Count) { [string]@($s.genres)[0] } else { '' }
+        $out += New-Candidate -axis $axis -category 'Radio' -topic (Get-CanonicalTopic $genre) `
+            -name ([string]$s.display_name) -url $url -mediaKind 'AUDIO' -protocol 'ICY' -format 'mp3' `
+            -bitrate '' -isLive $true -language 'german' -country 'DE' -homepage $homepage `
+            -sourceKind 'COMMUNITY' -licenseNote 'laut.fm community station, public API index' `
+            -notes ("laut.fm; genres=$(@($s.genres) -join '|'); location=$($s.location)") `
+            -confidence 'medium' -score 0
+        if ($imageBudget -gt 0 -and $imaged -lt $imageBudget) {
+            if (Save-ArtworkFromUrl -Homepage $homepage -ImageUrl ([string]$s.images.station_640x640)) { $imaged++ }
+        }
+    }
+    if ($imageBudget -gt 0) {
+        Write-Host ("    laut.fm: seeded {0} station image(s) into the artwork cache" -f $imaged) -ForegroundColor DarkGray
+    }
+    return $out
+}
+
+# Xiph's public Icecast directory: self-hosted hobbyist stations that opted in to being listed. Only
+# ~5% are HTTPS; the owner accepted plain http here (2026-08-07) because the alternative is dropping
+# 95% of the source. The `https` column records the truth either way.
+function Get-XiphYpStations {
+    param([string]$axis)
+    $xml = $null
+    try {
+        $raw = Invoke-WebRequest -Uri 'https://dir.xiph.org/yp.xml' -TimeoutSec 180 -Headers @{ 'User-Agent' = $ua } -UseBasicParsing
+        $xml = [xml]$raw.Content
+    }
+    catch { Write-Warning "Xiph YP fetch failed: $($_.Exception.Message)"; return @() }
+    $out = @()
+    foreach ($entry in @($xml.directory.entry)) {
+        $url = [string]$entry.listen_url
+        if ([string]::IsNullOrWhiteSpace($url)) { continue }
+        $serverType = [string]$entry.server_type
+        $fmt = switch -Regex ($serverType) {
+            'aacp?' { 'aac'; break }
+            'ogg' { 'ogg'; break }
+            default { 'mp3' }
+        }
+        $out += New-Candidate -axis $axis -category 'Radio' -topic (Get-CanonicalTopic ([string]$entry.genre)) `
+            -name ([string]$entry.server_name) -url $url -mediaKind 'AUDIO' `
+            -protocol (Get-ProtocolFromUrl $url $fmt) -format $fmt -bitrate ([string]$entry.bitrate) `
+            -isLive $true -language '' -country '' -homepage '' -sourceKind 'COMMUNITY' `
+            -licenseNote 'Xiph public Icecast YP directory, self-listed stream' `
+            -notes ("xiph yp; genre=$($entry.genre); server_type=$serverType") -confidence 'low' -score 0
+    }
+    return $out
+}
+
 function Get-OfficialTvSeeds {
     param([string]$axis)
     # Direct feeds are retained here even when iptv-org also lists them. This provides an
@@ -928,6 +1292,70 @@ function Get-LogoCacheFile {
     $sha = [System.Security.Cryptography.SHA1]::Create()
     try { $hash = $sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($homepage)) } finally { $sha.Dispose() }
     return (Join-Path $dir (([System.BitConverter]::ToString($hash) -replace '-', '').ToLowerInvariant() + '.img'))
+}
+
+# Public suffixes made of two labels. Without them 'live-evg10.tv360.bitel.com.pe' would reduce to
+# 'com.pe' and every Peruvian channel would end up sharing one icon.
+$script:MultiLabelSuffixes = @(
+    'co.uk', 'org.uk', 'ac.uk', 'com.au', 'net.au', 'com.br', 'com.tr', 'co.jp', 'co.kr', 'com.ua',
+    'net.ua', 'org.ua', 'co.za', 'com.mx', 'com.ar', 'co.in', 'net.in', 'com.pl', 'com.sg', 'co.nz',
+    'com.hk', 'com.cn', 'co.il', 'com.co', 'com.pe', 'com.ve', 'com.ec', 'com.py', 'com.uy', 'com.bo',
+    'com.pk', 'com.ng', 'com.gh', 'com.eg', 'com.sa', 'co.th', 'or.th', 'com.my', 'com.ph', 'com.vn',
+    'com.tw', 'com.hr', 'com.mt', 'com.cy', 'com.do', 'com.gt', 'com.sv', 'com.ni', 'com.pa', 'com.bd',
+    'com.np', 'com.lb', 'com.jo', 'com.kw', 'com.bh', 'com.om', 'com.qa'
+)
+
+# Domains whose favicon belongs to the delivery provider rather than to the station: CDNs, stream
+# hosting panels, OTT aggregators, video platforms. Deriving an icon from one of these stamps the
+# provider's mark on every unrelated channel it carries - visibly wrong, and worse than the country
+# flag the app already falls back to. Consulted ONLY for a DERIVED homepage; a station that genuinely
+# declares such a homepage in the catalog keeps it.
+$script:ArtDomainBlocklist = @(
+    'cloudfront.net', 'akamaized.net', 'akamaihd.net', 'edgenextcdn.net', 'amazonaws.com', 'azureedge.net',
+    'fastly.net', 'cachefly.net', 'cdn77.org', 'cdnvideo.ru', '5centscdn.com', 'pluscdn.pl', '1cdn.tv',
+    'zeno.fm', 'bozztv.com', 'smartbit.co', 'turbohost.eu', 'srvif.com', 'malimarcdn.com',
+    'hostingcaaguazu.com', 'alsolnet.com', 'bitgravity.com', 'streamlock.net', 'streamguys1.com',
+    'streamguys.com', 'wowza.com', 'wowzacloud.com', 'castr.com', 'castr.io', 'fluidstream.eu',
+    'shoutcast.com', 'icecast.org', 'radiojar.com', 'radioca.st', 'mediacp.tv', 'myradiostream.com',
+    'stream-hosting.net', 'listenlive.co', 'securenetsystems.net', 'streamlicensing.com',
+    'streamtheworld.com', 'tritondigital.com', 'amagi.tv', 'otteravision.com', 'wns.live', 'viacast.tv',
+    'flumeotv.io', 'vaunt.cloud', 'mux.com', 'jwplayer.com', 'brightcove.com', 'vimeo.com',
+    'youtube.com', 'dailymotion.com', 'ovhcloud.com', 'digitalocean.com', 'contabo.net', 'hetzner.de'
+)
+
+# Registrable domain of a host ('mumt04.tangotv.in' -> 'tangotv.in'), or $null when the host is a bare
+# IP address (nothing to crawl) or otherwise unusable.
+function Get-RegistrableDomain {
+    param([string]$hostName)
+    if ([string]::IsNullOrWhiteSpace($hostName)) { return $null }
+    $normalized = $hostName.Trim().ToLowerInvariant()
+    if ($normalized -match '^\d{1,3}(\.\d{1,3}){3}$') { return $null }
+    if ($normalized -notmatch '\.') { return $null }
+    $labels = $normalized.Split('.')
+    if ($labels.Count -ge 3 -and ($script:MultiLabelSuffixes -contains ($labels[-2] + '.' + $labels[-1]))) {
+        return ($labels[-3..-1] -join '.')
+    }
+    return ($labels[-2..-1] -join '.')
+}
+
+# The homepage an artwork pass should crawl for one catalog row: the catalog's own homepage when it has
+# one, and - only under -DomainFallback - a 'https://<registrable-domain>/' synthesised from the stream
+# URL when it does not. The derived value is deliberately never written back to the CSV: it is a guess
+# about where a logo might live, not a fact about the station, and the catalog ships as a factual source.
+function Get-ArtHomepage {
+    param([Parameter(Mandatory = $true)][object]$Row)
+    $declared = [string]$Row.homepage
+    if (-not [string]::IsNullOrWhiteSpace($declared)) { return $declared }
+    if (-not $DomainFallback) { return '' }
+    $url = [string]$Row.url
+    if ([string]::IsNullOrWhiteSpace($url)) { return '' }
+    $uri = $null
+    try { $uri = [uri]$url } catch { return '' }
+    if (-not $uri.IsAbsoluteUri) { return '' }
+    $domain = Get-RegistrableDomain -hostName $uri.Host
+    if (-not $domain) { return '' }
+    if ($script:ArtDomainBlocklist -contains $domain) { return '' }
+    return ("https://{0}/" -f $domain)
 }
 
 # Fetch the BEST artwork a station's site offers, as raw image bytes, or $null when nothing usable is
@@ -1059,28 +1487,16 @@ function Get-FaviconBytes {
     return $null
 }
 
-# Fetch favicons for every distinct non-empty homepage (throttled; deduped so a repeated homepage is
-# fetched once), pack the decoded tiles into one grid PNG atlas (16 cols x ceil(n/16) rows, each cell
-# 32x32), save it to $AtlasPath,
-# and return a hashtable mapping each packed row's url -> zero-based tile ordinal. Rows whose favicon
-# could not be fetched/decoded are absent from the map (their favicon_index stays blank). System.Drawing
-# (GDI+) handles decode (.ico/.png/.gif/.jpg via Image.FromStream), scaling, and PNG save.
-function Build-FaviconAtlas {
-    param([Parameter(Mandatory = $true)][object[]]$Rows, [Parameter(Mandatory = $true)][string]$AtlasPath)
-
-    Add-Type -AssemblyName System.Drawing
-
-    $tile = $script:FaviconTile   # 32 - PHASE_01 contract
-    $cols = $script:FaviconCols   # 16 - PHASE_01 contract
-
-    # Distinct non-blank homepages to fetch (dedup so a repeated homepage is fetched only once).
-    $homepages = @($Rows | ForEach-Object { [string]$_.homepage } |
-        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+# Fetch the best artwork for each given homepage into the on-disk cache and return a hashtable of
+# homepage -> image bytes for the ones that yielded an image. Both atlas builders and the standalone
+# cache-warm mode share this, so a crawl performed by any of them serves all three.
+function Invoke-ArtworkCacheFetch {
+    param([Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$Homepages)
 
     Write-Host ("Favicons: fetching for {0} unique homepage(s) (throttle {1}, timeout {2}s) .." -f `
-            $homepages.Count, $FaviconThrottle, $FaviconTimeoutSec) -ForegroundColor Yellow
+            $Homepages.Count, $FaviconThrottle, $FaviconTimeoutSec) -ForegroundColor Yellow
 
-    # Parallel fetch -> host -> bytes map. GDI+ packing stays single-threaded below.
+    # Parallel fetch -> host -> bytes map. GDI+ packing stays single-threaded in the callers.
     # Two things this loop must get right, both learned the hard way on a 2917-site pass:
     #  - crawled artwork is CACHED on disk, so a re-run (or a second atlas built from the same bytes)
     #    costs seconds instead of another hour;
@@ -1092,14 +1508,46 @@ function Build-FaviconAtlas {
     $cacheDir = (Resolve-Path $LogoCacheDir).Path
     $fetched = @{}
     $fromCache = 0
-    if ($homepages.Count -gt 0) {
+
+    # An artwork we already hold is read here, on the main thread, and never handed to the crawl at all.
+    # Two reasons, and the second one is a correctness bug rather than a saving:
+    #  - a host with an image must never be walked again; crawling is the expensive half of this script;
+    #  - the batch below has a 120 s wall-clock ceiling and abandons ALL of its results when one host
+    #    wedges. Cached hosts riding in that batch used to vanish from the map with it, so a station
+    #    whose icon was on disk lost its tile because an unrelated neighbour hung.
+    # -RefreshLogoCache is the deliberate opt-out: it re-crawls everything, cached or not.
+    $pending = [System.Collections.Generic.List[string]]::new()
+    foreach ($hp in $Homepages) {
+        $cacheFile = Get-LogoCacheFile -homepage $hp -dir $cacheDir
+        if (-not $RefreshLogoCache -and (Test-Path $cacheFile)) {
+            try {
+                $bytes = [System.IO.File]::ReadAllBytes($cacheFile)
+                if ($bytes -and $bytes.Length -gt 0) {
+                    $fetched[$hp] = $bytes
+                    $fromCache++
+                    continue
+                }
+            }
+            catch { }
+        }
+        $pending.Add($hp)
+    }
+    if ($ArtworkCacheOnly -and $pending.Count -gt 0) {
+        Write-Host ("Favicons: {0} cached; {1} uncached homepage(s) skipped (-ArtworkCacheOnly)." -f `
+                $fromCache, $pending.Count) -ForegroundColor DarkYellow
+        return $fetched
+    }
+    Write-Host ("Favicons: {0} homepage(s) already cached (kept, not re-crawled), {1} to crawl." -f `
+            $fromCache, $pending.Count) -ForegroundColor DarkGray
+
+    if ($pending.Count -gt 0) {
         $started = Get-Date
         # A batch is a barrier: the slowest host in it holds up the rest, so keep batches small enough
         # that one pathological site costs a short stall, not a silent half-hour.
         $batchSize = 48
         $done = 0
-        for ($offset = 0; $offset -lt $homepages.Count; $offset += $batchSize) {
-            $batch = @($homepages[$offset..([Math]::Min($offset + $batchSize, $homepages.Count) - 1)])
+        for ($offset = 0; $offset -lt $pending.Count; $offset += $batchSize) {
+            $batch = @($pending[$offset..([Math]::Min($offset + $batchSize, $pending.Count) - 1)])
             # Hard wall-clock ceiling per batch. Even with per-request timeouts a site can wedge a
             # runspace (a stalled TLS handshake, a GDI+ decode that never returns) and hold the whole
             # batch: two separate 50-minute stalls came from exactly that. Stragglers are abandoned
@@ -1127,25 +1575,24 @@ function Build-FaviconAtlas {
                 # A host that yielded nothing is remembered too. Without this marker every re-run
                 # re-crawls the same dead sites, and they are exactly the ones that hang.
                 $missFile = $cacheFile + '.miss'
+                # Only uncached hosts reach this runspace (the caller reads existing artwork itself),
+                # so the sole job here is to crawl, cache the result, and mark a barren host.
                 $bytes = $null
-                $cached = $false
-                if (-not $refresh -and (Test-Path $cacheFile)) {
-                    try {
-                        $bytes = [System.IO.File]::ReadAllBytes($cacheFile)
-                        $cached = $true
-                    }
-                    catch { $bytes = $null }
-                }
-                if (-not $bytes -and ($refresh -or -not (Test-Path $missFile))) {
+                if ($refresh -or -not (Test-Path $missFile)) {
                     try { $bytes = Get-FaviconBytes -homepage $hp } catch { $bytes = $null }
                     if ($bytes) {
-                        try { [System.IO.File]::WriteAllBytes($cacheFile, $bytes) } catch { }
+                        try {
+                            [System.IO.File]::WriteAllBytes($cacheFile, $bytes)
+                            # A previous barren verdict is void once the host finally yields an image.
+                            if (Test-Path $missFile) { Remove-Item $missFile -Force -ErrorAction SilentlyContinue }
+                        }
+                        catch { }
                     }
                     else {
                         try { [System.IO.File]::WriteAllText($missFile, '') } catch { }
                     }
                 }
-                    [pscustomobject]@{ Homepage = $hp; Bytes = $bytes; Cached = $cached }
+                    [pscustomobject]@{ Homepage = $hp; Bytes = $bytes }
                 }
             }
             catch {
@@ -1153,27 +1600,43 @@ function Build-FaviconAtlas {
                         ($offset + 1), ($offset + $batch.Count)) -ForegroundColor DarkYellow
             }
             foreach ($r in $results) {
-                if ($r.Bytes) {
-                    $fetched[$r.Homepage] = [byte[]]$r.Bytes
-                    if ($r.Cached) { $fromCache++ }
-                }
+                if ($r.Bytes) { $fetched[$r.Homepage] = [byte[]]$r.Bytes }
             }
             $done += $batch.Count
             $elapsed = (Get-Date) - $started
             $rate = if ($elapsed.TotalSeconds -gt 0) { $done / $elapsed.TotalSeconds } else { 0 }
-            $etaSec = if ($rate -gt 0) { ($homepages.Count - $done) / $rate } else { 0 }
-            Write-Host ("  favicons {0}/{1} ({2} with image), elapsed {3}, eta {4}" -f `
-                    $done, $homepages.Count, $fetched.Count, (Format-DurationShort $elapsed), `
+            $etaSec = if ($rate -gt 0) { ($pending.Count - $done) / $rate } else { 0 }
+            Write-Host ("  crawled {0}/{1} new host(s), {2} image(s) in hand, elapsed {3}, eta {4}" -f `
+                    $done, $pending.Count, $fetched.Count, (Format-DurationShort $elapsed), `
                 (Format-DurationShort ([TimeSpan]::FromSeconds([Math]::Round($etaSec))))) -ForegroundColor DarkGray
         }
     }
-    Write-Host ("Favicons: {0}/{1} homepage(s) returned image bytes ({2} served from cache)." -f `
-            $fetched.Count, $homepages.Count, $fromCache) -ForegroundColor DarkGray
+    Write-Host ("Favicons: {0}/{1} homepage(s) hold an image ({2} kept from cache, {3} newly crawled)." -f `
+            $fetched.Count, $Homepages.Count, $fromCache, ($fetched.Count - $fromCache)) -ForegroundColor DarkGray
+    return $fetched
+}
+
+# Pack the decoded tiles into one grid PNG atlas (16 cols x ceil(n/16) rows, each cell 32x32), save it
+# to $AtlasPath, and return a hashtable mapping each packed row's url -> zero-based tile ordinal. Rows
+# whose favicon could not be fetched/decoded are absent from the map (their favicon_index stays blank).
+# System.Drawing (GDI+) handles decode (.ico/.png/.gif/.jpg via Image.FromStream), scaling, and PNG save.
+function Build-FaviconAtlas {
+    param([Parameter(Mandatory = $true)][object[]]$Rows, [Parameter(Mandatory = $true)][string]$AtlasPath)
+
+    Add-Type -AssemblyName System.Drawing
+
+    $tile = $script:FaviconTile   # 32 - PHASE_01 contract
+    $cols = $script:FaviconCols   # 16 - PHASE_01 contract
+
+    # Distinct non-blank homepages to fetch (dedup so a repeated homepage is fetched only once).
+    $homepages = @($Rows | ForEach-Object { Get-ArtHomepage -Row $_ } |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+    $fetched = Invoke-ArtworkCacheFetch -Homepages $homepages
 
     # Decode in row order; rows that decode successfully get the next sequential ordinal.
     $packable = [System.Collections.Generic.List[object]]::new()
     foreach ($row in $Rows) {
-        $hp = [string]$row.homepage
+        $hp = Get-ArtHomepage -Row $row
         if ([string]::IsNullOrWhiteSpace($hp)) { continue }
         if (-not $fetched.ContainsKey($hp)) { continue }
         $bytes = $fetched[$hp]
@@ -1491,16 +1954,19 @@ function Invoke-PublishChannelPreviewAtlas {
     $stageDir = 'temp/channel-preview-publish'
     if (Test-Path $stageDir) { Remove-Item $stageDir -Recurse -Force }
     New-Item -ItemType Directory -Path $stageDir -Force | Out-Null
-    $sheetAsset = Join-Path $stageDir 'channel-preview-atlas-v1.webp'
-    $coordsAsset = Join-Path $stageDir 'channel-preview-coords-v1.json'
+    $sheetAsset = Join-Path $stageDir ("channel-preview-atlas-{0}.webp" -f $SheetRev)
+    $coordsAsset = Join-Path $stageDir ("channel-preview-coords-{0}.json" -f $CoordsRev)
     Copy-Item $SheetPath $sheetAsset -Force
     Copy-Item $CoordsFile $coordsAsset -Force
 
     Write-Host ("Publishing channel-preview atlas to release {0} (--clobber) .." -f $Tag) -ForegroundColor Cyan
     & $ghExe release upload $Tag $sheetAsset $coordsAsset --clobber
     if ($LASTEXITCODE -ne 0) { throw "gh release upload failed (exit $LASTEXITCODE)" }
-    Write-Host ("Published channel-preview-atlas-v1.webp ({0:N1} MB) + channel-preview-coords-v1.json ({1:N1} KB) -> {2}." -f `
-        ((Get-Item $sheetAsset).Length / 1MB), ((Get-Item $coordsAsset).Length / 1KB), $Tag) -ForegroundColor Green
+    # Report the names actually uploaded. A hardcoded revision here once printed 'v1' for a v2 upload,
+    # which is the kind of log that sends a later diagnosis down the wrong path.
+    Write-Host ("Published {0} ({1:N1} MB) + {2} ({3:N1} KB) -> {4}." -f `
+        (Split-Path -Leaf $sheetAsset), ((Get-Item $sheetAsset).Length / 1MB), `
+        (Split-Path -Leaf $coordsAsset), ((Get-Item $coordsAsset).Length / 1KB), $Tag) -ForegroundColor Green
 }
 
 # Entry point for -WithChannelPreviews: VIDEO rows of the shipped catalog, in catalog order.
@@ -1574,7 +2040,7 @@ function Select-LogoRows {
     $unreadable = 0
     $shared = 0
     foreach ($row in $Rows) {
-        $homepage = [string]$row.homepage
+        $homepage = Get-ArtHomepage -Row $row
         $url = [string]$row.url
         if ([string]::IsNullOrWhiteSpace($homepage) -or [string]::IsNullOrWhiteSpace($url)) { continue }
         if (-not $seenUrl.Add($url)) { continue }
@@ -1727,16 +2193,17 @@ function Invoke-PublishStreamLogoAtlas {
     New-Item -ItemType Directory -Path $stageDir -Force | Out-Null
     # The remote asset name carries the element revision (-v1), matching DeliverableDescriptorCatalog's
     # withRev(); the on-device file name stays unversioned.
-    $sheetAsset = Join-Path $stageDir 'stream-logo-atlas-v1.webp'
-    $coordsAsset = Join-Path $stageDir 'stream-logo-coords-v1.json'
+    $sheetAsset = Join-Path $stageDir ("stream-logo-atlas-{0}.webp" -f $SheetRev)
+    $coordsAsset = Join-Path $stageDir ("stream-logo-coords-{0}.json" -f $CoordsRev)
     Copy-Item $SheetPath $sheetAsset -Force
     Copy-Item $CoordsFile $coordsAsset -Force
 
     Write-Host ("Publishing stream logo atlas to release {0} (--clobber) .." -f $Tag) -ForegroundColor Cyan
     & $ghExe release upload $Tag $sheetAsset $coordsAsset --clobber
     if ($LASTEXITCODE -ne 0) { throw "gh release upload failed (exit $LASTEXITCODE)" }
-    Write-Host ("Published stream-logo-atlas-v1.webp ({0:N1} MB) + stream-logo-coords-v1.json ({1:N1} KB) -> {2}." -f `
-        ((Get-Item $sheetAsset).Length / 1MB), ((Get-Item $coordsAsset).Length / 1KB), $Tag) -ForegroundColor Green
+    Write-Host ("Published {0} ({1:N1} MB) + {2} ({3:N1} KB) -> {4}." -f `
+        (Split-Path -Leaf $sheetAsset), ((Get-Item $sheetAsset).Length / 1MB), `
+        (Split-Path -Leaf $coordsAsset), ((Get-Item $coordsAsset).Length / 1KB), $Tag) -ForegroundColor Green
 }
 
 # Entry point for -WithStreamLogos: every catalog row with a homepage, in catalog order. Deliberately
@@ -1746,7 +2213,7 @@ function Invoke-BuildStreamLogoAtlasRun {
     # AUDIO first: if the sheet ever overflows, the dropped rows should be video channels, which have
     # the preview atlas to fall back on. Radio has nothing else, so it gets the slots first.
     $rows = @(Import-Csv -Path $ExistingCsv |
-            Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_.homepage) } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace((Get-ArtHomepage -Row $_)) } |
             Sort-Object -Stable @{ Expression = { if ([string]$_.media_kind -eq 'AUDIO') { 0 } else { 1 } } })
     if ($rows.Count -eq 0) { throw "No rows with a homepage in $ExistingCsv - nothing to pack." }
     if ($LogoLimit -gt 0 -and $rows.Count -gt $LogoLimit) {
@@ -1858,6 +2325,43 @@ function Invoke-BuildTilePacksRun {
         -OutZip $LogoTilePackPath -PixelFormat 'rgba' | Out-Null
 }
 
+# S1483: the manifest is how an INSTALLED app learns that newer artwork exists. Pins compiled into a
+# build cannot do that - a build comparing against itself always concludes it is current, which is why
+# a rebuilt payload reached nobody until a new version shipped. This file is published by the same run
+# that uploads the payload, so the two can never disagree.
+#
+# `stamp` is the pack's own SHA-256: it changes exactly when the artwork changes, which is the only
+# event the app cares about. The per-file hashes are published for third parties and for diagnosis,
+# NOT as an app-side gate - the app validates a pack structurally (S1483 phase 04).
+function Write-ArtworkManifest {
+    param([string]$Path, [hashtable]$Sets)
+    $manifest = [ordered]@{
+        schemaVersion = 1
+        generatedAt   = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+        sets          = [ordered]@{}
+    }
+    foreach ($setName in @($Sets.Keys | Sort-Object)) {
+        $files = [System.Collections.Generic.List[object]]::new()
+        foreach ($file in $Sets[$setName]) {
+            if (-not (Test-Path $file)) { continue }
+            $files.Add([ordered]@{
+                    name   = (Split-Path -Leaf $file)
+                    size   = (Get-Item $file).Length
+                    sha256 = (Get-FileHash -Algorithm SHA256 -Path $file).Hash.ToLowerInvariant()
+                })
+        }
+        if ($files.Count -eq 0) { continue }
+        $manifest.sets[$setName] = [ordered]@{
+            # The pack is entry 0 of each set by construction below, and it is what the stamp tracks.
+            stamp = $files[0].sha256
+            files = $files
+        }
+    }
+    ($manifest | ConvertTo-Json -Depth 6) | Set-Content -Path $Path -Encoding utf8NoBOM
+    Write-Host ("Artwork manifest: {0} set(s) -> {1}" -f $manifest.sets.Count, $Path) -ForegroundColor Green
+    return $Path
+}
+
 # Upload both packs as their own release assets, alongside the sheets, which stay published unchanged
 # for third-party consumers of the catalog.
 function Invoke-PublishTilePacks {
@@ -1871,15 +2375,46 @@ function Invoke-PublishTilePacks {
     New-Item -ItemType Directory -Path $stageDir -Force | Out-Null
     # The remote asset name carries the element revision, matching DeliverableDescriptorCatalog's
     # withRev(); the on-device file name stays unversioned.
-    $previewAsset = Join-Path $stageDir 'channel-preview-tiles-v2.zip'
-    $logoAsset = Join-Path $stageDir 'stream-logo-tiles-v2.zip'
-    Copy-Item $PreviewPack $previewAsset -Force
-    Copy-Item $LogoPack $logoAsset -Force
+    # S1483: the app fetches STABLE names - a revision in the name is what stranded a rebuilt payload
+    # at a URL no installed copy knew about. The revisioned sheets stay published for third parties,
+    # and the older revisioned packs are never deleted: builds shipped before this change still pin
+    # them by hash and would otherwise lose their artwork.
+    $uploads = [System.Collections.Generic.List[string]]::new()
+    $manifestSets = @{}
+    if ($ArtworkPayload -in 'both', 'preview') {
+        $previewAsset = Join-Path $stageDir 'channel-preview-tiles.zip'
+        $previewCoords = Join-Path $stageDir 'channel-preview-coords.json'
+        Copy-Item $PreviewPack $previewAsset -Force
+        Copy-Item $PreviewCoordsPath $previewCoords -Force
+        $uploads.Add($previewAsset); $uploads.Add($previewCoords)
+        $manifestSets['channelPreview'] = @($previewAsset, $previewCoords)
+    }
+    if ($ArtworkPayload -in 'both', 'logo') {
+        $logoAsset = Join-Path $stageDir 'stream-logo-tiles.zip'
+        $logoCoords = Join-Path $stageDir 'stream-logo-coords.json'
+        Copy-Item $LogoPack $logoAsset -Force
+        Copy-Item $LogoCoordsPath $logoCoords -Force
+        $uploads.Add($logoAsset); $uploads.Add($logoCoords)
+        $manifestSets['streamLogo'] = @($logoAsset, $logoCoords)
+    }
+    # A partial publish must not drop the other set from the manifest: the app reads it as the whole
+    # truth, and a missing set would read as "this payload no longer exists".
+    if ($ArtworkPayload -ne 'both') {
+        $keptSet = if ($ArtworkPayload -eq 'logo') { 'channelPreview' } else { 'streamLogo' }
+        $keptPack = if ($ArtworkPayload -eq 'logo') { $PreviewPack } else { $LogoPack }
+        $keptCoords = if ($ArtworkPayload -eq 'logo') { $PreviewCoordsPath } else { $LogoCoordsPath }
+        if ((Test-Path $keptPack) -and (Test-Path $keptCoords)) {
+            $manifestSets[$keptSet] = @($keptPack, $keptCoords)
+        }
+    }
+    $manifestPath = Join-Path $stageDir 'artwork-manifest.json'
+    Write-ArtworkManifest -Path $manifestPath -Sets $manifestSets | Out-Null
+    $uploads.Add($manifestPath)
 
-    Write-Host ("Publishing tile packs to release {0} (--clobber) .." -f $Tag) -ForegroundColor Cyan
-    & $ghExe release upload $Tag $previewAsset $logoAsset --clobber
+    Write-Host ("Publishing tile pack(s) [{0}] to release {1} (--clobber) .." -f $ArtworkPayload, $Tag) -ForegroundColor Cyan
+    & $ghExe release upload $Tag @($uploads) --clobber
     if ($LASTEXITCODE -ne 0) { throw "gh release upload failed (exit $LASTEXITCODE)" }
-    foreach ($f in @($previewAsset, $logoAsset)) {
+    foreach ($f in $uploads) {
         $h = (Get-FileHash -Algorithm SHA256 -Path $f).Hash.ToLowerInvariant()
         Write-Host ("Published {0} ({1:N0} bytes)" -f (Split-Path -Leaf $f), (Get-Item $f).Length) -ForegroundColor Green
         Write-Host ("    sha256 = {0}" -f $h) -ForegroundColor DarkGray
@@ -2054,6 +2589,61 @@ function Invoke-PublishCatalog {
     Write-Host ("Published stream-catalog.zip -> {0} ({1} rows, {2:N1} KB, {3})." -f $Tag, $rowCount, $zipKb, $bundleNote) -ForegroundColor Green
 }
 
+# S1477: rubric normalisation is its own mode - it rewrites a shipped CSV column, so it must not ride
+# along with discovery, maintenance or an artwork pass. The before/after histogram is printed so the
+# fold can be reviewed before -Publish sends it to every user.
+if ($NormalizeTopics) {
+    if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
+    $topicRows = @(Import-Csv -Path $ExistingCsv)
+    $before = @($topicRows | ForEach-Object { [string]$_.topic } | Select-Object -Unique).Count
+    $moves = @{}
+    $changed = 0
+    foreach ($row in $topicRows) {
+        $old = [string]$row.topic
+        $new = Get-CanonicalTopic -topic $old
+        if ($old -ne $new) {
+            $changed++
+            $key = "{0} -> {1}" -f $(if ([string]::IsNullOrWhiteSpace($old)) { '(blank)' } else { $old }), $new
+            $moves[$key] = 1 + $(if ($moves.ContainsKey($key)) { $moves[$key] } else { 0 })
+        }
+        $row.topic = $new
+    }
+    $after = @($topicRows | Group-Object topic | Sort-Object Count -Descending)
+    Write-Host ("Rubrics: {0} distinct -> {1}; {2} of {3} row(s) re-labelled." -f `
+            $before, $after.Count, $changed, $topicRows.Count) -ForegroundColor Cyan
+    foreach ($bucket in $after) {
+        Write-Host ("  {0,5}  {1}" -f $bucket.Count, $bucket.Name) -ForegroundColor DarkGray
+    }
+    $mapReport = Join-Path $OutDir 'topic-rubric-moves.csv'
+    Write-CsvUtf8 -Rows @($moves.GetEnumerator() | Sort-Object -Property Value -Descending |
+            ForEach-Object { [pscustomobject]@{ move = $_.Key; rows = $_.Value } }) `
+        -Path $mapReport -Columns @('move', 'rows')
+    Write-Host ("Rubrics: per-value moves written to {0}" -f $mapReport) -ForegroundColor DarkGray
+    $topicBackup = Backup-IfExists -Path $ExistingCsv
+    Write-CsvUtf8 -Rows $topicRows -Path $ExistingCsv -Columns $Schema
+    Write-Host ("Rubrics: rewrote {0}; backup -> {1}" -f $ExistingCsv, $topicBackup) -ForegroundColor Green
+    if ($Publish) { Invoke-PublishCatalog }
+    return
+}
+
+# Cache-warm is its own mode and writes nothing but cache files, so it is the one artwork pass that may
+# run while another one is in flight: a full favicon rebuild can be crawling the declared homepages
+# while this fills in the domain-derived ones. It deliberately never touches streams.csv or an atlas -
+# whichever pass runs next picks the new cache entries up.
+if ($WarmArtworkCache) {
+    if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
+    $warmRows = @(Import-Csv -Path $ExistingCsv)
+    $declared = @($warmRows | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_.homepage) }).Count
+    $warmHomepages = @($warmRows | ForEach-Object { Get-ArtHomepage -Row $_ } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+    Write-Host ("Artwork cache warm: {0} row(s), {1} with a declared homepage, {2} distinct homepage(s) to cover{3}." -f `
+            $warmRows.Count, $declared, $warmHomepages.Count, $(if ($DomainFallback) { ' (domain fallback ON)' } else { '' })) -ForegroundColor Cyan
+    $warmed = Invoke-ArtworkCacheFetch -Homepages $warmHomepages
+    Write-Host ("Artwork cache warm: {0}/{1} homepage(s) hold an image; cache dir {2}." -f `
+            $warmed.Count, $warmHomepages.Count, $LogoCacheDir) -ForegroundColor Green
+    return
+}
+
 # S1154 PHASE_06: the atlas build is its own mode - it never runs as a side effect of discovery or
 # catalog maintenance (a capture pass costs hours and hits every live channel).
 if ($WithChannelPreviews) {
@@ -2139,6 +2729,55 @@ if ($Axis -contains 'webcam') {
     Write-Host '* webcam / 24-7 seeds ..' -ForegroundColor Yellow
     $r = Get-WebcamSeeds -axis 'webcam'
     Write-Host ("    webcam seeds: {0}" -f $r.Count)
+    $r | ForEach-Object { $all.Add($_) }
+}
+
+if ($Axis -contains 'iptvcam') {
+    Write-Host '* iptv-org weather / outdoor / travel / relax cams ..' -ForegroundColor Yellow
+    $r = Get-IptvWebcamCandidates -axis 'iptvcam'
+    Write-Host ("    iptv-org cams: {0}" -f $r.Count)
+    $r | ForEach-Object { $all.Add($_) }
+}
+
+if ($Axis -contains 'tfl') {
+    Write-Host '* Transport for London traffic cameras ..' -ForegroundColor Yellow
+    $r = Get-TflJamCams -axis 'tfl'
+    Write-Host ("    TfL JamCams: {0}" -f $r.Count)
+    $r | ForEach-Object { $all.Add($_) }
+}
+
+if ($Axis -contains 'webradiodb') {
+    Write-Host '* WebRadioDB curated station index ..' -ForegroundColor Yellow
+    $r = Get-WebRadioDbStations -axis 'webradiodb'
+    Write-Host ("    webradiodb: {0}" -f $r.Count)
+    $r | ForEach-Object { $all.Add($_) }
+}
+
+if ($Axis -contains 'radioparadise') {
+    Write-Host '* Radio Paradise channels ..' -ForegroundColor Yellow
+    $r = Get-RadioParadiseStations -axis 'radioparadise'
+    Write-Host ("    radioparadise: {0}" -f $r.Count)
+    $r | ForEach-Object { $all.Add($_) }
+}
+
+if ($Axis -contains 'akc') {
+    Write-Host '* AKC broadcast enumeration ..' -ForegroundColor Yellow
+    $r = Get-AkcBroadcasts -axis 'akc'
+    Write-Host ("    akc candidates: {0} (liveness decides)" -f $r.Count)
+    $r | ForEach-Object { $all.Add($_) }
+}
+
+if ($Axis -contains 'lautfm') {
+    Write-Host '* laut.fm community stations ..' -ForegroundColor Yellow
+    $r = Get-LautFmStations -axis 'lautfm' -imageBudget $LautFmImageBudget
+    Write-Host ("    laut.fm: {0} active station(s)" -f $r.Count)
+    $r | ForEach-Object { $all.Add($_) }
+}
+
+if ($Axis -contains 'xiph') {
+    Write-Host '* Xiph public Icecast YP directory ..' -ForegroundColor Yellow
+    $r = Get-XiphYpStations -axis 'xiph'
+    Write-Host ("    xiph yp: {0}" -f $r.Count)
     $r | ForEach-Object { $all.Add($_) }
 }
 

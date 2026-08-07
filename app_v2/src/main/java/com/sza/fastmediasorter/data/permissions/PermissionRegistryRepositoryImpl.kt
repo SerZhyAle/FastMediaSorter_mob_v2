@@ -308,6 +308,29 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             buildGates = setOf("SUPPORT_LAUNCHER"),
             grantKind = PermissionGrantKind.SYSTEM_SCREEN,
         ),
+        // S1433: Network Monitor rows. Declared by src/networkMonitor, which only standard and
+        // noLegal mount, so the build gate is what keeps the row out of the flavors whose merged
+        // manifest never declares the permission - the parity test fails those variants otherwise.
+        PermissionEntry(
+            id = "nearby_wifi_devices",
+            manifestName = Manifest.permission.NEARBY_WIFI_DEVICES,
+            titleRes = R.string.perm_title_nearby_wifi_devices,
+            descriptionRes = R.string.perm_desc_nearby_wifi_devices,
+            group = PermissionGroup.NETWORK,
+            optional = true,
+            minSdk = 33,
+            buildGates = setOf("SUPPORT_NETWORK_MONITOR"),
+        ),
+        PermissionEntry(
+            id = "bluetooth_connect",
+            manifestName = Manifest.permission.BLUETOOTH_CONNECT,
+            titleRes = R.string.perm_title_bluetooth_connect,
+            descriptionRes = R.string.perm_desc_bluetooth_connect,
+            group = PermissionGroup.NETWORK,
+            optional = true,
+            minSdk = 31,
+            buildGates = setOf("SUPPORT_NETWORK_MONITOR"),
+        ),
         // S0241: VR group entries (hand_tracking, headset_camera) removed with the OpenXR stack.
     )
 
@@ -369,6 +392,16 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             }
     }
 
+    /**
+     * S1454: every row's manifest name as the registry defines it, before any build gate or SDK window
+     * narrows the set. A staleness check needs this to tell a row that was deleted from one that merely
+     * has its gate off in the variant under test - against the gated set, every flavor-specific row
+     * looks deleted.
+     */
+    @get:VisibleForTesting
+    val allRowManifestNames: Set<String>
+        get() = allEntries.map { it.manifestName }.toSet()
+
     /** Every BuildConfig field name referenced by an entry's build gates. Lets a test assert each resolves. */
     @get:VisibleForTesting
     val declaredBuildGateFields: Set<String>
@@ -408,6 +441,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
         "SUPPORT_LOCAL_NETWORK" to BuildConfig.SUPPORT_LOCAL_NETWORK,
         "ENABLE_PERSISTENT_AUDIO_PLAYBACK" to BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK,
         "SUPPORT_LAUNCHER" to BuildConfig.SUPPORT_LAUNCHER,
+        "SUPPORT_NETWORK_MONITOR" to BuildConfig.SUPPORT_NETWORK_MONITOR,
         "IS_NO_LEGAL_FLAVOR" to BuildConfig.IS_NO_LEGAL_FLAVOR,
         "DECLARES_SCREEN_CAPTURE" to BuildConfig.DECLARES_SCREEN_CAPTURE,
         "DECLARES_OVERLAY_PERMISSION" to BuildConfig.DECLARES_OVERLAY_PERMISSION,

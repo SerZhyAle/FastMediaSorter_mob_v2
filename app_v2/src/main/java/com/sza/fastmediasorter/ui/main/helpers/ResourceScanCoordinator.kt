@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * Coordinates comprehensive resource scanning operations.
@@ -26,8 +27,12 @@ import timber.log.Timber
  * - Update file counts (fast scan with limits)
  * - Update resource metadata (availability, lastSyncDate, etc.)
  * - Generate scan summary messages
+ *
+ * S1424: the constructor is `@Inject` so a second host - the launcher desktop's per-resource menu -
+ * can obtain it without assembling its seven dependencies by hand. MainViewModel still builds one
+ * itself; an injectable constructor takes nothing away from that.
  */
-class ResourceScanCoordinator(
+class ResourceScanCoordinator @Inject constructor(
     private val getResourcesUseCase: GetResourcesUseCase,
     // S0869: Lazy so MainViewModel construction on the main thread does not force provideAppDatabase()
     // through this coordinator. The only use site (testConnection) is inside a suspend fun -> off-main.

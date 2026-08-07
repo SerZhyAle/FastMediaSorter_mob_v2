@@ -20,6 +20,7 @@ class LauncherTaskbarManager(
     private val binding: LauncherTaskbarBinding,
     private val onCommand: (LauncherCellCommand) -> Unit,
     private val onStartClick: () -> Unit,
+    private val onAllAppsClick: () -> Unit = {},
     private val onAddPin: () -> Unit = {},
     private val onRemovePin: (position: Int) -> Unit = {},
 ) {
@@ -44,6 +45,7 @@ class LauncherTaskbarManager(
         composition: Flow<LauncherTaskbarComposition>,
     ) {
         binding.btnStart.setOnClickListener { onStartClick() }
+        binding.btnAllApps.setOnClickListener { onAllAppsClick() }
         binding.taskbarRecents.layoutManager =
             LinearLayoutManager(binding.root.context, LinearLayoutManager.HORIZONTAL, false)
         binding.taskbarRecents.adapter = recentsAdapter

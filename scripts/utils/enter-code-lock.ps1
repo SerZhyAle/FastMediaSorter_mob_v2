@@ -24,7 +24,8 @@
     waiter (scripts/utils/wait-for-lock-turn.ps1) - blocking here spends the agent's turn.
 
 .EXIT CODES
-    0 - lock acquired, start editing.
+    0 - lock acquired, start editing. Also returned when this session ALREADY holds the lock
+        (re-entrant call): nothing is enqueued and the existing lock stays yours (S1448).
     4 - queued: another session holds it. Your ticket is in the queue; wait for your turn with
         scripts/utils/wait-for-lock-turn.ps1 (or re-run with -Wait). Do not edit sources yet.
 
@@ -49,16 +50,35 @@ if ($buildStatus.Exists -and -not $buildStatus.Stale) {
     Write-Host "  A gradle build is running elsewhere - it may compile a half-written state if you edit now." -ForegroundColor Yellow
 }
 
-$result = Enter-AgentLock -Name Code -Reason $Reason
+# S1448 re-entrancy guard, mirroring the one Enter-BuildLockOrExit applies to BUILD.LOCK. A
+# session that already holds the lock and asks again must not enqueue behind itself: it would
+# exit 4, never be granted, and leave that ticket on the queue head - the very state this ticket
+# exists to remove, reached through a second door.
+$codeStatus = Get-AgentLockStatus -Name Code
+$mySessionId = $env:CLAUDE_CODE_SESSION_ID
+if ($codeStatus.Exists -and -not $codeStatus.Stale -and
+    -not [string]::IsNullOrWhiteSpace($mySessionId) -and
+    [string]$codeStatus.SessionId -eq $mySessionId) {
+    Write-Host "CODE.LOCK already held by this session (reason: '$($codeStatus.Reason)') - reusing it, nothing queued." -ForegroundColor Green
+    exit 0
+}
+
+# S1448: take the place in the queue BEFORE asking for the lock, exactly as
+# Enter-BuildLockOrExit does. Two things depend on it. The ticket the acquire retires is then
+# this session's own, so nothing of ours is left sitting on the queue head; and a session that
+# released the lock and immediately wants it back queues BEHIND whoever was already waiting
+# instead of stepping over them. The issuer below reuses this session's existing ticket, so
+# asking twice keeps the place already earned rather than taking a second one.
+$ticket = New-AgentLockTicket -Name Code -Reason $Reason
+
+$result = Enter-AgentLock -Name Code -Reason $Reason -Ticket $ticket
 if ($result.Acquired) {
     Write-Host "CODE.LOCK acquired (reason: '$Reason')." -ForegroundColor Green
     exit 0
 }
 
-$ticket = New-AgentLockTicket -Name Code -Reason $Reason
-
 if ($Wait) {
-    Write-Host "CODE.LOCK held - queued at position $((Test-AgentLockTurn -Name Code -Ticket $ticket).Position), waiting up to ${WaitTimeoutSeconds}s.." -ForegroundColor DarkGray
+    Write-Host "CODE.LOCK unavailable - queued at position $((Test-AgentLockTurn -Name Code -Ticket $ticket).Position), waiting up to ${WaitTimeoutSeconds}s.." -ForegroundColor DarkGray
     $waited = Enter-AgentLock -Name Code -Reason $Reason -Wait -WaitTimeoutSeconds $WaitTimeoutSeconds -Ticket $ticket
     if ($waited.Acquired) {
         Write-Host "CODE.LOCK acquired (reason: '$Reason')." -ForegroundColor Green
@@ -69,8 +89,26 @@ if ($Wait) {
 
 $turn = Test-AgentLockTurn -Name Code -Ticket $ticket
 $holder = Get-AgentLockStatus -Name Code
-Write-Error "enter-code-lock: CODE.LOCK is held by another session - queued at position $($turn.Position), not yet your turn." -ErrorAction Continue
-Write-Host "  Holder: session $($holder.SessionId) (age $([int]$holder.AgeSeconds)s, reason: '$($holder.Reason)')." -ForegroundColor Yellow
+
+# S1448: name the blocker that actually exists. The message used to claim "held by another
+# session" unconditionally and print a Holder line built from an absent lock file - which read
+# as `Holder: session  (age 0s, reason: '')` and sent whoever read it looking for a holder that
+# was not there. A free lock with a foreign queue head is a different fact and says so.
+if ($holder.Exists -and -not $holder.Stale) {
+    Write-Error "enter-code-lock: CODE.LOCK is held by another session - queued at position $($turn.Position), not yet your turn." -ErrorAction Continue
+    Write-Host "  Holder: session $($holder.SessionId) (age $([int]$holder.AgeSeconds)s, reason: '$($holder.Reason)')." -ForegroundColor Yellow
+}
+else {
+    $head = @(Get-AgentLockQueue -Name Code)[0]
+    $reservationMinutes = (Get-AgentLockTimings -Name Code).ReservationMinutes
+    $headWaitedMinutes = if ($head -and $head.enqueuedAt) {
+        [int](([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() - [int64]$head.enqueuedAt) / 60000)
+    }
+    else { 0 }
+    Write-Error "enter-code-lock: CODE.LOCK is free, but this session is not the queue head - queued at position $($turn.Position), not yet your turn." -ErrorAction Continue
+    Write-Host "  Queue head: session $($head.sessionId) (ticket #$($head.seq), waited ${headWaitedMinutes}m, reason: '$($head.reason)')." -ForegroundColor Yellow
+    Write-Host "  The head keeps the turn for up to ${reservationMinutes} min after the lock frees; after that the next live ticket may take it." -ForegroundColor Yellow
+}
 Write-Host "  Your ticket: #$($ticket.seq). Wait for the signal in the background:" -ForegroundColor Yellow
 Write-Host "    pwsh -NoProfile -File scripts/utils/wait-for-lock-turn.ps1 -Name Code -Reason '$Reason'" -ForegroundColor Gray
 Write-Host "  Meanwhile do lock-free work: reading, research, specs, catalog, docs, log analysis." -ForegroundColor Gray

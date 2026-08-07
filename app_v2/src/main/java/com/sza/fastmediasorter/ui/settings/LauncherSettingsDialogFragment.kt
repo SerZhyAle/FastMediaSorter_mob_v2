@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -48,6 +49,10 @@ class LauncherSettingsDialogFragment : DialogFragment() {
 
     @Inject
     lateinit var launcherRoleManager: LauncherRoleManager
+
+    // S1422: the shared orchestrator already owns restore, animation and persistence of section state,
+    // so this dialog only declares which rows belong together.
+    private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
 
     // Guards render() writes so setCheckedSilently / setSelection never bounce back into a settings update.
     private var isUpdatingFromSettings = false
@@ -86,8 +91,23 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             return
         }
         binding.btnClose.setOnClickListener { dismiss() }
+        setupCollapsibleSections()
         setupRows()
         observeSettings()
+    }
+
+    /** S1422: only the top bar starts expanded - it is the group the launcher work keeps changing. */
+    private fun setupCollapsibleSections() {
+        Timber.d("S1422: registering the four launcher settings sections")
+        sectionsManager.register(binding.headerLauncherTaskbar, binding.containerLauncherTaskbar, "launcher__taskbar")
+        sectionsManager.register(
+            binding.headerLauncherTopBar,
+            binding.containerLauncherTopBar,
+            "launcher__top_bar",
+            defaultExpanded = true,
+        )
+        sectionsManager.register(binding.headerLauncherDesktop, binding.containerLauncherDesktop, "launcher__desktop")
+        sectionsManager.register(binding.headerLauncherSystem, binding.containerLauncherSystem, "launcher__system")
     }
 
     private fun setupRows() {
@@ -127,6 +147,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         binding.rowLauncherWallpaper.setEntries(
             listOf(
                 getText(R.string.launcher_settings_wallpaper_branded),
+                getText(R.string.launcher_settings_wallpaper_static_stripes),
                 getText(R.string.launcher_settings_wallpaper_none),
                 getText(R.string.launcher_settings_wallpaper_image),
             )

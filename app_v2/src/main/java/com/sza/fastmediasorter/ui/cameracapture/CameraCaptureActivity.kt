@@ -411,6 +411,15 @@ class CameraCaptureActivity :
     /** S1262: the anchored profile menu - one checkable row per profile the bound lens can honour. */
     private fun showProfileMenu() {
         val profiles = flowManager.availableProfiles()
+        val caps = flowManager.currentCapabilities
+        Timber.d(
+            "S1417: menu=%s manualSensor=%b iso=%s shutter=%s lensFacing=%d",
+            profiles,
+            caps.supportsManualSensor,
+            caps.isoRange,
+            caps.shutterRangeNs,
+            caps.activeLensFacing,
+        )
         val popup = PopupMenu(this, binding.btnCameraProfile)
         profiles.forEachIndexed { index, profile ->
             popup.menu.add(PROFILE_MENU_GROUP, index, index, CameraProfilePresentation.labelRes(profile))

@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.data.local.preferences
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.okio.OkioStorage
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.PreferencesSerializer
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.testing.createFileFilter
 import kotlinx.coroutines.CoroutineScope
@@ -12,6 +14,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import okio.FileSystem
+import okio.Path.Companion.toOkioPath
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -37,9 +41,19 @@ class BrowseStateDataStoreTest {
 
     @Before
     fun setUp() {
-        dataStore = PreferenceDataStoreFactory.create(scope = scope) {
-            tempFolder.newFile("browse.preferences_pb")
-        }
+        // S1449: okio storage, not the default File storage. FileStorage persists via
+        // File.renameTo, which on Windows cannot replace an existing destination, so every write
+        // after the first one failed here while read-only cases passed. OkioStorage moves via
+        // Files.move(ATOMIC_MOVE, REPLACE_EXISTING), which does replace. DataStore's own message
+        // blames "multiple instances of DataStore" - that is the common Linux cause, not this one,
+        // and the wording sent the first two attempts at this fix astray.
+        // createWithPath is not the seam: on Android it just wraps the Path back into a File.
+        dataStore = PreferenceDataStoreFactory.create(
+            storage = OkioStorage(FileSystem.SYSTEM, PreferencesSerializer) {
+                tempFolder.root.resolve("browse.preferences_pb").toOkioPath()
+            },
+            scope = scope,
+        )
         store = BrowseStateDataStore(dataStore)
     }
 

@@ -51,7 +51,7 @@ Language        : Kotlin (100%)
 Architecture    : MVVM + Clean Architecture + Hilt DI
 Media engine    : ExoPlayer (Media3)
 Image loading   : Glide with custom network loaders
-Network         : SMBJ / SSHJ / Apache Commons Net
+Network         : SMBJ / JSch / Apache Commons Net
 SMB performance : Connection pooling + up to 24 parallel transfer threads
 UI              : Material 3, optional Compact Elements mode (high-density)
 Min SDK         : Android 8.0 (Standard) / Android 6.0 (Legacy flavor)

@@ -18,6 +18,10 @@
     exit of the last command in its launch line, which has already turned a refused build into
     an apparently green one. Read the marker.
 
+    Each poll doubles as the ticket's liveness heartbeat (S1448): it stamps lastSeenAt on the
+    ticket, so a session waiting exactly as the contract demands - background waiter plus
+    lock-free work, therefore no transcript writes - is no longer evicted for staying quiet.
+
 .PARAMETER Name
     Which lock to queue for: Build or Code.
 
@@ -85,6 +89,7 @@ catch {
     exit 4
 }
 
+[void](Set-AgentTicketHeartbeat -Ticket $ticket)
 $initial = Test-AgentLockTurn -Name $Name -Ticket $ticket
 Write-Host "$Name queue: ticket #$($ticket.seq), position $($initial.Position). Marker: $markerPath" -ForegroundColor Cyan
 if (-not $initial.IsMyTurn) {
@@ -102,6 +107,11 @@ while ($true) {
         Write-TurnMarker -Outcome 'evicted' -Ticket $ticket -Detail 'ticket no longer in queue'
         exit 3
     }
+
+    # S1448: this poll IS the proof that the waiting session is alive. Without stamping it the
+    # ticket's only liveness signal is the session transcript, which a correctly-waiting agent
+    # does not write - and the ticket was evicted for it.
+    [void](Set-AgentTicketHeartbeat -Ticket $ticket)
 
     $turn = Test-AgentLockTurn -Name $Name -Ticket $ticket
     $lock = Get-AgentLockStatus -Name $Name

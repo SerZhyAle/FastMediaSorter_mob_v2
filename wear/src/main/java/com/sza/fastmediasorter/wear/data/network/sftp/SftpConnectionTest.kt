@@ -9,8 +9,10 @@ import javax.inject.Inject
 /**
  * SFTP connection test for Wear OS network sources.
  *
- * Currently a stub - SSHJ (the SFTP library) is not bundled as a direct Wear dependency.
- * Returns Result.failure with a descriptive message so the user knows testing is
+ * Currently a stub: the connection test is not implemented on Wear. The SFTP library itself IS on
+ * the Wear classpath (com.github.mwiede:jsch, wear/build.gradle.kts), so this is a wiring gap, not
+ * a missing dependency - the earlier comment here claimed the opposite and named a library the
+ * project retired. Returns Result.failure with a descriptive message so the user knows testing is
  * unavailable but the source can still be saved and used for browsing.
  */
 class SftpConnectionTest @Inject constructor() {

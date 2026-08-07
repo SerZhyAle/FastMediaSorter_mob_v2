@@ -31,6 +31,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- S1421: the band the system status bar leaves behind. GONE unless the launcher replaces the status
+         area, and a GONE include collapses onto its own anchor, so the grid below lands at the parent top
+         exactly as it did before this strip existed. Ids must match layout/ (one ViewBinding, Rule 11). -->
+    <include
+        android:id="@+id/launcherStatusStrip"
+        layout="@layout/launcher_status_strip"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/launcher_status_strip_height"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- One screen plus downward scroll, no desktop pages (strategic §3.3). fillViewport is what makes
          a desktop shorter than the screen still fill it, so the grid is not a floating strip on top. -->
     <androidx.core.widget.NestedScrollView
@@ -47,7 +59,7 @@
         app:layout_constraintBottom_toTopOf="@+id/launcherTaskbar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/launcherStatusStrip">
 
         <com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
             android:id="@+id/launcherDesktop"

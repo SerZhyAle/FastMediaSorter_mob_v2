@@ -177,8 +177,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     
-    // DataStore for settings
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    // DataStore for settings - kept in lockstep with app_v2 (S1449); 1.0.0 cannot rewrite its
+    // own file on Windows, and two versions of one library across modules is a future trap.
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
     
     // Retrofit for album art API
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

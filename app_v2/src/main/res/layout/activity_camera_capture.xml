@@ -164,12 +164,14 @@
             android:padding="0dp"
             android:tooltipText="@string/camera_profile_normal"
             android:visibility="gone"
-            app:icon="@drawable/ic_tune"
+            app:icon="@drawable/ic_image"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
             app:iconSize="20dp"
             tools:visibility="visible" />
 
+        <!-- S1417: opens the camera-settings sheet, so it carries the app's settings glyph. It used
+             to show three vertical dots, which reads as "more", not "settings". -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCameraSettings"
             style="@style/Widget.FastMediaSorter.Camera.OverlayButton"
@@ -182,7 +184,7 @@
             android:minHeight="0dp"
             android:padding="0dp"
             android:tooltipText="@string/camera_settings_title"
-            app:icon="@drawable/ic_camera_settings"
+            app:icon="@drawable/ic_tune"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
             app:iconSize="20dp"

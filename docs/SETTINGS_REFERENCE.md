@@ -277,6 +277,10 @@ _Settings -> General -> System launcher settings_
 
 | Setting | What it does |
 |---|---|
+| Desktop | Settings for the launcher desktop itself: icon grid density, the edit lock and the wallpaper. |
+| System | Entry to the Android home-app chooser, where the system launcher is selected. |
+| Taskbar | Settings for the launcher taskbar at the bottom: recent and pinned apps, and which icons its tray shows. |
+| Top bar | Settings for the launcher's own top strip, which can replace the system status area. |
 | Grid density | Sets how many icons the launcher desktop grid fits per row and column. |
 | Lock desktop | Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable. |
 | Change home screen | Opens Android's default-launcher chooser to switch the system home screen. |
@@ -290,7 +294,7 @@ _Settings -> General -> System launcher settings_
 | Network type | Shows the current connection type - Wi-Fi, mobile or wired - in the launcher tray. |
 | SIM 1 signal | Shows the signal level of the first SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or without a SIM in the slot. |
 | SIM 2 signal | Shows the signal level of the second SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or on a single-SIM device. |
-| Desktop wallpaper | Chooses the launcher desktop's wallpaper. |
+| Desktop wallpaper | Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, or your own image. |
 
 ## Edge gestures
 

@@ -335,7 +335,10 @@ object LoggingHelper {
         }
 
         override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-            if (priority < minPriority) return  // Skip below threshold (e.g. VERBOSE/DEBUG in release)
+            // Skip below threshold (e.g. VERBOSE/DEBUG in release), except for the diagnostic
+            // prefixes S1468 exempts. The priority comparison stays first so a WARN-or-higher
+            // line never scans the prefix list.
+            if (priority < minPriority && !isAlwaysPersistedDiagnostic(message)) return
             // S1203: the timestamp is taken on the calling thread so the file keeps call order rather
             // than drain order; sanitising, formatting and the write itself all move to the log I/O
             // thread, so no Timber call can put a caller on the disk or on the mirror's monitor.
@@ -672,3 +675,29 @@ internal fun stripTimberAppendedTrace(message: String, t: Throwable?): String {
     val bare = message.trimEnd('\n')
     return if (bare == trace) "" else bare.removeSuffix("\n" + trace)
 }
+
+/**
+ * S1468: message prefixes the release file tree persists regardless of its WARN threshold.
+ *
+ * Stream and audio diagnostics are emitted at INFO/DEBUG deliberately - they are operational, not
+ * alarming - so the WARN-only file tree dropped every one of them, and the session summaries
+ * written for exactly this situation were absent from the only log a user can send us.
+ */
+private val ALWAYS_PERSISTED_DIAGNOSTIC_PREFIXES = listOf(
+    "Stream diag:",
+    "Stream session:",
+    "Stream quality:",
+    "Stream state=",
+    "Audio diag:"
+)
+
+/**
+ * S1468: true when [message] is one of the diagnostics that must reach the session file even below
+ * the tree's threshold. Matched on message text because none of these call sites sets a Timber tag
+ * and the file tree does not derive one from the caller class, so the text is the only signal.
+ * The entry still records its own level, so exempting it here does not dilute what WARN means.
+ *
+ * Top-level so the rule is unit-testable without touching the file-writing tree.
+ */
+internal fun isAlwaysPersistedDiagnostic(message: String): Boolean =
+    ALWAYS_PERSISTED_DIAGNOSTIC_PREFIXES.any { message.startsWith(it) }

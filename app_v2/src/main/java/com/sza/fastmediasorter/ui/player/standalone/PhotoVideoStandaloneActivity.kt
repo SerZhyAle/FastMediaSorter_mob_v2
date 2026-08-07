@@ -659,6 +659,8 @@ class PhotoVideoStandaloneActivity :
         binding.btnOverflowMenu.setOnClickListener { anchor ->
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
+            // S1407: icons off by default on PopupMenu - match the embedded player's rendering.
+            popup.applyStandaloneOverflowIcons()
             // S0393: crop/compress/edit/Lens overwrite or share the source file, so they need a
             // resolved local writable image (editableImageFile). OCR/translate/print operate purely on
             // the displayed bitmap, so they only need a rendered image - gate those on the drawable,
@@ -703,6 +705,28 @@ class PhotoVideoStandaloneActivity :
                     rotateItem, getString(R.string.rotate_content_90_desc)
                 )
             }
+            // S1364: the counter-clockwise twin follows the same rule as its forward partner.
+            popup.menu.findItem(R.id.menu_rotate_content_ccw_standalone).let { rotateCcwItem ->
+                rotateCcwItem.isVisible = rotatable
+                androidx.core.view.MenuItemCompat.setContentDescription(
+                    rotateCcwItem,
+                    getString(R.string.rotate_content_ccw_desc)
+                )
+            }
+            // S1364: parity items. Each mirrors the gate of the inline bar button that already
+            // implements it, so the menu entry can never offer what the button would not.
+            popup.menu.findItem(R.id.menu_edit_crop_standalone).isVisible = editable
+            popup.menu.findItem(R.id.menu_rename_standalone).isVisible = binding.btnRenameCmd.isVisible
+            popup.menu.findItem(R.id.menu_autorotate_standalone).let { autoRotateItem ->
+                autoRotateItem.isVisible = hasAccelerometer
+                autoRotateItem.isChecked = viewModel.rotationSensorEnabled.value
+            }
+            // S1364: hide the whole editing section when nothing inside it applies, because Android
+            // does not remove an empty submenu - the same rule the embedded player follows.
+            popup.menu.findItem(R.id.menu_edit_section_standalone).let { section ->
+                val sub = section.subMenu
+                section.isVisible = (0 until (sub?.size() ?: 0)).any { sub?.getItem(it)?.isVisible == true }
+            }
             popup.menu.findItem(R.id.menu_youtube_music).isVisible = false // audio host only
             popup.menu.findItem(R.id.menu_lyrics).isVisible = false // audio host only
             popup.menu.findItem(R.id.menu_playback_speed).isVisible = false // audio host (video uses the control dialog)
@@ -746,6 +770,24 @@ class PhotoVideoStandaloneActivity :
                         val newAngle = viewModel.state.value.sessionRotationAngle
                         Timber.d("S0995: standalone rotate90 tap -> $newAngle")
                         photoVideoHandle.setContentRotationDegrees(newAngle)
+                        true
+                    }
+                    R.id.menu_rotate_content_ccw_standalone -> {
+                        Timber.d("S1364: standalone rotate -90 tap")
+                        viewModel.rotateSessionCounter90()
+                        photoVideoHandle.setContentRotationDegrees(viewModel.state.value.sessionRotationAngle)
+                        true
+                    }
+                    R.id.menu_edit_crop_standalone -> {
+                        cropDelegate.enterCropMode(ImageCropManager.CropMode.CROP)
+                        true
+                    }
+                    R.id.menu_rename_standalone -> {
+                        fileOperations.showStandaloneRenameDialog()
+                        true
+                    }
+                    R.id.menu_autorotate_standalone -> {
+                        viewModel.toggleRotationSensor()
                         true
                     }
                     else -> false

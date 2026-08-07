@@ -36,3 +36,5 @@ When chaining multiple PowerShell scripts from a Bash-tool call (e.g. catalog sy
 3. **Native pwsh shell, no bash:** PowerShell as the parent shell has no quoting collision; the `& { script1; if ($LASTEXITCODE -ne 0) { ... }; script2 }` pattern works as documented in CLAUDE.md.
 
 Pattern to avoid going forward: `bash -c '... pwsh -Command "& { ... \$LASTEXITCODE ... }"'` or its `Bash` tool equivalent with backslash-escaped dollars. The harness `Bash` tool runs under MSYS bash on Windows, so this trap applies to every cross-shell batch.
+
+Same root mechanism, different surface: [[feedback_bash_windows_backslash_dollar_trap]] hits the identical `\$` escape with no PowerShell involved at all - a Windows-style backslash path separator landing right before a bash `${VAR}` in a plain `cp`/`mv` command.

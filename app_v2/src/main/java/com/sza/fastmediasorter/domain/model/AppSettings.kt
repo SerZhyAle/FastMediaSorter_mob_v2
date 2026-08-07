@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.domain.model
 
+import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
+
 /**
  * Application settings model
  * Based on V2 Specification: Settings Screen
@@ -29,6 +31,11 @@ data class AppSettings(
     val showSmallControls: Boolean = false,
     val enableCalculator: Boolean = false,
     val embeddedGameEnabled: Boolean = false,
+    // S1433: the Network Monitor program is off until the user asks for it, like every other program.
+    val enableNetworkMonitor: Boolean = false,
+    // S1433: recording a GNSS track is a separate choice from opening the Monitor - on by default it
+    // would change the Play Data Safety answer without the user ever acting.
+    val recordGnssTrack: Boolean = false,
     // S0755: mirror the programs "three-dots" menu as a horizontal panel on the main window. Default
     // OFF (no behaviour change on upgrade); when ON the top three-dots button is hidden (panel replaces it).
     val showProgramsPanelInMainWindow: Boolean = false,
@@ -203,47 +210,9 @@ data class AppSettings(
     // Resolved by CaptureDestinationPolicy.resolveCameraDestination.
     val cameraPhotosDestinationResourceId: String? = null,
     val gestureOverlayEnabled: Boolean = false,
-    // S0847: four independently-toggleable edge bands (2 left, 2 right at 10-40% / 60-90% of safe height),
-    // each with the DOWN/RIGHT/UP triple - up to 12 gestures. LEFT_TOP enabled by default and seeded from
-    // the pre-S0847 single-strip bindings; the other three bands are opt-in (disabled, DO_NOT_USE).
-    val screenshotGestureZoneLeftTopEnabled: Boolean = true,
-    val screenshotGestureZoneLeftBottomEnabled: Boolean = false,
-    val screenshotGestureZoneRightTopEnabled: Boolean = false,
-    val screenshotGestureZoneRightBottomEnabled: Boolean = false,
-    // S1008: per-zone visibility of the semi-transparent grey guide on the first 4 px of the band's edge
-    // (S0724 generalised from the single left strip to all four bands). Effective only while the band is
-    // enabled and the gesture overlay is on. LEFT_TOP migrates the pre-S1008 single strip-visible flag.
-    val screenshotGestureZoneLeftTopStripVisible: Boolean = false,
-    val screenshotGestureZoneLeftBottomStripVisible: Boolean = false,
-    val screenshotGestureZoneRightTopStripVisible: Boolean = false,
-    val screenshotGestureZoneRightBottomStripVisible: Boolean = false,
-    val screenshotGestureLeftTopDown: ScreenshotGestureAction = ScreenshotGestureAction.SILENT_SCREENSHOT,
-    val screenshotGestureLeftTopRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
-    val screenshotGestureLeftTopUp: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
-    val screenshotGestureLeftBottomDown: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
-    val screenshotGestureLeftBottomRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
-    val screenshotGestureLeftBottomUp: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
-    val screenshotGestureRightTopDown: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
-    val screenshotGestureRightTopRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
-    val screenshotGestureRightTopUp: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
-    val screenshotGestureRightBottomDown: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
-    val screenshotGestureRightBottomRight: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
-    val screenshotGestureRightBottomUp: ScreenshotGestureAction = ScreenshotGestureAction.DO_NOT_USE,
-    // S1038: generic per-slot string payload, one per zone x direction slot (mirrors the 12 action
-    // fields above). Value-agnostic and shared per ADR-3: it holds the target URL for the S1038
-    // "open URL" action and the app package for the S1036 app-selection action. Empty string = unset.
-    val screenshotGesturePayloadLeftTopDown: String = "",
-    val screenshotGesturePayloadLeftTopRight: String = "",
-    val screenshotGesturePayloadLeftTopUp: String = "",
-    val screenshotGesturePayloadLeftBottomDown: String = "",
-    val screenshotGesturePayloadLeftBottomRight: String = "",
-    val screenshotGesturePayloadLeftBottomUp: String = "",
-    val screenshotGesturePayloadRightTopDown: String = "",
-    val screenshotGesturePayloadRightTopRight: String = "",
-    val screenshotGesturePayloadRightTopUp: String = "",
-    val screenshotGesturePayloadRightBottomDown: String = "",
-    val screenshotGesturePayloadRightBottomRight: String = "",
-    val screenshotGesturePayloadRightBottomUp: String = "",
+    // S1470: zone/action/payload fields live in ScreenshotGestureSettings - AppSettings' synthetic
+    // all-defaults constructor was one field short of the JVM's 255-argument-slot ceiling.
+    val screenshotGesture: ScreenshotGestureSettings = ScreenshotGestureSettings(),
     val screenshotDestinationResourceId: String? = null,
     // S0468: also place each gesture screenshot on the system clipboard, ready to paste elsewhere.
     val copyScreenshotToClipboard: Boolean = false,
@@ -416,7 +385,11 @@ data class AppSettings(
     val launcherWallpaperMode: String = LAUNCHER_WALLPAPER_BRANDED,
     // S1101: absolute path of the user image copied into app-private storage; empty unless
     // [launcherWallpaperMode] is [LAUNCHER_WALLPAPER_IMAGE].
-    val launcherWallpaperImagePath: String = ""
+    val launcherWallpaperImagePath: String = "",
+    // S1401: the all-apps screen's chosen order, stored as an [InstalledAppSortOrder] name rather than
+    // an ordinal so reordering the enum later cannot silently repoint a saved preference.
+    val allAppsSortOrder: String = InstalledAppSortOrder.LABEL.name,
+    val allAppsSortDescending: Boolean = false
 ) {
     companion object {
         /** S0404: selectable launcher grid densities (see [launcherDensityFactor]). */
@@ -424,6 +397,9 @@ data class AppSettings(
 
         /** S1101: branded procedural waves-and-particles animation - the default desktop wallpaper. */
         const val LAUNCHER_WALLPAPER_BRANDED = "BRANDED"
+
+        /** S1434: one fresh, motionless frame of the branded waves-and-particles wallpaper. */
+        const val LAUNCHER_WALLPAPER_STATIC_STRIPES = "STATIC_STRIPES"
 
         /** S1101: flat theme surface, the pre-S1101 look. */
         const val LAUNCHER_WALLPAPER_NONE = "NONE"
@@ -434,6 +410,7 @@ data class AppSettings(
         /** S1101: wallpaper tokens in the order the settings row offers them. */
         val LAUNCHER_WALLPAPER_MODES = listOf(
             LAUNCHER_WALLPAPER_BRANDED,
+            LAUNCHER_WALLPAPER_STATIC_STRIPES,
             LAUNCHER_WALLPAPER_NONE,
             LAUNCHER_WALLPAPER_IMAGE,
         )
@@ -464,18 +441,18 @@ data class AppSettings(
 
     /** S0847: whether the given edge band is enabled for gesture detection. */
     fun screenshotGestureZoneEnabled(zone: ScreenshotGestureZone): Boolean = when (zone) {
-        ScreenshotGestureZone.LEFT_TOP -> screenshotGestureZoneLeftTopEnabled
-        ScreenshotGestureZone.LEFT_BOTTOM -> screenshotGestureZoneLeftBottomEnabled
-        ScreenshotGestureZone.RIGHT_TOP -> screenshotGestureZoneRightTopEnabled
-        ScreenshotGestureZone.RIGHT_BOTTOM -> screenshotGestureZoneRightBottomEnabled
+        ScreenshotGestureZone.LEFT_TOP -> screenshotGesture.zoneLeftTopEnabled
+        ScreenshotGestureZone.LEFT_BOTTOM -> screenshotGesture.zoneLeftBottomEnabled
+        ScreenshotGestureZone.RIGHT_TOP -> screenshotGesture.zoneRightTopEnabled
+        ScreenshotGestureZone.RIGHT_BOTTOM -> screenshotGesture.zoneRightBottomEnabled
     }
 
     /** S1008: whether the given edge band shows the grey strip guide (visible only while the band is enabled). */
     fun screenshotGestureZoneStripVisible(zone: ScreenshotGestureZone): Boolean = when (zone) {
-        ScreenshotGestureZone.LEFT_TOP -> screenshotGestureZoneLeftTopStripVisible
-        ScreenshotGestureZone.LEFT_BOTTOM -> screenshotGestureZoneLeftBottomStripVisible
-        ScreenshotGestureZone.RIGHT_TOP -> screenshotGestureZoneRightTopStripVisible
-        ScreenshotGestureZone.RIGHT_BOTTOM -> screenshotGestureZoneRightBottomStripVisible
+        ScreenshotGestureZone.LEFT_TOP -> screenshotGesture.zoneLeftTopStripVisible
+        ScreenshotGestureZone.LEFT_BOTTOM -> screenshotGesture.zoneLeftBottomStripVisible
+        ScreenshotGestureZone.RIGHT_TOP -> screenshotGesture.zoneRightTopStripVisible
+        ScreenshotGestureZone.RIGHT_BOTTOM -> screenshotGesture.zoneRightBottomStripVisible
     }
 
     /** S0847: resolves the action bound to a specific edge band + drag direction (one of 12 slots). */
@@ -484,24 +461,24 @@ data class AppSettings(
         direction: ScreenshotGestureDirection
     ): ScreenshotGestureAction = when (zone) {
         ScreenshotGestureZone.LEFT_TOP -> when (direction) {
-            ScreenshotGestureDirection.DOWN -> screenshotGestureLeftTopDown
-            ScreenshotGestureDirection.RIGHT -> screenshotGestureLeftTopRight
-            ScreenshotGestureDirection.UP -> screenshotGestureLeftTopUp
+            ScreenshotGestureDirection.DOWN -> screenshotGesture.leftTopDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGesture.leftTopRight
+            ScreenshotGestureDirection.UP -> screenshotGesture.leftTopUp
         }
         ScreenshotGestureZone.LEFT_BOTTOM -> when (direction) {
-            ScreenshotGestureDirection.DOWN -> screenshotGestureLeftBottomDown
-            ScreenshotGestureDirection.RIGHT -> screenshotGestureLeftBottomRight
-            ScreenshotGestureDirection.UP -> screenshotGestureLeftBottomUp
+            ScreenshotGestureDirection.DOWN -> screenshotGesture.leftBottomDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGesture.leftBottomRight
+            ScreenshotGestureDirection.UP -> screenshotGesture.leftBottomUp
         }
         ScreenshotGestureZone.RIGHT_TOP -> when (direction) {
-            ScreenshotGestureDirection.DOWN -> screenshotGestureRightTopDown
-            ScreenshotGestureDirection.RIGHT -> screenshotGestureRightTopRight
-            ScreenshotGestureDirection.UP -> screenshotGestureRightTopUp
+            ScreenshotGestureDirection.DOWN -> screenshotGesture.rightTopDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGesture.rightTopRight
+            ScreenshotGestureDirection.UP -> screenshotGesture.rightTopUp
         }
         ScreenshotGestureZone.RIGHT_BOTTOM -> when (direction) {
-            ScreenshotGestureDirection.DOWN -> screenshotGestureRightBottomDown
-            ScreenshotGestureDirection.RIGHT -> screenshotGestureRightBottomRight
-            ScreenshotGestureDirection.UP -> screenshotGestureRightBottomUp
+            ScreenshotGestureDirection.DOWN -> screenshotGesture.rightBottomDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGesture.rightBottomRight
+            ScreenshotGestureDirection.UP -> screenshotGesture.rightBottomUp
         }
     }
 
@@ -515,24 +492,24 @@ data class AppSettings(
         direction: ScreenshotGestureDirection
     ): String = when (zone) {
         ScreenshotGestureZone.LEFT_TOP -> when (direction) {
-            ScreenshotGestureDirection.DOWN -> screenshotGesturePayloadLeftTopDown
-            ScreenshotGestureDirection.RIGHT -> screenshotGesturePayloadLeftTopRight
-            ScreenshotGestureDirection.UP -> screenshotGesturePayloadLeftTopUp
+            ScreenshotGestureDirection.DOWN -> screenshotGesture.payloadLeftTopDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGesture.payloadLeftTopRight
+            ScreenshotGestureDirection.UP -> screenshotGesture.payloadLeftTopUp
         }
         ScreenshotGestureZone.LEFT_BOTTOM -> when (direction) {
-            ScreenshotGestureDirection.DOWN -> screenshotGesturePayloadLeftBottomDown
-            ScreenshotGestureDirection.RIGHT -> screenshotGesturePayloadLeftBottomRight
-            ScreenshotGestureDirection.UP -> screenshotGesturePayloadLeftBottomUp
+            ScreenshotGestureDirection.DOWN -> screenshotGesture.payloadLeftBottomDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGesture.payloadLeftBottomRight
+            ScreenshotGestureDirection.UP -> screenshotGesture.payloadLeftBottomUp
         }
         ScreenshotGestureZone.RIGHT_TOP -> when (direction) {
-            ScreenshotGestureDirection.DOWN -> screenshotGesturePayloadRightTopDown
-            ScreenshotGestureDirection.RIGHT -> screenshotGesturePayloadRightTopRight
-            ScreenshotGestureDirection.UP -> screenshotGesturePayloadRightTopUp
+            ScreenshotGestureDirection.DOWN -> screenshotGesture.payloadRightTopDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGesture.payloadRightTopRight
+            ScreenshotGestureDirection.UP -> screenshotGesture.payloadRightTopUp
         }
         ScreenshotGestureZone.RIGHT_BOTTOM -> when (direction) {
-            ScreenshotGestureDirection.DOWN -> screenshotGesturePayloadRightBottomDown
-            ScreenshotGestureDirection.RIGHT -> screenshotGesturePayloadRightBottomRight
-            ScreenshotGestureDirection.UP -> screenshotGesturePayloadRightBottomUp
+            ScreenshotGestureDirection.DOWN -> screenshotGesture.payloadRightBottomDown
+            ScreenshotGestureDirection.RIGHT -> screenshotGesture.payloadRightBottomRight
+            ScreenshotGestureDirection.UP -> screenshotGesture.payloadRightBottomUp
         }
     }
 }

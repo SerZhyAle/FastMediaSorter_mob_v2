@@ -379,6 +379,26 @@
     "ru": "Настройки, определяющие общий вид и стиль взаимодействия с приложением.",
     "uk": "Налаштування, що визначають загальний вигляд і стиль взаємодії з застосунком."
   },
+  "headerLauncherDesktop": {
+    "en": "Settings for the launcher desktop itself: icon grid density, the edit lock and the wallpaper.",
+    "ru": "Настройки самого рабочего стола лаунчера: плотность сетки значков, блокировка правки и обои.",
+    "uk": "Налаштування самого робочого стола лаунчера: щільність сітки значків, блокування редагування та шпалери."
+  },
+  "headerLauncherSystem": {
+    "en": "Entry to the Android home-app chooser, where the system launcher is selected.",
+    "ru": "Переход к системному выбору приложения главного экрана, где назначается лаунчер.",
+    "uk": "Перехід до системного вибору застосунку головного екрана, де призначається лаунчер."
+  },
+  "headerLauncherTaskbar": {
+    "en": "Settings for the launcher taskbar at the bottom: recent and pinned apps, and which icons its tray shows.",
+    "ru": "Настройки нижней панели задач лаунчера: недавние и закреплённые приложения и состав значков трея.",
+    "uk": "Налаштування нижньої панелі задач лаунчера: нещодавні та закріплені застосунки і склад значків трея."
+  },
+  "headerLauncherTopBar": {
+    "en": "Settings for the launcher's own top strip, which can replace the system status area.",
+    "ru": "Настройки собственной верхней полосы лаунчера, которая может замещать системную область статуса.",
+    "uk": "Налаштування власної верхньої смуги лаунчера, яка може замінювати системну область стану."
+  },
   "headerMainWindowInterface": {
     "en": "Settings that control which optional panels and menus appear on the main window.",
     "ru": "Настройки, определяющие, какие необязательные панели и меню отображаются на главном окне.",
@@ -1215,9 +1235,9 @@
     "uk": "Показує рівень сигналу другої SIM у треї лаунчера. Потрібен дозвіл на читання стану телефона; без нього або на пристрої з однією SIM індикатора немає."
   },
   "rowLauncherWallpaper": {
-    "en": "Chooses the launcher desktop's wallpaper.",
-    "ru": "Выбирает заставку рабочего стола лаунчера.",
-    "uk": "Вибирає заставку робочого стола лаунчера."
+    "en": "Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, or your own image.",
+    "ru": "Выбирает заставку рабочего стола лаунчера: фирменную анимацию, застывший кадр в стиле полос, который обновляется при возвращении в лаунчер, пустой фон или своё изображение.",
+    "uk": "Вибирає заставку робочого стола лаунчера: фірмову анімацію, застиглий кадр у стилі смуг, що оновлюється після повернення до лаунчера, порожній фон або власне зображення."
   },
   "rowPrimaryMediaPlayer": {
     "en": "Registers the app as the system media handler, shown in \"Open with\" and for hardware media buttons.",

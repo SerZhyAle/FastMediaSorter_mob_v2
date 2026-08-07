@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePinManager
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
@@ -37,6 +38,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private val viewModel: AddResourceViewModel by viewModels()
 
     private var copyResourceId: Long? = null
+    private var pinShortcutOnCreate: Boolean = false
 
     private val keyboardDelegate = AddResourceKeyboardDelegate(object : AddResourceKeyboardDelegate.Callback {
         override fun navigateBack() { onBackPressedDispatcher.onBackPressed() }
@@ -62,6 +64,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     @Inject lateinit var oneDriveClient: dagger.Lazy<OneDriveRestClient>
     @Inject lateinit var remoteSourceGate: RemoteSourceAvailabilityGate
     @Inject lateinit var mediaCapabilities: MediaCapabilities
+
+    @Inject lateinit var createdResourcePinManager: CreatedResourcePinManager
 
     private lateinit var connectionManager: AddResourceConnectionManager
     private lateinit var scanManager: AddResourceScanManager
@@ -137,6 +141,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
 
         copyResourceId = intent.getLongExtra(EXTRA_COPY_RESOURCE_ID, -1L).takeIf { it != -1L }
+        pinShortcutOnCreate = intent.getBooleanExtra(EXTRA_PIN_SHORTCUT_ON_CREATE, false)
 
         val preselectedTab = intent.getStringExtra(EXTRA_PRESELECTED_TAB)?.let {
             try { com.sza.fastmediasorter.ui.main.ResourceTab.valueOf(it) }
@@ -428,7 +433,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     Timber.d("LoadResourceForCopy event: ${event.resource.name}, type=${event.resource.type}")
                     helper.preFillResourceData(event.resource, event.username, event.password, event.domain, event.sshKey, event.sshPassphrase)
                 }
-                AddResourceEvent.ResourcesAdded -> finish()
+                is AddResourceEvent.ResourcesAdded -> routeResourcesAdded(event.createdResourceIds)
                 AddResourceEvent.ShowNoSharesFound -> connectionManager.showNoSharesFoundDialog()
                 is AddResourceEvent.ShowSharePicker -> connectionManager.showSharePickerDialog(event.server, event.shares, event.manualShares)
                 AddResourceEvent.ShowLocalNetworkPermission -> connectionManager.showLocalNetworkPermissionRationale()
@@ -436,6 +441,30 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
 
         connectionManager.observeAuthEvents()
+    }
+
+    /**
+     * S1423: closes the screen, pinning a shortcut first when the caller asked for one. `finish()`
+     * runs after the await, never before - finishing cancels `lifecycleScope` and would drop the
+     * pin request. Silence on a null message is deliberate: the resource-added toast has already
+     * fired and the shortcut appearing is the confirmation.
+     */
+    private fun routeResourcesAdded(createdResourceIds: List<Long>) {
+        Timber.d("S1423: created=%d pinRequested=%b", createdResourceIds.size, pinShortcutOnCreate)
+        if (!pinShortcutOnCreate) {
+            finish()
+            return
+        }
+        lifecycleScope.launch {
+            val message = createdResourcePinManager.pinCreatedResources(
+                context = this@AddResourceActivity,
+                resourceIds = createdResourceIds
+            )
+            if (message != null) {
+                Toast.makeText(this@AddResourceActivity, message, Toast.LENGTH_LONG).show()
+            }
+            finish()
+        }
     }
 
     override fun onResumeWithViews() {
@@ -524,12 +553,25 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     companion object {
         private const val EXTRA_COPY_RESOURCE_ID = "extra_copy_resource_id"
         private const val EXTRA_PRESELECTED_TAB = "extra_preselected_tab"
+        private const val EXTRA_PIN_SHORTCUT_ON_CREATE = "extra_pin_shortcut_on_create"
         private const val DEFAULT_SMB_PORT = 445
 
-        fun createIntent(context: Context, copyResourceId: Long? = null, preselectedTab: com.sza.fastmediasorter.ui.main.ResourceTab? = null): Intent {
+        /**
+         * S1423: [pinShortcutOnCreate] defaults to off so creation from inside the app keeps pinning
+         * nothing; only a home-screen entry point opts in.
+         */
+        fun createIntent(
+            context: Context,
+            copyResourceId: Long? = null,
+            preselectedTab: com.sza.fastmediasorter.ui.main.ResourceTab? = null,
+            pinShortcutOnCreate: Boolean = false
+        ): Intent {
             return Intent(context, AddResourceActivity::class.java).apply {
                 copyResourceId?.let { putExtra(EXTRA_COPY_RESOURCE_ID, it) }
                 preselectedTab?.let { putExtra(EXTRA_PRESELECTED_TAB, it.name) }
+                if (pinShortcutOnCreate) {
+                    putExtra(EXTRA_PIN_SHORTCUT_ON_CREATE, true)
+                }
             }
         }
     }

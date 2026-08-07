@@ -7,11 +7,17 @@
     <dimen name="launcher_taskbar_item_spacing">6dp</dimen>
     <dimen name="launcher_tray_icon_size">18dp</dimen>
 
-    <!-- S0404: the Start menu's all-apps grid is bounded on purpose. A wrap_content RecyclerView inside
-         a NestedScrollView is measured UNSPECIFIED, which makes the grid lay out every installed app in
-         one main-thread pass and recycle nothing. A fixed height restores recycling; the grid scrolls
-         itself. -->
-    <dimen name="launcher_start_menu_apps_height">300dp</dimen>
+    <!-- S1421: the freed system status band. Constant by owner ruling - the strip neither collapses nor
+         resizes when its content changes, so its height cannot come from the content. Matched to the
+         status bar it replaces (24dp) plus room for a chip's touch feedback. -->
+    <dimen name="launcher_status_strip_height">28dp</dimen>
+
+    <!-- S1421: one signal chip in that band. Below the 48dp touch-target minimum knowingly, for the same
+         reason the gadget action buttons are: the band is 28dp tall by the ruling above, and a 48dp control
+         cannot live inside it at all. The chip is the largest square the band holds with breathing room. -->
+    <dimen name="launcher_signal_chip_size">24dp</dimen>
+    <dimen name="launcher_signal_chip_padding">3dp</dimen>
+    <dimen name="launcher_signal_chip_spacing">4dp</dimen>
 
     <!-- S0404: folder-preview thumbnail decode size. Glide decodes at display size, not source size -
          four full-resolution photos on the home screen would be a needless multi-MB decode. -->
@@ -30,6 +36,10 @@
     <!-- S0427: floor width of the quick-actions popup. A desktop cell can be ~63dp across, and a popup
          that narrow would ellipsize every action label to two words. -->
     <dimen name="launcher_shortcut_popup_width">220dp</dimen>
+
+    <!-- S1401: smallest comfortable all-apps cell. The screen divides its measured width by this, so
+         one layout serves both orientations and a wide screen simply gets more columns. -->
+    <dimen name="launcher_all_apps_cell_min_width">88dp</dimen>
 
     <!-- S1173: contour width for a shortcut cell's icon and caption, overriding the shared 2dp default.
          That default is sized for large camera overlay labels; on a 12sp caption it thickens the glyph

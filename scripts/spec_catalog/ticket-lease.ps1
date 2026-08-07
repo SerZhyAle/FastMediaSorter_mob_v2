@@ -104,16 +104,43 @@ function Get-LeaseAgeMinutes {
     return ((Get-Date) - $claimed).TotalMinutes
 }
 
+function Test-LeaseOwnerHoldsLock {
+    <#
+        S1448. A session that holds CODE.LOCK or BUILD.LOCK with a reason naming this ticket id is
+        working this ticket right now - that is direct proof, stronger than any inference from a
+        transcript timestamp. Observed live: preflight offered S1436 as unleased while the owning
+        session held CODE.LOCK with reason '/spec-dev S1436 step 06.2', and a sibling trusting that
+        would have written the same ticket concurrently - exactly what the lease exists to stop.
+    #>
+    param([Parameter(Mandatory)]$Lease)
+
+    $ownerSessionId = [string]$Lease.sessionId
+    $ticketId = [string]$Lease.id
+    if ([string]::IsNullOrWhiteSpace($ownerSessionId) -or [string]::IsNullOrWhiteSpace($ticketId)) { return $false }
+
+    foreach ($lockName in @('Code', 'Build')) {
+        $lock = Get-AgentLockStatus -Name $lockName
+        if (-not $lock.Exists -or $lock.Stale) { continue }
+        if ([string]$lock.SessionId -ne $ownerSessionId) { continue }
+        if ([string]$lock.Reason -match [regex]::Escape($ticketId)) { return $true }
+    }
+    return $false
+}
+
 function Get-LeaseLiveness {
     # Get-AgentTicketLiveness falls back to $Ticket.enqueuedAt when the transcript is unreachable.
     # The lease's own field is claimedAt, so shim it across rather than storing the value twice.
+    # S1448 adds lastSeenAt as the strongest signal, matching the queue-ticket precedence order.
     param([Parameter(Mandatory)]$Lease)
     $shim = [pscustomobject]@{
         sessionId      = $Lease.sessionId
         transcriptPath = $Lease.transcriptPath
+        lastSeenAt     = $Lease.lastSeenAt
         enqueuedAt     = $Lease.claimedAt
     }
-    return (Get-AgentTicketLiveness -Ticket $shim -StaleMinutes $StaleMinutes)
+    $verdict = Get-AgentTicketLiveness -Ticket $shim -StaleMinutes $StaleMinutes
+    if ($verdict -eq 'foreign-stale' -and (Test-LeaseOwnerHoldsLock -Lease $Lease)) { return 'foreign-live' }
+    return $verdict
 }
 
 function Invoke-LeaseSweep {
@@ -189,6 +216,9 @@ function Write-LeaseFile {
         pid            = $PID
         reason         = $Reason
         claimedAt      = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+        # S1448: refreshed by Update-LeaseHeartbeat on every verb this session runs against its
+        # own lease. claimedAt stays frozen so the 480-minute ceiling cannot be extended.
+        lastSeenAt     = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
         transcriptPath = (Get-AgentSessionTranscriptPath -SessionId $SessionId)
     }
     $text = ($payload | ConvertTo-Json -Depth 4 -Compress)
@@ -203,7 +233,31 @@ function Write-LeaseFile {
     finally { $stream.Dispose() }
 }
 
+function Update-LeaseHeartbeat {
+    <#
+        S1448. Refresh lastSeenAt on every lease this session owns, so a session that is plainly
+        active - it just ran a lease verb - is never judged gone. Best-effort and write-then-rename:
+        a reader that caught a half-written lease would treat it as unreadable.
+    #>
+    param([Parameter(Mandatory)][string]$SessionId)
+
+    foreach ($file in (Get-ChildItem -LiteralPath $leaseDir -Filter '*.json' -ErrorAction SilentlyContinue)) {
+        $lease = Read-Lease -Path $file.FullName
+        if ($null -eq $lease -or [string]$lease.sessionId -ne $SessionId) { continue }
+        try {
+            $lease | Add-Member -NotePropertyName 'lastSeenAt' -NotePropertyValue ([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()) -Force
+            $staging = "$($file.FullName).tmp-$PID"
+            Set-Content -LiteralPath $staging -Value ($lease | ConvertTo-Json -Depth 4 -Compress) -Encoding utf8NoBOM -ErrorAction Stop
+            Move-Item -LiteralPath $staging -Destination $file.FullName -Force -ErrorAction Stop
+        }
+        catch {
+            # A missed refresh costs a delay, never a stuck ticket - the next verb retries.
+        }
+    }
+}
+
 $sessionId = Get-SessionId
+Update-LeaseHeartbeat -SessionId $sessionId
 
 switch ($Verb) {
 

@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -58,7 +59,7 @@ class GeneralSettingsCacheHelper(
                 }
             }
             .setCancelable(false)
-            .show()
+            .showBoundTo(fragment)
     }
 
     fun updateCacheSize() {
@@ -100,7 +101,7 @@ class GeneralSettingsCacheHelper(
                 else Toast.makeText(fragment.requireContext(), R.string.cache_size_already_optimal, Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     fun clearCache() {
@@ -165,7 +166,7 @@ class GeneralSettingsCacheHelper(
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun showOptimalCacheSizeSuggestion(optimalSizeMb: Int) {
@@ -207,7 +208,7 @@ class GeneralSettingsCacheHelper(
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun calculateDirectorySize(directory: java.io.File): Long {

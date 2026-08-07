@@ -102,7 +102,7 @@ Two conditional obligations that apply while writing the strategic file in Proce
 
 Block states (any active spec transitions in/out via `update.ps1 -Status Block...`):
 
-- `BlockByOtherTask`  - depends on another `Sxxxx`; record dependency in §10.
+- `BlockByOtherTask`  - depends on another `Sxxxx`; record it as a `Блокер: Sxxxx` / `Blocker: Sxxxx` token in §10 or in the `-StatusNote`. A bare mention in §10 prose is a relation, not a dependency, and is ignored by the tooling (S1482).
 - `BlockNeedUserTest` - implementation done, awaiting hands-on verification.
 - `BlockQuestions`    - awaiting user clarification (turn relevant §6 items to `Open`).
 - `BlockExternal`     - waiting on library release, hardware, or third party.

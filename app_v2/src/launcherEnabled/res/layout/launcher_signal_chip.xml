@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1421: one active signal in the status strip. No layout_land twin: the chip is square inside a band
+     whose height is the same in both orientations, and the orientation-dependent part is the cutout gap,
+     which the row measures from window insets at runtime.
+
+     contentDescription is set from code, not here - it carries the signal's own label. -->
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/launcherSignalIcon"
+    android:layout_width="@dimen/launcher_signal_chip_size"
+    android:layout_height="@dimen/launcher_signal_chip_size"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    android:clickable="true"
+    android:focusable="true"
+    android:padding="@dimen/launcher_signal_chip_padding"
+    android:scaleType="fitCenter"
+    android:tint="?attr/colorOnSurface" />

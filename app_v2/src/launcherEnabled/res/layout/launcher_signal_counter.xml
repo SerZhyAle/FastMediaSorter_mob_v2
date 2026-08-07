@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1421: the "+N" chip that stands for every signal the row could not fit. A TextView rather than the
+     ImageView chip beside it, because the count is the whole content - the owner chose the one overflow
+     rule that loses no signal, and a glyph could not carry how many are behind it. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/launcherSignalOverflow"
+    android:layout_width="@dimen/launcher_signal_chip_size"
+    android:layout_height="@dimen/launcher_signal_chip_size"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center"
+    android:maxLines="1"
+    android:textColor="?attr/colorOnSurface"
+    android:textSize="@dimen/launcher_cell_label_text_size" />

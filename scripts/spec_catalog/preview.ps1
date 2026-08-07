@@ -33,8 +33,9 @@
 #                                         # / "blocker-unresolvable" (never research-heavy)
 #     "auto_skip_reason": null,           # human-readable reason
 #     "depends_on": [ {"id":"S0241","status":"Verified"}, ... ],
-#                                         # sourced from a **Depends on:** line, a section 10, or the
-#                                         # catalog statusNote's `Blocker: Sxxxx` token, in that order
+#                                         # sourced from a **Depends on:** line, else from every
+#                                         # `Blocker:` / `Блокер:` token in section 10 and in the
+#                                         # catalog statusNote. Section 10 prose is NOT scraped (S1482)
 #     "research_open_count": 5
 #   }
 
@@ -194,45 +195,48 @@ finally {
     Pop-Location
 }
 
-# 8. Depends-on resolution. Three sources, because the spec files do not agree on one:
-# a `**Depends on:**` line, a `## 10.` section, or the catalog record's statusNote.
-# S1073 measured all 7 BlockByOtherTask specs: 0 use the Depends-on line, 3 use §10, and 4 record the
-# blocker ONLY in statusNote - so §10 is a minority convention, not the rule, and reading it alone
-# left those 4 with an empty $dependsOn (see the auto-skip verdict below for why that mattered).
+# 8. Depends-on resolution. Only sources whose FORM states the direction, because "related to" is not
+# "blocked by" (S1482). Two of them: a `**Depends on:**` line, else every explicit `Blocker:` /
+# `Блокер:` token in the `## 10.` section and in the catalog record's statusNote.
+#
+# Section 10 is no longer scraped for bare ids. Its heading is "Связи с другими спеками" and it lists
+# consumers, successors and neighbours next to blockers: 98 spec files yield ids there against 15 with
+# a real Depends-on line, so the scrape made a producer look blocked by its own consumers. Direction is
+# not recoverable from that prose either - of the 20 section-10 lines containing "блокир", most use it
+# to DENY a dependency ("не блокирует", "блокирующей зависимости нет", "зависимость снята"), so a
+# keyword filter would invert the arrow exactly where the author took care to say there is none.
+#
+# The token source is S1073's, promoted ahead of the section body and widened: `Matches` not `Match`,
+# so a ticket recording two blockers no longer loses the second, and the same token is honoured in the
+# spec file as well as in the note. Only that token, never every Sxxxx around it: S0426-S0429 each
+# mention two ids ("..Blocker: S0404" plus a passing "for S0429, external OAuth/CASA cost"), so
+# scraping all of them names a sibling as a blocker - the right verdict for the wrong reason.
 $dependsOn = @()
+$depIds = @()
 $depMatch = [regex]::Match($specText, '(?ms)\*\*Depends on:\*\*\s*(.+?)(?:^\*\*|\r?\n##\s)')
-if (-not $depMatch.Success) {
-    # Alternative: §10 Связи / Related Specs section
-    $sec10Match = [regex]::Match($specText, '(?ms)^##\s+10\.[^\n]*\n(.+?)(?:\r?\n##\s|\z)')
-    if ($sec10Match.Success) { $depMatch = $sec10Match }
-}
-# S1073: last resort - the explicit `Blocker: Sxxxx` token in the catalog statusNote. Only that token,
-# never every Sxxxx in the note: S0426-S0429 each mention two ids ("...Blocker: S0404" plus a passing
-# "for S0429, external OAuth/CASA cost"), so scraping all of them names a sibling as a blocker - the
-# right verdict for the wrong reason.
-if (-not $depMatch.Success -and $rec.statusNote) {
-    $blockerMatch = [regex]::Match([string]$rec.statusNote, 'Blocker:\s*(S\d{4})')
-    if ($blockerMatch.Success) { $depMatch = $blockerMatch }
-}
 if ($depMatch.Success) {
-    $depText = $depMatch.Groups[1].Value
-    $depIds = [regex]::Matches($depText, '\bS\d{4}\b') |
-        ForEach-Object { $_.Value } |
-        Sort-Object -Unique |
-        Where-Object { $_ -ne $Id }
-    foreach ($dep in $depIds) {
-        $depJson = & $pwshExe -File $selectPath -Id $dep -Format json 2>$null
-        if ($depJson -and $depJson -ne '[]') {
-            $depRec = $depJson | ConvertFrom-Json
-            if ($depRec -is [array]) { $depRec = $depRec[0] }
-            $dependsOn += [PSCustomObject]@{
-                id     = $dep
-                status = $depRec.status
-            }
+    $depIds = @([regex]::Matches($depMatch.Groups[1].Value, '\bS\d{4}\b') | ForEach-Object { $_.Value })
+}
+else {
+    $tokenText = [string]$rec.statusNote
+    $sec10Match = [regex]::Match($specText, '(?ms)^##\s+10\.[^\n]*\n(.+?)(?:\r?\n##\s|\z)')
+    if ($sec10Match.Success) { $tokenText = $sec10Match.Groups[1].Value + "`n" + $tokenText }
+    $depIds = @([regex]::Matches($tokenText, '(?i)(?:Blocker|Блокер)\s*:\s*\**\s*(S\d{4})') |
+        ForEach-Object { $_.Groups[1].Value })
+}
+$depIds = @($depIds | Sort-Object -Unique | Where-Object { $_ -ne $Id })
+foreach ($dep in $depIds) {
+    $depJson = & $pwshExe -File $selectPath -Id $dep -Format json 2>$null
+    if ($depJson -and $depJson -ne '[]') {
+        $depRec = $depJson | ConvertFrom-Json
+        if ($depRec -is [array]) { $depRec = $depRec[0] }
+        $dependsOn += [PSCustomObject]@{
+            id     = $dep
+            status = $depRec.status
         }
-        else {
-            $dependsOn += [PSCustomObject]@{ id = $dep; status = '?' }
-        }
+    }
+    else {
+        $dependsOn += [PSCustomObject]@{ id = $dep; status = '?' }
     }
 }
 
@@ -273,8 +277,10 @@ elseif ($rec.status -eq 'BlockByOtherTask') {
     $unverifiedBlockers = @($dependsOn | Where-Object { $_.status -ne 'Verified' -and $_.status -ne 'Archived' })
     if ($dependsOn.Count -eq 0) {
         $autoSkip = 'blocker-unresolvable'
-        $autoSkipReason = 'Status is BlockByOtherTask but no blocker is recorded in a ' +
-        '**Depends on:** line, a section 10, or a `Blocker: Sxxxx` token in the statusNote'
+        $autoSkipReason = 'Status is BlockByOtherTask but no blocker is recorded in a directional ' +
+        'channel: a `**Depends on:**` line, or a `Blocker: Sxxxx` token in section 10 or in the ' +
+        'statusNote. Naming the ticket in section 10 prose is not enough - that section records ' +
+        'neighbours and consumers too, so it cannot state which way the dependency points'
     }
     elseif ($unverifiedBlockers.Count -gt 0) {
         $autoSkip = 'blocker-not-verified'

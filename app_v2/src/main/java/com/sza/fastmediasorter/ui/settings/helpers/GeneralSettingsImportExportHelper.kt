@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.dialog.SimpleValueChoiceDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -35,7 +36,7 @@ class GeneralSettingsImportExportHelper(
             .setMessage(R.string.export_settings_confirm_message)
             .setPositiveButton(android.R.string.ok) { _, _ -> exportSettings() }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     fun showImportSettingsConfirmation() {
@@ -44,7 +45,7 @@ class GeneralSettingsImportExportHelper(
             .setMessage(R.string.import_settings_confirm_message)
             .setPositiveButton(android.R.string.ok) { _, _ -> importSettings() }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     fun importSettingsFromUri(uri: android.net.Uri) {
@@ -149,6 +150,6 @@ class GeneralSettingsImportExportHelper(
             }
             .setNegativeButton(R.string.restart_later) { dialog, _ -> dialog.dismiss() }
             .setCancelable(false)
-            .show()
+            .showBoundTo(fragment)
     }
 }

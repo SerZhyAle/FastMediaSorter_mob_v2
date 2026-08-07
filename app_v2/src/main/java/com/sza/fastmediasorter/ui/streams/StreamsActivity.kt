@@ -95,6 +95,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     @Inject
     lateinit var deliverableInventory: DeliverableInventory
 
+    // S1483: supplies the artwork payload size the offer dialog states before an 8-11 MB download.
+    @Inject
+    lateinit var artworkManifest: com.sza.fastmediasorter.domain.delivery.ArtworkManifestSource
+
     // S1373: the compile-time "does this build ship background audio" axis has one sanctioned reader
     // (CLAUDE.md Rule 14). Reading the build flag here instead is what the rule forbids in shared code.
     @Inject
@@ -112,6 +116,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     @Inject
     lateinit var streamFrameIngestor: StreamFrameIngestor
+
+    // S1469: synchronous connectivity snapshot, asked before each snapshot request so a device that
+    // opens this screen before its network is up does not sweep the whole visible list into timeouts.
+    @Inject
+    lateinit var networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 
     // S0668: decodes a tile index into a 32 px bitmap, re-reading the atlas file on each (re)decode so
     // invalidate() after an import picks up the new atlas. Lazy so it is built after Hilt field injection.
@@ -161,6 +170,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             lifecycleScope,
             DeliverableSet.CHANNEL_PREVIEW_ATLAS,
             R.string.streams_atlas_prompt_message,
+            artworkManifest,
             ::reloadAtlasPreviews,
         )
     }
@@ -173,6 +183,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             lifecycleScope,
             DeliverableSet.STREAM_LOGO_ATLAS,
             R.string.streams_logo_prompt_message,
+            artworkManifest,
             ::reloadLogoTiles,
         )
     }
@@ -236,6 +247,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             lifecycleScope,
             streamFrameIngestor,
             hostProvider = { binding.streamCaptureHost },
+            hasNetwork = { networkContextAnalyzer.hasAnyNetwork() },
         )
     }
 
@@ -276,6 +288,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             lifecycleScope,
             streamFrameIngestor,
             hostProvider = { binding.streamCaptureHostPinned },
+            hasNetwork = { networkContextAnalyzer.hasAnyNetwork() },
         )
     }
 
@@ -664,11 +677,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                         ),
                         Toast.LENGTH_LONG,
                     ).show()
-                    // S1154/S1201: offer the preview atlas, and only if there is nothing to ask there
-                    // (already installed or downloading) fall through to the logo atlas - one Snackbar
-                    // at a time, and a user who already has previews is the one offered logos next.
-                    streamAtlasPromptManager.maybeOffer(binding.rvStreams) {
-                        streamLogoPromptManager.maybeOffer(binding.rvStreams)
+                    // S1154/S1201/S1481: offer the preview atlas, then the logo atlas once the first
+                    // offer is settled - answered, or with nothing to ask. Both payloads get offered on
+                    // every catalog update; chaining on settlement is what keeps the two dialogs from
+                    // stacking on top of each other.
+                    streamAtlasPromptManager.maybeOffer(this) {
+                        streamLogoPromptManager.maybeOffer(this)
                     }
                 }
                 is StreamsViewModel.StreamsEvent.PlayRequested -> onPlay(event.source)
@@ -899,16 +913,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     private fun confirmRemove(source: StreamSourceEntity) {
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.streams_remove)
-            .setMessage(source.title)
-            .setPositiveButton(R.string.streams_remove) { _, _ -> viewModel.onRemove(source) }
-            .setNegativeButton(android.R.string.cancel, null)
-            .create()
-        DialogKeyboardDelegate.applyTo(dialog) {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
-        }
-        dialog.show()
+        // S1424: the dialog itself moved to a shared object so the launcher desktop asks the same
+        // question instead of a copy of it.
+        StreamRemoveConfirmation.show(this, source.title) { viewModel.onRemove(source) }
     }
 
     /**

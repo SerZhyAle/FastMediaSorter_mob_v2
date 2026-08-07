@@ -55,6 +55,7 @@ class StreamsViewModelAutoGridTest {
             streamTrackPreferenceUseCase = mockk(relaxed = true),
             streamResumeStateRepository = mockk(relaxed = true),
             applicationScope = CoroutineScope(dispatcherRule.testDispatcher),
+            topicLabelProvider = mockk(relaxed = true),
         )
     }
 

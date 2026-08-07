@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S0404: the Start menu. Rows are static and few, so they are declared rather than adapter-driven;
-     the "All apps" grid is the only dynamic part and expands in place. -->
+<!-- S0404: the Start menu. Every row is static and declared here rather than adapter-driven.
+     S1401: the "All apps" row and its expanding grid are gone - the app list is its own screen now. -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/startMenuRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -24,7 +23,7 @@
             android:foreground="@drawable/focus_button_background"
             android:gravity="start|center_vertical"
             android:text="@string/launcher_menu_open_app"
-            app:icon="@drawable/ic_launcher_mode"
+            app:icon="@drawable/ic_app_logo"
             app:iconGravity="start" />
 
         <com.google.android.material.button.MaterialButton
@@ -40,28 +39,19 @@
             app:iconGravity="start" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/rowAllApps"
+            android:id="@+id/rowCreateResource"
             style="@style/Widget.FastMediaSorter.Button.Text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="true"
             android:foreground="@drawable/focus_button_background"
             android:gravity="start|center_vertical"
-            android:text="@string/launcher_menu_all_apps"
-            app:icon="@drawable/ic_view_grid"
+            android:text="@string/launcher_create_resource_menu_row"
+            app:icon="@drawable/ic_add"
             app:iconGravity="start" />
 
-        <!-- Fixed height, own scrolling: wrap_content + nestedScrollingEnabled=false here would be
-             measured UNSPECIFIED by the NestedScrollView and inflate every installed app at once. -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvAllApps"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/launcher_start_menu_apps_height"
-            android:layout_marginTop="@dimen/margin_small"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:visibility="gone"
-            tools:listitem="@layout/item_launcher_app_grid_cell"
-            tools:visibility="visible" />
+        <!-- S1401: the "All apps" row and the grid it expanded are gone (ADR-2). One app list, reached
+             from the taskbar button beside Start or by swiping up on the desktop. -->
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/rowAndroidSettings"

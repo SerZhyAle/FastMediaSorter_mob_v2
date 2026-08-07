@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1401: the full-screen "All apps" list - search row on top, grid below. One vertical stack whose
+     column count is measured from the width, so portrait and landscape are served by this single file
+     and there is deliberately no layout-land counterpart (CLAUDE.md Rule 11). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/allAppsRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/margin_small"
+    android:paddingEnd="@dimen/margin_small">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingTop="@dimen/margin_small">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/allAppsSearchLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/launcher_all_apps_search_hint"
+            app:boxBackgroundMode="outline"
+            app:endIconMode="clear_text">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/allAppsSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionSearch|flagNoExtractUi"
+                android:inputType="text"
+                android:nextFocusDown="@id/allAppsGrid"
+                android:nextFocusRight="@id/allAppsSort"
+                android:singleLine="true" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Icon-only, so the content description is the only name a screen reader can read out. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/allAppsSort"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="@dimen/button_height"
+            android:layout_height="@dimen/button_height"
+            android:layout_marginStart="@dimen/margin_small"
+            android:clickable="true"
+            android:contentDescription="@string/launcher_all_apps_sort"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:nextFocusDown="@id/allAppsGrid"
+            android:nextFocusLeft="@id/allAppsSearch"
+            app:icon="@drawable/ic_sort"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp" />
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/allAppsGrid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:nextFocusUp="@id/allAppsSearch"
+            android:paddingTop="@dimen/margin_small"
+            android:paddingBottom="@dimen/margin_small"
+            android:scrollbars="vertical"
+            tools:listitem="@layout/item_launcher_app_grid_cell" />
+
+        <TextView
+            android:id="@+id/allAppsEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:padding="@dimen/margin_normal"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone"
+            tools:text="No app matches &quot;abc&quot;."
+            tools:visibility="visible" />
+
+    </FrameLayout>
+
+</LinearLayout>

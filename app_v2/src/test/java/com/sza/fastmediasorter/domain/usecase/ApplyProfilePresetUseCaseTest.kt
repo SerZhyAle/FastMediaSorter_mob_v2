@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.data.preset.DeviceProfilePresetCsvDataSource
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureSettings
 import com.sza.fastmediasorter.domain.model.StreamDefaultSort
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -123,7 +124,7 @@ class ApplyProfilePresetUseCaseTest {
         assertTrue(saved.gestureOverlayEnabled)
         assertTrue(saved.playerFollowSystemRotation)
         assertTrue(saved.copyScreenshotToClipboard)
-        assertEquals(ScreenshotGestureAction.OPEN_IN_PLAYER, saved.screenshotGestureLeftTopDown)
+        assertEquals(ScreenshotGestureAction.OPEN_IN_PLAYER, saved.screenshotGesture.leftTopDown)
         assertEquals(setOf("email", "telegram"), saved.enabledShareTargets)
         assertEquals(setOf("print"), saved.disabledShareTargets)
         assertEquals("PNG", saved.videoSnapshotFormat)
@@ -196,7 +197,7 @@ class ApplyProfilePresetUseCaseTest {
         val saved = transform.captured(AppSettings())
 
         assertTrue(result.isSuccess)
-        assertEquals(defaults.screenshotGestureLeftTopDown, saved.screenshotGestureLeftTopDown)
+        assertEquals(defaults.screenshotGesture.leftTopDown, saved.screenshotGesture.leftTopDown)
     }
 
     @Test
@@ -309,15 +310,15 @@ class ApplyProfilePresetUseCaseTest {
     fun `per-zone gesture action applies to its own band`() {
         val result = applier.applyOverride(AppSettings(), "screenshotGestureRightBottomUp", "DO_NOT_USE")
 
-        assertEquals(ScreenshotGestureAction.DO_NOT_USE, result.screenshotGestureRightBottomUp)
+        assertEquals(ScreenshotGestureAction.DO_NOT_USE, result.screenshotGesture.rightBottomUp)
     }
 
     @Test
     fun `gesture payload cell is skipped - it is a registered non-presettable pointer`() {
-        val current = AppSettings(screenshotGesturePayloadLeftTopDown = "kept")
+        val current = AppSettings(screenshotGesture = ScreenshotGestureSettings(payloadLeftTopDown = "kept"))
 
         val result = applier.applyOverride(current, "screenshotGesturePayloadLeftTopDown", "com.example/Activity")
 
-        assertEquals("kept", result.screenshotGesturePayloadLeftTopDown)
+        assertEquals("kept", result.screenshotGesture.payloadLeftTopDown)
     }
 }

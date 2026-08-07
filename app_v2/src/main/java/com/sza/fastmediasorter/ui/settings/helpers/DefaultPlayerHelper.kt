@@ -6,7 +6,6 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import com.sza.fastmediasorter.util.resolveActivityCompat
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -25,6 +24,8 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.di.MediaCapabilitiesEntryPoint
 import com.sza.fastmediasorter.ui.dialog.SimpleValueChoiceDialog
+import com.sza.fastmediasorter.util.resolveActivityCompat
+import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -127,7 +128,7 @@ object DefaultPlayerHelper {
                 openChooserOrFallback(fragment, mimeType)
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     /**

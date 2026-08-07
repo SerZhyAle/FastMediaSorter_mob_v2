@@ -27,11 +27,12 @@ import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCas
 import com.sza.fastmediasorter.domain.usecase.streams.PinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
-import com.sza.fastmediasorter.domain.usecase.streams.ReorderPinnedStreamUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ReorderPinnedStreamUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
+import com.sza.fastmediasorter.ui.streams.helpers.StreamTopicLabelProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -92,6 +93,9 @@ class StreamsViewModel @Inject constructor(
     // S1152: the exit clear must outlive this ViewModel - viewModelScope is already cancelled by the time
     // the host tears down, so a clear launched there would never reach the prefs.
     @ApplicationScope private val applicationScope: CoroutineScope,
+    // S1477: resolves a catalog rubric to its localized label, so rubric sorting follows the alphabet
+    // the user sees rather than the catalog's English ids.
+    private val topicLabelProvider: StreamTopicLabelProvider,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -122,6 +126,22 @@ class StreamsViewModel @Inject constructor(
     private val _events = Channel<StreamsEvent>(Channel.BUFFERED)
     val events: Flow<StreamsEvent> = _events.receiveAsFlow()
 
+    // S1476: facets depend only on the catalog, never on the filter, but the combine below re-runs on
+    // every filter change - which is every keystroke in the search box. Recomputing them there means
+    // four full passes with distinct+sort over the whole catalog per keystroke; at the catalog's
+    // current size that is tens of thousands of rows of work for a result that cannot have changed.
+    // The source list is an immutable snapshot from Room, so identity is a sound cache key.
+    private var facetsSourceSnapshot: List<StreamSourceEntity>? = null
+    private var facetsCache: StreamsFacets = StreamsFacets()
+
+    private fun cachedFacetsOf(sources: List<StreamSourceEntity>): StreamsFacets {
+        if (facetsSourceSnapshot === sources) return facetsCache
+        val facets = facetsOf(sources)
+        facetsSourceSnapshot = sources
+        facetsCache = facets
+        return facets
+    }
+
     init {
         // S0659: restore the last session before the combine renders, falling back to the user defaults.
         // Applied once so a fast user interaction during the async DataStore read is never clobbered.
@@ -129,9 +149,9 @@ class StreamsViewModel @Inject constructor(
 
         combine(observeStreamSources(), _filter) { sources, filter ->
             StreamsUiState(
-                sources = applyFilter(sources, filter),
+                sources = applyFilter(sources, filter, topicLabelProvider::label),
                 filter = filter,
-                facets = facetsOf(sources),
+                facets = cachedFacetsOf(sources),
                 isLoading = false,
             )
         }
@@ -523,33 +543,19 @@ class StreamsViewModel @Inject constructor(
          * that invariant explicit and stable. `internal` so the pure filter logic is unit-testable without
          * the ViewModel's injected graph.
          */
-        internal fun applyFilter(sources: List<StreamSourceEntity>, filter: StreamsFilter): List<StreamSourceEntity> {
+        internal fun applyFilter(
+            sources: List<StreamSourceEntity>,
+            filter: StreamsFilter,
+            // S1477: rubric sorting orders by the LABEL the user reads, not by the catalog's English id -
+            // otherwise "По рубрике" lists Russian names in English alphabetical order, which reads as
+            // no sorting at all. Identity by default so the pure filter stays testable without a Context.
+            topicLabel: (String?) -> String? = { it },
+        ): List<StreamSourceEntity> {
             val query = filter.query.trim().lowercase()
-            val matched = sources.filter { source ->
-                val queryHit = query.isEmpty() ||
-                    source.title.lowercase().contains(query) ||
-                    source.topic?.lowercase()?.contains(query) == true ||
-                    source.language?.lowercase()?.contains(query) == true
-                val categoryHit = filter.category == null || source.category == filter.category
-                val languageHit = filter.language == null ||
-                    source.language.tokens().any { it.equals(filter.language, ignoreCase = true) }
-                // Country is a single code, so a plain equality (like category), not token matching.
-                val countryHit = filter.country == null || source.country == filter.country
-                // mediaKind values are the StreamSourceEntity contract ("AUDIO" / "VIDEO" / "RTSP").
-                val mediaHit = when (filter.mediaKind) {
-                    MediaKindFilter.ALL -> true
-                    MediaKindFilter.AUDIO -> source.mediaKind == "AUDIO"
-                    // RTSP is a video transport, so it shares the "video" bucket.
-                    MediaKindFilter.VIDEO -> source.mediaKind == "VIDEO" || source.mediaKind == "RTSP"
-                }
-                val topicHit = filter.topic == null || source.topic == filter.topic
-                // S0696: pinned-only keeps just the user-pinned rows when the facet is on.
-                val pinnedHit = !filter.pinnedOnly || source.pinned
-                queryHit && categoryHit && languageHit && countryHit && mediaHit && topicHit && pinnedHit
-            }
+            val matched = sources.filter { source -> matchesFacets(source, filter, query) }
             val secondary: Comparator<StreamSourceEntity> = when (filter.sort) {
                 SortMode.NAME -> compareBy(String.CASE_INSENSITIVE_ORDER) { it.title }
-                SortMode.TOPIC -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.topic }
+                SortMode.TOPIC -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { topicLabel(it.topic) }
                 SortMode.LANGUAGE -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.language }
                 SortMode.COUNTRY -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.country }
                 SortMode.RECENT -> compareByDescending { it.addedAt }
@@ -559,6 +565,38 @@ class StreamsViewModel @Inject constructor(
             // catalog rows follow the chosen secondary sort. `partition` preserves the input order.
             val (pinned, unpinned) = matched.partition { it.pinned }
             return pinned + unpinned.sortedWith(secondary)
+        }
+
+        /**
+         * One row against every active facet, ANDed. Split out of [applyFilter] so each half stays
+         * within the complexity budget: this is the facet logic, [applyFilter] is the ordering.
+         * `query` arrives pre-trimmed and lowercased - it is the same for every row.
+         */
+        private fun matchesFacets(
+            source: StreamSourceEntity,
+            filter: StreamsFilter,
+            query: String,
+        ): Boolean {
+            val queryHit = query.isEmpty() ||
+                source.title.lowercase().contains(query) ||
+                source.topic?.lowercase()?.contains(query) == true ||
+                source.language?.lowercase()?.contains(query) == true
+            val categoryHit = filter.category == null || source.category == filter.category
+            val languageHit = filter.language == null ||
+                source.language.tokens().any { it.equals(filter.language, ignoreCase = true) }
+            // Country is a single code, so a plain equality (like category), not token matching.
+            val countryHit = filter.country == null || source.country == filter.country
+            // mediaKind values are the StreamSourceEntity contract ("AUDIO" / "VIDEO" / "RTSP").
+            val mediaHit = when (filter.mediaKind) {
+                MediaKindFilter.ALL -> true
+                MediaKindFilter.AUDIO -> source.mediaKind == "AUDIO"
+                // RTSP is a video transport, so it shares the "video" bucket.
+                MediaKindFilter.VIDEO -> source.mediaKind == "VIDEO" || source.mediaKind == "RTSP"
+            }
+            val topicHit = filter.topic == null || source.topic == filter.topic
+            // S0696: pinned-only keeps just the user-pinned rows when the facet is on.
+            val pinnedHit = !filter.pinnedOnly || source.pinned
+            return queryHit && categoryHit && languageHit && countryHit && mediaHit && topicHit && pinnedHit
         }
 
         internal fun facetsOf(sources: List<StreamSourceEntity>): StreamsFacets {

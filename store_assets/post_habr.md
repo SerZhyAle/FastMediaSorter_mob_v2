@@ -74,7 +74,7 @@ class SmbDataSource(
 }
 ```
 
-Аналогично для SFTP (через SSHJ) и FTP (Apache Commons Net).
+Аналогично для SFTP (через JSch) и FTP (Apache Commons Net).
 
 ## Проблема №1: перемотка видео через SMB
 
@@ -191,7 +191,7 @@ WorkManager + PeriodicWorkRequest. Минимальный интервал - 15 
 - Kotlin 100%, minSdk 26 (API 23 для Legacy-флейвора)
 - MVVM + Clean Architecture, Hilt DI
 - ExoPlayer (Media3 1.2.1)
-- SMBJ (SMB2/SMB3), SSHJ (SFTP), Apache Commons Net (FTP)
+- SMBJ (SMB2/SMB3), JSch (SFTP), Apache Commons Net (FTP)
 - Room DB (кэш + операции по расписанию), WorkManager
 - ML Kit (OCR), Glide (превью с кастомным NetworkFileModelLoader)
 

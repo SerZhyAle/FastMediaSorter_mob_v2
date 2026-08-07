@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 
 /**
@@ -90,6 +91,6 @@ class GeneralSettingsColorThemeHelper(
                 binding.spinnerColorTheme.post { setIsUpdatingSpinner(false) }
                 dialog.dismiss()
             }
-            .show()
+            .showBoundTo(fragment)
     }
 }

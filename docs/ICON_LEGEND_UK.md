@@ -126,9 +126,9 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_crop.svg" alt="ic_crop" width="24" height="24"> | Обрізати |
 | <img src="icons/svg/ic_crop_to_file.svg" alt="ic_crop_to_file" width="24" height="24"> | Обрізати у файл |
 | <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | Видалити |
-| <img src="icons/svg/ic_draw_overlay.svg" alt="ic_draw_overlay" width="24" height="24"> | Малювати |
-| (системний значок) | Редагувати |
-| (системний значок) | Редагувати |
+| <img src="icons/svg/ic_draw_overlay.svg" alt="ic_draw_overlay" width="24" height="24"> | Малювання |
+| (системний значок) | Корекція |
+| (системний значок) | Текст файлу |
 | <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Налаштування читання |
 | (системний значок) | Пошук по всіх главах |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Налаштування тексту |
@@ -143,6 +143,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Витягти текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Витягти текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Витягти текст |
+| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Налаштування тексту |
 | <img src="icons/svg/ic_open_in_browse.svg" alt="ic_open_in_browse" width="24" height="24"> | Відкрити в новому вікні |
 | <img src="icons/svg/ic_night_mode.svg" alt="ic_night_mode" width="24" height="24"> | Нічний режим |
 | <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Режим прокрутки |
@@ -155,7 +156,8 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Перейменувати |
 | (системний значок) | Відкрити з кодуванням.. |
 | <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Повернути на 90° |
-| <img src="icons/svg/ic_rotation_unlocked.svg" alt="ic_rotation_unlocked" width="24" height="24"> | Поворот |
+| <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Повернути на -90° |
+| <img src="icons/svg/ic_rotation_unlocked.svg" alt="ic_rotation_unlocked" width="24" height="24"> | Автоповорот екрана |
 | <img src="icons/svg/ic_save_frame.svg" alt="ic_save_frame" width="24" height="24"> | Зберегти кадр |
 | (системний значок) | Пошук |
 | (системний значок) | Пошук |

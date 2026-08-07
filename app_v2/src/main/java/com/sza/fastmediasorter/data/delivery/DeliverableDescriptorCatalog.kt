@@ -105,15 +105,20 @@ object DeliverableDescriptorCatalog {
         )
     )
 
-    // Channel-preview atlas integrity pins. The payload is the S1445 tile pack (element revision v2),
-    // cut from the 2026-07-26 sheet by `collect-stream-candidates.ps1 -WithTilePacks`: 1881 entries,
-    // one 240x135 image per slot, named by the slot index. The sheet (-v1) stays published for
-    // third-party consumers but is no longer fetched by the app. Regenerating the payload means a new
-    // element revision plus new pins here, never a silent re-upload under the same name.
-    private const val ATLAS_PACK_SHA256 = "f4124e93f2e4e816d2253991ef975ffc9bd72c91b07d2cde262a3af4a285fed5"
-    private const val ATLAS_PACK_MIN_SIZE = 10_840_856L
-    private const val ATLAS_COORDS_SHA256 = "be60d35c838d14e584350c2403f22faaa4077a5f0176ed1ceb75e7df760259d9"
-    private const val ATLAS_COORDS_MIN_SIZE = 134_997L
+    // S1483: the artwork payloads are NOT pinned by hash and carry no revision in their names.
+    //
+    // Pinning is mandatory for a payload that is loaded as executable code - a substituted `.so` is
+    // code execution, which is why the OCR and ffmpeg sets below keep their SHA-256. A tile pack is
+    // pictures: the worst a substituted one can do is show the wrong image, and the catalog itself -
+    // the file that decides which URLs the app will play - has never been pinned either. Weighing a
+    // pin nobody can update against a rebuild reaching users the same day, the pin loses.
+    //
+    // What replaces it: a size floor here (a truncated download cannot pass it), a structural check at
+    // install time (the archive opens and every entry is a decimal slot index), and `artwork-manifest.json`
+    // as the freshness signal, so the answer to "is there something newer" comes from the mirror
+    // rather than from a constant compiled into this build.
+    private const val ATLAS_PACK_MIN_SIZE = 1_000_000L
+    private const val ATLAS_COORDS_MIN_SIZE = 32_768L
 
     /**
      * Channel-preview atlas (S1154) - on-demand stream channel-preview sprite sheet + `url->index`
@@ -124,18 +129,14 @@ object DeliverableDescriptorCatalog {
     fun channelPreviewAtlas(): DeliverableSourceDescriptor = DeliverableSourceDescriptor(
         set = DeliverableSet.CHANNEL_PREVIEW_ATLAS,
         files = listOf(
-            resource("channel-preview-tiles.zip", ATLAS_PACK_SHA256, ATLAS_PACK_MIN_SIZE, rev = "v2"),
-            resource("channel-preview-coords.json", ATLAS_COORDS_SHA256, ATLAS_COORDS_MIN_SIZE)
+            resource("channel-preview-tiles.zip", UNPINNED, ATLAS_PACK_MIN_SIZE, rev = STABLE_NAME),
+            resource("channel-preview-coords.json", UNPINNED, ATLAS_COORDS_MIN_SIZE, rev = STABLE_NAME)
         )
     )
 
-    // Stream logo atlas integrity pins. Same S1445 change as the preview payload: the app fetches the
-    // tile pack (element revision v2, 1838 entries covering 2156 channels) cut from the 2026-07-26
-    // sheet, which stays published for third-party consumers.
-    private const val LOGO_PACK_SHA256 = "8edda619ea9528b132100714400316fa55508acada32fe7df42e02379a5b3049"
-    private const val LOGO_PACK_MIN_SIZE = 5_782_986L
-    private const val LOGO_COORDS_SHA256 = "9e41cc7e72e283f815089da408b11af665cc08f10bc8bb18ff4b3935a7a1e4c4"
-    private const val LOGO_COORDS_MIN_SIZE = 142_799L
+    // Same S1483 policy as the preview payload above; the sheets keep their revisions for third parties.
+    private const val LOGO_PACK_MIN_SIZE = 1_000_000L
+    private const val LOGO_COORDS_MIN_SIZE = 32_768L
 
     /**
      * Stream logo atlas (S1201) - on-demand station-logo sprite sheet + `url->index` sidecar. Same
@@ -146,8 +147,8 @@ object DeliverableDescriptorCatalog {
     fun streamLogoAtlas(): DeliverableSourceDescriptor = DeliverableSourceDescriptor(
         set = DeliverableSet.STREAM_LOGO_ATLAS,
         files = listOf(
-            resource("stream-logo-tiles.zip", LOGO_PACK_SHA256, LOGO_PACK_MIN_SIZE, rev = "v2"),
-            resource("stream-logo-coords.json", LOGO_COORDS_SHA256, LOGO_COORDS_MIN_SIZE)
+            resource("stream-logo-tiles.zip", UNPINNED, LOGO_PACK_MIN_SIZE, rev = STABLE_NAME),
+            resource("stream-logo-coords.json", UNPINNED, LOGO_COORDS_MIN_SIZE, rev = STABLE_NAME)
         )
     )
 
@@ -185,11 +186,24 @@ object DeliverableDescriptorCatalog {
         }
     )
 
+    /** S1483: a payload verified by structure and size rather than by a hash frozen into this build. */
+    private const val UNPINNED = ""
+
+    /** S1483: published under a name with no revision, so a rebuild lands where installs already look. */
+    private const val STABLE_NAME = ""
+
     private fun resource(name: String, sha256: String, minSize: Long, rev: String = "v1"): PayloadFile =
         PayloadFile(fileName = name, sources = listOf("$MIRROR/${withRev(name, rev)}"), sha256 = sha256, minSize = minSize)
 
-    /** Insert the element revision before the extension: `libtesseract.so` + `v1` -> `libtesseract-v1.so`. */
+    /**
+     * Insert the element revision before the extension: `libtesseract.so` + `v1` -> `libtesseract-v1.so`.
+     *
+     * S1483: a blank revision means the payload is published under a stable name. That is what lets a
+     * rebuilt artwork pack land at the URL an already-installed copy fetches; a revision in the name
+     * is exactly what stranded every earlier rebuild until a new app version shipped.
+     */
     private fun withRev(name: String, rev: String): String {
+        if (rev.isBlank()) return name
         val dot = name.lastIndexOf('.')
         return if (dot < 0) "$name-$rev" else name.substring(0, dot) + "-" + rev + name.substring(dot)
     }

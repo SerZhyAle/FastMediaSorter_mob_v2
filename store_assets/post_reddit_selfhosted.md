@@ -21,7 +21,7 @@ So I built FastMediaSorter over the last two years - an app where SMB/NAS is a f
 
 **What it does that's relevant to this sub:**
 
-- Connects natively to SMB (SMBJ library), SFTP (SSHJ), FTP, Google Drive, Dropbox, OneDrive
+- Connects natively to SMB (SMBJ library), SFTP (JSch), FTP, Google Drive, Dropbox, OneDrive
 - Streams video/audio directly from NAS - no download-first step
 - Cross-protocol file operations: copy from SFTP directly to Google Drive, or SMB to local, or any combination
 - Scheduled operations: move files on a cron-style schedule (e.g., push camera roll to NAS at 2am nightly)

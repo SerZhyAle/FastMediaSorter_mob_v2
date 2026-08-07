@@ -428,8 +428,15 @@ class AudioStandaloneActivity :
         binding.btnOverflowMenu.setOnClickListener { anchor ->
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
+            // S1407: icons off by default on PopupMenu - match the embedded player's rendering.
+            popup.applyStandaloneOverflowIcons()
             // S0393: shared menu - hide image/video-only items; keep audio items (YouTube/lyrics/sleep).
-            listOf(R.id.menu_draw_overlay, R.id.menu_edit_crop_to_file, R.id.menu_edit_compress, R.id.menu_edit_image,
+            // S1364: hiding menu_edit_section_standalone removes its children with it, so the editing
+            // ids are no longer listed individually. That also retires menu_rotate_content_standalone
+            // on this host, which rendered but had no branch in the when below - a dead tap, and
+            // meaningless for audio, which has no frame to rotate.
+            listOf(R.id.menu_edit_section_standalone,
+                R.id.menu_rename_standalone, R.id.menu_autorotate_standalone,
                 R.id.menu_black_screen, R.id.menu_google_lens, R.id.menu_ocr_image,
                 R.id.menu_translate_image, R.id.menu_print, R.id.menu_save_frame)
                 .forEach { popup.menu.findItem(it)?.isVisible = false }

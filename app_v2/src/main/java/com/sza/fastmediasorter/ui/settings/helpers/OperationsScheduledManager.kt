@@ -33,6 +33,7 @@ import com.sza.fastmediasorter.ui.settings.ScheduledOperationsAdapter
 import com.sza.fastmediasorter.ui.settings.ScheduledOperationsViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -134,7 +135,7 @@ class OperationsScheduledManager(
                     }
                 }
                 .setNegativeButton(android.R.string.cancel, null)
-                .show()
+                .showBoundTo(fragment)
         }
 
         fragment.collectOnLifecycle(scheduledViewModel.operations) { ops ->
@@ -294,7 +295,7 @@ class OperationsScheduledManager(
             .setTitle(R.string.scheduled_ops_confirm_delete)
             .setPositiveButton(R.string.delete) { _, _ -> scheduledViewModel.delete(op.id) }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun updateScheduledNotificationPermissionButton() {
@@ -353,7 +354,7 @@ class OperationsScheduledManager(
             )
             .setPositiveButton(R.string.grant_permission) { _, _ -> openBatteryOptimizationScreen() }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun openBatteryOptimizationScreen() {

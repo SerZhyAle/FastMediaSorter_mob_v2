@@ -149,7 +149,7 @@ wear/
 | **Media Playback** | ExoPlayer (media3) | 1.2.1 |
 | **DI Container** | Hilt | 2.50 |
 | **Networking** | Retrofit + OkHttp | 2.9.0 + 4.12.0 |
-| **Network Protocols** | SMBJ, SSHJ, Apache Commons FTP | Latest |
+| **Network Protocols** | SMBJ, JSch, Apache Commons FTP | Latest |
 | **Image Loading** | Coil | 2.5.0 |
 
 ## Debugging Tips

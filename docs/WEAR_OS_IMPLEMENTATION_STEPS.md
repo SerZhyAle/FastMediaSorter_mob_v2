@@ -89,7 +89,7 @@ Implement the WearPreferencesRepository interface using AndroidX DataStore. Crea
 Add DataStore dependency to `wear/build.gradle.kts` if not present:
 
 ```kotlin
-implementation("androidx.datastore:datastore-preferences:1.0.0")
+implementation("androidx.datastore:datastore-preferences:1.1.7")
 ```
 
 Create PreferencesKeys object with all settings keys and default values.

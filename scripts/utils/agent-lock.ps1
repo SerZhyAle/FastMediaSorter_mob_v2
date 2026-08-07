@@ -239,6 +239,14 @@ function Get-AgentTicketLiveness {
 
         'undetermined' means WE have no session id, so "mine" and "theirs" are indistinguishable -
         it must never be treated as grounds for eviction.
+
+        S1448 - liveness signal precedence, strongest first:
+          1. the ticket's own lastSeenAt heartbeat, written by the polling waiter that owns it;
+          2. the owning session's transcript write time;
+          3. the ticket's enqueuedAt, when neither of the above is readable.
+        The heartbeat leads because a session that waits by the contract - background waiter plus
+        lock-free work - produces no transcript writes, and was therefore being evicted for
+        obeying the rules.
     #>
     param(
         [Parameter(Mandatory)]$Ticket,
@@ -255,8 +263,11 @@ function Get-AgentTicketLiveness {
     if ($owner -eq $sessionId) { return 'self' }
 
     $lastSeen = $null
+    if ($Ticket.PSObject.Properties.Name -contains 'lastSeenAt' -and $Ticket.lastSeenAt) {
+        $lastSeen = [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$Ticket.lastSeenAt).LocalDateTime
+    }
     $transcript = [string]$Ticket.transcriptPath
-    if (-not [string]::IsNullOrWhiteSpace($transcript) -and (Test-Path -LiteralPath $transcript)) {
+    if ($null -eq $lastSeen -and -not [string]::IsNullOrWhiteSpace($transcript) -and (Test-Path -LiteralPath $transcript)) {
         try { $lastSeen = (Get-Item -LiteralPath $transcript).LastWriteTime }
         catch { $lastSeen = $null }
     }
@@ -317,6 +328,39 @@ function Remove-StaleAgentLockTickets {
     return $removed
 }
 
+function Remove-AgentSessionTickets {
+    <#
+    .SYNOPSIS
+        Drop every queue ticket owned by one session. Returns the count removed.
+    .DESCRIPTION
+        S1448. Called the instant a session takes the lock. Without it a session that works step
+        by step - take lock, close step, immediately queue for the next one - leaves the previous
+        step's ticket sitting on the queue head while it holds the lock, and every sibling behind
+        that ticket waits for a head that belongs to the current holder. Reads the directory
+        directly rather than going through Get-AgentLockQueue: this runs on the acquire path,
+        where the eviction sweep's extra work buys nothing.
+    #>
+    param(
+        [Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name,
+        [Parameter(Mandatory)][string]$SessionId
+    )
+
+    if ([string]::IsNullOrWhiteSpace($SessionId)) { return 0 }
+    $queueDir = Get-AgentLockQueueDir -Name $Name
+    $removed = 0
+
+    foreach ($file in @(Get-ChildItem -LiteralPath $queueDir -Filter '*.json' -ErrorAction SilentlyContinue)) {
+        $ticket = $null
+        try { $ticket = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop }
+        catch { continue }
+        if ([string]$ticket.sessionId -ne $SessionId) { continue }
+        Remove-Item -LiteralPath $file.FullName -Force -ErrorAction SilentlyContinue
+        $removed++
+    }
+
+    return $removed
+}
+
 function Get-AgentLockQueue {
     <#
     .SYNOPSIS
@@ -352,7 +396,10 @@ function Set-AgentTicketTurnGranted {
     #>
     param([Parameter(Mandatory)]$Ticket)
 
-    if ($Ticket.turnGrantedAt) { return $Ticket }
+    # Property-bag probe, not a direct read: a ticket written before this field existed has no
+    # such property, and a caller running under Set-StrictMode turns that read into a terminating
+    # error - which took the whole lock queue down with it instead of stamping the ticket.
+    if ($Ticket.PSObject.Properties['turnGrantedAt'] -and $Ticket.turnGrantedAt) { return $Ticket }
     $Ticket | Add-Member -NotePropertyName 'turnGrantedAt' -NotePropertyValue ([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()) -Force
     try {
         $body = $Ticket | Select-Object -ExcludeProperty path | ConvertTo-Json -Compress
@@ -371,6 +418,41 @@ function Set-AgentTicketTurnGranted {
     return $Ticket
 }
 
+function Set-AgentTicketHeartbeat {
+    <#
+    .SYNOPSIS
+        Stamp lastSeenAt on a ticket. Best-effort; overwrites any previous value.
+    .DESCRIPTION
+        S1448. A ticket's owner is a session, and the only heartbeat available for a session used
+        to be its transcript write time - which punishes exactly the behaviour the waiting
+        contract demands: take a ticket, run the background waiter, do lock-free work. A session
+        that waits quietly writes nothing, looks dead at SessionStaleMinutes, and gets evicted
+        from a place it earned. The poll loop is proof the waiter is alive, so it records that
+        proof here. Unlike Set-AgentTicketTurnGranted this rewrites on every call - it is a
+        heartbeat, not a one-shot fact. The absolute TicketCeilingMinutes is judged against
+        enqueuedAt and is deliberately NOT extended by this stamp (S1448 ADR-3), so an abandoned
+        head still ages out.
+    #>
+    param([Parameter(Mandatory)]$Ticket)
+
+    if (-not $Ticket -or -not $Ticket.path) { return $Ticket }
+    $Ticket | Add-Member -NotePropertyName 'lastSeenAt' -NotePropertyValue ([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()) -Force
+    try {
+        $body = $Ticket | Select-Object -ExcludeProperty path | ConvertTo-Json -Compress
+        # Write-then-rename for the same reason Set-AgentTicketTurnGranted does it: the sweeper
+        # deletes a ticket it cannot parse, so an in-place write could evict the ticket it is
+        # stamping. Move-Item -Force is an atomic replace on NTFS.
+        $staging = "$($Ticket.path).tmp-$PID"
+        Set-Content -LiteralPath $staging -Value $body -Encoding utf8NoBOM -ErrorAction Stop
+        Move-Item -LiteralPath $staging -Destination $Ticket.path -Force -ErrorAction Stop
+    }
+    catch {
+        # A missed heartbeat costs nothing: the next poll writes another one, and the ticket
+        # ceiling still bounds how long any ticket can sit in the queue.
+    }
+    return $Ticket
+}
+
 function Test-AgentLockTurn {
     <#
     .SYNOPSIS
@@ -380,6 +462,9 @@ function Test-AgentLockTurn {
         fastest. A free lock is therefore NOT enough to acquire: a live head that has not yet
         used its reservation window still owns the turn. That window is what survives the gap
         between the "your turn" signal and the moment gradle actually starts.
+
+        S1448: the turn is decided by TICKET identity alone. A caller with no ticket is answered
+        from the lock and the head's reservation, never from a session-id match against the head.
     #>
     param(
         [Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name,
@@ -388,8 +473,6 @@ function Test-AgentLockTurn {
 
     $timings = Get-AgentLockTimings -Name $Name
     $queue = @(Get-AgentLockQueue -Name $Name)
-    $sessionId = $env:CLAUDE_CODE_SESSION_ID
-    if ([string]::IsNullOrWhiteSpace($sessionId)) { $sessionId = "pid-$PID" }
 
     $position = 0
     if ($Ticket) {
@@ -410,9 +493,10 @@ function Test-AgentLockTurn {
             return [pscustomobject]@{ IsMyTurn = $true; Position = 1; HeadSessionId = $head.sessionId; Reason = 'head of queue' }
         }
     }
-    elseif ([string]$head.sessionId -eq $sessionId) {
-        return [pscustomobject]@{ IsMyTurn = $true; Position = $position; HeadSessionId = $head.sessionId; Reason = 'head of queue (this session)' }
-    }
+    # S1448: a caller WITHOUT a ticket used to inherit the turn whenever the head happened to
+    # belong to its own session. That is precisely the starvation shape - the head was the
+    # caller's own abandoned ticket from a previous step, so the session handed itself every
+    # turn and nobody behind it ever advanced. The turn belongs to a ticket, never to a session.
 
     $lockStatus = Get-AgentLockStatus -Name $Name
     if ($lockStatus.Exists -and -not $lockStatus.Stale) {
@@ -420,7 +504,11 @@ function Test-AgentLockTurn {
     }
 
     [void](Set-AgentTicketTurnGranted -Ticket $head)
-    $grantedAt = if ($head.turnGrantedAt) { [int64]$head.turnGrantedAt } else { [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() }
+    $grantedAt = if ($head.PSObject.Properties['turnGrantedAt'] -and $head.turnGrantedAt) {
+        [int64]$head.turnGrantedAt
+    } else {
+        [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+    }
     $reservedForMinutes = ([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() - $grantedAt) / 60000.0
     if ($reservedForMinutes -gt $timings.ReservationMinutes) {
         return [pscustomobject]@{ IsMyTurn = $true; Position = $position; HeadSessionId = $head.sessionId; Reason = 'head reservation expired' }
@@ -614,7 +702,13 @@ function Enter-AgentLock {
     }
 
     # The ticket has done its job the moment the lock is held - leaving it in the queue would
-    # keep this session at the head and stall everyone behind it (S1432).
+    # keep this session at the head and stall everyone behind it (S1432). S1448: sweep EVERY
+    # ticket of this session, not only the one handed in - the observed starvation was a ticket
+    # from the session's previous step still holding the head while it held the lock. The
+    # explicit removal below stays for a ticket whose session id differs from ours.
+    $acquiringSessionId = $env:CLAUDE_CODE_SESSION_ID
+    if ([string]::IsNullOrWhiteSpace($acquiringSessionId)) { $acquiringSessionId = "pid-$PID" }
+    [void](Remove-AgentSessionTickets -Name $Name -SessionId $acquiringSessionId)
     if ($Ticket -and $Ticket.path -and (Test-Path -LiteralPath $Ticket.path)) {
         Remove-Item -LiteralPath $Ticket.path -Force -ErrorAction SilentlyContinue
     }

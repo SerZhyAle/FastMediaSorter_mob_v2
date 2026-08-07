@@ -72,7 +72,12 @@ sealed class AddResourceEvent {
     ) : AddResourceEvent()
     /** SMB share scan completed successfully but returned no selectable shares. */
     data object ShowNoSharesFound : AddResourceEvent()
-    object ResourcesAdded : AddResourceEvent()
+
+    /**
+     * S1423: the one event neither cancel nor failure emits. [createdResourceIds] names the rows this
+     * path actually inserted, so a caller that opted into pinning knows what to pin.
+     */
+    data class ResourcesAdded(val createdResourceIds: List<Long>) : AddResourceEvent()
 }
 
 /**
@@ -435,7 +440,7 @@ class AddResourceViewModel @Inject constructor(
                     addedMsg
                 }
                 sendEvent(AddResourceEvent.ShowMessage(message))
-                sendEvent(AddResourceEvent.ResourcesAdded)
+                sendEvent(AddResourceEvent.ResourcesAdded(addResult.createdResourceIds))
             }.onFailure { e ->
                 Timber.e(e, "Error adding resources")
                 handleError(e)
@@ -451,7 +456,7 @@ class AddResourceViewModel @Inject constructor(
             addResourceUseCase(resource).onSuccess { id ->
                 Timber.d("Added resource with id: $id")
                 sendEvent(AddResourceEvent.ShowMessage(context.getString(R.string.addresource_resource_added)))
-                sendEvent(AddResourceEvent.ResourcesAdded)
+                sendEvent(AddResourceEvent.ResourcesAdded(listOf(id)))
             }.onFailure { e ->
                 Timber.e(e, "Error adding resource")
                 handleError(e)

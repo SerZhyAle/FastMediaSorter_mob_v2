@@ -16,6 +16,7 @@ import com.google.android.material.slider.Slider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogCameraSettingsBinding
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraSettingsDialogRotationManager
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraUseCaseFactory
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
 import kotlinx.coroutines.Job
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.Locale
 import kotlin.math.exp
 import kotlin.math.ln
@@ -170,12 +172,26 @@ class CameraSettingsDialogFragment : DialogFragment() {
             }
         }
 
-        val resolutionLabels = capabilities.photoResolutions.map(::resolutionLabel)
+        // S1457: the photo pipeline pins the 4:3 sensor stream, and CameraUseCaseFactory silently
+        // drops any resolution that does not match it - offering one offered a value the capture
+        // would ignore, so the saved file came back at a size the user never chose.
+        val resolutions = capabilities.photoResolutions.filter {
+            CameraUseCaseFactory.resolutionMatchesAspect(it, CameraUseCaseFactory.PHOTO_ASPECT_RATIO)
+        }
+        Timber.d(
+            "S1457: resolution list filtered %d -> %d",
+            capabilities.photoResolutions.size,
+            resolutions.size,
+        )
+        val resolutionLabels = resolutions.map(::resolutionLabel)
         binding.rowCameraResolution.isVisible = resolutionLabels.isNotEmpty()
         if (resolutionLabels.isNotEmpty()) {
-            val selectedResolution = capabilities.photoResolutions.indexOf(draft.resolution).coerceAtLeast(0)
+            // S1457: -1 when nothing is applied yet, which SettingsDropdownRow renders as no
+            // selection. Coercing it to 0 showed the first entry as chosen while the session ran on
+            // whatever CameraX picked for itself.
+            val selectedResolution = resolutions.indexOf(draft.resolution)
             bindDropdown(binding.rowCameraResolution, resolutionLabels, selectedResolution) { index ->
-                draft = draft.copy(resolution = capabilities.photoResolutions[index])
+                draft = draft.copy(resolution = resolutions[index])
             }
         }
 

@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -50,6 +51,19 @@ class CameraCaptureResultManager(
         private set
 
     private var highlightJob: Job? = null
+
+    init {
+        // S1480: Glide builds itself on its first caller's thread, and building it reads
+        // SharedPreferences and creates the cache directory - tens of milliseconds of disk work. This
+        // screen is that first caller whenever the app is launched straight into capture (widget, edge
+        // gesture, shortcut), so the cost landed on the shutter. Paid here instead, off the main
+        // thread, while the user is still framing the shot.
+        lifecycleScope.launch(Dispatchers.IO) {
+            runCatching { Glide.get(activity.applicationContext) }
+                .onSuccess { Timber.d("S1480: Glide warmed off the main thread") }
+                .onFailure { Timber.w(it, "CameraCaptureResultManager: Glide warm-up failed") }
+        }
+    }
 
     /**
      * S0566/ADR-2: persist one capture of a stay-open session to its public folder (photo ->

@@ -4,15 +4,21 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import timber.log.Timber
 
 // S0238: VR-entry button visibility - open for video and pixel-media (image, gif).
 // Audio / docs / text / pdf / epub do not benefit from VR.
 private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, MediaType.GIF)
 
-// S0995: overflow-only priority for ROTATE_CONTENT, one step below DRAW_OVERLAY(650) so it stays the
-// lowest-priority command. Named (not a bare literal) so the newest entry passes the detekt MagicNumber
-// gate; the pre-existing entries' literal priorities are already covered by the detekt baseline.
+// S0995: overflow-only priority for ROTATE_CONTENT, one step below DRAW_OVERLAY(650). Named (not a
+// bare literal) so the newest entry passes the detekt MagicNumber gate; the pre-existing entries'
+// literal priorities are already covered by the detekt baseline.
 private const val ROTATE_CONTENT_PRIORITY = 660
+
+// S1364: the counter-clockwise twin sits immediately after its forward partner so the two always
+// render adjacently in the sorted overflow list. This is now the lowest-priority command, a role
+// ROTATE_CONTENT held until this entry was added.
+private const val ROTATE_CONTENT_CCW_PRIORITY = 670
 
 /**
  * Priority-driven portrait layout planner for the player command panel center group.
@@ -84,8 +90,14 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.string.big_btn_short_black_screen),
         RENAME(200, R.id.menu_rename, true, R.string.rename, R.drawable.ic_rename,
             R.string.big_btn_short_rename),
-        EDIT(210, R.id.menu_edit, true, R.string.edit, android.R.drawable.ic_menu_edit,
-            R.string.big_btn_short_edit),
+        EDIT(
+            210,
+            R.id.menu_edit,
+            true,
+            R.string.menu_edit_adjust,
+            android.R.drawable.ic_menu_edit,
+            R.string.big_btn_short_edit
+        ),
         UNDO(220, R.id.menu_undo, true, R.string.undo, android.R.drawable.ic_menu_revert,
             R.string.big_btn_short_undo),
         CAST(230, R.id.menu_cast, true, R.string.cast_to_chromecast, R.drawable.ic_cast,
@@ -105,9 +117,14 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         SEARCH_YOUTUBE_MUSIC(250, R.id.menu_search_youtube_music, true,
             R.string.search_in_youtube_music, R.drawable.ic_youtube_music),
         // S0162: Rotation toggle - low-priority, shows on bar only when space permits
-        ROTATION_TOGGLE(490, R.id.menu_rotation_toggle, true,
-            R.string.rotation_toggle_title, R.drawable.ic_rotation_unlocked,
-            R.string.big_btn_short_rotation),
+        ROTATION_TOGGLE(
+            490,
+            R.id.menu_rotation_toggle,
+            true,
+            R.string.menu_autorotate_screen_title,
+            R.drawable.ic_rotation_unlocked,
+            R.string.big_btn_short_rotation
+        ),
         // File details are useful but rarely urgent; keep them bar-capable only after
         // primary playback, navigation, and media actions have taken their slots.
         INFO(495, R.id.menu_info, true, R.string.file_information, R.drawable.ic_info,
@@ -130,8 +147,14 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             android.R.drawable.ic_menu_search, R.string.big_btn_short_search),
         // Edit is the primary text action - rank it ahead of RENAME(200) so it reaches
         // the command bar before the less-frequent rename.
-        EDIT_TEXT(199, R.id.menu_edit_text, true, R.string.edit,
-            android.R.drawable.ic_menu_edit, R.string.big_btn_short_edit),
+        EDIT_TEXT(
+            199,
+            R.id.menu_edit_text,
+            true,
+            R.string.menu_edit_file_text,
+            android.R.drawable.ic_menu_edit,
+            R.string.big_btn_short_edit
+        ),
         TRANSLATE_TEXT(330, R.id.menu_translate, true, R.string.translate,
             R.drawable.ic_translate, R.string.big_btn_short_translate),  // icon replaced asynchronously
         TEXT_SETTINGS(340, R.id.menu_text_settings, true, R.string.translation_settings,
@@ -161,6 +184,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         // OFFICE: overflow-only to avoid reusing text/PDF inline buttons with mismatched listeners.
         TRANSLATE_OFFICE(392, R.id.menu_translate, false, R.string.translate,
             R.drawable.ic_translate, R.string.big_btn_short_translate),
+
         // S1406: emitted ungated by isOffice, like the other *_TEXT_SETTINGS entries - this is the
         // dialog the user opens to turn translation back on, so gating it on the setting would
         // strand them. Office was the one type without it, which is why a hidden long-press on the
@@ -233,7 +257,34 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             false,
             R.string.rotate_content_90_title,
             R.drawable.ic_rotate_90
-        )
+        ),
+
+        // S1364: reverse of ROTATE_CONTENT, same guard and same overflow-only treatment.
+        ROTATE_CONTENT_CCW(
+            ROTATE_CONTENT_CCW_PRIORITY,
+            R.id.menu_rotate_content_ccw,
+            false,
+            R.string.rotate_content_ccw_title,
+            R.drawable.ic_rotate_90
+        );
+
+        companion object {
+            /**
+             * S1365: [EDIT] dispatches by media type - playback control for video and audio, the PDF
+             * export sheet for PDF, the image correction dialog for stills - so no single [titleResId]
+             * describes it. Every surface that renders this command resolves its label here, so the
+             * next wording change lands in one place instead of three.
+             */
+            fun editTitleResFor(type: MediaType?): Int {
+                val titleRes = when (type) {
+                    MediaType.VIDEO, MediaType.AUDIO -> R.string.control
+                    MediaType.PDF -> R.string.pdf_edit_title
+                    else -> R.string.menu_edit_adjust
+                }
+                Timber.d("S1365: edit label resolved for type=$type -> res=$titleRes")
+                return titleRes
+            }
+        }
     }
 
     data class LayoutResult(
@@ -344,9 +395,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             // ── Group 3 (overflow-only) ───────────────────────────────────────────
             if (isAudio || isVideo) add(PlayerCommand.SLEEP_TIMER)
             if (isText) add(PlayerCommand.REOPEN_ENCODING)
-            if (isText && file.name.endsWith(".md", ignoreCase = true)) {
-                add(PlayerCommand.TOGGLE_MARKDOWN)
-            }
+            if (isText && file.name.endsWith(".md", ignoreCase = true)) add(PlayerCommand.TOGGLE_MARKDOWN)
             if (isText) add(PlayerCommand.READER_SETTINGS)
             if (isText || isPdf || isEpub) add(PlayerCommand.READ_ALOUD)
             if (isPdf) add(PlayerCommand.PDF_SCROLL_MODE)
@@ -373,6 +422,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             // S0995: manual visual rotation for anything with a rotatable frame - image/gif and video
             // (not audio, which has no frame). isVideo already excludes audio via the !isAudio guard.
             if (isImage || (isVideo && !isAudio)) add(PlayerCommand.ROTATE_CONTENT)
+            if (isImage || (isVideo && !isAudio)) add(PlayerCommand.ROTATE_CONTENT_CCW)
         }.sortedBy { it.priority }
     }
 

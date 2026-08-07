@@ -42,7 +42,9 @@ internal class AddResourceCompanionCoordinator(
     private fun emitOutcome(result: Result<CompanionImportResult>) {
         result.onSuccess { r ->
             bridge.emit(AddResourceEvent.ShowMessage(buildSummary(r)))
-            bridge.emit(AddResourceEvent.ResourcesAdded)
+            // S1423: a companion config import restores many resources at once and is not the
+            // single-resource creation act this ticket pins for, so it names no subject to pin.
+            bridge.emit(AddResourceEvent.ResourcesAdded(emptyList()))
         }.onFailure { e ->
             bridge.emit(AddResourceEvent.ShowError(errorMessage(e)))
         }

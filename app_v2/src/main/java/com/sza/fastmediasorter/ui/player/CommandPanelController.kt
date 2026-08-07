@@ -100,6 +100,9 @@ class CommandPanelController(
         fun onRotationToggleClicked()
         // S0995: manual 90° visual frame rotation (image/video); distinct from the screen sensor toggle.
         fun onRotateContent90Clicked()
+
+        // S1364: the counter-clockwise twin of onRotateContent90Clicked.
+        fun onRotateContentCounter90Clicked()
     }
 
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
@@ -124,6 +127,19 @@ class CommandPanelController(
 
     companion object {
         private const val SMALL_CONTROLS_SCALE = 0.5f
+
+        // S1364: the owner's editing set - every command whose result is a changed image. RENAME and
+        // UNDO are deliberately absent: undo restores a deleted file rather than editing the current
+        // one, so grouping it here would misdescribe it.
+        private val EDIT_SUBMENU_COMMANDS = setOf(
+            CommandPanelLayoutPlanner.PlayerCommand.EDIT,
+            CommandPanelLayoutPlanner.PlayerCommand.CROP,
+            CommandPanelLayoutPlanner.PlayerCommand.CROP_TO_FILE,
+            CommandPanelLayoutPlanner.PlayerCommand.DRAW_OVERLAY,
+            CommandPanelLayoutPlanner.PlayerCommand.ROTATE_CONTENT,
+            CommandPanelLayoutPlanner.PlayerCommand.ROTATE_CONTENT_CCW,
+            CommandPanelLayoutPlanner.PlayerCommand.COMPRESS_COPY,
+        )
     }
 
     private lateinit var castMediaManager: CastController
@@ -584,8 +600,24 @@ class CommandPanelController(
         val popup = PopupMenu(context, anchor)
         popup.setForceShowIcon(true)
 
-        val isVideo = currentFile.type == MediaType.VIDEO || currentFile.type == MediaType.AUDIO
         val iconColor = android.graphics.Color.DKGRAY
+        Timber.d("S1365: overflow menu opened for type=${currentFile.type}, ${commands.size} commands")
+
+        // S1364: count the section's members before creating it - Android does not hide an empty
+        // submenu, and on a video or text file none of these commands is emitted at all. Same
+        // count-then-guard order as SendToMenuManager.buildOverflowSubMenu().
+        val editCommands = commands.filter { it in EDIT_SUBMENU_COMMANDS }
+        Timber.d("S1364: editing section members=${editCommands.size}, autorotate=${state.playerRotationSensorEnabled}")
+        val editSubMenu = if (editCommands.isEmpty()) {
+            null
+        } else {
+            popup.menu.addSubMenu(
+                android.view.Menu.NONE,
+                android.view.Menu.NONE,
+                editCommands.minOf { it.priority },
+                context.getString(R.string.menu_edit_submenu_title)
+            ).apply { clearHeader() }
+        }
 
         // Build menu dynamically in priority order
         for (cmd in commands) {
@@ -595,12 +627,16 @@ class CommandPanelController(
                 callback.onSendToOverflowSubMenuRequested(popup.menu, cmd.priority)
                 continue
             }
-            val title = if (cmd == CommandPanelLayoutPlanner.PlayerCommand.EDIT && isVideo) {
-                context.getString(R.string.control)
+            val title = if (cmd == CommandPanelLayoutPlanner.PlayerCommand.EDIT) {
+                context.getString(
+                    CommandPanelLayoutPlanner.PlayerCommand.editTitleResFor(currentFile.type)
+                )
             } else {
                 context.getString(cmd.titleResId)
             }
-            val item = popup.menu.add(android.view.Menu.NONE, cmd.menuItemId, cmd.priority, title)
+            val targetMenu: android.view.Menu =
+                editSubMenu?.takeIf { cmd in EDIT_SUBMENU_COMMANDS } ?: popup.menu
+            val item = targetMenu.add(android.view.Menu.NONE, cmd.menuItemId, cmd.priority, title)
             // Dynamic favorite icon reflects current file state
             val iconRes = if (cmd == CommandPanelLayoutPlanner.PlayerCommand.FAVORITE && currentFile.isFavorite) {
                 R.drawable.ic_star_filled
@@ -622,10 +658,23 @@ class CommandPanelController(
                     item, context.getString(R.string.rotate_content_90_desc)
                 )
             }
+            if (cmd == CommandPanelLayoutPlanner.PlayerCommand.ROTATE_CONTENT_CCW) {
+                androidx.core.view.MenuItemCompat.setContentDescription(
+                    item,
+                    context.getString(R.string.rotate_content_ccw_desc)
+                )
+            }
+            // S1364: playerRotationSensorEnabled is the on/off value; showRotationToggle only decides
+            // whether this item exists at all, so checking against it would always render as enabled.
+            if (cmd == CommandPanelLayoutPlanner.PlayerCommand.ROTATION_TOGGLE) {
+                item.isCheckable = true
+                item.isChecked = state.playerRotationSensorEnabled
+            }
         }
 
-        // S0459: tint the «Send to..» submenu header icon to match the other (runtime-tinted) items;
-        // the submenu is built by the callback so its header is the only sub-menu entry in this popup.
+        // S0459: tint every submenu header icon to match the other (runtime-tinted) items.
+        // S1364: this popup now carries two sections - «Send to..», built by the callback, and the
+        // editing group built above - so the loop must keep handling any number, not just one.
         for (i in 0 until popup.menu.size()) {
             val mi = popup.menu.getItem(i)
             if (mi.hasSubMenu()) mi.icon?.let { it.setTint(iconColor); mi.icon = it }
@@ -705,6 +754,7 @@ class CommandPanelController(
             R.id.menu_draw_overlay -> callback.onDrawOverlayClicked()
             R.id.menu_rotation_toggle -> callback.onRotationToggleClicked()
             R.id.menu_rotate_content -> callback.onRotateContent90Clicked()
+            R.id.menu_rotate_content_ccw -> callback.onRotateContentCounter90Clicked()
         }
     }
 

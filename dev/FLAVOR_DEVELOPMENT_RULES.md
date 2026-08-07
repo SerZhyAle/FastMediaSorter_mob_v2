@@ -48,6 +48,17 @@ For flavors that talk to cloud OAuth providers (OneDrive / MSAL, Google Drive, D
   - A matching redirect URI registered in the Azure App / Google Cloud OAuth / Dropbox consoles.
 - Source of truth for the active matrix: `app_v2/build.gradle.kts` § `productFlavors` (S0232 policy comment).
 
+### RULE 7: A TEST LIVES IN THE SAME SCOPE AS ITS SUBJECT (origin: S1450)
+
+`app_v2/src/test` is compiled for **every** flavor. A test placed there for a class that lives in a flavor-scoped source set does not merely fail - it breaks unit-test **compilation** on every flavor mounting the disabled counterpart, so no test runs there at all.
+
+- Subject in `src/main/java` -> test goes in `src/test/java`, as usual.
+- Subject in a single flavor's set (`src/vr/java`, `src/noLegal/java`) -> test goes in that flavor's unit-test set, `src/testVr/java` / `src/testNoLegal/java`. AGP picks up `src/test<Flavor>/java` by convention, so no Gradle change is needed.
+- Subject in a capability set shared by several flavors (`src/streamingEnabled/java`, `src/cloudEnabled/java`) -> test goes in the matching shared test set (`src/testStreamingEnabled/java`, `src/testCloudEnabled/java`), which `app_v2/build.gradle.kts` mounts into exactly the same flavors as the main set. Duplicating the file into each `src/test<Flavor>` is the wrong fix.
+- Adding a new capability source set means adding its test counterpart and mirroring the mount list. A mount map that drifts from the main one reintroduces this defect silently.
+
+Why it stays silent: nobody routinely runs unit tests on the reduced flavors, so a break there surfaces only when a release gate asks for them. `docs/RELEASE_READINESS_STANDARD.md` requires `PermissionRegistryManifestParityTest` on `lite` and `noLegal` as a release blocker; while `lite` unit tests did not compile, that blocker could not run on the very flavor whose permission set differs most.
+
 ## 3. AGENT BEHAVIOR & SKILLS
 
 When an AI Agent is tasked with creating a feature for a non-STANDARD build:

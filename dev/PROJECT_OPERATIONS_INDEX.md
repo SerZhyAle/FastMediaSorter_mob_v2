@@ -37,7 +37,7 @@ Root package: `wear/src/main/java/com/sza/fastmediasorter/wear/`
 - Modules included: `settings.gradle.kts` -> `:app_v2`, `:wear`
 - Main build config: `app_v2/build.gradle.kts`
 - Wear build config: `wear/build.gradle.kts`
-- SDK / Java baseline: compileSdk 35, minSdk 26 (Android 8+), Java 17; legacy flavor minSdk 23
+- SDK / Java baseline: compileSdk 36, minSdk 26 (Android 8+), Java 17; legacy flavor minSdk 23
 - Flavors (main app): `standard`, `lite`, `photos`, `legacy`
 
 Dependency version policy:

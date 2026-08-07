@@ -634,9 +634,11 @@ scripts/builders/check-lint-rules.ps1
 ```
 
 ### check-standard-fast.ps1
+Fast per-flavor Gradle check - compile, resources, unit tests or assemble.
 
 ```
 scripts/builders/check-standard-fast.ps1
+  Fast per-flavor Gradle check - compile, resources, unit tests or assemble.
   Params:
     -Mode           [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|Assemble}
     -Flavor         [String] = "Standard"  {Standard|NoLegal|Lite|Photos|Legacy|Vr}
@@ -669,6 +671,15 @@ scripts/builders/get-last-build-failure.ps1
     -MaxLines         [Int32] = 200
 ```
 
+### gradle-run-verdict.ps1
+Tells a Gradle run that produced NO verdict apart from one that produced a red verdict.
+
+```
+scripts/builders/gradle-run-verdict.ps1
+  Tells a Gradle run that produced NO verdict apart from one that produced a red verdict.
+  (no param block)
+```
+
 ### install-nolegal-debug-to-device.ps1
 
 ```
@@ -692,6 +703,16 @@ scripts/builders/run-standard-macrobenchmark.ps1
   Params:
     -DryRun             [SwitchParameter]
     -GradleArgs         [String[]]
+```
+
+## scripts\builders\gradle-run-verdict.tests
+
+### Run-Tests.ps1
+
+```
+scripts/builders/gradle-run-verdict.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
 ## scripts\devtest
@@ -1347,6 +1368,17 @@ scripts/quality/assert-allfeatures-sync.ps1
   Exit: 0 - clean (or audit mode).; 1 - substantive failure: validation error or record-count regression.; 2 - the gate itself cannot run (inventory or validate.ps1 missing). Distinct
 ```
 
+### assert-ctor-arg-slots.ps1
+
+```
+scripts/quality/assert-ctor-arg-slots.ps1
+  Params:
+    -Gate           [SwitchParameter]
+    -WarnAt         [Int32] = 20
+    -Quiet          [SwitchParameter]
+  Exit: 0 - every parsed constructor is under the ceiling (or over it without -Gate).; 1 - at least one constructor exceeds the ceiling, and -Gate was passed.; 2 - could not verify: no source root was readable, so nothing was measured.
+```
+
 ### assert-deprecated-pm-flags.ps1
 
 ```
@@ -1664,6 +1696,16 @@ scripts/quality/assert-qualifier-shadowing.ps1
     -Quiet         [SwitchParameter]
 ```
 
+### assert-retired-dependency-names.ps1
+
+```
+scripts/quality/assert-retired-dependency-names.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - no retired dependency name found (or hits found without -Gate).; 1 - at least one retired name found in maintained text, and -Gate was passed.; 2 - could not verify: no scan root existed, so nothing was examined.
+```
+
 ### assert-rtl-layout-attrs.ps1
 
 ```
@@ -1687,6 +1729,16 @@ scripts/quality/assert-script-cheatsheet-sync.ps1
     -Quiet            [SwitchParameter]
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
   Exit: 0 in sync.; 1 stale - regenerate with `pwsh -NoProfile -File scripts/utils/help.ps1 -Generate`.; 2 the gate itself cannot run (scripts/utils/help.ps1 missing).
+```
+
+### assert-sdk-pin-claims.ps1
+
+```
+scripts/quality/assert-sdk-pin-claims.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - every scanned claim matches the build files (or mismatches found without -Gate).; 1 - at least one claim contradicts the build files, and -Gate was passed.; 2 - could not verify: the build file or its pin could not be read, so nothing was compared.
 ```
 
 ### assert-sensitive-settings-annotated.ps1
@@ -2501,7 +2553,8 @@ scripts/spec_catalog/preview.tests/Run-Tests.ps1
 ```
 scripts/streams/collect-stream-candidates.ps1
   Params:
-    -Axis                             [String[]] = @('official', 'livetv', 'genres', 'geo', 'webcam')  {official|livetv|genres|geo|webcam}
+    -Axis                             [String[]] = @('official', 'livetv', 'genres', 'geo', 'webcam')  {official|livetv|genres|geo|webcam|iptvcam|tfl|webradiodb|radioparadise|akc|lautfm|xiph}
+    -LautFmImageBudget                [Int32] = 0
     -PerQuery                         [Int32] = 20
     -LivenessTimeoutSec               [Int32] = 12
     -Throttle                         [Int32] = 12
@@ -2521,6 +2574,10 @@ scripts/streams/collect-stream-candidates.ps1
     -FaviconThrottle                  [Int32] = 16
     -LogoCacheDir                     [String] = 'temp/stream-logo-src'
     -RefreshLogoCache                 [SwitchParameter]
+    -DomainFallback                   [SwitchParameter]
+    -WarmArtworkCache                 [SwitchParameter]
+    -ArtworkCacheOnly                 [SwitchParameter]
+    -NormalizeTopics                  [SwitchParameter]
     -WithChannelPreviews              [SwitchParameter]
     -PublishPreviewAtlas              [SwitchParameter]
     -PreviewAtlasPath                 [String] = 'temp/channel-preview-atlas.webp'
@@ -2537,6 +2594,10 @@ scripts/streams/collect-stream-candidates.ps1
     -LogoLimit                        [Int32] = 0
     -WithTilePacks                    [SwitchParameter]
     -PublishTilePacks                 [SwitchParameter]
+    -TilePackRev                      [String] = 'v4'
+    -SheetRev                         [String] = 'v3'
+    -CoordsRev                        [String] = 'v3'
+    -ArtworkPayload                   [String] = 'both'  {both|preview|logo}
     -PreviewTilePackPath              [String] = 'temp/channel-preview-tiles.zip'
     -LogoTilePackPath                 [String] = 'temp/stream-logo-tiles.zip'
     -TilePackQuality                  [Int32] = 80
@@ -2662,7 +2723,7 @@ scripts/utils/enter-code-lock.ps1
     -Reason              (req)  [String]
     -Wait                       [SwitchParameter]
     -WaitTimeoutSeconds         [Int32] = 1200
-  Exit: 0 - lock acquired, start editing.; 4 - queued: another session holds it. Your ticket is in the queue; wait for your turn with
+  Exit: 0 - lock acquired, start editing. Also returned when this session ALREADY holds the lock; 4 - queued: another session holds it. Your ticket is in the queue; wait for your turn with
 ```
 
 ### exit-code-lock.ps1
@@ -2844,6 +2905,17 @@ scripts/utils/process-timeout.ps1
   Exit: 600 s: the observed tail is 5 gate runs over 300 s out of 311, so this never fires
 ```
 
+### prune-gradle-tmp.ps1
+Removes stale build-JVM leftovers from the shared temp/gradle-tmp directory.
+
+```
+scripts/utils/prune-gradle-tmp.ps1
+  Removes stale build-JVM leftovers from the shared temp/gradle-tmp directory.
+  Params:
+    -MaxAgeHours         [Int32] = 24
+    -Path                [String]
+```
+
 ### recover-kapt-stall.ps1
 
 ```
@@ -3004,6 +3076,14 @@ scripts/utils/setup-alias.ps1
 scripts/utils/setup-avd-for-tests.ps1
   Params:
     -SkipPermissions         [SwitchParameter]
+```
+
+### test-agent-lock-queue.ps1
+
+```
+scripts/utils/test-agent-lock-queue.ps1
+  (no param block)
+  Exit: 0 - every assertion passed; the sandbox is deleted.; 1 - at least one assertion failed; the sandbox is kept for inspection and its path is printed.; 2 - the sandbox could not be prepared, so nothing was checked.
 ```
 
 ### update_docs_frontmatter.ps1

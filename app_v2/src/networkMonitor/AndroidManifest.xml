@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S1433: permissions the Network Monitor program needs. They live here rather than in src/main
+    because src/main merges into every flavor, and a permission declared without the feature behind
+    it is what PermissionRegistryManifestParityTest fails a release on (S1442, S1454).
+
+    READ_PHONE_STATE is deliberately absent: src/launcherEnabled already declares it and the same
+    two flavors mount both source sets, so a second declaration would be dead weight.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        S1472: CHANGE_WIFI_STATE was declared here for a Wi-Fi control row that does not exist yet -
+        this source set currently ships only the capability seam, and nothing in the tree calls
+        setWifiEnabled. Declaring it early is what the header above warns against, and it failed the
+        parity test on standard. It comes back with the control row, in the same change as the code
+        that uses it, so its justification can be true when it is written.
+    -->
+
+    <!-- Bluetooth section on API 30 and below; API 31+ routes through BLUETOOTH_CONNECT instead. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+
+    <!-- Wi-Fi section: reading the current connection details on API 33+. -->
+    <uses-permission
+        android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:minSdkVersion="33" />
+
+    <!-- Bluetooth section: adapter state and bonded-device names on API 31+. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_CONNECT"
+        android:minSdkVersion="31" />
+
+</manifest>

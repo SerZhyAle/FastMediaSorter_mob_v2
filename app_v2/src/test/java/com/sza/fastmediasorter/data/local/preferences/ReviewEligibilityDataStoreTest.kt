@@ -1,14 +1,18 @@
 package com.sza.fastmediasorter.data.local.preferences
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.okio.OkioStorage
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.PreferencesSerializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.runTest
+import okio.FileSystem
+import okio.Path.Companion.toOkioPath
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -33,9 +37,14 @@ class ReviewEligibilityDataStoreTest {
 
     @Before
     fun setUp() {
-        dataStore = PreferenceDataStoreFactory.create(scope = scope) {
-            tempFolder.newFile("review.preferences_pb")
-        }
+        // S1449: okio storage, not File storage - File.renameTo cannot replace an existing
+        // destination on Windows. See BrowseStateDataStoreTest for the full reasoning.
+        dataStore = PreferenceDataStoreFactory.create(
+            storage = OkioStorage(FileSystem.SYSTEM, PreferencesSerializer) {
+                tempFolder.root.resolve("review.preferences_pb").toOkioPath()
+            },
+            scope = scope,
+        )
         store = ReviewEligibilityDataStore(dataStore)
     }
 

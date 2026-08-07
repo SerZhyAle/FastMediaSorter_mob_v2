@@ -126,9 +126,9 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_crop.svg" alt="ic_crop" width="24" height="24"> | Crop |
 | <img src="icons/svg/ic_crop_to_file.svg" alt="ic_crop_to_file" width="24" height="24"> | Crop to file |
 | <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | Delete |
-| <img src="icons/svg/ic_draw_overlay.svg" alt="ic_draw_overlay" width="24" height="24"> | Draw |
-| (system icon) | Edit |
-| (system icon) | Edit |
+| <img src="icons/svg/ic_draw_overlay.svg" alt="ic_draw_overlay" width="24" height="24"> | Drawing |
+| (system icon) | Adjust |
+| (system icon) | File text |
 | <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Reader Settings |
 | (system icon) | Search All Chapters |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
@@ -143,6 +143,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Extract Text |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Extract Text |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Extract Text |
+| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
 | <img src="icons/svg/ic_open_in_browse.svg" alt="ic_open_in_browse" width="24" height="24"> | Open in new window |
 | <img src="icons/svg/ic_night_mode.svg" alt="ic_night_mode" width="24" height="24"> | Night Mode |
 | <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Scroll Mode |
@@ -155,7 +156,8 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Rename |
 | (system icon) | Re-open with Encoding.. |
 | <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Rotate 90° |
-| <img src="icons/svg/ic_rotation_unlocked.svg" alt="ic_rotation_unlocked" width="24" height="24"> | Rotation |
+| <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Rotate -90° |
+| <img src="icons/svg/ic_rotation_unlocked.svg" alt="ic_rotation_unlocked" width="24" height="24"> | Screen autorotate |
 | <img src="icons/svg/ic_save_frame.svg" alt="ic_save_frame" width="24" height="24"> | Save Frame |
 | (system icon) | Search |
 | (system icon) | Search |

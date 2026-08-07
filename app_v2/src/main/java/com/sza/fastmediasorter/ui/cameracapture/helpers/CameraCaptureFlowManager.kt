@@ -291,11 +291,16 @@ class CameraCaptureFlowManager(
         onZoomRatioSelected(target)
     }
 
-    /** Runs tap-to-focus when supported; returns whether the focus ring should be shown. */
+    /**
+     * Runs tap-to-focus when supported; returns whether the focus ring should be shown.
+     *
+     * S1419: the answer now comes from the session rather than being a constant. The capability check
+     * below is one of several reasons a focus request never leaves - the session knows the rest, and
+     * a ring drawn for a request nobody made is what made this look like a broken autofocus.
+     */
     fun onTapToFocus(x: Float, y: Float): Boolean {
         if (!currentCapabilities.supportsTapToFocus) return false
-        session.startFocusAndMetering(x, y)
-        return true
+        return session.startFocusAndMetering(x, y)
     }
 
     /** Toggles the microphone for the next/active recording; returns the resulting state. */

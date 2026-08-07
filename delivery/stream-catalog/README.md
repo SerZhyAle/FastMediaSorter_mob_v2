@@ -48,22 +48,23 @@ watch. It is published as its **own** versioned release asset - NOT bundled insi
 because it is large (20-50 MB) and has an independent lifecycle from the CSV.
 
 ```
-https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/channel-preview-atlas-v1.webp
-https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/channel-preview-coords-v1.json
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/channel-preview-atlas-v2.webp
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/channel-preview-coords-v2.json
 ```
 
-The `-v1` suffix is the element revision: a rebuilt atlas that is not tile-compatible is published
-under a new suffix, so an older app keeps resolving the payload it was pinned against.
+The `-v2` suffix is the element revision: a rebuilt atlas that is not tile-compatible is published
+under a new suffix, so an older app keeps resolving the payload it was pinned against. The `-v1` pair
+from 2026-07-26 stays published unchanged for consumers pinned against it.
 
 Slicing contract (a third-party consumer of this catalog can crop the same tiles):
 
-- One sheet, at most `8192 x 8192` px (the 2026-07-26 build is `8160 x 7560` with 1881 tiles), holding
+- One sheet, at most `8192 x 8192` px (the 2026-08-07 build is `8160 x 7830` with 1949 tiles), holding
   a fixed grid of `240 x 135` tiles, `34` columns per row.
 - A tile's ordinal maps to its cell by `col = index % 34`, `row = index / 34`; its pixel rect is
   `left = col * 240`, `top = row * 135`, `right = left + 240`, `bottom = top + 135`. Equivalently
   `index = row * 34 + col`.
 - Only VIDEO channels have a tile; audio/radio rows are skipped by the packer. A channel that did not
-  answer during the capture pass also has no tile (196 of 2077 in the 2026-07-26 build).
+  answer during the capture pass also has no tile (128 of 2077 in the 2026-08-07 build).
 - Rebuild command: `pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PublishPreviewAtlas`
   (needs `ffmpeg` and `gh`; captured frames are cached under `temp/channel-preview-frames/`, so an
   interrupted pass resumes instead of recapturing).
@@ -87,13 +88,13 @@ is a sprite sheet of station logos, published as its own versioned release asset
 as the preview atlas, and downloaded/refused independently of it.
 
 ```
-https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-logo-atlas-v1.webp
-https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-logo-coords-v1.json
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-logo-atlas-v2.webp
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-logo-coords-v2.json
 ```
 
 Slicing contract:
 
-- One sheet (the 2026-07-26 build is `8024 x 4352`, 6.1 MB, 1838 tiles covering 2156 channels), holding
+- One sheet (the 2026-08-07 build is `8024 x 4624`, 6.9 MB, 2006 tiles covering 2350 channels), holding
   a fixed grid of `136 x 136` tiles, `59` columns per row.
 - A tile's ordinal maps to its cell by `col = index % 59`, `row = index / 59`; its pixel rect is
   `left = col * 136`, `top = row * 136`, `right = left + 136`, `bottom = top + 136`.
@@ -120,7 +121,7 @@ does not re-crawl it. Two filters apply before packing:
 Rebuild command: `pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithStreamLogos -PublishStreamLogoAtlas`
 (needs `ffmpeg` and `gh`; reads only the cache, so it costs minutes and no network). The app-side half
 of the geometry contract is `StreamLogoAtlasSlicer` - change one side without the other and every rect
-drifts. A rebuilt sheet that is not tile-compatible gets a new `-v2` element revision plus fresh SHA-256
+drifts. A rebuilt sheet that is not tile-compatible gets the next element revision plus fresh SHA-256
 pins in `DeliverableDescriptorCatalog.streamLogoAtlas()`, never a silent re-upload under the same name.
 
 ## Tile packs - the same artwork, addressable one tile at a time
@@ -132,8 +133,8 @@ a given row, so cropping one tile out of the `8160 x 7560` preview sheet costs a
 cell at a time. Each pack entry is its own small image, so a tile costs one small decode.
 
 ```
-https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/channel-preview-tiles-v2.zip
-https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-logo-tiles-v2.zip
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/channel-preview-tiles-v3.zip
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-logo-tiles-v3.zip
 ```
 
 Container contract:
@@ -143,17 +144,48 @@ Container contract:
 - An entry name is the slot **index as a plain decimal string, with no extension** (`0`, `1`, `1880`) -
   the same index the `url -> index` sidecar carries, which is shared with the sprite sheet unchanged.
 - An entry is one tile image at the geometry of its sheet (`240 x 135` preview, `136 x 136` logo).
-  Its format is whatever the packer emitted - the 2026-08-06 build uses lossy WebP, with alpha for the
+  Its format is whatever the packer emitted - the 2026-08-07 build uses lossy WebP, with alpha for the
   logo tiles.
 - A slot with no captured artwork has no entry, exactly as it has no sidecar key.
 - The packs are cut FROM the published sheets, so an index resolves to the same picture in either
-  container. The 2026-08-06 build: 1881 preview entries (10,3 MiB) and 1838 logo entries (5,5 MiB).
+  container. The 2026-08-07 build: 1949 preview entries (10,7 MiB) and 2006 logo entries (6,0 MiB).
 - Rebuild command: `pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithTilePacks -PublishTilePacks`
   (needs `ffmpeg` and `gh`; reads a finished sheet, so it costs seconds).
 
 The sheets stay published unchanged - a consumer that prefers cropping one sheet can keep doing so.
 
-### Why a rebuild needs fresh pins (S1200)
+### `artwork-manifest.json` - what is currently live (S1483)
+
+```
+https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/artwork-manifest.json
+```
+
+The app fetches the tile packs under **stable names** - `channel-preview-tiles.zip`,
+`channel-preview-coords.json`, `stream-logo-tiles.zip`, `stream-logo-coords.json` - and learns that a
+rebuild happened from this manifest, published by the same run that uploads the payload:
+
+```json
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-07T14:58:44Z",
+  "sets": {
+    "channelPreview": { "stamp": "<sha256 of the pack>", "files": [ { "name": "..", "size": 0, "sha256": ".." } ] },
+    "streamLogo":     { "stamp": "<sha256 of the pack>", "files": [ ... ] }
+  }
+}
+```
+
+- `stamp` is the pack's own SHA-256. It changes exactly when the artwork changes, which is the only
+  event a consumer needs to notice.
+- A manifest that is absent, unreachable or unparseable means **"nothing new"** - never an error. A
+  storage failure must not become an application failure.
+- The per-file `sha256` values are published for third parties and for diagnosis. The app does not
+  gate on them: it validates a downloaded pack structurally (the archive opens, every entry name is a
+  decimal slot index), which is the same class of check the catalog import applies to `streams.csv`.
+- The revisioned `-vN` packs are **never deleted**. Builds shipped before S1483 pin them by hash and
+  would lose their artwork if those names disappeared.
+
+### Why a rebuild needed fresh pins before S1483 (S1200)
 
 Both atlases above say a rebuilt sheet takes a new element revision plus new SHA-256 pins. That is not
 bookkeeping - the pins are what the app compares an installed copy against to notice it is out of date.
@@ -209,6 +241,27 @@ Allowed live TV sources are:
 The collector does not import grey-area IPTV restreams, anonymous IP-address streams, or an
 unreviewed iptv-org entry. Existing catalog rows are not retroactively deleted by discovery; review
 them separately before any future curated rebuild.
+
+### Community sources (S1476, opt-in axes)
+
+Added 2026-08-07. Each is keyless by requirement - no token, no registration - and each is its own
+`-Axis` value, absent from the default set so a routine collection run keeps its current cost.
+
+| Axis | Source | What it contributes |
+| --- | --- | --- |
+| `lautfm` | [laut.fm](https://api.laut.fm/stations) | ~15,8k private German community stations, one request for the whole index. Station artwork comes from the API (`images.station_*`) and is seeded straight into the artwork cache - every station's page is on the same domain, so a homepage favicon crawl would stamp one identical platform icon on all of them. |
+| `xiph` | [Xiph Icecast YP](https://dir.xiph.org/yp.xml) | ~12,7k self-hosted stations that opted in to the public directory. Only ~5% are HTTPS; plain `http` is admitted here and recorded truthfully in the `https` column. |
+| `webradiodb` | [WebRadioDB](https://jcorporation.github.io/webradiodb/) | ~700 curated, CI-validated stations - the best per-station metadata of any source here. |
+| `iptvcam` | iptv-org `weather` / `outdoor` / `travel` / `relax` | Public webcams already in the index the collector downloads. Reached by category instead of the broadcaster allowlist, which no webcam can ever satisfy. |
+| `tfl` | [TfL JamCams](https://api.tfl.gov.uk/Place/Type/JamCam) | 882 London traffic cameras, Open Government Licence. **Not live**: each is a short clip republished every few minutes, so rows carry `is_live=false` and their own `Traffic cams` rubric. |
+| `akc` | akc.tv broadcast ids | Enumerated, not indexed: every id becomes a candidate and the liveness gate decides. |
+| `radioparadise` | [Radio Paradise](https://api.radioparadise.com/api/list_streams) | 8 listener-funded channels; the highest non-FLAC variant is taken, since the app cannot negotiate down from FLAC. |
+
+Rejected for cause, so the same ground is not re-searched: Windy and webcams.travel (API key),
+Skyline (per-session token), EarthCam (403), IPCamLive and everything built on it (rotating URLs plus
+`apisecret`), explore.org / africam / NPS / zoo pages / HDOnTap / FL511 (YouTube-backed, no direct
+media), Radio Garden (bot wall), Live365 (401), SHOUTcast YP (developer id), internet-radio.com (no
+machine index), Zeno.fm (index carries no stream url), `HasBahCa/m3u_Links` (repository DMCA-blocked).
 
 The collector also drops entries that cannot actually play:
 

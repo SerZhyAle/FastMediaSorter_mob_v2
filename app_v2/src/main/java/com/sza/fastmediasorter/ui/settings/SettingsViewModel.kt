@@ -500,30 +500,34 @@ class SettingsViewModel @Inject constructor(
                 // ScreenGestures group (moved from Player tab)
                 gestureOverlayEnabled = defaults.gestureOverlayEnabled,
                 // S0847: reset the four edge bands (toggles + 12 slots). S1008: + per-zone strip visibility.
-                screenshotGestureZoneLeftTopEnabled = defaults.screenshotGestureZoneLeftTopEnabled,
-                screenshotGestureZoneLeftBottomEnabled = defaults.screenshotGestureZoneLeftBottomEnabled,
-                screenshotGestureZoneRightTopEnabled = defaults.screenshotGestureZoneRightTopEnabled,
-                screenshotGestureZoneRightBottomEnabled = defaults.screenshotGestureZoneRightBottomEnabled,
-                screenshotGestureZoneLeftTopStripVisible = defaults.screenshotGestureZoneLeftTopStripVisible,
-                screenshotGestureZoneLeftBottomStripVisible = defaults.screenshotGestureZoneLeftBottomStripVisible,
-                screenshotGestureZoneRightTopStripVisible = defaults.screenshotGestureZoneRightTopStripVisible,
-                screenshotGestureZoneRightBottomStripVisible = defaults.screenshotGestureZoneRightBottomStripVisible,
-                screenshotGestureLeftTopDown = defaults.screenshotGestureLeftTopDown,
-                screenshotGestureLeftTopRight = defaults.screenshotGestureLeftTopRight,
-                screenshotGestureLeftTopUp = defaults.screenshotGestureLeftTopUp,
-                screenshotGestureLeftBottomDown = defaults.screenshotGestureLeftBottomDown,
-                screenshotGestureLeftBottomRight = defaults.screenshotGestureLeftBottomRight,
-                screenshotGestureLeftBottomUp = defaults.screenshotGestureLeftBottomUp,
-                screenshotGestureRightTopDown = defaults.screenshotGestureRightTopDown,
-                screenshotGestureRightTopRight = defaults.screenshotGestureRightTopRight,
-                screenshotGestureRightTopUp = defaults.screenshotGestureRightTopUp,
-                screenshotGestureRightBottomDown = defaults.screenshotGestureRightBottomDown,
-                screenshotGestureRightBottomRight = defaults.screenshotGestureRightBottomRight,
-                screenshotGestureRightBottomUp = defaults.screenshotGestureRightBottomUp
+                // S1470: payload slots are deliberately left untouched here, same as before the nesting -
+                // only the zone/action fields below were ever part of this reset.
+                screenshotGesture = current.screenshotGesture.copy(
+                    zoneLeftTopEnabled = defaults.screenshotGesture.zoneLeftTopEnabled,
+                    zoneLeftBottomEnabled = defaults.screenshotGesture.zoneLeftBottomEnabled,
+                    zoneRightTopEnabled = defaults.screenshotGesture.zoneRightTopEnabled,
+                    zoneRightBottomEnabled = defaults.screenshotGesture.zoneRightBottomEnabled,
+                    zoneLeftTopStripVisible = defaults.screenshotGesture.zoneLeftTopStripVisible,
+                    zoneLeftBottomStripVisible = defaults.screenshotGesture.zoneLeftBottomStripVisible,
+                    zoneRightTopStripVisible = defaults.screenshotGesture.zoneRightTopStripVisible,
+                    zoneRightBottomStripVisible = defaults.screenshotGesture.zoneRightBottomStripVisible,
+                    leftTopDown = defaults.screenshotGesture.leftTopDown,
+                    leftTopRight = defaults.screenshotGesture.leftTopRight,
+                    leftTopUp = defaults.screenshotGesture.leftTopUp,
+                    leftBottomDown = defaults.screenshotGesture.leftBottomDown,
+                    leftBottomRight = defaults.screenshotGesture.leftBottomRight,
+                    leftBottomUp = defaults.screenshotGesture.leftBottomUp,
+                    rightTopDown = defaults.screenshotGesture.rightTopDown,
+                    rightTopRight = defaults.screenshotGesture.rightTopRight,
+                    rightTopUp = defaults.screenshotGesture.rightTopUp,
+                    rightBottomDown = defaults.screenshotGesture.rightBottomDown,
+                    rightBottomRight = defaults.screenshotGesture.rightBottomRight,
+                    rightBottomUp = defaults.screenshotGesture.rightBottomUp
+                )
             )
         )
     }
-    
+
     fun resetPlayerFirstRun() {
         viewModelScope.launch {
             try {
