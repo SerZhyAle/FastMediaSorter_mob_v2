@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.MenuItemCompat
 import androidx.core.view.forEach
 import androidx.core.view.isVisible
@@ -48,13 +49,16 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamHealthProbeManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamInfoDialogManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioCallbacks
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioViews
 import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamsCommandLabelManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamsMediaKindTriggerManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsSectionsManager
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -208,6 +212,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         onAddShortcut = ::onAddShortcut,
         onEdit = ::showEditDialog,
         onShareLink = ::onShareLink,
+        onAboutChannel = { streamInfoDialogManager.show(it) },
         onToggleFavorite = { viewModel.toggleStreamFavorite(it) },
         favoritesEnabled = { viewModel.settings.value.enableFavorites },
         isFavorite = { viewModel.favoriteStreamUrls.value.contains(it.url) },
@@ -228,6 +233,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         onAddShortcut = ::onAddShortcut,
         onEdit = ::showEditDialog,
         onShareLink = ::onShareLink,
+        onAboutChannel = { streamInfoDialogManager.show(it) },
         onToggleFavorite = { viewModel.toggleStreamFavorite(it) },
         favoritesEnabled = { viewModel.settings.value.enableFavorites },
         isFavorite = { viewModel.favoriteStreamUrls.value.contains(it.url) },
@@ -264,6 +270,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onAddShortcut = ::onAddShortcut,
             onEdit = ::showEditDialog,
             onShareLink = ::onShareLink,
+            onAboutChannel = { streamInfoDialogManager.show(it) },
             onToggleFavorite = { viewModel.toggleStreamFavorite(it) },
             favoritesEnabled = { viewModel.settings.value.enableFavorites },
             isFavorite = { viewModel.favoriteStreamUrls.value.contains(it.url) },
@@ -303,6 +310,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onAddShortcut = ::onAddShortcut,
             onEdit = ::showEditDialog,
             onShareLink = ::onShareLink,
+            onAboutChannel = { streamInfoDialogManager.show(it) },
             onToggleFavorite = { viewModel.toggleStreamFavorite(it) },
             favoritesEnabled = { viewModel.settings.value.enableFavorites },
             isFavorite = { viewModel.favoriteStreamUrls.value.contains(it.url) },
@@ -325,6 +333,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private lateinit var sectionsManager: StreamsSectionsManager
 
     private lateinit var controlsPlacement: StreamsControlsPlacementManager
+
+    private lateinit var commandLabels: StreamsCommandLabelManager
+
+    private lateinit var mediaKindTrigger: StreamsMediaKindTriggerManager
 
     private lateinit var inlineAudio: StreamInlineAudioManager
 
@@ -349,6 +361,18 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     private val filterDialogManager by lazy { StreamsFilterDialogManager(this) }
+
+    // S1474: the "about this channel" window. Both collaborators are passed as accessors rather than as
+    // instances - `healthProbe` is lazy and `inlineAudio` is a lateinit created in onCreate, so reading
+    // either at construction time would build one too early or throw.
+    private val streamInfoDialogManager by lazy {
+        StreamInfoDialogManager(
+            context = this,
+            healthProbe = { healthProbe },
+            inlineAudio = { if (::inlineAudio.isInitialized) inlineAudio else null },
+            playOutcome = { viewModel.playOutcomes.value[it.id] },
+        )
+    }
 
     // S0700: reachability sweep over the visible rows on the refresh action. applicationContext so a
     // config-change never leaks the Activity into a probe's short-lived ExoPlayer.
@@ -468,10 +492,24 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
         binding.toolbar.setNavigationOnClickListener { exitStreamsWithAudioCheck() }
         onBackPressedDispatcher.addCallback(this) { exitStreamsWithAudioCheck() }
+        // S1473: the menu is cleared and re-inflated on every orientation change, so this listener
+        // must stay on the toolbar - a per-item listener would survive the first rotation as a
+        // present but inert command.
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_stream_add -> { showSourceDialog(isImport = false); true }
-                R.id.action_stream_import -> { showImportChooser(); true }
+                R.id.action_stream_import_catalog -> {
+                    Timber.d("S1473: overflow entry - update FastMediaSorter catalog")
+                    cancelHealthProbe()
+                    viewModel.onImportCatalog()
+                    true
+                }
+                R.id.action_stream_import_url -> {
+                    Timber.d("S1473: overflow entry - import from URL")
+                    cancelHealthProbe()
+                    showSourceDialog(isImport = true)
+                    true
+                }
                 R.id.action_stream_display_toggle -> { cancelHealthProbe(); viewModel.onToggleDisplayMode(); true }
                 R.id.action_stream_refresh -> { startHealthProbe(); true }
                 else -> false
@@ -489,14 +527,45 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // S0940: in landscape the search/filter/sort group moves into the toolbar header to free
         // vertical space for the list/grid; place it for the launch orientation here, then keep it
         // in sync from onConfigurationChanged (this window does not recreate on rotation, S0692).
+        // S1473: the inline facet trigger writes through the single-facet ViewModel entry point, not
+        // onFilter - that one defaults every unpassed facet and would clear the rest of the filter.
+        mediaKindTrigger = StreamsMediaKindTriggerManager(
+            videoButton = binding.btnMediaKindVideo,
+            audioButton = binding.btnMediaKindAudio,
+            onKindSelected = { kind ->
+                Timber.d("S1473: inline media-kind trigger -> %s", kind)
+                cancelHealthProbe()
+                viewModel.onMediaKindFilter(kind)
+            },
+        )
+        mediaKindTrigger.bind()
+
         controlsPlacement = StreamsControlsPlacementManager(
             controls = binding.streamControls,
             headerHost = binding.headerControlsHost,
             searchField = binding.tilSearch,
+            onOrientationApplied = { landscape ->
+                mediaKindTrigger.render(latestState.filter.mediaKind, landscape)
+            },
+        )
+        // S1473: the two pinned commands take text labels in landscape, which forces a menu rebuild
+        // on every orientation change - see StreamsCommandLabelManager for why a resource variant
+        // cannot do it here. Both post-inflate fixups have to be re-applied after each rebuild.
+        commandLabels = StreamsCommandLabelManager(
+            toolbar = binding.toolbar,
+            menuRes = R.menu.menu_streams,
+            labelledItemIds = listOf(R.id.action_stream_display_toggle, R.id.action_stream_refresh),
+            reapplyFixups = {
+                // Before the first state emission the display mode is unknown, so only the tint
+                // applies; the state collector sets the toggle icon on that first emission.
+                val mode = appliedDisplayMode
+                if (mode != null) updateDisplayToggleIcon(mode) else tintToolbarMenuIcons()
+            },
         )
         val launchLandscape =
             resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         controlsPlacement.applyForOrientation(launchLandscape)
+        commandLabels.applyForOrientation(launchLandscape)
 
         // S0700: a user drag of the list aborts an in-flight reachability sweep (programmatic scrolls,
         // e.g. the S0699 position restore, settle without DRAGGING so they do not cancel it).
@@ -609,6 +678,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             MaterialColors.getColor(binding.toolbar, com.google.android.material.R.attr.colorOnPrimary)
         )
         binding.toolbar.menu.forEach { item -> MenuItemCompat.setIconTintList(item, tint) }
+        // S1473: the overflow glyph is a toolbar property, not a menu item, so the loop above never
+        // reaches it - and it needs the same contrast as the icons beside it.
+        binding.toolbar.overflowIcon?.mutate()?.let { icon ->
+            DrawableCompat.setTintList(icon, tint)
+            binding.toolbar.overflowIcon = icon
+        }
     }
 
     /**
@@ -633,14 +708,14 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     override fun observeData() {
         collectOnLifecycle(viewModel.state) { state ->
-            // S1141: the sections manager splits sources into pinned/unpinned and drives both section
-            // grid managers; a mode change swaps adapter + layout once, otherwise it keeps both lists
-            // current. The pinned section auto-hides when nothing is pinned.
+            // S1141: the sections manager drives both section grid managers; a mode change swaps adapter
+            // + layout once, otherwise it keeps both lists current. The pinned section auto-hides when
+            // nothing is pinned. S1502: the halves arrive already split from the ViewModel.
             if (state.displayMode != appliedDisplayMode) {
                 appliedDisplayMode = state.displayMode
-                sectionsManager.applyMode(state.displayMode, state.sources)
+                sectionsManager.applyMode(state.displayMode, state.pinned, state.unpinned)
             } else {
-                sectionsManager.submitList(state.sources)
+                sectionsManager.submitList(state.pinned, state.unpinned)
             }
             // S0587: recompute the main list's scroll-button visibility after the section split re-submits
             // (filter/sort/search change the unpinned row count). Scroll buttons target the main list only.
@@ -650,8 +725,20 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             binding.emptyStateView.isVisible = state.isEmpty
             latestState = state
             updateFilterIndicator(state.filter)
+            // S1473: renders from the shared filter state, so a change made in the filter dialog
+            // repaints the inline icons on the same emission.
+            mediaKindTrigger.render(state.filter.mediaKind)
             // S0699: once the list carries the saved row, land on it (once per screen open).
             tryRestoreScroll(state.sources.size)
+        }
+        // S1502: the status bullet travels beside the list, not inside it - a finished probe repaints
+        // the affected rows only, instead of re-emitting the catalog through the filter/sort pass.
+        collectOnLifecycle(viewModel.playOutcomes) { outcomes ->
+            Timber.d("S1502: play-outcome side channel emitted ${outcomes.size} entries")
+            adapter.playOutcomes = outcomes
+            pinnedAdapter.playOutcomes = outcomes
+            gridAdapter.playOutcomes = outcomes
+            pinnedGridAdapter.playOutcomes = outcomes
         }
         collectOnLifecycle(viewModel.events) { event ->
             when (event) {
@@ -731,10 +818,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * RecyclerView's visible positions index into its own sublist (pinned rows vs unpinned rows); a
      * channel is pinned XOR unpinned, so concatenating the two visible sublists needs no dedup.
      */
-    private fun visibleSources(): List<StreamSourceEntity> {
-        val (pinned, unpinned) = latestState.sources.partition { it.pinned }
-        return visibleInSection(binding.rvStreamsPinned, pinned) + visibleInSection(binding.rvStreams, unpinned)
-    }
+    private fun visibleSources(): List<StreamSourceEntity> =
+        visibleInSection(binding.rvStreamsPinned, latestState.pinned) +
+            visibleInSection(binding.rvStreams, latestState.unpinned)
 
     private fun visibleInSection(
         recyclerView: RecyclerView,
@@ -1066,6 +1152,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * Two-way "Import list" chooser: one-tap curated-catalog update vs. the existing manual URL
      * import dialog. The Activity only forwards the choice - the catalog download lives in the
      * ViewModel/use case (Rule 3).
+     *
+     * S1473: the command row now offers both sources as direct overflow entries, so this chooser is
+     * reachable only from the empty-state button, whose behaviour the owner did not ask to change.
+     * It is not dead weight, and the toolbar must not be pointed back at it.
      */
     private fun showImportChooser() {
         val items = arrayOf(
@@ -1175,6 +1265,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         if (::controlsPlacement.isInitialized) {
             val landscape = newConfig.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
             controlsPlacement.applyForOrientation(landscape)
+            // S1473: the menu item views carry their text permission from birth, so the labels
+            // follow the rotation only if the menu is rebuilt with it.
+            commandLabels.applyForOrientation(landscape)
         }
     }
 
@@ -1220,6 +1313,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     override fun onDestroy() {
         binding.rvStreams.removeOnScrollListener(streamScrollListener)
+        // S1474: before the engines below are released, so a measurement never outlives its window.
+        streamInfoDialogManager.dismiss()
         // S1152: read the playback state BEFORE inlineAudio is released below.
         if (isFinishing) clearStreamResumeOnExit()
         // setupViews() is deferred to a post{}; guard against destroy before it ran.
@@ -1235,7 +1330,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         const val ACTION_PLAY_STREAM = "com.sza.fastmediasorter.action.PLAY_STREAM"
         const val EXTRA_STREAM_URL = "extra_stream_url"
 
-        /** Intent a pinned home-screen shortcut (S0637) carries to play one stream by its URL. */
+        /**
+         * S1471: no longer what a pinned shortcut carries. The shortcut now targets
+         * `StreamPlayLaunchActivity`, and this is the fallback that trampoline starts when background
+         * playback does not apply - non-audio channel, setting off, no network, or an unknown URL.
+         * Keeps the launcher task flags because the trampoline starts it from outside our task.
+         */
         fun createPlayShortcutIntent(context: Context, url: String): Intent =
             Intent(context, StreamsActivity::class.java).apply {
                 action = ACTION_PLAY_STREAM

@@ -9,6 +9,7 @@ Pointers only - open a file when its hook matches. Billed every turn; `assert-me
 - [Universal Agent Kit](reference_universal_agent_kit.md) · [No paid/key services](feedback_no_paid_or_key_services.md) · [Weather on Open-Meteo](project_weather_gadget_open_meteo.md)
 - [fms_companion](project_fms_companion_subproject.md) - Go+Wails, out of repo · [FMS Windows rebrand](project_fms_windows_rebrand.md)
 - [Process audit 2026-07](project_process_audit_2026_07.md) - cost is context×turns · [Cost mining](reference_transcript_cost_mining.md)
+- [Canon working copy](reference_canon_working_copy.md) - two copies, both stale; hand-wired hooks still load-bearing
 
 ## Devices & release
 - [Devices](reference_test_device_galaxy_s21.md) · [adb CLI](reference_adb_swiss_army.md) + [.debug pkg](reference_adb_and_debug_package.md)
@@ -23,6 +24,7 @@ Pointers only - open a file when its hook matches. Billed every turn; `assert-me
 - [Emulator capture](reference_emulator_capture_family_testing.md) - reshape, never rotate + [MediaProjection](reference_emulator_mediaprojection_capture.md)
 - [AVD quirks](feedback_avd_device_sweep_gotchas.md) + [media](feedback_avd_mediastore_not_indexed.md) + [taps](feedback_bottomsheet_menu_untappable_emulator.md)
 - [Emulator acceptance ceiling](feedback_emulator_acceptance_ceiling.md)
+- [AVD false negatives](feedback_avd_evidence_traps_width_and_logs.md) - native shape leaves no spare bar width; `-Tail` logcat hides probes
 - [Onboarding device-test](feedback_onboarding_device_test_gotchas.md) · [Widget-only on AVD](reference_trigger_widget_only_features_on_emulator.md) · [Too fast for transfer UI](feedback_emulator_too_fast_for_transfer_ui.md)
 - [Launcher desktop device-test](feedback_launcher_desktop_device_test_setup.md) - HOME ships disabled
 - [Check animator scale first](feedback_check_animator_scale_before_diagnosing.md) - AVDs run scale=0 · [Theme switch](feedback_color_theme_device_switch.md)
@@ -33,6 +35,8 @@ Pointers only - open a file when its hook matches. Billed every turn; `assert-me
 ## Build, flavors, gates
 - [Don't release someone else's CODE.LOCK](feedback_code_lock_release_ownership.md) · [No concurrent gradle](feedback_no_concurrent_gradle_invocations.md)
 - [Don't idle on a lock](feedback_do_not_idle_on_a_lock.md) · [CODE.LOCK is per step, not per ticket](feedback_code_lock_is_per_step_not_per_ticket.md)
+- [CODE.LOCK pid is always dead](feedback_code_lock_pid_is_always_dead.md) - judge its holder by the transcript; queues self-clean on read
+- [agent-lock has no CLI](project_agent_lock_release_lies.md) - library, not a command; direct call now exits 2; release with `exit-code-lock.ps1` (S1505 fixed)
 - [No redundant flavor compile](feedback_no_redundant_flavor_compile.md) · [Don't infer arch from BuildConfig](feedback_dont_infer_from_buildconfig_names.md) · [Lowest flavor wins](feedback_push_features_to_lowest_flavor.md)
 - [New capability != CapabilityAvailability](project_flavor_flags_ratchet_blocks_capability_availability.md) - ratchet refuses; copy the LauncherModeContract seam
 - [Flavor grid is generated](project_flavor_matrix_cloud_correction.md) · [photos/lite OCR src sets](project_photos_flavor_ocr_break.md) · [3rd-party branding ok](feedback_third_party_branding_not_a_blocker.md)
@@ -56,7 +60,8 @@ Pointers only - open a file when its hook matches. Billed every turn; `assert-me
 - [A gate FAIL may mean it never ran](feedback_gate_fail_may_mean_never_ran.md) - read the JUnit XML before hunting the defect
 - [No Sxxxx in permanent logs](reference_ticket_log_gate.md) · [Timber.e for real errors](feedback_log_levels.md)
 - [Settings docs sync Rule 22](feedback_settings_manifest_regen.md) · [ChangeType Kotlin skips doc-pin gate](feedback_post_change_kotlin_skips_doc_pin_gate.md)
-- [post-change -Files dev-logs only the FIRST file](feedback_post_change_dev_log_first_file_only.md) - gates cover all, changelog doesn't
+- [post-change -Files: one row, whole set](feedback_post_change_dev_log_first_file_only.md) - fixed 2026-08-08; batching is now the cheap shape
+- [Gate cost mining](reference_gate_cost_mining.md) - detekt is 86% of gate time; printed ms includes BUILD.LOCK waiting
 
 ## Long-run correctness
 - [Radio toggles: firmware, not targetSdk](project_radio_toggle_restriction_is_firmware_not_targetsdk.md) - direct path works on 8
@@ -65,6 +70,7 @@ Pointers only - open a file when its hook matches. Billed every turn; `assert-me
 
 ## UI conventions
 - [Focus indicator](project_focus_frame_infra.md) · [No wrapper focus on compound rows](feedback_compound_row_no_wrapper_focus.md)
+- [Trampolines are not Rule 3 exempt](feedback_trampolines_are_not_rule3_exempt.md) - activity-logic gate counts domain injection; only post-change sees it
 - [Landscape buttons](feedback_no_fullwidth_buttons_landscape.md) + [multi-column](feedback_landscape_multicolumn_settings.md) · [Land player bottom-band](project_land_player_bottom_band_stacking.md)
 - [configChanges no recreate](project_streams_activity_config_changes_rotation.md) · [SettingsInputRow greedy width](feedback_settingsinputrow_greedy_width.md) · [Canonical settings pickers](feedback_canonical_settings_value_pickers.md)
 - [Reuse existing settings](feedback_reuse_existing_settings.md) · [Settings deep-link](project_settings_section_deeplink.md) · [Settings-search gate axes](project_settings_search_gate_axes.md)
@@ -72,6 +78,7 @@ Pointers only - open a file when its hook matches. Billed every turn; `assert-me
 - [Players are a family](feedback_player_family_glue_mirroring.md)
 - [App self-pins shortcuts](project_app_self_pin_tests_launcher_pin_host.md)
 - [Welcome layout variants](project_welcome_layout_variants.md) · [sw beats -land](project_res_sw_qualifier_beats_land.md)
+- [Enumerate ALL layout variants](feedback_enumerate_all_layout_variants_not_just_land.md) - not just -land; a miss = nullable ViewBinding field
 - [Main top panels width grid](project_main_top_panels_width_grid.md) · [Sync docs/site on visible change](feedback_sync_docs_on_visible_change.md)
 - [Probe-measure poisons centering](project_probe_measure_poisons_text_centering.md)
 - [HOW_TO path gate](reference_howto_settings_path_gate.md) + [parity](feedback_howto_settings_path_parity.md) · [Play edge-to-edge warnings](project_play_setstatusbarcolor_false_positive.md)
@@ -92,13 +99,17 @@ Pointers only - open a file when its hook matches. Billed every turn; `assert-me
 ## Spec lifecycle & catalog
 - [Blocker unblocks at BlockNeedUserTest](feedback_blocker_unblocks_at_needusertest.md) - don't wait for Verified
 - [Probe tags may be line-wrapped](feedback_probe_tag_multiline_grep.md) · [Verify spec id first](feedback_verify_spec_id_before_pipeline.md)
+- [DRIFT can be a commit-message mention](feedback_drift_check_false_positive_on_commit_mention.md) - read `code markers`; 0 means not implemented
 - [IDE Draft finalizes mid-task](feedback_ide_open_spec_may_finalize_midtask.md) · [Draft style gate](feedback_draft_style_gate.md) · [Status auto-syncs](feedback_spec_header_autosync.md)
 - [Strategic spec owner gate](feedback_strategic_spec_owner_gate.md) · [UI placement refusal](feedback_spec_tech_ui_placement_refusal.md) - my §3.3 ≠ owner ruling · [plan quality](feedback_spec_tech_plan_quality.md) · [Phase-boundary audit](feedback_phase_boundary_audit.md)
 - [/spec-dev verify code first](feedback_spec_dev_continue_verify_code_first.md) · [Plan file lists can be wrong](feedback_tactical_plan_file_list_may_be_wrong.md)
+- [Old capture may be superseded](feedback_old_capture_may_be_superseded.md) - a later ticket may already have shipped a different answer to it
 - [Never call scaffolding done](feedback_no_scaffolding_as_done.md) · [no fake autopilot blocker](feedback_no_safety_blocker_gating_autopilot.md)
 - [Dead code may be scaffolding](feedback_dead_code_vs_active_tickets.md)
+- [No quotes in a -StatusNote](feedback_status_note_quotes_corrupt_catalog.md) - silently renames the ticket (S1504)
 - [Block status before gate](feedback_blockneedusertest_status_before_gate.md) + [tags](feedback_timber_tags_before_test.md) + [phases](feedback_per_phase_debug_tags_break_gate.md) · [close.ps1 two-step](project_close_ps1_two_step_unblock.md)
 - [Probe predicates grep the Timber form](feedback_probe_predicate_names_timber_form.md) - bare `Sxxxx` hits rationale comments
+- [Zero-hit predicate can't name the literal](feedback_zero_hit_predicate_cannot_name_the_literal.md) - the criterion line matches itself
 - [Capability inventory](project_functionality_log.md) · [flavors from the gate](feedback_feature_record_flavors_from_gate.md) · [noLegal features](feedback_features_nolegal.md)
 - [spec_catalog exit-code](project_spec_catalog_exit_code_contract.md) · [insert -File](project_insert_ps1_file_validation.md) · [Catalog scan roots](project_catalog_scan_source_sets.md) · [Dedup: 1 word](feedback_spec_dedup_query_shape.md)
 - [set.ps1 stops](project_catalog_set_ps1_stops_on_error.md) · [-Search coverage](reference_catalog_search_coverage.md) · [Big-file decomposition](project_s0002_decomposition_toolkit.md)

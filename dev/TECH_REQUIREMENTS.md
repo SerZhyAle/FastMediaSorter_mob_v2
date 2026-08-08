@@ -124,7 +124,7 @@
 | `room-compiler`                | 2.7.0      | Room annotation processor          |
 | `datastore-preferences`        | 1.1.7      | Key-value preferences store        |
 | `paging-runtime-ktx`           | 3.2.1      | Paging 3 library                   |
-| Room DB version                  | 47         | Current schema version (see AppDatabase.kt) |
+| Room DB version                  | 48         | Current schema version (see AppDatabase.kt) |
 
 ### 4.7 Media Playback
 

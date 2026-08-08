@@ -32,10 +32,21 @@
     # ListScroll gates on physical devices only: on an emulator its gfxinfo janky% is structurally
     # inflated by software/host-GPU rendering, so the record is marked advisory (see
     # prerelease-measure.ps1) and the verdict aggregator reports but does not gate on it.
+    # S1502 streams checkpoints gate the streams screen at full catalog size. Seed the device with
+    # scripts/devtest/streams-perf-seed.ps1 first. The two scroll limits mirror ListScroll and carry
+    # the same emulator advisory. StreamsPeakMemory is a coarse absolute backstop only: strategic
+    # §11.6 asks whether the peak GREW, which is the baseline/after comparison, not this number.
+    # Every S1502 limit here is a pipeline-chosen starter value awaiting the owner's confirmation
+    # (strategic §3.3) - refine them from the first baseline rather than treating them as agreed.
     Thresholds = @{
-        ColdStart      = @{ Metric = 'am-start-total-ms';        Limit = 5000 }
-        ListScroll     = @{ Metric = 'janky-frames-pct';         Limit = 20 }
-        PlayerOpen     = @{ Metric = 'ms-to-first-frame';        Limit = 4000 }
-        NetworkListing = @{ Metric = 'ms-to-listing-complete';   Limit = 15000 }
+        ColdStart         = @{ Metric = 'am-start-total-ms';      Limit = 5000 }
+        ListScroll        = @{ Metric = 'janky-frames-pct';       Limit = 20 }
+        PlayerOpen        = @{ Metric = 'ms-to-first-frame';      Limit = 4000 }
+        NetworkListing    = @{ Metric = 'ms-to-listing-complete'; Limit = 15000 }
+        StreamsOpen       = @{ Metric = 'ms-to-streams-screen';   Limit = 5000 }
+        StreamsSearch     = @{ Metric = 'janky-frames-pct';       Limit = 20 }
+        StreamsListScroll = @{ Metric = 'janky-frames-pct';       Limit = 20 }
+        StreamsGridScroll = @{ Metric = 'janky-frames-pct';       Limit = 20 }
+        StreamsPeakMemory = @{ Metric = 'peak-rss-kb';            Limit = 524288 }
     }
 }

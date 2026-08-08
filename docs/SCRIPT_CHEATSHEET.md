@@ -804,7 +804,7 @@ scripts/devtest/prerelease-measure.ps1
   S0484 pre-release sweep - per-checkpoint performance measurement.
   Params:
     -DeviceId           [String]
-    -Checkpoint  (req)  [String]  {cold-start|list-scroll|player-open|network-listing}
+    -Checkpoint  (req)  [String]  {cold-start|list-scroll|player-open|network-listing|streams-open|streams-search|streams-list-scroll|streams-grid-scroll|streams-peak-memory}
     -ElapsedMs          [Int32] = -1
     -Json               [SwitchParameter]
   Exit: 0 - measured and within threshold (pass); 1 - bad arguments / config unreadable / adb missing; 11 - measured but over threshold (fail)
@@ -836,6 +836,18 @@ scripts/devtest/prerelease-verdict.ps1
     -FromTs                 [String]
     -Json                   [SwitchParameter]
   Exit: 0 - PASS; 1 - content FAIL (log / perf / maestro); 2 - infrastructure abort (LogFile missing / inputs unreadable)
+```
+
+### streams-perf-seed.ps1
+S1502 streams performance sweep - seed a device with the full shipped stream catalog.
+
+```
+scripts/devtest/streams-perf-seed.ps1
+  S1502 streams performance sweep - seed a device with the full shipped stream catalog.
+  Params:
+    -DeviceId         [String]
+    -Json             [SwitchParameter]
+  Exit: 0 - seeded and verified: the table holds the expected row count; 1 - bad arguments / adb or sqlite3 missing / catalog csv missing / package not installed; 2 - no device reachable; 11 - device reachable but the catalog did not reach the expected size
 ```
 
 ## scripts\devtest\adb-log-filter.tests
@@ -1415,7 +1427,7 @@ scripts/quality/assert-detekt.ps1
     -Gate                   [SwitchParameter]
     -ChangedFiles           [String[]]
     -TimeoutSeconds         [Int32] = 600
-  Exit: 0 PASS - no new findings, or none in -ChangedFiles, or non-gate mode.; 1 FAIL - -Gate and detekt reported a new finding (in -ChangedFiles when diff-scoped).; 2 Cannot verify - gradlew.bat missing, or -ChangedFiles given but a run module's
+    -NoCache                [SwitchParameter]
 ```
 
 ### assert-device-profile-matrix.ps1
@@ -2387,6 +2399,22 @@ scripts/spec_catalog/release-queue.ps1
   Exit: 0 success (for -Validate: no drift).; 1 error, or -Validate found drift.; 2 cannot verify - PLAN/RELEASE_QUEUE.md is missing (seed it before using the queue).
 ```
 
+### run-spec-all-queue.ps1
+Runs /spec-all for release-queue tickets one at a time.
+
+```
+scripts/spec_catalog/run-spec-all-queue.ps1
+  Runs /spec-all for release-queue tickets one at a time.
+  Params:
+    -PollSeconds                  [Int32] = 30  {range 5..300}
+    -MaxTickets                   [Int32] = 0  {range 0..10000}
+    -MaxAttemptsPerTicket         [Int32] = 3  {range 1..20}
+    -HeartbeatMinutes             [Int32] = 5  {range 1..120}
+    -ClaudeCommand                [String] = 'claude'
+    -DryRun                       [SwitchParameter]
+  Exit: 0 Queue exhausted, MaxTickets reached, or DryRun completed.; 1 Invalid environment, a helper script failed, or Claude Code could not be started.; 2 RELEASE_QUEUE.md contains a malformed ticket line.; 3 Ticket stalled: an attempt made no progress, or the attempt budget ran out,
+```
+
 ### sca-specs.ps1
 
 ```
@@ -2546,6 +2574,17 @@ scripts/spec_catalog/preview.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\spec_catalog\update.tests
+
+### Run-Tests.ps1
+
+```
+scripts/spec_catalog/update.tests/Run-Tests.ps1
+  Params:
+    -SubjectId         [String] = 'S1504'
+  Exit: 0 all cases pass.; 1 at least one case failed, or the subject id could not be resolved.
+```
+
 ## scripts\streams
 
 ### collect-stream-candidates.ps1
@@ -2627,10 +2666,43 @@ scripts/streams/collect-stream-candidates.ps1
 ## scripts\utils
 
 ### agent-lock.ps1
+Cross-agent coordination locks: temp/BUILD.LOCK and temp/CODE.LOCK.
 
 ```
 scripts/utils/agent-lock.ps1
+  Cross-agent coordination locks: temp/BUILD.LOCK and temp/CODE.LOCK.
   (no param block)
+```
+
+### archive-temp.ps1
+Archives stale scratch artifacts out of temp/ into temp/archive/<stamp>/.
+
+```
+scripts/utils/archive-temp.ps1
+  Archives stale scratch artifacts out of temp/ into temp/archive/<stamp>/.
+  Params:
+    -OlderThanDays          [Int32] = 7
+    -IncludeScratch         [SwitchParameter]
+    -DryRun                 [SwitchParameter]
+    -Stamp                  [String]
+  Exit: 0 - completed (or dry run completed); 1 - a move failed; 2 - could not verify: repo root or spec catalog CLI not found
+```
+
+### archive-vscode-cruft.ps1
+Reclaims disk space from VSCode / VSCode Insiders user data and Claude Code transcripts.
+
+```
+scripts/utils/archive-vscode-cruft.ps1
+  Reclaims disk space from VSCode / VSCode Insiders user data and Claude Code transcripts.
+  Params:
+    -Tier                            [Int32] = 1  {range 1..3}
+    -ArchiveRoot                     [String]
+    -ChatOlderThanDays               [Int32] = 30
+    -WebStorageOlderThanDays         [Int32] = 90
+    -HistoryOlderThanDays            [Int32] = 60
+    -ClaudeOlderThanDays             [Int32] = 30
+    -DryRun                          [SwitchParameter]
+    -Force                           [SwitchParameter]
 ```
 
 ### batch-set-android-string.ps1

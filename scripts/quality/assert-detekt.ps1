@@ -35,6 +35,26 @@
     Modes:
       (default)  Report the verdict. Exit 0 on PASS.
       -Gate      Same run; exit 1 if detekt reports any NEW finding.
+      -NoCache   Skip the clean-verdict cache below and always invoke gradle.
+
+    Clean-verdict cache (2026-08-08):
+      A fully clean run is cached in temp/detekt-gate-cache.json under a fingerprint of every
+      input the verdict can depend on - the analysed .kt/.kts sources, the detekt config, both
+      baselines, the build files and this script. A later run whose fingerprint matches exits
+      PASS without starting gradle, and does not queue for BUILD.LOCK to do it.
+
+      Why: measured over 947 gate runs in three weeks, 530 of them (56%, 1,747 minutes of wall
+      time) analysed a tree in which no Kotlin file had changed since the previous run - the
+      shape produced by closing one ticket file by file, where the second and third close
+      re-analyse an identical tree. detekt is 86% of all gate wall time here.
+
+      Only the "no new findings anywhere" verdict is cached, because that answer holds for every
+      -Gate and -ChangedFiles combination a later caller can pass. A scoped PASS is not cached:
+      it means the project is dirty and only the caller's own files were clean, which says
+      nothing about the next caller's files. FAIL is never cached.
+
+      The fingerprint is recomputed after the run and stored only if it still matches the
+      pre-run value, so a source edited by a concurrent session mid-run is never certified.
 
     Scope:
       (default)       Run detekt for both modules (:app_v2 + :wear).
@@ -69,7 +89,10 @@ param(
     # and still reported PASS. The observed tail is 5 runs over 300 s out of 311, so 600 s
     # never fires on a healthy run; raise it deliberately for a genuinely long release run.
     # Expiry is exit 2 "cannot verify" - never PASS, never FAIL.
-    [int]$TimeoutSeconds = 600
+    [int]$TimeoutSeconds = 600,
+    # Bypass the clean-verdict cache described below and always run gradle. Release and CI paths
+    # pass this: there the point is the run itself, not the answer.
+    [switch]$NoCache
 )
 
 Set-StrictMode -Version Latest
@@ -88,6 +111,75 @@ if (-not (Test-Path $gradlew)) {
 
 $reportModules = if ($PSBoundParameters.ContainsKey('Module')) { @($Module) } else { @('app_v2', 'wear') }
 $lockReason = if ($PSBoundParameters.ContainsKey('Module')) { "assert-detekt.ps1 -Module $Module" } else { "assert-detekt.ps1 (app_v2 + wear)" }
+$cacheLabel = if ($PSBoundParameters.ContainsKey('Module')) { $Module } else { 'app_v2 + wear' }
+$cachePath = Join-Path $repoRoot 'temp/detekt-gate-cache.json'
+
+function Get-DetektTreeFingerprint {
+    param([string]$RepoRoot, [string[]]$Modules)
+
+    # Every input the verdict can depend on goes in. A fingerprint that misses one turns a stale
+    # PASS into a certified one, which is strictly worse than not caching at all.
+    $entries = [System.Collections.Generic.List[string]]::new()
+
+    foreach ($m in $Modules) {
+        $srcRoot = Join-Path $RepoRoot "$m/src"
+        if (Test-Path $srcRoot) {
+            foreach ($f in (Get-ChildItem $srcRoot -Recurse -File -Include '*.kt', '*.kts' -ErrorAction SilentlyContinue)) {
+                $entries.Add(('{0}|{1}|{2}' -f $f.FullName, $f.Length, $f.LastWriteTimeUtc.Ticks))
+            }
+        }
+    }
+
+    $extras = @('config/detekt/detekt.yml', 'build.gradle.kts', 'settings.gradle.kts', 'gradle.properties',
+        'scripts/quality/assert-detekt.ps1')
+    foreach ($m in $Modules) {
+        $extras += "$m/build.gradle.kts"
+        $extras += "config/detekt/baseline-$m.xml"
+    }
+    foreach ($rel in $extras) {
+        $p = Join-Path $RepoRoot $rel
+        if (Test-Path $p) {
+            $item = Get-Item $p
+            $entries.Add(('{0}|{1}|{2}' -f $item.FullName, $item.Length, $item.LastWriteTimeUtc.Ticks))
+        }
+    }
+
+    $entries.Sort()
+    $payload = "modules=$($Modules -join ',')`n" + ($entries -join "`n")
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return [BitConverter]::ToString($sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($payload))).Replace('-', '')
+    }
+    finally { $sha.Dispose() }
+}
+
+$cacheKey = $null
+if (-not $NoCache) {
+    $cacheKey = Get-DetektTreeFingerprint -RepoRoot $repoRoot -Modules $reportModules
+    if (Test-Path $cachePath) {
+        # A corrupt or half-written cache must never block the gate: any failure here falls
+        # through to a real gradle run, which is the same answer the cache was standing in for.
+        try {
+            $cached = Get-Content $cachePath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+            $props = @($cached.PSObject.Properties.Name)
+            if (($props -contains 'fingerprint') -and ($props -contains 'verdict') -and ($props -contains 'utc') -and
+                $cached.fingerprint -eq $cacheKey -and $cached.verdict -eq 'clean') {
+                $ageHours = ((Get-Date).ToUniversalTime() - [datetime]::Parse($cached.utc, $null, 'RoundtripKind')).TotalHours
+                # A day-old entry is re-earned rather than trusted. Nothing observed can invalidate a
+                # matching fingerprint, but an unbounded cache would outlive the reasoning behind it.
+                if ($ageHours -ge 0 -and $ageHours -lt 24) {
+                    Write-Host ("assert-detekt: PASS [$cacheLabel] (cached - no analysed input changed since the clean run " +
+                        "{0:N1}h ago; pass -NoCache to force a real run)." -f $ageHours) -ForegroundColor Green
+                    exit 0
+                }
+            }
+        }
+        catch {
+            Write-Host "assert-detekt: cache unreadable ($($_.Exception.Message)); running detekt." -ForegroundColor DarkGray
+        }
+    }
+}
+
 . (Join-Path $repoRoot "scripts/utils/agent-lock.ps1")
 . (Join-Path $repoRoot "scripts/utils/process-timeout.ps1")
 # S1432: queues rather than failing fast. A gate that refuses because a sibling session is mid
@@ -158,6 +250,31 @@ if ($timedOut) {
 
 if ($exit -eq 0) {
     Write-Host "assert-detekt: PASS [$scopeLabel] (no new findings; baselines hold)." -ForegroundColor Green
+    if (-not $NoCache -and $cacheKey) {
+        # Re-fingerprint after the run. A source edited by a concurrent session while gradle was
+        # working is not the tree detekt judged, and storing the pre-run key would certify it.
+        $postKey = Get-DetektTreeFingerprint -RepoRoot $repoRoot -Modules $reportModules
+        if ($postKey -eq $cacheKey) {
+            try {
+                $dir = Split-Path -Parent $cachePath
+                if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+                [PSCustomObject]@{
+                    fingerprint = $cacheKey
+                    verdict     = 'clean'
+                    modules     = $reportModules
+                    utc         = (Get-Date).ToUniversalTime().ToString('o')
+                } | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath $cachePath -Encoding UTF8
+            }
+            catch {
+                # Failing to persist the cache costs a future re-run, nothing else. The verdict
+                # above already stands on its own, so this must not change this run's exit code.
+                Write-Host "assert-detekt: could not write the verdict cache ($($_.Exception.Message))." -ForegroundColor DarkGray
+            }
+        }
+        else {
+            Write-Host "assert-detekt: sources changed during the run; verdict not cached." -ForegroundColor DarkGray
+        }
+    }
     exit 0
 }
 

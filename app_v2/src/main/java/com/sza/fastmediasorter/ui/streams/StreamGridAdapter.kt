@@ -59,6 +59,8 @@ class StreamGridAdapter(
     private val onAddShortcut: (StreamSourceEntity) -> Unit,
     private val onEdit: (StreamSourceEntity) -> Unit,
     private val onShareLink: (StreamSourceEntity) -> Unit,
+    // S1474: opens the "about this channel" window; wired by the streams screen through StreamInfoDialogManager.
+    private val onAboutChannel: (StreamSourceEntity) -> Unit = {},
     // S0783: mirrors StreamSourceAdapter - add/remove the channel from Favorites (feature-gated). The
     // gate + label state are pulled lazily when the menu opens.
     private val onToggleFavorite: (StreamSourceEntity) -> Unit = {},
@@ -81,6 +83,22 @@ class StreamGridAdapter(
     // active tile renders the track; inactive tiles show the station name (ADR-4).
     private var playingId: String? = null
     private var nowPlayingLine: String? = null
+
+    /**
+     * S1502: play outcome per channel id, pushed in from its own Flow instead of read off the row.
+     * Only the tiles whose outcome actually moved are repainted, and only their status bullet.
+     */
+    var playOutcomes: Map<String, String> = emptyMap()
+        set(value) {
+            if (field == value) return
+            val previous = field
+            field = value
+            currentList.forEachIndexed { index, item ->
+                if (previous[item.id] != value[item.id]) {
+                    notifyItemChanged(index, StreamAdapterPayloads.STATUS)
+                }
+            }
+        }
 
     /**
      * Update the active channel + its now-playing track and repaint only the affected tiles (mirrors
@@ -120,7 +138,7 @@ class StreamGridAdapter(
         payloads.forEach { payload ->
             when (payload) {
                 StreamAdapterPayloads.STATUS -> {
-                    holder.bindStatusOnly(item.lastPlayOutcome)
+                    holder.bindStatusOnly(playOutcomes[item.id])
                 }
                 StreamAdapterPayloads.PIN -> holder.bindPinOnly(item.pinned)
             }
@@ -155,7 +173,7 @@ class StreamGridAdapter(
             val stationTitle = StreamTitleFormatter.display(source.title)
             val activeTrack = nowPlayingLine?.takeIf { source.id == playingId && it.isNotBlank() }
             binding.tvTitle.text = if (activeTrack != null) "$stationTitle - $activeTrack" else stationTitle
-            bindPlayStatus(source.lastPlayOutcome)
+            bindPlayStatus(playOutcomes[source.id])
             // S1062: red top-left indicator for a pinned tile (menu-driven only, not tappable).
             binding.tvPinBadge.isVisible = source.pinned
             binding.root.setOnClickListener { onPlay(source) }
@@ -404,6 +422,7 @@ class StreamGridAdapter(
             StreamMenuAction.TOGGLE_FAVORITE -> onToggleFavorite(source)
             StreamMenuAction.ADD_SHORTCUT -> onAddShortcut(source)
             StreamMenuAction.EDIT -> onEdit(source)
+            StreamMenuAction.ABOUT_CHANNEL -> onAboutChannel(source)
             StreamMenuAction.SHARE_LINK -> onShareLink(source)
             StreamMenuAction.REMOVE -> onRemove(source)
         }

@@ -3,7 +3,10 @@ package com.sza.fastmediasorter.core.launcher
 import com.sza.fastmediasorter.core.launcher.LauncherStarterSets.StarterResources
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.data.model.DeviceProfileType
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
+import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -14,15 +17,26 @@ import org.junit.Test
  * desktop renders as "unknown gadget". Nothing compile-time ties them, so this test does - it fails
  * the moment a `KEY_*` rename in the registry drifts from the string the starter set emits.
  *
+ * S1428 added a second copy under the same constraint: the span a section header is stored at mirrors
+ * the renderer's own maximum column count.
+ *
  * Lives in `src/testStandard`: [LauncherGadgetRegistry] ships only in the launcherEnabled source set.
  */
 @Suppress("FunctionNaming") // backtick test names, project convention (cf. LauncherGridGeometryTest)
 class LauncherStarterSetsParityTest {
 
     @Test
+    fun `the stored header span mirrors the widest grid the renderer can draw`() {
+        // A header stored narrower than the grid it is drawn on leaves the rest of its row free in the
+        // database while covering it on screen, so a cell dropped there lands underneath the header.
+        assertEquals(LauncherGridGeometry.MAX_COLUMNS, LauncherSectionMembership.HEADER_STORED_SPAN_W)
+    }
+
+    @Test
     fun `starter gadget target keys match the registry consts`() {
-        // Clock: every profile opens with the clock gadget, whose bare target is the key itself.
-        val clock = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap()).first()
+        // Clock: the one gadget every profile seeds, whose bare target is the key itself.
+        val clock = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap())
+            .first { it.kind == LauncherCellKind.GADGET }
         assertEquals(LauncherGadgetRegistry.KEY_CLOCK, clock.target)
 
         val folderPreview = LauncherStarterSets

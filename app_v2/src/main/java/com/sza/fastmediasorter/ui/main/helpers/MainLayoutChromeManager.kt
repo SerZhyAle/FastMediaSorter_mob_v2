@@ -24,11 +24,20 @@ import timber.log.Timber
 class MainLayoutChromeManager(
     private val activity: AppCompatActivity,
     private val binding: ActivityMainBinding,
-    private val isResourceGridMode: () -> Boolean
+    private val isResourceGridMode: () -> Boolean,
+    private val onControlBarFreeWidth: (Int) -> Unit = {}
 ) {
 
     private var gridSpacingDecoration: RecyclerView.ItemDecoration? = null
     private var compactElementsEnabled = false
+
+    // S1443: a chip relocated into the bar is a passenger, not a command - counting it in the fit
+    // sum would let it push btnStartPlayer out, which is the S0972 rule's decision alone to make.
+    private val inlineChipIds = setOf(
+        R.id.chipProgramsCollapsed,
+        R.id.chipStreamsCollapsed,
+        R.id.chipFilterCollapsed
+    )
 
     /** Show or hide text labels on toolbar buttons depending on orientation. */
     fun updateToolbarButtonLabels(config: Configuration) {
@@ -63,6 +72,10 @@ class MainLayoutChromeManager(
      * set does not fit, sacrifice the last button (Start Player) so the rest stay reachable. Measured
      * (not a static width bucket) because the visible-button count varies (Menu/Toggle can be GONE).
      * Restored to VISIBLE and re-measured whenever labels/compact change (setup + rotation).
+     *
+     * S1443: collapsed-panel chips relocated into the bar are excluded from the fit sum, and the
+     * width left after every command has fitted is reported through [onControlBarFreeWidth]. A bar
+     * that overflows reports zero free width, so no chip can move in while a command is being cut.
      */
     fun applyControlBarOverflow() {
         val bar = binding.layoutControlButtons
@@ -76,14 +89,18 @@ class MainLayoutChromeManager(
             var needed = 0
             for (i in 0 until bar.childCount) {
                 val child = bar.getChildAt(i)
-                if (child.visibility == View.GONE) continue
+                if (child.visibility == View.GONE || child.id in inlineChipIds) continue
                 child.measure(widthSpec, heightSpec)
                 val lp = child.layoutParams as? ViewGroup.MarginLayoutParams
                 needed += child.measuredWidth + (lp?.marginStart ?: 0) + (lp?.marginEnd ?: 0)
             }
-            if (needed > available) {
+            val overflow = needed > available
+            if (overflow) {
                 binding.btnStartPlayer.visibility = View.GONE
             }
+            val freeWidth = if (overflow) 0 else available - needed
+            Timber.d("S1443: control bar measured available=$available needed=$needed free=$freeWidth")
+            onControlBarFreeWidth(freeWidth)
             // S1258: the probe measure() above overwrites each child's measured size with its
             // preferred one. TextView centers TEXT against getMeasuredHeight() while
             // compound-drawable ICONS center against the real height, so a stale probe leaves
@@ -194,7 +211,10 @@ class MainLayoutChromeManager(
      * Skipped (GONE) buttons drop out of nextFocusLeft/nextFocusRight so the chain stays contiguous.
      */
     fun restitchControlBarFocusChain() {
-        val candidates = listOf(
+        // S1443: the button list stays hard-coded rather than walked from the bar's children -
+        // btnMainDropdownMenu sits inside the layoutMainDropdownMenu wrapper (S1263), so a
+        // direct-children walk would put the wrapper in the chain and drop that button out of it.
+        val buttons: List<View> = listOf(
             binding.btnExit,
             binding.btnAddResource,
             binding.btnFilter,
@@ -204,14 +224,23 @@ class MainLayoutChromeManager(
             binding.btnToggleView,
             binding.btnFavorites,
             binding.btnStartPlayer
-        ).filter { it.visibility == View.VISIBLE }
+        )
+        val inlineChips: List<View> = listOf(
+            binding.chipProgramsCollapsed,
+            binding.chipStreamsCollapsed,
+            binding.chipFilterCollapsed
+        ).filter { it.parent === binding.layoutControlButtons }
+            .sortedBy { binding.layoutControlButtons.indexOfChild(it) }
+        val candidates = (buttons + inlineChips).filter { it.visibility == View.VISIBLE }
         if (candidates.isEmpty()) return
-        candidates.forEachIndexed { i, btn ->
+        candidates.forEachIndexed { i, view ->
             val prev = if (i > 0) candidates[i - 1].id else View.NO_ID
             val next = if (i < candidates.lastIndex) candidates[i + 1].id else View.NO_ID
-            btn.nextFocusLeftId = prev
-            btn.nextFocusRightId = next
+            view.nextFocusLeftId = prev
+            view.nextFocusRightId = next
         }
+        // A chip landing at the end must not swallow the vertical exit the last command used to own.
+        candidates.last().nextFocusDownId = R.id.tabResourceTypes
     }
 
     /**

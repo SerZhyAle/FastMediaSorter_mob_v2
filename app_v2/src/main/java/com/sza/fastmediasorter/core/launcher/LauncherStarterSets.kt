@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 
 /**
  * S0404: profile -> starter desktop, as pure data + a pure row-major packer (strategic §5.3: adding a
@@ -55,7 +56,17 @@ object LauncherStarterSets {
         val colIndex: Int,
         val spanW: Int,
         val spanH: Int,
-    )
+    ) {
+        /**
+         * S1428: the span to persist, which for a section is not the packed one. [place] clamps every
+         * span to the grid it packs on, and that clamp must not reach the database for a header:
+         * `findOverlapping` reads the stored span while the renderer widens a header to the live column
+         * count, so a header stored narrow leaves the rest of its row free in the table while covering
+         * it on screen.
+         */
+        val storedSpanW: Int
+            get() = if (item.kind == LauncherCellKind.SECTION) item.spanW else spanW
+    }
 
     /** Resolved ids the seed hands in; each null id is skipped so the desktop never gets a dead cell. */
     data class StarterResources(
@@ -71,8 +82,12 @@ object LauncherStarterSets {
     /**
      * The starter set for [profile]. Items whose id-dependency is null (no last resource, no all-audio
      * resource) or whose feature is unavailable (streams) are skipped, so the desktop never seeds a
-     * dangling cell. Every set opens with a clock and closes with the common tail (favorites, Android
+     * dangling cell. Every set opens with the app-functions section over the four launcher actions,
+     * continues past a second header with the clock, and closes with the common tail (favorites, Android
      * settings, this app), so even an unknown profile lands on a useful desktop.
+     *
+     * S1428: the second header is what ends the first section. Membership is positional and the last
+     * section on the desktop has no lower bound, so a single header would own every cell below it.
      */
     fun itemsFor(
         profile: DeviceProfileType,
@@ -80,7 +95,10 @@ object LauncherStarterSets {
         routeAvailableInBuild: Map<String, Boolean>,
     ): List<StarterItem> {
         val streamsAvailable = routeAvailableInBuild[InternalRouteCatalog.KEY_STREAMS] == true
-        val items = mutableListOf(clock())
+        val items = mutableListOf(section(LauncherCellCommand.SECTION_APP_FUNCTIONS))
+        items += launcherActions()
+        items += section(LauncherCellCommand.SECTION_EVERYTHING_ELSE)
+        items += clock()
         items += commonResources(resources)
         items += profileItems(profile, resources.lastResourceId, resources.allAudioId, streamsAvailable)
         items += commonFeatures(routeAvailableInBuild)
@@ -179,15 +197,31 @@ object LauncherStarterSets {
         shortcut(LauncherCellCommand.Resource(id, mode))
 
     /**
-     * S1402: the four launcher actions join the tail rather than lead the set. They belong with the other
-     * utilities already here - favourites, system settings, the app itself - and putting four of them
-     * first would push the clock and the lists below the fold on the one screen opened for those.
+     * S1428: a header is stored at the widest grid it can ever be drawn on rather than at the one being
+     * seeded - see [LauncherSectionMembership.HEADER_STORED_SPAN_W]. [place] still packs it at the seeded
+     * width, because the occupancy grid is only as wide as the screen; [PlacedStarterItem.storedSpanW]
+     * is what carries the full span into the entity.
      */
+    private fun section(key: String) = StarterItem(
+        LauncherCellKind.SECTION,
+        LauncherCellCommand.Section(key).encode(),
+        spanW = LauncherSectionMembership.HEADER_STORED_SPAN_W,
+    )
+
+    /**
+     * S1428: the four launcher actions lead the set under their own header, reversing the ordering S1402
+     * chose (strategic §3.1.1, §6.5). They move rather than duplicate, so the user is never asked to tell
+     * two identical pairs apart - which is why they are gone from [commonTail].
+     */
+    private fun launcherActions(): List<StarterItem> =
+        LauncherActionCatalog.all.map { shortcut(LauncherCellCommand.LauncherAction(it.key)) }
+
+    /** The utilities every profile closes with, below the second header. */
     private fun commonTail(): List<StarterItem> = listOf(
         shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_FAVORITES)),
         shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_SETTINGS)),
         shortcut(LauncherCellCommand.App(OWN_APP_TOKEN)),
-    ) + LauncherActionCatalog.all.map { shortcut(LauncherCellCommand.LauncherAction(it.key)) }
+    )
 
     private fun shortcut(command: LauncherCellCommand) =
         StarterItem(LauncherCellKind.SHORTCUT, command.encode())

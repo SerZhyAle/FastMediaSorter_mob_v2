@@ -6,7 +6,9 @@
   Exit codes: 0 ok; 1 error (bad call shape, invalid slug, duplicate id,
   active name clash, or record validation failure).
 #>
-[CmdletBinding()]
+# PositionalBinding = $false (S1504): same exposure as update.ps1 - $Name leads the param block,
+# so any stray unnamed token would become the new record's name rather than failing the call.
+[CmdletBinding(PositionalBinding = $false)]
 param(
     # Not [Parameter(Mandatory)]: a mandatory parameter makes the host prompt before the
     # body runs, so -Help could never print. Absence is reported explicitly below instead.

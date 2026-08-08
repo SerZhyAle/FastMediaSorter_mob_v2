@@ -1064,7 +1064,6 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     override val supportsSlideshow: Boolean = false
     override val supportsPersistentAudio: Boolean = false
     override val supportsCast: Boolean = false
-    override val supportsDeleteUndo: Boolean = true
     override val supportsCommandPanelFolding: Boolean = false
 
     override val currentMediaFile: StateFlow<MediaFile?> by lazy {

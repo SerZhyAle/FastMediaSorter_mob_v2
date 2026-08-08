@@ -65,6 +65,19 @@ interface LauncherCellDao {
     suspend fun firstRowBelowAll(orientation: String): Int
 
     /**
+     * S1428: the rows carrying a section header, ascending. [kind] is passed rather than written into
+     * the SQL so the enum name has one home in Kotlin.
+     *
+     * A section boundary is horizontal - a header spans its whole row - so the row alone answers which
+     * section owns a cell, and the placement layer never needs the headers' columns.
+     */
+    @Query(
+        "SELECT DISTINCT rowIndex FROM launcher_cells WHERE orientation = :orientation " +
+            "AND kind = :kind ORDER BY rowIndex ASC"
+    )
+    suspend fun sectionHeaderRows(orientation: String, kind: String): List<Int>
+
+    /**
      * The first cell whose footprint overlaps the rect at ([rowIndex], [colIndex]) sized
      * [spanW] x [spanH], ignoring [excludeId] (the cell being moved).
      *

@@ -32,9 +32,6 @@ interface PlayerHostCapabilities {
     /** False for standalone until X.2 (Cast from external intents is out of scope). */
     val supportsCast: Boolean
 
-    /** True for both surfaces: destructive actions always get an undo window. */
-    val supportsDeleteUndo: Boolean
-
     /** False for standalone: the command panel only carries list context. */
     val supportsCommandPanelFolding: Boolean
 

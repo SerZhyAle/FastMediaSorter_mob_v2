@@ -341,6 +341,11 @@
     <color name="ext_status_available">#FF808080</color>
     <color name="ext_status_downloading">#FF1976D2</color>
     <color name="recording_active_tint">#E53935</color>
+
+    <!-- S1473: the streams media-kind trigger's lit state. Deliberately theme-independent: the app
+         ships a red colour theme, under which an ?attr/colorError tint would sit on a red-family
+         surface and stop reading as "selected". -->
+    <color name="streams_media_filter_active">#FFE53935</color>
     <!-- TV launcher banner background (dark navy) - used by res/drawable/tv_banner.xml -->
     <color name="tv_banner_bg">#1A1A2E</color>
     <!-- Camera-OCR crop selection frame (bright red) -->

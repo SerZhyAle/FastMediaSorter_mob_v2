@@ -196,6 +196,10 @@ class PlayerCommandPanelCallbackImpl(
         activity.showFileInfo()
     }
 
+    override fun onStreamInfoClicked() {
+        activity.showStreamInfo()
+    }
+
     override fun onLyricsClicked() {
         activity.searchAndShowLyrics()
     }

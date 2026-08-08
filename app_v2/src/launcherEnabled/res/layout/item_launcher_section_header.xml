@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1428: a titled section header on the launcher desktop. It owns every cell below it down to the
+     next header, so it is drawn full-width rather than as a square cell. The underline carries the same
+     distinction as the bold caption: strategic §3.2 forbids marking membership by colour alone.
+
+     The root is a FrameLayout because the binder's edit-mode decoration bails on anything else, and
+     strategic §11.14 requires the header to be removable in edit mode like any other cell.
+
+     Orientation-neutral - the header spans the current column count in both layouts, so there is
+     deliberately no layout-land counterpart. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/sectionHeaderRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:minHeight="48dp"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:orientation="vertical">
+
+        <!-- The grid measures every cell exactly at its cell size, so this floor never fights the
+             layout; it states the 48dp target strategic §3.2 requires. -->
+        <TextView
+            android:id="@+id/sectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:minHeight="48dp"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold"
+            tools:text="App functions" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutline"
+            android:importantForAccessibility="no" />
+
+    </LinearLayout>
+
+</FrameLayout>

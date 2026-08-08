@@ -14,9 +14,11 @@ import com.sza.fastmediasorter.domain.model.DisplayMode
  * (bottom). Each section is a fully independent [StreamGridModeManager] over its own RecyclerView,
  * adapters and off-screen capture host, so the two lists scroll independently and stay visible at
  * once - a single RecyclerView cannot keep the pinned rows in view while the rest scrolls. This
- * manager owns the split of the already filtered/ordered `sources` into pinned/unpinned, the
- * top-section auto-hide, and the collapsible-header sizing; filtering and ordering stay in the
- * ViewModel, and the shared display mode is applied identically to both sections.
+ * manager owns the top-section auto-hide and the collapsible-header sizing; the shared display mode
+ * is applied identically to both sections.
+ *
+ * S1502: it no longer splits the catalog. Filtering, ordering AND the pinned/unpinned split all
+ * happen once in the ViewModel, off the main thread; both halves arrive here already separated.
  *
  * Collapse redistributes vertical space by weight: a collapsed section drops to `wrap_content`
  * (header only) with weight 0, and the other section takes the remaining space. Collapsing one
@@ -43,17 +45,15 @@ class StreamsSectionsManager(
         mainHeader.setOnClickListener { toggle(isPinned = false) }
     }
 
-    /** Apply a list/grid mode change to both sections, splitting `sources` into pinned/unpinned. */
-    fun applyMode(mode: DisplayMode, sources: List<StreamSourceEntity>) {
-        val (pinned, unpinned) = sources.partition { it.pinned }
+    /** Apply a list/grid mode change to both sections from the already-split halves. */
+    fun applyMode(mode: DisplayMode, pinned: List<StreamSourceEntity>, unpinned: List<StreamSourceEntity>) {
         updatePinnedVisibility(pinned.isNotEmpty())
         pinnedGridMode.applyMode(mode, pinned)
         mainGridMode.applyMode(mode, unpinned)
     }
 
     /** Push a catalog/filter change to both sections without a mode swap. */
-    fun submitList(sources: List<StreamSourceEntity>) {
-        val (pinned, unpinned) = sources.partition { it.pinned }
+    fun submitList(pinned: List<StreamSourceEntity>, unpinned: List<StreamSourceEntity>) {
         updatePinnedVisibility(pinned.isNotEmpty())
         pinnedGridMode.submitCurrentList(pinned)
         mainGridMode.submitCurrentList(unpinned)

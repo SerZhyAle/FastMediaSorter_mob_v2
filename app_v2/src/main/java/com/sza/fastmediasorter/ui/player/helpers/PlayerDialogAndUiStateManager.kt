@@ -590,6 +590,30 @@ class PlayerDialogAndUiStateManager(
     }
 
     /**
+     * S1474: "about this channel" for the stream the player is showing.
+     *
+     * The running engine is handed to the window rather than a second connection being opened, so the
+     * picture the user is watching is never disturbed - and it is only borrowed: nothing here prepares,
+     * stops or releases it. A channel the list does not know still opens the window, with its address and
+     * its measured values and without a stored part (owner ruling, 2026-08-07).
+     */
+    @androidx.media3.common.util.UnstableApi
+    fun showStreamInfo() {
+        val url = viewModel.state.value.currentFile?.path
+        if (url.isNullOrBlank()) {
+            Toast.makeText(activity, activity.getString(R.string.file_info_unavailable), Toast.LENGTH_SHORT).show()
+            return
+        }
+        lifecycleScope.launch {
+            val source = viewModel.streamSourceByUrl(url)
+            val engine = activity._videoPlayerManager?.getPlayer()
+            val outcome = source?.let { viewModel.streamPlayOutcome(it.id) }
+            Timber.d("S1474: player menu opens the window, in list = %s, engine = %s", source != null, engine != null)
+            com.sza.fastmediasorter.ui.dialog.StreamInfoDialog(activity, source, url, engine, outcome).show()
+        }
+    }
+
+    /**
      * Clear control-overlay UI before entering animated-pause fullscreen.
      * Hides the command panel (enters fullscreen) and dismisses the controls overlay if visible.
      */

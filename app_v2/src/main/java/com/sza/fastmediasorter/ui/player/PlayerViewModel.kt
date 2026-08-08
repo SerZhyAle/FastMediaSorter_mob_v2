@@ -69,6 +69,12 @@ import javax.inject.Inject
 private const val ROTATION_STEP_DEGREES = 90
 private const val FULL_ROTATION_DEGREES = 360
 
+// Pre-existing large state holder - the constructor was already 25 dependencies over the threshold of
+// 10 and carried by the detekt baseline. S1502 adds one more, and a baseline entry keyed on the full
+// signature stops matching the moment that signature changes, so the finding resurfaces. Suppressed in
+// place rather than re-baselined, mirroring StreamsViewModel: each dependency is a distinct use case,
+// and collapsing them into a config object would add indirection without removing a single one.
+@Suppress("LongParameterList")
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -97,6 +103,9 @@ class PlayerViewModel @Inject constructor(
     // a friendly "stream unavailable" dialog with a remove-from-list action.
     private val getStreamSourceByUrlUseCase: com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase,
     private val removeStreamSourceUseCase: com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase,
+    // S1502: the play outcome left the catalog row for its own table, so the "about this channel"
+    // window has to ask for it separately instead of reading it off the resolved entity.
+    private val getStreamPlayOutcomeUseCase: com.sza.fastmediasorter.domain.usecase.streams.GetStreamPlayOutcomeUseCase,
     // S0593: record a list stream's play outcome (OK on READY, FAIL on error) for the row status bullet.
     private val recordStreamPlayOutcomeUseCase: com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase,
     // S0640: snapshot the saved stream catalog so top-panel prev/next move between channels.
@@ -287,6 +296,18 @@ class PlayerViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * S1474: the stored channel behind a playing url, or null when it is not in the list.
+     *
+     * A read with no side effect, unlike the two callers above it - the "about this channel" window shows
+     * what is stored and records nothing.
+     */
+    suspend fun streamSourceByUrl(url: String): com.sza.fastmediasorter.data.local.db.StreamSourceEntity? =
+        getStreamSourceByUrlUseCase(url)
+
+    /** S1502: the last recorded outcome of a stored channel, for the same window. Also side-effect free. */
+    suspend fun streamPlayOutcome(id: String): String? = getStreamPlayOutcomeUseCase(id)
 
     /** S0581: remove a dead stream from the local list after the user confirms in the dialog. */
     fun removeStreamSource(source: com.sza.fastmediasorter.data.local.db.StreamSourceEntity) {

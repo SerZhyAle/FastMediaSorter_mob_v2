@@ -7,12 +7,15 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
-import com.sza.fastmediasorter.ui.streams.StreamsActivity
+import com.sza.fastmediasorter.widget.StreamPlayLaunchActivity
 
 /**
- * S0637: builds and requests a pinned home-screen shortcut for one stream source. The shortcut's tap
- * intent reopens the Streams screen and plays that channel. Kept out of the Activity (Rule 3);
- * instantiate with the Activity context at the call site - no Hilt binding needed.
+ * S0637: builds and requests a pinned home-screen shortcut for one stream source. Kept out of the
+ * Activity (Rule 3); instantiate with the Activity context at the call site - no Hilt binding needed.
+ *
+ * S1471: the tap intent now starts background playback through [StreamPlayLaunchActivity] without
+ * opening the Streams screen, and that trampoline falls back to the Streams screen whenever background
+ * playback does not apply (non-audio channel, setting off, no network, unknown URL).
  */
 class StreamShortcutPinManager(private val context: Context) {
 
@@ -34,7 +37,7 @@ class StreamShortcutPinManager(private val context: Context) {
             .setShortLabel(source.title)
             .setLongLabel(source.title)
             .setIcon(icon)
-            .setIntent(StreamsActivity.createPlayShortcutIntent(context, source.url))
+            .setIntent(StreamPlayLaunchActivity.createIntent(context, source.url))
             .build()
         return ShortcutManagerCompat.requestPinShortcut(context, info, null)
     }

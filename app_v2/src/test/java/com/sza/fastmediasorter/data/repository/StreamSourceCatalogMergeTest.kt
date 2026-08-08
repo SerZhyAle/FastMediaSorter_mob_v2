@@ -31,7 +31,7 @@ class StreamSourceCatalogMergeTest {
     val dbRule = InMemoryRoomRule { RuntimeEnvironment.getApplication() }
 
     private val dao get() = dbRule.db.streamSourceDao()
-    private val repo get() = StreamSourceRepository(dbRule.db, dao)
+    private val repo get() = StreamSourceRepository(dbRule.db, dao, dbRule.db.streamPlayOutcomeDao())
 
     @Test
     fun mergeCatalog_largeCatalog_doesNotHitBindLimit() = runTest {

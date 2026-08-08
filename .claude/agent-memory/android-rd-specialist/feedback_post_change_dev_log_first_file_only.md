@@ -1,24 +1,28 @@
 ---
 name: post-change-dev-log-first-file-only
-description: Traps in a batched post-change.ps1 -Files closure - it dev-logs only the FIRST file, and a registered document in the set blocks it until -RegistryAck names that document
+description: A batched post-change.ps1 -Files closure writes ONE dev-log row naming the whole set (fixed 2026-08-08); a registered document in the set still blocks it until -RegistryAck names that document
 metadata:
   type: feedback
 ---
 
-`post-change.ps1 -Files "a.kt,b.kt,c.kt"` runs every **gate** across the whole set but writes exactly
-**one** `dev/CHANGELOG.md` row - for the first file in the list. The others end the closure with no
-dev-log entry at all.
+**Fixed 2026-08-08.** `post-change.ps1 -Files "a.kt,b.kt,c.kt"` still writes exactly **one**
+`dev/CHANGELOG.md` row - one row per logical change is the rule - but the row now names the whole set:
+the primary file goes in the File column and the rest are appended to the description as
+`[set of N: b.kt, c.kt]` (capped at 6 names, then `+N more`). Verified on the closure of that very
+change: `... [set of 2: scripts/post-change.ps1]`.
 
-**Why:** caught by `/spec-check` on S1205 (2026-08-06). Phase 02 closed six files through one
-`post-change.ps1 -Files ... -ScopeToFile` call, the closure printed `post-change: PASS`, and the phase's
-"Dev log entry added for every file in Files Touched" criterion was ticked on that verdict. Only
-`LauncherCellCommand.kt` had a row; `LauncherCellCommandTest.kt` had none. The green verdict is about the
-gates, not about dev-log coverage - reading it as both is what let the gap through.
+**Why it mattered:** before the fix the row named only the first file, so a batched closure understated
+its own scope and the set could not be recovered from the changelog. Caught by `/spec-check` on S1205
+(2026-08-06): six files closed in one call, `post-change: PASS` printed, and a per-file dev-log criterion
+was ticked on that verdict while only `LauncherCellCommand.kt` had a row. Worse, it silently punished
+batching - the cheap way to close - and pushed callers into one `post-change` run per file, which is what
+re-ran the detekt gate against an unchanged tree 530 times in three weeks.
 
-**How to apply:** after a batched `-Files` closure, either grep `dev/CHANGELOG.md` for every path in the
-batch, or use `close-and-log.ps1 -DevLogs '<json array>'` (one `{file,target,desc}` object per file),
-which does log every entry. Never tick a per-file dev-log criterion off a `post-change: PASS` line.
-Related: [[feedback-verify-full-evidence]].
+**How to apply:** batching is now the preferred shape - name the whole changed set in one `-Files` call.
+Use `close-and-log.ps1 -DevLogs '<json array>'` only when the files genuinely belong to *different*
+logical changes and each deserves its own row. A `post-change: PASS` line is still a verdict about the
+gates, not proof that any particular per-file criterion was met.
+Related: [[feedback-verify-full-evidence]], [[project-detekt-verdict-cache]].
 
 **Second trap in the same call - the registry gate needs an explicit acknowledgement.** When the
 `-Files` set contains a **registered** document (`docs/DOCUMENT_REGISTRY.jsonl` knows it - e.g.

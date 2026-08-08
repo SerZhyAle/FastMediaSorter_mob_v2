@@ -27,7 +27,7 @@ class UpdateStreamSourceUseCaseTest {
     val dbRule = InMemoryRoomRule { RuntimeEnvironment.getApplication() }
 
     private val dao get() = dbRule.db.streamSourceDao()
-    private val repo get() = StreamSourceRepository(dbRule.db, dao)
+    private val repo get() = StreamSourceRepository(dbRule.db, dao, dbRule.db.streamPlayOutcomeDao())
     private val useCase get() = UpdateStreamSourceUseCase(repo, StreamMediaKindClassifier())
 
     private fun row(

@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.core.launcher.LauncherStarterSets.StarterResource
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -27,25 +28,55 @@ class LauncherStarterSetsTest {
         InternalRouteCatalog.KEY_OCR to true,
     )
 
-    // S1402: the tail every profile ends with - the utilities, then the four launcher actions. Named
-    // once so a fifth action is one edit here, not five.
-    private val commonTail = listOf(
-        "fn:favorites",
-        "os:settings",
-        "app:__self__",
+    // S1428: every set opens with the app-functions header over the four launcher actions, and a second
+    // header ends that section. Named once so a fifth action is one edit here, not six.
+    private val sectionHead = listOf(
+        "sec:app_functions",
         "act:app_settings",
         "act:launcher_settings",
         "act:edit_desktop",
         "act:exit_launcher_mode",
+        "sec:everything_else",
     )
+
+    /** The utilities every profile closes with, below the second header. */
+    private val commonTail = listOf("fn:favorites", "os:settings", "app:__self__")
+
+    private val columnCounts = listOf(3, 4, 6, 12)
 
     // ── itemsFor ────────────────────────────────────────────────────────────
 
     @Test
-    fun `every set opens with a clock and closes with the common tail`() {
+    fun `every set opens with the app-functions section and closes with the common tail`() {
         val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap())
-        assertEquals(listOf("clock") + commonTail, items.map { it.target })
-        assertEquals(LauncherCellKind.GADGET, items.first().kind)
+        assertEquals(sectionHead + "clock" + commonTail, items.map { it.target })
+        assertEquals(LauncherCellKind.SECTION, items.first().kind)
+    }
+
+    @Test
+    fun `the four launcher actions sit between the two headers and are seeded once`() {
+        val targets = LauncherStarterSets
+            .itemsFor(DeviceProfileType.PERSONAL_SMARTPHONE, StarterResources(recentId = 1), allPaddingAvailable)
+            .map { it.target }
+        val firstHeader = targets.indexOf("sec:app_functions")
+        val secondHeader = targets.indexOf("sec:everything_else")
+        val actions = targets.filter { it.startsWith("act:") }
+        // Strategic §6.5: they moved out of the tail rather than being duplicated into the section.
+        assertEquals(4, actions.size)
+        assertEquals(actions, targets.subList(firstHeader + 1, secondHeader))
+    }
+
+    @Test
+    fun `no gadget is seeded inside the app-functions section`() {
+        // Strategic §6.11: a gadget may not cover a header row. The clock is the one gadget every
+        // profile gets, so the seeded order has to keep it below the second header by construction.
+        val items = LauncherStarterSets.itemsFor(
+            DeviceProfileType.AUDIO_PLAYER,
+            StarterResources(allAudioId = 7),
+            mapOf(InternalRouteCatalog.KEY_STREAMS to true),
+        )
+        val secondHeader = items.indexOfFirst { it.target == "sec:everything_else" }
+        assertFalse(items.take(secondHeader).any { it.kind == LauncherCellKind.GADGET })
     }
 
     @Test
@@ -63,7 +94,7 @@ class LauncherStarterSetsTest {
             allPaddingAvailable,
         )
         assertEquals(
-            listOf(
+            sectionHead + listOf(
                 "clock",
                 "res:1:BROWSE", "res:2:BROWSE", "res:3:BROWSE", "res:4:BROWSE", "res:5:BROWSE", "res:6:BROWSE",
                 "fn:streams", "fn:quick_camera", "fn:quick_voice", "fn:calculator", "fn:ocr",
@@ -80,7 +111,7 @@ class LauncherStarterSetsTest {
             mapOf(InternalRouteCatalog.KEY_CALCULATOR to true), // only calculator compiled in
         )
         assertEquals(
-            listOf("clock", "res:1:BROWSE", "fn:calculator") + commonTail,
+            sectionHead + listOf("clock", "res:1:BROWSE", "fn:calculator") + commonTail,
             items.map { it.target },
         )
     }
@@ -93,7 +124,7 @@ class LauncherStarterSetsTest {
             emptyMap(),
         )
         assertEquals(
-            listOf("clock", "folder_preview:5", "res:5:SLIDESHOW") + commonTail,
+            sectionHead + listOf("clock", "folder_preview:5", "res:5:SLIDESHOW") + commonTail,
             items.map { it.target },
         )
     }
@@ -101,7 +132,7 @@ class LauncherStarterSetsTest {
     @Test
     fun `null id dependencies are skipped, never seeded as dangling cells`() {
         val items = LauncherStarterSets.itemsFor(DeviceProfileType.PHOTO_FRAME, StarterResources(), emptyMap())
-        assertEquals(listOf("clock") + commonTail, items.map { it.target })
+        assertEquals(sectionHead + "clock" + commonTail, items.map { it.target })
     }
 
     @Test
@@ -112,7 +143,7 @@ class LauncherStarterSetsTest {
             mapOf(InternalRouteCatalog.KEY_STREAMS to true),
         )
         assertEquals(
-            listOf("clock", "res:7:BROWSE", "playlist:7", "streams", "fn:streams") + commonTail,
+            sectionHead + listOf("clock", "res:7:BROWSE", "playlist:7", "streams", "fn:streams") + commonTail,
             withStreams.map { it.target },
         )
         val withoutStreams = LauncherStarterSets.itemsFor(
@@ -137,6 +168,38 @@ class LauncherStarterSetsTest {
         val placed = LauncherStarterSets.place(items, columns = 4)
         assertNoOverlap(placed)
         placed.forEach { assertTrue("cell past right edge", it.colIndex + it.spanW <= 4) }
+    }
+
+    @Test
+    fun `a full-width header stays overlap-free at every supported column count`() {
+        // S1428 step 05.3: a header is the first starter item as wide as the grid itself, so it is the
+        // case most likely to collide with whatever the packer places next - the narrow grid worst of all.
+        val items = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1, allAudioId = 2, allImagesId = 3),
+            allPaddingAvailable,
+        )
+        columnCounts.forEach { columns ->
+            val placed = LauncherStarterSets.place(items, columns)
+            assertNoOverlap(placed)
+            placed.forEach { assertTrue("cell past right edge at $columns", it.colIndex + it.spanW <= columns) }
+            placed.filter { it.item.kind == LauncherCellKind.SECTION }.forEach {
+                assertEquals("header not full width at $columns", columns, it.spanW)
+                assertEquals("header not at column 0 at $columns", 0, it.colIndex)
+            }
+        }
+    }
+
+    @Test
+    fun `a header persists the widest span while the packed one fits the grid it is seeded on`() {
+        val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap())
+        val placed = LauncherStarterSets.place(items, columns = 4)
+        val header = placed.first { it.item.kind == LauncherCellKind.SECTION }
+        assertEquals(4, header.spanW)
+        assertEquals(LauncherSectionMembership.HEADER_STORED_SPAN_W, header.storedSpanW)
+        // Every other kind persists exactly what it was packed at, edge clamp included.
+        val shortcut = placed.first { it.item.kind == LauncherCellKind.SHORTCUT }
+        assertEquals(shortcut.spanW, shortcut.storedSpanW)
     }
 
     @Test

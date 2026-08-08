@@ -35,6 +35,11 @@ import timber.log.Timber
  * calls [cancel] so the probe never fights the user or keeps decoding in the background. Probing is
  * sequential on purpose - one short-lived decoder at a time keeps the load off a budget device while the
  * user is still looking at the list.
+ *
+ * S1474: [cancel] is part of the contract for callers outside this screen too. A format measurement opens
+ * its own decoder, and research artifact 04 rules that this sweep must not be decoding at the same time on
+ * a weak device - so whoever starts a measurement calls [cancel] here first. It is idempotent and safe
+ * when idle, so a caller never has to ask whether a sweep is running.
  */
 @UnstableApi
 class StreamHealthProbeManager(

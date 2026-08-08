@@ -22,6 +22,8 @@ class StreamActionCatalogTest {
             listOf(
                 StreamMenuAction.TOGGLE_PIN,
                 StreamMenuAction.ADD_SHORTCUT,
+                // S1474: a reading action, so it sits above sharing and clear of removal.
+                StreamMenuAction.ABOUT_CHANNEL,
                 StreamMenuAction.SHARE_LINK,
                 StreamMenuAction.REMOVE,
             ),
@@ -85,6 +87,9 @@ class StreamActionCatalogTest {
         assertFalse(actions.contains(StreamMenuAction.MOVE_UP))
         assertFalse(actions.contains(StreamMenuAction.MOVE_DOWN))
         assertFalse(actions.contains(StreamMenuAction.MOVE_TO_TOP))
+        // S1474: the window needs a decoder and the streams screen's probe manager; a desktop cell has
+        // neither, so the action is offered on the card and the player menus only.
+        assertFalse(actions.contains(StreamMenuAction.ABOUT_CHANNEL))
         assertTrue(actions.contains(StreamMenuAction.EDIT))
     }
 

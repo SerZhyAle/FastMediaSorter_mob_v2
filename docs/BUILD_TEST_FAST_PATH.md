@@ -25,6 +25,15 @@ than a round number. Above it a command must be backgrounded, because a foregrou
 force-migrated to the background anyway and lose its clean output capture. Below it backgrounding
 is forbidden: wait for the command and read its verdict in the same turn.
 
+**The forbidden half is enforced (2026-08-08, CLAUDE.md Rule 26).** It had been prose since S1338,
+and prose is the 1-8% tier - the same reason the small-task rung nudge became a hook. The global
+`PreToolUse` guard `~/.claude/hooks/guard-fire-and-forget.ps1` blocks a `run_in_background` call
+whose command is a gate, a closure facade or a catalog mutator, and waves through everything else,
+including a long job chained with a gate on the same line. It is deny-list by literal command shape
+rather than by heuristic, because a guard that over-blocks gets switched off and then nothing is
+enforced. Canon home: `rules/AI_USAGE.md` section 1; smoke-tested from both sides in the canon's
+`hooks/tests/smoke-hooks.ps1`.
+
 Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 
 | Target | Wall clock | Verdict |

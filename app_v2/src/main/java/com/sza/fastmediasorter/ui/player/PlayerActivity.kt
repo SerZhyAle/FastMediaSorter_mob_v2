@@ -830,6 +830,9 @@ class PlayerActivity :
 
     internal fun showFileInfo() = dialogAndUiStateManager.showFileInfo()
 
+    /** S1474: about the playing channel - the work lives in the manager, exactly as [showFileInfo] does. */
+    internal fun showStreamInfo() = dialogAndUiStateManager.showStreamInfo()
+
     internal fun isAnimatedImagePath(path: String): Boolean {
         val lowerPath = path.lowercase()
         return lowerPath.endsWith(".gif") || lowerPath.endsWith(".webp") || lowerPath.endsWith(".apng")
@@ -1210,7 +1213,6 @@ class PlayerActivity :
     override val supportsSlideshow: Boolean = true
     override val supportsPersistentAudio: Boolean = true
     override val supportsCast: Boolean = true
-    override val supportsDeleteUndo: Boolean = true
     override val supportsCommandPanelFolding: Boolean = true
 
     override val currentMediaFile: StateFlow<MediaFile?> by lazy {

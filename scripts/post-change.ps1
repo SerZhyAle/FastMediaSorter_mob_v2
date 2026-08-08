@@ -851,7 +851,21 @@ else {
 # second. Last position makes "there is a row" equivalent to "the closure passed", and the
 # catalog index it follows is a gitignored artifact that is safe to rebuild on a re-run.
 Invoke-Step "dev-log" {
-    & $pwsh -NoProfile -File (Join-Path $root "scripts/add_to_dev_log.ps1") $File $Target $Description
+    # S1338 follow-up (2026-08-08): a -Files close ran every gate over the whole set but wrote a
+    # row naming only the primary, so the changelog understated its own change and the set could
+    # not be recovered from it. That silently punished batching - the cheap way to close - and
+    # pushed callers back to one post-change run per file, which is what re-ran the detekt gate
+    # on an unchanged tree 530 times in three weeks. Still ONE row per logical change (Rule 12
+    # journalling granularity): the extra files go in the description, not in extra rows.
+    $logDescription = $Description
+    if ($changedFiles.Count -gt 1) {
+        $others = @($changedFiles | Where-Object { $_ -ne $File })
+        # Cap the list: a 20-file close would otherwise write a row longer than the table it sits in.
+        $shown = @($others | Select-Object -First 6)
+        $suffix = if ($others.Count -gt $shown.Count) { ", +$($others.Count - $shown.Count) more" } else { '' }
+        $logDescription = "$Description [set of $($changedFiles.Count): $($shown -join ', ')$suffix]"
+    }
+    & $pwsh -NoProfile -File (Join-Path $root "scripts/add_to_dev_log.ps1") $File $Target $logDescription
 }
 
 Skip-Step "feature-docs" "skill-owned; evaluate only for new public capability"

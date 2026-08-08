@@ -25,6 +25,7 @@ enum class LauncherResourceMode {
  * - `op:<id>`            - trigger a saved scheduled operation (S1103).
  * - `act:<actionKey>`    - an action on the launcher itself (keys from `LauncherActionCatalog`, S1402).
  * - `pin:<pkg>:<id>:<label>` - a shortcut another app asked us to pin (S1205).
+ * - `sec:<sectionKey>`   - a titled section header grouping the cells below it (S1428).
  */
 sealed interface LauncherCellCommand {
 
@@ -112,6 +113,17 @@ sealed interface LauncherCellCommand {
             .joinToString(SEPARATOR) { encodeField(it) }
     }
 
+    /**
+     * S1428: a titled header owning every cell below it down to the next header.
+     *
+     * Carries [sectionKey] rather than the title text: strategic §5.3 requires a future user-created
+     * group to be a second instance of this command rather than a code change, which holds only while
+     * the name is data the resolver looks up.
+     */
+    data class Section(val sectionKey: String) : LauncherCellCommand {
+        override fun encode(): String = "$PREFIX_SECTION$sectionKey"
+    }
+
     companion object {
         const val PREFIX_APP = "app:"
         const val PREFIX_FEATURE = "fn:"
@@ -123,6 +135,20 @@ sealed interface LauncherCellCommand {
         const val PREFIX_CONTACT = "contact:"
         const val PREFIX_LAUNCHER_ACTION = "act:"
         const val PREFIX_PIN = "pin:"
+        const val PREFIX_SECTION = "sec:"
+
+        /** The preset section a fresh desktop opens with; §6.2 defers user-created ones to their own ticket. */
+        const val SECTION_APP_FUNCTIONS = "app_functions"
+
+        /**
+         * What ends [SECTION_APP_FUNCTIONS] (strategic §6.12). Membership is positional and the last
+         * section on the desktop has no lower bound, so without a second header the first one would own
+         * every cell below it - collapsing the whole desktop instead of the four functions.
+         *
+         * Named for its position rather than its contents on purpose: the user may drag anything under
+         * it, which would make a descriptive title false the moment they did.
+         */
+        const val SECTION_EVERYTHING_ELSE = "everything_else"
 
         private const val SEPARATOR = ":"
 
@@ -145,39 +171,54 @@ sealed interface LauncherCellCommand {
         /** Tolerant decode: unknown prefix, empty payload, bad id or unknown mode all yield null. */
         fun decode(raw: String?): LauncherCellCommand? {
             val value = raw ?: return null
-            return when {
-                value.startsWith(PREFIX_APP) ->
-                    value.removePrefix(PREFIX_APP).takeIf { it.isNotEmpty() }?.let { App(it) }
+            return decodeSinglePayload(value) ?: decodeMultiField(value)
+        }
 
-                value.startsWith(PREFIX_FEATURE) ->
-                    value.removePrefix(PREFIX_FEATURE).takeIf { it.isNotEmpty() }?.let { Feature(it) }
+        /**
+         * The prefixes whose whole payload is one non-empty string. Split from [decodeMultiField]
+         * because one `when` over all eleven prefixes exceeds the cyclomatic ceiling; no prefix is a
+         * prefix of another, so the two halves can be tried in either order without ambiguity.
+         */
+        private fun decodeSinglePayload(value: String): LauncherCellCommand? = when {
+            value.startsWith(PREFIX_APP) ->
+                value.removePrefix(PREFIX_APP).takeIf { it.isNotEmpty() }?.let { App(it) }
 
-                value.startsWith(PREFIX_RESOURCE) -> decodeResource(value.removePrefix(PREFIX_RESOURCE))
+            value.startsWith(PREFIX_FEATURE) ->
+                value.removePrefix(PREFIX_FEATURE).takeIf { it.isNotEmpty() }?.let { Feature(it) }
 
-                value.startsWith(PREFIX_STREAM) ->
-                    value.removePrefix(PREFIX_STREAM).takeIf { it.isNotEmpty() }?.let { Stream(it) }
+            value.startsWith(PREFIX_STREAM) ->
+                value.removePrefix(PREFIX_STREAM).takeIf { it.isNotEmpty() }?.let { Stream(it) }
 
-                value.startsWith(PREFIX_OS) ->
-                    value.removePrefix(PREFIX_OS).takeIf { it.isNotEmpty() }?.let { OsShortcut(it) }
+            value.startsWith(PREFIX_OS) ->
+                value.removePrefix(PREFIX_OS).takeIf { it.isNotEmpty() }?.let { OsShortcut(it) }
 
-                value.startsWith(PREFIX_SCHEDULED_OP) ->
-                    value.removePrefix(PREFIX_SCHEDULED_OP).toLongOrNull()?.let { ScheduledOp(it) }
+            value.startsWith(PREFIX_LAUNCHER_ACTION) ->
+                value.removePrefix(PREFIX_LAUNCHER_ACTION).takeIf { it.isNotEmpty() }
+                    ?.let { LauncherAction(it) }
 
-                value.startsWith(PREFIX_LAUNCHER_ACTION) ->
-                    value.removePrefix(PREFIX_LAUNCHER_ACTION).takeIf { it.isNotEmpty() }
-                        ?.let { LauncherAction(it) }
+            value.startsWith(PREFIX_SECTION) ->
+                value.removePrefix(PREFIX_SECTION).takeIf { it.isNotEmpty() }?.let { Section(it) }
 
-                value.startsWith(PREFIX_FAVORITE_FILE) ->
-                    decodeFavoriteFile(value.removePrefix(PREFIX_FAVORITE_FILE))
+            else -> null
+        }
 
-                value.startsWith(PREFIX_CONTACT) ->
-                    decodeContact(value.removePrefix(PREFIX_CONTACT))
+        /** The prefixes whose payload carries a typed id or several joined fields. */
+        private fun decodeMultiField(value: String): LauncherCellCommand? = when {
+            value.startsWith(PREFIX_RESOURCE) -> decodeResource(value.removePrefix(PREFIX_RESOURCE))
 
-                value.startsWith(PREFIX_PIN) ->
-                    decodePinnedShortcut(value.removePrefix(PREFIX_PIN))
+            value.startsWith(PREFIX_SCHEDULED_OP) ->
+                value.removePrefix(PREFIX_SCHEDULED_OP).toLongOrNull()?.let { ScheduledOp(it) }
 
-                else -> null
-            }
+            value.startsWith(PREFIX_FAVORITE_FILE) ->
+                decodeFavoriteFile(value.removePrefix(PREFIX_FAVORITE_FILE))
+
+            value.startsWith(PREFIX_CONTACT) ->
+                decodeContact(value.removePrefix(PREFIX_CONTACT))
+
+            value.startsWith(PREFIX_PIN) ->
+                decodePinnedShortcut(value.removePrefix(PREFIX_PIN))
+
+            else -> null
         }
 
         /**

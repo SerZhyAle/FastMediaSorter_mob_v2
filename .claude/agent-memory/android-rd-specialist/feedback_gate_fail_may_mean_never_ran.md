@@ -28,3 +28,19 @@ not verify" - these gates were collapsing the two.
   moved.
 - Report it as "could not verify", never as "passed" and never as "my change broke it". See
   [[project_spec_all_concurrent_tree_red]] for why a shared tree makes this common.
+
+**The `.\a.ps1 fu` variant, and its trap (2026-08-08, S1502).** `assert-test-suite-complete` printed
+`coverage ratio 0 is below the 0.85 floor` and its own advisory text names `OutOfMemoryError` and the
+test-worker heap. Both were red herrings: the real cause was `compileStandardDebugUnitTestKotlin`
+failing, because a constructor change had not been carried into a test that builds the class by hand.
+Nothing OOMed and no test ran.
+
+- `coverage ratio 0` means *no reports at all*, which is a compile or startup failure far more often
+  than an OOM. Read the gradle tail for `FAILED` before believing the OOM wording. The grep that looks
+  like it confirms an OOM often just matched the gate's own advisory sentence.
+- Never diagnose a `fu` failure from a pipe-truncated tail. `pwsh -NoProfile -File ./a.ps1 fu | Select-Object -Last 20`
+  discards the compiler error entirely; redirect the whole run to a file (`*> temp/<Sxxxx>/fu-run.log`)
+  and grep that. See [[feedback_build_output_pipe_truncation]].
+- Screening which tests a constructor change breaks: grep for the **class being constructed**, not for
+  the members being changed. A test that never mentions the changed method still fails to compile if
+  it instantiates the class.

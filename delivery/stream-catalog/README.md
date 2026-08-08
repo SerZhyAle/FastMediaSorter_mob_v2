@@ -207,7 +207,7 @@ then `name`.
 | `url` | Direct playable stream URL (playlists already resolved to the underlying stream). |
 | `media_kind` | `AUDIO` \| `VIDEO` \| `RTSP` - drives launch routing (inline audio vs fullscreen video). |
 | `protocol` | `PROGRESSIVE` \| `HLS` \| `DASH` \| `ICECAST` \| `SHOUTCAST` \| `RTSP` \| `UNKNOWN`. |
-| `format` | Container/codec hint (`mp3`, `aac`, `ogg`, `opus`, `flac`, `m3u8`, `mpd`, `mp4`, ...). |
+| `format` | Container/codec hint (`mp3`, `aac`, `ogg`, `opus`, `flac`, `m3u8`, `mpd`, `mp4`, ..). |
 | `bitrate` | Audio bitrate in kbps as text; empty if unknown. |
 | `is_live` | `true` for live/continuous streams, `false` for VOD. |
 | `https` | `true` if the URL is HTTPS; `false` for cleartext `http://` (relevant to the network-security policy). |

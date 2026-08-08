@@ -76,6 +76,6 @@
   },
   "agent": "android-rd-specialist",
   "enabledPlugins": {
-    "telegram@claude-plugins-official": true
+    "telegram@claude-plugins-official": false
   }
 }

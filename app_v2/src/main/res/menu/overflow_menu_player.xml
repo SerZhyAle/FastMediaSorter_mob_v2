@@ -29,6 +29,13 @@
         android:title="@string/file_information"
         app:showAsAction="never" />
 
+    <!-- S1474: about the playing channel. Offered only while a live video stream is playing. -->
+    <item
+        android:id="@+id/menu_stream_info"
+        android:icon="@drawable/ic_info"
+        android:title="@string/stream_info_menu_title"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/menu_fullscreen"
         android:icon="@drawable/ic_fullscreen"

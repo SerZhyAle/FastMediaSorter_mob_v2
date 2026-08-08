@@ -40,7 +40,36 @@
     } finally {
         Exit-AgentLock -Name Build
     }
+
+.NOTES
+    Exit codes: 0 dot-sourced successfully; 2 invoked as a script instead of being dot-sourced
+    (see the direct-invocation guard below - this file exposes no command-line interface).
 #>
+
+# S1505: this file is a library, not a CLI - it has no param() block and no verb dispatch, so
+# `pwsh -File agent-lock.ps1 -Name Code -Action Release` used to bind nothing, define the
+# functions, print nothing and exit 0. That reads as a successful release while the lock stays
+# held; observed holding CODE.LOCK for 479s across a whole implementation phase. A wrong call
+# must fail loudly rather than look like a working one, so refuse anything that is not a
+# dot-source. Dot-sourcing reports InvocationName '.' even when the dot-sourcing script was
+# itself started with `pwsh -File`, which is how every real consumer loads this file.
+if ($MyInvocation.InvocationName -ne '.') {
+    $guardMessage = @(
+        "agent-lock.ps1 is a dot-source library and has no command-line interface.",
+        "Running it as a script does nothing at all - it cannot acquire or release any lock.",
+        "",
+        "Release the code lock:   pwsh -NoProfile -File scripts/utils/exit-code-lock.ps1",
+        "Acquire the code lock:   pwsh -NoProfile -File scripts/utils/enter-code-lock.ps1 -Reason '<why>'",
+        "Inspect a lock:          pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name <Build|Code> -Queue",
+        "Clear a stuck lock:      pwsh -NoProfile -File scripts/utils/clear-agent-lock.ps1 -Name <Build|Code> -Force",
+        "",
+        "From a script, load the functions instead:",
+        "    . `"`$PSScriptRoot\..\utils\agent-lock.ps1`"",
+        "    Exit-AgentLock -Name Code"
+    ) -join [Environment]::NewLine
+    Write-Error $guardMessage -ErrorAction Continue
+    exit 2
+}
 
 function Resolve-AgentLockRepoRoot {
     # Prefer git's common-dir parent so every linked worktree shares ONE temp/BUILD.LOCK and

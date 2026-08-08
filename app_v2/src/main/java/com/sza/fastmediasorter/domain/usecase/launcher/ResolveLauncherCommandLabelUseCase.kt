@@ -6,6 +6,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.net.toUri
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.launcher.LauncherSectionCatalog
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
@@ -15,6 +16,7 @@ import com.sza.fastmediasorter.domain.icon.ResourceIconProvider
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactTarget
+import com.sza.fastmediasorter.domain.radio.RadioKind
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.util.getApplicationInfoCompat
@@ -83,6 +85,15 @@ class LauncherCommandVisual(
 }
 
 /**
+ * S1441: radio states the caller has already observed, passed in so this resolver stays a pure mapping
+ * and never subscribes to a flow of its own.
+ *
+ * `null` is unknown, never off: a device that refuses the read keeps the on-state glyph, the same rule
+ * [com.sza.fastmediasorter.domain.radio.RadioControlContract.state] states.
+ */
+data class RadioStates(val wifi: Boolean? = null, val bluetooth: Boolean? = null)
+
+/**
  * S0404: resolves the label and icon behind a stored command. Returns null when the command itself
  * is unknown to this build, which the grid renders as an unavailable cell.
  *
@@ -98,14 +109,17 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
     private val appShortcutDataSource: AppShortcutDataSource,
 ) {
 
-    suspend operator fun invoke(command: LauncherCellCommand): LauncherCommandVisual? =
+    suspend operator fun invoke(
+        command: LauncherCellCommand,
+        radioStates: RadioStates = RadioStates(),
+    ): LauncherCommandVisual? =
         withContext(Dispatchers.IO) {
             when (command) {
                 is LauncherCellCommand.App -> appVisual(command.packageName)
                 is LauncherCellCommand.Feature -> featureVisual(command.routeKey)
                 is LauncherCellCommand.Resource -> resourceVisual(command.resourceId)
                 is LauncherCellCommand.Stream -> streamVisual(command.streamId)
-                is LauncherCellCommand.OsShortcut -> osVisual(command.targetKey)
+                is LauncherCellCommand.OsShortcut -> osVisual(command.targetKey, radioStates)
                 is LauncherCellCommand.ScheduledOp -> scheduledOpVisual(command.operationId)
                 // S1170: a favourite file is produced by a gadget row tap, never stored in a cell's
                 // target, so nothing asks the grid to draw it. Answering with the file's own name still
@@ -118,6 +132,7 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
                 is LauncherCellCommand.Contact -> contactVisual(command.target)
                 is LauncherCellCommand.LauncherAction -> launcherActionVisual(command.actionKey)
                 is LauncherCellCommand.PinnedShortcut -> pinnedShortcutVisual(command)
+                is LauncherCellCommand.Section -> sectionVisual(command.sectionKey)
             }
         }
 
@@ -273,7 +288,21 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
         )
     }
 
-    private fun osVisual(targetKey: String): LauncherCommandVisual? {
+    /**
+     * S1428: null for an unknown key, exactly like [launcherActionVisual] - the desktop already draws an
+     * unresolvable cell as unavailable, and inventing a caption would leave a header naming nothing.
+     *
+     * `iconRes` stays null because the header is a caption, not a cell with a glyph.
+     */
+    private fun sectionVisual(sectionKey: String): LauncherCommandVisual? {
+        val section = LauncherSectionCatalog.byKey(sectionKey) ?: return null
+        return LauncherCommandVisual(label = context.getString(section.labelRes), iconRes = null)
+    }
+
+    private fun osVisual(
+        targetKey: String,
+        radioStates: RadioStates = RadioStates(),
+    ): LauncherCommandVisual? {
         val target = OsShortcutCatalog.byKey(targetKey) ?: return null
         // This resolver is launcher-only, so relabel the OS Settings cell "Android settings" to avoid
         // confusion with the app's own settings; the shared OsShortcutCatalog label stays for the panel.
@@ -284,7 +313,15 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
         }
         return LauncherCommandVisual(
             label = context.getString(labelRes),
-            iconRes = target.iconRes,
+            iconRes = offStateIconRes(target.radio, radioStates) ?: target.iconRes,
         )
+    }
+
+    /** Null keeps the catalog's own glyph, which covers both a non-radio target and an unknown state. */
+    @DrawableRes
+    private fun offStateIconRes(radio: RadioKind?, states: RadioStates): Int? = when (radio) {
+        RadioKind.WIFI -> R.drawable.ic_wifi_off.takeIf { states.wifi == false }
+        RadioKind.BLUETOOTH -> R.drawable.ic_bluetooth_off.takeIf { states.bluetooth == false }
+        null -> null
     }
 }

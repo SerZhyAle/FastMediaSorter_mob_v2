@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.launcher.grid
 
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 
 /**
  * S0404: desktop grid sizing. The column count is derived from the screen at render time and the
@@ -81,8 +82,22 @@ object LauncherGridGeometry {
         )
     }
 
+    /**
+     * S1428: the width a cell is actually drawn at. A section header always spans the whole row,
+     * whatever span it was stored with: [footprint]'s clamp only ever narrows a span, so a header
+     * saved on a three-column grid would keep a strip of empty space to its right once the density
+     * factor or a rotation widened the grid (strategic §5.1.2).
+     *
+     * Every caller that positions a cell or counts occupied squares must go through this. If the
+     * renderer widened the header while the empty-slot sweep still used the stored span, edit mode
+     * would draw "tap to add" squares on top of a live header - the exact failure [footprint]'s own
+     * KDoc describes.
+     */
+    fun renderSpanW(cell: LauncherCell, columns: Int): Int =
+        if (cell.kind == LauncherCellKind.SECTION) columns.coerceAtLeast(1) else cell.spanW
+
     fun footprintOf(cell: LauncherCell, columns: Int): CellFootprint =
-        footprint(cell.rowIndex, cell.colIndex, cell.spanW, cell.spanH, columns)
+        footprint(cell.rowIndex, cell.colIndex, renderSpanW(cell, columns), cell.spanH, columns)
 
     /** Where a cell actually lands, given the column count resolved right now. */
     fun boundsFor(cell: LauncherCell, cellSize: Int, columns: Int): CellBounds =

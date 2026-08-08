@@ -3,18 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_stream_add"
-        android:icon="@drawable/ic_add"
-        android:title="@string/streams_add"
-        app:showAsAction="always" />
-
-    <item
-        android:id="@+id/action_stream_import"
-        android:icon="@drawable/ic_import"
-        android:title="@string/streams_import"
-        app:showAsAction="always" />
-
-    <item
         android:id="@+id/action_stream_display_toggle"
         android:icon="@drawable/ic_view_grid"
         android:title="@string/streams_view_grid"
@@ -25,4 +13,24 @@
         android:icon="@drawable/ic_refresh"
         android:title="@string/streams_refresh"
         app:showAsAction="always" />
+
+    <!-- S1473: the three list-population commands live in the toolbar's own overflow, which the
+         toolbar renders last by construction - no manual positioning of a "three dots" button. -->
+    <item
+        android:id="@+id/action_stream_add"
+        android:icon="@drawable/ic_add"
+        android:title="@string/streams_add"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_stream_import_catalog"
+        android:icon="@drawable/ic_import"
+        android:title="@string/streams_import_catalog"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_stream_import_url"
+        android:icon="@drawable/ic_import"
+        android:title="@string/streams_import_from_url"
+        app:showAsAction="never" />
 </menu>

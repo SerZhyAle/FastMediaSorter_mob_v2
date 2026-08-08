@@ -162,6 +162,16 @@ class StreamInlineAudioManager(
     /** Returns the id of the source currently playing inline, or null. */
     val playingId: String? get() = currentSource?.id
 
+    /**
+     * S1474: the engine currently playing inline - the in-app one on the OFF path, the service one on the
+     * ON path, null when nothing plays. Read-only and borrowed: a reader may take values off it and must
+     * never prepare, start, stop or release it, because ownership stays here.
+     *
+     * It exists so the "about this channel" window can report the station already playing without opening
+     * a second connection to a server that may allow only one.
+     */
+    val playingEngine: Player? get() = player
+
     /** S0577: true while an OFF-mode (in-app, non-service) stream is playing. */
     val isLocalPlaybackActive: Boolean get() = localPlayer != null
 

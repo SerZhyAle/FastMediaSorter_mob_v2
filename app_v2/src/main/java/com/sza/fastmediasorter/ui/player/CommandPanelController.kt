@@ -67,6 +67,9 @@ class CommandPanelController(
         fun onCopyPanelExpandedChanged(expanded: Boolean)
         fun onMovePanelExpandedChanged(expanded: Boolean)
         fun onInfoClicked()
+
+        /** S1474: about the playing channel. Only ever reached while a live video stream is playing. */
+        fun onStreamInfoClicked()
         fun onLyricsClicked()
         fun onSearchYoutubeMusicClicked()
         fun onCastClicked()
@@ -717,6 +720,7 @@ class CommandPanelController(
             R.id.menu_favorite -> callback.onFavoriteClicked()
             R.id.menu_send_to -> callback.onSendToClicked()
             R.id.menu_info -> callback.onInfoClicked()
+            R.id.menu_stream_info -> callback.onStreamInfoClicked()
             R.id.menu_fullscreen -> callback.onFullscreenClicked()
             R.id.menu_slideshow -> callback.onSlideshowClicked()
             R.id.menu_random -> callback.onRandomClicked()

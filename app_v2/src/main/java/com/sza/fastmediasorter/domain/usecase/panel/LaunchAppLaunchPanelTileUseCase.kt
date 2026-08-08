@@ -8,6 +8,8 @@ import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileType
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileUi
 import com.sza.fastmediasorter.domain.model.panel.AppLaunchPanelRouteTarget
+import com.sza.fastmediasorter.domain.usecase.radio.ToggleRadioTargetUseCase
+import com.sza.fastmediasorter.util.resolveActivityCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -16,6 +18,7 @@ import javax.inject.Inject
 class LaunchAppLaunchPanelTileUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val resolveRouteAvailability: ResolvePanelRouteAvailabilityUseCase,
+    private val toggleRadioTarget: ToggleRadioTargetUseCase,
 ) {
     suspend fun launch(tile: AppLaunchPanelTileUi): Boolean = when (tile.type) {
         AppLaunchPanelTileType.OWN_APP -> launchPackage(context.packageName)
@@ -39,13 +42,27 @@ class LaunchAppLaunchPanelTileUseCase @Inject constructor(
             }
             is AppLaunchPanelRouteTarget.Resource ->
                 startIntent(AppLaunchPanelRouteIntents.resource(context, target.resourceId))
-            is AppLaunchPanelRouteTarget.OsShortcut -> {
-                val osTarget = OsShortcutCatalog.byKey(target.targetKey) ?: return false
-                if (!OsShortcutCatalog.isResolvable(context, target.targetKey)) return false
-                startIntent(osTarget.intent(context))
-            }
+            is AppLaunchPanelRouteTarget.OsShortcut -> launchOsShortcut(target.targetKey)
             null -> false
         }
+    }
+
+    /**
+     * S1441: same order the launcher uses - try to switch the radio, and only a refusal opens a system
+     * surface, preferring the panel over the full settings screen when the target names one.
+     */
+    private suspend fun launchOsShortcut(targetKey: String): Boolean {
+        val osTarget = OsShortcutCatalog.byKey(targetKey)
+            ?.takeIf { OsShortcutCatalog.isResolvable(context, targetKey) }
+            ?: return false
+        return toggleRadioTarget(osTarget) || startIntent(systemSurfaceFor(osTarget))
+    }
+
+    /** The lighter panel when the target names one and this device resolves it, the full screen otherwise. */
+    private fun systemSurfaceFor(osTarget: OsShortcutCatalog.Target): Intent {
+        val fallback = osTarget.fallbackIntent?.invoke(context)
+        val resolves = fallback != null && context.packageManager.resolveActivityCompat(fallback, 0) != null
+        return if (resolves) requireNotNull(fallback) else osTarget.intent(context)
     }
 
     private fun launchPackage(packageName: String): Boolean {

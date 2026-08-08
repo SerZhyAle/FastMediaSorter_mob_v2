@@ -13,6 +13,7 @@ import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemLauncherCellGadgetBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherCellShortcutBinding
+import com.sza.fastmediasorter.databinding.ItemLauncherSectionHeaderBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
@@ -81,6 +82,7 @@ class LauncherCellViewBinder(
             val view = when (item.cell.kind) {
                 LauncherCellKind.SHORTCUT -> bindShortcut(inflater, container, item)
                 LauncherCellKind.GADGET -> bindGadget(inflater, container, item)
+                LauncherCellKind.SECTION -> bindSection(inflater, container, item)
             }
             applyCellSurface(view, item, editMode)
             if (editMode) decorateForEdit(inflater, view, item)
@@ -89,7 +91,10 @@ class LauncherCellViewBinder(
                 LauncherDesktopLayout.CellLayoutParams(
                     row = item.cell.rowIndex,
                     col = item.cell.colIndex,
-                    spanW = item.cell.spanW,
+                    // S1428: not the stored span - a section header is widened to the live column
+                    // count here, by the same helper the empty-slot sweep uses, so layout and
+                    // occupancy cannot disagree about which squares the header covers.
+                    spanW = LauncherGridGeometry.renderSpanW(item.cell, columns),
                     spanH = item.cell.spanH,
                 ),
             )
@@ -302,6 +307,28 @@ class LauncherCellViewBinder(
     ): android.view.View {
         val binding = ItemLauncherCellGadgetBinding.inflate(inflater, container, false)
         gadgetBinder?.invoke(item, binding.gadgetContainer)
+        return binding.root
+    }
+
+    /**
+     * S1428: deliberately not routed through [bindShortcut]. That path attaches the long-click listener
+     * and [nameLongPressForAccessibility] before the command kind is read, and strategic §6.8 ruled the
+     * header explicitly not long-pressable - staying out of the path is what makes that true, rather
+     * than an exception inside it that ADR-2 forbids.
+     */
+    private fun bindSection(
+        inflater: LayoutInflater,
+        container: LauncherDesktopLayout,
+        item: LauncherCellUi,
+    ): android.view.View {
+        val binding = ItemLauncherSectionHeaderBinding.inflate(inflater, container, false)
+        val title = item.visual?.label
+            ?: container.context.getString(R.string.launcher_home_cell_unavailable)
+        binding.sectionTitle.text = title
+        // On the root, not the caption: the root is the focusable node, so this is what TalkBack reads,
+        // and it is also what the edit-mode remove badge quotes to say which section it would remove.
+        binding.root.contentDescription = title
+        ViewCompat.setAccessibilityHeading(binding.root, true)
         return binding.root
     }
 

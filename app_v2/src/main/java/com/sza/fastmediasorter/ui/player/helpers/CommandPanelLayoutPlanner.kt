@@ -20,6 +20,17 @@ private const val ROTATE_CONTENT_PRIORITY = 660
 // ROTATE_CONTENT held until this entry was added.
 private const val ROTATE_CONTENT_CCW_PRIORITY = 670
 
+// S1474: "about this channel", one past INFO(495) so the window reads directly under the file details
+// wherever both are offered. Top-level like the two above, and necessarily so: an enum entry is
+// constructed before its own companion object exists, so the constant cannot live there.
+private const val STREAM_INFO_PRIORITY = 496
+
+// S1451: named rather than left a bare literal because S1406 froze this one finding in the detekt
+// baseline without re-seeding the ID snapshot, so the two control files disagreed and the absorption
+// gate failed on it. Its neighbours 392/394 stay literal: their findings sit in BOTH control files
+// as long-settled debt, which is the accepted state for entries that predate the naming convention.
+private const val OFFICE_TEXT_SETTINGS_PRIORITY = 393
+
 /**
  * Priority-driven portrait layout planner for the player command panel center group.
  *
@@ -47,18 +58,14 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         val menuItemId: Int,
         val barCapable: Boolean,
         val titleResId: Int,
-        val iconResId: Int,
-        // Short label for Big Buttons Mode top-panel display. 0 = use titleResId at runtime.
-        val shortTitleResId: Int = 0
+        val iconResId: Int
     ) {
         // ── Group 1 : high-priority adaptive commands (priorities 10-70) ──────────
         // Lowest priority numbers = first on bar (leftmost), last to overflow.
         // Previous/Next are fixed right anchors - not in this group.
 
-        DELETE(10, R.id.menu_delete, true, R.string.delete, R.drawable.ic_delete,
-            R.string.big_btn_short_delete),
-        FAVORITE(20, R.id.menu_favorite, true, R.string.favorite, R.drawable.ic_star_outline,
-            R.string.big_btn_short_favorite),
+        DELETE(10, R.id.menu_delete, true, R.string.delete, R.drawable.ic_delete),
+        FAVORITE(20, R.id.menu_favorite, true, R.string.favorite, R.drawable.ic_star_outline),
         // S0459: unified «Send to..» menu. Overflow-only (barCapable = false): it has no dedicated
         // command-bar view (CommandPanelController.barViewForCommand returns null for it), so it must
         // render as the native nested submenu in the ⋯ overflow (ADR-2). Marking it barCapable routed
@@ -74,77 +81,74 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         // player's own Lens button). The Browse per-file Lens item was folded into the unified «Send to..»
         // menu in Phase 08 (§11.7 audit); SEND_TO_TELEGRAM was removed in Phase 07 - both former Browse
         // consumers now route through the unified menu.
-        SHARE(30, R.id.menu_share, true, R.string.share, R.drawable.ic_share,
-            R.string.big_btn_short_share),
-        FULLSCREEN(50, R.id.menu_fullscreen, true, R.string.fullscreen_mode, R.drawable.ic_fullscreen,
-            R.string.big_btn_short_fullscreen),
-        SLIDESHOW(60, R.id.menu_slideshow, true, R.string.slideshow, R.drawable.ic_play,
-            R.string.big_btn_short_slideshow),
-        RANDOM(70, R.id.menu_random, true, R.string.random_file_description, R.drawable.ic_random_nav,
-            R.string.big_btn_short_random),
+        SHARE(30, R.id.menu_share, true, R.string.share, R.drawable.ic_share),
+        FULLSCREEN(50, R.id.menu_fullscreen, true, R.string.fullscreen_mode, R.drawable.ic_fullscreen),
+        SLIDESHOW(60, R.id.menu_slideshow, true, R.string.slideshow, R.drawable.ic_play),
+        RANDOM(70, R.id.menu_random, true, R.string.random_file_description, R.drawable.ic_random_nav),
 
         // ── Group 2 : current command-bar commands (priorities 200-499) ──────────────
 
-        BLACK_SCREEN(195, R.id.menu_black_screen, true,
-            R.string.black_screen_button_title, R.drawable.ic_black_screen,
-            R.string.big_btn_short_black_screen),
-        RENAME(200, R.id.menu_rename, true, R.string.rename, R.drawable.ic_rename,
-            R.string.big_btn_short_rename),
+        BLACK_SCREEN(195, R.id.menu_black_screen, true, R.string.black_screen_button_title, R.drawable.ic_black_screen),
+        RENAME(200, R.id.menu_rename, true, R.string.rename, R.drawable.ic_rename),
         EDIT(
             210,
             R.id.menu_edit,
             true,
             R.string.menu_edit_adjust,
-            android.R.drawable.ic_menu_edit,
-            R.string.big_btn_short_edit
+            android.R.drawable.ic_menu_edit
         ),
-        UNDO(220, R.id.menu_undo, true, R.string.undo, android.R.drawable.ic_menu_revert,
-            R.string.big_btn_short_undo),
-        CAST(230, R.id.menu_cast, true, R.string.cast_to_chromecast, R.drawable.ic_cast,
-            R.string.big_btn_short_cast),
+        UNDO(220, R.id.menu_undo, true, R.string.undo, android.R.drawable.ic_menu_revert),
+        CAST(230, R.id.menu_cast, true, R.string.cast_to_chromecast, R.drawable.ic_cast),
         // Low-priority direct video action: show on command bar when space permits,
         // otherwise let adaptive portrait layout spill it to overflow.
-        SAVE_FRAME(235, R.id.menu_save_frame, true, R.string.menu_save_frame,
-            R.drawable.ic_save_frame, R.string.big_btn_short_save_frame),
+        SAVE_FRAME(235, R.id.menu_save_frame, true, R.string.menu_save_frame, R.drawable.ic_save_frame),
         LYRICS(
             240,
             R.id.menu_lyrics,
             true,
             R.string.lyrics,
-            R.drawable.ic_book,
-            R.string.big_btn_short_lyrics
+            R.drawable.ic_book
         ),
-        SEARCH_YOUTUBE_MUSIC(250, R.id.menu_search_youtube_music, true,
-            R.string.search_in_youtube_music, R.drawable.ic_youtube_music),
+        SEARCH_YOUTUBE_MUSIC(
+            250,
+            R.id.menu_search_youtube_music,
+            true,
+            R.string.search_in_youtube_music,
+            R.drawable.ic_youtube_music
+        ),
         // S0162: Rotation toggle - low-priority, shows on bar only when space permits
         ROTATION_TOGGLE(
             490,
             R.id.menu_rotation_toggle,
             true,
             R.string.menu_autorotate_screen_title,
-            R.drawable.ic_rotation_unlocked,
-            R.string.big_btn_short_rotation
+            R.drawable.ic_rotation_unlocked
         ),
         // File details are useful but rarely urgent; keep them bar-capable only after
         // primary playback, navigation, and media actions have taken their slots.
-        INFO(495, R.id.menu_info, true, R.string.file_information, R.drawable.ic_info,
-            R.string.big_btn_short_info),
+        INFO(495, R.id.menu_info, true, R.string.file_information, R.drawable.ic_info),
+
+        // S1474: about the playing channel. Overflow-only by the owner's ruling of 2026-08-07
+        // («Только в меню»), so no command-bar slot is ever taken from playback for it.
+        STREAM_INFO(
+            STREAM_INFO_PRIORITY,
+            R.id.menu_stream_info,
+            false,
+            R.string.stream_info_menu_title,
+            R.drawable.ic_info,
+        ),
 
         // PDF
-        SEARCH_PDF(260, R.id.menu_search, true, R.string.search,
-            android.R.drawable.ic_menu_search, R.string.big_btn_short_search),
-        TRANSLATE_PDF(270, R.id.menu_translate, true, R.string.translate,
-            R.drawable.ic_translate, R.string.big_btn_short_translate),  // icon replaced asynchronously by LanguageBadgeDrawable
-        PDF_TEXT_SETTINGS(280, R.id.menu_text_settings, true, R.string.translation_settings,
-            R.drawable.ic_book, R.string.big_btn_short_text_settings),
-        OCR_PDF(290, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr,
-            R.string.big_btn_short_ocr),
-        GOOGLE_LENS_PDF(300, R.id.menu_google_lens, true, R.string.google_lens,
-            R.drawable.ic_google_lens),
+        SEARCH_PDF(260, R.id.menu_search, true, R.string.search, android.R.drawable.ic_menu_search),
+
+        // icon replaced asynchronously by LanguageBadgeDrawable
+        TRANSLATE_PDF(270, R.id.menu_translate, true, R.string.translate, R.drawable.ic_translate),
+        PDF_TEXT_SETTINGS(280, R.id.menu_text_settings, true, R.string.translation_settings, R.drawable.ic_book),
+        OCR_PDF(290, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr),
+        GOOGLE_LENS_PDF(300, R.id.menu_google_lens, true, R.string.google_lens, R.drawable.ic_google_lens),
 
         // TEXT
-        SEARCH_TEXT(310, R.id.menu_search, true, R.string.search,
-            android.R.drawable.ic_menu_search, R.string.big_btn_short_search),
+        SEARCH_TEXT(310, R.id.menu_search, true, R.string.search, android.R.drawable.ic_menu_search),
         // Edit is the primary text action - rank it ahead of RENAME(200) so it reaches
         // the command bar before the less-frequent rename.
         EDIT_TEXT(
@@ -152,13 +156,12 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.id.menu_edit_text,
             true,
             R.string.menu_edit_file_text,
-            android.R.drawable.ic_menu_edit,
-            R.string.big_btn_short_edit
+            android.R.drawable.ic_menu_edit
         ),
-        TRANSLATE_TEXT(330, R.id.menu_translate, true, R.string.translate,
-            R.drawable.ic_translate, R.string.big_btn_short_translate),  // icon replaced asynchronously
-        TEXT_SETTINGS(340, R.id.menu_text_settings, true, R.string.translation_settings,
-            R.drawable.ic_book, R.string.big_btn_short_text_settings),
+
+        // icon replaced asynchronously
+        TRANSLATE_TEXT(330, R.id.menu_translate, true, R.string.translate, R.drawable.ic_translate),
+        TEXT_SETTINGS(340, R.id.menu_text_settings, true, R.string.translation_settings, R.drawable.ic_book),
 
         // S1252: not R.string.copy - in the grouped Browse menu this renders one tap below the
         // file-level Copy, and both read the same word for different objects (the text vs the file).
@@ -167,79 +170,94 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.id.menu_copy_text,
             true,
             R.string.copy_to_clipboard,
-            android.R.drawable.ic_menu_save,
-            R.string.big_btn_short_copy
+            android.R.drawable.ic_menu_save
         ),
 
         // EPUB
-        SEARCH_EPUB(360, R.id.menu_search, true, R.string.search,
-            android.R.drawable.ic_menu_search, R.string.big_btn_short_search),
-        TRANSLATE_EPUB(370, R.id.menu_translate, true, R.string.translate,
-            R.drawable.ic_translate, R.string.big_btn_short_translate),  // icon replaced asynchronously
-        EPUB_TEXT_SETTINGS(380, R.id.menu_text_settings, true, R.string.translation_settings,
-            R.drawable.ic_book, R.string.big_btn_short_text_settings),
-        OCR_EPUB(390, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr,
-            R.string.big_btn_short_ocr),
+        SEARCH_EPUB(360, R.id.menu_search, true, R.string.search, android.R.drawable.ic_menu_search),
+
+        // icon replaced asynchronously
+        TRANSLATE_EPUB(370, R.id.menu_translate, true, R.string.translate, R.drawable.ic_translate),
+        EPUB_TEXT_SETTINGS(380, R.id.menu_text_settings, true, R.string.translation_settings, R.drawable.ic_book),
+        OCR_EPUB(390, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr),
 
         // OFFICE: overflow-only to avoid reusing text/PDF inline buttons with mismatched listeners.
-        TRANSLATE_OFFICE(392, R.id.menu_translate, false, R.string.translate,
-            R.drawable.ic_translate, R.string.big_btn_short_translate),
+        TRANSLATE_OFFICE(392, R.id.menu_translate, false, R.string.translate, R.drawable.ic_translate),
 
         // S1406: emitted ungated by isOffice, like the other *_TEXT_SETTINGS entries - this is the
         // dialog the user opens to turn translation back on, so gating it on the setting would
         // strand them. Office was the one type without it, which is why a hidden long-press on the
         // OCR row had to stand in for it.
         OFFICE_TEXT_SETTINGS(
-            393,
+            OFFICE_TEXT_SETTINGS_PRIORITY,
             R.id.menu_text_settings,
             false,
             R.string.translation_settings,
-            R.drawable.ic_book,
-            R.string.big_btn_short_text_settings
+            R.drawable.ic_book
         ),
-        OCR_OFFICE(394, R.id.menu_ocr, false, R.string.ocr_button_description, R.drawable.ic_ocr,
-            R.string.big_btn_short_ocr),
+        OCR_OFFICE(394, R.id.menu_ocr, false, R.string.ocr_button_description, R.drawable.ic_ocr),
 
         // IMAGE / GIF
-        TRANSLATE_IMAGE(400, R.id.menu_translate, true, R.string.translate,
-            R.drawable.ic_translate, R.string.big_btn_short_translate),  // icon replaced asynchronously
-        IMAGE_TEXT_SETTINGS(410, R.id.menu_text_settings, true, R.string.translation_settings,
-            R.drawable.ic_book, R.string.big_btn_short_text_settings),
-        OCR_IMAGE(420, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr,
-            R.string.big_btn_short_ocr),
-        GOOGLE_LENS_IMAGE(430, R.id.menu_google_lens, true, R.string.google_lens,
-            R.drawable.ic_google_lens, R.string.big_btn_short_lens),
+        // icon replaced asynchronously
+        TRANSLATE_IMAGE(400, R.id.menu_translate, true, R.string.translate, R.drawable.ic_translate),
+        IMAGE_TEXT_SETTINGS(410, R.id.menu_text_settings, true, R.string.translation_settings, R.drawable.ic_book),
+        OCR_IMAGE(420, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr),
+        GOOGLE_LENS_IMAGE(430, R.id.menu_google_lens, true, R.string.google_lens, R.drawable.ic_google_lens),
 
         // ── Group 3 : overflow-only commands (priorities 500-699) ───────────────────
 
-        SLEEP_TIMER(500, R.id.menu_sleep_timer, true, R.string.menu_sleep_timer,
-            R.drawable.ic_sleep_timer),
-        REOPEN_ENCODING(510, R.id.menu_reopen_encoding, false, R.string.reopen_with_encoding,
-            android.R.drawable.ic_menu_sort_alphabetically),
-        TOGGLE_MARKDOWN(520, R.id.menu_toggle_markdown, false, R.string.toggle_markdown,
-            android.R.drawable.ic_menu_view),
-        READER_SETTINGS(530, R.id.menu_reader_settings, false, R.string.reader_settings,
-            android.R.drawable.ic_menu_preferences),
-        READ_ALOUD(540, R.id.menu_read_aloud, false, R.string.read_aloud,
-            android.R.drawable.ic_lock_silent_mode_off),
-        PDF_SCROLL_MODE(550, R.id.menu_pdf_scroll_mode, false, R.string.pdf_scroll_mode,
-            R.drawable.ic_view_list),
-        PDF_COLOR_MODE(560, R.id.menu_pdf_color_mode, false, R.string.pdf_night_mode,
-            R.drawable.ic_night_mode),
-        PDF_THUMBNAILS(570, R.id.menu_pdf_thumbnails, false, R.string.pdf_thumbnails,
-            R.drawable.ic_view_list),
-        EPUB_READER_SETTINGS(580, R.id.menu_epub_reader_settings, false,
-            R.string.epub_reader_settings, R.drawable.ic_settings),
-        EPUB_SEARCH_ALL(590, R.id.menu_epub_search_all, false,
-            R.string.epub_search_all_chapters, android.R.drawable.ic_menu_search),
+        SLEEP_TIMER(500, R.id.menu_sleep_timer, true, R.string.menu_sleep_timer, R.drawable.ic_sleep_timer),
+        REOPEN_ENCODING(
+            510,
+            R.id.menu_reopen_encoding,
+            false,
+            R.string.reopen_with_encoding,
+            android.R.drawable.ic_menu_sort_alphabetically
+        ),
+        TOGGLE_MARKDOWN(
+            520,
+            R.id.menu_toggle_markdown,
+            false,
+            R.string.toggle_markdown,
+            android.R.drawable.ic_menu_view
+        ),
+        READER_SETTINGS(
+            530,
+            R.id.menu_reader_settings,
+            false,
+            R.string.reader_settings,
+            android.R.drawable.ic_menu_preferences
+        ),
+        READ_ALOUD(540, R.id.menu_read_aloud, false, R.string.read_aloud, android.R.drawable.ic_lock_silent_mode_off),
+        PDF_SCROLL_MODE(550, R.id.menu_pdf_scroll_mode, false, R.string.pdf_scroll_mode, R.drawable.ic_view_list),
+        PDF_COLOR_MODE(560, R.id.menu_pdf_color_mode, false, R.string.pdf_night_mode, R.drawable.ic_night_mode),
+        PDF_THUMBNAILS(570, R.id.menu_pdf_thumbnails, false, R.string.pdf_thumbnails, R.drawable.ic_view_list),
+        EPUB_READER_SETTINGS(
+            580,
+            R.id.menu_epub_reader_settings,
+            false,
+            R.string.epub_reader_settings,
+            R.drawable.ic_settings
+        ),
+        EPUB_SEARCH_ALL(
+            590,
+            R.id.menu_epub_search_all,
+            false,
+            R.string.epub_search_all_chapters,
+            android.R.drawable.ic_menu_search
+        ),
         // Low-priority bar-capable command: appears on bar only when all higher-priority
         // commands fit and space remains; otherwise spills to overflow (⋯ menu).
         PRINT(600, R.id.menu_print, true, R.string.menu_print, R.drawable.ic_print),
-        OPEN_IN_VR(605, R.id.menu_open_in_vr, false,
-            R.string.player_vr_overflow_open, R.drawable.ic_vr_headset),
+        OPEN_IN_VR(605, R.id.menu_open_in_vr, false, R.string.player_vr_overflow_open, R.drawable.ic_vr_headset),
         // S0028: multi-window - overflow-only; shown only when VR+setting allows it
-        OPEN_IN_SEPARATE_WINDOW(610, R.id.menu_open_in_separate_window, true,
-            R.string.action_open_in_separate_window, R.drawable.ic_open_in_browse),
+        OPEN_IN_SEPARATE_WINDOW(
+            610,
+            R.id.menu_open_in_separate_window,
+            true,
+            R.string.action_open_in_separate_window,
+            R.drawable.ic_open_in_browse
+        ),
         // S0106: Image crop & compress (IMAGE only - static formats JPEG/PNG/WebP)
         // S0217: bar-capable; inline when planner has room, otherwise spills to overflow.
         CROP(620, R.id.menu_crop, true, R.string.menu_crop, R.drawable.ic_crop),
@@ -294,6 +312,24 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
     )
 
     /**
+     * S0631's owner-approved subset for a playing channel, extracted from [buildActiveCommands] so that
+     * function stays inside its length budget. Composition unchanged.
+     */
+    private fun liveVideoStreamCommands(
+        state: PlayerViewModel.PlayerState,
+        isWifiConnected: Boolean,
+    ): List<PlayerCommand> = buildList {
+        add(PlayerCommand.SEND_TO)
+        add(PlayerCommand.FULLSCREEN)
+        add(PlayerCommand.EDIT)
+        add(PlayerCommand.SAVE_FRAME)
+        add(PlayerCommand.INFO)
+        add(PlayerCommand.STREAM_INFO)
+        if (state.showRotationToggle) add(PlayerCommand.ROTATION_TOGGLE)
+        if (mediaCapabilities.supportsCast && isWifiConnected) add(PlayerCommand.CAST)
+    }.sortedBy { it.priority }
+
+    /**
      * Build the ordered list of adaptive commands that are currently active for this
      * [state]. Overflow-only commands are always included when their conditions are met.
      *
@@ -321,15 +357,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         // dialog (PlayerCommandPanelCallbackImpl.onEditClicked VIDEO); SEND_TO shares the stream link
         // (Phase 03). PiP is a separate overlay button, not a command-panel item.
         if (state.isLiveVideoStream) {
-            return buildList {
-                add(PlayerCommand.SEND_TO)
-                add(PlayerCommand.FULLSCREEN)
-                add(PlayerCommand.EDIT)
-                add(PlayerCommand.SAVE_FRAME)
-                add(PlayerCommand.INFO)
-                if (state.showRotationToggle) add(PlayerCommand.ROTATION_TOGGLE)
-                if (mediaCapabilities.supportsCast && isWifiConnected) add(PlayerCommand.CAST)
-            }.sortedBy { it.priority }
+            return liveVideoStreamCommands(state, isWifiConnected)
         }
 
         val isImage = file.type == MediaType.IMAGE || file.type == MediaType.GIF

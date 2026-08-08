@@ -10,7 +10,53 @@ import android.util.TypedValue
 import android.view.View
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.sensors.SensorSeriesPoint
+import java.util.Locale
 import com.google.android.material.R as MaterialR
+
+/** Which way the primary series moved on its last step. */
+enum class SensorSeriesTrend { RISING, FALLING, FLAT }
+
+/**
+ * S1446: the primary series reduced to the four numbers a full-screen consumer shows beside the chart.
+ *
+ * Numbers only, no units and no phrasing: the consumer owns its strings and its locale, so a summary
+ * that carried wording would have to be re-translated for every host that reused the chart.
+ */
+data class SensorSeriesSummary(
+    val last: Double,
+    val min: Double,
+    val max: Double,
+    val trend: SensorSeriesTrend,
+)
+
+/**
+ * Top-level and `internal` so the computation is testable without inflating a [View], which would drag a
+ * `Context` and a theme into a test of pure arithmetic.
+ *
+ * `min` and `max` span the whole series while `trend` looks only at the final step - the two answer
+ * different questions, and folding them together would report a long climb as flat after one dip.
+ */
+internal fun summarizeSensorSeries(points: List<SensorSeriesPoint>): SensorSeriesSummary? {
+    val present = points.map { it.primaryValue }
+    if (present.size < MIN_SUMMARY_POINTS) {
+        return null
+    }
+    val last = present.last()
+    val previous = present[present.size - 2]
+    return SensorSeriesSummary(
+        last = last,
+        min = present.min(),
+        max = present.max(),
+        trend = when {
+            last > previous -> SensorSeriesTrend.RISING
+            last < previous -> SensorSeriesTrend.FALLING
+            else -> SensorSeriesTrend.FLAT
+        },
+    )
+}
+
+/** A trend needs a step to measure, so a single reading summarises to nothing rather than to flat. */
+private const val MIN_SUMMARY_POINTS = 2
 
 /**
  * S1179: draws one or two accumulated sensor series on a Canvas.
@@ -41,6 +87,17 @@ class SensorSeriesChartView @JvmOverloads constructor(
             invalidate()
         }
 
+    /**
+     * S1446: off by default so a gadget tile keeps drawing exactly what it drew before this ticket -
+     * only a full-screen consumer, which has the room for labels, asks for the axis.
+     */
+    var showValueAxis: Boolean = false
+        set(value) {
+            if (field == value) return
+            field = value
+            invalidate()
+        }
+
     /** False while there is too little to draw; the host shows its empty state instead. */
     val hasData: Boolean get() = points.size >= MIN_POINTS
 
@@ -64,6 +121,15 @@ class SensorSeriesChartView @JvmOverloads constructor(
         )
     }
 
+    private val axisGuidePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = AXIS_STROKE_DP * density
+    }
+
+    private val axisLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = AXIS_LABEL_SP * density
+    }
+
     private val path = Path()
 
     init {
@@ -76,6 +142,12 @@ class SensorSeriesChartView @JvmOverloads constructor(
             R.styleable.SensorSeriesChartView_sensorSeriesSecondaryColor,
             themeColor(MaterialR.attr.colorOnSurfaceVariant),
         )
+        val axisColor = typed.getColor(
+            R.styleable.SensorSeriesChartView_sensorSeriesAxisLabelColor,
+            themeColor(MaterialR.attr.colorOnSurfaceVariant),
+        )
+        axisGuidePaint.color = axisColor
+        axisLabelPaint.color = axisColor
         typed.recycle()
     }
 
@@ -84,15 +156,46 @@ class SensorSeriesChartView @JvmOverloads constructor(
         invalidate()
     }
 
+    /** Null while [hasData] is false - there is nothing to summarise before the second reading. */
+    fun summary(): SensorSeriesSummary? = summarizeSensorSeries(points)
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (hasData) {
+            if (showValueAxis) {
+                drawValueAxis(canvas)
+            }
             drawSeries(canvas, primaryPaint) { it.primaryValue }
             if (showSecondary) {
                 drawSeries(canvas, secondaryPaint) { it.secondaryValue }
             }
         }
     }
+
+    /**
+     * Labels the primary series only: it is the one the axis is scaled to, and a second scale on the
+     * same edge would read as one range that neither line actually uses.
+     */
+    private fun drawValueAxis(canvas: Canvas) {
+        val present = points.map { it.primaryValue }
+        if (present.size < MIN_POINTS) {
+            return
+        }
+        val guideX = paddingLeft.toFloat()
+        val top = paddingTop.toFloat()
+        val bottom = (height - paddingBottom).toFloat()
+        canvas.drawLine(guideX, top, guideX, bottom, axisGuidePaint)
+        val labelX = guideX + AXIS_LABEL_GAP_DP * density
+        canvas.drawText(formatLabel(present.max()), labelX, top + axisLabelPaint.textSize, axisLabelPaint)
+        canvas.drawText(formatLabel(present.min()), labelX, bottom, axisLabelPaint)
+    }
+
+    /**
+     * The decimal separator follows the device locale, which is as far as this view goes with text -
+     * a unit or a caption would be wording, and wording belongs to the consumer.
+     */
+    private fun formatLabel(value: Double): String =
+        String.format(Locale.getDefault(), AXIS_LABEL_FORMAT, value)
 
     /**
      * Each series is scaled to its own minimum and maximum: speed and cumulative distance share a
@@ -144,5 +247,12 @@ class SensorSeriesChartView @JvmOverloads constructor(
         const val SECONDARY_STROKE_DP = 1f
         const val DASH_ON_DP = 4f
         const val DASH_OFF_DP = 3f
+
+        const val AXIS_STROKE_DP = 1f
+        const val AXIS_LABEL_SP = 10f
+        const val AXIS_LABEL_GAP_DP = 4f
+
+        /** One decimal: speed and distance both read wrong at zero, and the tile has no room for more. */
+        const val AXIS_LABEL_FORMAT = "%.1f"
     }
 }

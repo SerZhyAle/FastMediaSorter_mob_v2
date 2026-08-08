@@ -14,6 +14,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.launcher.ContactActionAvailabilityProvider
+import com.sza.fastmediasorter.core.launcher.LauncherSectionCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.databinding.DialogSearchableOptionPickerBinding
@@ -54,6 +55,7 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
     private var col: Int = 0
     private var gadgetMode: Boolean = false
     private var actionMode: Boolean = false
+    private var sectionMode: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +64,7 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         col = requireArguments().getInt(ARG_COL)
         gadgetMode = requireArguments().getBoolean(ARG_GADGET_MODE, false)
         actionMode = requireArguments().getBoolean(ARG_ACTION_MODE, false)
+        sectionMode = requireArguments().getBoolean(ARG_SECTION_MODE, false)
     }
 
     override fun onCreateView(
@@ -78,6 +81,7 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         val titleRes = when {
             gadgetMode -> R.string.launcher_edit_pick_gadget_title
             actionMode -> R.string.launcher_edit_kind_action
+            sectionMode -> R.string.launcher_edit_kind_section
             else -> R.string.launcher_edit_add_cell_title
         }
         binding.tvOptionPickerTitle.text = getString(titleRes)
@@ -85,6 +89,7 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         val options = when {
             gadgetMode -> gadgetOptions()
             actionMode -> actionOptions()
+            sectionMode -> sectionOptions()
             else -> categoryOptions()
         }
         Timber.d("S1413: cell content picker gadgetMode=%s columns=%d", gadgetMode, currentColumnCount())
@@ -152,6 +157,8 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         ),
         category(CATEGORY_GADGET, R.string.launcher_edit_kind_gadget, R.drawable.ic_view_grid),
         category(CATEGORY_ACTION, R.string.launcher_edit_kind_action, R.drawable.ic_launcher_mode),
+        // S1428: how a removed section header is put back, the same way a removed action shortcut is.
+        category(CATEGORY_SECTION, R.string.launcher_edit_kind_section, R.drawable.ic_view_list),
     )
 
     /**
@@ -184,6 +191,18 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         )
     }
 
+    /**
+     * S1428: a second level rather than one row, because two preset sections exist (strategic §6.12) and
+     * a single row would always restore the first - leaving a deleted second header unrestorable.
+     */
+    private fun sectionOptions(): List<Option> = LauncherSectionCatalog.all.map { section ->
+        Option(
+            id = SECTION_PREFIX + section.key,
+            label = getString(section.labelRes),
+            leading = LeadingVisual.IconRes(R.drawable.ic_view_list),
+        )
+    }
+
     private fun category(
         id: String,
         @StringRes labelRes: Int,
@@ -193,9 +212,11 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
     private fun onPicked(id: String) {
         val gadgetKey = id.takeIf { it.startsWith(GADGET_PREFIX) }?.removePrefix(GADGET_PREFIX)
         val actionKey = id.takeIf { it.startsWith(ACTION_PREFIX) }?.removePrefix(ACTION_PREFIX)
+        val sectionKey = id.takeIf { it.startsWith(SECTION_PREFIX) }?.removePrefix(SECTION_PREFIX)
         val category = when {
             gadgetKey != null -> CATEGORY_GADGET
             actionKey != null -> CATEGORY_ACTION
+            sectionKey != null -> CATEGORY_SECTION
             else -> id
         }
         setFragmentResult(
@@ -206,6 +227,7 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
                 RESULT_CATEGORY to category,
                 RESULT_GADGET_KEY to gadgetKey,
                 RESULT_ACTION_KEY to actionKey,
+                RESULT_SECTION_KEY to sectionKey,
             ),
         )
         dismiss()
@@ -253,18 +275,25 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         const val CATEGORY_CONTACT_MESSAGE = "contact_message"
         const val CATEGORY_GADGET = "gadget"
         const val CATEGORY_ACTION = "action"
+        const val CATEGORY_SECTION = "section"
 
         const val RESULT_ACTION_KEY = "result_action_key"
+        const val RESULT_SECTION_KEY = "result_section_key"
 
         // S1402: a distinct tag for the action-list re-open, for the same reason TAG_GADGET exists.
         const val TAG_ACTION = "LauncherCellContentPickerAction"
 
+        // S1428: likewise for the section list.
+        const val TAG_SECTION = "LauncherCellContentPickerSection"
+
         private const val GADGET_PREFIX = "gadget:"
         private const val ACTION_PREFIX = "action:"
+        private const val SECTION_PREFIX = "section:"
         private const val ARG_ROW = "arg_row"
         private const val ARG_COL = "arg_col"
         private const val ARG_GADGET_MODE = "arg_gadget_mode"
         private const val ARG_ACTION_MODE = "arg_action_mode"
+        private const val ARG_SECTION_MODE = "arg_section_mode"
 
         fun newInstance(row: Int, col: Int): LauncherCellContentPickerDialogFragment =
             LauncherCellContentPickerDialogFragment().apply {
@@ -279,6 +308,11 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         fun newActionInstance(row: Int, col: Int): LauncherCellContentPickerDialogFragment =
             LauncherCellContentPickerDialogFragment().apply {
                 arguments = bundleOf(ARG_ROW to row, ARG_COL to col, ARG_ACTION_MODE to true)
+            }
+
+        fun newSectionInstance(row: Int, col: Int): LauncherCellContentPickerDialogFragment =
+            LauncherCellContentPickerDialogFragment().apply {
+                arguments = bundleOf(ARG_ROW to row, ARG_COL to col, ARG_SECTION_MODE to true)
             }
     }
 }

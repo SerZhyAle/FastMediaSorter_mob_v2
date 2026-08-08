@@ -103,6 +103,13 @@ function Assert-Record {
     if ($Record.id -notmatch $script:IdPattern) {
         throw "Invalid id '$($Record.id)' - must match $script:IdPattern."
     }
+    # S1504: a ticket name is a slug or a short title - a quote, a backslash or a control character
+    # can only arrive from a mis-bound argument fragment, which is how S1474 was silently renamed
+    # by a fragment of its own status note. Every one of the 1504 records at the time of writing
+    # passes, so this rejects corruption without rejecting any legitimate name.
+    if ([string]$Record.name -match '["\\\x00-\x1f]') {
+        throw ("Invalid name '{0}' for {1} - a name must not contain a quote, a backslash or a control character (a mis-bound argument fragment is the usual source)." -f $Record.name, $Record.id)
+    }
     if ($script:StatusEnum -notcontains $Record.status) {
         throw "Invalid status '$($Record.status)'. Allowed: $($script:StatusEnum -join ', ')."
     }

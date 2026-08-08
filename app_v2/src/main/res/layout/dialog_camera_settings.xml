@@ -2,7 +2,9 @@
 <!-- S0813: title on its own full-width line; Spinners -> SettingsDropdownRow,
      MaterialSwitch -> SettingsToggleRow; Cancel/Apply moved to a dedicated bottom row.
      S0924: setting rows live in a ColumnFlowLayout that switches to 2 columns in landscape (driven
-     by CameraSettingsDialogRotationManager); title + action row stay full-width outside it. -->
+     by CameraSettingsDialogRotationManager); title + action row stay full-width outside it.
+     S1418: the four selector rows use sdr_inline so label and value share one line. The slider rows
+     (exposure/ISO/shutter) keep the stacked shape - a slider needs the full width under its label. -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -32,6 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_small"
+            app:sdr_inline="true"
             app:sdr_title="@string/camera_setting_timer" />
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -46,6 +49,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_small"
+            app:sdr_inline="true"
             app:sdr_title="@string/camera_setting_aspect" />
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
@@ -53,6 +57,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_small"
+            app:sdr_inline="true"
             app:sdr_title="@string/camera_setting_resolution" />
 
         <LinearLayout
@@ -92,6 +97,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_small"
+            app:sdr_inline="true"
             app:sdr_title="@string/camera_setting_white_balance" />
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow

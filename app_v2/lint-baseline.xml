@@ -11000,16 +11000,6 @@
             column="13"/>
     </issue>
 
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.big_btn_short_playback_order` appears to be unused"
-        errorLine1="    &lt;string name=&quot;big_btn_short_playback_order&quot;>Order&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="763"
-            column="13"/>
-    </issue>
 
     <issue
         id="UnusedResources"

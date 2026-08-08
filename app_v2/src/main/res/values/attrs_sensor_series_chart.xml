@@ -5,5 +5,7 @@
     <declare-styleable name="SensorSeriesChartView">
         <attr name="sensorSeriesPrimaryColor" format="color" />
         <attr name="sensorSeriesSecondaryColor" format="color" />
+        <!-- S1446: only read while showValueAxis is on, which no gadget tile turns on. -->
+        <attr name="sensorSeriesAxisLabelColor" format="color" />
     </declare-styleable>
 </resources>

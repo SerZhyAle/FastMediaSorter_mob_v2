@@ -23,6 +23,9 @@ object PermissionManifestExemptions {
             "Normal permission; read to tell an offline device from a failed transfer.",
         "android.permission.ACCESS_WIFI_STATE" to
             "Normal permission; read to name the current network on local-network sources.",
+        "android.permission.CHANGE_WIFI_STATE" to
+            "Normal permission, granted at install; lets the launcher Wi-Fi tile switch the radio itself " +
+            "on firmwares that still allow it, falling back to the system screen where they do not.",
         "android.permission.CHANGE_WIFI_MULTICAST_STATE" to
             "Normal permission; needed to discover DLNA and SMB hosts by multicast.",
         "android.permission.WAKE_LOCK" to

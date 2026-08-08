@@ -58,6 +58,7 @@ import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
+import com.sza.fastmediasorter.ui.main.helpers.MainCollapsedChipsPlacementManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCommandBarTooltipManager
 import com.sza.fastmediasorter.ui.main.helpers.MainExitButtonManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
@@ -130,6 +131,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var screenRecordingManager: MainScreenRecordingManager
     private lateinit var programsPanelManager: MainProgramsPanelManager
     private lateinit var streamsPanelManager: MainStreamsPanelManager
+    private lateinit var collapsedChipsPlacement: MainCollapsedChipsPlacementManager
+
+    // S1443: last free width the command bar reported; a chip visibility change re-places against it
+    // instead of forcing a fresh measurement pass that the bar has not been asked for.
+    private var controlBarFreeWidthPx = 0
 
     // S0831/S0770: per-item context-menu actions for the programs/streams panels + new-window primitives.
     private lateinit var panelItemActions: MainPanelItemActionsManager
@@ -383,10 +389,26 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             storagePermissionLauncher = storagePermissionLauncher
         )
         bannerManager = MainChromeOsBannerManager(this)
+        // S1443: constructed before the chrome manager so it captures each chip's inflated row index
+        // while every chip still sits where the layout put it.
+        collapsedChipsPlacement = MainCollapsedChipsPlacementManager(
+            controlBar = binding.layoutControlButtons,
+            collapsedRow = binding.mainCollapsedPanelsRow,
+            chips = listOf(
+                binding.chipProgramsCollapsed,
+                binding.chipStreamsCollapsed,
+                binding.chipFilterCollapsed
+            ),
+            onPlacementChanged = { layoutChrome.restitchControlBarFocusChain() }
+        )
         layoutChrome = MainLayoutChromeManager(
             activity = this,
             binding = binding,
-            isResourceGridMode = { viewModel.state.value.isResourceGridMode }
+            isResourceGridMode = { viewModel.state.value.isResourceGridMode },
+            onControlBarFreeWidth = { freeWidthPx ->
+                controlBarFreeWidthPx = freeWidthPx
+                collapsedChipsPlacement.apply(freeWidthPx, isWideLayout())
+            }
         )
 
         // Resume playback logic - only for standard launcher start with killed process
@@ -873,6 +895,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             scope = lifecycleScope,
             // S0809: collapsed chip lives in the shared collapsed-panels row (activity layout).
             collapsedChip = binding.chipProgramsCollapsed,
+            onChipVisibilityChanged = ::reapplyCollapsedChipPlacement,
         )
         // S0807: wire the leading header menu + collapsed-strip tap; load the persisted collapsed state.
         programsPanelManager.install()
@@ -920,6 +943,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             settingsRepository = settingsRepository,
             // S0809: collapsed chip lives in the shared collapsed-panels row (activity layout).
             collapsedChip = binding.chipStreamsCollapsed,
+            onChipVisibilityChanged = ::reapplyCollapsedChipPlacement,
         )
         streamsPanelManager.setup()
         // S0810: long-press a command-bar icon reveals its name via a tooltip (reuses contentDescription).
@@ -1284,6 +1308,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // S0755/S0756: re-apply the orientation/width-driven label rule + programs-panel overflow.
         if (::programsPanelManager.isInitialized) programsPanelManager.refresh()
         if (::streamsPanelManager.isInitialized) streamsPanelManager.onConfigurationChanged()
+        // S1443: updateToolbarButtonLabels above re-measures the bar and re-reports its free width,
+        // but that arrives on the next layout pass - re-place now so a rotation into a narrow layout
+        // returns the chips to their row within this frame.
+        reapplyCollapsedChipPlacement()
+    }
+
+    /** S1443: re-place the collapsed chips against the width the command bar last reported. */
+    private fun reapplyCollapsedChipPlacement() {
+        if (!::collapsedChipsPlacement.isInitialized) return
+        Timber.d("S1443: re-place collapsed chips free=$controlBarFreeWidthPx wide=${isWideLayout()}")
+        collapsedChipsPlacement.apply(controlBarFreeWidthPx, isWideLayout())
     }
 
     private fun showDeleteConfirmation(resource: com.sza.fastmediasorter.domain.model.MediaResource) {
@@ -1361,7 +1396,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onTabSelected = { tab -> viewModel.setActiveTab(tab) },
             onFavoritesReselected = { viewModel.openFavorites() },
             getActiveTab = { viewModel.state.value.activeResourceTab },
-            getPreviousTab = { viewModel.state.value.previousTab }
+            getPreviousTab = { viewModel.state.value.previousTab },
+            onChipVisibilityChanged = ::reapplyCollapsedChipPlacement
         )
         tabsManager.createTabs()
         tabsManager.setupListener()

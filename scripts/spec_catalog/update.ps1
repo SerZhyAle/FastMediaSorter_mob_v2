@@ -1,4 +1,9 @@
-[CmdletBinding()]
+# PositionalBinding = $false (S1504): a stray unnamed token is never intentional here, and the
+# first free positional slot is $Name - so it renamed the ticket instead of failing. Backslash is
+# not an escape character in PowerShell, so a note written `.. tagged \"S1474:\" ..` closes its
+# string early and the remainder reaches the parameter binder as separate arguments. With
+# positional binding off they die at bind time instead of overwriting a field.
+[CmdletBinding(PositionalBinding = $false)]
 param(
     # Not [Parameter(Mandatory)]: a mandatory parameter makes the host prompt before the
     # body runs, so -Help could never print. Absence is reported explicitly below instead.

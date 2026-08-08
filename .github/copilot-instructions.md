@@ -26,7 +26,7 @@
 - Packages: `ui/` (no business logic), `domain/`, `data/`, `di/`, `core/`, `util/`, `utils/`, `worker/`, `widget/`.
 
 ## 5. Strict Constraints
-1. No root writes; use `temp/`, organized by ticket: ticket-bound work -> `temp/Sxxxx/`, no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root (`BUILD.LOCK`, `CODE.LOCK`, `done/`, `spec-next-skip-cache.json`, `current.log` + `fastmediasorter_*.log`, stream-catalog files). See CLAUDE.md Rule 10.1.
+1. No root writes; use `temp/`, organized by ticket: ticket-bound work -> `temp/Sxxxx/`, no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root (`BUILD.LOCK`, `CODE.LOCK`, `spec-all-queue.lock`, `done/`, `spec-next-skip-cache.json`, `current.log` + `fastmediasorter_*.log`, stream-catalog files). See CLAUDE.md Rule 10.1.
 2. File size limit 1500 LOC. Extract logic to `helpers/*Manager.kt`.
 3. No Activity logic. Delegate to Manager/Helper classes.
 4. Timber only (no `Log.d()`). No `Sxxxx` ticket in permanent logs.

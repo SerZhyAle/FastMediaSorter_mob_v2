@@ -1261,7 +1261,6 @@ class PhotoVideoStandaloneActivity :
     override val supportsSlideshow: Boolean get() = folderPagingEnabled
     override val supportsPersistentAudio: Boolean = false
     override val supportsCast: Boolean = false
-    override val supportsDeleteUndo: Boolean = true
     override val supportsCommandPanelFolding: Boolean = false
     override val supportsFolderPaging: Boolean get() = folderPagingEnabled
 

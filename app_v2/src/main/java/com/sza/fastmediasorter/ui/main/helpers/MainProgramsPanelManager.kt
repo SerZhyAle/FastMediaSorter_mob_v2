@@ -55,6 +55,9 @@ class MainProgramsPanelManager(
     // S0809: the collapsed representation is now a chip in the shared collapsed-panels row (activity layout),
     // not an in-panel strip; the manager toggles it exactly as before.
     private val collapsedChip: View,
+    // S1443: the chip may live in the command bar rather than the collapsed row, so whoever places it
+    // has to learn that this panel's chip appeared or vanished.
+    private val onChipVisibilityChanged: () -> Unit = {},
 ) {
 
     private data class PanelItem(val id: Int, val title: CharSequence, val icon: Drawable?)
@@ -100,6 +103,7 @@ class MainProgramsPanelManager(
         panel.programsPanelContent.isVisible = contentVisible
         collapsedChip.isVisible = stripVisible
         if (contentVisible) rebuild()
+        onChipVisibilityChanged()
     }
 
     /** S0807: header menu "Collapse panel" (true) and strip tap (false); persists + re-applies visibility. */

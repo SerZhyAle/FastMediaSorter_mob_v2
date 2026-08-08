@@ -93,7 +93,9 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 orientation = orientation,
                 rowIndex = placed.rowIndex,
                 colIndex = placed.colIndex,
-                spanW = placed.spanW,
+                // Not placed.spanW: a section header is persisted at the widest grid it can ever be
+                // drawn on, while the packer clamps it to the grid being seeded (S1428).
+                spanW = placed.storedSpanW,
                 spanH = placed.spanH,
                 kind = placed.item.kind,
                 target = placed.item.target.replace(LauncherStarterSets.OWN_APP_TOKEN, ownPackage),

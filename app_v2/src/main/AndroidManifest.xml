@@ -549,6 +549,11 @@
         <!-- Link-download panel trampoline (S0912): hosts the clipboard-prefilled confirm dialog for the app-launch panel -->
         <activity android:name=".widget.LinkDownloadLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
 
+        <!-- Stream shortcut trampoline (S1471): decides background playback vs the Streams screen with no UI.
+             android:noHistory is safe here, unlike the S1174 capture trampolines above: this one awaits no
+             activity result, so nothing can be delivered to it after it is finished. -->
+        <activity android:name=".widget.StreamPlayLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
         <!-- Quick Camera Capture: per-widget target configuration activity (S0369) -->
         <activity android:name=".widget.CameraQuickCaptureConfigActivity" android:exported="true">
             <intent-filter>

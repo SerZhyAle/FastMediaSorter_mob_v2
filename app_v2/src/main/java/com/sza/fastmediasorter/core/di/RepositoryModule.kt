@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.core.di
 import com.google.gson.Gson
 import com.sza.fastmediasorter.data.detector.RealDeviceProfileDetector
 import com.sza.fastmediasorter.data.game.GameStateRepositoryImpl
+import com.sza.fastmediasorter.data.repository.DischargeRateBatteryRuntimeEstimator
 import com.sza.fastmediasorter.data.repository.FavoritesRepositoryImpl
 import com.sza.fastmediasorter.data.repository.NetworkCredentialsRepositoryImpl
 import com.sza.fastmediasorter.data.repository.PlatformDeviceMemorySource
@@ -21,6 +22,7 @@ import com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.streams.RealStreamFrameIngestor
 import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
 import com.sza.fastmediasorter.domain.game.GameStateRepository
+import com.sza.fastmediasorter.domain.repository.BatteryRuntimeEstimator
 import com.sza.fastmediasorter.domain.repository.DeviceMemoryRepository
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.repository.FavoritesRepository
@@ -87,6 +89,12 @@ abstract class RepositoryModule {
     abstract fun bindDeviceMemoryRepository(
         impl: PlatformDeviceMemorySource
     ): DeviceMemoryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindBatteryRuntimeEstimator(
+        impl: DischargeRateBatteryRuntimeEstimator
+    ): BatteryRuntimeEstimator
 
     @Binds
     @Singleton

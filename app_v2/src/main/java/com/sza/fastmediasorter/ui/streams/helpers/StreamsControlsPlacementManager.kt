@@ -30,6 +30,9 @@ class StreamsControlsPlacementManager(
     private val controls: View,
     private val headerHost: ViewGroup,
     private val searchField: TextInputLayout,
+    // S1473: the media-kind icons live in this row but their tint depends on which facet is active,
+    // which this manager does not know - so it reports the orientation instead of painting them.
+    private val onOrientationApplied: (Boolean) -> Unit = {},
 ) {
     // Captured before the first relocation, while the group still sits in its portrait slot.
     private val belowParent: ViewGroup? = controls.parent as? ViewGroup
@@ -67,6 +70,7 @@ class StreamsControlsPlacementManager(
             applyIconTint(isLandscape)
         }
         headerHost.isVisible = isLandscape
+        onOrientationApplied(isLandscape)
     }
 
     private fun applySearchFieldStyle(isLandscape: Boolean) {

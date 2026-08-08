@@ -22,6 +22,9 @@ enum class StreamMenuAction(@param:DrawableRes val iconRes: Int) {
     TOGGLE_FAVORITE(R.drawable.ic_favorite),
     ADD_SHORTCUT(R.drawable.ic_widget_resource_launch),
     EDIT(R.drawable.ic_edit_20),
+
+    // S1474: sits with the other reading actions, above sharing and well clear of removal.
+    ABOUT_CHANNEL(R.drawable.ic_info),
     SHARE_LINK(R.drawable.ic_share),
     REMOVE(R.drawable.ic_delete),
     ;
@@ -71,6 +74,10 @@ object StreamActionCatalog {
         StreamMenuAction.MOVE_DOWN,
         StreamMenuAction.MOVE_TO_TOP,
         StreamMenuAction.TOGGLE_FAVORITE,
+        // S1474: the window measures the transmission, which needs a decoder and the streams screen's
+        // own probe manager. A desktop cell owns neither, and strategic §11 names only the card and the
+        // player menus as entry points.
+        StreamMenuAction.ABOUT_CHANNEL,
     )
 
     /**
@@ -99,6 +106,7 @@ object StreamActionCatalog {
         StreamMenuAction.TOGGLE_FAVORITE -> favoriteLabelRes(facts)
         StreamMenuAction.ADD_SHORTCUT -> R.string.streams_add_to_home_screen
         StreamMenuAction.EDIT -> R.string.streams_edit
+        StreamMenuAction.ABOUT_CHANNEL -> R.string.stream_info_menu_title
         StreamMenuAction.SHARE_LINK -> R.string.streams_send_link
         StreamMenuAction.REMOVE -> R.string.streams_remove
     }

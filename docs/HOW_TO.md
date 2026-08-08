@@ -187,13 +187,14 @@ These sections are intentionally more varied than the core reference blocks belo
 **Quick Path**
 
 1. Open the main window dropdown and tap **Streams**, or go to **Settings > Media > Streams** and enable the toggle if it is off.
-2. Tap **+** and paste any radio station URL (http:// or https://, .m3u8, rtsp://).
+2. Tap **⋮** at the end of the toolbar, choose **Add stream**, and paste any radio station URL (http:// or https://, .m3u8, rtsp://).
 3. Tap the station row - audio starts in the sticky bottom mini-control. The list stays scrollable.
 4. For a larger catalog, tap **Import** and enter a remote `.m3u` URL, or download the curated FastMediaSorter catalog from the **Extensions** screen.
 
 **Scenario Walkthrough**
 
 - The curated catalog arrives with topic and language chips; filter by genre or language via the filter button (dot indicator when active). The AND/OR toggle lets you match stations that fit all criteria or any one of them.
+- The two small icons right of the search field split radio from video in one tap: tap the audio or the video glyph to keep only that kind, tap the lit one again to show everything.
 - Pin your favourite stations to the top with the pin icon - order is independent of global Favorites.
 - Switch the toolbar view toggle to **Grid** to see channels as tiles with their last captured frame - handy for browsing video streams at a glance. Your choice of list or grid is remembered next time you open Streams.
 - If a stream is cast-friendly and your phone is on Wi-Fi, tap **Cast** in the player to send it to a Chromecast on the same network. RTSP streams can't be cast.
@@ -433,13 +434,13 @@ These sections are intentionally more varied than the core reference blocks belo
 **Add a single URL:**
 
 1. Open **Streams** from the main window dropdown.
-2. Tap the **+** button.
+2. Tap the **⋮** button at the end of the toolbar, then **Add stream**.
 3. Paste the stream URL (http/https radio, .m3u8, rtsp://). Tap **Save**.
 4. Tap the row to start playback.
 
 **Import a remote .m3u playlist:**
 
-1. In the Streams screen, tap **Import > From URL**.
+1. In the Streams screen, tap **⋮ > Import from URL**.
 2. Enter the remote .m3u address. Tap **Import**.
 3. All stations from the file appear in the list.
 

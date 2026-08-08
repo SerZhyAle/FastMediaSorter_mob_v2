@@ -16,6 +16,10 @@
          the other panels. Portrait only. -->
     <dimen name="main_panel_first_tab_width">108dp</dimen>
     <dimen name="main_panel_item_spacing">2dp</dimen>
+    <!-- S1443: hysteresis gap a collapsed-panel chip must clear on top of its own measured width
+         before it is allowed into the command bar, so a chip sitting exactly on the boundary does not
+         flip between the bar and the collapsed row on every relayout. -->
+    <dimen name="main_collapsed_chip_inline_reserve">16dp</dimen>
     <!-- Shared inner gap after the leading icon in the portrait command, programs and streams rows. -->
     <dimen name="main_top_panel_leading_icon_spacing">6dp</dimen>
     <!-- S1037: shared leading X for the first working button of each top panel (programs items /

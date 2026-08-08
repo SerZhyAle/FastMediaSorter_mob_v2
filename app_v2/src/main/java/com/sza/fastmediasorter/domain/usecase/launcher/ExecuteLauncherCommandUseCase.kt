@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherContactTarget
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
+import com.sza.fastmediasorter.domain.usecase.radio.ToggleRadioTargetUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
@@ -34,6 +35,7 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
     private val streamSourceRepository: StreamSourceRepository,
     private val journal: LauncherJournalRepository,
     private val appShortcutDataSource: AppShortcutDataSource,
+    private val toggleRadioTarget: ToggleRadioTargetUseCase,
 ) {
 
     suspend fun launch(command: LauncherCellCommand): Boolean {
@@ -56,6 +58,10 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             // S1402: editing the desktop and leaving launcher mode only exist inside a running launcher,
             // so there is no Intent to start - the host intercepts this kind before it ever reaches here.
             is LauncherCellCommand.LauncherAction -> false
+            // S1428: a section header is a caption, not a target. Its tap collapses its own rows inside
+            // the running launcher, so like the two above it never reaches an Intent - and returning
+            // false here also keeps it out of the launch journal, which records openings.
+            is LauncherCellCommand.Section -> false
         }
         if (started) journal.record(command)
         return started
@@ -98,14 +104,25 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
         return startIntent(StreamsActivity.createPlayIntent(context, source.url))
     }
 
-    private fun launchOsShortcut(targetKey: String): Boolean {
+    private suspend fun launchOsShortcut(targetKey: String): Boolean {
         val target = OsShortcutCatalog.byKey(targetKey)
             ?.takeIf { OsShortcutCatalog.isResolvable(context, targetKey) }
         if (target == null) {
             Timber.i("Launcher: system screen %s is unknown to this build or absent here", targetKey)
             return false
         }
-        return startIntent(target.intent(context))
+        // S1441: a radio target tries to switch itself first; only a refusal reaches a system screen.
+        return toggleRadioTarget(target) || startIntent(osShortcutIntent(target))
+    }
+
+    /**
+     * S1441: the surface a refused toggle opens - the system panel when the target has one and it resolves
+     * here, otherwise the full settings screen every target has always used.
+     */
+    private fun osShortcutIntent(target: OsShortcutCatalog.Target): Intent {
+        val fallback = target.fallbackIntent?.invoke(context)
+        val resolves = fallback != null && context.packageManager.resolveActivityCompat(fallback, 0) != null
+        return if (resolves) requireNotNull(fallback) else target.intent(context)
     }
 
     /**

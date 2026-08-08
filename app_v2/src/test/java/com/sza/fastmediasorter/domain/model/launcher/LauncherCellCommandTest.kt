@@ -50,4 +50,16 @@ class LauncherCellCommandTest {
     fun `unknown prefix decodes to null`() {
         assertNull(LauncherCellCommand.decode("pinned:com.example:id-1:Label"))
     }
+
+    @Test
+    fun `section survives a round trip`() {
+        val original = LauncherCellCommand.Section(LauncherCellCommand.SECTION_APP_FUNCTIONS)
+
+        assertEquals(original, LauncherCellCommand.decode(original.encode()))
+    }
+
+    @Test
+    fun `empty section payload decodes to null`() {
+        assertNull(LauncherCellCommand.decode("sec:"))
+    }
 }

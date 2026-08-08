@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.streams
 
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.ui.streams.StreamsViewModel.FilteredStreams
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel.MediaKindFilter
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel.SortMode
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel.StreamsFilter
@@ -40,7 +41,14 @@ class StreamsFilterTest {
         pinned = pinned,
     )
 
-    private fun ids(list: List<StreamSourceEntity>) = list.map { it.id }.toSet()
+    /**
+     * S1502: `applyFilter` hands back the two halves separately. The flat, pinned-first list it used to
+     * return is exactly this concatenation, so every ordering assertion below still reads the same order
+     * the screen renders.
+     */
+    private fun ordered(result: FilteredStreams) = result.pinned + result.unpinned
+
+    private fun ids(result: FilteredStreams) = ordered(result).map { it.id }.toSet()
 
     @Test
     fun `pinnedOnly keeps only pinned rows`() {
@@ -210,7 +218,7 @@ class StreamsFilterTest {
             ),
             StreamsFilter(sort = SortMode.NAME),
         )
-        assertEquals(listOf("p2", "p1", "u1", "u2"), result.map { it.id })
+        assertEquals(listOf("p2", "p1", "u1", "u2"), ordered(result).map { it.id })
     }
 
     @Test
@@ -224,6 +232,88 @@ class StreamsFilterTest {
             StreamsFilter(sort = SortMode.COUNTRY),
         )
         // nullsLast: DE, UA, then the unknown-country row.
-        assertEquals(listOf("de", "ua", "unknown"), result.map { it.id })
+        assertEquals(listOf("de", "ua", "unknown"), ordered(result).map { it.id })
+    }
+
+    @Test
+    fun `applyFilter is pure - repeatable result and untouched input`() {
+        // S1502: the pass now runs on a background dispatcher (StreamsViewModel init, flowOn). That is
+        // only safe while applyFilter stays a pure function of its arguments, so purity is pinned here
+        // rather than left as an assumption the next edit can silently break.
+        val input = listOf(
+            source("p1", title = "B", pinned = true),
+            source("u2", title = "D"),
+            source("u1", title = "C"),
+        )
+        val snapshotOfInput = input.map { it.id }
+        val filter = StreamsFilter(sort = SortMode.NAME)
+
+        val first = StreamsViewModel.applyFilter(input, filter)
+        val second = StreamsViewModel.applyFilter(input, filter)
+
+        assertEquals(ordered(first).map { it.id }, ordered(second).map { it.id })
+        assertEquals(snapshotOfInput, input.map { it.id })
+    }
+
+    @Test
+    fun `query matches title, topic and language whatever the case on either side`() {
+        // S1502: matching folds case per comparison instead of lowercasing both sides. That swap is
+        // exactly the kind of edit that can silently narrow search, so each field is pinned with the
+        // query and the row disagreeing on case - strategic §11 criterion 8.
+        val sources = listOf(
+            source("byTitle", title = "Euronews HD"),
+            source("byTopic", title = "zzz", topic = "Documentary"),
+            source("byLanguage", title = "yyy", language = "Ukrainian"),
+            source("miss", title = "xxx", topic = "Music", language = "german"),
+        )
+
+        assertEquals(setOf("byTitle"), ids(StreamsViewModel.applyFilter(sources, StreamsFilter(query = "EURONEWS"))))
+        assertEquals(setOf("byTitle"), ids(StreamsViewModel.applyFilter(sources, StreamsFilter(query = "euronews"))))
+        assertEquals(setOf("byTopic"), ids(StreamsViewModel.applyFilter(sources, StreamsFilter(query = "dOcUmEnT"))))
+        assertEquals(setOf("byLanguage"), ids(StreamsViewModel.applyFilter(sources, StreamsFilter(query = "UKRAIN"))))
+        assertTrue(
+            "a non-matching row must stay out regardless of case folding",
+            "miss" !in ids(StreamsViewModel.applyFilter(sources, StreamsFilter(query = "euronews"))),
+        )
+    }
+
+    @Test
+    fun `query reaches an unpinned row at the far end of the catalog`() {
+        // S1502: guards against a future paging/truncation change satisfying the filter by only walking
+        // the head of the catalog - the sole match here is last, unpinned, and matches by topic only.
+        val filler = (0 until FAR_END_ROWS).map { source("filler$it", title = "Channel $it", topic = "News") }
+        val needle = source("needle", title = "Nothing In Common", topic = "Astronomy")
+
+        val result = StreamsViewModel.applyFilter(filler + needle, StreamsFilter(query = "astronomy"))
+
+        assertEquals(setOf("needle"), ids(result))
+        assertTrue("a match found only by search must not be promoted into the pinned half", result.pinned.isEmpty())
+    }
+
+    @Test
+    fun `the two halves concatenate back to the flat pinned-first ordering`() {
+        // S1502: the split moved out of the consumers and into applyFilter. This pins the contract they
+        // now rely on - pinned first in manual order, unpinned after in the chosen sort, no row in both.
+        val result = StreamsViewModel.applyFilter(
+            listOf(
+                source("u2", title = "D"),
+                source("p2", title = "B", pinned = true),
+                source("u1", title = "C"),
+                source("p1", title = "A", pinned = true),
+            ),
+            StreamsFilter(sort = SortMode.NAME),
+        )
+
+        assertEquals(listOf("p2", "p1"), result.pinned.map { it.id })
+        assertEquals(listOf("u1", "u2"), result.unpinned.map { it.id })
+        assertEquals(listOf("p2", "p1", "u1", "u2"), ordered(result).map { it.id })
+        val pinnedIds = result.pinned.map { it.id }.toSet()
+        val unpinnedIds = result.unpinned.map { it.id }.toSet()
+        assertTrue("a row is pinned XOR unpinned", (pinnedIds intersect unpinnedIds).isEmpty())
+    }
+
+    private companion object {
+        // Large enough that a head-only scan would miss the needle, small enough to stay a unit test.
+        const val FAR_END_ROWS = 500
     }
 }

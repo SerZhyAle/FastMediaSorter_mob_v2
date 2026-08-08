@@ -26,7 +26,10 @@ class MainResourceTabsCollapseManager(
     private val collapsedStrip: View,
     private val isPanelAvailable: () -> Boolean,
     private val settingsRepository: SettingsRepository,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    // S1443: the strip may live in the command bar rather than the collapsed row, so whoever places
+    // it has to learn that this chip appeared or vanished.
+    private val onChipVisibilityChanged: () -> Unit = {}
 ) {
 
     private var collapsed = false
@@ -93,6 +96,7 @@ class MainResourceTabsCollapseManager(
         val (tabsVisible, stripVisible) = resolveVisibility(isPanelAvailable(), collapsed)
         tabLayout.isVisible = tabsVisible
         collapsedStrip.isVisible = stripVisible
+        onChipVisibilityChanged()
     }
 
     companion object {

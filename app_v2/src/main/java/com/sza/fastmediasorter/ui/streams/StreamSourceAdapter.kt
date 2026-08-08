@@ -54,6 +54,8 @@ class StreamSourceAdapter(
     private val onAddShortcut: (StreamSourceEntity) -> Unit,
     private val onEdit: (StreamSourceEntity) -> Unit,
     private val onShareLink: (StreamSourceEntity) -> Unit,
+    // S1474: opens the "about this channel" window; wired by the streams screen through StreamInfoDialogManager.
+    private val onAboutChannel: (StreamSourceEntity) -> Unit = {},
     // S0783: add/remove the channel from the shared Favorites. Independent of pin. The overflow item is
     // shown only when [favoritesEnabled] returns true, and its label flips on [isFavorite]. Both are
     // pulled lazily when the menu opens, so they always reflect current settings/DB without a row rebind.
@@ -70,6 +72,22 @@ class StreamSourceAdapter(
 ) : ListAdapter<StreamSourceEntity, StreamSourceAdapter.VH>(DIFF) {
 
     private var playingId: String? = null
+
+    /**
+     * S1502: play outcome per channel id, pushed in from its own Flow instead of read off the row.
+     * Only the rows whose outcome actually moved are repainted, and only their status bullet.
+     */
+    var playOutcomes: Map<String, String> = emptyMap()
+        set(value) {
+            if (field == value) return
+            val previous = field
+            field = value
+            currentList.forEachIndexed { index, item ->
+                if (previous[item.id] != value[item.id]) {
+                    notifyItemChanged(index, StreamAdapterPayloads.STATUS)
+                }
+            }
+        }
 
     /** Marks (or clears) the row currently playing inline audio, repainting only the affected rows. */
     fun setPlayingId(id: String?) {
@@ -100,7 +118,7 @@ class StreamSourceAdapter(
         val item = getItem(position)
         payloads.forEach { payload ->
             when (payload) {
-                StreamAdapterPayloads.STATUS -> holder.bindStatusOnly(item.lastPlayOutcome)
+                StreamAdapterPayloads.STATUS -> holder.bindStatusOnly(playOutcomes[item.id])
                 StreamAdapterPayloads.PIN -> holder.bindPinOnly(item.pinned)
             }
         }
@@ -135,7 +153,7 @@ class StreamSourceAdapter(
             binding.tvUrl.text = source.url
             binding.ivKind.setImageResource(kindIcon(source.mediaKind))
             bindFavicon(source)
-            bindPlayStatus(source.lastPlayOutcome)
+            bindPlayStatus(playOutcomes[source.id])
             binding.tvNowPlaying.visibility = if (isPlaying) View.VISIBLE else View.GONE
             if (isPlaying) playbackAnimator.startNote() else playbackAnimator.stopNote()
             // S1117: region-restriction badge leads the chip row when the catalog flagged this row "geo".
@@ -354,6 +372,7 @@ class StreamSourceAdapter(
             StreamMenuAction.TOGGLE_FAVORITE -> onToggleFavorite(source)
             StreamMenuAction.ADD_SHORTCUT -> onAddShortcut(source)
             StreamMenuAction.EDIT -> onEdit(source)
+            StreamMenuAction.ABOUT_CHANNEL -> onAboutChannel(source)
             StreamMenuAction.SHARE_LINK -> onShareLink(source)
             StreamMenuAction.REMOVE -> onRemove(source)
         }

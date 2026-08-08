@@ -358,6 +358,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     onGadgetChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_GADGET_KEY))
                 LauncherCellContentPickerDialogFragment.CATEGORY_ACTION ->
                     onLauncherActionChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_ACTION_KEY))
+                LauncherCellContentPickerDialogFragment.CATEGORY_SECTION ->
+                    onSectionChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_SECTION_KEY))
             }
         }
         supportFragmentManager.setFragmentResultListener(REQ_APP, this) { _, bundle ->
@@ -670,11 +672,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     /**
-     * "Gadget" was chosen. With no key yet, re-open the chooser on its gadget list (a distinct tag, so the
-     * just-dismissed level-one dialog is not mistaken for it). With a key, place it - a resource gadget
-     * first picks its resource (filtered to what it can hold), the rest go straight down.
-     */
-    /**
      * S1402: two levels, exactly like the gadget flow - the category row opens the list of actions, and
      * the second pass carries the chosen key.
      */
@@ -689,6 +686,34 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         addShortcut(LauncherCellCommand.LauncherAction(actionKey))
     }
 
+    /**
+     * S1428: two levels again, because two preset sections exist - the second pass says which one.
+     *
+     * The header goes down the ordinary placement route with its overlap check intact, and the full span
+     * is what makes it reserve the whole row: the renderer widens a header to the live column count, so
+     * storing it narrower would leave the rest of its row free in the database.
+     */
+    private fun onSectionChosen(sectionKey: String?) {
+        if (sectionKey == null) {
+            openPicker(
+                LauncherCellContentPickerDialogFragment.newSectionInstance(pendingRow, pendingCol),
+                LauncherCellContentPickerDialogFragment.TAG_SECTION,
+            )
+            return
+        }
+        placeAtPendingSlot(
+            kind = LauncherCellKind.SECTION,
+            target = LauncherCellCommand.Section(sectionKey).encode(),
+            spanW = LauncherGridGeometry.MAX_COLUMNS,
+            spanH = 1,
+        )
+    }
+
+    /**
+     * "Gadget" was chosen. With no key yet, re-open the chooser on its gadget list (a distinct tag, so the
+     * just-dismissed level-one dialog is not mistaken for it). With a key, place it - a resource gadget
+     * first picks its resource (filtered to what it can hold), the rest go straight down.
+     */
     private fun onGadgetChosen(gadgetKey: String?) {
         if (gadgetKey == null) {
             openPicker(
