@@ -38,6 +38,7 @@ import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.playback.NowPlayingMetadata
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
@@ -45,6 +46,7 @@ import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.stats.ViewKind
+import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.NetworkAwareMediaSourceFactory
@@ -93,6 +95,11 @@ class AudioPlaybackService : MediaSessionService() {
     @Inject
     lateinit var streamSourceRepository: StreamSourceRepository
 
+    // S1536: the single writer of the StreamPlayed statistic, so the background path counts a radio
+    // play exactly like the inline player does.
+    @Inject
+    lateinit var recordStreamPlayOutcome: RecordStreamPlayOutcomeUseCase
+
     private var mediaSession: MediaSession? = null
     private var player: ExoPlayer? = null
 
@@ -116,6 +123,12 @@ class AudioPlaybackService : MediaSessionService() {
     private var streamConnectionStartedAtMs = 0L
     private var streamHasSuccessfulPlayback = false
     private var streamRetryAttempt = 0
+
+    // S1536: the stream url whose play is already counted in this listening session, cleared on every
+    // media-item transition. Deliberately not streamHasSuccessfulPlayback: that one is seeded from
+    // lastPlayedAt, so it is already true for any station played before, and answers a different
+    // question - whether reconnecting is allowed, not whether this session was counted.
+    private var streamPlayCountedUrl: String? = null
 
     // Elapsed-time stamp of the first retry since the last successful READY; 0 = not retrying.
     // Bounds the reconnect loop for a stream that already played once (S1291).
@@ -325,9 +338,10 @@ class AudioPlaybackService : MediaSessionService() {
         // cold start (e.g. car media-button restart with no track loaded yet).
         // Media3 DefaultMediaNotificationProvider will replace this placeholder with the real
         // media notification once a MediaSession + track are established.
+        Timber.d("S1399: audio-playback cold-start placeholder notification built with the branded status-bar icon")
         val placeholderNotification = NotificationCompat
             .Builder(this, MediaNotificationManager.NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_audio)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentTitle(getString(R.string.app_name))
             .setContentText("")
             .setSilent(true)
@@ -766,6 +780,7 @@ class AudioPlaybackService : MediaSessionService() {
         streamHasSuccessfulPlayback = false
         streamRetryAttempt = 0
         streamRetryStartedAtMs = 0L
+        streamPlayCountedUrl = null
         val streamUrl = mediaItem?.localConfiguration?.uri?.toString() ?: return
         serviceScope.launch {
             streamHasSuccessfulPlayback = streamSourceRepository.getByUrl(streamUrl)?.lastPlayedAt != null
@@ -812,14 +827,26 @@ class AudioPlaybackService : MediaSessionService() {
         val streamUrl = player?.currentMediaItem?.localConfiguration?.uri?.toString() ?: return
         streamRetryAttempt = 0
         streamRetryStartedAtMs = 0L
+        // S1536: READY repeats after every rebuffer and reconnect, which for a live stream is routine,
+        // so the play counter fires on the first READY of this listening session only. The bullet and
+        // the last-played stamp still refresh on every READY, as they did before.
+        val firstReady = streamPlayCountedUrl != streamUrl
+        streamPlayCountedUrl = streamUrl
+        Timber.d("S1536: stream READY firstReady=%s url=%s", firstReady, streamUrl)
         serviceScope.launch {
             val source = streamSourceRepository.getByUrl(streamUrl) ?: return@launch
             // S1291: only a catalog stream earns the reconnect window. Setting this for every media
             // item made an ordinary file (e.g. FILE_NOT_FOUND after cache eviction) retry forever
             // instead of taking the fatal-error path that stops the service.
             streamHasSuccessfulPlayback = true
-            streamSourceRepository.recordPlayOutcome(source.id, STREAM_OUTCOME_OK)
-            streamSourceRepository.markPlayed(source.id, System.currentTimeMillis())
+            if (firstReady) {
+                // S1536: the use case owns the StreamPlayed statistic; going to the repository direct
+                // is what left background radio out of the "streams played" count entirely.
+                recordStreamPlayOutcome.recordPlaySuccess(source.id)
+            } else {
+                streamSourceRepository.recordPlayOutcome(source.id, STREAM_OUTCOME_OK)
+                streamSourceRepository.markPlayed(source.id, System.currentTimeMillis())
+            }
         }
     }
 

@@ -167,6 +167,7 @@ class ScheduledOperationsWorker @AssistedInject constructor(
     }
 
     private fun buildNotification(): Notification {
+        Timber.d("S1399: scheduled-operations progress notification built with the branded status-bar icon")
         return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(context.getString(R.string.scheduled_ops_notif_channel_name))
             .setContentText(context.getString(R.string.scheduled_ops_notif_running))

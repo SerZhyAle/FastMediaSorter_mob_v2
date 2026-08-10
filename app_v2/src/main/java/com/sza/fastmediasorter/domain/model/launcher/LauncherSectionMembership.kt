@@ -7,8 +7,10 @@ package com.sza.fastmediasorter.domain.model.launcher
  * the next header. Nothing else defines membership - there is no stored "which section" field, which is
  * exactly what let this ticket avoid a schema migration.
  *
- * Pure and Android-free on purpose: `src/launcherEnabled` has no test source set, so arithmetic placed
- * there cannot be unit-tested at all. Both the placement checks in
+ * Pure and Android-free on purpose. It landed here because `src/launcherEnabled` had no test source set
+ * when this was written; S1498 has since added `src/testLauncherEnabled`, so that is no longer the
+ * reason to keep it - the placement layer in `src/main` is, and it could not import a launcher-only
+ * type either way. Both the placement checks in
  * [LauncherDesktopRepositoryImpl][com.sza.fastmediasorter.data.repository.LauncherDesktopRepositoryImpl]
  * and the collapse geometry of the renderer call this one definition rather than each re-deriving it.
  *
@@ -64,6 +66,37 @@ object LauncherSectionMembership {
      */
     fun sectionEndExclusive(headerRow: Int, headerRows: List<Int>): Int? =
         headerRows.firstOrNull { it > headerRow }
+
+    /**
+     * The row a cell stored at [row] is drawn on once every section headed in [collapsedHeaderRows] is
+     * folded shut, or null when that cell sits inside a folded section and is not drawn at all.
+     *
+     * Collapsing is arithmetic on the way out, never a write on the way in: the stored row is what this
+     * reads and never what it changes, which is the whole reason expanding lands every cell back on its
+     * own square (strategic §5.1.6, §11.9). Restoring an arrangement the desktop had overwritten would
+     * need a record of it that nothing keeps.
+     *
+     * The lift stops at the next header, because that is where the folded section stops owning rows
+     * (strategic §6.7). Lifting past it would drag a cell belonging to the section below up under a
+     * header that does not own it - and hide it behind one, which §7 rates a foreign cell vanishing
+     * until the section above is expanded again.
+     *
+     * The header's own row is never folded away: it is the only thing left to tap to expand.
+     */
+    fun renderRowFor(row: Int, headerRows: List<Int>, collapsedHeaderRows: Set<Int>): Int? {
+        val top = row.coerceAtLeast(0)
+        var lift = 0
+        for (headerRow in headerRows) {
+            if (headerRow !in collapsedHeaderRows) continue
+            val firstFolded = headerRow + 1
+            // Null means the section runs to the bottom of the desktop, so everything under its header
+            // is folded and nothing below it is left to lift.
+            val end = sectionEndExclusive(headerRow, headerRows)
+            if (top >= firstFolded && (end == null || top < end)) return null
+            if (end != null && top >= end) lift += end - firstFolded
+        }
+        return top - lift
+    }
 
     /**
      * Whether a rectangle [spanH] rows tall starting at [row] covers a header row other than a header

@@ -12,14 +12,15 @@ import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactTarget
+import com.sza.fastmediasorter.domain.model.launcher.LauncherGeographicAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import com.sza.fastmediasorter.domain.usecase.radio.ToggleRadioTargetUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
-import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.util.resolveActivityCompat
+import com.sza.fastmediasorter.widget.StreamPlayLaunchActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -52,6 +53,7 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             is LauncherCellCommand.FavoriteFile -> startIntent(favoriteFileIntent(command))
             is LauncherCellCommand.Contact -> launchContact(command.target)
             is LauncherCellCommand.PinnedShortcut -> launchPinnedShortcut(command)
+            is LauncherCellCommand.Geographic -> startIntent(geographicIntent(command))
             // S1103: a scheduled op may modify or delete files, so it is confirmed then run from the
             // launcher UI path (ViewModel), never launched generically here.
             is LauncherCellCommand.ScheduledOp -> false
@@ -101,7 +103,10 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             Timber.i("Launcher: stream %s is no longer in the catalog", streamId)
             return false
         }
-        return startIntent(StreamsActivity.createPlayIntent(context, source.url))
+        Timber.d("S1471: launcher stream tile hands off to the trampoline")
+        // S1471: the trampoline, not the Streams screen - this one command backs both the launcher
+        // desktop tile and the Streams gadget row, so both surfaces get the screen-less start.
+        return startIntent(StreamPlayLaunchActivity.createIntent(context, source.url))
     }
 
     private suspend fun launchOsShortcut(targetKey: String): Boolean {
@@ -197,6 +202,24 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
     private fun launchPinnedShortcut(command: LauncherCellCommand.PinnedShortcut): Boolean =
         appShortcutDataSource.start(command.packageName, command.shortcutId, sourceBounds = null)
 
+    /** Uses only documented Maps URLs and intents; no Maps-internal activity names are relied upon. */
+    private fun geographicIntent(command: LauncherCellCommand.Geographic): Intent = when (command.action) {
+        LauncherGeographicAction.DIRECTIONS -> Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${Uri.encode(command.query)}"),
+        ).setPackage(GOOGLE_MAPS_PACKAGE)
+
+        LauncherGeographicAction.NAVIGATION -> Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("google.navigation:q=${Uri.encode(command.query)}"),
+        ).setPackage(GOOGLE_MAPS_PACKAGE)
+
+        LauncherGeographicAction.SHOW_PLACE -> Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("geo:0,0?q=${Uri.encode(command.query)}"),
+        )
+    }
+
     private fun launchPackage(packageName: String): Boolean {
         val intent = context.packageManager.getLaunchIntentForPackage(packageName)
         if (intent == null) {
@@ -209,6 +232,7 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
     private companion object {
         const val TEL_SCHEME = "tel"
         const val SMS_SCHEME = "smsto"
+        const val GOOGLE_MAPS_PACKAGE = "com.google.android.apps.maps"
     }
 
     private fun startIntent(intent: Intent): Boolean {

@@ -124,7 +124,7 @@
 | `room-compiler`                | 2.7.0      | Room annotation processor          |
 | `datastore-preferences`        | 1.1.7      | Key-value preferences store        |
 | `paging-runtime-ktx`           | 3.2.1      | Paging 3 library                   |
-| Room DB version                  | 48         | Current schema version (see AppDatabase.kt) |
+| Room DB version                  | 49         | Current schema version (see AppDatabase.kt) |
 
 ### 4.7 Media Playback
 
@@ -436,9 +436,9 @@ Detailed live complexity snapshot is maintained in `dev/PRODUCT_COMPLEXITY_ASSES
 
 | Aspect                  | Value                 | Notes                                           |
 |:------------------------|:----------------------|:------------------------------------------------|
-| Room DB version        | 42                    | Current schema in `AppDatabase`                |
-| Number of entities     | 21                    | Current `@Database(entities = ..)` set         |
-| Migrations             | 41 migrations         | Registered in DatabaseModule; through v42      |
+| Room DB version        | 49                    | Current schema in `AppDatabase`                |
+| Number of entities     | 26                    | Current `@Database(entities = ..)` set         |
+| Migrations             | 48 migrations         | Registered in DatabaseModule; through v49      |
 
 ---
 

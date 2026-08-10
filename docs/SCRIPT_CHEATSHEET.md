@@ -226,7 +226,7 @@ scripts/post-change.ps1
     -Files        (req)  [String[]]
     -Target       (req)  [String]
     -Description  (req)  [String]
-    -ChangeType          [String]  {Doc|Script|Config|Kotlin|Xml|Mixed}
+    -ChangeType          [String]  {Doc|Script|Config|Tooling|Kotlin|Xml|Mixed}
     -Module              [String] = "app_v2"
     -KeyPrefix           [String]
     -SkipScan            [SwitchParameter]
@@ -315,6 +315,13 @@ scripts/agent_continuity/start-packet.ps1
 
 ## scripts\all_features
 
+### _lib.ps1
+
+```
+scripts/all_features/_lib.ps1
+  (no param block)
+```
+
 ### add.ps1
 Upsert one record into the ALL_FEATURES inventory (docs/ALL_FEATURES.jsonl).
 
@@ -375,6 +382,21 @@ scripts/all_features/patch.ps1
     -Spec                  [String] = ""
     -NoLegal               [SwitchParameter]
     -Quiet                 [SwitchParameter]
+```
+
+### remove.ps1
+Remove one record from the ALL_FEATURES inventory (docs/ALL_FEATURES.jsonl), by id.
+
+```
+scripts/all_features/remove.ps1
+  Remove one record from the ALL_FEATURES inventory (docs/ALL_FEATURES.jsonl), by id.
+  Params:
+    -Id              [String]
+    -Confirm         [SwitchParameter]
+    -NoLegal         [SwitchParameter]
+    -Quiet           [SwitchParameter]
+    -Help            [SwitchParameter]
+  Exit: 0 record removed, or no such id (no-op).; 1 invalid invocation, -Confirm withheld, or the inventory could not be read or written.
 ```
 
 ### scan_surface.ps1
@@ -634,14 +656,15 @@ scripts/builders/check-lint-rules.ps1
 ```
 
 ### check-standard-fast.ps1
-Fast per-flavor Gradle check - compile, resources, unit tests or assemble.
+Fast per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults to app_v2; -Module wear checks the Wear OS module, which has no product flavors.
 
 ```
 scripts/builders/check-standard-fast.ps1
-  Fast per-flavor Gradle check - compile, resources, unit tests or assemble.
+  Fast per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults to app_v2; -Module wear checks the Wear OS module, which has no product flavors.
   Params:
     -Mode           [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|Assemble}
     -Flavor         [String] = "Standard"  {Standard|NoLegal|Lite|Photos|Legacy|Vr}
+    -Module         [String] = "app_v2"  {app_v2|wear}
     -Tests          [String]
     -Quiet          [SwitchParameter]
 ```
@@ -694,6 +717,15 @@ scripts/builders/install-nolegal-debug-to-device.ps1
 scripts/builders/install-standard-debug-to-device.ps1
   Params:
     -ApkPath         [String] = $null
+```
+
+### publish-ffmpeg-dts-aar.ps1
+
+```
+scripts/builders/publish-ffmpeg-dts-aar.ps1
+  Params:
+    -AarPath         [String] = 'app_v2/libs/fms-ffmpeg-dts.aar'
+    -Tag             [String] = 'delivery-so-v1'
 ```
 
 ### run-standard-macrobenchmark.ps1
@@ -1380,6 +1412,16 @@ scripts/quality/assert-allfeatures-sync.ps1
   Exit: 0 - clean (or audit mode).; 1 - substantive failure: validation error or record-count regression.; 2 - the gate itself cannot run (inventory or validate.ps1 missing). Distinct
 ```
 
+### assert-backup-rules-consistent.ps1
+
+```
+scripts/quality/assert-backup-rules-consistent.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - clean, every pre-31 exclusion is repeated in both API 31+ sections; 1 - at least one exclusion is missing, or a root element is wrong; 2 - cannot verify: a rules file is missing or is not well-formed XML
+```
+
 ### assert-ctor-arg-slots.ps1
 
 ```
@@ -1680,6 +1722,16 @@ scripts/quality/assert-nontimber-log.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-notification-small-icon.ps1
+
+```
+scripts/quality/assert-notification-small-icon.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - clean, no drawable literal reaches a small-icon setter; 1 - at least one violation; 2 - cannot verify: no source root found to scan
+```
+
 ### assert-orientation-implied-feature.ps1
 
 ```
@@ -1787,6 +1839,19 @@ scripts/quality/assert-settings-doc-sync.ps1
   Exit: 0 - every stage passed.; 1 - a stage found real drift (the failing stage is named).; 2 - a stage could not be judged: either the manifest test never ran because the
 ```
 
+### assert-shared-test-flavor-scope.ps1
+
+```
+scripts/quality/assert-shared-test-flavor-scope.ps1
+  Params:
+    -Gate              [SwitchParameter]
+    -Quiet             [SwitchParameter]
+    -RepoRoot          [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Module            [String] = 'app_v2'
+    -DumpIndex         [SwitchParameter]
+  Exit: 0 - no violation (or violations found without -Gate).; 1 - at least one violation, and -Gate was passed.; 2 - could not verify: the build file is unreadable, or its mount map carries a line this gate
+```
+
 ### assert-source-gates.ps1
 
 ```
@@ -1855,6 +1920,7 @@ scripts/quality/assert-test-suite-complete.ps1
     -Module                   [String] = "app_v2"
     -TaskDir                  [String] = "testStandardDebugUnitTest"
     -MinCoverageRatio         [Double] = 0.85
+    -RepoRoot                 [String]
 ```
 
 ### assert-trivial-comments.ps1
@@ -1872,6 +1938,17 @@ scripts/quality/assert-trivial-comments.ps1
 
 ```
 scripts/quality/assert-unsafe-collect.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+```
+
+### assert-untracked-dialogs.ps1
+
+```
+scripts/quality/assert-untracked-dialogs.ps1
   Params:
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
@@ -2007,6 +2084,16 @@ scripts/quality/assert-exit-contract.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-shared-test-flavor-scope.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-shared-test-flavor-scope.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
 ## scripts\quality\assert-swallowed-cancellation.tests
 
 ### Run-Tests.ps1
@@ -2054,6 +2141,13 @@ scripts/quality/lib/changed-files.ps1
 
 ```
 scripts/quality/lib/detekt-report.ps1
+  (no param block)
+```
+
+### flavor-source-map.ps1
+
+```
+scripts/quality/lib/flavor-source-map.ps1
   (no param block)
 ```
 
@@ -2303,7 +2397,7 @@ scripts/spec_catalog/drift-check.ps1
   Params:
     -Id      (req)  [String]
     -Format         [String] = 'table'  {table|json}
-  Exit: 0 - no drift detected (clean); 1 - drift detected (commits and/or markers found post-spec-creation); 2 - usage / resolution error
+  Exit: 0 - no drift detected (CLEAN or COMMIT_ONLY); 1 - drift detected (inline markers found post-spec-creation); 2 - usage / resolution error
 ```
 
 ### insert.ps1
@@ -2370,6 +2464,17 @@ scripts/spec_catalog/preview.ps1
     -Id      (req)  [String]
     -Format         [String] = 'json'  {table|json}
   Exit: 0 - preview emitted.; 2 - cannot run: malformed -Id, spec absent from the catalog, or its file missing
+```
+
+### purge-probe-records.ps1
+One-off (idempotent) cleanup: remove preview.tests probe records from the ARCHIVE journal.
+
+```
+scripts/spec_catalog/purge-probe-records.ps1
+  One-off (idempotent) cleanup: remove preview.tests probe records from the ARCHIVE journal.
+  Params:
+    -Help         [SwitchParameter]
+  Exit: 0 - purged, or nothing to purge (idempotent re-run).; 1 - error (archive unreadable, lock timeout, write failure).; 3 - guard tripped: the purge would have changed the next allocatable id. Archive restored.
 ```
 
 ### release-plan.ps1
@@ -2821,7 +2926,7 @@ scripts/utils/extract-device-logs.ps1
 ```
 scripts/utils/fix-ellipsis-docs.ps1
   Params:
-    -Dirs           [String[]] = @("docs", "PLAN")
+    -Dirs           [String[]] = @("docs")
     -DryRun         [SwitchParameter]
 ```
 
@@ -3067,13 +3172,14 @@ scripts/utils/seed-locale-tranche.ps1
   S1190: seeds one locale's copy of a strings file from a translation map.
   Params:
     -Module             [String] = 'app_v2'
+    -SourceSet          [String] = 'main'
     -SourceFile  (req)  [String]
     -Locale             [String]
     -MapPath            [String]
     -KeyPrefix          [String]
+    -Merge              [SwitchParameter]
     -DumpSource         [SwitchParameter]
     -DryRun             [SwitchParameter]
-  Exit: 0 - the locale file was written, or planned under -DryRun. An empty map writes an empty
 ```
 
 ### set-android-string.ps1

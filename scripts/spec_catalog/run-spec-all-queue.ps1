@@ -384,7 +384,8 @@ function Wait-SpecAll {
     $observedStatus = $Status
     $startedAt = Get-Date
     $lastBeatAt = $startedAt
-    while (-not $Process.HasExited) {
+    $terminalObserved = $false
+    while (-not $Process.HasExited -and -not $terminalObserved) {
         Start-Sleep -Seconds $PollSeconds
         # Re-claiming our own lease is a no-op that refreshes its heartbeat, which is what keeps a
         # sibling ranker from judging a multi-hour ticket abandoned and taking it.
@@ -394,6 +395,10 @@ function Wait-SpecAll {
             Write-Host "$TicketId status: $observedStatus -> $currentStatus"
             $observedStatus = $currentStatus
         }
+        if (Test-TerminalStatus -Status $observedStatus) {
+            $terminalObserved = $true
+            break
+        }
         # A /spec-all session runs for hours and prints nothing until it exits (--print buffers the
         # whole answer), so without this the console looks hung. One line per HeartbeatMinutes.
         if (((Get-Date) - $lastBeatAt).TotalMinutes -ge $HeartbeatMinutes) {
@@ -401,6 +406,12 @@ function Wait-SpecAll {
             Write-Host "  .. $TicketId running $runningMinutes min (status: $observedStatus)"
             $lastBeatAt = Get-Date
         }
+    }
+
+    if ($terminalObserved -and -not $Process.HasExited) {
+        Write-Host "  Stopping Claude Code for $TicketId after terminal status $observedStatus."
+        try { $Process.Kill($true) } catch { }
+        $Process.WaitForExit()
     }
 
     [System.IO.File]::WriteAllText($Process.StdoutPath, $Process.StdoutTask.GetAwaiter().GetResult())

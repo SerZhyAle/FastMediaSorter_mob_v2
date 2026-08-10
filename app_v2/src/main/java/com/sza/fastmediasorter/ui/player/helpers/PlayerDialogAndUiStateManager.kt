@@ -2,9 +2,9 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import com.google.android.material.snackbar.Snackbar
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
+import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.ui.player.DestinationButtonsManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerDialogHelper
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -181,7 +182,7 @@ class PlayerDialogAndUiStateManager(
                 }
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundTo(activity)
     }
     
     /**

@@ -2,11 +2,12 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.content.Context
 import android.widget.Toast
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.lifecycle.LifecycleOwner
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.UndoOperation
@@ -14,19 +15,19 @@ import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
-import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferProgressSnapshot
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferTerminalEvent
 import com.sza.fastmediasorter.ui.browse.transfer.transferOverallPercent
-import com.sza.fastmediasorter.utils.SafHelper
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog
-import kotlinx.coroutines.CoroutineScope
+import com.sza.fastmediasorter.util.showBoundToHost
+import com.sza.fastmediasorter.utils.SafHelper
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -748,7 +749,7 @@ class BrowseFileOperationsManager(
                         showMoveDialogInternal(selectedPaths, mediaFiles, resource, settings)
                     }
                     .setNegativeButton(R.string.cancel, null)
-                    .show()
+                    .showBoundToHost(context)
             } else {
                 showMoveDialogInternal(selectedPaths, mediaFiles, resource, settings)
             }

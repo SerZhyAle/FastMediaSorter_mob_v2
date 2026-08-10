@@ -224,6 +224,41 @@ if ($selected) {
         }
     }
     Add-Member -InputObject $selected -NotePropertyName 'drift' -NotePropertyValue $drift -Force
+
+    # S1429: the third proof that landed work is accounted for. A Tier-3 ticket records progress in
+    # its tactical INDEX, not in the strategic spec, so a gate that reads only `## Last Audit` and
+    # `Implementation State` calls every in-flight tactical ticket unaccounted. The plan counts as
+    # proof only when it is at least as fresh as the newest in-window commit - otherwise a plan
+    # abandoned months ago would vouch for work landed yesterday.
+    $tacticalIndex = $null
+    if ($selected.file) {
+        $specRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+        $indexRel = ($selected.file -replace '\.md$', '') + '/INDEX.md'
+        $indexPath = Join-Path $specRoot $indexRel
+        if (Test-Path -LiteralPath $indexPath) {
+            $indexText = Get-Content -LiteralPath $indexPath -Raw
+            $updatedMatch = [regex]::Match($indexText, '(?m)^\*\*Last updated:\*\*\s*(\d{4}-\d{2}-\d{2})')
+            $phasesMatch = [regex]::Match($indexText, '(?m)^\*\*Phases:\*\*\s*(\d+)\s*/\s*(\d+)\s*done')
+            $lastUpdated = if ($updatedMatch.Success) { $updatedMatch.Groups[1].Value } else { $null }
+            $newestCommit = $null
+            if ($drift -and $drift.commits) {
+                $newestCommit = @($drift.commits | ForEach-Object { ($_.date -split ' ')[0] } | Sort-Object -Descending)[0]
+            }
+            $fresh = $false
+            if ($lastUpdated) {
+                $fresh = -not $newestCommit -or ([datetime]$lastUpdated -ge [datetime]$newestCommit)
+            }
+            $tacticalIndex = [PSCustomObject]@{
+                path          = $indexRel
+                last_updated  = $lastUpdated
+                phases_done   = if ($phasesMatch.Success) { [int]$phasesMatch.Groups[1].Value } else { $null }
+                phases_total  = if ($phasesMatch.Success) { [int]$phasesMatch.Groups[2].Value } else { $null }
+                newest_commit = $newestCommit
+                fresh         = $fresh
+            }
+        }
+    }
+    Add-Member -InputObject $selected -NotePropertyName 'tactical_index' -NotePropertyValue $tacticalIndex -Force
 }
 
 # 7. Compose result

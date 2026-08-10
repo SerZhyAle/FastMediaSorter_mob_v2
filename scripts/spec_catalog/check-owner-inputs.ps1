@@ -12,8 +12,12 @@ param(
 #   - The gate validates only what is actually present in §3.3 - every bullet
 #     must carry a concrete value (not a bracketed placeholder, not empty).
 #     "n/a - <reason>" counts as a concrete value.
-#   - Draft text may be rough, but promotion to Approved also enforces basic
-#     author-style hygiene: no raw three-dot ellipsis in non-code-fence text.
+#   - This gate judges §3.3 and nothing else. The house text style does not apply
+#     to specification files - the canon's scope list excludes specs by name, next
+#     to code, commands and logs - so a spec's punctuation is not gated here or at
+#     any other transition (S1543). The earlier version of this gate scanned the
+#     whole file for an ellipsis, which reached §0 verbatim owner capture and
+#     twice forced an edit inside material /spec-draft guarantees untouched.
 #   - Universally required: 'Related tickets'. This is the only field that
 #     must be present regardless of spec scope. It encodes dependency chains
 #     consumed by /spec-next and bulk-update.ps1.
@@ -23,21 +27,24 @@ param(
 . (Join-Path $PSScriptRoot '_lib.ps1')
 
 if ($Id -notmatch '^S\d{4}$') {
-    Write-Error "Invalid -Id '$Id' (must match S####)."
+    # -ErrorAction Continue, not a bare Write-Error: _lib.ps1 sets $ErrorActionPreference = 'Stop',
+    # under which a bare Write-Error throws and the documented `exit 2` below is never reached, so
+    # the process reports 1 and a caller cannot tell "bad invocation" from "blockers found" (S1070).
+    Write-Error "Invalid -Id '$Id' (must match S####)." -ErrorAction Continue
     exit 2
 }
 
 $records = Read-Catalog
 $record = $records | Where-Object { $_.id -eq $Id } | Select-Object -First 1
 if (-not $record) {
-    Write-Error "No record with id '$Id' in spec-catalog.jsonl."
+    Write-Error "No record with id '$Id' in spec-catalog.jsonl." -ErrorAction Continue
     exit 2
 }
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $specPath = Join-Path $repoRoot ($record.file -replace '/', [IO.Path]::DirectorySeparatorChar)
 if (-not (Test-Path $specPath)) {
-    Write-Error "Spec file not found on disk: $specPath"
+    Write-Error "Spec file not found on disk: $specPath" -ErrorAction Continue
     exit 2
 }
 
@@ -88,30 +95,13 @@ if (-not $found.ContainsKey('Related tickets')) {
     $blockers.Add("Missing required field: 'Related tickets' (universally required in §3.3 regardless of scope; use 'none' if no dependencies)")
 }
 
-$inFence = $false
-for ($i = 0; $i -lt $lines.Count; $i++) {
-    $line = $lines[$i]
-    if ($line -match '^\s*```') {
-        $inFence = -not $inFence
-        continue
-    }
-    # CLAUDE.md ellipsis rule scopes to docs prose/UI text and NEVER applies to code - strip
-    # inline single-backtick code spans (verbatim snippets/audit quotes) before checking, so a
-    # '...' truncation marker inside a code span does not force editing verbatim-captured text.
-    $strippedLine = $line -replace '`[^`]*`', ''
-    if (-not $inFence -and $strippedLine.Contains('...')) {
-        $blockers.Add(("Line {0}: replace three-dot ellipsis with '..' before Approved" -f ($i + 1)))
-    }
-}
-
 if ($blockers.Count -gt 0) {
     Write-Output "FAIL $Id"
     foreach ($b in $blockers) { Write-Output "- $b" }
     Write-Output ""
     Write-Output "Spec '$Id' cannot transition Draft -> Approved until:"
     Write-Output "  1. every bullet present in §3.3 carries a concrete value, and"
-    Write-Output "  2. 'Related tickets' is present (use 'none' if no dependencies), and"
-    Write-Output "  3. approval-only author-style hygiene passes."
+    Write-Output "  2. 'Related tickets' is present (use 'none' if no dependencies)."
     Write-Output "The gate validates only what /spec emitted into §3.3 - it does not"
     Write-Output "require fields irrelevant to the spec's detected scope."
     exit 1

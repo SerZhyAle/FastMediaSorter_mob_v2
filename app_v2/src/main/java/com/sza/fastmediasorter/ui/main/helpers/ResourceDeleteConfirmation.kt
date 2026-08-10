@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.main.helpers
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.showBoundToHost
 
 /**
  * S1424: the one delete-resource confirmation, raised from wherever a resource can be deleted.
@@ -29,6 +30,6 @@ object ResourceDeleteConfirmation {
             .setMessage(activity.getString(R.string.delete_resource_message, resourceName))
             .setPositiveButton(R.string.delete) { _, _ -> onConfirm() }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(activity)
     }
 }

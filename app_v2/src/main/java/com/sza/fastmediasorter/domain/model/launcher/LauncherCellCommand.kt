@@ -12,6 +12,13 @@ enum class LauncherResourceMode {
     PLAY,
 }
 
+/** What a geographic launcher cell asks the external map application to do. */
+enum class LauncherGeographicAction {
+    DIRECTIONS,
+    NAVIGATION,
+    SHOW_PLACE,
+}
+
 /**
  * S0404: the single parser/serializer for a launcher shortcut cell's stored target. One TEXT column
  * carries every command kind via a namespace prefix, so a new kind never forces a schema migration
@@ -25,6 +32,7 @@ enum class LauncherResourceMode {
  * - `op:<id>`            - trigger a saved scheduled operation (S1103).
  * - `act:<actionKey>`    - an action on the launcher itself (keys from `LauncherActionCatalog`, S1402).
  * - `pin:<pkg>:<id>:<label>` - a shortcut another app asked us to pin (S1205).
+ * - `geo:<action>:<query>:<label>` - a shared place for directions, navigation, or display (S1175).
  * - `sec:<sectionKey>`   - a titled section header grouping the cells below it (S1428).
  */
 sealed interface LauncherCellCommand {
@@ -114,6 +122,23 @@ sealed interface LauncherCellCommand {
     }
 
     /**
+     * S1175: a place received from another map application.
+     *
+     * [query] is either coordinates, the received place text, or a URL. It is deliberately not parsed
+     * into a coordinate type: Maps can share all three forms and retaining the original query leaves
+     * the external map app free to resolve the form it understands. [label] is the cell caption, not
+     * an identifier, so an empty value is valid and the visual resolver supplies a fallback.
+     */
+    data class Geographic(
+        val action: LauncherGeographicAction,
+        val query: String,
+        val label: String,
+    ) : LauncherCellCommand {
+        override fun encode(): String = PREFIX_GEOGRAPHIC + listOf(action.name, query, label)
+            .joinToString(SEPARATOR) { encodeField(it) }
+    }
+
+    /**
      * S1428: a titled header owning every cell below it down to the next header.
      *
      * Carries [sectionKey] rather than the title text: strategic §5.3 requires a future user-created
@@ -135,6 +160,7 @@ sealed interface LauncherCellCommand {
         const val PREFIX_CONTACT = "contact:"
         const val PREFIX_LAUNCHER_ACTION = "act:"
         const val PREFIX_PIN = "pin:"
+        const val PREFIX_GEOGRAPHIC = "geo:"
         const val PREFIX_SECTION = "sec:"
 
         /** The preset section a fresh desktop opens with; §6.2 defers user-created ones to their own ticket. */
@@ -167,6 +193,13 @@ sealed interface LauncherCellCommand {
         private const val FIELD_PIN_SHORTCUT_ID = 1
         private const val FIELD_PIN_LABEL = 2
         private const val PIN_FIELD_COUNT = 3
+
+        // Field layout of a [Geographic] target. The three fields are a persistence format: append,
+        // never reorder, and increase the count when a later version adds a field.
+        private const val FIELD_GEOGRAPHIC_ACTION = 0
+        private const val FIELD_GEOGRAPHIC_QUERY = 1
+        private const val FIELD_GEOGRAPHIC_LABEL = 2
+        private const val GEOGRAPHIC_FIELD_COUNT = 3
 
         /** Tolerant decode: unknown prefix, empty payload, bad id or unknown mode all yield null. */
         fun decode(raw: String?): LauncherCellCommand? {
@@ -217,6 +250,9 @@ sealed interface LauncherCellCommand {
 
             value.startsWith(PREFIX_PIN) ->
                 decodePinnedShortcut(value.removePrefix(PREFIX_PIN))
+
+            value.startsWith(PREFIX_GEOGRAPHIC) ->
+                decodeGeographic(value.removePrefix(PREFIX_GEOGRAPHIC))
 
             else -> null
         }
@@ -274,6 +310,21 @@ sealed interface LauncherCellCommand {
                 null
             } else {
                 PinnedShortcut(packageName, shortcutId, decodeField(fields[FIELD_PIN_LABEL]))
+            }
+        }
+
+        /** A bad action or a missing query makes the stored target unusable, so degrade to null. */
+        private fun decodeGeographic(payload: String): Geographic? {
+            val fields = payload.split(SEPARATOR)
+            if (fields.size != GEOGRAPHIC_FIELD_COUNT) return null
+            val action = LauncherGeographicAction.entries.firstOrNull {
+                it.name == decodeField(fields[FIELD_GEOGRAPHIC_ACTION])
+            }
+            val query = decodeField(fields[FIELD_GEOGRAPHIC_QUERY])
+            return if (action == null || query.isBlank()) {
+                null
+            } else {
+                Geographic(action, query, decodeField(fields[FIELD_GEOGRAPHIC_LABEL]))
             }
         }
 

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
+import com.sza.fastmediasorter.data.launcher.LiveContactDataSource
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
@@ -25,6 +26,7 @@ class ResolveLauncherDesktopUseCase @Inject constructor(
     private val desktopRepository: LauncherDesktopRepository,
     private val resolveVisual: ResolveLauncherCommandLabelUseCase,
     private val radioControl: RadioControlContract,
+    private val liveContactDataSource: LiveContactDataSource,
 ) {
 
     /**
@@ -32,13 +34,18 @@ class ResolveLauncherDesktopUseCase @Inject constructor(
      * system shade has to reach the tile too - the stored cell list alone re-emits only on a database write.
      * The resulting [LauncherCellUi] carries a different `iconRes`, which is what gets it past the binder's
      * own equality guard.
+     *
+     * S1206: the address-book signal is combined in for the same reason - a contact renamed in the system
+     * writes nothing of ours, so without this input a pinned cell would keep the caption it was pinned with
+     * until some unrelated desktop edit happened to rebuild the list.
      */
     operator fun invoke(orientation: LauncherOrientation): Flow<List<LauncherCellUi>> =
         combine(
             desktopRepository.observeCells(orientation),
             radioControl.state(RadioKind.WIFI),
             radioControl.state(RadioKind.BLUETOOTH),
-        ) { cells, wifi, bluetooth ->
+            liveContactDataSource.changes(),
+        ) { cells, wifi, bluetooth, _ ->
             val radioStates = RadioStates(wifi, bluetooth)
             Timber.d("S1441: desktop re-resolve, wifi=%s, bluetooth=%s", wifi, bluetooth)
             cells.map { it.toUi(radioStates) }

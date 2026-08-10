@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.databinding.ItemExtensionSectionHeaderBinding
 import com.sza.fastmediasorter.domain.delivery.ExtensionItem
 import com.sza.fastmediasorter.domain.delivery.ExtensionSection
 import com.sza.fastmediasorter.domain.delivery.ExtensionStatus
+import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -147,7 +148,7 @@ class ExtensionsManagerFragment : Fragment() {
             .setMessage(getString(R.string.ext_delete_confirm_message, getString(item.displayNameRes)))
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.ocr_best_model_delete) { _, _ -> viewModel.uninstall(item) }
-            .show()
+            .showBoundTo(this@ExtensionsManagerFragment)
     }
 
     // Bulk delete is destructive across every installed extension, so it gets its own confirmation.
@@ -157,7 +158,7 @@ class ExtensionsManagerFragment : Fragment() {
             .setMessage(R.string.ext_uninstall_all_confirm_message)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.ocr_best_model_delete) { _, _ -> viewModel.uninstallAll() }
-            .show()
+            .showBoundTo(this@ExtensionsManagerFragment)
     }
 
     override fun onDestroyView() {

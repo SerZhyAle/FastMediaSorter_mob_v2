@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Rect
 import android.net.Uri
@@ -27,11 +28,13 @@ import com.sza.fastmediasorter.domain.usecase.launcher.ExecuteLauncherCommandUse
 import com.sza.fastmediasorter.domain.usecase.launcher.PickContactShortcutUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSectionCollapseManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarComposition
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarIcon
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
 import com.sza.fastmediasorter.ui.main.helpers.ResourceScanCoordinator
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -75,6 +78,7 @@ sealed interface LauncherHomeEvent {
 
 @HiltViewModel
 class LauncherHomeViewModel @Inject constructor(
+    @ApplicationContext appContext: Context,
     private val desktopDependencies: LauncherDesktopDependencies,
     private val taskbarDependencies: LauncherTaskbarDependencies,
     private val shortcutDependencies: LauncherShortcutDependencies,
@@ -95,6 +99,9 @@ class LauncherHomeViewModel @Inject constructor(
         .flatMapLatest { desktopDependencies.resolveDesktop(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), emptyList())
 
+    /** S1428: folded sections and the tap that folds them - see [LauncherSectionCollapseManager]. */
+    val sections = LauncherSectionCollapseManager(appContext, viewModelScope, cells, _orientation)
+
     val densityFactor: StateFlow<Float> = settingsRepository.getSettings()
         .map { it.launcherDensityFactor }
         .stateIn(viewModelScope, SharingStarted.Eagerly, DEFAULT_DENSITY_FACTOR)
@@ -105,11 +112,21 @@ class LauncherHomeViewModel @Inject constructor(
                 showRecents = it.launcherTaskbarShowRecents,
                 showPinned = it.launcherTaskbarShowPinned,
                 showTray = it.launcherTaskbarShowTray,
+                topStatusStripMode = it.launcherTopStatusStripMode && it.launcherReplaceSystemStatusArea,
             )
         }
         .distinctUntilChanged()
 
-    val recentIcons: Flow<List<LauncherTaskbarIcon>> = taskbarDependencies.queryRecentCommands(RECENTS_LIMIT)
+    /**
+     * S1431 ADR-4: how many recent icons the taskbar row can actually show, reported by the row itself once
+     * it has a width. Seeded at [RECENTS_LIMIT], which is also the floor - a measured row is allowed to ask
+     * for more than the six the list showed before this ticket, never for fewer.
+     */
+    private val _recentsCapacity = MutableStateFlow(RECENTS_LIMIT)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val recentIcons: Flow<List<LauncherTaskbarIcon>> = _recentsCapacity
+        .flatMapLatest { taskbarDependencies.queryRecentCommands(it) }
         .map { entries ->
             entries.map { entry ->
                 LauncherTaskbarIcon(
@@ -190,6 +207,28 @@ class LauncherHomeViewModel @Inject constructor(
      */
     val replaceSystemStatusArea: StateFlow<Boolean> = settingsRepository.getSettings()
         .map { it.launcherReplaceSystemStatusArea }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    /**
+     * S1431: whether the clock and the indicator set are drawn on the freed top band instead of the taskbar
+     * tray. Both conditions are folded together here rather than in each of the three consumers, because a
+     * mode left on with the status area no longer replaced would take the indicators off the tray and have
+     * nowhere to put them (strategic §3.3).
+     */
+    val topStatusStripMode: StateFlow<Boolean> = settingsRepository.getSettings()
+        .map { it.launcherTopStatusStripMode && it.launcherReplaceSystemStatusArea }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    /**
+     * S1431: whether the TASKBAR tray is the placement currently in use. The tray renderer treats this as
+     * its visibility gate, so moving the indicators up to the strip also releases the taskbar copy's battery
+     * receiver, network callback and SIM permission request instead of leaving two renderers subscribed to
+     * the same sources at once (strategic ADR-5).
+     */
+    val taskbarTrayContentVisible: StateFlow<Boolean> = settingsRepository.getSettings()
+        .map { it.launcherReplaceSystemStatusArea && !it.launcherTopStatusStripMode }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
@@ -487,6 +526,14 @@ class LauncherHomeViewModel @Inject constructor(
     suspend fun streamById(streamId: String): StreamSourceEntity? =
         observeStreams().first().firstOrNull { it.id == streamId }
 
+    /**
+     * S1500: what backs the desktop's edit-a-channel row. A passthrough property rather than three
+     * wrapper methods: this ViewModel adds nothing on the way to those two use cases, and the action
+     * manager that reads them already owns the scope the writes need.
+     */
+    val streamEditDependencies: LauncherStreamEditDependencies
+        get() = cellMenuDependencies.streamEdit
+
     /** S1424: the pinned block is what decides whether a channel's reorder rows have anywhere to go. */
     suspend fun pinnedStreams(): List<StreamSourceEntity> = observeStreams().first().filter { it.pinned }
 
@@ -658,6 +705,22 @@ class LauncherHomeViewModel @Inject constructor(
         action: LauncherContactAction,
         picked: Uri,
     ): PickContactShortcutUseCase.Outcome = shortcutDependencies.pickContactShortcut(action, picked)
+
+    /**
+     * S1431 ADR-4: the recents row's own measurement of how many icons it fits, written by the row after
+     * layout. Floored at [RECENTS_LIMIT] on write, so a narrow row scrolls through the same six as before
+     * rather than losing entries, and raised above it when the tray leaves the bar or the device turns
+     * landscape.
+     *
+     * A property rather than a setter function on purpose: this class sits exactly at detekt's
+     * `TooManyFunctions` ceiling of 40, and one more named function would trip it. The decomposition that
+     * would earn the 41st is a ticket of its own, not a side effect of adding one measurement input.
+     */
+    var recentsCapacity: Int
+        get() = _recentsCapacity.value
+        set(value) {
+            _recentsCapacity.value = value.coerceAtLeast(RECENTS_LIMIT)
+        }
 
     private companion object {
         const val SUBSCRIPTION_TIMEOUT_MS = 5_000L

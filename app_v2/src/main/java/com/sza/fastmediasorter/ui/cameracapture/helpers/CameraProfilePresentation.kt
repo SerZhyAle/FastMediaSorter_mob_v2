@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.cameracapture.helpers
 
+import android.hardware.camera2.CameraMetadata
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
@@ -11,11 +12,41 @@ import com.sza.fastmediasorter.ui.cameracapture.model.PhotoProfile
  *
  * Night and macro reuse the icons their retired standalone toggles carried, so a user who knew those
  * buttons recognises the same glyphs inside the menu.
+ *
+ * S1418: also the only place that decides when NORMAL is presented as "Manual". The manual mode is a
+ * derived state of the user's own edits, not a device capability, so it cannot join [PhotoProfile]
+ * without breaking that enum's contract that availability is a pure function of the capability
+ * snapshot (strategic ADR-1) - the substitution belongs here, in presentation, instead.
  */
 object CameraProfilePresentation {
 
+    /** Exposure compensation is expressed in steps around the metered value; zero means automatic. */
+    private const val AUTO_EXPOSURE_COMPENSATION_INDEX = 0
+
     @StringRes
-    fun labelRes(profile: PhotoProfile): Int = when (profile) {
+    fun labelRes(profile: PhotoProfile, manual: Boolean = false): Int =
+        if (manual && profile == PhotoProfile.NORMAL) {
+            R.string.camera_profile_manual
+        } else {
+            defaultLabelRes(profile)
+        }
+
+    /**
+     * S1418: true when the user has pulled exposure or white balance off automatic while shooting the
+     * plain profile. Restricted to NORMAL on purpose - night and sport set their own exposure as part
+     * of the recipe, so without this guard they would read as manual the moment they were picked.
+     *
+     * [whiteBalanceMode] is null while the session has never been told otherwise, i.e. automatic.
+     */
+    fun isManual(profile: PhotoProfile, exposureCompensationIndex: Int, whiteBalanceMode: Int?): Boolean {
+        if (profile != PhotoProfile.NORMAL) return false
+        val whiteBalanceManual = whiteBalanceMode != null &&
+            whiteBalanceMode != CameraMetadata.CONTROL_AWB_MODE_AUTO
+        return exposureCompensationIndex != AUTO_EXPOSURE_COMPENSATION_INDEX || whiteBalanceManual
+    }
+
+    @StringRes
+    private fun defaultLabelRes(profile: PhotoProfile): Int = when (profile) {
         PhotoProfile.NORMAL -> R.string.camera_profile_normal
         PhotoProfile.NIGHT -> R.string.camera_profile_night
         PhotoProfile.PORTRAIT -> R.string.camera_profile_portrait

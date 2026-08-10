@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.ui.launcher.gadget.nowplaying.NowPlayingCommand
 import com.sza.fastmediasorter.ui.launcher.gadget.nowplaying.NowPlayingSource
 import com.sza.fastmediasorter.ui.launcher.gadget.nowplaying.NowPlayingState
 import com.sza.fastmediasorter.ui.launcher.gadget.nowplaying.OwnSessionNowPlayingSource
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -108,7 +109,7 @@ private class AudioNowPlayingGadgetView(
                     }
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundToHost(context)
     }
 
     /**

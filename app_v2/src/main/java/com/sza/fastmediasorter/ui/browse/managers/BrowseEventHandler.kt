@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.StereoDetector
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -220,7 +221,7 @@ class BrowseEventHandler(
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     private fun launchPermissionRequest(pendingIntent: PendingIntent) {

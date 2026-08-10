@@ -50,15 +50,18 @@ object PermissionManifestExemptions {
             "and a row would offer to grant a capability the app does not have.",
         "com.oculus.permission.HAND_TRACKING" to
             "Granted by the headset at install; there is no runtime dialog and no system screen to send the user to.",
-        "android.permission.RECORD_AUDIO" to
-            "Only lite reaches this branch. It declares the permission and uses it - camera video records with " +
-            "audio there (SUPPORT_VIDEO is true) - but the registry gates the row on SUPPORT_MIC_RECORDING, " +
-            "which names the voice-note feature S0100 excluded from lite, not the microphone as such. The row " +
-            "gate is the wrong flag and is tracked as S1459; until it moves, the permission is legitimately " +
-            "declared with no row. photos declares it nowhere (S1442 removed it: no video mode, so no mic path " +
-            "at all). Everywhere else the permission has a row.",
+        "org.khronos.openxr.permission.OPENXR" to
+            "Merged in from the org.khronos.openxr:openxr_loader_for_android AAR, not declared by this app. The " +
+            "loader is on both vrImplementation and noLegalImplementation because S0250 makes noLegal the " +
+            "sideload VR-capable surface, so noLegal declares it too - that is deliberate, not a leftover of " +
+            "S0241. The runtime consumes it; there is no dialog and no system screen, so a row would offer to " +
+            "grant something the user cannot grant (S1475).",
+        "org.khronos.openxr.permission.OPENXR_SYSTEM" to
+            "Same origin and same reasoning as OPENXR above - the OpenXR loader AAR declares the pair together " +
+            "(S1475).",
         "android.permission.POST_NOTIFICATIONS" to
-            "Same shape as RECORD_AUDIO above: declared and used, row hidden by too narrow a gate. Builds " +
+            "Declared and used, row hidden by too narrow a gate - the shape RECORD_AUDIO had until S1459 " +
+            "moved its row onto DECLARES_MIC_RECORDING. Builds " +
             "without persistent audio playback still post notifications - ScheduledOperationsWorker creates " +
             "its channel and notifies unconditionally, and onboarding asks for this permission past the gate " +
             "via shownInWelcomeDespiteGates - but the row's only gate is ENABLE_PERSISTENT_AUDIO_PLAYBACK, " +

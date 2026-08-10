@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.ui.main.helpers.ResourceShareIntents
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.util.VirtualPathUtils
+import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -156,13 +157,14 @@ class LauncherResourceActionManager(
      * the share sheet after it hands the file to somebody else.
      */
     private fun confirmExport(resource: MediaResource) {
+        Timber.d("S1456: launcher resource-action dialog bound to host")
         if (activity.isFinishing || activity.isDestroyed) return
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.resource_share_export_title)
             .setMessage(R.string.resource_share_credentials_warning)
             .setPositiveButton(android.R.string.ok) { _, _ -> runExport(resource) }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     private fun runExport(resource: MediaResource) {

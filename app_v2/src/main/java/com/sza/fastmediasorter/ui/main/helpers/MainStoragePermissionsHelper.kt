@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.core.util.SettingsIntentLauncher
 import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
+import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
 
 /**
@@ -86,7 +87,7 @@ class MainStoragePermissionsHelper(
             .setNegativeButton(R.string.continue_anyway, null)
             .setCancelable(true)
             .setOnDismissListener { rationaleDialog = null }
-            .show()
+            .showBoundToHost(activity)
     }
 
     /**

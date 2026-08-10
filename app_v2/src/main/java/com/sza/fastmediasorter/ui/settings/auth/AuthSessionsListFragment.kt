@@ -28,10 +28,11 @@ import com.sza.fastmediasorter.data.browser.CctUnavailableException
 import com.sza.fastmediasorter.data.browser.GoogleDomainBrowserLauncher
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
+import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class AuthSessionsListFragment : Fragment(), MenuProvider {
@@ -117,7 +118,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
                 viewModel.deleteAccount(host, accountId)
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(this@AuthSessionsListFragment)
     }
 
     private fun showRenameDialog(host: String, accountId: String, currentName: String) {
@@ -132,7 +133,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(this@AuthSessionsListFragment)
     }
 
     private fun launchRelogin(host: String, accountId: String, loginUrl: String) {
@@ -155,7 +156,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(this@AuthSessionsListFragment)
     }
 
     private fun promptForManualUrl() {
@@ -174,7 +175,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(this@AuthSessionsListFragment)
     }
 
     /**
@@ -200,6 +201,6 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
                 if (cctChecker.isAvailable()) onRetry() else showCctUnavailableDialog(onRetry)
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(this@AuthSessionsListFragment)
     }
 }

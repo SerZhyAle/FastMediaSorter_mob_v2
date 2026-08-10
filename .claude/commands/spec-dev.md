@@ -66,7 +66,7 @@ For each step in plan order:
    - All predicates PASS → flip to `[x] done`. Append Step Log entry.
    - Any predicate FAIL → leave at `[~] in progress`. Append FAIL note. **Hard stop.**
 10. **Run mechanical post-change closure** for every modified file.
-  - `pwsh -NoProfile -File scripts/post-change.ps1 -File "<path>" -Target "<target>" -Description "<short EN description>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>] [-KeyPrefix "<key_prefix>"]`.
+  - `pwsh -NoProfile -File scripts/post-change.ps1 -File "<path>" -Target "<target>" -Description "<short EN description>" -ChangeType <Doc|Script|Config|Tooling|Kotlin|Xml|Mixed> [-Module <app_v2|wear>] [-KeyPrefix "<key_prefix>"]`.
   - Unsure which `-ChangeType` a step's files map to → `.claude/reference/spec-dev.md` §ChangeType selection.
   - Spec status transitions and feature-inventory (`docs/ALL_FEATURES.jsonl`) decisions stay outside this command.
 

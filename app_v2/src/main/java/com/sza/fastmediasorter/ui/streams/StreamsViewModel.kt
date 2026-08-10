@@ -277,20 +277,6 @@ class StreamsViewModel @Inject constructor(
             }
         }
 
-    /**
-     * S1145: which type-picker option the edit dialog should pre-select for [source]. The picker mirrors
-     * the stored kind directly - AUDIO -> "AUDIO", VIDEO -> "VIDEO" - so an explicit choice stays visible
-     * on reopen even when it coincides with what auto-classification would derive (the earlier
-     * classify-comparison collapsed such a choice back to "AUTO", failing the persist acceptance). RTSP
-     * has no explicit picker option and maps to "AUTO", so an untouched rtsp channel still re-derives to
-     * RTSP on save (override = null); "AUTO" also stays available to re-derive AUDIO/VIDEO on demand.
-     */
-    fun resolveEditKindOption(source: StreamSourceEntity): String = when (source.mediaKind) {
-        "AUDIO" -> "AUDIO"
-        "VIDEO" -> "VIDEO"
-        else -> "AUTO"
-    }
-
     /** S1144: stored track preference for [url], null when the channel has none. */
     suspend fun readTrackPreference(url: String): StreamTrackPreferenceUseCase.TrackPreference? =
         streamTrackPreferenceUseCase.read(url)
@@ -564,13 +550,21 @@ class StreamsViewModel @Inject constructor(
         streamFramePersistentStore.remove(source.url)
     }
 
-    /** S0593: record the inline-audio play outcome (OK on first playing, FAIL on error) for the row bullet. */
-    fun recordStreamOutcome(id: String, ok: Boolean) =
-        viewModelScope.launch { recordStreamPlayOutcome(id, ok) }
+    /** S0593: the inline-audio stream reached playback - green bullet, and counted as a play. */
+    fun recordStreamPlaySuccess(id: String) =
+        viewModelScope.launch { recordStreamPlayOutcome.recordPlaySuccess(id) }
 
     /** S0700: record a reachability-probe / grid-capture outcome - reachable -> green, else amber (not red). */
     fun recordStreamProbeOutcome(id: String, reachable: Boolean) =
         viewModelScope.launch { recordStreamPlayOutcome.recordProbe(id, reachable) }
+
+    /**
+     * S1509: record a terminal inline-audio failure, charging it to the channel only when the device
+     * had a network. [hasNetwork] is passed in rather than sampled here so the row bullet and the
+     * dialog the caller raises describe the same instant.
+     */
+    fun recordStreamPlayFailure(id: String, hasNetwork: Boolean) =
+        viewModelScope.launch { recordStreamPlayOutcome.recordPlayFailure(id, hasNetwork) }
 
     /** S0577: persist the background-audio exit preference chosen from the streams exit dialog. */
     fun updateExitBehavior(behavior: BackgroundAudioExitBehavior) = viewModelScope.launch {

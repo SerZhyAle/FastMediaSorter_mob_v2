@@ -157,8 +157,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260807163
-val defaultAppVersionName = "2.60.8071.632"
+val defaultAppVersionCode = 260808230
+val defaultAppVersionName = "2.60.8082.309"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -321,6 +321,7 @@ android {
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_STREAMS", "true")     // S0565: Трансляции entry-point
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
             buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
@@ -396,6 +397,7 @@ android {
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_STREAMS", "true")     // S0565: Трансляции entry-point
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
             buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
@@ -426,6 +428,9 @@ android {
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_STREAMS", "false")    // S0575: Streams feature UI hidden in lite (streamingDisabled pipeline unchanged)
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "false") // Excluded per S0100 §6
+            // S1459: lite excludes the voice-note feature but still records video with audio, so it
+            // declares RECORD_AUDIO and must show the row. The two flags disagree only here.
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "false")        // No cloud providers
             buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "false") // S0448: local-files-only, no SMB/SFTP/FTP
@@ -453,6 +458,8 @@ android {
             buildConfigField("boolean", "SUPPORT_AUDIO", "false")       // No audio player
             buildConfigField("boolean", "SUPPORT_STREAMS", "false")     // S0565: no Трансляции entry-point in photos
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "false") // No audio support
+            // S1442 removes RECORD_AUDIO from the photos manifest - no video mode, so no mic path.
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "false")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")       // Full image support
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")        // Cloud for photo backup
             buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true") // Network photo shares (SMB/SFTP/FTP)
@@ -483,6 +490,7 @@ android {
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_STREAMS", "true")     // S0565: Трансляции entry-point
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
             buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
@@ -543,6 +551,7 @@ android {
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_STREAMS", "true")     // S0565: Трансляции entry-point
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
             buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
@@ -603,6 +612,23 @@ android {
         // photos mounts cloudEnabled but streamingDisabled, so it gets the cloud tests only.
         getByName("testPhotos") {
             kotlin.directories.add("src/testCloudEnabled/java")
+        }
+        // S1433: RadioControlContractImpl lives in src/networkMonitor, which only standard and noLegal
+        // mount, so its test cannot live in the shared src/test set - that set compiles for every flavor
+        // and the reference would break unit-test compilation on the other four, which is the S1450 shape
+        // exactly. Mounted one line per flavor rather than through the loop above, because these are the
+        // only two and the pairing is easier to check against the main blocks when it is spelled out.
+        // S1498: src/launcherEnabled is mounted by the same two flavors and had no test set at all,
+        // which is the half of Rule 7 the S1453 gate cannot see - a set that does not exist has no
+        // mount list to drift. Its arithmetic had already been pushed into src/main to stay testable
+        // (LauncherSectionMembership), duplicating a constant to get there.
+        getByName("testStandard") {
+            kotlin.directories.add("src/testNetworkMonitor/java")
+            kotlin.directories.add("src/testLauncherEnabled/java")
+        }
+        getByName("testNoLegal") {
+            kotlin.directories.add("src/testNetworkMonitor/java")
+            kotlin.directories.add("src/testLauncherEnabled/java")
         }
         // lite mounts streamingDisabled AND cloudDisabled - it mounts neither test set, which is
         // exactly what makes its unit tests compilable again.
@@ -1488,7 +1514,8 @@ dependencies {
         exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
     }
     
-    // Network - SMB (uses BouncyCastle jdk15to18:1.72 via resolutionStrategy)
+    // Network - SMB. Pulls org.bouncycastle:bcprov-jdk18on transitively; the version that arrives
+    // is asserted at configuration time below (S1496), not forced.
     implementation("com.hierynomus:smbj:0.12.1")
     
     // Network - SFTP (JSch for Android - better KEX support than SSHJ)
@@ -1622,14 +1649,26 @@ dependencies {
     kspAndroidTest("com.google.dagger:hilt-android-compiler:2.59")
 }
 
-// TEMPORARILY DISABLED: BouncyCastle resolutionStrategy (was needed for PDFBox)
-// configurations.all {
-//     resolutionStrategy {
-//         force("org.bouncycastle:bcprov-jdk15to18:1.72")
-//         force("org.bouncycastle:bcpkix-jdk15to18:1.72")
-//         force("org.bouncycastle:bcutil-jdk15to18:1.72")
-//     }
-// }
+// S1496: BouncyCastle is never declared here - it arrives transitively through SMBJ. Assert the
+// version instead of forcing it: a force would silently block the security updates that ride along
+// with an SMBJ bump, while an unasserted transitive edge lets the crypto library move unnoticed.
+// Test configurations are excluded on purpose: Robolectric 4.11.1 requests bcprov-jdk18on:1.76 on
+// the unit-test classpath, and nothing on a test classpath reaches the APK, so asserting there
+// would break the suite over a version that never ships.
+val expectedBouncyCastleVersion = "1.75"
+
+configurations.matching { !it.name.contains("test", ignoreCase = true) }.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.bouncycastle" && requested.version != expectedBouncyCastleVersion) {
+            throw GradleException(
+                "BouncyCastle version drift: ${requested.group}:${requested.name} resolved to " +
+                    "${requested.version}, expected $expectedBouncyCastleVersion. Re-check the " +
+                    "org/bouncycastle/** entries in packagingOptions against the new layout, then " +
+                    "raise expectedBouncyCastleVersion in app_v2/build.gradle.kts."
+            )
+        }
+    }
+}
 
 ksp {
     // Export Room schema JSON into a committed dir so future migrations are validatable (S0731).

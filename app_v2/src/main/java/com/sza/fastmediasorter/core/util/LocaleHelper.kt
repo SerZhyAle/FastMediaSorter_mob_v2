@@ -30,7 +30,6 @@ object LocaleHelper {
 
     private const val RESTART_STATE_PREFS = "app_restart_state"
     private const val PREF_RETURN_TO_SETTINGS = "return_to_settings"
-    private const val PREF_PENDING_CACHE_SIZE_TOAST_MB = "pending_cache_size_toast_mb"
 
     /** In-memory cache - avoids repeated SharedPreferences/LocaleManager reads per Activity creation. */
     @Volatile private var cachedLanguageCode: String? = null
@@ -287,23 +286,6 @@ object LocaleHelper {
         val prefs = context.getSharedPreferences(RESTART_STATE_PREFS, Context.MODE_PRIVATE)
         val value = prefs.getBoolean(PREF_RETURN_TO_SETTINGS, false)
         if (value) prefs.edit().remove(PREF_RETURN_TO_SETTINGS).apply()
-        value
-    }
-
-    fun markPendingCacheSizeToast(context: Context, cacheSizeMb: Int) = StrictModeHelper.allowDiskWrites {
-        context.getSharedPreferences(RESTART_STATE_PREFS, Context.MODE_PRIVATE)
-            .edit()
-            .putInt(PREF_PENDING_CACHE_SIZE_TOAST_MB, cacheSizeMb)
-            .apply()
-    }
-
-    fun consumePendingCacheSizeToastMb(context: Context): Int? = StrictModeHelper.allowDiskWrites {
-        val prefs = context.getSharedPreferences(RESTART_STATE_PREFS, Context.MODE_PRIVATE)
-        if (!prefs.contains(PREF_PENDING_CACHE_SIZE_TOAST_MB)) {
-            return@allowDiskWrites null
-        }
-        val value = prefs.getInt(PREF_PENDING_CACHE_SIZE_TOAST_MB, 0)
-        prefs.edit().remove(PREF_PENDING_CACHE_SIZE_TOAST_MB).apply()
         value
     }
 

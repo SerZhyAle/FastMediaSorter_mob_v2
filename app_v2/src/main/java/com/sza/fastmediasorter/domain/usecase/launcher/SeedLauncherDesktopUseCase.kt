@@ -4,6 +4,7 @@ import android.content.Context
 import com.sza.fastmediasorter.core.launcher.LauncherStarterSets
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
@@ -67,6 +68,11 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 .mapValues { (_, availability) -> availability.availableInBuild }
 
             val items = LauncherStarterSets.itemsFor(profile, starterResources, routeAvailableInBuild)
+            Timber.d(
+                "S1428: seeding %d starter items, %d of them section headers",
+                items.size,
+                items.count { it.kind == LauncherCellKind.SECTION },
+            )
             val ownPackage = context.packageName
             val now = System.currentTimeMillis()
 

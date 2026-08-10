@@ -20,8 +20,11 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.LauncherTaskbarBinding
+import com.sza.fastmediasorter.databinding.LauncherStatusClockBinding
+import com.sza.fastmediasorter.databinding.LauncherStatusIndicatorsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.devicestatus.NetworkTransport
+import com.sza.fastmediasorter.domain.usecase.devicestatus.GetNetworkStatusUseCase
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayBluetoothMonitor
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTraySimSignalMonitor
@@ -42,14 +45,20 @@ import timber.log.Timber
  *
  * Signal strength is out of scope: it needs READ_PHONE_STATE, and the type alone answers the
  * question a tray asks (strategic §7).
+ *
+ * S1431: takes the two extracted layouts rather than the taskbar binding, so the same renderer - and
+ * therefore one subscription, permission and ordering rule - serves the taskbar tray and the top status
+ * strip alike (ADR-1). The two bindings are handed in separately because the strip puts them at opposite
+ * edges of the same row.
  */
 class LauncherTrayManager(
     private val lifecycleOwner: LifecycleOwner,
-    private val binding: LauncherTaskbarBinding,
+    private val clock: LauncherStatusClockBinding,
+    private val indicators: LauncherStatusIndicatorsBinding,
     private val onRequestPhoneStatePermission: () -> Unit = {},
 ) : DefaultLifecycleObserver {
 
-    private val context: Context = binding.root.context
+    private val context: Context = indicators.root.context
 
     /**
      * S1087: the tray shows clock/network/battery only while the launcher owns the status area. With the
@@ -74,7 +83,7 @@ class LauncherTrayManager(
     private var lowBatteryBlink: ObjectAnimator? = null
 
     /** Captured before any threshold recolours the view, so "back to normal" needs no theme lookup. */
-    private val defaultBatteryColor = binding.trayBatteryLevel.currentTextColor
+    private val defaultBatteryColor = indicators.trayBatteryLevel.currentTextColor
 
     private val bluetoothMonitor = LauncherTrayBluetoothMonitor(context)
 
@@ -96,12 +105,12 @@ class LauncherTrayManager(
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-            binding.root.post { renderNetwork(transportOf(capabilities)) }
+            indicators.root.post { renderNetwork(GetNetworkStatusUseCase.classify(capabilities)) }
         }
 
         override fun onLost(network: Network) {
             // The default network went away; anything still up will re-announce itself immediately.
-            binding.root.post { renderNetwork(Transport.NONE) }
+            indicators.root.post { renderNetwork(NetworkTransport.NONE) }
         }
     }
 
@@ -145,9 +154,9 @@ class LauncherTrayManager(
         val battery = statusContentVisible && composition.battery
         val network = statusContentVisible && composition.network
         Timber.d("S1415: tray composition applied visible=%s composition=%s", statusContentVisible, composition)
-        binding.trayClock.isVisible = statusContentVisible && composition.clock
-        binding.trayNetwork.isVisible = network
-        binding.trayBatteryLevel.isVisible = battery
+        clock.root.isVisible = statusContentVisible && composition.clock
+        indicators.trayNetwork.isVisible = network
+        indicators.trayBatteryLevel.isVisible = battery
         if (battery) registerBattery() else unregisterBattery()
         if (network) registerNetwork() else unregisterNetwork()
         if (!battery) stopBlink()
@@ -159,7 +168,7 @@ class LauncherTrayManager(
         if (!enabled) {
             bluetoothJob?.cancel()
             bluetoothJob = null
-            binding.trayBluetooth.isVisible = false
+            indicators.trayBluetooth.isVisible = false
             return
         }
         if (bluetoothJob?.isActive == true) return
@@ -174,12 +183,12 @@ class LauncherTrayManager(
     private fun renderBluetooth(enabled: Boolean?) {
         Timber.d("S1415: bluetooth state=%s", enabled)
         if (enabled != true) {
-            binding.trayBluetooth.isVisible = false
+            indicators.trayBluetooth.isVisible = false
             return
         }
-        binding.trayBluetooth.setImageResource(R.drawable.ic_bluetooth)
-        binding.trayBluetooth.contentDescription = context.getString(R.string.launcher_tray_bluetooth_on)
-        binding.trayBluetooth.isVisible = true
+        indicators.trayBluetooth.setImageResource(R.drawable.ic_bluetooth)
+        indicators.trayBluetooth.contentDescription = context.getString(R.string.launcher_tray_bluetooth_on)
+        indicators.trayBluetooth.isVisible = true
     }
 
     /**
@@ -190,8 +199,8 @@ class LauncherTrayManager(
         if (!enabled) {
             simJob?.cancel()
             simJob = null
-            binding.traySim1.isVisible = false
-            binding.traySim2.isVisible = false
+            indicators.traySim1.isVisible = false
+            indicators.traySim2.isVisible = false
             return
         }
         if (!simSignalMonitor.hasPermission() && !phoneStatePermissionRequested) {
@@ -205,8 +214,8 @@ class LauncherTrayManager(
 
     private fun renderSim(levels: Map<Int, Int>) {
         Timber.d("S1415: sim levels=%s", levels)
-        renderSimSlot(binding.traySim1, SIM1_SLOT, composition.sim1, levels)
-        renderSimSlot(binding.traySim2, SIM2_SLOT, composition.sim2, levels)
+        renderSimSlot(indicators.traySim1, SIM1_SLOT, composition.sim1, levels)
+        renderSimSlot(indicators.traySim2, SIM2_SLOT, composition.sim2, levels)
     }
 
     /**
@@ -282,22 +291,31 @@ class LauncherTrayManager(
             .onFailure { Timber.w(it, "Launcher tray: network callback was not registered") }
     }
 
-    private fun currentTransport(): Transport {
-        val manager = connectivityManager ?: return Transport.NONE
+    private fun currentTransport(): NetworkTransport {
+        val manager = connectivityManager ?: return NetworkTransport.NONE
         val capabilities = manager.activeNetwork?.let { manager.getNetworkCapabilities(it) }
-        return capabilities?.let { transportOf(it) } ?: Transport.NONE
+        return GetNetworkStatusUseCase.classify(capabilities)
     }
 
-    private fun transportOf(capabilities: NetworkCapabilities): Transport = when {
-        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> Transport.WIFI
-        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> Transport.ETHERNET
-        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> Transport.CELLULAR
-        else -> Transport.NONE
+    private fun renderNetwork(transport: NetworkTransport) {
+        indicators.trayNetwork.setImageResource(iconOf(transport))
+        indicators.trayNetwork.contentDescription = context.getString(labelOf(transport))
     }
 
-    private fun renderNetwork(transport: Transport) {
-        binding.trayNetwork.setImageResource(transport.iconRes)
-        binding.trayNetwork.contentDescription = context.getString(transport.labelRes)
+    @DrawableRes
+    private fun iconOf(transport: NetworkTransport): Int = when (transport) {
+        NetworkTransport.WIFI -> R.drawable.ic_wifi
+        NetworkTransport.CELLULAR -> R.drawable.ic_signal_cellular
+        NetworkTransport.ETHERNET -> R.drawable.ic_ethernet
+        NetworkTransport.NONE -> R.drawable.ic_network_off
+    }
+
+    @StringRes
+    private fun labelOf(transport: NetworkTransport): Int = when (transport) {
+        NetworkTransport.WIFI -> R.string.launcher_tray_network_wifi
+        NetworkTransport.CELLULAR -> R.string.launcher_tray_network_cellular
+        NetworkTransport.ETHERNET -> R.string.launcher_tray_network_ethernet
+        NetworkTransport.NONE -> R.string.launcher_tray_network_none
     }
 
     private fun renderBattery(intent: Intent) {
@@ -309,10 +327,10 @@ class LauncherTrayManager(
         val charging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
             status == BatteryManager.BATTERY_STATUS_FULL
 
-        binding.trayBatteryLevel.text = context.getString(R.string.launcher_tray_battery_value, percent)
+        indicators.trayBatteryLevel.text = context.getString(R.string.launcher_tray_battery_value, percent)
         // The number alone is what the owner asked for (strategic §2 goal 2), so the spoken description is
         // the only place left that says what the number means and whether the device is charging.
-        binding.trayBatteryLevel.contentDescription = context.getString(
+        indicators.trayBatteryLevel.contentDescription = context.getString(
             if (charging) R.string.launcher_tray_battery_charging else R.string.launcher_tray_battery_level,
             percent,
         )
@@ -330,15 +348,15 @@ class LauncherTrayManager(
             percent < BATTERY_WARNING_PERCENT -> ContextCompat.getColor(context, R.color.warning_color)
             else -> defaultBatteryColor
         }
-        binding.trayBatteryLevel.setTextColor(color)
-        binding.trayBatteryLevel.backgroundTintList = ColorStateList.valueOf(color)
+        indicators.trayBatteryLevel.setTextColor(color)
+        indicators.trayBatteryLevel.backgroundTintList = ColorStateList.valueOf(color)
         if (percent < BATTERY_BLINK_PERCENT) startBlink() else stopBlink()
     }
 
     private fun startBlink() {
         if (lowBatteryBlink?.isRunning == true) return
         lowBatteryBlink = ObjectAnimator.ofFloat(
-            binding.trayBatteryLevel,
+            indicators.trayBatteryLevel,
             View.ALPHA,
             FULL_ALPHA,
             BLINK_MIN_ALPHA,
@@ -353,17 +371,7 @@ class LauncherTrayManager(
     private fun stopBlink() {
         lowBatteryBlink?.cancel()
         lowBatteryBlink = null
-        binding.trayBatteryLevel.alpha = FULL_ALPHA
-    }
-
-    private enum class Transport(
-        @DrawableRes val iconRes: Int,
-        @StringRes val labelRes: Int,
-    ) {
-        WIFI(R.drawable.ic_wifi, R.string.launcher_tray_network_wifi),
-        CELLULAR(R.drawable.ic_signal_cellular, R.string.launcher_tray_network_cellular),
-        ETHERNET(R.drawable.ic_ethernet, R.string.launcher_tray_network_ethernet),
-        NONE(R.drawable.ic_network_off, R.string.launcher_tray_network_none),
+        indicators.trayBatteryLevel.alpha = FULL_ALPHA
     }
 
     private companion object {

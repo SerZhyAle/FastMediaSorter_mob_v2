@@ -257,6 +257,10 @@
 
         <activity android:name=".ui.calculator.CalculatorActivity" android:exported="false" android:label="@string/calculator_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
+        <!-- S1433: no orientation|screenSize in configChanges on purpose - the Summary screen has a
+             layout-land variant, and an Activity that absorbs the configuration change never re-inflates it. -->
+        <activity android:name=".ui.networkmonitor.NetworkMonitorActivity" android:exported="false" android:label="@string/network_monitor_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
         <activity android:name=".ui.cameraocr.CameraOcrTranslateActivity" android:exported="false" android:label="@string/setting_camera_ocr_translation_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:theme="@style/Theme.FastMediaSorter" />
         <!-- S0754: portrait-locked host; overlay controls rotate by sensor while the layout stays fixed. -->
         <activity android:name=".ui.cameracapture.CameraCaptureActivity" android:exported="false" android:configChanges="keyboardHidden" android:screenOrientation="portrait" android:theme="@style/Theme.FastMediaSorter">

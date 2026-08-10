@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1433 GNSS subscreen, portrait. The satellite view and the position are two cards with two separate
+     reasons on purpose: a receiver can report a full sky while holding no fix, and one shared reason line
+     would have to lie about one of them. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/gnssSectionScroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:padding="@dimen/margin_small">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+            android:text="@string/network_monitor_section_gnss" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <TextView
+                    android:id="@+id/gnssAvailability"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:visibility="gone"
+                    tools:text="@string/network_monitor_status_no_permission"
+                    tools:visibility="visible" />
+
+                <LinearLayout
+                    android:id="@+id/gnssDetailsGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                        <TextView
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                            android:text="@string/network_monitor_gnss_visible_label" />
+
+                        <TextView
+                            android:id="@+id/gnssVisibleValue"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                            tools:text="14" />
+                    </LinearLayout>
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                        <TextView
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                            android:text="@string/network_monitor_gnss_used_label" />
+
+                        <TextView
+                            android:id="@+id/gnssUsedValue"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                            tools:text="9" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/gnssAcquiring"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                        android:text="@string/network_monitor_gnss_acquiring"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/gnssSatelliteList"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                        android:visibility="gone"
+                        tools:text="GPS 12: 41 dB-Hz, used in fix"
+                        tools:visibility="visible" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/network_monitor_gnss_position_heading"
+                    android:textSize="@dimen/text_size_normal" />
+
+                <TextView
+                    android:id="@+id/gnssPositionAvailability"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:visibility="gone"
+                    tools:text="@string/network_monitor_status_no_network"
+                    tools:visibility="visible" />
+
+                <LinearLayout
+                    android:id="@+id/gnssPositionGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                        <TextView
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                            android:text="@string/network_monitor_gnss_latitude_label" />
+
+                        <TextView
+                            android:id="@+id/gnssLatitudeValue"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                            tools:text="50.45012" />
+                    </LinearLayout>
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                        <TextView
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                            android:text="@string/network_monitor_gnss_longitude_label" />
+
+                        <TextView
+                            android:id="@+id/gnssLongitudeValue"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                            tools:text="30.52340" />
+                    </LinearLayout>
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                        <TextView
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                            android:text="@string/network_monitor_gnss_accuracy_label" />
+
+                        <TextView
+                            android:id="@+id/gnssAccuracyValue"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                            tools:text="±6 m" />
+                    </LinearLayout>
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                        <TextView
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                            android:text="@string/network_monitor_gnss_fix_time_label" />
+
+                        <TextView
+                            android:id="@+id/gnssFixTimeValue"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                            tools:text="14:21" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <include
+            android:id="@+id/gnssChart"
+            layout="@layout/view_network_monitor_signal_chart" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/network_monitor_gnss_track_heading"
+                    android:textSize="@dimen/text_size_normal" />
+
+                <include
+                    android:id="@+id/gnssTrackRow"
+                    layout="@layout/view_network_monitor_gnss_track" />
+
+                <TextView
+                    android:id="@+id/gnssTrackPoints"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:visibility="gone"
+                    tools:text="Recorded points: 42"
+                    tools:visibility="visible" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGnssShareTrack"
+                    style="@style/Widget.FastMediaSorter.Button.Filled"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:nextFocusUp="@id/rowRecordGnssTrack"
+                    android:text="@string/network_monitor_gnss_track_share"
+                    android:visibility="gone"
+                    app:icon="@drawable/ic_share"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/gnssTrackNote"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:visibility="gone"
+                    tools:text="@string/network_monitor_gnss_track_share_failed"
+                    tools:visibility="visible" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</ScrollView>

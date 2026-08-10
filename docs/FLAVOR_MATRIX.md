@@ -28,6 +28,7 @@ Regenerate with `pwsh -NoProfile -File scripts/docs/generate-flavor-matrix.ps1`.
 | `SUPPORT_AUDIO` | [+] | [+] | [+] | [-] | [+] | [+] |
 | `SUPPORT_STREAMS` | [+] | [+] | [-] | [-] | [+] | [+] |
 | `SUPPORT_MIC_RECORDING` | [+] | [+] | [-] | [-] | [+] | [+] |
+| `DECLARES_MIC_RECORDING` | [+] | [+] | [+] | [-] | [+] | [+] |
 | `SUPPORT_IMAGES` | [+] | [+] | [+] | [+] | [+] | [+] |
 | `SUPPORT_CLOUD` | [+] | [+] | [-] | [+] | [+] | [+] |
 | `SUPPORT_LOCAL_NETWORK` | [+] | [+] | [-] | [+] | [+] | [+] |

@@ -16,8 +16,13 @@
 # rather than a point-check on -FeatId: it cannot rot as the param block grows.
 #
 # What this runner touches (it is NOT hermetic - unlike scripts/guard.tests):
-#   * dev/CHANGELOG.md and docs/ALL_FEATURES.jsonl are backed up and restored in a finally
-#     block; the happy-path cases genuinely write to them.
+#   * dev/CHANGELOG.md and docs/ALL_FEATURES.jsonl: the happy-path cases genuinely write to
+#     both, and the finally block undoes exactly those writes - dev-log rows by the probe
+#     target in their target column, inventory records by id through all_features/remove.ps1.
+#     Neither file is ever snapshotted and copied back whole (S1521): both are appended by
+#     every parallel session (S1437), so a whole-file restore silently reverts a sibling's
+#     row. Cleanup keys off the probe markers rather than this run's own writes, so a run
+#     also clears residue left by a predecessor killed before its finally block.
 #   * The subject ticket's `updated` timestamp moves, because the happy-path cases run a real
 #     status write. Every case passes -Status <the ticket's CURRENT status> -StatusOnly, so no
 #     lifecycle transition ever happens and the suite is idempotent across repeated runs.
@@ -78,13 +83,42 @@ $subjectStatus = Get-SpecField 'status'
 if (-not $subjectStatus) { Write-Host "Cannot resolve status of $SubjectId" -ForegroundColor Red; exit 1 }
 Write-Host "subject: $SubjectId (status '$subjectStatus', echoed back via -StatusOnly)" -ForegroundColor DarkGray
 
-$j1 = '{"file":"PLAN/S1063_bugfix-close-and-log-funcop-id-mapping.md","target":"s1063-tests","desc":"sandbox entry one"}'
-$j2 = '{"file":"scripts/spec_catalog/close-and-log.ps1","target":"s1063-tests","desc":"sandbox entry two"}'
+# Everything this run can write carries one of two markers, and cleanup keys off exactly
+# those: dev-log rows by $probeTarget in their target column, inventory records by id.
+$probeTarget = 's1063-tests'
+$probeRowPattern = '\|\s*`' + [regex]::Escape($probeTarget) + '`\s*\|'
 
-$bkChangelog = Join-Path $env:TEMP "close-and-log.tests.changelog.$PID.bak"
-$bkFeatures = Join-Path $env:TEMP "close-and-log.tests.features.$PID.bak"
-Copy-Item $changelog $bkChangelog -Force
-Copy-Item $features $bkFeatures -Force
+# The ids the happy-path cases produce. B and I let close-and-log.ps1 derive one from
+# -FeatArea + -FeatName; D states one outright. A change to that derivation fails I2 before
+# it could orphan a record here, so this list cannot silently drift out of date.
+$probeFeatureIds = @(
+    'spec-tooling.sandbox-capability-two', # case B, derived from "Sandbox capability two"
+    'spec-tooling.sandbox_probe',          # case D, passed verbatim as -FeatId
+    'spec-tooling.stated-name-wins'        # case I, derived from "Stated name wins"
+)
+
+function New-DevLogJson([string]$file, [string]$desc) {
+    return ([ordered]@{ file = $file; target = $probeTarget; desc = $desc } | ConvertTo-Json -Compress)
+}
+
+function Test-ProbeRecord([string]$recordId) {
+    if (-not (Test-Path $features)) { return $false }
+    $needle = '"id":"' + $recordId + '"'
+    foreach ($line in (Get-Content -LiteralPath $features -Encoding UTF8)) {
+        if ($line.Contains($needle)) { return $true }
+    }
+    return $false
+}
+
+# One desc per writing case, never shared: add_to_dev_log.ps1 skips a row whose
+# file|target|desc signature repeats within the last eight rows (a guard added after S1181),
+# so the single entry B, C and J used to share made the guard swallow C's and J's row and
+# both cases failed on a zero delta (S1521). A, E and G are rejected before any write, so
+# their entries never reach the journal and may reuse $j1/$j2 freely.
+$j1 = New-DevLogJson 'PLAN/S1063_bugfix-close-and-log-funcop-id-mapping.md' 'sandbox entry one'
+$j2 = New-DevLogJson 'scripts/spec_catalog/close-and-log.ps1' 'sandbox entry two'
+$j3 = New-DevLogJson 'PLAN/S1063_bugfix-close-and-log-funcop-id-mapping.md' 'sandbox entry three'
+$j4 = New-DevLogJson 'scripts/spec_catalog/close-and-log.ps1' 'sandbox entry four'
 
 try {
     # --- A: the regression itself. Multi-element array via -File must die at bind time. ---
@@ -115,7 +149,7 @@ try {
     Write-Host "C: single -DevLogs entry still works" -ForegroundColor Yellow
     $clBefore = Get-LineCount $changelog
     $outC = & $pwshExe -NoProfile -File $facade -Id $SubjectId -Status $subjectStatus -StatusOnly -SkipCatalogSync `
-        -DevLogs $j1 2>&1 | Out-String
+        -DevLogs $j3 2>&1 | Out-String
     $exitC = $LASTEXITCODE
     Assert-That "C1 exit 0" ($exitC -eq 0) "exit=$exitC out=$($outC.Trim())"
     Assert-That "C2 one dev-log written" ((Get-LineCount $changelog) -eq ($clBefore + 1)) "delta=$((Get-LineCount $changelog) - $clBefore)"
@@ -207,17 +241,53 @@ try {
     $clBefore = Get-LineCount $changelog
     $featBefore = Get-LineCount $features
     $outJ = & $pwshExe -NoProfile -File $facade -Id $SubjectId -Status $subjectStatus -StatusOnly -SkipCatalogSync `
-        -SkipFuncLog -DevLogs $j1 -FuncOp ADD -FuncDesc "sandbox skipped" 2>&1 | Out-String
+        -SkipFuncLog -DevLogs $j4 -FuncOp ADD -FuncDesc "sandbox skipped" 2>&1 | Out-String
     $exitJ = $LASTEXITCODE
     Assert-That "J1 exit 0" ($exitJ -eq 0) "exit=$exitJ out=$($outJ.Trim())"
     Assert-That "J2 dev-log still written" ((Get-LineCount $changelog) -eq ($clBefore + 1)) "delta=$((Get-LineCount $changelog) - $clBefore)"
     Assert-That "J3 no capability recorded" ((Get-LineCount $features) -eq $featBefore) "inventory grew"
 }
 finally {
-    Copy-Item $bkChangelog $changelog -Force
-    Copy-Item $bkFeatures $features -Force
-    Remove-Item $bkChangelog, $bkFeatures -Force -ErrorAction SilentlyContinue
-    Write-Host "sandbox restored (dev/CHANGELOG.md, docs/ALL_FEATURES.jsonl)" -ForegroundColor DarkGray
+    # Per record, never the whole file (S1521): both files are appended by every parallel
+    # session (S1437), so copying a snapshot back would revert whatever a sibling wrote while
+    # this suite ran. Read and write sit back to back so the window is one operation wide
+    # instead of one run long, and the file is only rewritten when there is a row to drop.
+    $rowsRemoved = 0
+    if (Test-Path $changelog) {
+        $rows = [System.IO.File]::ReadAllLines($changelog)
+        $keptRows = @($rows | Where-Object { $_ -notmatch $probeRowPattern })
+        $rowsRemoved = $rows.Count - $keptRows.Count
+        if ($rowsRemoved -gt 0) {
+            [System.IO.File]::WriteAllLines($changelog, $keptRows, (New-Object System.Text.UTF8Encoding($false)))
+        }
+    }
+
+    $removePs1 = Join-Path $repoRoot 'scripts/all_features/remove.ps1'
+    $recordsBefore = @($probeFeatureIds | Where-Object { Test-ProbeRecord $_ })
+    foreach ($fid in $recordsBefore) {
+        try { & $pwshExe -NoProfile -File $removePs1 -Id $fid -Confirm -Quiet | Out-Null }
+        catch { Write-Host "  cleanup: remove.ps1 threw for '$fid' - $_" -ForegroundColor DarkYellow }
+    }
+    $recordsLeft = @($recordsBefore | Where-Object { Test-ProbeRecord $_ })
+
+    # The whole-file restore was the only thing that hid a failed cleanup, and it announced
+    # success either way. A surviving probe sits in the inventory that feeds the release
+    # notes, so it has to be loud and carry the command that clears it.
+    $residue = @()
+    if (Test-Path $changelog) {
+        $left = @([System.IO.File]::ReadAllLines($changelog) | Where-Object { $_ -match $probeRowPattern })
+        if ($left.Count -gt 0) {
+            $residue += "$($left.Count) dev-log row(s) with target '$probeTarget' left in dev/CHANGELOG.md - delete them by hand"
+        }
+    }
+    foreach ($fid in $recordsLeft) {
+        $residue += "inventory record '$fid' survived - pwsh -NoProfile -File scripts/all_features/remove.ps1 -Id $fid -Confirm"
+    }
+    foreach ($line in $residue) { Write-Host "  PROBE RESIDUE  $line" -ForegroundColor Red }
+    if ($residue.Count -gt 0) { $script:fail++ }
+
+    $recordsGone = $recordsBefore.Count - $recordsLeft.Count
+    Write-Host "probes removed per record: $rowsRemoved dev-log row(s), $recordsGone inventory record(s)" -ForegroundColor DarkGray
 }
 
 Write-Host ""

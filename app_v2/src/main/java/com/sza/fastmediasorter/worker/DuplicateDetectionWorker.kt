@@ -13,6 +13,7 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.domain.model.DuplicateDetectionResult
 import com.sza.fastmediasorter.domain.model.DuplicateScanProgress
@@ -118,10 +119,11 @@ class DuplicateDetectionWorker @AssistedInject constructor(
     }
 
     private fun buildNotification(): Notification {
+        Timber.d("S1399: duplicate-detection notification built with the branded status-bar icon")
         return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(context.getString(R.string.duplicate_scan_notif_title))
             .setContentText(context.getString(R.string.duplicate_scan_notif_running))
-            .setSmallIcon(R.drawable.ic_notification_audio)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setOngoing(true)
             .setSilent(true)
             .build()

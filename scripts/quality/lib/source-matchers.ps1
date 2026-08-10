@@ -244,6 +244,79 @@ function Measure-ActivityLogicText([string]$Text) {
     return @(Find-ActivityLogicLines $Text).Count
 }
 
+# S1456: a dialog shown with a bare `.show()` throws the returned AlertDialog away, so nothing can
+# dismiss it once the host dies and the window outlives the destroyed Fragment and Activity (S1447).
+# util/LifecycleDialogExt.kt carries the cure on both receivers - the builder and an already-created
+# dialog - because two shapes reach a bare show(): the fluent chain ending in `.show()`, and the
+# builder assigned to a name whose `.create()` result is shown a few lines further down.
+$script:DialogBuilderRx = [regex]'(?:MaterialAlertDialogBuilder|AlertDialog\.Builder)\s*\('
+$script:DialogAssignRx = [regex]'(?:val|var)\s+([A-Za-z_][A-Za-z0-9_]*)\s*(?::[^=]+)?=\s*$'
+
+# Walk forward from the construction with paren and brace depth counters and return the names of the
+# calls made at chain level - the identifier after every `.` seen at depth zero. A newline at depth
+# zero ends the chain unless the next non-space character is a `.`, which is what keeps a multi-line
+# builder chain in one piece instead of cutting it at the first `.setTitle(..)` line.
+#
+# Depth matters: searching the statement text for `.show()` counts a `Toast.makeText(..).show()`
+# written inside a `setItems` lambda as the chain's terminator, which called two compliant sites
+# violations. Braces and parens inside comments and strings are a known, accepted approximation.
+function Get-DialogChainCalls([string]$Text, [int]$Start) {
+    $calls = [System.Collections.Generic.List[string]]::new()
+    $depthParen = 0
+    $depthBrace = 0
+    $i = $Start
+    $len = $Text.Length
+    while ($i -lt $len) {
+        $c = $Text[$i]
+        if ($c -eq '(') { $depthParen++ }
+        elseif ($c -eq ')') { $depthParen--; if ($depthParen -lt 0) { break } }
+        elseif ($c -eq '{') { $depthBrace++ }
+        elseif ($c -eq '}') { $depthBrace--; if ($depthBrace -lt 0) { break } }
+        elseif ($c -eq '.' -and $depthParen -eq 0 -and $depthBrace -eq 0) {
+            $j = $i + 1
+            $name = ''
+            while ($j -lt $len -and $Text[$j] -match '[A-Za-z0-9_]') { $name += $Text[$j]; $j++ }
+            if ($name) { $calls.Add($name) }
+        }
+        elseif ($c -eq "`n" -and $depthParen -le 0 -and $depthBrace -le 0) {
+            $j = $i + 1
+            while ($j -lt $len -and ($Text[$j] -eq ' ' -or $Text[$j] -eq "`t" -or $Text[$j] -eq "`r")) { $j++ }
+            if ($j -ge $len -or $Text[$j] -ne '.') { break }
+        }
+        $i++
+    }
+    return $calls
+}
+
+function Find-UntrackedDialogLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return @() }
+    if (-not $script:DialogBuilderRx.IsMatch($Text)) { return @() }
+    $hits = @()
+    foreach ($m in $script:DialogBuilderRx.Matches($Text)) {
+        $calls = Get-DialogChainCalls $Text $m.Index
+        if ($calls -match '^showBoundTo') { continue }
+        if ($calls -contains 'show') {
+            $hits += ($Text.Substring(0, $m.Index) -split "`n").Count
+            continue
+        }
+        $lineStart = $Text.LastIndexOf("`n", [Math]::Max($m.Index - 1, 0)) + 1
+        $declaration = $Text.Substring($lineStart, $m.Index - $lineStart).TrimEnd()
+        $assign = $script:DialogAssignRx.Match($declaration)
+        if (-not $assign.Success) { continue }
+        $held = [regex]::Escape($assign.Groups[1].Value)
+        foreach ($use in ([regex]"\b$held\.show\s*\(\s*\)").Matches($Text)) {
+            $hits += ($Text.Substring(0, $use.Index) -split "`n").Count
+        }
+    }
+    # One site is reachable twice when a file assigns two builders to the same name, so the rule
+    # counts distinct lines - counting matches would report the square of the real number.
+    return @($hits | Sort-Object -Unique)
+}
+
+function Measure-UntrackedDialogText([string]$Text) {
+    return @(Find-UntrackedDialogLines $Text).Count
+}
+
 function New-RegexRule {
     param(
         [Parameter(Mandatory)][string]$Name,
@@ -413,6 +486,19 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-ActivityLogicText $t }
             LocateInText = { param($t) Find-ActivityLogicLines $t }
             FailMessage  = 'new domain-layer field injection in an Activity. Move the dependency into a ViewModel or a Manager the host delegates to (CLAUDE.md Rule 3).'
+        },
+        [pscustomobject]@{
+            Name         = 'untracked-dialog'
+            Extensions   = @('.kt')
+            # Every shipped source set, like activity-logic above: the leak reaches launcherEnabled,
+            # noLegal and screenCapture, and a src/main-only filter would call those three clean.
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/(?!androidTest/|test|benchmark/)'
+            Baseline     = 'untracked-dialog-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-UntrackedDialogText $t }
+            LocateInText = { param($t) Find-UntrackedDialogLines $t }
+            FailMessage  = 'new dialog shown with a bare .show(). Show it with showBoundTo(owner) from util/LifecycleDialogExt.kt so the host lifecycle dismisses it (S1456).'
         }
     )
 }

@@ -10,6 +10,7 @@ import android.widget.FrameLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.share.ReceiveShareActivity
+import com.sza.fastmediasorter.util.showBoundToHost
 
 /**
  * S0542: shows the "Link to download" single-line dialog (prefilled from the clipboard) and routes
@@ -46,7 +47,7 @@ class MainLinkDownloadManager(private val activity: Activity, private val onClos
             }
             .setNegativeButton(android.R.string.cancel, null)
             .setOnDismissListener { onClosed() }
-            .show()
+            .showBoundToHost(activity)
     }
 
     private fun currentClipboardText(): String {

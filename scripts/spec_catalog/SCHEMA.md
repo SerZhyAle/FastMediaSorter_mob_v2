@@ -2,10 +2,11 @@
 
 **Active journal:** `PLAN/spec-catalog.jsonl` - non-`Archived` records only.
 **Archive journal:** `PLAN/spec-catalog-archive.jsonl` - `Archived` records only.
+**Burned ids:** `PLAN/spec-catalog-burned-ids.jsonl` - ids spent and since removed from both journals; its own two-field shape, see [Burned ids](#burned-ids-planspec-catalog-burned-idsjsonl).
 
-Both are JSONL (one JSON object per line, UTF-8 no BOM) and share the same record schema. See [Archive split](#archive-split) below.
+The two journals are JSONL (one JSON object per line, UTF-8 no BOM) and share the same record schema. See [Archive split](#archive-split) below.
 
-> **Read-only outside the CLI.** Direct edits to either file are forbidden by project policy. Use only `scripts/spec_catalog/{insert,update,select,delete,validate}.ps1`.
+> **Read-only outside the CLI.** Direct edits to any of these files are forbidden by project policy. Use only `scripts/spec_catalog/{insert,update,select,delete,validate}.ps1`.
 
 ## Record fields
 
@@ -108,6 +109,24 @@ All fields below are optional. Absence in any record - old or new - is valid and
 - `Write-Catalog` writes the active journal only; the archive journal is mutated solely by `Add-ArchiveRecord` / `Write-ArchiveCatalog`.
 - Backward compatible: if the archive journal is absent, behaviour is identical to a single-journal catalog.
 - One-time migration: `migrate-archive-split.ps1` relocates pre-existing `Archived` records (idempotent).
+
+## Burned ids (`PLAN/spec-catalog-burned-ids.jsonl`)
+
+Ids that were allocated and later removed from both journals. Row shape: `id`, `reason`, `burned` (date). Append-only, deduplicated by id.
+
+- `New-CatalogId` takes its maximum over the active journal, the archive **and** this registry. Deleting a record is the one way an id can silently return to circulation, and two tickets answering to one id would make every dev-log row, changelog entry and commit message already naming it ambiguous after the fact.
+- `validate.ps1` subtracts registered ids from the `Monotonicity` gap list, so a deliberate hole reads as accounted for and a genuinely lost record still surfaces. Without this a single cleanup buries the check under known holes forever.
+- Written only by `purge-probe-records.ps1`. No command removes a row.
+
+## Alternate-catalog runs
+
+`$env:FMS_SPEC_CATALOG_DIR` redirects all three journals - active, archive and burned ids - to that directory. `$script:RepoRoot` is deliberately not redirected, so spec `.md` files still resolve from the real `PLAN/` and a sandboxed run reads live spec bodies. A directory that does not exist is a hard error, never a silently created second catalog. Pair it with `$env:FMS_SKIP_RELEASE_QUEUE` so the run does not reconcile the real release plan.
+
+`preview.tests/Run-Tests.ps1` is the reference consumer: it snapshots the journals into `temp/scratch/spec-catalog-sandbox-<pid>/`, runs every CLI child against the copy, and asserts against the real journals afterwards that nothing leaked. Before this existed the harness inserted probes into the production journal with real ids; soft delete left them in the archive for good, burning 21 spec ids and once racing a genuine insert into `Duplicate id`.
+
+## One-off maintenance
+
+- `purge-probe-records.ps1` - removes rows that are simultaneously status `Archived` and named `^preview-tests-probe`, recording each id in the burned registry first. Idempotent. Deliberately narrow: a general `-Purge` switch on `delete.ps1` was rejected, because it would put an irreversible operation into production tooling to compensate for a test defect.
 
 ## Release plan (`PLAN/RELEASE_QUEUE.md` + `PLAN/RELEASE_READY.md`)
 

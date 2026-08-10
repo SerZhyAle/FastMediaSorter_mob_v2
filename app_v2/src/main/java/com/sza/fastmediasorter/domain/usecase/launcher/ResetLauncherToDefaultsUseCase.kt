@@ -81,6 +81,7 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
                 launcherTaskbarShowPinned = defaults.launcherTaskbarShowPinned,
                 launcherTaskbarShowTray = defaults.launcherTaskbarShowTray,
                 launcherReplaceSystemStatusArea = defaults.launcherReplaceSystemStatusArea,
+                launcherTopStatusStripMode = defaults.launcherTopStatusStripMode,
                 launcherTrayShowClock = defaults.launcherTrayShowClock,
                 launcherTrayShowBluetooth = defaults.launcherTrayShowBluetooth,
                 launcherTrayShowSim1 = defaults.launcherTrayShowSim1,

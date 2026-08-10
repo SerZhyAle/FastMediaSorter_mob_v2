@@ -59,6 +59,8 @@ For flavors that talk to cloud OAuth providers (OneDrive / MSAL, Google Drive, D
 
 Why it stays silent: nobody routinely runs unit tests on the reduced flavors, so a break there surfaces only when a release gate asks for them. `docs/RELEASE_READINESS_STANDARD.md` requires `PermissionRegistryManifestParityTest` on `lite` and `noLegal` as a release blocker; while `lite` unit tests did not compile, that blocker could not run on the very flavor whose permission set differs most.
 
+Enforced by `scripts/quality/assert-shared-test-flavor-scope.ps1` (S1453), which runs in the fast-gates batch. It refuses both halves of this rule: a shared test referencing a flavor-scoped type, and a capability test set whose mount list drifted from its main counterpart's.
+
 ## 3. AGENT BEHAVIOR & SKILLS
 
 When an AI Agent is tasked with creating a feature for a non-STANDARD build:

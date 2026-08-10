@@ -342,6 +342,9 @@ class DeviceProfilePresetApplier @Inject constructor(
             "launcherReplaceSystemStatusArea" -> applyLauncherField(field, raw, settings) { s ->
                 s.copy(launcherReplaceSystemStatusArea = raw.toBool())
             }
+            "launcherTopStatusStripMode" -> applyLauncherField(field, raw, settings) { s ->
+                s.copy(launcherTopStatusStripMode = raw.toBool())
+            }
             "launcherTrayShowClock" -> applyLauncherField(field, raw, settings) { s ->
                 s.copy(launcherTrayShowClock = raw.toBool())
             }

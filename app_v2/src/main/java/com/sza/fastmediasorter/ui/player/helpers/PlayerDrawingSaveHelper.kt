@@ -13,11 +13,12 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -105,7 +106,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
                 activity.viewModel.deleteCurrentFileAndFinish()
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundTo(activity)
     }
 
     private fun requestDrawSave(mode: DrawSaveMode, overlayBitmap: Bitmap) {
@@ -406,7 +407,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
             .setNegativeButton(android.R.string.cancel, null)
             .create()
 
-        dialog.show()
+        dialog.showBoundTo(activity)
 
         val positiveButton = dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE)
         val validate = {

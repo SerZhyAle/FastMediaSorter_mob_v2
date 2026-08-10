@@ -127,7 +127,11 @@ $archived = [pscustomobject]@{
 if ($old.PSObject.Properties.Name -contains 'tier' -and $null -ne $old.tier -and "$($old.tier)" -ne '') {
     $archived | Add-Member -NotePropertyName 'tier' -NotePropertyValue ([int]$old.tier)
 }
-$fixedKeys = @('id','name','status','priority','tier','file','created','updated')
+# 'statusNote' is dropped, not carried over: it describes what a Block* status is waiting for, and
+# Archived waits for nothing. update.ps1 already auto-clears it when leaving Block*, so archiving a
+# BlockQuestions/BlockExternal ticket directly used to be the one path that froze a stale "owner
+# decision needed" note into the archive journal forever (found archiving S1186 from BlockQuestions).
+$fixedKeys = @('id','name','status','priority','tier','file','created','updated','statusNote')
 foreach ($prop in $old.PSObject.Properties) {
     if ($fixedKeys -notcontains $prop.Name -and -not ($archived.PSObject.Properties.Name -contains $prop.Name)) {
         $archived | Add-Member -NotePropertyName $prop.Name -NotePropertyValue $prop.Value

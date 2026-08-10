@@ -94,6 +94,7 @@ import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
 import com.sza.fastmediasorter.util.getPackageInfoCompat
+import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
@@ -1007,7 +1008,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     .setMessage(R.string.resource_share_credentials_warning)
                     .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.exportResourceForShare(resource) }
                     .setNegativeButton(android.R.string.cancel, null)
-                    .show()
+                    .showBoundToHost(this@MainActivity)
             },
             onShareSftpAccessClick = { resource ->
                 sftpShareManager.show(resource) { includePassword, method ->

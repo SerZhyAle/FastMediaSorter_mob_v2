@@ -34,6 +34,7 @@ import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.util.getApplicationInfoCompat
+import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -253,7 +254,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
                     ).show()
                 }
                 .setNegativeButton(android.R.string.cancel, null)
-                .show()
+                .showBoundTo(this@PlaybackSettingsFragment)
         }
 
         // Help for command panel is now inline on rowShowCommandPanel (folded by SettingsToggleRow).
@@ -661,7 +662,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
                 prefs.edit().putBoolean(KEY_HAS_SHOWN_BATTERY_HINT, true).apply()
             }
             .setCancelable(false)
-            .show()
+            .showBoundTo(this@PlaybackSettingsFragment)
     }
 
     private fun getSortModeName(mode: SortMode): String {

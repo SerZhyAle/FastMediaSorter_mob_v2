@@ -404,6 +404,131 @@
         <item name="cornerRadius">4dp</item>
     </style>
 
+    <!-- S1433: Network Monitor summary tiles. Factored into styles because the portrait and landscape grids
+         differ only in column count and focus chain - everything else has to stay identical between them, and
+         a shared style is the only version of "identical" that survives an edit to one file. -->
+    <style name="Widget.FastMediaSorter.NetworkMonitor.Tile" parent="Widget.Material3.CardView.Outlined">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_columnWeight">1</item>
+        <item name="android:layout_gravity">fill_horizontal</item>
+        <item name="android:layout_margin">@dimen/margin_small</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:minHeight">@dimen/network_monitor_tile_min_height</item>
+        <item name="cardCornerRadius">@dimen/card_corner_radius</item>
+        <item name="cardElevation">@dimen/card_elevation_low</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.NetworkMonitor.TileContent" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">@dimen/margin_medium</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.NetworkMonitor.TileTitle" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/text_size_normal</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <!-- Status line is deliberately multi-line: the availability phrases are sentences, not badges, and
+         truncating "No such hardware on this device" would cost the honesty criterion 2 asks for. -->
+    <style name="Widget.FastMediaSorter.NetworkMonitor.TileStatus" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/margin_small</item>
+        <item name="android:textSize">@dimen/text_size_small</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <!-- S1433 subscreen furniture. Shared so a portrait layout and its landscape twin differ only in the
+         arrangement of the blocks, never in how a block looks - and so six subscreens cannot drift apart. -->
+    <style name="Widget.FastMediaSorter.NetworkMonitor.SectionHeading" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">@dimen/margin_small</item>
+        <item name="android:layout_marginTop">@dimen/margin_small</item>
+        <item name="android:textSize">@dimen/text_size_large</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.NetworkMonitor.Card" parent="Widget.Material3.CardView.Outlined">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_margin">@dimen/margin_small</item>
+        <item name="cardCornerRadius">@dimen/card_corner_radius</item>
+        <item name="cardElevation">@dimen/card_elevation_low</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.NetworkMonitor.CardContent" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">@dimen/margin_medium</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.NetworkMonitor.Row" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/margin_small</item>
+        <item name="android:baselineAligned">false</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.NetworkMonitor.RowLabel" parent="">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textSize">@dimen/text_size_small</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <!-- Values are end-aligned against start-aligned labels: the pairs read as two columns without a table,
+         which a ScrollView of cards cannot give and a landscape split would otherwise break. -->
+    <style name="Widget.FastMediaSorter.NetworkMonitor.RowValue" parent="">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">@dimen/margin_normal</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">end</item>
+        <item name="android:textSize">@dimen/text_size_small</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.NetworkMonitor.Note" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/margin_small</item>
+        <item name="android:textSize">@dimen/text_size_small</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.NetworkMonitor.ToggleRow" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.NetworkMonitor.ToggleLabel" parent="">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textSize">@dimen/text_size_normal</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.NetworkMonitor.Chart" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/network_monitor_chart_height</item>
+        <item name="android:layout_marginTop">@dimen/margin_small</item>
+    </style>
+
     <!--
       Theme overlay applied via theme.applyStyle() in PlayerActivity.onCreate (before super.onCreate)
       when AppSettings.useCompactElements == false. Swaps the player controls layout reference to the

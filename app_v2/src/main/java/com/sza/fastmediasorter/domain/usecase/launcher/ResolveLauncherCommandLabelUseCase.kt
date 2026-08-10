@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.core.net.toUri
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.launcher.LauncherSectionCatalog
@@ -11,11 +13,13 @@ import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
+import com.sza.fastmediasorter.data.launcher.LiveContactDataSource
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.icon.ResourceIconProvider
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactTarget
+import com.sza.fastmediasorter.domain.model.launcher.LauncherGeographicAction
 import com.sza.fastmediasorter.domain.radio.RadioKind
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
@@ -107,6 +111,7 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
     private val scheduledOperationRepository: ScheduledOperationRepository,
     private val resourceIconProvider: ResourceIconProvider,
     private val appShortcutDataSource: AppShortcutDataSource,
+    private val liveContactDataSource: LiveContactDataSource,
 ) {
 
     suspend operator fun invoke(
@@ -126,37 +131,73 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
                 // costs nothing and keeps the resolver total, which is what makes this `when` a
                 // compile-time check that a new command kind was considered everywhere.
                 is LauncherCellCommand.FavoriteFile -> favoriteFileVisual(command.filePath)
-                // S1176: the only command that already carries its own label. The snapshot IS the
-                // answer - re-deriving one would mean reading the address book, which is exactly the
-                // permission this feature exists to avoid (ADR-1).
                 is LauncherCellCommand.Contact -> contactVisual(command.target)
                 is LauncherCellCommand.LauncherAction -> launcherActionVisual(command.actionKey)
                 is LauncherCellCommand.PinnedShortcut -> pinnedShortcutVisual(command)
+                is LauncherCellCommand.Geographic -> geographicVisual(command)
                 is LauncherCellCommand.Section -> sectionVisual(command.sectionKey)
             }
         }
 
     /**
+     * S1206: the address book is asked first, and what it says wins - a person renamed in the system
+     * reaches the cell without the user re-pinning anything. The snapshot stored at pin time is the
+     * fallback, for a contact since deleted or a read the permission does not allow.
+     *
      * `iconRes` is null on purpose, exactly as it is for an installed app: the picture belongs to the
-     * person, and the cell binder draws their photo or a monogram (Phase 03). A generic glyph here would
-     * win the race and every contact would look alike.
+     * person, and the cell binder draws their photo or a monogram. A generic glyph here would win the
+     * race and every contact would look alike.
      *
      * A contact with no name is real - a number-only record - so it falls back to the number, and only
      * then to a generic caption. The label is never empty, because it is the only thing that tells two
      * monograms apart.
      */
-    private fun contactVisual(target: LauncherContactTarget): LauncherCommandVisual? {
+    private suspend fun contactVisual(target: LauncherContactTarget): LauncherCommandVisual? {
         if (!target.isUsable) return null
-        val label = target.displayName
+        // Every action captures a lookup key at pin time - a phone row carries Phone.LOOKUP_KEY and a
+        // messaging row Entity.LOOKUP_KEY - so all four kinds of cell follow the address book, not just
+        // the profile one. A cell whose stored key is blank keeps the snapshot without reading it.
+        val live = target.lookupKey.takeIf { it.isNotBlank() }?.let { liveContactDataSource.read(it) }
+        val label = live?.displayName.orEmpty()
+            .ifBlank { target.displayName }
             .ifBlank { target.phoneNumber }
             .ifBlank { context.getString(R.string.launcher_contact_cell_unnamed) }
+        val photoUri = live?.photoUri
+        val photo = photoUri?.let(::contactPhoto)
         return LauncherCommandVisual(
             label = label,
             iconRes = null,
-            // The lookup key first: it survives the person being renamed, so their colour does too.
-            monogramSeed = target.lookupKey.ifBlank { target.phoneNumber }.ifBlank { label },
+            iconDrawable = photo,
+            // Identity of the picture, not the picture itself: every resolution decodes a fresh
+            // Drawable, and the binder compares icons by this key (see LauncherCommandVisual).
+            iconKey = photo?.let { "${target.lookupKey}#$photoUri" },
+            // A seed and a photo are mutually exclusive - the binder hides the icon whenever a seed is
+            // set. The lookup key comes first: it survives the person being renamed, so their colour does.
+            monogramSeed = if (photo == null) {
+                target.lookupKey.ifBlank { target.phoneNumber }.ifBlank { label }
+            } else {
+                null
+            },
             spokenLabel = context.getString(spokenLabelRes(target.action), label),
         )
+    }
+
+    /**
+     * A photo the address book offers but cannot hand over is the same situation as a contact with no
+     * photo at all, so it degrades to the monogram instead of leaving the cell without a picture.
+     */
+    private fun contactPhoto(photoUri: String): Drawable? = runCatching {
+        context.contentResolver.openInputStream(photoUri.toUri())
+            ?.use { BitmapFactory.decodeStream(it) }
+            ?.let { bitmap ->
+                // Circular because the monogram it replaces is a disc in the same 44dp box: a square
+                // photo would make a contact cell change shape depending on who is on it.
+                RoundedBitmapDrawableFactory.create(context.resources, bitmap)
+                    .apply { isCircular = true }
+            }
+    }.getOrElse { error ->
+        Timber.i("Launcher contacts: photo unreadable (%s)", error.javaClass.simpleName)
+        null
     }
 
     /**
@@ -235,6 +276,17 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
             )
         }
     }
+
+    /** The glyph keeps a place-display fallback visibly distinct from route actions on the desktop. */
+    private fun geographicVisual(command: LauncherCellCommand.Geographic): LauncherCommandVisual =
+        LauncherCommandVisual(
+            label = command.label.ifBlank { command.query },
+            iconRes = when (command.action) {
+                LauncherGeographicAction.DIRECTIONS -> R.drawable.ic_compass
+                LauncherGeographicAction.NAVIGATION -> R.drawable.ic_speed
+                LauncherGeographicAction.SHOW_PLACE -> R.drawable.ic_pin
+            },
+        )
 
     private fun featureVisual(routeKey: String): LauncherCommandVisual? {
         val route = InternalRouteCatalog.byKey(routeKey) ?: return null

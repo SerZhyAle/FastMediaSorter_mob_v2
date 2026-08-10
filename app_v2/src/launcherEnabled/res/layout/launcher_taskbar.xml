@@ -112,66 +112,17 @@
         android:paddingStart="@dimen/launcher_taskbar_item_spacing"
         android:paddingEnd="@dimen/launcher_taskbar_item_spacing">
 
-        <!-- TextClock registers its own time/timezone receivers on attach and drops them on detach,
-             so the tray needs no clock lifecycle wiring and honours the 12/24h system setting. -->
-        <TextClock
+        <!-- S1431: clock and indicators are inflated from the shared definitions rather than declared
+             here, so the top strip draws the same set in the same order. The include ids repeat the
+             included roots' own ids on purpose - an include id replaces the root's id at inflation, and
+             repeating it keeps the inflated view named as it was before this seam existed. -->
+        <include
             android:id="@+id/trayClock"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="14sp"
-            tools:text="12:45" />
+            layout="@layout/launcher_status_clock" />
 
-        <!-- S1415: the six slots in the order the owner fixed (strategic §3.3) - clock, Bluetooth, SIM1,
-             SIM2, network type, battery. Bluetooth and the two SIM slots start GONE: each appears only once
-             its own source reports a value, so an unreadable indicator is absent rather than empty (ADR-1). -->
-        <ImageView
-            android:id="@+id/trayBluetooth"
-            android:layout_width="@dimen/launcher_tray_icon_size"
-            android:layout_height="@dimen/launcher_tray_icon_size"
-            android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
-            android:visibility="gone"
-            tools:src="@drawable/ic_bluetooth"
-            tools:visibility="visible" />
-
-        <ImageView
-            android:id="@+id/traySim1"
-            android:layout_width="@dimen/launcher_tray_icon_size"
-            android:layout_height="@dimen/launcher_tray_icon_size"
-            android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
-            android:visibility="gone"
-            tools:src="@drawable/ic_signal_cellular"
-            tools:visibility="visible" />
-
-        <ImageView
-            android:id="@+id/traySim2"
-            android:layout_width="@dimen/launcher_tray_icon_size"
-            android:layout_height="@dimen/launcher_tray_icon_size"
-            android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
-            android:visibility="gone"
-            tools:src="@drawable/ic_signal_cellular"
-            tools:visibility="visible" />
-
-        <ImageView
-            android:id="@+id/trayNetwork"
-            android:layout_width="@dimen/launcher_tray_icon_size"
-            android:layout_height="@dimen/launcher_tray_icon_size"
-            android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
-            tools:src="@drawable/ic_wifi" />
-
-        <TextView
-            android:id="@+id/trayBatteryLevel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/launcher_tray_battery_outline"
-            android:paddingStart="4dp"
-            android:paddingTop="1dp"
-            android:paddingEnd="4dp"
-            android:paddingBottom="1dp"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="12sp"
-            tools:text="86" />
+        <include
+            android:id="@+id/trayIndicators"
+            layout="@layout/launcher_status_indicators" />
 
     </LinearLayout>
 

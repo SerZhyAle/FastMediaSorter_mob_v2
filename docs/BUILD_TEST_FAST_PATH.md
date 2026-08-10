@@ -45,6 +45,8 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 | `a.ps1 dq` | 18.4 s | foreground |
 | `a.ps1 d` / `dav` / `r` / `fu` | not measured | background |
 
+Since that measurement `fg` gained one gate: `assert-shared-test-flavor-scope` (S1453) at 1.4-1.9 s, which puts the batch around 20 s and still an order of magnitude below the 120 s threshold. The row above is left at its 2026-08-01 value rather than restated, because the only re-run available on 2026-08-09 read 46.1 s wall with two sibling sessions holding `BUILD.LOCK` for gradle - a measurement of contention, not of the batch.
+
 Two caveats, recorded rather than smoothed over:
 
 - The `fk` / `fc` / `dq` figures are runs that stopped at a **kapt failure** from another ticket's

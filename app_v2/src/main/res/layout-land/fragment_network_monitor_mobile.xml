@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1433 Mobile subscreen, landscape. Same blocks and the same ids as portrait: the facts and the system
+     action on the left, the two SIM charts on the right, so both charts stay visible on a short screen. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobileSectionScroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:padding="@dimen/margin_small">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+            android:text="@string/network_monitor_section_mobile" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                        <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                            <TextView
+                                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                                android:text="@string/network_monitor_mobile_modems_label" />
+
+                            <TextView
+                                android:id="@+id/mobileModemCountValue"
+                                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                                tools:text="2" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/mobileNoControlNote"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                            android:text="@string/network_monitor_mobile_no_control" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnMobileOpenSystem"
+                            style="@style/Widget.FastMediaSorter.Button.Filled"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="@string/network_monitor_mobile_open_system"
+                            app:icon="@drawable/ic_settings" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                        <TextView
+                            android:id="@+id/mobileSimsAvailability"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                            android:visibility="gone"
+                            tools:text="@string/network_monitor_status_no_permission"
+                            tools:visibility="visible" />
+
+                        <LinearLayout
+                            android:id="@+id/mobileSim1Group"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                            <TextView
+                                android:id="@+id/mobileSim1Label"
+                                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                                tools:text="SIM 1" />
+
+                            <TextView
+                                android:id="@+id/mobileSim1Value"
+                                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                                tools:text="Operator" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/mobileSim2Group"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                            <TextView
+                                android:id="@+id/mobileSim2Label"
+                                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                                tools:text="SIM 2" />
+
+                            <TextView
+                                android:id="@+id/mobileSim2Value"
+                                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                                tools:text="Operator" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/mobileSim1Chart"
+                    layout="@layout/view_network_monitor_signal_chart" />
+
+                <include
+                    android:id="@+id/mobileSim2Chart"
+                    layout="@layout/view_network_monitor_signal_chart" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

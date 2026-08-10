@@ -5,6 +5,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
+import com.sza.fastmediasorter.util.showBoundToHost
 
 internal class BrowseFeedbackDialogManager(
     private val activity: AppCompatActivity,
@@ -22,8 +23,8 @@ internal class BrowseFeedbackDialogManager(
             }
         }
 
-        val dialog = dialogBuilder.show()
-        com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
+        val dialog = dialogBuilder.showBoundToHost(activity)
+        dialog?.let { com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(it) }
     }
 
     fun showCloudAuthenticationDialog(
@@ -47,7 +48,7 @@ internal class BrowseFeedbackDialogManager(
             .setNeutralButton(activity.getString(R.string.remove_resource)) { _, _ ->
                 onRemoveResource()
             }
-            .show()
+            .showBoundToHost(activity)
     }
 
     private fun showErrorDetailsDialog(details: String) {

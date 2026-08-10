@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.domain.usecase.link.YtMusicAudioOnlyContract
 import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
+import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -216,7 +217,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                 }
                 toast(R.string.s0151_toast_content_unavailable)
             }
-            .show()
+            .showBoundToHost(hostActivity)
     }
 
     private fun showBatchSummary(
@@ -246,7 +247,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
             .setTitle(R.string.s0117_batch_dialog_title)
             .setMessage(lines.joinToString("\n"))
             .setPositiveButton(android.R.string.ok, null)
-            .show()
+            .showBoundToHost(hostActivity)
     }
 
     private fun renderFailureReason(failure: LinkAutoDownloadCoordinator.Result.Failed): String {
@@ -341,7 +342,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                 if (cctChecker.isAvailable()) onRetry() else showCctUnavailableDialog(hostActivity, onRetry)
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(hostActivity)
     }
 
     private companion object {

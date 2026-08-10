@@ -1,5 +1,8 @@
 package com.sza.fastmediasorter.util
 
+import android.app.Dialog
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -24,22 +27,7 @@ import timber.log.Timber
 fun AlertDialog.Builder.showBoundTo(owner: LifecycleOwner): AlertDialog? {
     val lifecycle = owner.lifecycle
     if (lifecycle.currentState == Lifecycle.State.DESTROYED) return null
-    val dialog = show()
-    Timber.d("S1447: dialog bound to ${owner.javaClass.simpleName} (state ${lifecycle.currentState})")
-    // Deregistration happens in onDestroy rather than from an OnDismissListener: a listener set here
-    // would silently overwrite the caller's own, which several settings helpers rely on to revert
-    // their row when the dialog is cancelled. A dismissed dialog is therefore held until the owner
-    // dies - one dead object on a lifecycle that is about to be collected anyway.
-    lifecycle.addObserver(
-        object : DefaultLifecycleObserver {
-            override fun onDestroy(owner: LifecycleOwner) {
-                Timber.d("S1447: owner destroyed, dialog showing=${dialog.isShowing}")
-                if (dialog.isShowing) dialog.dismiss()
-                owner.lifecycle.removeObserver(this)
-            }
-        }
-    )
-    return dialog
+    return show().bindTo(owner)
 }
 
 /**
@@ -49,3 +37,131 @@ fun AlertDialog.Builder.showBoundTo(owner: LifecycleOwner): AlertDialog? {
  */
 fun AlertDialog.Builder.showBoundTo(fragment: Fragment): AlertDialog? =
     showBoundTo(fragment.viewLifecycleOwnerLiveData.value ?: fragment)
+
+/**
+ * Show this already-created dialog and close it automatically when [owner] reaches `ON_DESTROY`.
+ *
+ * The builder overloads cover a fluent chain. A site that needs the dialog before it is shown - to
+ * attach a keyboard delegate, to disable a button, to reach a bound view - calls `create()` instead
+ * and shows the result on its own line, which no extension on the builder can reach (S1456).
+ *
+ * @return the shown dialog, or `null` when [owner] is already destroyed and showing would leak at once.
+ */
+fun AlertDialog.showBoundTo(owner: LifecycleOwner): AlertDialog? {
+    if (owner.lifecycle.currentState == Lifecycle.State.DESTROYED) return null
+    show()
+    return bindTo(owner)
+}
+
+/**
+ * [showBoundTo] for a created dialog raised from a fragment view, following the same view-lifecycle
+ * preference as the builder overload above.
+ */
+fun AlertDialog.showBoundTo(fragment: Fragment): AlertDialog? =
+    showBoundTo(fragment.viewLifecycleOwnerLiveData.value ?: fragment)
+
+/**
+ * [showBoundTo] with the owner resolved from [context] instead of passed in.
+ *
+ * Many helpers hold a plain [Context] or an `android.app.Activity`, and neither is a [LifecycleOwner],
+ * so they cannot name an owner without a constructor change. Unwrapping the [ContextWrapper] chain
+ * finds the hosting activity, which a dialog context already has to be - a dialog raised on an
+ * application context never gets a window token in the first place.
+ *
+ * Named apart from [showBoundTo] rather than added as a third overload: `Context` and `LifecycleOwner`
+ * are unrelated types, so an activity argument would be ambiguous between them.
+ */
+fun AlertDialog.Builder.showBoundToHost(context: Context): AlertDialog? {
+    val owner = context.findLifecycleOwner()
+    if (owner == null) {
+        Timber.w("showBoundToHost: no LifecycleOwner behind ${context.javaClass.simpleName}, dialog stays unbound")
+        return show()
+    }
+    return showBoundTo(owner)
+}
+
+/**
+ * [showBoundToHost] for a dialog that was already created, the shape a site takes when it configures
+ * the dialog before showing it.
+ */
+fun AlertDialog.showBoundToHost(context: Context): AlertDialog? {
+    val owner = context.findLifecycleOwner()
+    if (owner == null) {
+        Timber.w("showBoundToHost: no LifecycleOwner behind ${context.javaClass.simpleName}, dialog stays unbound")
+        show()
+        return this
+    }
+    return showBoundTo(owner)
+}
+
+/**
+ * [showBoundToHost] for a builder of the platform `android.app.AlertDialog`, which a handful of older
+ * screens still use.
+ *
+ * Migrating those screens to the AppCompat dialog would change how they look, which this binding
+ * deliberately does not do (S1456): the leak is fixed where it is, and the dialog type stays.
+ */
+fun android.app.AlertDialog.Builder.showBoundToHost(context: Context): android.app.AlertDialog? {
+    val owner = context.findLifecycleOwner()
+    if (owner == null) {
+        Timber.w("showBoundToHost: no LifecycleOwner behind ${context.javaClass.simpleName}, dialog stays unbound")
+        return show()
+    }
+    return if (owner.lifecycle.currentState == Lifecycle.State.DESTROYED) null else show().bindTo(owner)
+}
+
+/**
+ * [showBoundToHost] for an already-created platform `android.app.AlertDialog`.
+ */
+fun android.app.AlertDialog.showBoundToHost(context: Context): android.app.AlertDialog? {
+    val owner = context.findLifecycleOwner()
+    if (owner == null) {
+        Timber.w("showBoundToHost: no LifecycleOwner behind ${context.javaClass.simpleName}, dialog stays unbound")
+        show()
+        return this
+    }
+    return if (owner.lifecycle.currentState == Lifecycle.State.DESTROYED) {
+        null
+    } else {
+        show()
+        bindTo(owner)
+    }
+}
+
+/**
+ * First [LifecycleOwner] in this context's wrapper chain, or `null` when the chain reaches the
+ * application context without passing one.
+ */
+private fun Context.findLifecycleOwner(): LifecycleOwner? {
+    var current: Context? = this
+    while (current != null) {
+        if (current is LifecycleOwner) return current
+        current = (current as? ContextWrapper)?.baseContext
+    }
+    return null
+}
+
+/**
+ * Register the `ON_DESTROY` dismissal shared by every `showBoundTo` receiver.
+ *
+ * Generic over [Dialog] rather than written twice: the AppCompat dialog and the platform one share
+ * no supertype below it, and the observer needs nothing either adds.
+ */
+private fun <T : Dialog> T.bindTo(owner: LifecycleOwner): T {
+    val lifecycle = owner.lifecycle
+    Timber.d("S1447: dialog bound to ${owner.javaClass.simpleName} (state ${lifecycle.currentState})")
+    // Deregistration happens in onDestroy rather than from an OnDismissListener: a listener set here
+    // would silently overwrite the caller's own, which several settings helpers rely on to revert
+    // their row when the dialog is cancelled. A dismissed dialog is therefore held until the owner
+    // dies - one dead object on a lifecycle that is about to be collected anyway.
+    lifecycle.addObserver(
+        object : DefaultLifecycleObserver {
+            override fun onDestroy(owner: LifecycleOwner) {
+                Timber.d("S1447: owner destroyed, dialog showing=$isShowing")
+                if (isShowing) dismiss()
+                owner.lifecycle.removeObserver(this)
+            }
+        }
+    )
+    return this
+}

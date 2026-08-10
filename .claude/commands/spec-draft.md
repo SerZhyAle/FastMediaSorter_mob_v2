@@ -100,7 +100,7 @@ Journal `name` is **bare slug** - no `spec_` prefix. Status stays `Draft`.
   - List every attachment from step 4 as bullet: `- <caption> - PLAN/<Sxxxx>_<short-name>/attachments/<file>` (or linked repo path). If none, omit **Вложения:** block entirely.
   - Optionally add `**Захвачено во время:**  <Sxxxx-активного-тикета>` only if active ticket is obvious from context - never guess.
 - Leave §1-§12 as template placeholders. Do NOT distill §0 into §1 here - happens later during `/spec` or `/spec-update`.
-- Do NOT run `..`/`ё`/lists-over-tables sanitation (Draft exempt - sanitation is Draft→Approved gate, not drafting friction). Do NOT emit §3.3 owner-input detection (belongs to Approval gate).
+- Do NOT run `..`/`ё`/lists-over-tables sanitation. Not a deferral: the house text style does not apply to specification files at all, at any status - the canon's scope list excludes specs by name, next to code, commands and logs, and no gate checks a spec's punctuation at any transition (S1543). Do NOT emit §3.3 owner-input detection (belongs to Approval gate).
 
 **6 - Dev log.**
 
@@ -137,7 +137,7 @@ Both skeletons live in `.claude/templates/` - read the one step 5 selected befor
 - Status stays `Draft`. No auto-approve, no Approval-gate fields beyond `Related tickets`, no `/spec-tech` chaining.
 - Non-disruptive side-task capture. No build, no `catalog_sync.ps1` (no `.kt` touched), no string audits. Do not abandon or switch ticket user was working on - capture, then resume it.
 - Capture fidelity: user's text goes into §0 verbatim (no rewriting, original language); every attachment persisted/linked. Nothing user dropped may be dropped.
-- No sanitation sweep: Draft specs may keep rough phrasing, `...`, missing `ё`, tables. Cleanup at Draft → Approved, not here.
+- No sanitation sweep: specs may keep rough phrasing, `...`, missing `ё`, tables - at Draft and at every later status. No stage performs that cleanup, because the house text style does not cover specification files (S1543); the verbatim-capture guarantee above is only keepable while that stays true.
 - §5: no class names, file paths, line budgets, Room versions, Hilt modules - architectural roles only (when skeleton later filled).
 - Repo boundaries: per CLAUDE.md Rule 4 (read-only zones) - obey it as written.
 - Body Russian, frontmatter/identifiers/paths English.

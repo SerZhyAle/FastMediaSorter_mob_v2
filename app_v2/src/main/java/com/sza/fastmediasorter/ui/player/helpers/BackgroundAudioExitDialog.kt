@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.showBoundToHost
 
 /**
  * The 4-item background-audio exit dialog (Stop / Keep Playing / Always Stop / Always Continue),
@@ -34,6 +35,6 @@ object BackgroundAudioExitDialog {
                     3 -> onAlwaysContinue()
                 }
             }
-            .show()
+            .showBoundToHost(context)
     }
 }

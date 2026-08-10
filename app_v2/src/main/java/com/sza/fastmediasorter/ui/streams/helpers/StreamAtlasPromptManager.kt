@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DownloadProgress
 import com.sza.fastmediasorter.domain.delivery.ExtensionItem
 import com.sza.fastmediasorter.domain.delivery.ExtensionStatus
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -108,7 +109,7 @@ class StreamAtlasPromptManager(
                     if (!accepted) offered = false
                     onOfferSettled?.invoke()
                 }
-                .show()
+                .showBoundToHost(context)
         }
     }
 

@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -156,7 +157,7 @@ internal class AddResourceScanManager(
         setupCollapsibleFolderSections(dialogView)
         populateRemovableVolumes(dialogView, dialog, useSafOnly)
 
-        dialog.show()
+        dialog.showBoundToHost(activity)
     }
 
     /**
@@ -222,7 +223,7 @@ internal class AddResourceScanManager(
                 folderPickerLauncher.launch(null)
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     /**
@@ -348,7 +349,7 @@ internal class AddResourceScanManager(
         btnSelectCurrent?.setOnClickListener { selectFolderByPath(currentPath, dialog) }
         btnCancel?.setOnClickListener { dialog.dismiss() }
 
-        dialog.show()
+        dialog.showBoundToHost(activity)
     }
 
     private fun loadFolders(path: String, folders: MutableList<String>, adapter: androidx.recyclerview.widget.RecyclerView.Adapter<*>) {
@@ -389,6 +390,6 @@ internal class AddResourceScanManager(
             }
             .setNegativeButton(android.R.string.cancel, null)
             .setCancelable(true)
-            .show()
+            .showBoundToHost(activity)
     }
 }

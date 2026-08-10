@@ -3182,6 +3182,7 @@
     <ID>LargeClass:GoogleDriveRestClient.kt$GoogleDriveRestClient : CloudStorageClient</ID>
     <ID>LargeClass:ImageLoadingManager.kt$ImageLoadingManager</ID>
     <ID>LargeClass:IntegrationTestRunner.kt$IntegrationTestRunner</ID>
+    <ID>LargeClass:LauncherHomeActivity.kt$LauncherHomeActivity : BaseActivity</ID>
     <ID>LargeClass:MainActivity.kt$MainActivity : BaseActivity</ID>
     <ID>LargeClass:PdfViewerManager.kt$PdfViewerManager : BaseDocumentViewerManager</ID>
     <ID>LargeClass:PhotoVideoStandaloneActivity.kt$PhotoVideoStandaloneActivity : BaseActivityPlayerHostCapabilitiesPlayerActionHostSelfManagedScreenOrientationSharePrintHost</ID>

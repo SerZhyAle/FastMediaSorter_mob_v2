@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -386,7 +387,7 @@ class BrowseCameraCaptureManager(
             }
             .setNegativeButton(R.string.cancel) { _, _ -> tempFile.delete() }
             .setOnCancelListener { tempFile.delete() }
-            .show()
+            .showBoundToHost(activity)
     }
 
     // endregion

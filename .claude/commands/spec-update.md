@@ -33,7 +33,7 @@ Targets:
 
 - Strategic body: Russian. Tactical body: English. No mixed sentences.
 - `..` not `...`; `ё`/`Ё` in Russian where grammatically correct.
-- Style timing: `..`/`ё` and Spec Writing Style sanitation are enforced gate only at `Draft` -> `Approved`. Target in `Draft` -> do not raise ellipsis / `ё` / table-vs-list / section-summary findings (drafting may stay rough); apply this hygiene as part of explicit promotion to `Approved`, never a standalone draft sweep. Language correctness for `Approved`+ specs enforced as before.
+- Style timing: never raise an ellipsis or `ё` finding on a spec file, at any status. The house text style does not cover specification files - the canon's scope list excludes specs by name - so no gate checks a spec's punctuation and no stage sweeps it (S1543). Spec Writing Style (lists over tables, no section summaries) remains an authoring standard with no gate behind it: raise it while a section is being rewritten anyway, never as a standalone sweep, and never on a `Draft`. Language correctness for `Approved`+ specs enforced as before.
 
 ### 2. `structure`
 

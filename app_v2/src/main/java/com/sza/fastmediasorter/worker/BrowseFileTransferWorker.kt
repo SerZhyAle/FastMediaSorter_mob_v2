@@ -15,6 +15,7 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.data.transfer.DirectoryOperationRefusal
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
@@ -489,8 +490,9 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         contentText: String,
         progressPercent: Int?,
     ): Notification {
+        Timber.d("S1399: browse file-transfer progress notification built with the branded status-bar icon")
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_cloud_download)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentTitle(notificationTitle(request?.operationType))
             .setContentText(contentText)
             .setOngoing(true)
@@ -528,7 +530,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
     ) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_cloud_download)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setAutoCancel(true)
             .setContentIntent(buildBrowsePendingIntent(request))
             .setTimeoutAfter(RESULT_TIMEOUT_MS)

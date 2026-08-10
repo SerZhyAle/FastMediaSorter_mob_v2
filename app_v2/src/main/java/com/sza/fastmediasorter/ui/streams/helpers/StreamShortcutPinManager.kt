@@ -33,7 +33,7 @@ class StreamShortcutPinManager(private val context: Context) {
         if (!ShortcutManagerCompat.isRequestPinShortcutSupported(context)) return false
         val icon = iconBitmap?.let { IconCompat.createWithBitmap(it) }
             ?: IconCompat.createWithResource(context, iconFor(source.mediaKind))
-        val info = ShortcutInfoCompat.Builder(context, "stream_${source.id}")
+        val info = ShortcutInfoCompat.Builder(context, "$SHORTCUT_ID_PREFIX${source.id}")
             .setShortLabel(source.title)
             .setLongLabel(source.title)
             .setIcon(icon)
@@ -45,4 +45,13 @@ class StreamShortcutPinManager(private val context: Context) {
     // Mirrors StreamSourceAdapter.kindIcon so the shortcut icon matches the channel's row icon.
     private fun iconFor(mediaKind: String): Int =
         if (mediaKind == "AUDIO") R.drawable.ic_audio else R.drawable.ic_video
+
+    companion object {
+
+        /**
+         * S1471: shared with MigrateStreamShortcutsUseCase, which recognises this ticket's stale pins by
+         * this prefix. Duplicating the literal there would let the two id schemes drift apart silently.
+         */
+        const val SHORTCUT_ID_PREFIX = "stream_"
+    }
 }

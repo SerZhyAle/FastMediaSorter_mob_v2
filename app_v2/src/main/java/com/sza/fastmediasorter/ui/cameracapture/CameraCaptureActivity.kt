@@ -264,6 +264,7 @@ class CameraCaptureActivity :
             onGridToggled = ::renderGridOverlay,
             onAspectRatioApplied = ::handleAspectRatioApplied,
             rotationBucket = orientationManager.rotationBucket,
+            onManualStateChanged = ::renderProfileButton,
         )
     }
 
@@ -397,15 +398,30 @@ class CameraCaptureActivity :
         val offered = flowManager.availableProfiles().size > 1 && !flowManager.isVideoMode
         Timber.d("S1262: button offered=%b available=%s", offered, flowManager.availableProfiles())
         binding.btnCameraProfile.visibility = if (offered) View.VISIBLE else View.GONE
-        if (!offered) return
         val profile = flowManager.activeProfile
-        val description = getString(
-            R.string.camera_profile_button,
-            getString(CameraProfilePresentation.labelRes(profile)),
+        val manual = CameraProfilePresentation.isManual(
+            profile,
+            sessionManager.currentExposureCompensationIndex,
+            sessionManager.currentWhiteBalanceMode,
         )
-        binding.btnCameraProfile.setIconResource(CameraProfilePresentation.iconRes(profile))
-        binding.btnCameraProfile.contentDescription = description
-        binding.btnCameraProfile.tooltipText = description
+        Timber.d("S1418: profile=%s manual=%b offered=%b", profile, manual, offered)
+        if (offered) {
+            val description = getString(
+                R.string.camera_profile_button,
+                getString(CameraProfilePresentation.labelRes(profile, manual)),
+            )
+            binding.btnCameraProfile.setIconResource(CameraProfilePresentation.iconRes(profile))
+            binding.btnCameraProfile.contentDescription = description
+            binding.btnCameraProfile.tooltipText = description
+        }
+        // S1418: when the device offers only NORMAL the profile button is hidden (ADR-3), so the
+        // settings button - always visible, and the very place exposure and white balance are edited -
+        // becomes the only carrier the manual state has.
+        val settingsDescription = getString(
+            if (manual && !offered) R.string.camera_settings_button_manual else R.string.camera_settings_title,
+        )
+        binding.btnCameraSettings.contentDescription = settingsDescription
+        binding.btnCameraSettings.tooltipText = settingsDescription
     }
 
     /** S1262: the anchored profile menu - one checkable row per profile the bound lens can honour. */

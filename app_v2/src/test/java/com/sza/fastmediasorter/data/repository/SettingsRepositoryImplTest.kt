@@ -19,7 +19,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -138,26 +137,26 @@ class SettingsRepositoryImplTest {
     // write lands.
     @Test
     fun `updateSettings transform overload serializes concurrent writers - no lost update`() = runTest {
-        val state = MutableStateFlow(AppSettings(enableOcr = false, enableTranslation = false))
-        every { repo.getSettings() } returns state
-        coEvery { repo.updateSettings(any<AppSettings>()) } coAnswers {
-            state.value = it.invocation.args[0] as AppSettings
-        }
+        val realRepo = SettingsRepositoryImpl(
+            RuntimeEnvironment.getApplication(),
+            realDataStore("s0876_concurrent_settings.preferences_pb")
+        )
 
         val writerA = launch {
-            repo.updateSettings { current ->
-                delay(50) // holds transformMutex, forcing writer B to queue behind this transform
+            realRepo.updateSettings { current ->
+                delay(50) // holds the settings mutex, forcing writer B to queue behind this transform
                 current.copy(enableOcr = true)
             }
         }
         val writerB = launch {
-            repo.updateSettings { current -> current.copy(enableTranslation = true) }
+            realRepo.updateSettings { current -> current.copy(enableTranslation = true) }
         }
         writerA.join()
         writerB.join()
 
-        assertTrue("writer A's field must survive writer B's write", state.value.enableOcr)
-        assertTrue("writer B's field must survive writer A's write", state.value.enableTranslation)
+        val result = realRepo.getSettings().first()
+        assertTrue("writer A's field must survive writer B's write", result.enableOcr)
+        assertTrue("writer B's field must survive writer A's write", result.enableTranslation)
     }
 
     // S1045: secureSensitiveScreens must default to true on a fresh install (absent key) and

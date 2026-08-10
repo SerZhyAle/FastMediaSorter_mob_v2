@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.launcher.grid
 
 import android.content.res.ColorStateList
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
@@ -39,14 +40,31 @@ class LauncherCellViewBinder(
     // nothing to expand keeps behaving like an ordinary un-long-pressable cell.
     private val onCellLongPress: (View, LauncherCellUi) -> Boolean = { _, _ -> false },
     private val onAttachResizeHandle: (handle: android.view.View, cellUi: LauncherCellUi) -> Unit = { _, _ -> },
+    // S1428: a tap on a section header folds it shut or opens it again. It is the header's only gesture -
+    // strategic §6.8 ruled it explicitly not long-pressable.
+    private val onSectionClick: (LauncherCellUi) -> Unit = {},
 ) {
 
     /** Set by the host to inject a gadget's view into its cell; null renders an empty frame. */
     var gadgetBinder: ((LauncherCellUi, FrameLayout) -> Unit)? = null
 
-    private var lastBound: Triple<List<LauncherCellUi>, Int, Boolean>? = null
+    /**
+     * S1428: everything the rendered tree is a pure function of, in one named type.
+     *
+     * It replaced a `Triple` plus a loose `lastRows` field: `Triple` holds exactly three values, so the
+     * row count already had to live beside it, and collapsed-state would have been a third parallel
+     * field to keep in step with the other two. A property is now the only way to join the key, which is
+     * what strategic §5.1.6 asks of every future input as well.
+     */
+    private data class RenderKey(
+        val cells: List<LauncherCellUi>,
+        val columns: Int,
+        val editMode: Boolean,
+        val rows: Int,
+        val collapsedSections: Set<String>,
+    )
 
-    private var lastRows: Int = 0
+    private var lastKey: RenderKey? = null
 
     /**
      * Rebuilds the desktop. Cheap to call repeatedly by design: the rendered tree is a pure function of
@@ -64,32 +82,51 @@ class LauncherCellViewBinder(
         columns: Int,
         editMode: Boolean = false,
         viewportRows: Int = 0,
+        collapsedSections: Set<String> = emptySet(),
     ) {
-        val rows = rowsToShow(cells, editMode, viewportRows)
+        // S1428: every section is drawn expanded while arranging. A drop maps a pixel row straight to a
+        // stored row (LauncherEditModeManager -> LauncherDesktopLayout.cellAt -> moveCell), so folding
+        // rows away mid-edit would land each dragged cell exactly that many rows off - and collapsing is
+        // what the desktop looks like, never what it stores (strategic §5.1.6). Folding here rather than
+        // at the guard is also what keeps a toggle made while editing from rebuilding an identical tree.
+        val foldedSections = if (editMode) emptySet() else collapsedSections
+        val plan = LauncherGridGeometry.renderPlan(cells, foldedSections)
+        val rows = rowsToShow(plan, editMode, viewportRows)
         // The row count joins the guard rather than [viewportRows] itself: a viewport that changed
         // without changing how many rows are drawn - a few pixels of inset, a rotation on a square
         // screen - must not tear down every gadget for an identical render.
-        if (lastBound == Triple(cells, columns, editMode) && lastRows == rows) return
-        lastBound = Triple(cells, columns, editMode)
-        lastRows = rows
+        val key = RenderKey(cells, columns, editMode, rows, foldedSections)
+        if (lastKey == key) return
+        lastKey = key
         Timber.d("S1173: desktop render cells=%d editMode=%b", cells.size, editMode)
         Timber.d("S1288: desktop rows=%d viewportRows=%d editMode=%b", rows, viewportRows, editMode)
+        Timber.d(
+            "S1428: render folded=%d drawn=%d of %d cells editMode=%b",
+            foldedSections.size,
+            plan.size,
+            cells.size,
+            editMode,
+        )
         container.removeAllViews()
         container.columns = columns
         container.rows = rows
         val inflater = LayoutInflater.from(container.context)
-        cells.forEach { item ->
+        plan.forEach { rendered ->
+            val item = rendered.item
             val view = when (item.cell.kind) {
                 LauncherCellKind.SHORTCUT -> bindShortcut(inflater, container, item)
                 LauncherCellKind.GADGET -> bindGadget(inflater, container, item)
-                LauncherCellKind.SECTION -> bindSection(inflater, container, item)
+                LauncherCellKind.SECTION ->
+                    bindSection(inflater, container, item, item.cell.target in foldedSections)
             }
             applyCellSurface(view, item, editMode)
             if (editMode) decorateForEdit(inflater, view, item)
             container.addView(
                 view,
                 LauncherDesktopLayout.CellLayoutParams(
-                    row = item.cell.rowIndex,
+                    // S1428: the drawn row, not the stored one - collapsing lifts everything below a
+                    // folded section without rewriting a single position (strategic §5.1.6).
+                    row = rendered.renderRow,
                     col = item.cell.colIndex,
                     // S1428: not the stored span - a section header is widened to the live column
                     // count here, by the same helper the empty-slot sweep uses, so layout and
@@ -99,7 +136,7 @@ class LauncherCellViewBinder(
                 ),
             )
         }
-        if (editMode) addEmptySlots(inflater, container, cells, columns)
+        if (editMode) addEmptySlots(inflater, container, plan, columns)
     }
 
     /**
@@ -141,8 +178,12 @@ class LauncherCellViewBinder(
      * At rest it is exactly as tall as its content: empty squares are an editing affordance, not part
      * of the desktop, so [viewportRows] is deliberately ignored outside edit mode.
      */
-    private fun rowsToShow(cells: List<LauncherCellUi>, editMode: Boolean, viewportRows: Int): Int {
-        val occupied = LauncherGridGeometry.rowsFor(cells.map { it.cell })
+    private fun rowsToShow(
+        plan: List<LauncherGridGeometry.RenderedCell>,
+        editMode: Boolean,
+        viewportRows: Int,
+    ): Int {
+        val occupied = LauncherGridGeometry.rowsForRendered(plan)
         if (!editMode) return occupied
         return maxOf(occupied + SPARE_EDIT_ROWS, viewportRows)
     }
@@ -155,14 +196,14 @@ class LauncherCellViewBinder(
     private fun addEmptySlots(
         inflater: LayoutInflater,
         container: LauncherDesktopLayout,
-        cells: List<LauncherCellUi>,
+        plan: List<LauncherGridGeometry.RenderedCell>,
         columns: Int,
     ) {
-        val taken = HashSet<Long>(cells.size * MAX_FOOTPRINT_SQUARES)
-        cells.forEach { item ->
+        val taken = HashSet<Long>(plan.size * MAX_FOOTPRINT_SQUARES)
+        plan.forEach { rendered ->
             // Same footprint the renderer lays out, from the same helper - a private copy of these
             // clamps here would mark a different square than the one on screen (see [footprint]).
-            val footprint = LauncherGridGeometry.footprintOf(item.cell, columns)
+            val footprint = LauncherGridGeometry.footprintOfRendered(rendered, columns)
             footprint.rows.forEach { r ->
                 footprint.cols.forEach { c -> taken.add(key(r, c)) }
             }
@@ -320,16 +361,42 @@ class LauncherCellViewBinder(
         inflater: LayoutInflater,
         container: LauncherDesktopLayout,
         item: LauncherCellUi,
+        collapsed: Boolean,
     ): android.view.View {
         val binding = ItemLauncherSectionHeaderBinding.inflate(inflater, container, false)
         val title = item.visual?.label
             ?: container.context.getString(R.string.launcher_home_cell_unavailable)
         binding.sectionTitle.text = title
-        // On the root, not the caption: the root is the focusable node, so this is what TalkBack reads,
-        // and it is also what the edit-mode remove badge quotes to say which section it would remove.
-        binding.root.contentDescription = title
         ViewCompat.setAccessibilityHeading(binding.root, true)
+        binding.root.setOnClickListener { onSectionClick(item) }
+        announceSectionState(binding.root, title, collapsed)
         return binding.root
+    }
+
+    /**
+     * S1428: whether the section is folded is state on a heading, not an action on it - strategic §6.8
+     * keeps the header explicitly not long-pressable, so nothing here may announce an action.
+     *
+     * Split by platform version the same way [CollapsibleSectionHeader] splits it: TalkBack does not read
+     * a state description below API 30, and the launcher ships to minSdk 26, so on those devices the
+     * state has to ride along in the content description or it is never spoken at all.
+     *
+     * Both go on the root rather than the caption: the root is the focusable node TalkBack reads, and it
+     * is also what the edit-mode remove badge quotes to say which section it would remove.
+     */
+    private fun announceSectionState(root: View, title: CharSequence, collapsed: Boolean) {
+        val stateRes = if (collapsed) {
+            R.string.collapsible_section_state_collapsed
+        } else {
+            R.string.collapsible_section_state_expanded
+        }
+        val stateText = root.context.getText(stateRes)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            root.contentDescription = title
+            ViewCompat.setStateDescription(root, stateText)
+        } else {
+            root.contentDescription = "$title, $stateText"
+        }
     }
 
     /**

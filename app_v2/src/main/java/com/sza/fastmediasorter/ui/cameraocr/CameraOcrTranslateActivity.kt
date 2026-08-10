@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.ui.player.helpers.openCalculatorForSelection
 import com.sza.fastmediasorter.ui.player.helpers.openGoogleSearch
+import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -96,7 +97,7 @@ class CameraOcrTranslateActivity :
                             .setPositiveButton(R.string.download) { _, _ -> onConfirm() }
                             .setNegativeButton(R.string.cancel) { _, _ -> onCancel() }
                             .setOnCancelListener { onCancel() }
-                            .show()
+                            .showBoundToHost(this@CameraOcrTranslateActivity)
                     }
                 }
             }
@@ -369,7 +370,7 @@ class CameraOcrTranslateActivity :
                     )
                 }
                 .setNegativeButton(R.string.cancel, null)
-                .show()
+                .showBoundToHost(this@CameraOcrTranslateActivity)
         }
     }
 

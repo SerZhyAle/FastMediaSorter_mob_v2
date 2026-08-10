@@ -3,7 +3,10 @@
 # Skips code blocks (``` fenced) and inline code (`...`).
 
 param(
-    [string[]]$Dirs = @("docs", "PLAN"),
+    # PLAN is deliberately absent: the house text style does not apply to specification files, so a
+    # bare invocation must not be able to rewrite verbatim owner capture (S1543). Pass -Dirs
+    # explicitly for a one-off pass over any other directory.
+    [string[]]$Dirs = @("docs"),
     [switch]$DryRun
 )
 

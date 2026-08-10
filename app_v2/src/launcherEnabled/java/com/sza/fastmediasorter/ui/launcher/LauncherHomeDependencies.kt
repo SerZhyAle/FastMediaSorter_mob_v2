@@ -17,7 +17,9 @@ import com.sza.fastmediasorter.domain.usecase.launcher.SeedLauncherDesktopUseCas
 import com.sza.fastmediasorter.domain.usecase.launcher.StartAppShortcutUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
 import com.sza.fastmediasorter.ui.main.helpers.ResourceScanCoordinator
 import javax.inject.Inject
 
@@ -69,4 +71,20 @@ class LauncherCellMenuDependencies @Inject constructor(
     // Removing a channel on the streams screen also drops its persisted last frame (S0712); a removal
     // from the desktop that skipped it would leave that file orphaned.
     val streamFrameStore: StreamFramePersistentStore,
+    // S1500: nested rather than flattened into more fields here, because this holder was already at
+    // detekt's parameter ceiling and because these two serve one row rather than the whole menu.
+    val streamEdit: LauncherStreamEditDependencies,
+)
+
+/**
+ * S1500: what the desktop's edit-a-channel row needs behind the shared [StreamEditDialog] - the
+ * channel row itself, and the per-channel track preference the dialog reads and writes alongside it.
+ *
+ * Its own holder rather than two more fields on [LauncherCellMenuDependencies], following this file's
+ * rule of one holder per surface: these two serve one row, and the edit action manager is the only
+ * thing that ever reads them.
+ */
+class LauncherStreamEditDependencies @Inject constructor(
+    val updateStreamSource: UpdateStreamSourceUseCase,
+    val streamTrackPreference: StreamTrackPreferenceUseCase,
 )

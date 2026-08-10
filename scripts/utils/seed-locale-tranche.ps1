@@ -24,6 +24,22 @@
 .PARAMETER Module
     Module path relative to repo root. Default app_v2.
 
+.PARAMETER SourceSet
+    Gradle source set holding the resources. Default main. Use vr or noLegal to reach a flavor's own
+    strings, which live outside src/main/res and are therefore invisible to the default.
+
+.PARAMETER Merge
+    Layer the supplied map over what the locale file already holds instead of replacing the file.
+
+    Without it the seeder rewrites the locale file from the map alone, so a key the map omits is
+    dropped - which silently deletes an earlier tranche when a file is seeded a second time. With it,
+    an entry already in the locale file is carried through verbatim: it is re-emitted exactly as
+    written, skipping both the placeholder check and the escaping pass, because it is already shipped
+    text and re-escaping it would double every entity in it.
+
+    -KeyPrefix scopes only what the supplied map may contribute. Under -Merge an existing entry
+    outside the prefix still survives, which is what makes seeding one prefix at a time safe.
+
 .PARAMETER SourceFile
     Basename of the source file under res/values, e.g. strings_setup.xml.
 
@@ -41,6 +57,9 @@
 
 .PARAMETER DumpSource
     Print the eligible keys and their English bodies as a JSON map, then exit without writing.
+    Each key comes out in the shape MapPath accepts back for that element kind - <string> as a
+    string, <plurals> as an object of quantity -> text, <string-array> as an array - so the dump
+    is a translatable map rather than only a listing.
     This is the only supported way to build a translation map: it uses the very regex the seeder
     later matches with, so the map cannot silently under-cover the source. A map assembled by an
     ad-hoc grep does - a multi-line or markup-carrying element slips through and the key is simply
@@ -52,12 +71,20 @@
 .EXAMPLE
     pwsh -NoProfile -File scripts/utils/seed-locale-tranche.ps1 -SourceFile strings_setup.xml -Locale de -KeyPrefix welcome_ -MapPath temp/S1190/de_welcome.json
 
+.EXAMPLE
+    # Second tranche into a file the first one already seeded - without -Merge this would drop the first.
+    pwsh -NoProfile -File scripts/utils/seed-locale-tranche.ps1 -SourceFile strings_setup.xml -Locale de -Merge -MapPath temp/S1420/maps/de/strings_setup.json
+
+.EXAMPLE
+    # A flavor's own strings, which do not live under src/main/res.
+    pwsh -NoProfile -File scripts/utils/seed-locale-tranche.ps1 -SourceSet vr -SourceFile strings.xml -Locale de -Merge -MapPath temp/S1420/maps/de/vr_strings.json
+
 .OUTPUTS
     Exit codes:
       0 - the locale file was written, or planned under -DryRun. An empty map writes an empty
           <resources> block and is a success: it is the honest representation of "nothing translated yet".
-      1 - unusable input: source file missing, locale not declared or is the default locale, or the
-          map is not readable JSON.
+      1 - unusable input: source set has no res/values, source file missing, locale not declared or is
+          the default locale, or the map is not readable JSON.
       3 - written, but at least one supplied translation was rejected (key absent from the filtered
           source, or placeholder mismatch). The file is valid; the rejected keys are named so the
           caller fixes the map now instead of discovering the gap in a later tranche.
@@ -65,10 +92,12 @@
 [CmdletBinding()]
 param(
     [string]$Module = 'app_v2',
+    [string]$SourceSet = 'main',
     [Parameter(Mandatory = $true)][string]$SourceFile,
     [string]$Locale,
     [string]$MapPath,
     [string]$KeyPrefix,
+    [switch]$Merge,
     [switch]$DumpSource,
     [switch]$DryRun
 )
@@ -79,7 +108,11 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot 'locale-set.ps1')
 
-$resDir = Join-Path $repoRoot "$Module/src/main/res"
+$resDir = Join-Path $repoRoot "$Module/src/$SourceSet/res"
+if (-not (Test-Path -LiteralPath (Join-Path $resDir 'values'))) {
+    Write-Error "seed-locale-tranche: source set '$SourceSet' has no res/values - tried $resDir" -ErrorAction Continue
+    exit 1
+}
 $sourcePath = Join-Path $resDir "values/$SourceFile"
 if (-not (Test-Path -LiteralPath $sourcePath)) {
     Write-Error "seed-locale-tranche: source not found: $sourcePath" -ErrorAction Continue
@@ -111,17 +144,48 @@ $sourceText = Get-Content -LiteralPath $sourcePath -Raw -Encoding UTF8
 $eol = if ($sourceText.Contains("`r`n")) { "`r`n" } else { "`n" }
 $elements = [regex]::Matches($sourceText, '(?s)<(string|plurals|string-array)\s+name="([^"]+)"([^>]*)>(.*?)</\1>')
 
+# Split deliberately: translatability is a property of the resource, the prefix is a property of the
+# request. -Merge has to honour the first and ignore the second when deciding what already-shipped
+# text survives - see .PARAMETER Merge.
+function Test-Translatable([string]$Attrs) {
+    return ($Attrs -notmatch 'translatable\s*=\s*"false"')
+}
+
+function Test-InPrefix([string]$Name) {
+    return (-not $KeyPrefix) -or $Name.StartsWith($KeyPrefix)
+}
+
 function Test-Eligible([string]$Name, [string]$Attrs) {
-    if ($Attrs -match 'translatable\s*=\s*"false"') { return $false }
-    if ($KeyPrefix -and -not $Name.StartsWith($KeyPrefix)) { return $false }
-    return $true
+    return (Test-Translatable $Attrs) -and (Test-InPrefix $Name)
 }
 
 if ($DumpSource) {
     $dump = [ordered]@{}
     foreach ($element in $elements) {
         if (-not (Test-Eligible $element.Groups[2].Value $element.Groups[3].Value)) { continue }
-        $dump[$element.Groups[2].Value] = $element.Groups[4].Value
+        $name = $element.Groups[2].Value
+        $body = $element.Groups[4].Value
+        # The dump has to round-trip: a <plurals> body emitted as one string comes back as a string,
+        # and the writer below rejects it because it expects an object keyed by quantity. Same for
+        # <string-array> and its array. Emitting the writer's own shapes is what makes -DumpSource
+        # "the only supported way to build a map" true for all three element kinds (S1420).
+        switch ($element.Groups[1].Value) {
+            'plurals' {
+                $quantities = [ordered]@{}
+                foreach ($item in [regex]::Matches($body, '(?s)<item\s+quantity="([^"]+)"[^>]*>(.*?)</item>')) {
+                    $quantities[$item.Groups[1].Value] = $item.Groups[2].Value
+                }
+                $dump[$name] = $quantities
+            }
+            'string-array' {
+                $items = [System.Collections.Generic.List[string]]::new()
+                foreach ($item in [regex]::Matches($body, '(?s)<item[^>]*>(.*?)</item>')) {
+                    $items.Add($item.Groups[1].Value)
+                }
+                $dump[$name] = $items.ToArray()
+            }
+            default { $dump[$name] = $body }
+        }
     }
     Write-Output ($dump | ConvertTo-Json -Depth 4)
     exit 0
@@ -156,6 +220,18 @@ if ($null -eq $map) {
     exit 1
 }
 
+$outPath = Join-Path (Join-Path $resDir $localeDir) $SourceFile
+
+# Under -Merge the locale file's current entries become the base layer. The whole element text is kept,
+# not the decoded body: re-rendering shipped text would escape entities that are already escaped.
+$carried = @{}
+if ($Merge -and (Test-Path -LiteralPath $outPath)) {
+    $existingText = Get-Content -LiteralPath $outPath -Raw -Encoding UTF8
+    foreach ($existing in [regex]::Matches($existingText, '(?s)<(string|plurals|string-array)\s+name="([^"]+)"([^>]*)>(.*?)</\1>')) {
+        $carried[$existing.Groups[2].Value] = ($existing.Value -replace "`r`n|`n", $eol)
+    }
+}
+
 $out = [System.Collections.Generic.List[string]]::new()
 $out.Add('<?xml version="1.0" encoding="utf-8"?>')
 $out.Add("<!-- Generated by scripts/utils/seed-locale-tranche.ps1 from values/$SourceFile.")
@@ -166,32 +242,49 @@ $rejected = [System.Collections.Generic.List[string]]::new()
 $eligible = [System.Collections.Generic.HashSet[string]]::new()
 $written = 0
 
+# A rejected replacement must not also delete the translation the locale already shipped. The run still
+# fails with exit 3 so the caller fixes the map, but the file it leaves behind is no worse than before.
+function Add-CarriedFallback([string]$Name) {
+    if (-not $carried.ContainsKey($Name)) { return }
+    $script:out.Add('    ' + $carried[$Name])
+    $script:written++
+}
+
 foreach ($element in $elements) {
     $kind = $element.Groups[1].Value
     $name = $element.Groups[2].Value
     $attrs = $element.Groups[3].Value
     $body = $element.Groups[4].Value
-    if (-not (Test-Eligible $name $attrs)) { continue }
-    [void]$eligible.Add($name)
-    if (-not $map.ContainsKey($name)) { continue }
+    if (-not (Test-Translatable $attrs)) { continue }
+    if (Test-InPrefix $name) { [void]$eligible.Add($name) }
+
+    # A key the caller did not supply this run: keep whatever the locale already had, or skip it.
+    if (-not ((Test-InPrefix $name) -and $map.ContainsKey($name))) {
+        if ($carried.ContainsKey($name)) {
+            $out.Add('    ' + $carried[$name])
+            $written++
+        }
+        continue
+    }
     $value = $map[$name]
 
     if ($kind -eq 'string') {
-        if ($value -isnot [string]) { [void]$rejected.Add("$name (expected a string for <string>)"); continue }
+        if ($value -isnot [string]) { [void]$rejected.Add("$name (expected a string for <string>)"); Add-CarriedFallback $name; continue }
         if ((Get-FormatSignature $body) -ne (Get-FormatSignature $value)) {
             [void]$rejected.Add("$name (placeholder mismatch)")
+            Add-CarriedFallback $name
             continue
         }
         $out.Add("    <string name=`"$name`">$(ConvertTo-ResourceBody $value)</string>")
     } elseif ($kind -eq 'plurals') {
-        if ($value -isnot [hashtable]) { [void]$rejected.Add("$name (expected an object for <plurals>)"); continue }
+        if ($value -isnot [hashtable]) { [void]$rejected.Add("$name (expected an object for <plurals>)"); Add-CarriedFallback $name; continue }
         $out.Add("    <plurals name=`"$name`">")
         foreach ($quantity in $value.Keys) {
             $out.Add("        <item quantity=`"$quantity`">$(ConvertTo-ResourceBody $value[$quantity])</item>")
         }
         $out.Add('    </plurals>')
     } else {
-        if ($value -isnot [array]) { [void]$rejected.Add("$name (expected an array for <string-array>)"); continue }
+        if ($value -isnot [array]) { [void]$rejected.Add("$name (expected an array for <string-array>)"); Add-CarriedFallback $name; continue }
         $out.Add("    <string-array name=`"$name`">")
         foreach ($item in $value) { $out.Add("        <item>$(ConvertTo-ResourceBody $item)</item>") }
         $out.Add('    </string-array>')
@@ -204,8 +297,7 @@ foreach ($key in $map.Keys) {
 }
 
 $out.Add('</resources>')
-$outPath = Join-Path (Join-Path $resDir $localeDir) $SourceFile
-Write-Host "seed-locale-tranche: $Locale <- values/$SourceFile | eligible $($eligible.Count) | written $written | rejected $($rejected.Count)"
+Write-Host "seed-locale-tranche: $Locale <- $SourceSet/values/$SourceFile | eligible $($eligible.Count) | written $written | rejected $($rejected.Count)"
 foreach ($reason in $rejected) { Write-Host "  rejected: $reason" }
 
 if ($DryRun) {

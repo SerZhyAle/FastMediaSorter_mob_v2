@@ -48,6 +48,25 @@ substitute a payload - a mismatch fails verification and the app falls back to t
 Set A (ML Kit translation) is NOT hosted here: on store it ships via a Play dynamic-feature; on
 sideload/VR it stays bundled in the base (Google `.so` are not re-hosted).
 
+## Build-time asset (not an on-demand payload)
+
+`fms-ffmpeg-dts.aar` (11,495,586 bytes, sha256 `decba6f7f40fb823bb108246e53a1740ad4a6ebe95fbdfaba1ea2f782b5f961a`)
+shares this release but plays a different role: **no shipped app version fetches it.** It is a
+build-time dependency, declared in `app_v2/build.gradle.kts` for the standard, noLegal, legacy and vr
+flavors, and hosted here only so GitHub Actions can build the app - `app_v2/libs/` is gitignored, so
+a CI checkout has no copy and every run died resolving it (S1539).
+
+Two consequences follow from it being build-time only, and they invert the rules above:
+
+- The name carries **no rev** and the asset is **clobbered** on every rebuild. No released app pins
+  it, so there is no old revision to keep alive - CI always wants the current binary.
+- Its hash is **not** in `DeliverableDescriptorCatalog.kt`. The hash above is recorded here for human
+  comparison only; nothing verifies it at runtime because nothing downloads it at runtime.
+
+Republish after rebuilding the AAR: `pwsh -NoProfile -File scripts/builders/publish-ffmpeg-dts-aar.ps1`.
+Consumed by `scripts/ci/fetch-prebuilt-libs.sh`, which every build job in `android-ci.yml` and
+`maestro-tests.yml` runs before Gradle.
+
 ## Optional URL-override manifest
 
 `delivery-so-v1/delivery-manifest.json` is an optional, stationary file that can override source URLs

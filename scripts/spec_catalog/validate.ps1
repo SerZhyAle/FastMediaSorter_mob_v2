@@ -52,8 +52,17 @@ if ($records.Count -gt 0) {
         while ($expected -lt $n) { $gaps.Add($expected); $expected++ }
         $expected = $n + 1
     }
-    if ($gaps.Count -gt 0) {
-        Add-Result 'Monotonicity' 'WARN' ('id gaps: {0}' -f (($gaps | ForEach-Object { 'S{0:D4}' -f $_ }) -join ', '))
+    # S1534: a gap whose id sits in the burned registry was removed on purpose and is accounted for.
+    # Reporting it would bury a genuinely lost record among 21 known holes, which is the only thing
+    # this check is here to catch.
+    $burned = @{}
+    foreach ($b in (Read-BurnedIds)) { $burned[$b.id] = $true }
+    $unexplained = @($gaps | Where-Object { -not $burned.ContainsKey(('S{0:D4}' -f $_)) })
+    $accounted = $gaps.Count - $unexplained.Count
+    if ($unexplained.Count -gt 0) {
+        Add-Result 'Monotonicity' 'WARN' ('id gaps: {0}' -f (($unexplained | ForEach-Object { 'S{0:D4}' -f $_ }) -join ', '))
+    } elseif ($accounted -gt 0) {
+        Add-Result 'Monotonicity' 'OK' ('dense S0001..S{0:D4} ({1} burned id(s) accounted for)' -f $nums[-1], $accounted)
     } else {
         Add-Result 'Monotonicity' 'OK' ('dense S0001..S{0:D4}' -f ($nums[-1]))
     }

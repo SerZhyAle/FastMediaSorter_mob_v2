@@ -1,20 +1,28 @@
 package com.sza.fastmediasorter.ui.launcher.helpers
 
+import android.Manifest
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactChannel
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactTarget
 import com.sza.fastmediasorter.domain.usecase.launcher.PickContactShortcutUseCase
+import com.sza.fastmediasorter.ui.common.permissions.canRequestPermission
+import com.sza.fastmediasorter.ui.common.permissions.markPermissionRequested
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherPhoneNumberDialogFragment
 import kotlinx.coroutines.launch
@@ -48,13 +56,65 @@ class LauncherContactPickManager(
      */
     private var pendingAction: LauncherContactAction? = null
 
+    /**
+     * S1206: the pick waiting on the contacts answer. Held like [pendingAction] above and
+     * `LauncherSensorPermissionManager.pendingPlacement`, for the same reason - one modal flow at a time.
+     */
+    private var pendingPick: (() -> Unit)? = null
+
     private val systemPicker = activity.registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { result -> onPickResult(result) }
 
-    /** Entry point: the user chose one of the four contact rows on the empty cell they tapped. */
+    private val contactsPermission = activity.registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) {
+        val pending = pendingPick
+        pendingPick = null
+        pending?.invoke()
+    }
+
+    /**
+     * Entry point: the user chose one of the four contact rows on the empty cell they tapped.
+     *
+     * S1206: the contacts permission is asked for here, at the moment the person is pinned, because
+     * that is where its effect is visible. The answer never decides whether the cell appears - a
+     * refusal simply leaves it working from the snapshot, which is what it has always done.
+     */
     fun start(action: LauncherContactAction) {
         Timber.d("S0428: contact cell flow started action=%s", action.name)
+        val granted = ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_CONTACTS) ==
+            PackageManager.PERMISSION_GRANTED
+        val askable = activity.canRequestPermission(Manifest.permission.READ_CONTACTS)
+        Timber.d("S1206: pin flow contacts granted=%s askable=%s", granted, askable)
+        if (askable) {
+            explainThenAsk(action)
+        } else {
+            pick(action)
+        }
+    }
+
+    private fun explainThenAsk(action: LauncherContactAction) {
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.permissions_required_title)
+            .setMessage(
+                activity.permissionRationale(
+                    Manifest.permission.READ_CONTACTS,
+                    PermissionTask.CONTACT_CELL_PINNING,
+                ),
+            )
+            .setPositiveButton(R.string.grant_permissions) { _, _ ->
+                pendingPick = { pick(action) }
+                activity.markPermissionRequested(Manifest.permission.READ_CONTACTS)
+                contactsPermission.launch(Manifest.permission.READ_CONTACTS)
+            }
+            .setNegativeButton(R.string.continue_anyway) { _, _ -> pick(action) }
+            // Back or a tap outside is an answer too, and it must not swallow the pin the user asked for.
+            .setOnCancelListener { pick(action) }
+            .show()
+    }
+
+    private fun pick(action: LauncherContactAction) {
         when (action) {
             LauncherContactAction.DIAL, LauncherContactAction.SMS -> askNumberSource(action)
             LauncherContactAction.PROFILE, LauncherContactAction.MESSAGE -> launchSystemPicker(action)

@@ -18,12 +18,13 @@ enum class LauncherContactAction {
 /**
  * S1176: a contact the user pinned to the launcher desktop, captured **at pin time**.
  *
- * **This is a snapshot, and that is the whole design (ADR-1).** The values here were read once, from
- * the record the system contact picker handed back under its own one-time grant. Nothing re-reads the
- * address book afterwards, so a contact later renamed, re-numbered or deleted keeps showing the old
- * label on the cell until the user re-pins it. `READ_CONTACTS` is declared and optional since S1335,
- * but nothing here asks for it: the pick reads under the picker's own grant, so a cell costs the user
- * no permission at all. S1206 is where a live refresh path, if it is ever wanted, belongs.
+ * **This is a snapshot, and since S1206 it is the fallback rather than the answer.** The values here
+ * were read once, from the record the system contact picker handed back under its own one-time grant.
+ * `ResolveLauncherCommandLabelUseCase` now asks the address book for the person's current name and
+ * photo on every display, through `LiveContactDataSource` under the optional `READ_CONTACTS` grant
+ * S1335 declared - and falls back to these stored values whenever that read cannot answer: no grant,
+ * a contact since deleted, or a provider that refuses. A user who never grants the permission
+ * therefore still gets exactly the S1176 behaviour, cell and all.
  *
  * Fields are per-action and only one of them is load-bearing at a time: [lookupKey] opens the profile,
  * [phoneNumber] fills the dialler, and [messageDataId] + [messagePackage] address the exact messaging

@@ -212,7 +212,9 @@ One accepted limitation: when the opening host is a plain `AlertDialog` rather t
 
 ## Dialog Lifecycle Binding (MANDATORY)
 
-A dialog raised from a helper, manager or any other non-`DialogFragment` holder is shown with `AlertDialog.Builder.showBoundTo(fragment)` (`util/LifecycleDialogExt.kt`), never with a bare `.show()`. The extension registers a lifecycle observer that dismisses the dialog on `ON_DESTROY`, so the window cannot outlive the host.
+A dialog raised from a helper, manager or any other non-`DialogFragment` holder is shown with `AlertDialog.Builder.showBoundTo(fragment)` (`util/LifecycleDialogExt.kt`), never with a bare `.show()`. The extension registers a lifecycle observer that dismisses the dialog on `ON_DESTROY`, so the window cannot outlive the host. A site that needs the dialog before showing it calls `create()` and then the same `showBoundTo(owner)` on the created `AlertDialog`.
+
+The rule has a ratchet gate behind it: `scripts/quality/assert-untracked-dialogs.ps1` counts builder chains ending in a bare `.show()` across every shipped source set and fails when the count grows. It runs inside `post-change.ps1` through the source-gate runner, so a new untracked dialog fails closure rather than waiting to be noticed in review (S1456).
 
 A bare `.show()` discards the returned `AlertDialog`, which leaves nothing able to close it: a dialog still on screen during a configuration change keeps the destroyed Fragment and Activity alive. The predecessor fix (S1197) tracked the dialog by hand - a field in the helper, a dismiss method, a call from the host `onDestroy` - and that shape needs three coordinated edits per dialog, which is why it was never applied beyond the one helper it was written for while 34 untracked dialogs accumulated in the settings helpers alone (S1447).
 

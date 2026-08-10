@@ -336,6 +336,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         return ActivityBrowseBinding.inflate(layoutInflater)
     }
 
+    // S1398 §6.2: the S1227 text strip already reports a backgrounded transfer here, with the
+    // percent in figures and a tap that brings the dialog back, so the hairline bar would be a
+    // second indicator in the same zone.
+    override fun showsBackgroundOperationBar(): Boolean = false
+
     // S0230 Phase 02 - TV initial focus on the file list so the first D-pad press lands on a row.
     // S0289: when list is empty, fall back to btnBack so D-pad has a visible target.
     override fun getInitialFocusView(): android.view.View {

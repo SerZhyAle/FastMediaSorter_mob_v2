@@ -131,6 +131,12 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             group = PermissionGroup.CONTACTS,
             optional = true,
             buildGates = setOf("SUPPORT_LAUNCHER"),
+            // S1206: the row's four-word label is a list entry, not an explanation - the request made
+            // while pinning a person needs the paragraph, and the pinning sentence on top of it.
+            taskAddenda = mapOf(
+                PermissionTask.CONTACT_CELL_PINNING to R.string.perm_addendum_contacts_cell_pinning,
+            ),
+            rationaleRes = R.string.perm_rationale_read_contacts,
         ),
         // CAMERA
         PermissionEntry(
@@ -184,7 +190,10 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             descriptionRes = R.string.perm_desc_record_audio,
             group = PermissionGroup.MICROPHONE,
             optional = true,
-            buildGates = setOf("SUPPORT_MIC_RECORDING"),
+            // S1459: gated on "does this build declare the mic", not on the voice-note feature.
+            // SUPPORT_MIC_RECORDING names S0100's Browse voice notes, which lite excludes while still
+            // recording video with audio - so lite asked for the permission and then hid its row.
+            buildGates = setOf("DECLARES_MIC_RECORDING"),
             // S1436: four wordings across five call sites became this one, and what a screen recording
             // adds - that its sound comes from here - is the addendum rather than a fifth wording.
             rationaleRes = R.string.perm_rationale_record_audio,
@@ -437,7 +446,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
     // have, and would still leave the direct read somewhere. Consumer guards go through
     // CapabilityAvailability instead.
     private val buildGateValues: Map<String, Boolean> = mapOf(
-        "SUPPORT_MIC_RECORDING" to BuildConfig.SUPPORT_MIC_RECORDING,
+        "DECLARES_MIC_RECORDING" to BuildConfig.DECLARES_MIC_RECORDING,
         "SUPPORT_LOCAL_NETWORK" to BuildConfig.SUPPORT_LOCAL_NETWORK,
         "ENABLE_PERSISTENT_AUDIO_PLAYBACK" to BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK,
         "SUPPORT_LAUNCHER" to BuildConfig.SUPPORT_LAUNCHER,

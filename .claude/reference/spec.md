@@ -113,7 +113,7 @@ Block states (any active spec transitions in/out via `update.ps1 -Status Block..
 
 Content constraints on the strategic file being authored. The flavor-scope constraint is not here - it stays in the driver.
 
-- Language/format: body Russian, frontmatter and code identifiers and file paths English. House text style and Spec Writing style: per CLAUDE.md section 1 "Communication & Style" - obey it as written. The `/spec` addition: both are gated only at the `Draft` -> `Approved` flip (step 6), so a `Draft` spec may keep rough phrasing, `...`, missing `ё`, or tables - clean it as part of approval, never as a standalone draft sweep.
+- Language/format: body Russian, frontmatter and code identifiers and file paths English. Spec Writing style: per CLAUDE.md section 1 "Communication & Style" - obey it as written; it is an authoring standard for the file you are writing, with no gate behind it. House text style: it does not apply to specification files at all - the canon's scope list excludes specs by name - so a spec's `...`, missing `ё` or tables are not gated at the `Draft` -> `Approved` flip nor at any other transition, and no stage sweeps them (S1543). Never open a spec to fix its punctuation.
 - §5: no class names, file paths, line budgets, Room versions, Hilt modules - architectural roles only.
 - §11: observable outcomes only, no internal architecture claims.
 - Required sections: §6 and §7 mandatory even if trivial - write explicit "нет" rather than skip. §10 and §11 must not be omitted - write "No changes" if N/A.

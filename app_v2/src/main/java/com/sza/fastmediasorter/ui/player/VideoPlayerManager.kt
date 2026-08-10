@@ -362,6 +362,10 @@ class VideoPlayerManager(
     internal var activeStreamAnalyticsListener: androidx.media3.exoplayer.analytics.AnalyticsListener? = null
     internal var activeStreamDiagnostics: com.sza.fastmediasorter.ui.player.helpers.StreamPlaybackDiagnostics? = null
 
+    // S1510: the periodic counterpart of the listener above. Held here for the same reason: it captures
+    // the session's player and bandwidth meter, so teardown needs a reference to stop it on both paths.
+    internal var activeStreamStatsSampler: com.sza.fastmediasorter.ui.player.helpers.StreamStatsSampler? = null
+
     // S1128: the http(s) stream player's explicit track selector and the quality step-down policy, held so
     // the stream listener can cap the video ceiling on repeated stalls and teardown can null both. RTSP
     // keeps the implicit default selector (no rendition ladder), so both stay null for RTSP sessions.

@@ -45,10 +45,9 @@ class SettingsRepositoryImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) : SettingsRepository {
 
-    // S0876: serializes every transform-based updateSettings() call (see interface KDoc) so
-    // concurrent writers (Welcome enable-all's parallel deliverable-install coroutines, and any
-    // other transform() caller) always fold onto the previous writer's committed result instead
-    // of racing on a stale getSettings().first() snapshot.
+    // S1551: serializes whole-snapshot writes while S0876 keeps transform read-modify-write calls
+    // in order. This prevents concurrent UI snapshots from overwriting one another in flight.
+    private val settingsUpdateMutex = Mutex()
     private val transformMutex = Mutex()
 
     companion object {
@@ -224,6 +223,8 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_LAUNCHER_TRAY_SHOW_BATTERY = booleanPreferencesKey("launcher_tray_show_battery")
         private val KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA =
             booleanPreferencesKey("launcher_replace_system_status_area")
+        private val KEY_LAUNCHER_TOP_STATUS_STRIP_MODE =
+            booleanPreferencesKey("launcher_top_status_strip_mode")
         private val KEY_LAUNCHER_ROTATION_HINT_SHOWN = booleanPreferencesKey("launcher_rotation_hint_shown")
         private val KEY_LAUNCHER_DESKTOP_LOCKED = booleanPreferencesKey("launcher_desktop_locked")
         private val KEY_LAUNCHER_WALLPAPER_MODE = stringPreferencesKey("launcher_wallpaper_mode")
@@ -591,6 +592,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     launcherTrayShowBattery = preferences[KEY_LAUNCHER_TRAY_SHOW_BATTERY] ?: true,
                     launcherReplaceSystemStatusArea =
                         preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] ?: false,
+                    launcherTopStatusStripMode =
+                        preferences[KEY_LAUNCHER_TOP_STATUS_STRIP_MODE] ?: false,
                     launcherRotationHintShown = preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] ?: false,
                     launcherDesktopLocked = preferences[KEY_LAUNCHER_DESKTOP_LOCKED] ?: false,
                     // S1101: an unknown token (older/newer build, corrupted value) degrades to the branded default.
@@ -627,6 +630,7 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateSettings(settings: AppSettings) {
+        settingsUpdateMutex.withLock {
         Timber.d("SettingsRepo: updateSettings called with allFiles=${settings.allFiles}")
 
         // S0018 idempotency guard: if the incoming AppSettings equals the currently stored
@@ -819,6 +823,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_LAUNCHER_TRAY_SHOW_NETWORK] = settings.launcherTrayShowNetwork
             preferences[KEY_LAUNCHER_TRAY_SHOW_BATTERY] = settings.launcherTrayShowBattery
             preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] = settings.launcherReplaceSystemStatusArea
+            preferences[KEY_LAUNCHER_TOP_STATUS_STRIP_MODE] = settings.launcherTopStatusStripMode
             preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] = settings.launcherRotationHintShown
             preferences[KEY_LAUNCHER_DESKTOP_LOCKED] = settings.launcherDesktopLocked
             preferences[KEY_LAUNCHER_WALLPAPER_MODE] = settings.launcherWallpaperMode
@@ -839,6 +844,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_FOLLOW_SYSTEM_ROTATION] = settings.programFollowSystemRotation
             preferences[KEY_PLAYER_FOLLOW_SYSTEM_ROTATION] = settings.playerFollowSystemRotation
             preferences[KEY_PLAYER_ROTATION_SENSOR_ENABLED] = settings.playerRotationSensorEnabled
+        }
         }
     }
 

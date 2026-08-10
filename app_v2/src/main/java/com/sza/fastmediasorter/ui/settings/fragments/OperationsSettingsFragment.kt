@@ -46,6 +46,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.OperationsCaptureManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsDestinationsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsGesturesManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsScheduledManager
+import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
 import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
 import dagger.hilt.android.AndroidEntryPoint
@@ -526,7 +527,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                     Snackbar.make(binding.root, R.string.reset_operations_section_success, Snackbar.LENGTH_SHORT).show()
                 }
                 .setNegativeButton(R.string.cancel, null)
-                .show()
+                .showBoundTo(this@OperationsSettingsFragment)
         }
     }
     
@@ -702,7 +703,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                 overlayPermissionLauncher.launch(controller.fallbackPermissionSettingsIntent(requireContext()))
             }
         }
-        builder.show()
+        builder.showBoundTo(this@OperationsSettingsFragment)
     }
 
     /**

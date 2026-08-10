@@ -14,6 +14,7 @@ import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.data.network.exceptions.HandledNetworkOutcomeLogger
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -162,10 +163,11 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
     }
 
     private fun buildNotification(): Notification {
+        Timber.d("S1399: network-files sync notification built with the branded status-bar icon")
         return NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(applicationContext.getString(R.string.network_sync_settings))
             .setContentText(applicationContext.getString(R.string.sync_status_in_progress))
-            .setSmallIcon(R.drawable.ic_notification_audio) // Use generic or sync icon
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setOngoing(true)
             .setSilent(true)
             .build()

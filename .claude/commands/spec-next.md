@@ -95,10 +95,15 @@ Preflight is read-only by contract; this skill performs writes it implies:
 
 ### Stage 3 - Drift gate
 
-`selected.drift.verdict == DRIFT` (what that verdict means -> "Stage 3" note in `.claude/reference/spec-next.md`): note it in the round verdict, then:
+Branch on `selected.drift.verdict` (what the verdicts mean -> "Stage 3" note in `.claude/reference/spec-next.md`). Note the verdict in the round verdict either way, and when you proceed, name which proof cleared it:
 
-- `selected.last_audit_present` is true OR spec has "Implementation State" block -> proceed to Stage 4 (`/spec-all` resumes at right stage).
-- Neither -> defer: skip-cache spec with `Reason "drift-needs-review"` (TTL 3 days), surface in final report under "Drift detected - needs manual review", release any lease on it (`ticket-lease.ps1 -Verb Release -Id <id>` - this path never reaches Stage 5, where the normal release lives), add to `processed`, re-run Stage 1.
+- `CLEAN` -> proceed to Stage 4.
+- `COMMIT_ONLY` -> proceed to Stage 4. A commit carrying the id is expected of any ticket that has been worked on and says nothing about the tree; no inline marker means nothing unaccounted is sitting in `app_v2/src` (S1429).
+- `DRIFT` -> inline `// Sxxxx:` markers exist, so ask what accounts for them. **Any one** of these three is enough to proceed to Stage 4 (`/spec-all` resumes at the right stage):
+  1. `selected.last_audit_present` is true;
+  2. the spec carries an "Implementation State" block;
+  3. `selected.tactical_index.fresh` is true - a tactical plan exists and its `Last updated` is not older than the newest in-window commit, so its phase counters already account for what landed. `/spec-dev` recomputes its cursor from the phase files and skips `PRE-RESOLVED` steps, so a live plan cannot duplicate work.
+- `DRIFT` with none of the three -> defer: skip-cache the spec with `Reason "drift-needs-review"` and `-Ttl 3`, surface it in the final report under "Drift detected - needs manual review", release any lease on it (`ticket-lease.ps1 -Verb Release -Id <id>` - this path never reaches Stage 5, where the normal release lives), add to `processed`, re-run Stage 1.
 
 ### Stage 3.5 - Claim the ticket (S1437)
 

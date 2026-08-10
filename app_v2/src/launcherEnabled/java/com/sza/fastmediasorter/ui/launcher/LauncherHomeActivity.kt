@@ -65,6 +65,7 @@ import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogF
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
@@ -146,6 +147,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // edit mode, rendered after setupViews() has built the manager.
         onAttachResizeHandle = { handle, cellUi -> resizeManager.attachHandle(handle, cellUi) },
         onCellLongPress = { view, cellUi -> showCellActions(view, cellUi) },
+        onSectionClick = { cellUi -> viewModel.sections.toggle(cellUi.cell) },
     )
 
     private lateinit var taskbarManager: LauncherTaskbarManager
@@ -204,6 +206,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             loadPinnedStreams = { viewModel.pinnedStreams() },
             togglePin = { source -> viewModel.toggleStreamPin(source) },
             removeStream = { source -> viewModel.removeStream(source) },
+            streamEdit = viewModel.streamEditDependencies,
         )
     }
 
@@ -251,16 +254,25 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
         LauncherTrayManager(
             lifecycleOwner = this,
-            binding = binding.launcherTaskbar,
+            clock = binding.launcherTaskbar.trayClock,
+            indicators = binding.launcherTaskbar.trayIndicators,
             onRequestPhoneStatePermission = {
                 requestPhoneStatePermission.launch(Manifest.permission.READ_PHONE_STATE)
             },
-        ).bind(viewModel.replaceSystemStatusArea, viewModel.trayComposition)
+            // S1431: gated on the taskbar being the placement in use, not merely on the launcher owning the
+            // status area - otherwise this renderer and the strip's would subscribe to the same sources at
+            // once while the mode is on.
+        ).bind(viewModel.taskbarTrayContentVisible, viewModel.trayComposition)
         statusStripManager.bind(
-            binding.launcherStatusStrip,
-            this,
-            supportFragmentManager,
-            viewModel.replaceSystemStatusArea,
+            binding = binding.launcherStatusStrip,
+            lifecycleOwner = this,
+            fragmentManager = supportFragmentManager,
+            replaceSystemStatusArea = viewModel.replaceSystemStatusArea,
+            topStatusStripMode = viewModel.topStatusStripMode,
+            trayComposition = viewModel.trayComposition,
+            onRequestPhoneStatePermission = {
+                requestPhoneStatePermission.launch(Manifest.permission.READ_PHONE_STATE)
+            },
         )
         collectOnLifecycle(viewModel.replaceSystemStatusArea) { applyStatusBarPolicy(it) }
         taskbarManager = LauncherTaskbarManager(
@@ -271,6 +283,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             onAllAppsClick = { showAllApps() },
             onAddPin = { openPinAppPicker() },
             onRemovePin = { viewModel.removePin(it) },
+            onRecentsCapacity = { viewModel.recentsCapacity = it },
         )
         editModeManager = LauncherEditModeManager(
             lifecycleOwner = this,
@@ -323,44 +336,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         ) { _, bundle ->
             pendingRow = bundle.getInt(LauncherCellContentPickerDialogFragment.RESULT_ROW)
             pendingCol = bundle.getInt(LauncherCellContentPickerDialogFragment.RESULT_COL)
-            when (bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_CATEGORY)) {
-                LauncherCellContentPickerDialogFragment.CATEGORY_APP ->
-                    openPicker(AppPickerDialogFragment.newInstance(REQ_APP), AppPickerDialogFragment.TAG)
-                LauncherCellContentPickerDialogFragment.CATEGORY_FEATURE -> openPicker(
-                    InternalRoutePickerDialogFragment.newInstance(REQ_FEATURE),
-                    InternalRoutePickerDialogFragment.TAG,
-                )
-                LauncherCellContentPickerDialogFragment.CATEGORY_RESOURCE -> openPicker(
-                    // S1423: only this picker offers "Create new.." - it is the placement step, so a
-                    // resource created here is exactly what the user wanted on the desktop.
-                    ResourcePickerDialogFragment.newInstance(REQ_RESOURCE_SHORTCUT, allowCreateNew = true),
-                    ResourcePickerDialogFragment.TAG,
-                )
-                LauncherCellContentPickerDialogFragment.CATEGORY_STREAM ->
-                    viewModel.requestStreamCell()
-                LauncherCellContentPickerDialogFragment.CATEGORY_OS ->
-                    openPicker(OsShortcutPickerDialogFragment.newInstance(REQ_OS), OsShortcutPickerDialogFragment.TAG)
-                LauncherCellContentPickerDialogFragment.CATEGORY_SCHEDULED_OP -> openPicker(
-                    LauncherScheduledOpPickerDialogFragment.newInstance(),
-                    LauncherScheduledOpPickerDialogFragment.TAG,
-                )
-                // The manager owns the pick-contact / choose-channel chain; the cell it lands on is
-                // still pendingRow/pendingCol, like every other kind.
-                LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_PROFILE ->
-                    contactPickManager.start(LauncherContactAction.PROFILE)
-                LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_DIAL ->
-                    contactPickManager.start(LauncherContactAction.DIAL)
-                LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_SMS ->
-                    contactPickManager.start(LauncherContactAction.SMS)
-                LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_MESSAGE ->
-                    contactPickManager.start(LauncherContactAction.MESSAGE)
-                LauncherCellContentPickerDialogFragment.CATEGORY_GADGET ->
-                    onGadgetChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_GADGET_KEY))
-                LauncherCellContentPickerDialogFragment.CATEGORY_ACTION ->
-                    onLauncherActionChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_ACTION_KEY))
-                LauncherCellContentPickerDialogFragment.CATEGORY_SECTION ->
-                    onSectionChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_SECTION_KEY))
-            }
+            openPickerForCategory(bundle)
         }
         supportFragmentManager.setFragmentResultListener(REQ_APP, this) { _, bundle ->
             val pkg = bundle.getString(AppPickerDialogFragment.RESULT_PACKAGE) ?: return@setFragmentResultListener
@@ -402,6 +378,53 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         }
     }
 
+    /**
+     * Routes the chosen content category to the picker that resolves it - the thirteen-way branch that
+     * used to sit inside [registerAddFlowListeners] and carried that whole function past detekt's
+     * complexity ceiling on its own. Splitting it also keeps the registration function readable as what
+     * it is: a list of result keys.
+     */
+    private fun openPickerForCategory(bundle: android.os.Bundle) {
+        when (bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_CATEGORY)) {
+            LauncherCellContentPickerDialogFragment.CATEGORY_APP ->
+                openPicker(AppPickerDialogFragment.newInstance(REQ_APP), AppPickerDialogFragment.TAG)
+            LauncherCellContentPickerDialogFragment.CATEGORY_FEATURE -> openPicker(
+                InternalRoutePickerDialogFragment.newInstance(REQ_FEATURE),
+                InternalRoutePickerDialogFragment.TAG,
+            )
+            LauncherCellContentPickerDialogFragment.CATEGORY_RESOURCE -> openPicker(
+                // S1423: only this picker offers "Create new.." - it is the placement step, so a
+                // resource created here is exactly what the user wanted on the desktop.
+                ResourcePickerDialogFragment.newInstance(REQ_RESOURCE_SHORTCUT, allowCreateNew = true),
+                ResourcePickerDialogFragment.TAG,
+            )
+            LauncherCellContentPickerDialogFragment.CATEGORY_STREAM ->
+                viewModel.requestStreamCell()
+            LauncherCellContentPickerDialogFragment.CATEGORY_OS ->
+                openPicker(OsShortcutPickerDialogFragment.newInstance(REQ_OS), OsShortcutPickerDialogFragment.TAG)
+            LauncherCellContentPickerDialogFragment.CATEGORY_SCHEDULED_OP -> openPicker(
+                LauncherScheduledOpPickerDialogFragment.newInstance(),
+                LauncherScheduledOpPickerDialogFragment.TAG,
+            )
+            // The manager owns the pick-contact / choose-channel chain; the cell it lands on is
+            // still pendingRow/pendingCol, like every other kind.
+            LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_PROFILE ->
+                contactPickManager.start(LauncherContactAction.PROFILE)
+            LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_DIAL ->
+                contactPickManager.start(LauncherContactAction.DIAL)
+            LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_SMS ->
+                contactPickManager.start(LauncherContactAction.SMS)
+            LauncherCellContentPickerDialogFragment.CATEGORY_CONTACT_MESSAGE ->
+                contactPickManager.start(LauncherContactAction.MESSAGE)
+            LauncherCellContentPickerDialogFragment.CATEGORY_GADGET ->
+                onGadgetChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_GADGET_KEY))
+            LauncherCellContentPickerDialogFragment.CATEGORY_ACTION ->
+                onLauncherActionChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_ACTION_KEY))
+            LauncherCellContentPickerDialogFragment.CATEGORY_SECTION ->
+                onSectionChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_SECTION_KEY))
+        }
+    }
+
     override fun observeData() {
         taskbarManager.bind(
             recents = viewModel.recentIcons,
@@ -426,6 +449,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         collectOnLifecycle(viewModel.densityFactor) {
             applyGridGeometry()
         }
+        // S1428: folding a section changes which rows are drawn and nothing that is stored, so it is a
+        // render trigger like the two above rather than a desktop change.
+        collectOnLifecycle(viewModel.sections.collapsed) {
+            renderDesktop()
+        }
         collectOnLifecycle(viewModel.events) { event ->
             when (event) {
                 is LauncherHomeEvent.Message ->
@@ -447,7 +475,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                             viewModel.executeScheduledOp(event.operationId)
                         }
                         .setNegativeButton(R.string.cancel, null)
-                        .show()
+                        .showBoundToHost(this@LauncherHomeActivity)
                 }
             }
         }
@@ -485,7 +513,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 roleManager.openHomeChooser(this)
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundToHost(this@LauncherHomeActivity)
     }
 
     /**
@@ -701,6 +729,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             )
             return
         }
+        Timber.d("S1428: restoring section '%s' at %d,%d", sectionKey, pendingRow, pendingCol)
         placeAtPendingSlot(
             kind = LauncherCellKind.SECTION,
             target = LauncherCellCommand.Section(sectionKey).encode(),
@@ -890,6 +919,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             currentColumns(),
             viewModel.editMode.value,
             currentViewportRows(),
+            viewModel.sections.collapsed.value,
         )
     }
 

@@ -16,3 +16,4 @@
 {"kind":"refusal","at":"2026-08-07T17:43:48+02:00","session":"9374f50d-1d05-42c9-a4ea-8bae95e6b0ce","tool":"Glob","pattern":"**/NetworkReachabilityGate*Test*.kt","glob":"","path":"","type":"","markerPresent":false,"classification":""}
 {"kind":"refusal","at":"2026-08-07T17:43:49+02:00","session":"9374f50d-1d05-42c9-a4ea-8bae95e6b0ce","tool":"Glob","pattern":"**/NetworkStateMonitor*Test*.kt","glob":"","path":"","type":"","markerPresent":false,"classification":""}
 {"kind":"refusal","at":"2026-08-08T13:29:46+02:00","session":"1efc1496-c56b-458f-babe-2588b109b433","tool":"Grep","pattern":"LauncherCellKind\\.","glob":"**/*.kt","path":"","type":"","markerPresent":false,"classification":""}
+{"kind":"refusal","at":"2026-08-09T11:00:06+02:00","session":"a1ecaf57-23f5-464e-8cce-d82e47fce2dd","tool":"Grep","pattern":"MaterialAlertDialogBuilder|AlertDialog\\.Builder","glob":"**/*.kt","path":"","type":"","markerPresent":false,"classification":""}

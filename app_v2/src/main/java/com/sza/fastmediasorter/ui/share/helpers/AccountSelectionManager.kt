@@ -6,6 +6,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.AuthAccountDomain
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -73,7 +74,7 @@ class AccountSelectionManager(
             }
             .setNegativeButton(android.R.string.cancel) { _, _ -> onCancelled() }
             .setOnCancelListener { onCancelled() }
-            .show()
+            .showBoundToHost(activity)
     }
 
     private suspend fun markSelected(account: AuthAccountDomain) {

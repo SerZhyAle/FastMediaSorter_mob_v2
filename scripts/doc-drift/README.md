@@ -22,6 +22,18 @@ PASS | <pin> | <X>
 SUMMARY | total: N | pass: A | fail: B | warn: C | skip: D | inconsistent: E | missing: F
 ```
 
+## Cross-module rule (S1496)
+
+A library coordinate declared in **both** `app_v2/build.gradle.kts` and `wear/build.gradle.kts` must carry the same version. `Get-GradlePins` throws when it does not, in the same shape `Get-SharedModulePin` already used for `compileSdk` / `targetSdk`:
+
+```text
+GradleParser: lib.<group>:<artifact> differs between app_v2 (<X>) and wear (<Y>)
+```
+
+A coordinate declared in only one module has nothing to compare against and is never an error. The returned pin values still come from `app_v2`, so no `pins.psd1` record changes meaning.
+
+There is **no allowed-divergence registry**, deliberately. When the rule was introduced, exactly one of the 19 coordinates shared by the two modules diverged - `jsch`, at `0.2.26` against `0.2.17` - and that one was aligned in the same ticket, so the registry would have held zero entries. The first genuine case of a version that must differ between modules is the point at which to design one, with the reason recorded next to it. Deleting the check is not the fix.
+
 ## Adding a new pin
 
 Add one entry to `scripts/doc-drift/pins.psd1`.

@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.ResourceProfile
+import com.sza.fastmediasorter.util.showBoundToHost
 
 /**
  * The single resource-profile picker shared by the add-resource forms and the resource editor
@@ -34,6 +35,6 @@ object ResourceProfileDialog {
                 dialog.dismiss()
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundToHost(context)
     }
 }

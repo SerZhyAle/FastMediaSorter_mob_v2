@@ -30,6 +30,8 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.common.ActivityMouseDispatchHelper
+import com.sza.fastmediasorter.ui.common.backgroundop.BackgroundOperationBarAttachManager
+import com.sza.fastmediasorter.ui.common.backgroundop.BackgroundOperationTrackManager
 import com.sza.fastmediasorter.ui.common.input.FocusTargetResolver
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
@@ -61,6 +63,11 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     // Distinct name avoids hiding subclasses' own `settingsRepository` injections.
     @Inject
     lateinit var keepScreenSettingsRepository: SettingsRepository
+
+    // S1398: field-injected for the same reason as tvKeyRouter - the base class cannot take
+    // constructor parameters, and every screen inherits the background-operation bar from here.
+    @Inject
+    lateinit var backgroundOperationTrackManager: BackgroundOperationTrackManager
 
     private var _binding: VB? = null
     protected val binding: VB
@@ -114,6 +121,12 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
      */
     protected open fun shouldEnableEdgeToEdge(): Boolean = true
 
+    /**
+     * Override to keep the S1398 background-operation bar off a screen that already shows the
+     * progress of a background operation by other means.
+     */
+    protected open fun showsBackgroundOperationBar(): Boolean = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Content draws behind system bars; each Activity applies its own WindowInsets padding.
         if (shouldEnableEdgeToEdge()) {
@@ -161,6 +174,10 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
                 Timber.d("BaseActivity.setupViews[${this::class.simpleName}]: done in ${setupMs}ms")
             }
             observeData()
+            if (showsBackgroundOperationBar()) {
+                Timber.d("S1398: hosting background-operation bar on ${this::class.simpleName}")
+                BackgroundOperationBarAttachManager(this, backgroundOperationTrackManager).attach()
+            }
             viewsReady = true
             if (resumePending) {
                 resumePending = false

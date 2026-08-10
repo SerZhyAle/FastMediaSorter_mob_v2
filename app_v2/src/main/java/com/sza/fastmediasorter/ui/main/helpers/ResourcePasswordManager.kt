@@ -9,6 +9,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
+import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
 
 /**
@@ -129,6 +130,6 @@ class ResourcePasswordManager(
             )
         }
         
-        dialog.show()
+        dialog.showBoundToHost(context)
     }
 }

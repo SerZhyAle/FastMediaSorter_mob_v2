@@ -9,6 +9,12 @@
 #       -ChangeType Script
 #
 #   pwsh -NoProfile -File scripts/post-change.ps1 `
+#       -Files "wear/build.gradle.kts,scripts/builders/check-standard-fast.ps1" `
+#       -Target "S1553" `
+#       -Description "closed build and repository tooling changes" `
+#       -ChangeType Tooling
+#
+#   pwsh -NoProfile -File scripts/post-change.ps1 `
 #       -File "app_v2/src/main/java/.../Foo.kt" `
 #       -Target "FooClass" `
 #       -Description "added bar feature" `
@@ -51,7 +57,7 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = 'Multi')][string[]]$Files,
     [Parameter(Mandatory = $true)][string]$Target,
     [Parameter(Mandatory = $true)][string]$Description,
-    [ValidateSet('Doc', 'Script', 'Config', 'Kotlin', 'Xml', 'Mixed')]
+    [ValidateSet('Doc', 'Script', 'Config', 'Tooling', 'Kotlin', 'Xml', 'Mixed')]
     [string]$ChangeType,
     [string]$Module = "app_v2",
     [string]$KeyPrefix,
@@ -253,26 +259,35 @@ function Get-FirstChangedFileMatch([string]$Pattern) {
     return $null
 }
 
-$runsCatalogSync = $resolvedChangeType -in @('Kotlin', 'Mixed')
-$runsStringsAudit = $resolvedChangeType -in @('Xml', 'Mixed')
-$runsStringFormatGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
-    (Test-AnyChangedFile 'src/[^/]+/res/values[^/]*/strings.*\.xml$'))
-$runsTicketLogAudit = $resolvedChangeType -in @('Kotlin', 'Mixed')
-$runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed')
+$hasJvmSource = Test-AnyChangedFile '(^|/)src/.*\.(kt|java)$'
+$hasXmlResource = Test-AnyChangedFile '(^|/)src/.*\.xml$'
+$hasStringResource = Test-AnyChangedFile 'src/[^/]+/res/values[^/]*/strings.*\.xml$'
+$isCodeChange = ($resolvedChangeType -in @('Kotlin', 'Mixed')) -and $hasJvmSource
+$isResourceChange = ($resolvedChangeType -in @('Xml', 'Mixed')) -and $hasXmlResource
+
+# S1553: ChangeType describes the intended closure family, but the changed set decides whether
+# a source-specific gate has anything to inspect. This keeps Mixed valid for code-plus-strings
+# while making a build/config-plus-script set a cheap, honest closure.
+$runsCatalogSync = $isCodeChange
+$runsStringsAudit = $isResourceChange -and $hasStringResource
+$runsStringFormatGate = $isResourceChange -and $hasStringResource
+$runsTicketLogAudit = $isCodeChange
+$runsDetektPreflight = $resolvedChangeType -in @('Kotlin', 'Mixed')
+$runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling')
 # S1075: same trigger as doc-pins-sync - drift enters via a Gradle bump (Config) or a
 # hand edit to dev/TECH_REQUIREMENTS.md (Doc). Checks the doc pins the generator does not own.
-$runsDocPinDrift = $resolvedChangeType -in @('Config', 'Doc', 'Mixed')
-$runsFlavorFlagGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+$runsDocPinDrift = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling')
+$runsFlavorFlagGate = $isCodeChange
 # S0383 neuroslop ratchet gate. Covers Kotlin (trivial comments / swallowing catch /
 # unsafe Flow collects) and Xml (hardcoded layout colors). Baselines only ratchet DOWN.
-$runsNeuroslopGate = $resolvedChangeType -in @('Kotlin', 'Xml', 'Mixed')
+$runsNeuroslopGate = $isCodeChange -or $isResourceChange
 # S1031 public-mutable-reactive-state ratchet gate. Bans a public (non-private) val/var of
 # Mutable(StateFlow|LiveData|SharedFlow). Kotlin/Mixed only. Baseline ratchets DOWN.
-$runsPublicMutableFlowGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+$runsPublicMutableFlowGate = $isCodeChange
 # S0720 detekt + ktlint static-analysis gate. Runs :app_v2:detekt :wear:detekt over a
-# committed per-module baseline (only NEW findings fail). Kotlin/Mixed only - it invokes
-# gradle, so it is scoped to changes that actually touch .kt to keep other paths fast.
-$runsDetektGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+# committed per-module baseline (only NEW findings fail). It invokes gradle, so it is scoped to
+# a changed Kotlin/Java source file rather than the caller's label.
+$runsDetektGate = $isCodeChange
 # S1356 detekt-baseline absorption gate. Fires when a committed detekt baseline (or its ID snapshot)
 # is among the changed files. A whole-module `detektBaseline` re-freeze accepts every live finding in
 # that module at once - on 2026-08-02 one absorbed the debt S1198 and S1328 were written about, and
@@ -285,13 +300,13 @@ $runsBaselineAbsorptionGate = @($changedFiles | Where-Object {
 # S0416 FGS-notification gate. Blocks the Android 16 "Bad notification for startForeground"
 # crash class: ?attr-tinted notification small icons (A) and foreground-service paths that
 # build a notification without ensuring their channel (B). Covers Kotlin + Xml (drawables).
-$runsFgsGate = $resolvedChangeType -in @('Kotlin', 'Xml', 'Mixed')
+$runsFgsGate = $isCodeChange -or $isResourceChange
 # S0467 deprecated-PackageManager-flags gate. Keeps src/main at zero raw-int getPackageInfo /
 # getApplicationInfo / queryIntentActivities / resolveActivity overloads (deprecated since API 33).
-$runsPmFlagsGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+$runsPmFlagsGate = $isCodeChange
 # S0507 focus-highlight ratchet gate. Layout-only concern: interactive views without a visible
 # focus indication (Rule 16) must never grow. Covers Xml + Mixed (layout edits). Baseline ratchets DOWN.
-$runsFocusHighlightGate = $resolvedChangeType -in @('Xml', 'Mixed')
+$runsFocusHighlightGate = $isResourceChange
 # S0489 ALL_FEATURES inventory drift gate. Fires only when the touched file is the
 # inventory data, its schema, or the noLegal variant - validates the JSONL and blocks
 # a silent record-count drop below the committed baseline. Narrow trigger by path.
@@ -334,14 +349,14 @@ $runsIconInventoryGate = (
 # S0684 dialog-cancel-style gate. Fires only when a dialog / bottom-sheet layout is touched -
 # a cancel/negative action button in such a pair must use Widget.FastMediaSorter.Button.DialogCancel,
 # never a one-off cancel style. Baseline ratchets DOWN. Narrow trigger keeps it cheap.
-$runsDialogCancelGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
+$runsDialogCancelGate = ($isResourceChange -and
     (Test-AnyChangedFile 'res/layout.*/(dialog_|bottom_sheet_).*\.xml$'))
 # S1190 RTL gate. An absolute Left/Right attribute reads correctly in English and wrong in Arabic
 # or Urdu, which no English-language check can see - so a touched layout is judged directly.
-$runsRtlLayoutGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
+$runsRtlLayoutGate = ($isResourceChange -and
     (Test-AnyChangedFile 'res/layout.*/.*\.xml$'))
 # S0721 listener symmetry gate. Runs on Kotlin or Mixed change types.
-$runsListenerSymmetryGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+$runsListenerSymmetryGate = $isCodeChange
 # S0918 orientation-implied-feature gate. Fires only when a manifest is touched - an
 # activity that pins screenOrientation implies a required screen.* hardware feature,
 # which shrinks Google Play device reach unless src/main declares it not-required.
@@ -482,7 +497,7 @@ $ratchetRunner = if ($ScopeToFile) { 'Invoke-AdvisoryStep' } else { 'Invoke-Step
 # started, so the three rules that make up most of this repo's detekt findings are reported in
 # well under a second instead of after a ~23 s round-trip. Advisory by construction: it is
 # lexical, it cannot see types, and assert-detekt below remains the verdict.
-if ($runsDetektGate -and $changedFiles.Count -gt 0) {
+if ($runsDetektPreflight -and $changedFiles.Count -gt 0) {
     Invoke-AdvisoryStep "detekt-preflight" {
         & $pwsh '-NoProfile' '-File' (Join-Path $root "scripts/quality/detekt-preflight.ps1") `
             '-ChangedFiles' ($changedFiles -join ',') '-Gate'

@@ -35,9 +35,10 @@ import timber.log.Timber
         LauncherStateEntity::class,
         InstalledAppEntity::class,
         LauncherLaunchStatsEntity::class,
-        SensorSeriesPointEntity::class
+        SensorSeriesPointEntity::class,
+        NetworkMeasurementEntity::class
     ],
-    version = 48,
+    version = 49,
     // Export the schema JSON (committed under app_v2/schemas/) so future migrations can be
     // validated and the schema diff is reviewable. Arms the migration-test guard (S0731).
     exportSchema = true
@@ -68,6 +69,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun installedAppDao(): InstalledAppDao
     abstract fun launcherLaunchStatsDao(): LauncherLaunchStatsDao
     abstract fun sensorSeriesDao(): SensorSeriesDao
+    abstract fun networkMeasurementDao(): NetworkMeasurementDao
 
     companion object {
         /**

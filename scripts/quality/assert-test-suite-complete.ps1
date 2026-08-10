@@ -31,14 +31,51 @@
 param(
     [string]$Module = "app_v2",
     [string]$TaskDir = "testStandardDebugUnitTest",
-    [double]$MinCoverageRatio = 0.85
+    [double]$MinCoverageRatio = 0.85,
+    [string]$RepoRoot
 )
 
 $ErrorActionPreference = "Stop"
 
-$repoRoot = Resolve-Path "$PSScriptRoot\..\.."
+. (Join-Path $PSScriptRoot 'lib/flavor-source-map.ps1')
+
+# S1453: overridable so the regression suite can point the gate at a synthetic repository instead of
+# writing fixture sources and fake reports into the real module.
+$repoRoot = if ($RepoRoot) { (Resolve-Path $RepoRoot).Path } else { (Resolve-Path "$PSScriptRoot\..\..").Path }
 $sourceRoot = Join-Path $repoRoot "$Module\src\test"
 $reportRoot = Join-Path $repoRoot "$Module\build\test-results\$TaskDir"
+
+# S1453: which source sets a variant's unit tests see is stated in the build file and nowhere else.
+# Reading the flavor list from there rather than hardcoding it keeps this gate from becoming a
+# second place for the mount map to drift.
+try {
+    $sourceMap = Get-FlavorSourceMap -RepoRoot $repoRoot -Module $Module
+}
+catch {
+    Write-Error "assert-test-suite-complete: $($_.Exception.Message)" -ErrorAction Continue
+    exit 2
+}
+
+if ($sourceMap.Unparsed.Count -gt 0) {
+    $msg = "assert-test-suite-complete: the mount map is incomplete - $($sourceMap.Unparsed.Count) " +
+    "mount line(s) in $($sourceMap.GradleFile) were attributed to no source set, so the effective " +
+    'source roots of this variant cannot be derived.'
+    Write-Error $msg -ErrorAction Continue
+    exit 2
+}
+
+# TaskDir has the shape test<Flavor><BuildType>UnitTest. Longest match wins, so a flavor whose name
+# is a prefix of another cannot silently claim the wrong variant.
+$flavor = $sourceMap.FlavorNames |
+    Where-Object { $TaskDir -clike "test$($_.Substring(0,1).ToUpperInvariant())$($_.Substring(1))*" } |
+    Sort-Object -Property Length -Descending |
+    Select-Object -First 1
+
+if (-not $flavor) {
+    $known = ($sourceMap.FlavorNames -join ', ')
+    Write-Error "assert-test-suite-complete: cannot read a flavor out of -TaskDir '$TaskDir' (known flavors: $known)" -ErrorAction Continue
+    exit 2
+}
 
 if (-not (Test-Path $sourceRoot)) {
     Write-Error "assert-test-suite-complete: no test sources at $sourceRoot" -ErrorAction Continue
@@ -51,12 +88,11 @@ if (-not (Test-Path $reportRoot)) {
     exit 2
 }
 
-# Source classes: one per *Test.kt file, package taken from its path under src/test/java.
-$sourceClasses = Get-ChildItem -Path $sourceRoot -Recurse -Filter "*Test.kt" -File
-if ($sourceClasses.Count -eq 0) {
-    Write-Error "assert-test-suite-complete: no *Test.kt under $sourceRoot" -ErrorAction Continue
-    exit 2
-}
+# S1453: the numerator has always counted reports from EVERY set mounted into the variant, while the
+# denominator counted one directory. That inflates the ratio, and a truncated run can clear the floor
+# on the strength of classes the denominator never knew about.
+$sourceRootsRelative = Get-EffectiveTestSourceRoots -Map $sourceMap -Flavor $flavor
+$sourceRoots = @($sourceRootsRelative | ForEach-Object { Join-Path $repoRoot ($_ -replace '/', '\') })
 
 function Get-PackageFromPath([string]$fullPath, [string]$root) {
     $relative = $fullPath.Substring($root.Length).TrimStart('\', '/')
@@ -67,11 +103,23 @@ function Get-PackageFromPath([string]$fullPath, [string]$root) {
     return ($parts[0..($parts.Count - 2)] -join '.')
 }
 
+# Source classes: one per *Test.kt file, package taken from its path under its own root.
+$sourceClasses = [System.Collections.Generic.List[object]]::new()
 $sourcePackages = @{}
-foreach ($file in $sourceClasses) {
-    $pkg = Get-PackageFromPath -fullPath $file.FullName -root $sourceRoot
-    if ($pkg) { $sourcePackages[$pkg] = $true }
+foreach ($root in $sourceRoots) {
+    foreach ($file in @(Get-ChildItem -Path $root -Recurse -Filter "*Test.kt" -File -ErrorAction SilentlyContinue)) {
+        $sourceClasses.Add($file)
+        $pkg = Get-PackageFromPath -fullPath $file.FullName -root $root
+        if ($pkg) { $sourcePackages[$pkg] = $true }
+    }
 }
+
+if ($sourceClasses.Count -eq 0) {
+    Write-Error "assert-test-suite-complete: no *Test.kt under $($sourceRootsRelative -join ', ')" -ErrorAction Continue
+    exit 2
+}
+
+Write-Host "assert-test-suite-complete: source roots for $flavor - $($sourceRootsRelative -join ', ')"
 
 $reports = Get-ChildItem -Path $reportRoot -Filter "TEST-*.xml" -File
 $reportPackages = @{}

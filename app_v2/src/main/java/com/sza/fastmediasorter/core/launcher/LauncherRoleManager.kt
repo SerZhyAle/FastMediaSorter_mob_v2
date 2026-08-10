@@ -59,7 +59,7 @@ class LauncherRoleManager @Inject constructor(
      */
     fun enableMode(activity: Activity, roleLauncher: ActivityResultLauncher<Intent>?) {
         val component = contract.homeComponent(context) ?: return
-        setComponentEnabled(component, enabled = true)
+        setLauncherComponentsEnabled(component, enabled = true)
         val roleIntent = createRoleRequestIntent()
         if (roleIntent != null && roleLauncher != null) {
             roleLauncher.launch(roleIntent)
@@ -72,7 +72,7 @@ class LauncherRoleManager @Inject constructor(
     /** Stops being a home-screen candidate; the system falls back to the previous launcher. */
     fun disableMode() {
         val component = contract.homeComponent(context) ?: return
-        setComponentEnabled(component, enabled = false)
+        setLauncherComponentsEnabled(component, enabled = false)
     }
 
     /**
@@ -85,7 +85,7 @@ class LauncherRoleManager @Inject constructor(
      */
     fun markAsHomeCandidate() {
         val component = contract.homeComponent(context) ?: return
-        setComponentEnabled(component, enabled = true)
+        setLauncherComponentsEnabled(component, enabled = true)
     }
 
     /**
@@ -183,6 +183,12 @@ class LauncherRoleManager @Inject constructor(
         )
     }
 
+    /** The Share-sheet entry follows HOME availability so it cannot create an invisible desktop cell. */
+    private fun setLauncherComponentsEnabled(homeComponent: ComponentName, enabled: Boolean) {
+        setComponentEnabled(homeComponent, enabled)
+        setComponentEnabled(ComponentName(context.packageName, PLACE_SHARE_ALIAS), enabled)
+    }
+
     private fun resolves(intent: Intent): Boolean =
         context.packageManager.resolveActivityCompat(intent, 0) != null
 
@@ -193,5 +199,6 @@ class LauncherRoleManager @Inject constructor(
         const val PREFS_LAUNCHER_ROLE = "launcher_role_prefs"
         const val KEY_ROLE_REQUEST_PENDING = "onboarding_role_request_pending"
         const val KEY_ROLE_REQUEST_ATTEMPTS = "onboarding_role_request_attempts"
+        const val PLACE_SHARE_ALIAS = "com.sza.fastmediasorter.LauncherPlaceShare"
     }
 }

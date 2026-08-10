@@ -287,7 +287,8 @@ _Settings -> General -> System launcher settings_
 | Replace system status area | Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar. |
 | Show pinned apps | Shows pinned apps on the launcher desktop. |
 | Show recent apps | Shows recently used apps on the launcher desktop. |
-| Show clock and status | Shows the clock and status indicators in the launcher's tray area. |
+| Show status tray | Master switch for the launcher's tray block; the switches below it decide which indicators the block contains. |
+| Clock and indicators on the top bar | Moves the clock with seconds to the left of the launcher top bar and the device indicators to the right, freeing the Start panel for more recent apps; available only while the system status area is replaced. |
 | Battery | Shows the battery charge in the launcher tray as a number in an outline, yellow below 30 percent, red below 15, blinking below 10. |
 | Bluetooth | Shows a Bluetooth icon in the launcher tray while the adapter is on. |
 | Clock | Shows the clock in the launcher tray. |
@@ -307,17 +308,29 @@ _Settings -> Destinations -> Configure gestures_
 | General gesture settings | Section header for the general edge-gesture settings - screenshot destination, clipboard copy, and the app-launch panel editor. |
 | Save screenshots to clipboard | Also copies every captured screenshot to the clipboard, ready to paste. |
 | Down gesture action | Assigns the action triggered by swiping down from the left edge's lower gesture zone. |
+| App to launch | Chooses the app launched by swiping down in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Right gesture action | Assigns the action triggered by swiping right from the left edge's lower gesture zone. |
+| App to launch | Chooses the app launched by swiping right in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Up gesture action | Assigns the action triggered by swiping up from the left edge's lower gesture zone. |
+| App to launch | Chooses the app launched by swiping up in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Down gesture action | Assigns the action triggered by swiping down from the left edge's upper gesture zone. |
+| App to launch | Chooses the app launched by swiping down in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Right gesture action | Assigns the action triggered by swiping right from the left edge's upper gesture zone. |
+| App to launch | Chooses the app launched by swiping right in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Up gesture action | Assigns the action triggered by swiping up from the left edge's upper gesture zone. |
+| App to launch | Chooses the app launched by swiping up in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Down gesture action | Assigns the action triggered by swiping down from the right edge's lower gesture zone. |
+| App to launch | Chooses the app launched by swiping down in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Right gesture action | Assigns the action triggered by swiping right from the right edge's lower gesture zone. |
+| App to launch | Chooses the app launched by swiping right in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Up gesture action | Assigns the action triggered by swiping up from the right edge's lower gesture zone. |
+| App to launch | Chooses the app launched by swiping up in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Down gesture action | Assigns the action triggered by swiping down from the right edge's upper gesture zone. |
+| App to launch | Chooses the app launched by swiping down in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Right gesture action | Assigns the action triggered by swiping right from the right edge's upper gesture zone. |
+| App to launch | Chooses the app launched by swiping right in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Up gesture action | Assigns the action triggered by swiping up from the right edge's upper gesture zone. |
+| App to launch | Chooses the app launched by swiping up in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Left edge - lower band | Enables the edge-gesture zone at the left edge's lower band. |
 | Show the gesture strip | Shows the semi-transparent gesture-strip guide for the left edge's lower zone. |
 | Left edge - upper band | Enables the edge-gesture zone at the left edge's upper band. |
@@ -364,3 +377,11 @@ _Reached from the on-screen translation overlay, not from Settings._
 | Font Family | Chooses the font family used to render translated text. |
 | Font Size | Chooses the font size used to render translated text. |
 | Translation result in blocks | Shows the translation result as opaque blocks over the original text, matching Google Lens style. |
+
+## Network Monitor
+
+_Reached from Network Monitor -> Satellites, not from Settings._
+
+| Setting | What it does |
+|---|---|
+| Record the track on this device | Writes the satellite positions to a file on this device while the Network Monitor Satellites screen is open. Off after installation; the track never leaves the device and can be shared from that screen. |

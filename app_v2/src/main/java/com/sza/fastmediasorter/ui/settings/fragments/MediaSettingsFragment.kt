@@ -4,22 +4,23 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.core.view.isVisible
-import android.widget.Toast
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.databinding.FragmentSettingsMediaContainerBinding
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import timber.log.Timber
+import javax.inject.Inject
 
 @AndroidEntryPoint
 // S1161: see GeneralSettingsFragment - the collapsed-group grid is installed by the base class, so every
@@ -106,7 +107,7 @@ class MediaSettingsFragment : BaseSettingsFragment() {
                     ).show()
                 }
                 .setNegativeButton(android.R.string.cancel, null)
-                .show()
+                .showBoundTo(this@MediaSettingsFragment)
         }
     }
 

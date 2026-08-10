@@ -127,7 +127,7 @@ Classification rules:
 Per memory rule: **fix all non-structural issues silently**. Only structural decisions go into a DISCUSS block.
 
 - **ACCEPT** - apply via `Edit`. Append a single Revision History line covering the run.
-- **Draft hygiene skip** - when the target is a strategic `Draft` and the finding is only ellipsis / `ё` / wording sanitation, do not apply it and do not count it as a proposal. Approval preparation owns that cleanup.
+- **Spec hygiene skip** - when the finding is only ellipsis / `ё` / wording sanitation on a spec file, do not apply it and do not count it as a proposal, whatever the target's status. No stage owns that cleanup: the typography rules cover documentation prose and user-visible UI text only and never reach a specification (S1543).
 - **DISCUSS** - record in "Proposed Structural Changes" block with `Status: Proposed`. Never apply regardless of `--apply-all`.
 
 Edits are minimal and localized. Never renumber steps/phases unless that is the specific finding - structural changes that would renumber steps/phases stay in DISCUSS until explicitly accepted.

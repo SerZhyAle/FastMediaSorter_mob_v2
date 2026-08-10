@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.icon.ResourceIconDefaults
 import com.sza.fastmediasorter.ui.icon.ResourceIconRegistry
 import com.sza.fastmediasorter.ui.icon.picker.IconPickerBottomSheet
+import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.PermissionChecker
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
@@ -406,7 +407,7 @@ class ResourceEditorFragment : Fragment() {
                 requestMediaPermissions()
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundTo(this@ResourceEditorFragment)
     }
 
     private fun requestMediaPermissions() {
@@ -501,7 +502,7 @@ class ResourceEditorFragment : Fragment() {
                 viewModel.onCredentialBehaviorSelected(keepCredentials = false)
             }
             .setCancelable(false)
-            .show()
+            .showBoundTo(this@ResourceEditorFragment)
     }
 
     private fun renderEditActions(state: ResourceEditorUiState) {
@@ -553,7 +554,7 @@ class ResourceEditorFragment : Fragment() {
             .setTitle(R.string.warning_title)
             .setMessage(message)
             .setPositiveButton(android.R.string.ok, null)
-            .show()
+            .showBoundTo(this@ResourceEditorFragment)
     }
 
     private fun renderFormData(formData: ResourceFormData) {

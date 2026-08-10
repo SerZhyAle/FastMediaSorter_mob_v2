@@ -164,7 +164,9 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         row = rowIndex,
         spanH = spanH,
         headerRows = headerRowsFor(kindName, spanH, orientationName),
-    )
+    ).also { covers ->
+        if (covers) Timber.d("S1428: refused %s at row %d - it would cover a header row", kindName, rowIndex)
+    }
 
     /**
      * The header rows the straddle rule must respect, or an empty list when the rule cannot apply.

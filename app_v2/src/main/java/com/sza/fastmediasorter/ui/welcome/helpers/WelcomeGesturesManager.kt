@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
 
 /**
@@ -80,7 +81,7 @@ class WelcomeGesturesManager(
                 launchPermissionIntent(controller.fallbackPermissionSettingsIntent(activity))
             }
         }
-        builder.show()
+        builder.showBoundToHost(activity)
     }
 
     private fun launchPermissionIntent(intent: Intent) {

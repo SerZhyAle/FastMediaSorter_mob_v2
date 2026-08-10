@@ -153,6 +153,7 @@
     <dimen name="dialog_padding_large">24dp</dimen>
     <dimen name="elevation_dialog">8dp</dimen>
     <dimen name="progress_bar_width">200dp</dimen>
+    <dimen name="background_operation_bar_height">1dp</dimen>
     <dimen name="button_margin_top_normal">16dp</dimen>
 
     <!-- Browse Activity -->
@@ -436,6 +437,13 @@
     <dimen name="settings_padding_vertical">12dp</dimen>
     <dimen name="settings_divider_height">1dp</dimen>
     <dimen name="padding_none">0dp</dimen>
+
+    <!-- S1433: Network Monitor summary. Tile height is a floor rather than a fixed size so the two-line
+         availability phrases can grow without the grid rows going ragged. -->
+    <dimen name="network_monitor_tile_min_height">88dp</dimen>
+    <!-- S1433: the compact band strategic 3.1.2 asks for - always visible, never collapsible, and short
+         enough that the numbers under it stay on screen with the chart in landscape. -->
+    <dimen name="network_monitor_chart_height">96dp</dimen>
 
     <!-- ============================================================ -->
     <!-- LAYOUT-SPECIFIC BASE DIMENSIONS (from layout extraction) -->

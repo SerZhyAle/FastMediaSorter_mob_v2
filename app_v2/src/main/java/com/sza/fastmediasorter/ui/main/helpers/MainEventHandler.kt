@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.ui.main.MainViewModel
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.util.AppErrorNotifier
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -106,7 +107,7 @@ internal class MainEventHandler(
                     .setMessage(R.string.rescan_all_virtual_warning_message)
                     .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.forceRescanAllResources() }
                     .setNegativeButton(android.R.string.cancel, null)
-                    .show()
+                    .showBoundToHost(activity)
             }
             is MainEvent.ShareResourceFile -> shareResourceFile(event.filePath)
             is MainEvent.ShareCompanionConfigFile -> shareCompanionConfigFile(event.filePath)

@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.domain.model.StreamTrackLanguage
 import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
+import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 /**
@@ -157,7 +158,7 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
                 ).show()
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(this@StreamsSettingsFragment)
     }
 
     override fun onDestroyView() {

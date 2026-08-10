@@ -12,6 +12,30 @@ $script:CatalogPath = Join-Path $repoRoot 'PLAN\spec-catalog.jsonl'
 # Archived records live in a separate journal so the hot read path scans only
 # active tickets. See PLAN/S0454_spec-catalog-journal-compaction.md.
 $script:ArchivePath = Join-Path $repoRoot 'PLAN\spec-catalog-archive.jsonl'
+# S1534: ids that were allocated and then removed from both journals. An id lands here only via
+# purge-probe-records.ps1, and only ever gains rows. It exists because deleting a record is the one
+# way an id can silently return to circulation: New-CatalogId is max+1 over what the journals hold,
+# so removing the highest record would hand its id to the next ticket, and two different tickets
+# would answer to one id in the dev log, the changelog and every commit message already written.
+# Reading it here also lets validate.ps1 tell a deliberate hole from a lost record.
+$script:BurnedIdsPath = Join-Path $repoRoot 'PLAN\spec-catalog-burned-ids.jsonl'
+# S1534: redirect BOTH journals to an alternate directory. SCHEMA.md already named
+# "alternate-catalog runs" a supported mode via $env:FMS_SKIP_RELEASE_QUEUE, but the paths
+# themselves were hardcoded, so a test harness spawning CLI children had no way to write
+# anywhere but production - which is how throwaway probes burned 21 real spec ids and raced a
+# genuine insert into "Duplicate id". $script:RepoRoot is deliberately NOT redirected: spec .md
+# files still resolve from the real PLAN/, so a sandboxed run reads live spec bodies.
+# Fails loudly on a missing directory - silently creating a second production journal would
+# split the catalog in two and neither half would know.
+if ($env:FMS_SPEC_CATALOG_DIR) {
+    $altDir = $env:FMS_SPEC_CATALOG_DIR
+    if (-not (Test-Path -LiteralPath $altDir -PathType Container)) {
+        throw "FMS_SPEC_CATALOG_DIR points at '$altDir', which is not an existing directory."
+    }
+    $script:CatalogPath = Join-Path $altDir 'spec-catalog.jsonl'
+    $script:ArchivePath = Join-Path $altDir 'spec-catalog-archive.jsonl'
+    $script:BurnedIdsPath = Join-Path $altDir 'spec-catalog-burned-ids.jsonl'
+}
 # Owner-facing release queue: which release package each open ticket belongs to, in the
 # owner's hand-kept order. The catalog stays the source of truth for STATUS; the queue owns
 # ORDER and RELEASE ASSIGNMENT, which no script may reshuffle. See PLAN/RELEASE_QUEUE.md.
@@ -501,12 +525,54 @@ function Add-ArchiveRecord {
     Write-ArchiveCatalog -Records ([object[]]$kept)
 }
 
+function Get-BurnedIdsPath {
+    return $script:BurnedIdsPath
+}
+
+function Read-BurnedIds {
+    # Ids allocated and later removed from both journals. Missing file -> empty, never an error:
+    # a repo that has never purged anything is the normal case.
+    # Direct assignment (not @()) - Read-JsonlFile uses the ,$arr anti-unroll idiom, which @() would
+    # re-nest into a single element, and the caller would then read .id off a bare array.
+    $rows = Read-JsonlFile -Path $script:BurnedIdsPath
+    return ,$rows
+}
+
+function Add-BurnedIds {
+    # Append-only, deduplicated by id. Never removes: an id that returns to circulation is exactly
+    # the failure this registry exists to prevent.
+    param(
+        [Parameter(Mandatory)][string[]] $Ids,
+        [Parameter(Mandatory)][string] $Reason
+    )
+    $existing = Read-JsonlFile -Path $script:BurnedIdsPath
+    $known = @{}
+    foreach ($e in $existing) { $known[$e.id] = $true }
+    $rows = New-Object System.Collections.Generic.List[string]
+    foreach ($e in $existing) { $rows.Add(($e | ConvertTo-Json -Compress)) }
+    $added = 0
+    foreach ($id in ($Ids | Sort-Object -Unique)) {
+        if ($known.ContainsKey($id)) { continue }
+        $rows.Add(([pscustomobject]@{ id = $id; reason = $Reason; burned = (Get-Today) } | ConvertTo-Json -Compress))
+        $added++
+    }
+    Write-JsonlFile -Path $script:BurnedIdsPath -Lines ([string[]]$rows)
+    return $added
+}
+
 function New-CatalogId {
-    # Must scan archive too - an archived id must never be reissued.
+    # Must scan archive too - an archived id must never be reissued - and the burned registry, whose
+    # ids are gone from both journals yet just as spent (S1534).
     $records = Read-Catalog -IncludeArchived
     $max = 0
     foreach ($r in $records) {
         if ($r.id -match '^S(\d{4})$') {
+            $n = [int]$Matches[1]
+            if ($n -gt $max) { $max = $n }
+        }
+    }
+    foreach ($b in (Read-BurnedIds)) {
+        if ($b.id -match '^S(\d{4})$') {
             $n = [int]$Matches[1]
             if ($n -gt $max) { $max = $n }
         }

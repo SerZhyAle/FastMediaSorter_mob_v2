@@ -6,8 +6,10 @@ import android.net.Uri
 import android.provider.Settings
 import android.text.InputType
 import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
@@ -28,6 +30,7 @@ import com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
+import com.sza.fastmediasorter.util.showBoundTo
 import timber.log.Timber
 
 /**
@@ -47,7 +50,20 @@ class EdgeGestureConfigManager(
     private val isUpdatingFromSettings: () -> Boolean,
     private val pickDestination: (Long?, (MediaResource?) -> Unit) -> Unit,
     private val refreshLabel: (String?, Int, (CharSequence) -> Unit) -> Unit,
+    private val appSlotHost: AppSlotHost,
 ) {
+
+    /**
+     * S1036: the two app-slot services only the Fragment host can provide - the picker, whose result
+     * arrives through the fragment result API a Fragment alone can register for, and the label lookup,
+     * which needs the injected installed-apps source and answers off the main thread. Bundled into one
+     * interface so this manager stays a view binder with no domain dependency, and its constructor
+     * keeps a single parameter for the pair.
+     */
+    interface AppSlotHost {
+        fun showAppPicker(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection)
+        fun resolveAppLabel(packageName: String, onResolved: (String?) -> Unit)
+    }
 
     // Zone order shared by the tabs and the block-visibility switch.
     private val tabZones = listOf(
@@ -195,6 +211,36 @@ class EdgeGestureConfigManager(
         direction: ScreenshotGestureDirection,
     ) {
         row.setOnRowClickListener { openActionPicker(zone, direction) }
+        val slotRow = appRow(zone, direction)
+        slotRow.setOnRowClickListener { appSlotHost.showAppPicker(zone, direction) }
+        slotRow.setTrailingControl(resetControl(zone, direction))
+    }
+
+    /**
+     * S1036: the explicit reset is the only path that clears a stored package - changing the direction's
+     * action must not, or switching away and back would silently drop the choice. It writes an empty
+     * payload for this one slot and leaves the action bound to it untouched.
+     */
+    private fun resetControl(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection): ImageView {
+        val ctx = fragment.requireContext()
+        val size = (RESET_ICON_SIZE_DP * ctx.resources.displayMetrics.density).toInt()
+        return ImageView(ctx).apply {
+            layoutParams = ViewGroup.LayoutParams(size, size)
+            setImageResource(R.drawable.ic_clear)
+            val borderless = intArrayOf(android.R.attr.selectableItemBackgroundBorderless)
+            background = ctx.obtainStyledAttributes(borderless).run { getDrawable(0).also { recycle() } }
+            isClickable = true
+            isFocusable = true
+            contentDescription = ctx.getString(R.string.gesture_slot_app_reset)
+            setOnClickListener {
+                // Render from the copy just written: the settings flow has not emitted it yet, so
+                // viewModel.settings.value would still carry the package being cleared.
+                Timber.d("S1036: app choice cleared for slot %s/%s", zone, direction)
+                val cleared = applyPayload(viewModel.settings.value, zone, direction, "")
+                viewModel.updateSettings(cleared)
+                renderAppRow(cleared, zone, direction)
+            }
+        }
     }
 
     private fun openActionPicker(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection) {
@@ -207,6 +253,10 @@ class EdgeGestureConfigManager(
             // S1038: OPEN_URL needs a target address; prompt for it right after the action is chosen and
             // store it in the per-slot payload. Cancelling leaves the payload empty (dispatch degrades).
             if (picked == ScreenshotGestureAction.OPEN_URL) promptUrl(zone, direction)
+            // S1036: OPEN_APP needs a target package, so offer the app picker straight after the action is
+            // chosen, mirroring OPEN_URL above. Cancelling leaves the payload empty and the gesture opens
+            // FastMediaSorter, which is what it did before this action carried a payload at all.
+            if (picked == ScreenshotGestureAction.OPEN_APP) appSlotHost.showAppPicker(zone, direction)
             // S1038: the brightness actions need WRITE_SETTINGS; request it now so the gesture actually
             // works. Without the grant the action is set but stays inactive (dispatch degrades with a log).
             if (picked == ScreenshotGestureAction.BRIGHTNESS_MAX ||
@@ -234,7 +284,19 @@ class EdgeGestureConfigManager(
                     .onFailure { Timber.w(it, "EdgeGestureConfigManager: cannot open WRITE_SETTINGS screen") }
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
+    }
+
+    /**
+     * S1036: stores the package the host's app picker returned into this slot's payload. It reuses the
+     * same per-slot payload OPEN_URL writes, so no second mutator and no second storage key exist.
+     */
+    fun onAppPicked(
+        zone: ScreenshotGestureZone,
+        direction: ScreenshotGestureDirection,
+        packageName: String,
+    ) {
+        viewModel.updateSettings(applyPayload(viewModel.settings.value, zone, direction, packageName))
     }
 
     // S1038: per-slot URL entry for the OPEN_URL action, pre-filled with the current payload for editing.
@@ -259,7 +321,7 @@ class EdgeGestureConfigManager(
                 viewModel.updateSettings(applyPayload(viewModel.settings.value, zone, direction, url))
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun renderZone(settings: AppSettings, zone: ScreenshotGestureZone) {
@@ -275,6 +337,55 @@ class EdgeGestureConfigManager(
         views.upRow.setValue(label(ScreenshotGestureDirection.UP))
         views.rightRow.setValue(label(ScreenshotGestureDirection.RIGHT))
         views.downRow.setValue(label(ScreenshotGestureDirection.DOWN))
+        ScreenshotGestureDirection.entries.forEach { direction -> renderAppRow(settings, zone, direction) }
+    }
+
+    /**
+     * S1036: the app row belongs to one direction and is on screen only while that direction launches an
+     * app. A package that no longer resolves renders as not-chosen, which is what the dispatcher does
+     * with it too - the dialog must not claim an app the gesture can no longer open.
+     */
+    private fun renderAppRow(
+        settings: AppSettings,
+        zone: ScreenshotGestureZone,
+        direction: ScreenshotGestureDirection,
+    ) {
+        val row = appRow(zone, direction)
+        val launchesApp = settings.screenshotGestureAction(zone, direction) == ScreenshotGestureAction.OPEN_APP
+        row.isVisible = launchesApp
+        if (!launchesApp) return
+        val notChosen = fragment.getString(R.string.gesture_slot_app_none)
+        val packageName = settings.screenshotGesturePayload(zone, direction)
+        row.setValue(notChosen)
+        if (packageName.isEmpty()) return
+        appSlotHost.resolveAppLabel(packageName) { label -> row.setValue(label ?: notChosen) }
+    }
+
+    // Mirrors applyPayload's slot mapping so a direction and its app row are read the same way.
+    private fun appRow(
+        zone: ScreenshotGestureZone,
+        direction: ScreenshotGestureDirection,
+    ): SettingsSelectionRow = when (zone) {
+        ScreenshotGestureZone.LEFT_TOP -> when (direction) {
+            ScreenshotGestureDirection.UP -> binding.rowGestureLeftTopUpApp
+            ScreenshotGestureDirection.RIGHT -> binding.rowGestureLeftTopRightApp
+            ScreenshotGestureDirection.DOWN -> binding.rowGestureLeftTopDownApp
+        }
+        ScreenshotGestureZone.LEFT_BOTTOM -> when (direction) {
+            ScreenshotGestureDirection.UP -> binding.rowGestureLeftBottomUpApp
+            ScreenshotGestureDirection.RIGHT -> binding.rowGestureLeftBottomRightApp
+            ScreenshotGestureDirection.DOWN -> binding.rowGestureLeftBottomDownApp
+        }
+        ScreenshotGestureZone.RIGHT_TOP -> when (direction) {
+            ScreenshotGestureDirection.UP -> binding.rowGestureRightTopUpApp
+            ScreenshotGestureDirection.RIGHT -> binding.rowGestureRightTopRightApp
+            ScreenshotGestureDirection.DOWN -> binding.rowGestureRightTopDownApp
+        }
+        ScreenshotGestureZone.RIGHT_BOTTOM -> when (direction) {
+            ScreenshotGestureDirection.UP -> binding.rowGestureRightBottomUpApp
+            ScreenshotGestureDirection.RIGHT -> binding.rowGestureRightBottomRightApp
+            ScreenshotGestureDirection.DOWN -> binding.rowGestureRightBottomDownApp
+        }
     }
 
     private fun setupSchema() {
@@ -456,5 +567,6 @@ class EdgeGestureConfigManager(
 
     private companion object {
         private const val URL_DIALOG_PADDING_DP = 24
+        private const val RESET_ICON_SIZE_DP = 36
     }
 }

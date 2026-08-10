@@ -60,7 +60,7 @@ Examples:
 **Step 4 - Закрыть правку через `scripts/post-change.ps1`.**
 Обязательно - одной командой:
 ```powershell
-pwsh -NoProfile -File scripts/post-change.ps1 -File "<relative/path/to/file>" -Target "<target>" -Description "<short EN description>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>] [-KeyPrefix "<key_prefix>"]
+pwsh -NoProfile -File scripts/post-change.ps1 -File "<relative/path/to/file>" -Target "<target>" -Description "<short EN description>" -ChangeType <Doc|Script|Config|Tooling|Kotlin|Xml|Mixed> [-Module <app_v2|wear>] [-KeyPrefix "<key_prefix>"]
 ```
 `<target>` - имя класса/ресурса/строки (`colors.xml`, `settings_fragment.xml`, `string/login_title`).
 
@@ -70,6 +70,7 @@ pwsh -NoProfile -File scripts/post-change.ps1 -File "<relative/path/to/file>" -T
 - `Kotlin` - только если мини-правка реально меняет исполняемый Kotlin/Java и нужен catalog sync.
 - `Mixed` - только если одна маленькая правка одновременно тронула код и строки.
 - `Script` / `Config` - для `.ps1` / `.kts` / `.json` / build-like правок без смешанного набора.
+- `Tooling` - для одного набора, который одновременно меняет build/config-файлы и repo scripts; Kotlin-гейты запускаются только при наличии `.kt`/`.java` в наборе.
 
 **Step 5 - НЕ запускать:**
 - `docs/FEATURES*.md` обновление (skip - это `/doc-update`).

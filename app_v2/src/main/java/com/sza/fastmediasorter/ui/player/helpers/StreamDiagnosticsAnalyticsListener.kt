@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DecoderCounters
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import timber.log.Timber
 
@@ -17,6 +18,35 @@ internal class StreamDiagnosticsAnalyticsListener(
     private val path: String,
     private val diagnostics: StreamPlaybackDiagnostics,
 ) : AnalyticsListener {
+
+    /**
+     * S1510: the rendered-frame counter, captured once and read on every later sample.
+     *
+     * Media3 hands back the very object the renderer keeps writing to for as long as it stays enabled,
+     * not a snapshot, which is what makes a periodic difference possible at all. Null until the video
+     * renderer comes up, so an audio-only stream simply never has one.
+     */
+    @Volatile
+    var videoCounters: DecoderCounters? = null
+        private set
+
+    override fun onVideoEnabled(eventTime: AnalyticsListener.EventTime, decoderCounters: DecoderCounters) {
+        videoCounters = decoderCounters
+    }
+
+    override fun onVideoDisabled(eventTime: AnalyticsListener.EventTime, decoderCounters: DecoderCounters) {
+        videoCounters = null
+    }
+
+    /**
+     * S1510: the counter is written on the playback thread and read on another, and the class's own
+     * contract says to call this before reading. Without it the sampler can read a stale total and
+     * report a dip that never happened.
+     */
+    fun renderedFrames(): Int? = videoCounters?.let {
+        it.ensureUpdated()
+        it.renderedOutputBufferCount
+    }
 
     override fun onRenderedFirstFrame(eventTime: AnalyticsListener.EventTime, output: Any, renderTimeMs: Long) {
         diagnostics.onFirstFrameRendered()

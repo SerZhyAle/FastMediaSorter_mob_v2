@@ -19,12 +19,30 @@
 # Cases E and F pin the replacement: prose relations yield nothing, an explicit `Блокер:`/`Blocker:`
 # token yields exactly the ticket it names.
 #
-# Not hermetic, and deliberately so - the value is in the live catalog:
-#   * The fail-closed case has no live fixture (after the statusNote source landed, all 7 specs
-#     resolve), so the suite inserts ONE probe spec via insert.ps1 and removes it via delete.ps1 -
-#     through the CLI, never by editing the journal. PLAN/spec-catalog.jsonl is additionally backed
-#     up and restored in a finally block as a crash net.
-#   * preview.ps1 itself is read-only; nothing here mutates a real ticket.
+# Reads live catalog data, writes none of it (S1534). The value of cases A/B/C/E/F is that they run
+# against real specs, so the suite does not fabricate a catalog - it SNAPSHOTS the two journals into
+# a sandbox directory and points the CLI at the copy via $env:FMS_SPEC_CATALOG_DIR. Reads stay real,
+# writes land in the copy, and the copy is deleted at the end.
+#
+# What that replaced, and why: probes used to be inserted into the production journal with ids from
+# the real next-id.ps1. delete.ps1 is a SOFT delete, so each probe left a row in
+# PLAN/spec-catalog-archive.jsonl for good, and New-CatalogId must never reissue an archived id - so
+# every run burned 4 spec ids permanently (21 by 2026-08-09) and grew the archive by 4 junk rows.
+# Worse, it raced: during S1490 next-id.ps1 handed S1526 to a genuine parked draft, a harness run
+# took that id first, and the real insert died with "Duplicate id 'S1526'".
+#
+# Two rules keep it that way, and both are load-bearing:
+#   * Probe ids come from the FIXED reserved block S9991-S9994, never from next-id.ps1. A fixed
+#     block far above the live maximum cannot collide with an id a sibling session allocates, which
+#     also keeps the probe's PLAN/S999x_*.md filename collision-free.
+#   * The finally block asserts against the REAL journals after tearing the sandbox down: none of
+#     the probe ids resolve, and no `preview-tests-probe` row exists. The old leak went unmeasured
+#     for 13 archive records, so the suite now reports its own regression instead of waiting for an
+#     audit to notice.
+#
+# Probe cleanup is still per record via delete.ps1, never a whole-journal restore (S1490): a probe
+# that survives cleanup is named and fails the run, which is how a delete.ps1 failure stays visible.
+# preview.ps1 itself is read-only; nothing here mutates a real ticket.
 #
 # Usage:  pwsh -NoProfile -File scripts/spec_catalog/preview.tests/Run-Tests.ps1
 #
@@ -48,8 +66,19 @@ $searchPs1 = Join-Path $repoRoot 'scripts/spec_catalog/search.ps1'
 $insertPs1 = Join-Path $repoRoot 'scripts/spec_catalog/insert.ps1'
 $deletePs1 = Join-Path $repoRoot 'scripts/spec_catalog/delete.ps1'
 $updatePs1 = Join-Path $repoRoot 'scripts/spec_catalog/update.ps1'
-$nextIdPs1 = Join-Path $repoRoot 'scripts/spec_catalog/next-id.ps1'
-$catalog = Join-Path $repoRoot 'PLAN/spec-catalog.jsonl'
+$selectPs1 = Join-Path $repoRoot 'scripts/spec_catalog/select.ps1'
+$archiveJournal = Join-Path $repoRoot 'PLAN/spec-catalog-archive.jsonl'
+
+# Sandbox: a snapshot of both journals that the CLI writes instead of production. Keyed by pid so
+# two suites running side by side never share one. Torn down in finally.
+$sandboxDir = Join-Path $repoRoot ('temp/scratch/spec-catalog-sandbox-{0}' -f $PID)
+New-Item -ItemType Directory -Force -Path $sandboxDir | Out-Null
+Copy-Item (Join-Path $repoRoot 'PLAN/spec-catalog.jsonl') (Join-Path $sandboxDir 'spec-catalog.jsonl') -Force
+Copy-Item $archiveJournal (Join-Path $sandboxDir 'spec-catalog-archive.jsonl') -Force
+$env:FMS_SPEC_CATALOG_DIR = $sandboxDir
+# The release queue reconciles against the real PLAN/RELEASE_QUEUE.md, which the sandbox has no
+# business reordering - SCHEMA.md names this the supported switch for an alternate-catalog run.
+$env:FMS_SKIP_RELEASE_QUEUE = '1'
 
 $script:pass = 0
 $script:fail = 0
@@ -70,9 +99,17 @@ function Get-Preview([string]$id) {
     return $raw | ConvertFrom-Json
 }
 
-$bkCatalog = Join-Path $env:TEMP "preview.tests.catalog.$PID.bak"
-Copy-Item $catalog $bkCatalog -Force
 $script:probeIds = @()
+
+# Reserved probe ids, mapped by slug rather than handed out by a counter: a case that skips for want
+# of a live fixture must not shift the ids of the cases after it, or a failure would name a
+# different probe than the one that produced it.
+$script:probeIdBySlug = @{
+    'preview-tests-probe-note'      = 'S9991'
+    'preview-tests-probe'           = 'S9992'
+    'preview-tests-probe-relations' = 'S9993'
+    'preview-tests-probe-token'     = 'S9994'
+}
 
 # Insert a throwaway spec through the CLI and remember it for the finally block. Body is written
 # verbatim so a case can shape the exact section-10 / statusNote combination it wants to exercise.
@@ -84,15 +121,17 @@ function New-Probe {
         [string]$StatusNote
     )
 
-    $id = (& $pwshExe -NoProfile -File $nextIdPs1).Trim()
+    $id = $script:probeIdBySlug[$Slug]
+    if (-not $id) { throw "No reserved probe id for slug '$Slug' - add one to `$script:probeIdBySlug." }
     $file = "PLAN/${id}_$Slug.md"
     [System.IO.File]::WriteAllText((Join-Path $repoRoot $file), $Body.Replace('<ID>', $id))
+    # Registered before insert.ps1, not after: the file on disk is already a leak the cleanup owns,
+    # so a failed insert must not orphan it in PLAN/.
+    $script:probeIds += [PSCustomObject]@{ id = $id; file = $file }
 
     & $pwshExe -NoProfile -File $insertPs1 -Id $id -Name $Slug `
         -Status $Status -Priority 1 -Tier 2 -File $file *> $null
     if ($LASTEXITCODE -ne 0) { return $null }
-
-    $script:probeIds += [PSCustomObject]@{ id = $id; file = $file }
     # insert.ps1 takes no -StatusNote; the note is a separate update, same as in real ticket flow.
     if ($StatusNote) {
         & $pwshExe -NoProfile -File $updatePs1 -Id $id -Status $Status -StatusNote $StatusNote *> $null
@@ -256,13 +295,57 @@ Temporary fixture written by scripts/spec_catalog/preview.tests/Run-Tests.ps1. D
     }
 }
 finally {
+    # Per record, never the whole journal (S1490) - see the header note.
+    $residue = @()
     foreach ($p in $script:probeIds) {
         & $pwshExe -NoProfile -File $deletePs1 -Id $p.id -Confirm *> $null
         Remove-Item -LiteralPath (Join-Path $repoRoot $p.file) -Force -ErrorAction SilentlyContinue
+        # "Cleaned" means "no longer live", not "absent": delete.ps1 is a soft delete - it moves the
+        # record to PLAN/spec-catalog-archive.jsonl with status Archived, and select.ps1 -Id reads
+        # that archive too. Asserting absence here fires on every green run.
+        $raw = & $pwshExe -NoProfile -File $selectPs1 -Id $p.id -Format json 2>$null
+        $left = if ($raw) { @($raw | ConvertFrom-Json) } else { @() }
+        if (@($left | Where-Object { $_.status -ne 'Archived' }).Count -gt 0) { $residue += $p.id }
     }
-    Copy-Item $bkCatalog $catalog -Force
-    Remove-Item $bkCatalog -Force -ErrorAction SilentlyContinue
-    Write-Host "catalog restored, $($script:probeIds.Count) probe(s) removed" -ForegroundColor DarkGray
+    if ($residue.Count -gt 0) {
+        Write-Host "  FAIL  probe cleanup left $($residue.Count) live record(s) in the catalog" -ForegroundColor Red
+        foreach ($leftId in $residue) {
+            Write-Host "        pwsh -NoProfile -File scripts/spec_catalog/delete.ps1 -Id $leftId -Confirm" -ForegroundColor Red
+        }
+        $script:fail += $residue.Count
+    }
+    Write-Host "$($script:probeIds.Count) probe(s) removed per record" -ForegroundColor DarkGray
+
+    # Sandbox down and the redirect cleared BEFORE the leak check - with the variable still set,
+    # select.ps1 would answer from the copy and the check would pass no matter what leaked.
+    $env:FMS_SPEC_CATALOG_DIR = $null
+    $env:FMS_SKIP_RELEASE_QUEUE = $null
+    Remove-Item -LiteralPath $sandboxDir -Recurse -Force -ErrorAction SilentlyContinue
+
+    # Every reserved id is checked, not just the ones this run inserted: a case that skipped for
+    # want of a fixture still must not have left a row behind from an earlier, leakier run.
+    $leaked = @()
+    foreach ($reservedId in ($script:probeIdBySlug.Values | Sort-Object)) {
+        $realRaw = & $pwshExe -NoProfile -File $selectPs1 -Id $reservedId -Format json 2>$null
+        # A miss prints the literal '[]', which is a non-empty string and so passes a truthiness
+        # test - the predicate has to read the parsed count, not the presence of output.
+        # @() at the point of use, not at assignment: an empty collection returned from an if-block
+        # collapses to $null on the way out, and .Count on $null throws under StrictMode.
+        $found = if ($realRaw) { $realRaw | ConvertFrom-Json } else { $null }
+        if (@($found).Count -gt 0) { $leaked += $reservedId }
+    }
+    $archiveJunk = Select-String -Path $archiveJournal -Pattern 'preview-tests-probe' -ErrorAction SilentlyContinue
+    if (@($leaked).Count -gt 0 -or @($archiveJunk).Count -gt 0) {
+        Write-Host "  FAIL  probes leaked into the REAL catalog - the sandbox did not hold" -ForegroundColor Red
+        foreach ($leakedId in $leaked) { Write-Host "        reserved id $leakedId resolves against PLAN/" -ForegroundColor Red }
+        if ($archiveJunk.Count -gt 0) {
+            Write-Host "        $($archiveJunk.Count) preview-tests-probe row(s) in PLAN/spec-catalog-archive.jsonl" -ForegroundColor Red
+            Write-Host "        pwsh -NoProfile -File scripts/spec_catalog/purge-probe-records.ps1" -ForegroundColor Red
+        }
+        $script:fail++
+    } else {
+        Write-Host 'no probe reached the real journals' -ForegroundColor DarkGray
+    }
 }
 
 Write-Host ''

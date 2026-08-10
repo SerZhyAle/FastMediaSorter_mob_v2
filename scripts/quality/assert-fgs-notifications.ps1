@@ -75,7 +75,7 @@ foreach ($f in $ktFiles) {
 if ($violations.Count -gt 0) {
     Write-Host "assert-fgs-notifications: FAIL ($($violations.Count) issue(s))" -ForegroundColor Red
     $violations | ForEach-Object { Write-Host "  - $_" -ForegroundColor Yellow }
-    Write-Host "Fix A: give the FGS a plain white notification icon (fillColor #FFFFFFFF, no ?attr tint) - see ic_notification_audio / ic_notification_cloud_download." -ForegroundColor Cyan
+    Write-Host "Fix A: use the shared branded icon - NotificationIcons.STATUS_BAR (ic_notification_app_logo), a plain white vector with no ?attr tint." -ForegroundColor Cyan
     Write-Host "Fix B: ensure the NotificationChannel exists (ensureChannel/createNotificationChannel) before setForeground/startForeground." -ForegroundColor Cyan
     exit 1
 }

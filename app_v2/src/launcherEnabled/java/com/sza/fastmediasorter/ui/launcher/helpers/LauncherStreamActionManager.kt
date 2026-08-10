@@ -3,13 +3,18 @@ package com.sza.fastmediasorter.ui.launcher.helpers
 import android.content.Intent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.menu.MenuActionSurface
 import com.sza.fastmediasorter.core.menu.StreamActionCatalog
 import com.sza.fastmediasorter.core.menu.StreamMenuAction
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
+import com.sza.fastmediasorter.ui.launcher.LauncherStreamEditDependencies
+import com.sza.fastmediasorter.ui.streams.StreamEditDialog
 import com.sza.fastmediasorter.ui.streams.StreamRemoveConfirmation
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -28,6 +33,11 @@ class LauncherStreamActionManager(
     // a menu entry duplicating the tap would be the one row nobody needs.
     private val togglePin: (StreamSourceEntity) -> Unit,
     private val removeStream: (StreamSourceEntity) -> Unit,
+    // S1500: the two use cases behind the shared edit dialog. Taken directly rather than as closures
+    // like the rows above, because the streams screen backs that dialog with its own ViewModel and the
+    // desktop's has nothing to add on the way through - a closure per callback would only be a longer
+    // way to say the same thing.
+    private val streamEdit: LauncherStreamEditDependencies,
 ) {
 
     /**
@@ -48,6 +58,9 @@ class LauncherStreamActionManager(
     /**
      * Whether this host can finish [action]. The catalog asks before offering a row, so an action
      * still waiting for its wiring is left out instead of shown dead (strategic ADR-2).
+     *
+     * S1500 emptied the deferred set: every row the desktop surface offers now runs. The predicate
+     * stays because the catalog asks it, and the next action to arrive unwired needs somewhere to say so.
      */
     fun supports(action: StreamMenuAction): Boolean = action !in DEFERRED
 
@@ -56,11 +69,57 @@ class LauncherStreamActionManager(
             StreamMenuAction.TOGGLE_PIN -> togglePin(source)
             StreamMenuAction.ADD_SHORTCUT -> pinShortcut(source)
             StreamMenuAction.SHARE_LINK -> shareLink(source)
+            StreamMenuAction.EDIT -> edit(source)
             StreamMenuAction.REMOVE -> confirmRemove(source)
             // Unreachable while [supports] and the desktop surface gate the rows; a warning rather
             // than silence, because a row that quietly does nothing is what this ticket removes.
             else -> Timber.w("Launcher offered channel action %s, which it cannot run", action)
         }
+    }
+
+    /**
+     * S1500: the streams screen's own dialog, not a desktop copy of it - that copy is the divergence
+     * strategic ADR-1 exists to prevent, and it is why this row was absent until the dialog moved out
+     * of StreamsActivity.
+     */
+    private fun edit(source: StreamSourceEntity) {
+        Timber.d("S1500: desktop edit dialog requested for ${source.title}")
+        StreamEditDialog.show(
+            activity = activity,
+            source = source,
+            callbacks = StreamEditDialog.Callbacks(
+                readTrackPreference = { url -> streamEdit.streamTrackPreference.read(url) },
+                writeTrackPreference = { url, audioIso, subtitleIso, subtitlesEnabled ->
+                    activity.lifecycleScope.launch {
+                        streamEdit.streamTrackPreference.writeAudio(url, audioIso)
+                        streamEdit.streamTrackPreference.writeSubtitle(url, subtitleIso, subtitlesEnabled)
+                    }
+                },
+                onEdit = { edited, url, title, kindOverride ->
+                    activity.lifecycleScope.launch { persistEdit(edited, url, title, kindOverride) }
+                },
+            ),
+        )
+    }
+
+    /**
+     * A refusal has to be spoken here. On the streams screen a rejected url leaves the row visibly
+     * unchanged in a list the user is looking at; on the desktop the dialog just closes and the cell
+     * keeps its old label, which reads exactly like success.
+     */
+    private suspend fun persistEdit(
+        source: StreamSourceEntity,
+        url: String,
+        title: String?,
+        kindOverride: String?,
+    ) {
+        val message = when (streamEdit.updateStreamSource(source, url, title, kindOverride)) {
+            UpdateStreamSourceUseCase.UpdateResult.InvalidUrl -> R.string.streams_error_invalid_url
+            UpdateStreamSourceUseCase.UpdateResult.Duplicate -> R.string.streams_error_duplicate_url
+            UpdateStreamSourceUseCase.UpdateResult.Success,
+            UpdateStreamSourceUseCase.UpdateResult.NotEditable -> return
+        }
+        Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
     }
 
     /**
@@ -114,11 +173,10 @@ class LauncherStreamActionManager(
         const val ORIGIN_MANUAL = "MANUAL"
 
         /**
-         * Editing a channel opens the streams screen's own add/edit dialog, which carries the media-kind
-         * override and the per-channel track preference and is built inside that Activity. Reproducing
-         * it here is the divergence strategic ADR-1 exists to prevent, so the row stays absent until
-         * that dialog has a home both hosts can reach.
+         * Actions the desktop cannot finish yet. Empty since S1500 moved the edit dialog out of
+         * StreamsActivity into [StreamEditDialog], which both hosts reach; it had held EDIT for exactly
+         * as long as that dialog had only one possible host.
          */
-        val DEFERRED = setOf(StreamMenuAction.EDIT)
+        val DEFERRED = emptySet<StreamMenuAction>()
     }
 }

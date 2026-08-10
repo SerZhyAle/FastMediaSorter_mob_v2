@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.net.Uri
+import android.os.SystemClock
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -110,6 +111,11 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
     player.addAnalyticsListener(analyticsListener)
     activeStreamAnalyticsListener = analyticsListener
     activeStreamDiagnostics = diagnostics
+    // S1510: the periodic half of the same diagnostics. Started here and stopped in
+    // releaseStreamDiagnostics, so it lives exactly as long as the listener above and can never tick
+    // against a released player. The bandwidth meter and the player are read through this closure
+    // rather than stored as fields - they are already session-scoped by being captured here.
+    activeStreamStatsSampler = startStreamStatsSampler(player, analyticsListener, bandwidthMeter)
     currentPlayerView?.player = player
 
     if (isRtsp) {
@@ -163,6 +169,34 @@ internal fun VideoPlayerManager.resetStreamFrameCapture() {
 }
 
 /**
+ * S1510: builds and starts the session's periodic sampler.
+ *
+ * The three sources are passed in rather than read from manager fields because all three are already
+ * session-scoped locals in [playStreamVideo]; capturing them in the reading closure is what ties the
+ * sampler's readings to exactly the session that created it.
+ */
+@UnstableApi
+private fun VideoPlayerManager.startStreamStatsSampler(
+    player: ExoPlayer,
+    analyticsListener: StreamDiagnosticsAnalyticsListener,
+    bandwidthMeter: DefaultBandwidthMeter,
+): StreamStatsSampler = StreamStatsSampler(
+    scope = managerScope,
+    intervalMs = StreamStatsSampler.SAMPLE_INTERVAL_MS,
+    readSample = {
+        val format = player.videoFormat
+        StreamStatsSample(
+            atMs = android.os.SystemClock.elapsedRealtime(),
+            renderedFrames = analyticsListener.renderedFrames(),
+            bitrateEstimateBps = bandwidthMeter.bitrateEstimate,
+            width = format?.width ?: 0,
+            height = format?.height ?: 0,
+            formatBitrateBps = format?.bitrate ?: 0,
+        )
+    },
+).also { it.start() }
+
+/**
  * S1127: detach the stream diagnostics AnalyticsListener and log the one-line session summary.
  * Symmetric with the add in [playStreamVideo]; the removeAnalyticsListener token is co-located here with
  * its add so the per-file listener-symmetry gate stays balanced. Called from both
@@ -172,6 +206,10 @@ internal fun VideoPlayerManager.resetStreamFrameCapture() {
 internal fun VideoPlayerManager.releaseStreamDiagnostics(player: ExoPlayer) {
     activeStreamAnalyticsListener?.let { player.removeAnalyticsListener(it) }
     activeStreamDiagnostics?.let { Timber.i("Stream session: %s", it.summary()) }
+    // S1510: stopped on the same edge that removes the listener - the sampler holds the player through
+    // its reading closure, so an unstopped one would both leak it and log about a session that ended.
+    activeStreamStatsSampler?.stop()
+    activeStreamStatsSampler = null
     activeStreamAnalyticsListener = null
     activeStreamDiagnostics = null
     // S1128: the track selector and step-down policy are plain per-session fields (not listeners), so
@@ -217,10 +255,22 @@ private fun VideoPlayerManager.inventoryStreamRenditions(tracks: Tracks, path: S
  * S1128: on a resolved stall, ask the step-down policy for a lower ceiling and, if it returns one, cap the
  * track selector so ABR cannot climb back into the stalling rendition. No-op when the policy declines
  * (single-quality, already at the floor, or the stall threshold is not yet reached).
+ *
+ * S1508: the policy ages stalls out of a decay window, so it is fed `elapsedRealtime` and not wall-clock
+ * time - an NTP correction or a manual clock change mid-session would otherwise either expire live stalls
+ * or freeze the window open, which is the session-lifetime counter the window replaced.
  */
 @UnstableApi
 private fun VideoPlayerManager.applyStreamQualityStepDown(path: String) {
-    val cap = activeStreamStepDownController?.registerStall() ?: return
+    // S1514: the rendition the engine actually settled on, read straight off the player. No new listener
+    // is needed for it - the fourth candidate in the ticket asked whether onTracksChanged already carried
+    // the signal, and the answer turned out to be simpler still: ExoPlayer reports the current video
+    // format directly, in one call, with no subscription to keep in sync.
+    val playingFormat = exoPlayer?.videoFormat
+    val playing = playingFormat?.takeIf { it.width > 0 && it.height > 0 }?.let {
+        StreamQualityStepDownController.Rendition(it.width, it.height, it.bitrate)
+    }
+    val cap = activeStreamStepDownController?.registerStall(SystemClock.elapsedRealtime(), playing) ?: return
     activeStreamTrackSelector?.let { selector ->
         selector.setParameters(
             selector.buildUponParameters()
@@ -229,11 +279,15 @@ private fun VideoPlayerManager.applyStreamQualityStepDown(path: String) {
                 .build(),
         )
     }
+    // S1514: both numbers, because they are different numbers. The line used to print the ceiling alone,
+    // so a step that changed nothing read exactly like one that did - the failure mode the source
+    // document calls out as the worst kind of log.
     Timber.i(
-        "Stream quality: stepped down to <=%dx%d @%dbps path=%s",
+        "Stream quality: stepped down to <=%dx%d @%dbps from playing=%s path=%s",
         cap.maxWidthPx,
         cap.maxHeightPx,
         cap.maxBitrateBps,
+        playing?.let { "${it.widthPx}x${it.heightPx}" } ?: "unknown",
         path,
     )
 }

@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.util.showBoundToHost
+import timber.log.Timber
 
 /**
  * S1424: the one remove-channel confirmation, raised from wherever a channel can be removed.
@@ -23,6 +25,7 @@ object StreamRemoveConfirmation {
         // The dialog outlives the tap that asked for it, so a host already tearing down must not
         // attach a window.
         if (activity.isFinishing || activity.isDestroyed) return
+        Timber.d("S1456: stream removal confirmation bound to host")
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.streams_remove)
             .setMessage(title)
@@ -32,6 +35,6 @@ object StreamRemoveConfirmation {
         DialogKeyboardDelegate.applyTo(dialog) {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
         }
-        dialog.show()
+        dialog.showBoundToHost(activity)
     }
 }

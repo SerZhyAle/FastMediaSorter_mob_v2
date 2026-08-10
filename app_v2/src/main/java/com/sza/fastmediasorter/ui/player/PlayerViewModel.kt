@@ -113,6 +113,9 @@ class PlayerViewModel @Inject constructor(
     // S0189/S1195: persists an edited text note; the Activity used to inject this and hand it to the
     // text-viewer save flow itself.
     private val saveTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase,
+    // S1509: tells a channel that is really dead apart from a device that simply lost its link, so a
+    // stream failing during an outage is not answered with an offer to delete the channel.
+    private val networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer,
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     /** S0189: persist [content] as [name] beside [localFile], renaming on conflict. */
@@ -204,8 +207,11 @@ class PlayerViewModel @Inject constructor(
         data class ShowVrInstallCta(val stereoMode: StereoMode) : PlayerEvent()
         object StopPlayback : PlayerEvent()
         // S0581: a list stream failed to play; the Activity shows a retry / remove-from-list dialog.
+        // S1509: [offline] means the device had no network when it failed, so the dialog explains that
+        // instead of offering to remove a channel that was never asked anything.
         data class ShowStreamUnavailable(
-            val source: com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+            val source: com.sza.fastmediasorter.data.local.db.StreamSourceEntity,
+            val offline: Boolean,
         ) : PlayerEvent()
         // S0162: fired when the player-level rotation sensor toggle is changed
         data class RotationSensorToggled(val sensorEnabled: Boolean) : PlayerEvent()
@@ -288,9 +294,12 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val source = getStreamSourceByUrlUseCase(url)
             if (source != null) {
-                // S0593: a saved stream that failed to play here -> record the red status.
-                recordStreamPlayOutcomeUseCase(source.id, ok = false)
-                sendEvent(PlayerEvent.ShowStreamUnavailable(source))
+                // S1509: one connectivity sample feeds both the recorded outcome and the dialog, so the
+                // row bullet and the buttons cannot disagree about what just failed.
+                val hasNetwork = networkContextAnalyzer.hasAnyNetwork()
+                // S0593/S1509: red when the channel is to blame, amber when the device had no link.
+                recordStreamPlayOutcomeUseCase.recordPlayFailure(source.id, hasNetwork)
+                sendEvent(PlayerEvent.ShowStreamUnavailable(source, offline = !hasNetwork))
             } else {
                 sendEvent(PlayerEvent.ShowError(appContext.getString(R.string.error_playback_failed)))
             }
@@ -318,7 +327,7 @@ class PlayerViewModel @Inject constructor(
     fun recordStreamPlayOk(url: String) {
         viewModelScope.launch {
             val source = getStreamSourceByUrlUseCase(url) ?: return@launch
-            recordStreamPlayOutcomeUseCase(source.id, ok = true)
+            recordStreamPlayOutcomeUseCase.recordPlaySuccess(source.id)
         }
     }
 

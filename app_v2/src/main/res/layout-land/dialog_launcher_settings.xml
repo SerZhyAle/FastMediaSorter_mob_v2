@@ -162,6 +162,15 @@
                 android:layout_marginBottom="@dimen/margin_small"
                 app:str_title="@string/launcher_settings_replace_status_area_title" />
 
+            <!-- S1431: same placement as portrait, for the same ViewBinding reason as the row above. -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLauncherTopStatusStrip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_subtitle="@string/launcher_settings_top_status_strip_summary"
+                app:str_title="@string/launcher_settings_top_status_strip_title" />
+
         </LinearLayout>
 
         <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader

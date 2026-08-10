@@ -73,7 +73,13 @@ The call itself replaces the previous `search.ps1` + manual rank + `skip-cache.p
 
 **Stage 0 - device probe.** This is a single read-only probe; never blocks the loop. Runs every invocation, including `--resume` - a resumed process is a fresh probe, not a continuation, since the device may have changed while the session was stopped. The result is persisted via `-Verb Device` so Stage 5.5's `DEVICE_ONLINE` check never depends on in-memory state surviving a reset.
 
-**Stage 3 - the drift verdict.** `selected.drift.verdict == DRIFT` = git commits carrying spec id marker AND/OR inline `// <id>:` markers exist in `app_v2/src/`. Fix is likely already (partly) in code and `/spec-all` would re-discover it expensively.
+**Stage 3 - the drift verdicts (S1429).** Three values, because two different facts used to share one:
+
+- `CLEAN` - no commit carries the id and no inline marker does.
+- `COMMIT_ONLY` - a commit carries the id, no inline `// <id>:` marker does. Expected of any ticket that has been worked on at all; the tree holds nothing unaccounted, so it never parks the ticket. This shape produced six of the `drift-needs-review` skip-cache entries standing on 2026-08-09, each one explaining in its own words that the finding was false.
+- `DRIFT` - inline markers exist in `app_v2/src/`. The fix is likely already (partly) in code and `/spec-all` would re-discover it expensively, unless something accounts for it.
+
+The third proof against `DRIFT` is `selected.tactical_index.fresh`: a tactical plan whose `Last updated` is not older than the newest in-window commit. A Tier-3 ticket records progress in its plan's phase counters, not in the strategic spec, so reading only `Last Audit` and `Implementation State` called every in-flight tactical ticket unaccounted. Freshness is dated against the commit rather than merely required to exist, so a plan abandoned months ago cannot vouch for work that landed yesterday.
 
 **Stage 4 handoff - what `/spec-all` skips.** `/spec-all` trusts this context and skips its own opening `select.ps1` / catalog re-query for this ticket (its Resume Map keys off handed `status`). It does NOT re-run `preview.ps1` / `drift-check.ps1` for same ticket.
 

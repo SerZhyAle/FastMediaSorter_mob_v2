@@ -73,7 +73,7 @@ Update existing value in one locale: `-Action set -Module <module> -Locale en|ru
 
 Open when a step's files do not map obviously onto one `-ChangeType`.
 
-Choose `Kotlin` for executable `.kt`/`.java` edits, `Xml` for string/resource changes, `Doc` for spec/doc-only edits, `Mixed` only when one step genuinely spans code plus strings.
+Choose `Kotlin` for executable `.kt`/`.java` edits, `Xml` for string/resource changes, `Doc` for spec/doc-only edits, `Tooling` for one set spanning build/config files and repo scripts, and `Mixed` only when one step genuinely spans code plus strings. Kotlin/XML gates still require matching files in the changed set.
 
 ---
 

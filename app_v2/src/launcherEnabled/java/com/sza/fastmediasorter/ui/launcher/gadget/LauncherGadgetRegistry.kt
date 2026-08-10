@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.launcher.gadget
 
 import com.sza.fastmediasorter.ui.launcher.gadget.di.HomeWidgetGadgets
 import com.sza.fastmediasorter.ui.launcher.gadget.di.SensorGadgets
+import com.sza.fastmediasorter.ui.launcher.gadget.di.TechnicalGadgets
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,10 +33,13 @@ class LauncherGadgetRegistry @Inject constructor(
     // S1179: the sensor tiles arrive the same way and for the same two reasons - the constructor
     // threshold, and the @JvmSuppressWildcards erasure trap documented above.
     @SensorGadgets sensors: List<@JvmSuppressWildcards LauncherGadget>,
+    // S1178: the four technical status tiles, for the same two reasons again - the constructor threshold
+    // and the @JvmSuppressWildcards erasure trap documented above.
+    @TechnicalGadgets technical: List<@JvmSuppressWildcards LauncherGadget>,
 ) {
 
     private val gadgets: List<LauncherGadget> =
-        listOf(clock, weather, playlist, streams, folderPreview) + homeWidgets + sensors
+        listOf(clock, weather, playlist, streams, folderPreview) + homeWidgets + sensors + technical
 
     /** Picker order (Phase 07): cheapest and most universal first. */
     fun all(): List<LauncherGadget> = gadgets
@@ -83,6 +87,12 @@ class LauncherGadgetRegistry @Inject constructor(
         const val KEY_SPEED_CHART = "speed_chart"
         const val KEY_ALTITUDE_CHART = "altitude_chart"
         const val KEY_STEPS = "steps"
+
+        // S1178: same contract - the key is what a cell's `target` column stores, so it is never renamed.
+        const val KEY_NETWORK = "network"
+        const val KEY_BATTERY = "battery"
+        const val KEY_STORAGE = "storage"
+        const val KEY_RESOURCES = "resources"
 
         private const val SEPARATOR = ':'
     }

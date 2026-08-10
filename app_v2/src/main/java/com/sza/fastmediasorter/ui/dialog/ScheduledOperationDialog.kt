@@ -15,14 +15,15 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.databinding.DialogScheduledOperationBinding
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOperationDraft
-import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.model.computeNextRunAt
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
+import com.sza.fastmediasorter.util.showBoundToHost
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -228,7 +229,7 @@ class ScheduledOperationDialog(
                     b.etIntervalMinutes.setText(pickerMinutes.value.toString().padStart(2, '0'))
                 }
                 .setNegativeButton(android.R.string.cancel, null)
-                .show()
+                .showBoundToHost(context)
         }
     }
 

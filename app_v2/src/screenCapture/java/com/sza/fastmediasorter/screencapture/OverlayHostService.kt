@@ -14,6 +14,7 @@ import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
@@ -142,8 +143,9 @@ class OverlayHostService : Service() {
 
     private fun startForegroundCompat() {
         createChannel()
+        Timber.d("S1399: overlay-host service notification built with the branded status-bar icon")
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_screen_capture)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentTitle(getString(R.string.screen_capture_service_notification_title))
             .setOngoing(true)
             .setSilent(true)

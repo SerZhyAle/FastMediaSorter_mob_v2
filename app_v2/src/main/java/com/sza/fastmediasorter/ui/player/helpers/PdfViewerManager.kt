@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.stats.ViewKind
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -322,7 +323,7 @@ class PdfViewerManager(
             .setNegativeButton(com.sza.fastmediasorter.R.string.cancel) { dialog, _ ->
                 dialog.dismiss()
             }
-            .show()
+            .showBoundToHost(context)
     }
 
     /** Display PDF file in PhotoView (reused for PDF pages) */

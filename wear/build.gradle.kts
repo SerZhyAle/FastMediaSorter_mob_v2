@@ -192,8 +192,9 @@ dependencies {
     // FTP client (S0111 Phase 04)
     implementation("commons-net:commons-net:3.10.0")
 
-    // SFTP client - JSch (lighter than SSHJ, no BouncyCastle conflict with SMBJ) (S0111 Phase 04)
-    implementation("com.github.mwiede:jsch:0.2.17")
+    // SFTP client - JSch (lighter than SSHJ, no BouncyCastle conflict with SMBJ) (S0111 Phase 04).
+    // Version is deliberately kept equal to app_v2 and enforced by check-doc-vs-gradle.ps1 (S1496).
+    implementation("com.github.mwiede:jsch:0.2.26")
     
     // Encrypted storage for credentials
     implementation("androidx.security:security-crypto:1.1.0-alpha06")

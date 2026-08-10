@@ -19,6 +19,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.core.save.SaveFallbackNotifier
 import com.sza.fastmediasorter.data.capture.MicRecordingSaver
@@ -348,8 +349,9 @@ class QuickAudioRecorderService : Service() {
             stopIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+        Timber.d("S1399: quick audio-recorder notification built with the branded status-bar icon")
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_widget_quick_audio_recorder_idle)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.quick_recorder_notification_recording))
             .setOngoing(true)

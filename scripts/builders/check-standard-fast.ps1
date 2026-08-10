@@ -1,11 +1,13 @@
 <#
 .SYNOPSIS
-    Fast per-flavor Gradle check - compile, resources, unit tests or assemble.
+    Fast per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults to app_v2;
+    -Module wear checks the Wear OS module, which has no product flavors.
 
 .OUTPUTS
     Exit 0 - the check passed.
     Exit 1 - the check found a defect (compile error, red test, truncated suite).
-    Exit 2 - the check could not run to a verdict (S1463: the unit-test worker JVM died, twice).
+    Exit 2 - the check could not run to a verdict (S1463: the unit-test worker JVM died, twice;
+             or -Flavor was combined with -Module wear, which declares no flavors).
 #>
 param(
     [ValidateSet("Code", "Resources", "CodeAndResources", "Unit", "Assemble")]
@@ -18,6 +20,11 @@ param(
     # lives only under src/vr, which the Standard/NoLegal checks never compile.
     [ValidateSet("Standard", "NoLegal", "Lite", "Photos", "Legacy", "Vr")]
     [string]$Flavor = "Standard",
+    # S1496: wear is an active Gradle module with no fast check of its own, which is how its jsch
+    # pin drifted nine minor versions behind app_v2 unnoticed. It declares no product flavors, so
+    # -Flavor does not apply to it.
+    [ValidateSet("app_v2", "wear")]
+    [string]$Module = "app_v2",
     [string]$Tests,
     [switch]$Quiet
 )
@@ -32,13 +39,21 @@ try {
 $projectRoot = Resolve-Path "$PSScriptRoot\..\.."
 Set-Location $projectRoot
 
+if ($Module -eq 'wear' -and $Flavor -ne 'Standard') {
+    Write-Error "check-standard-fast: -Flavor '$Flavor' is meaningless for the wear module - it declares no product flavors." -ErrorAction Continue
+    exit 2
+}
+
+# The wear module declares no product flavors, so its task names carry no flavor segment.
+$variant = if ($Module -eq 'wear') { '' } else { $Flavor }
+
 function Get-GradleTaskList {
     switch ($Mode) {
-        "Code" { return @(":app_v2:compile${Flavor}DebugKotlin") }
-        "Resources" { return @(":app_v2:process${Flavor}DebugResources") }
-        "CodeAndResources" { return @(":app_v2:compile${Flavor}DebugKotlin", ":app_v2:process${Flavor}DebugResources") }
-        "Unit" { return @(":app_v2:test${Flavor}DebugUnitTest") }
-        "Assemble" { return @(":app_v2:assemble${Flavor}Debug") }
+        "Code" { return @(":${Module}:compile${variant}DebugKotlin") }
+        "Resources" { return @(":${Module}:process${variant}DebugResources") }
+        "CodeAndResources" { return @(":${Module}:compile${variant}DebugKotlin", ":${Module}:process${variant}DebugResources") }
+        "Unit" { return @(":${Module}:test${variant}DebugUnitTest") }
+        "Assemble" { return @(":${Module}:assemble${variant}Debug") }
         default { throw "Unsupported mode: $Mode" }
     }
 }
@@ -68,7 +83,8 @@ if ($Tests) {
     }
 }
 
-Write-Host "Fast $Flavor check.." -ForegroundColor Cyan
+$checkLabel = if ($Module -eq 'wear') { 'wear' } else { $Flavor }
+Write-Host "Fast $checkLabel check.." -ForegroundColor Cyan
 Write-Host "Mode: $Mode" -ForegroundColor Yellow
 if ($Tests) {
     Write-Host "Tests filter: $Tests" -ForegroundColor Yellow
@@ -108,7 +124,7 @@ $gradleExit = $run.ExitCode
 # catch would exit first and never reach it. Skipped for a --tests filter, where a handful of
 # reports is the correct outcome rather than a truncation.
 if ($Mode -eq "Unit" -and -not $Tests) {
-    & "$PSScriptRoot\..\quality\assert-test-suite-complete.ps1" -TaskDir "test${Flavor}DebugUnitTest"
+    & "$PSScriptRoot\..\quality\assert-test-suite-complete.ps1" -TaskDir "test${variant}DebugUnitTest"
     $gateExit = $LASTEXITCODE
     if ($gateExit -eq 1 -and -not $run.WorkerDeath) {
         Write-Host "`nFast check failed - the unit run did not cover the whole suite." -ForegroundColor Red

@@ -8,9 +8,10 @@ import android.widget.TextView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.usecase.FileOperationProgress
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog
-import com.sza.fastmediasorter.domain.usecase.FileOperationProgress
+import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -75,9 +76,9 @@ class BrowseArchiveDialogManager(
             .setView(root)
             .setNegativeButton(android.R.string.cancel, null)
             .setPositiveButton(R.string.archive_action_btn, null)
-            .show()
+            .showBoundToHost(context)
 
-        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+        dialog?.getButton(android.app.AlertDialog.BUTTON_POSITIVE)?.setOnClickListener {
             val name = etName.text.toString().trim()
 
             if (name.isEmpty()) {
@@ -90,7 +91,7 @@ class BrowseArchiveDialogManager(
                 return@setOnClickListener
             }
 
-            dialog.dismiss()
+            dialog?.dismiss()
             showArchiveProgressDialog()
             onArchiveRequested(name, currentDir)
         }
@@ -105,7 +106,7 @@ class BrowseArchiveDialogManager(
                 onCancelArchive()
             }
             .setCancelable(false)
-            .show()
+            .showBoundToHost(context)
     }
 
     fun dismissArchiveProgressDialog() {
@@ -128,7 +129,7 @@ class BrowseArchiveDialogManager(
                 onExtractArchive(mediaFile)
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(context)
     }
 
     fun showArchivePasswordDialog(mediaFile: MediaFile, targetDirName: String) {
@@ -157,16 +158,16 @@ class BrowseArchiveDialogManager(
             .setView(root)
             .setPositiveButton(android.R.string.ok, null)
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(context)
 
-        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+        dialog?.getButton(android.app.AlertDialog.BUTTON_POSITIVE)?.setOnClickListener {
             val passwordText = passwordInput.text?.toString().orEmpty()
             if (passwordText.isEmpty()) {
                 passwordInput.error = context.getString(R.string.protected_archive_password_empty)
                 return@setOnClickListener
             }
 
-            dialog.dismiss()
+            dialog?.dismiss()
             showExtractProgressDialog()
             onExtractArchiveWithPassword(mediaFile, passwordText.toCharArray())
         }

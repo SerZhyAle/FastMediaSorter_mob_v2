@@ -66,7 +66,7 @@
 - Builds: `scripts/builders/build-debug.PS1` (`-SkipZip`, `-AutoVersion`), `build-debug-clean.PS1`, `build-lite-debug.ps1`, `build-photos-debug.ps1`, `build-legacy-debug.ps1`, `clean-gradle-caches.ps1`, `build-standard-release.ps1`, `build-wear-release.PS1`.
 - Fast checks: `scripts/builders/check-standard-fast.ps1 -Mode Code|Resources|CodeAndResources|Unit|Assemble [-Flavor Standard|NoLegal|Lite|Photos|Legacy]`. Prefer `Code` / `CodeAndResources` over full debug APK builds when only a few symbols changed.
 - Gate batch: `scripts/quality/assert-fast-gates.ps1` runs the fast static gates (no-ticket-logs, flavor-flags, neuroslop, deprecated-pm, listener-symmetry) in one process (`-IncludeDetekt` opt-in).
-- Closure facade: `scripts/post-change.ps1 -ChangeType <type>` chains dev-log + catalog-sync + gates; add `-ScopeToFile` for per-change closure on the always-dirty tree (diff-scoped detekt + advisory project-wide ratchets).
+- Closure facade: `scripts/post-change.ps1 -ChangeType <type>` chains dev-log + catalog-sync + gates; use `Tooling` for build/config-plus-script sets, and add `-ScopeToFile` for per-change closure on the always-dirty tree (source gates require matching files; detekt stays diff-scoped).
 - Device: `scripts/utils/extract-device-logs.ps1`, `Install_release_on_adb_connected_device.ps1`, `build-standard-device.ps1`.
 - Tests: `scripts/utils/run-maestro-smoke.ps1`, `run-stress.ps1`, `setup_test_media.ps1`.
 - Utilities: `scripts/utils/commit-push.ps1`, `generate-changelog.ps1`, `check-typo-lint.ps1`, `set-android-string.ps1`, `add_to_dev_log.ps1`, `catalog_sync.ps1`.

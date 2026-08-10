@@ -64,6 +64,7 @@ import com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneFileOperationsHandler
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
@@ -191,7 +192,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                         .setPositiveButton(android.R.string.ok) { _, _ -> onConfirm() }
                         .setNegativeButton(android.R.string.cancel) { _, _ -> onCancel() }
                         .setOnCancelListener { onCancel() }
-                        .show()
+                        .showBoundTo(this@DocumentStandaloneActivity)
                 }
             }
         )

@@ -16,6 +16,7 @@ import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
+import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.player.helpers.StreamDataSourceFactoryProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -319,8 +320,12 @@ internal fun backoffDelayMs(consecutiveFailures: Int): Long {
  * while the device actually had a network says anything about the url - during an outage every url
  * fails at once, and counting that would leave live channels serving a dead channel's five-minute
  * cooldown for a cause that was never theirs.
+ *
+ * S1509: the attribution half of that rule now lives in [RecordStreamPlayOutcomeUseCase], which the
+ * terminal failure dialog reads too; this function keeps only the "a success is never a penalty" half.
  */
-internal fun shouldPenaliseCaptureFailure(ok: Boolean, hasNetwork: Boolean): Boolean = !ok && hasNetwork
+internal fun shouldPenaliseCaptureFailure(ok: Boolean, hasNetwork: Boolean): Boolean =
+    !ok && RecordStreamPlayOutcomeUseCase.isChannelAttributableFailure(hasNetwork)
 
 private const val BACKOFF_BASE_MS = 60_000L
 private const val BACKOFF_CAP_MS = 300_000L

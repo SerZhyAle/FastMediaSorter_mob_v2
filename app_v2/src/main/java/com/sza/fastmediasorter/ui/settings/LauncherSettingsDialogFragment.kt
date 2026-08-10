@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -127,8 +128,17 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         binding.rowLauncherReplaceStatusArea.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(
-                viewModel.settings.value.copy(launcherReplaceSystemStatusArea = isChecked)
+                viewModel.settings.value.copy(
+                    launcherReplaceSystemStatusArea = isChecked,
+                    // S1431: the mode has nowhere to draw without the freed band, so it is cleared with it
+                    // rather than left stored as on and unreachable (strategic risk row 6).
+                    launcherTopStatusStripMode = isChecked && viewModel.settings.value.launcherTopStatusStripMode,
+                )
             )
+        }
+        binding.rowLauncherTopStatusStrip.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(launcherTopStatusStripMode = isChecked))
         }
         binding.rowLauncherDensity.setEntries(
             listOf(
@@ -217,7 +227,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
                 launcherViewModel.resetToDefaults()
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(this@LauncherSettingsDialogFragment)
     }
 
     private fun observeSettings() {
@@ -233,6 +243,8 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             binding.rowLauncherTrayNetwork.setCheckedSilently(settings.launcherTrayShowNetwork)
             binding.rowLauncherTrayBattery.setCheckedSilently(settings.launcherTrayShowBattery)
             binding.rowLauncherReplaceStatusArea.setCheckedSilently(settings.launcherReplaceSystemStatusArea)
+            binding.rowLauncherTopStatusStrip.setCheckedSilently(settings.launcherTopStatusStripMode)
+            renderTopStatusStripRows(settings)
             binding.rowLauncherLockDesktop.setCheckedSilently(settings.launcherDesktopLocked)
             val densityIndex = AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(settings.launcherDensityFactor)
             binding.rowLauncherDensity.setSelection(if (densityIndex >= 0) densityIndex else DENSITY_DEFAULT_INDEX)
@@ -259,6 +271,24 @@ class LauncherSettingsDialogFragment : DialogFragment() {
                 Snackbar.LENGTH_LONG,
             ).show()
         }
+    }
+
+    /**
+     * S1431: the two rows the mode governs.
+     *
+     * The mode itself is offered only while the launcher owns the status area, because that band is where
+     * it draws. The tray switch below it is disabled, not removed and not rewritten, while the mode is on:
+     * strategic ADR-5 rejected removal because a vanished row never tells the user where the indicators
+     * went, and rejected rewriting the stored value so switching the mode off restores exactly what the
+     * user last chose. The subtitle is the explanation the disabled state would otherwise lack.
+     */
+    private fun renderTopStatusStripRows(settings: AppSettings) {
+        binding.rowLauncherTopStatusStrip.isEnabled = settings.launcherReplaceSystemStatusArea
+        val moved = settings.launcherTopStatusStripMode && settings.launcherReplaceSystemStatusArea
+        binding.rowLauncherShowTray.isEnabled = !moved
+        binding.rowLauncherShowTray.setSubtitle(
+            if (moved) getText(R.string.launcher_settings_tray_moved_hint) else null
+        )
     }
 
     private fun renderWallpaperRow(settings: AppSettings) {

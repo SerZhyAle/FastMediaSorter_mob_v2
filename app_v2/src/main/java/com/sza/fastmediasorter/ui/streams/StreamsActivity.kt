@@ -34,11 +34,9 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableInventory
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
-import com.sza.fastmediasorter.domain.model.StreamTrackLanguage
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
-import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
@@ -60,6 +58,7 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManage
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsMediaKindTriggerManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsSectionsManager
+import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -417,7 +416,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     if (isPlaying) source?.let(::persistStreamResume) else clearStreamResume()
                 },
                 onError = ::showStreamUnavailable,
-                onSuccess = { viewModel.recordStreamOutcome(it.id, ok = true) },
+                onSuccess = { viewModel.recordStreamPlaySuccess(it.id) },
                 // S1142: mirror the live now-playing track onto the active channel's grid tile. The id
                 // comes from the manager itself - reading it back via inlineAudio here crashed on the
                 // init-time emit (the lateinit is not yet assigned while the constructor runs).
@@ -597,8 +596,31 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             // S1201: and the logo coords, which are the only artwork a radio channel can get.
             logoAtlasCoords = streamLogoAtlasStore.coords()
             logStreamArtworkState()
-            adapter.notifyItemRangeChanged(0, adapter.itemCount)
+            repaintArtworkRows()
         }
+    }
+
+    /**
+     * S1503: repaint the rows the user can actually see, in both sections.
+     *
+     * The coords maps above are read by every adapter through closures over these fields, so freshly
+     * loaded artwork is already reachable - what was missing is telling the adapters to rebind. Only
+     * the main list adapter was ever told, so in grid mode, and in the pinned section in either mode,
+     * logos and previews stayed absent until the display mode was toggled or the screen reopened.
+     *
+     * Addressed through the RecyclerViews rather than the four adapter fields on purpose: each section
+     * has exactly one RecyclerView whose adapter [StreamGridModeManager] swaps on a mode change, so
+     * this repaints whichever adapter is attached right now and cannot go stale when a fifth is added.
+     */
+    private fun repaintArtworkRows() {
+        var reached = 0
+        listOf(binding.rvStreams, binding.rvStreamsPinned).forEach { recycler ->
+            recycler.adapter?.let { bound ->
+                bound.notifyItemRangeChanged(0, bound.itemCount)
+                reached++
+            }
+        }
+        Timber.d("S1503: artwork repaint reached $reached section adapters")
     }
 
     /**
@@ -638,14 +660,14 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private suspend fun reloadAtlasPreviews() {
         atlasSlicer.invalidate()
         atlasPreviewCoords = channelPreviewAtlasStore.coords()
-        adapter.notifyItemRangeChanged(0, adapter.itemCount)
+        repaintArtworkRows()
     }
 
     /** S1201: same reload for the logo atlas - it is downloaded and installed independently. */
     private suspend fun reloadLogoTiles() {
         logoSlicer.invalidate()
         logoAtlasCoords = streamLogoAtlasStore.coords()
-        adapter.notifyItemRangeChanged(0, adapter.itemCount)
+        repaintArtworkRows()
     }
 
     /**
@@ -662,7 +684,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             logoSlicer.invalidate()
             logoAtlasCoords = streamLogoAtlasStore.coords()
             logStreamArtworkState()
-            adapter.notifyItemRangeChanged(0, adapter.itemCount)
+            repaintArtworkRows()
         }
     }
 
@@ -979,81 +1001,31 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     /**
      * S0581: a stream that did not respond. Offer to retry the same source or remove it from the
      * local list (every listed stream is a persisted DB row, so removal is always meaningful).
+     *
+     * S1509: removal is offered only when the device had a network - otherwise the user's own dead
+     * link, not the channel, is what failed, and the dialog says so instead of proposing a deletion.
      */
     private fun showStreamUnavailable(source: StreamSourceEntity) {
-        // S0593: the inline audio attempt failed -> record the red status for this source.
-        viewModel.recordStreamOutcome(source.id, ok = false)
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.streams_unavailable_title)
-            .setMessage(getString(R.string.streams_unavailable_message, source.title))
-            .setPositiveButton(R.string.retry) { _, _ ->
-                inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
-            }
-            .setNeutralButton(R.string.streams_remove) { _, _ -> viewModel.onRemove(source) }
-            .setNegativeButton(android.R.string.cancel, null)
-            .create()
-        DialogKeyboardDelegate.applyTo(dialog) {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
-        }
-        dialog.show()
+        // S1509: one connectivity sample drives both the recorded outcome and the dialog, so the row
+        // bullet and the buttons can never disagree about what just happened.
+        val hasNetwork = viewModel.hasNetworkForStream()
+        // S0593/S1509: the inline audio attempt failed -> red when the channel is to blame, amber when
+        // the network was down.
+        viewModel.recordStreamPlayFailure(source.id, hasNetwork)
+        StreamUnavailableDialog.show(
+            activity = this,
+            channelTitle = source.title,
+            offline = !hasNetwork,
+            onRetry = { inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled()) },
+            onRemove = { viewModel.onRemove(source) },
+            onDismiss = {},
+        )
     }
 
     private fun confirmRemove(source: StreamSourceEntity) {
         // S1424: the dialog itself moved to a shared object so the launcher desktop asks the same
         // question instead of a copy of it.
         StreamRemoveConfirmation.show(this, source.title) { viewModel.onRemove(source) }
-    }
-
-    /**
-     * S1144: fills the three per-channel track rows and returns a writer that persists whatever the user
-     * left selected. Index 0 is always "Default" = no per-channel preference, so the channel keeps
-     * following the global stream defaults. [existing] is null in add mode, where there is nothing stored yet.
-     */
-    private fun bindChannelTrackPreference(
-        binding: DialogAddStreamBinding,
-        existing: StreamTrackPreferenceUseCase.TrackPreference?
-    ): (String) -> Unit {
-        val languages = listOf(
-            getString(R.string.language_default),
-            getString(R.string.language_english),
-            getString(R.string.language_russian),
-            getString(R.string.language_ukrainian),
-        )
-        val subtitleStates = listOf(
-            getString(R.string.language_default),
-            getString(R.string.stream_channel_subtitles_on),
-            getString(R.string.subtitle_off),
-        )
-        binding.rowChannelAudioLanguage.setEntries(languages)
-        binding.rowChannelSubtitleLanguage.setEntries(languages)
-        binding.rowChannelSubtitles.setEntries(subtitleStates)
-        binding.rowChannelAudioLanguage.setSelection(
-            StreamTrackLanguage.fromIsoCode(existing?.audioLang).ordinal
-        )
-        binding.rowChannelSubtitleLanguage.setSelection(
-            StreamTrackLanguage.fromIsoCode(existing?.subtitleLang).ordinal
-        )
-        binding.rowChannelSubtitles.setSelection(
-            when (existing?.subtitlesEnabled) {
-                true -> 1
-                false -> 2
-                null -> 0
-            }
-        )
-
-        return { url ->
-            val audioIso = StreamTrackLanguage.entries[binding.rowChannelAudioLanguage.getSelectedIndex()
-                .coerceAtLeast(0)].isoCodeOrNull()
-            val subtitleIso = StreamTrackLanguage.entries[binding.rowChannelSubtitleLanguage.getSelectedIndex()
-                .coerceAtLeast(0)].isoCodeOrNull()
-            val subtitlesEnabled = when (binding.rowChannelSubtitles.getSelectedIndex()) {
-                1 -> true
-                2 -> false
-                else -> null
-            }
-            Timber.d("S1144: channel dialog wrote audio=$audioIso sub=$subtitleIso on=$subtitlesEnabled")
-            viewModel.writeTrackPreference(url, audioIso, subtitleIso, subtitlesEnabled)
-        }
     }
 
     private fun showSourceDialog(isImport: Boolean) {
@@ -1065,7 +1037,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // S1144: an import pulls in a whole playlist, so there is no single channel to attach a track
         // preference to - the rows are shown for a manual add only.
         dialogBinding.trackPreferenceContainer.isVisible = !isImport
-        val writeTrackPreference = bindChannelTrackPreference(dialogBinding, existing = null)
+        val writeTrackPreference = StreamEditDialog.bindTrackPreference(
+            activity = this,
+            binding = dialogBinding,
+            existing = null,
+            write = viewModel::writeTrackPreference,
+        )
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(if (isImport) R.string.streams_import else R.string.streams_add)
             .setView(dialogBinding.root)
@@ -1083,61 +1060,21 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         DialogKeyboardDelegate.applyTo(dialog) {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
         }
-        dialog.show()
+        dialog.showBoundToHost(this@StreamsActivity)
         dialogBinding.etUrl.requestFocus()
     }
 
-    /**
-     * S0660: edit a manual channel in place. Reuses the add-stream dialog pre-filled with the current
-     * url/title; the ViewModel preserves pin/sort/origin and only surfaces an invalid-url message.
-     */
-    private fun showEditDialog(source: StreamSourceEntity) {
-        val dialogBinding = DialogAddStreamBinding.inflate(layoutInflater)
-        dialogBinding.tilUrl.hint = getString(R.string.streams_add_url_hint)
-        dialogBinding.tilTitle.isVisible = true
-        dialogBinding.etUrl.setText(source.url)
-        dialogBinding.etTitle.setText(source.title)
-        // S1145: the type override is edit-only; pre-select it from the channel's current kind.
-        dialogBinding.mediaKindContainer.isVisible = true
-        when (viewModel.resolveEditKindOption(source)) {
-            "AUDIO" -> dialogBinding.toggleMediaKind.check(R.id.btnKindAudio)
-            "VIDEO" -> dialogBinding.toggleMediaKind.check(R.id.btnKindVideo)
-            else -> dialogBinding.toggleMediaKind.check(R.id.btnKindAuto)
-        }
-        // S1144: pre-fill the channel's stored track preference; the read is async, so the rows are
-        // bound with what is on disk as soon as it arrives rather than blocking the dialog.
-        var writeTrackPreference: (String) -> Unit = bindChannelTrackPreference(dialogBinding, null)
-        lifecycleScope.launch {
-            val stored = viewModel.readTrackPreference(source.url)
-            writeTrackPreference = bindChannelTrackPreference(dialogBinding, stored)
-        }
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.streams_edit_dialog_title)
-            .setView(dialogBinding.root)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val kindOverride = when (dialogBinding.toggleMediaKind.checkedButtonId) {
-                    R.id.btnKindAudio -> "AUDIO"
-                    R.id.btnKindVideo -> "VIDEO"
-                    else -> null
-                }
-                val editedUrl = dialogBinding.etUrl.text?.toString().orEmpty().trim()
-                viewModel.onEdit(
-                    source,
-                    editedUrl,
-                    dialogBinding.etTitle.text?.toString(),
-                    kindOverride,
-                )
-                // The preference is keyed by URL, so it follows whatever URL the row ends up with.
-                if (editedUrl.isNotEmpty()) writeTrackPreference(editedUrl)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .create()
-        DialogKeyboardDelegate.applyTo(dialog) {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
-        }
-        dialog.show()
-        dialogBinding.etUrl.requestFocus()
-    }
+    private fun showEditDialog(source: StreamSourceEntity) = StreamEditDialog.show(
+        activity = this,
+        source = source,
+        callbacks = StreamEditDialog.Callbacks(
+            readTrackPreference = viewModel::readTrackPreference,
+            writeTrackPreference = viewModel::writeTrackPreference,
+            onEdit = { edited, url, title, kindOverride ->
+                viewModel.onEdit(edited, url, title, kindOverride)
+            },
+        ),
+    )
 
     /** S0660: share the channel URL via the Android sharesheet (send-as-link, strategic §6.5). */
     private fun onShareLink(source: StreamSourceEntity) {
@@ -1173,7 +1110,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             .create()
         // Item-list dialog has no positive button; Escape-dismiss is the only added contract.
         DialogKeyboardDelegate.applyTo(dialog) {}
-        dialog.show()
+        dialog.showBoundToHost(this@StreamsActivity)
     }
 
     /**
@@ -1239,7 +1176,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             .create()
         // Single-choice list dismisses itself on pick; Escape-dismiss is the only added contract.
         DialogKeyboardDelegate.applyTo(dialog) {}
-        dialog.show()
+        dialog.showBoundToHost(this@StreamsActivity)
     }
 
     private fun sortLabel(mode: StreamsViewModel.SortMode): Int = when (mode) {

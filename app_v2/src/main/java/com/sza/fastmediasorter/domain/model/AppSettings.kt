@@ -364,6 +364,10 @@ data class AppSettings(
     val launcherTaskbarShowPinned: Boolean = true,
     val launcherTaskbarShowTray: Boolean = true,
     val launcherReplaceSystemStatusArea: Boolean = false,
+    // S1431: moves the clock and the indicator set off the taskbar tray and onto the freed top band,
+    // which frees the Start panel for a longer recents list. Meaningful only while
+    // [launcherReplaceSystemStatusArea] is on, since without it there is no freed band to draw in.
+    val launcherTopStatusStripMode: Boolean = false,
     // S1415: composition of the tray itself, one switch per indicator, in the tray's left-to-right order.
     // [launcherTaskbarShowTray] above stays the master switch for the whole block; these only decide what
     // the block contains once it is shown. All default ON so an upgrade looks exactly like the old tray

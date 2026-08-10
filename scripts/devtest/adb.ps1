@@ -22,7 +22,10 @@
     clear                pm clear (reset app data)
     install              install -r -d an APK (-Apk <path>, or newest debug APK for -Flavor)
     uninstall            uninstall the resolved package
-    shot                 screenshot to temp/scratch/<device>_<TS>.png (screencap on device, then pull)
+    shot                 screenshot to temp/scratch/<device>_<TS>.png (screencap on device, then
+                         pull). Warns when the focused window carries FLAG_SECURE, because such a
+                         capture is black by design and reads as a rendering bug (-Json:
+                         secureWindow)
     log                  the app's own log lines: every line whose pid belongs to an app
                          process, plus every line whose text names the package. -Tail N
                          (default 200), -Grep <regex>; full capture also to temp/scratch/
@@ -187,6 +190,28 @@ function Invoke-Adb {
         Fail 7 "adb $($AdbArgs -join ' ') failed (exit $LASTEXITCODE): $($out -join ' ')"
     }
     return $out
+}
+
+# S1506: a capture taken from a FLAG_SECURE window comes back black (or zero-byte) by design.
+# That artifact was twice read as a rendering failure and cost a P90 ticket, so `shot` reports the
+# flag next to the file instead of leaving the reader to guess. Every probe is best-effort: a
+# screenshot must never fail on account of its own diagnostics.
+function Test-SecureFocusedWindow {
+    param([string]$Id)
+    # `dumpsys window`, not `dumpsys window windows`: on Android 15 only the former prints the
+    # mCurrentFocus line, and it carries the per-window "Window #N .." blocks as well, so one call
+    # answers both halves.
+    $raw = (Invoke-Adb $Id @('shell', 'dumpsys', 'window') -AllowFail) -join "`n"
+    $focus = [regex]::Match($raw, 'mCurrentFocus=Window\{(\w+)')
+    if (-not $focus.Success) { return $false }
+    $focusHash = $focus.Groups[1].Value
+    # mCurrentFocus only names the window; its flags live in that window's own block.
+    foreach ($block in ($raw -split '(?m)^\s*Window #\d+ ')) {
+        if ($block -like "Window{$focusHash*") {
+            return [bool]($block -match '(?m)^\s*fl=[^\r\n]*\bSECURE\b')
+        }
+    }
+    return $false
 }
 
 # Resolve which app package id to act on: explicit -Package wins; else default debug
@@ -398,8 +423,18 @@ switch ($Verb.ToLowerInvariant()) {
         Invoke-Adb $id @('pull', $remote, $local) | Out-Null
         Invoke-Adb $id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
         if (-not (Test-Path -Path $local -PathType Leaf)) { Fail 7 "screenshot pull produced no file" }
-        if ($Json) { Emit-Ok @{ id = $id; file = $local } }
+        $secureWindow = Test-SecureFocusedWindow $id
+        if ($Json) { Emit-Ok @{ id = $id; file = $local; secureWindow = $secureWindow } }
         Write-Host "SHOT $local" -ForegroundColor Green
+        if ($secureWindow) {
+            Write-Host "NOTE the focused window carries FLAG_SECURE - this capture is expected to be" -ForegroundColor Yellow
+            Write-Host "     black (or zero-byte). That is the flag working, not a rendering failure." -ForegroundColor Yellow
+            Write-Host "     BaseActivity.applySecureFlagIfEnabled sets it on sensitive screens (Settings," -ForegroundColor Yellow
+            Write-Host "     Add Resource, Resource Editor) while the 'secureSensitiveScreens' setting is on." -ForegroundColor Yellow
+            Write-Host "     Read the layout from 'uiautomator dump' instead - a healthy node tree next to a" -ForegroundColor Yellow
+            Write-Host "     black frame confirms this, it does not contradict it. To capture the screen for" -ForegroundColor Yellow
+            Write-Host "     real, turn that setting off first. See docs/TEST_SCENARIOS.md." -ForegroundColor Yellow
+        }
         exit 0
     }
 

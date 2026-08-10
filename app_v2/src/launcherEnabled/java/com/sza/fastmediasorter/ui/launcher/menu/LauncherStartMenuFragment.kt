@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceCreateManager
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -137,7 +138,7 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
                 dismiss()
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundTo(this@LauncherStartMenuFragment)
     }
 
     companion object {

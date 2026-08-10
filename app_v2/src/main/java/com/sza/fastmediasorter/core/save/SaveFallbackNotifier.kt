@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -56,8 +57,9 @@ class SaveFallbackNotifier @Inject constructor(
     fun notifyBackground(folderLabel: String, resourceName: String) {
         val text = context.getString(R.string.save_fallback_resource_unavailable, folderLabel, resourceName)
         ensureChannel()
+        Timber.d("S1399: save-fallback notification built with the branded status-bar icon")
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_cloud_download)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setPriority(NotificationCompat.PRIORITY_LOW)

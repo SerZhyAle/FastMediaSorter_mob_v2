@@ -25,6 +25,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
 import com.sza.fastmediasorter.data.capture.LocalCaptureDestinationWriter
@@ -407,6 +408,7 @@ class ScreenVideoRecordingService : Service() {
 
     /** Rebuilt (not re-started) on every pause/resume toggle so the action label tracks live state. */
     private fun buildNotification(paused: Boolean): Notification {
+        Timber.d("S1399: screen video-recording notification built with the branded status-bar icon")
         val stopPending = servicePendingIntent(ACTION_STOP, requestCode = 0)
         val pauseResumeAction = if (paused) {
             NotificationCompat.Action(
@@ -422,7 +424,7 @@ class ScreenVideoRecordingService : Service() {
             )
         }
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_screen_capture)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentTitle(getString(R.string.screen_recording_notification_title))
             .setContentText(getString(R.string.screen_recording_notification_text))
             .setOngoing(true)

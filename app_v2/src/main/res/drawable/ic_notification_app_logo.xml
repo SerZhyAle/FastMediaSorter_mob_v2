@@ -2,7 +2,7 @@
     S1399: the one status-bar icon every notification this app posts uses.
 
     A fork of ic_app_logo.xml rather than a reference to it, for the same reason
-    ic_notification_cloud_download.xml and ic_notification_screen_capture.xml are forks: the original
+    ic_notification_screen_capture.xml is a fork: the original
     carries android:tint="?attr/colorControlNormal", a theme attribute cannot resolve outside the app
     theme, and startForeground then throws CannotPostForegroundServiceNotificationException (S0405,
     S0416). Do not add a tint here - the system tints a status-bar icon itself, and it renders this as

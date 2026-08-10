@@ -13,6 +13,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -208,7 +209,7 @@ class BrowseMicRecordingManager(
             }
             .setNegativeButton(R.string.cancel) { _, _ -> clearPendingSession(deleteTempFile = true) }
             .setOnCancelListener { clearPendingSession(deleteTempFile = true) }
-            .show()
+            .showBoundToHost(activity)
     }
 
     private suspend fun save(tempFile: File, name: String, resource: MediaResource) {

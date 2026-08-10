@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
+import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
 
 /**
@@ -108,7 +109,7 @@ class BrowseLifecycleHelper(
                 }
                 .setNegativeButton(android.R.string.cancel, null)
                 .setCancelable(true)
-                .show()
+                .showBoundToHost(activity)
         } else if (!hasPermission) {
             wasStoragePermissionMissing = true
         }

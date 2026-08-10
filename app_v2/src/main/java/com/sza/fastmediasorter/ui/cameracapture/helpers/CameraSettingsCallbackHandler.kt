@@ -21,6 +21,10 @@ class CameraSettingsCallbackHandler(
     private val onGridToggled: () -> Unit,
     private val onAspectRatioApplied: () -> Unit,
     private val rotationBucket: StateFlow<Int>,
+    // S1418: exposure and white balance are what turn NORMAL into the manual mode, and they are
+    // written here on every preview tick as well as on apply and cancel, so the host is told from
+    // the one method all three paths funnel through.
+    private val onManualStateChanged: () -> Unit = {},
 ) : CameraSettingsDialogFragment.Callbacks {
 
     fun show(fragmentManager: FragmentManager) {
@@ -59,6 +63,7 @@ class CameraSettingsCallbackHandler(
             sessionManager.clearManualSensor()
         }
         sessionManager.applyHdr(state.hdrEnabled)
+        onManualStateChanged()
     }
 
     override fun onCameraSettingsApplied(state: CameraSettingsDialogFragment.CameraSettingsState) {

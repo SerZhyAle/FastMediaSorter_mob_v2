@@ -20,6 +20,8 @@
 - assert-sdk-pin-claims        (S1438 SDK pins stated in prose vs the build files)
       - assert-ctor-arg-slots        (S1470 primary constructors near the 255 argument-slot ceiling)
       - assert-retired-dependency-names (S1489 prose naming a dependency the project replaced)
+      - assert-notification-small-icon (S1399 a small-icon setter handed a drawable literal)
+      - assert-backup-rules-consistent (S1552 API 31+ extraction rules vs the pre-31 backup rules)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
@@ -121,6 +123,27 @@ $gates = [ordered]@{
     # migration in nine documents including the published privacy policy in three locales, plus two
     # Kotlin comments. Regex over docs, dev, store_assets and the two source trees, no gradle daemon.
     'assert-retired-dependency-names.ps1'       = @('-Quiet')
+    # S1399: a notification small-icon setter handed an `R.drawable.` literal instead of the one
+    # owner. The defect survived thirteen call sites in eleven classes purely by never being checked -
+    # with no default to reach for, three background workers settled on the audio glyph and the owner
+    # watched a music note while the app moved files on a schedule. Regex over the two source trees,
+    # no gradle daemon.
+    'assert-notification-small-icon.ps1'        = @('-Quiet')
+    # S1552: the API 31+ data-extraction rules against the pre-31 backup rules. Two files express the
+    # same intent for different platform versions with nothing tying them together, and the newer one
+    # carried the generic value-resource root for its whole life - a valid resource file the build
+    # packages and lint accepts, declaring no rule at all. So the settings DataStore and the
+    # Keystore-encrypted credentials database were backed up and restored on every Android 12+ device
+    # against the exclusions written down next door, which the owner saw as settings rolling back
+    # after each reinstall. Parses two small XML files, no gradle daemon.
+    'assert-backup-rules-consistent.ps1'        = @('-Quiet')
+    # S1453: a test in the shared src/test set for a type that lives only in a flavor-scoped source
+    # set. src/test compiles for EVERY flavor, so one misplaced test breaks unit-test COMPILATION on
+    # every flavor mounting the disabled counterpart - the release-blocking permission-parity test
+    # could not run at all on lite while that was true. Compiling lite's unit tests instead was
+    # rejected: lite is the only flavor mounting src/cloudDisabled, so it sees half the defect class.
+    # Parses one build file and two source trees, no gradle daemon.
+    'assert-shared-test-flavor-scope.ps1'       = @('-Quiet')
 }
 
 # S1338: these five accept -ChangedFiles and used to be invoked with no arguments at

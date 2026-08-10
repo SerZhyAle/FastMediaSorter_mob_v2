@@ -33,7 +33,9 @@ import com.sza.fastmediasorter.data.local.db.MIGRATION_44_45
 import com.sza.fastmediasorter.data.local.db.MIGRATION_45_46
 import com.sza.fastmediasorter.data.local.db.MIGRATION_46_47
 import com.sza.fastmediasorter.data.local.db.MIGRATION_47_48
+import com.sza.fastmediasorter.data.local.db.MIGRATION_48_49
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
+import com.sza.fastmediasorter.data.local.db.NetworkMeasurementDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PlaybackPositionDao
 import com.sza.fastmediasorter.data.local.db.ResourceDao
@@ -129,7 +131,8 @@ object DatabaseModule {
                 MIGRATION_44_45,
                 MIGRATION_45_46,
                 MIGRATION_46_47,
-                MIGRATION_47_48
+                MIGRATION_47_48,
+                MIGRATION_48_49
             )
             // No fallbackToDestructiveMigration: a missing/failed migration now throws and is routed
             // through provideAppDatabase's recovery (backup + reset + user notice), not a silent
@@ -279,5 +282,11 @@ object DatabaseModule {
     @Singleton
     fun provideSensorSeriesDao(database: AppDatabase): SensorSeriesDao {
         return database.sensorSeriesDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideNetworkMeasurementDao(database: AppDatabase): NetworkMeasurementDao {
+        return database.networkMeasurementDao()
     }
 }

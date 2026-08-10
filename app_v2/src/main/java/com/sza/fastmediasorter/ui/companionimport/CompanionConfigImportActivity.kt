@@ -16,6 +16,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.companion.CompanionConfigDto
 import com.sza.fastmediasorter.ui.companionimport.helpers.CompanionConfigImportManager
+import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -112,7 +113,7 @@ class CompanionConfigImportActivity : AppCompatActivity() {
             }
         }
         activeDialog = dialog
-        dialog.show()
+        dialog.showBoundToHost(this@CompanionConfigImportActivity)
     }
 
     private fun runImport(dto: CompanionConfigDto) {
@@ -138,6 +139,6 @@ class CompanionConfigImportActivity : AppCompatActivity() {
             .setOnCancelListener { finish() }
             .create()
         activeDialog = dialog
-        dialog.show()
+        dialog.showBoundToHost(this@CompanionConfigImportActivity)
     }
 }

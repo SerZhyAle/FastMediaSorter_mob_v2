@@ -43,6 +43,7 @@ import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeFeatureCards
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeFunctionalityController
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomePermissionsManager
 import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeRemoteSourcesController
+import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -189,7 +190,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 viewModel.confirmProfilePresetReapply(type)
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(this@WelcomeActivity)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

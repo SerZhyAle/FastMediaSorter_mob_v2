@@ -62,4 +62,25 @@ class LauncherCellCommandTest {
     fun `empty section payload decodes to null`() {
         assertNull(LauncherCellCommand.decode("sec:"))
     }
+
+    @Test
+    fun `geographic command survives separator query and label`() {
+        val original = LauncherCellCommand.Geographic(
+            action = LauncherGeographicAction.NAVIGATION,
+            query = "47.4979,19.0402:destination",
+            label = "Budapest: centre\nroute",
+        )
+
+        assertEquals(original, LauncherCellCommand.decode(original.encode()))
+    }
+
+    @Test
+    fun `geographic command with an unknown action decodes to null`() {
+        assertNull(LauncherCellCommand.decode("geo:UNKNOWN:47.4979%2C19.0402:Budapest"))
+    }
+
+    @Test
+    fun `geographic command with a blank query decodes to null`() {
+        assertNull(LauncherCellCommand.decode("geo:DIRECTIONS::Budapest"))
+    }
 }

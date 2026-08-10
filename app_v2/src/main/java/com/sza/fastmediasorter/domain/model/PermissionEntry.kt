@@ -78,6 +78,7 @@ enum class PermissionTask {
     QR_PAIRING,
     SCREEN_RECORDING,
     SCHEDULED_OPERATIONS,
+    CONTACT_CELL_PINNING,
 }
 
 /**

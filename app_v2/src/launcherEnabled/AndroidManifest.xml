@@ -64,6 +64,26 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="com.sza.fastmediasorter.ui.launcher.share.LauncherPlaceShareActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:theme="@style/Theme.FastMediaSorter.Transparent" />
+
+        <activity-alias
+            android:name=".LauncherPlaceShare"
+            android:enabled="false"
+            android:exported="true"
+            android:label="@string/launcher_share_place_label"
+            android:targetActivity="com.sza.fastmediasorter.ui.launcher.share.LauncherPlaceShareActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+
         <service
             android:name="com.sza.fastmediasorter.ui.launcher.gadget.nowplaying.MediaSessionAccessService"
             android:exported="false"

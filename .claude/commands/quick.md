@@ -57,7 +57,7 @@ Read `$ARGUMENTS`. Задача выходит за рамки «очень не
 
 **Step 3 - Read целевой файл, внести правку через `Edit`.**
 
-> **⚠ CODE.LOCK (CLAUDE.md Rule 23):** только если правка трогает `app_v2/`/`wear/` исходники (Kotlin/XML/`build.gradle.kts`, т.е. ожидаемый `ChangeType` = `Xml`/`Kotlin`/`Mixed`) - перед `Edit` выполнить `pwsh -NoProfile -File scripts/utils/enter-code-lock.ps1 -Reason "/quick: <target>"`. Если внутри выведет предупреждение про живой `BUILD.LOCK` - сборка идёт в другой сессии, эта правка всё равно допустима (совпадение с half-written состоянием не про XML/строки), но не запускать билд сейчас. Освобождение автоматическое через `post-change.ps1` (Step 4). Для `Doc`/`Script`/`Config`-правок (не app-исходники) этот шаг пропустить.
+> **⚠ CODE.LOCK (CLAUDE.md Rule 23):** только если правка трогает `app_v2/`/`wear/` исходники (Kotlin/XML/`build.gradle.kts`, т.е. ожидаемый `ChangeType` = `Xml`/`Kotlin`/`Mixed`/`Tooling`) - перед `Edit` выполнить `pwsh -NoProfile -File scripts/utils/enter-code-lock.ps1 -Reason "/quick: <target>"`. Если внутри выведет предупреждение про живой `BUILD.LOCK` - сборка идёт в другой сессии, эта правка всё равно допустима (совпадение с half-written состоянием не про XML/строки), но не запускать билд сейчас. Освобождение автоматическое через `post-change.ps1` (Step 4). Для `Doc`/`Script`/`Config`-правок (не app-исходники) этот шаг пропустить.
 
 Author style: `..` не `...`, `ё`/`Ё` в русских строках. Английский в коде/комментариях, русский в UI-строках.
 
@@ -67,11 +67,11 @@ Author style: `..` не `...`, `ё`/`Ё` в русских строках. Ан�
 
 > **⚠ STRINGS:** правки `<string>` через `pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Action set -Locale en|ru|uk -Key <key> -Value <text>` (байт-сохраняюще, `-ExpectedOldValue` для защиты), не ручным редактированием `strings.xml`. Ручная правка - только `plurals`, `string-array`, комментарии, перегруппировка.
 
-> **⚠ NEUROSLOP:** per CLAUDE.md Rule 19 (neuroslop avoidance, detekt-clean-first) - obey it as written. `/quick`-специфика: размер правки не даёт поблажки, и при `ChangeType Kotlin|Xml|Mixed` гейт `neuroslop-gate` в `post-change.ps1` отклонит регресс.
+> **⚠ NEUROSLOP:** per CLAUDE.md Rule 19 (neuroslop avoidance, detekt-clean-first) - obey it as written. `/quick`-специфика: размер правки не даёт поблажки, и при `ChangeType Kotlin|Xml|Mixed` с соответствующим `.kt`/`.java`/`.xml` в наборе гейт `neuroslop-gate` в `post-change.ps1` отклонит регресс.
 
 **Step 4 - Закрыть правку через `scripts/post-change.ps1`** (обязательно, одной командой):
 ```powershell
-pwsh -NoProfile -File scripts/post-change.ps1 -File "<relative/path/to/file>" -Target "<target>" -Description "<short EN description>" -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed> [-Module <app_v2|wear>] [-KeyPrefix "<key_prefix>"]
+pwsh -NoProfile -File scripts/post-change.ps1 -File "<relative/path/to/file>" -Target "<target>" -Description "<short EN description>" -ChangeType <Doc|Script|Config|Tooling|Kotlin|Xml|Mixed> [-Module <app_v2|wear>] [-KeyPrefix "<key_prefix>"]
 ```
 `<target>` - имя класса/ресурса/строки (`colors.xml`, `settings_fragment.xml`, `string/login_title`).
 
@@ -81,6 +81,7 @@ pwsh -NoProfile -File scripts/post-change.ps1 -File "<relative/path/to/file>" -T
 - `Kotlin` - только если мини-правка реально меняет исполняемый Kotlin/Java и нужен catalog sync.
 - `Mixed` - только если одна правка тронула код и строки.
 - `Script` / `Config` - `.ps1` / `.kts` / `.json` / build-like без смешанного набора.
+- `Tooling` - один набор из build/config-файлов и repo scripts; Kotlin-гейты зависят от наличия `.kt`/`.java`.
 
 > **Performance hint.** Правка `.kt` + dev log + каталог одним вызовом: `scripts/post-change.ps1 ... -ChangeType Kotlin` (или `Mixed` если заодно `strings.xml` с `-KeyPrefix`). Для `/quick` обычно избыточно, но при пачке `.kt`-правок удобнее серии вызовов.
 

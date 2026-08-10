@@ -1,16 +1,20 @@
 package com.sza.fastmediasorter.ui.launcher.helpers
 
 import android.graphics.Rect
+import android.view.LayoutInflater
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.sza.fastmediasorter.databinding.LauncherStatusClockBinding
+import com.sza.fastmediasorter.databinding.LauncherStatusIndicatorsBinding
 import com.sza.fastmediasorter.databinding.LauncherStatusStripBinding
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignal
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalListBottomSheet
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalRegistry
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +46,18 @@ class LauncherStatusStripManager @Inject constructor(
     /** Held only so [unbind] can unregister this observer on the same edge [bind] registered it. */
     private var lifecycleOwner: LifecycleOwner? = null
 
+    /**
+     * S1431: the strip's own copies of the two shared layouts. Inflated once per [bind] and pinned or
+     * unpinned as the mode changes - re-inflating them on every toggle would mean a new renderer over new
+     * views each time, and the old one would keep collecting into a detached hierarchy.
+     */
+    private var stripClock: LauncherStatusClockBinding? = null
+
+    private var stripIndicators: LauncherStatusIndicatorsBinding? = null
+
+    /** The one renderer (ADR-1) drawing the strip's indicators; the taskbar tray has its own instance. */
+    private var stripTray: LauncherTrayManager? = null
+
     private val _signals = MutableStateFlow<List<LauncherSignal>>(emptyList())
 
     /** What the strip currently has to show. The row phase renders this; nothing else reads the sources. */
@@ -68,6 +84,9 @@ class LauncherStatusStripManager @Inject constructor(
         lifecycleOwner: LifecycleOwner,
         fragmentManager: FragmentManager,
         replaceSystemStatusArea: Flow<Boolean>,
+        topStatusStripMode: Flow<Boolean>,
+        trayComposition: Flow<LauncherTrayComposition>,
+        onRequestPhoneStatePermission: () -> Unit,
     ) {
         this.binding = binding
         this.fragmentManager = fragmentManager
@@ -76,6 +95,19 @@ class LauncherStatusStripManager @Inject constructor(
         applySafeArea(binding)
         observeCutout(binding)
         binding.launcherSignalRow.setOnOverflowTap(::showSignalList)
+        prepareStripContent(
+            binding = binding,
+            lifecycleOwner = lifecycleOwner,
+            topStatusStripMode = topStatusStripMode,
+            trayComposition = trayComposition,
+            onRequestPhoneStatePermission = onRequestPhoneStatePermission,
+        )
+        lifecycleOwner.collectOnLifecycle(topStatusStripMode) { enabled ->
+            applyStripMode(enabled)
+            val clockPinned = stripClock?.root?.parent != null
+            val indicatorsPinned = stripIndicators?.root?.parent != null
+            Timber.d("S1431: top strip mode=%s clock=%s indicators=%s", enabled, clockPinned, indicatorsPinned)
+        }
         lifecycleOwner.collectOnLifecycle(replaceSystemStatusArea) { replace ->
             // The band exists only while the launcher owns the status area; with the Android bar left in
             // place there is no freed space to draw in.
@@ -99,6 +131,60 @@ class LauncherStatusStripManager @Inject constructor(
             Timber.d("S1421: cutout bounds=%s", bounds)
             this.binding?.launcherSignalRow?.setCutoutBounds(bounds)
         }
+    }
+
+    /**
+     * S1431: inflates the strip's clock and indicator row once and puts the shared renderer behind them.
+     *
+     * The renderer is [LauncherTrayManager], the same class the taskbar tray uses (ADR-1) - one set of
+     * subscription, permission and ordering rules serves both placements, so the six toggles cannot mean
+     * different things in the two places. It is handed the mode flow as its visibility gate, which is what
+     * releases the battery receiver and the network callback when the mode goes off; the views are merely
+     * unpinned, not destroyed.
+     */
+    private fun prepareStripContent(
+        binding: LauncherStatusStripBinding,
+        lifecycleOwner: LifecycleOwner,
+        topStatusStripMode: Flow<Boolean>,
+        trayComposition: Flow<LauncherTrayComposition>,
+        onRequestPhoneStatePermission: () -> Unit,
+    ) {
+        val row = binding.launcherSignalRow
+        val inflater = LayoutInflater.from(row.context)
+        val clock = LauncherStatusClockBinding.inflate(inflater, row, false)
+        val indicators = LauncherStatusIndicatorsBinding.inflate(inflater, row, false)
+        stripClock = clock
+        stripIndicators = indicators
+        applyStripClockFormat(clock)
+        stripTray = LauncherTrayManager(
+            lifecycleOwner = lifecycleOwner,
+            clock = clock,
+            indicators = indicators,
+            onRequestPhoneStatePermission = onRequestPhoneStatePermission,
+        ).apply { bind(topStatusStripMode, trayComposition) }
+    }
+
+    /**
+     * The owner asked for seconds on this placement specifically (strategic §0); the taskbar clock keeps
+     * the system default and is not touched here.
+     *
+     * No ticker, handler or time-tick receiver is introduced: `TextClock` declares
+     * `onVisibilityAggregated(boolean)` and stops its own per-second tick when the launcher stops being
+     * visible (research 01 §2), which is exactly the cost bound strategic §3.2 sets.
+     */
+    private fun applyStripClockFormat(clock: LauncherStatusClockBinding) {
+        clock.root.format12Hour = CLOCK_FORMAT_12H
+        clock.root.format24Hour = CLOCK_FORMAT_24H
+    }
+
+    /**
+     * Attaching and detaching the two pinned views is the whole of the mode as far as the band is concerned
+     * - the row decides where they sit (S1431 ADR-3) and the renderer decides what they say.
+     */
+    private fun applyStripMode(enabled: Boolean) {
+        val row = binding?.launcherSignalRow ?: return
+        row.setPinnedStart(if (enabled) stripClock?.root else null)
+        row.setPinnedEnd(if (enabled) stripIndicators?.root else null)
     }
 
     /**
@@ -162,6 +248,10 @@ class LauncherStatusStripManager @Inject constructor(
      */
     fun unbind() {
         binding?.let { ViewCompat.setOnApplyWindowInsetsListener(it.launcherStatusStripContent, null) }
+        applyStripMode(enabled = false)
+        stripClock = null
+        stripIndicators = null
+        stripTray = null
         lifecycleOwner?.lifecycle?.removeObserver(this)
         lifecycleOwner = null
         binding = null
@@ -200,5 +290,9 @@ class LauncherStatusStripManager @Inject constructor(
 
     private companion object {
         const val SIGNAL_LIST_TAG = "launcher_signal_list"
+
+        // Mirrors gadget_launcher_clock.xml, so the two clocks the launcher can show read alike.
+        const val CLOCK_FORMAT_12H = "h:mm:ss"
+        const val CLOCK_FORMAT_24H = "H:mm:ss"
     }
 }

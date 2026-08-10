@@ -8,4 +8,11 @@ When a step's Verification says `Grep - <Literal> returns zero hits in <file>`, 
 
 **Why:** hit twice in one session on S1446. Step 02.1 demanded `SignalChartView` and `attrs_signal_chart` reach zero hits in S1433's phase 05; the rewrite scored 1 hit each, purely because the replacement predicate I wrote quoted both names. The same trap sits in every phase file's `Grep for TODO(phase-NN) returns zero hits` criterion, which matches itself - so a naive repo grep reports "56 files with leftovers" when the real count is zero.
 
-**How to apply:** before running a zero-hit predicate, check whether the grep is matching the criterion line or the Step Log rather than real content, and scope the grep to the region that matters. When authoring one, write the predicate so it cannot match itself. See [[spec-tech-plan-quality]] and [[documented-invariant-is-a-claim]].
+**The KDoc that explains an absence is the commonest source of the self-match.** On 2026-08-08 (S1433 phase 02) it fired twice more, both times against code I had just written. Step 02.1 demanded zero case-insensitive hits for `imei`/`iccid` in the model package, and the model's own KDoc names both to say why no field holds them. I fixed that predicate, then in step 02.2 authored a *fresh* one - zero hits for `ConnectivityManager.NetworkCallback` - and it scored 1 against the KDoc explaining why no second callback is registered. Writing the rule down did not stop me repeating it in the very next step.
+
+**How to apply:**
+- Make the predicate test a *declaration or a call*, not a word: `val [a-z]*(imei|iccid)` rather than `imei`; `registerNetworkCallback` (the call that would create the defect) rather than `ConnectivityManager.NetworkCallback` (the type any explanation must name).
+- Run every newly authored zero-hit predicate against the file you just wrote, before marking the step done - authoring and violating can happen in the same edit.
+- Before trusting a failing one, check whether the grep matched the criterion line or a Step Log rather than real content, and scope it to the region that matters.
+
+See [[spec-tech-plan-quality]] and [[documented-invariant-is-a-claim]].
