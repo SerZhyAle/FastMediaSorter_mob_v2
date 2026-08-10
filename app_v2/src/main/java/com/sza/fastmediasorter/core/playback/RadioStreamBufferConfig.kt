@@ -89,7 +89,9 @@ object RadioStreamBufferConfig {
                 if (isConnectivityError(loadErrorInfo.exception)) {
                     val shift = (loadErrorInfo.errorCount - 1).coerceIn(0, MAX_BACKOFF_SHIFT)
                     val delay = (BASE_RETRY_DELAY_MS shl shift).coerceAtMost(MAX_RETRY_DELAY_MS)
-                    Timber.i("Audio diag: loader retry #%d in %dms (connectivity)", loadErrorInfo.errorCount, delay)
+                    // S1512: "Stream diag" rather than "Audio diag" - the video session uses this same
+                    // policy object now, and both prefixes are always-persisted diagnostics.
+                    Timber.i("Stream diag: loader retry #%d in %dms (connectivity)", loadErrorInfo.errorCount, delay)
                     return delay
                 }
                 return if (loadErrorInfo.errorCount > DEFAULT_MIN_LOADABLE_RETRY_COUNT) {

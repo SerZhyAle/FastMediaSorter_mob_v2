@@ -27,13 +27,16 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
 import com.sza.fastmediasorter.util.getPackageInfoCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
@@ -627,6 +630,11 @@ class SettingsRepositoryImpl @Inject constructor(
                 )
             }
             .distinctUntilChanged()
+            // S1517: without this the whole mapping - including the Keystore round trip behind the
+            // default password - runs in the collector's context, and the collector is BaseActivity,
+            // which every screen in the app extends. The flow is delivered on the main thread either
+            // way; only the work above moves off it.
+            .flowOn(Dispatchers.IO)
     }
 
     override suspend fun updateSettings(settings: AppSettings) {
@@ -927,9 +935,16 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
     
-    /** Decrypts password; handles migration from legacy plaintext passwords. */
-    private suspend fun decryptPassword(encryptedPassword: String?): String {
-        if (encryptedPassword.isNullOrEmpty()) return ""
+    /**
+     * Decrypts password; handles migration from legacy plaintext passwords.
+     *
+     * S1517: the Keystore round trip and the migration write are pinned to IO here, not only at the
+     * flow that happens to call this today. `suspend` alone changes no thread, so a future caller on
+     * the main thread would silently reintroduce the same block.
+     */
+    private suspend fun decryptPassword(encryptedPassword: String?): String = withContext(Dispatchers.IO) {
+        if (encryptedPassword.isNullOrEmpty()) return@withContext ""
+        Timber.d("S1517: decrypting default password on thread=%s", Thread.currentThread().name)
         val isEncrypted = runCatching {
             android.util.Base64.decode(encryptedPassword, android.util.Base64.NO_WRAP)
         }.isSuccess
@@ -940,9 +955,9 @@ class SettingsRepositoryImpl @Inject constructor(
                 dataStore.edit { it[KEY_DEFAULT_PASSWORD] = encrypted }
                 Timber.d("Migrated plaintext password to encrypted format")
             }
-            return encryptedPassword
+            return@withContext encryptedPassword
         }
-        return CryptoHelper.decrypt(encryptedPassword) ?: run {
+        CryptoHelper.decrypt(encryptedPassword) ?: run {
             Timber.e("Failed to decrypt password, returning empty string")
             ""
         }

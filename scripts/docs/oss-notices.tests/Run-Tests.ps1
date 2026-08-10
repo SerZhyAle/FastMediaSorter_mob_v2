@@ -118,6 +118,65 @@ try {
     Remove-Item -LiteralPath $broken -Force -ErrorAction SilentlyContinue
 }
 
+Write-Host 'Generator - idempotence, drift and refusal'
+
+$generator = Join-Path $RepoRoot 'scripts/docs/generate-oss-notices.ps1'
+$manifestPath = Join-Path $RepoRoot 'scripts/docs/oss-licenses.psd1'
+$englishPage = Join-Path $RepoRoot 'docs/OPEN_SOURCE.md'
+
+if (-not (Test-Path -LiteralPath $generator)) {
+    Write-Error "missing: $generator" -ErrorAction Continue
+    exit 2
+}
+
+$null = & pwsh -NoProfile -File $generator -Quiet 2>&1
+Assert-That -Name 'generator exits 0 on the current tree' -Condition ($LASTEXITCODE -eq 0) -Detail "got $LASTEXITCODE"
+
+$null = & pwsh -NoProfile -File $generator -Check -Quiet 2>&1
+Assert-That -Name 'a freshly generated tree reports no drift' -Condition ($LASTEXITCODE -eq 0) -Detail "got $LASTEXITCODE"
+
+# Alter one character of a rendered page; -Check must notice and the file must come back.
+$pageBefore = [System.IO.File]::ReadAllText($englishPage)
+try {
+    [System.IO.File]::WriteAllText($englishPage, $pageBefore.Replace('# Open Source Notices', '# Open Source Notice'))
+    $null = & pwsh -NoProfile -File $generator -Check -Quiet 2>&1
+    Assert-That -Name 'a single altered character is drift' -Condition ($LASTEXITCODE -eq 1) -Detail "got $LASTEXITCODE"
+} finally {
+    [System.IO.File]::WriteAllText($englishPage, $pageBefore)
+}
+
+$null = & pwsh -NoProfile -File $generator -Check -Quiet 2>&1
+Assert-That -Name 'restoring the page clears the drift' -Condition ($LASTEXITCODE -eq 0) -Detail "got $LASTEXITCODE"
+
+# A shipping coordinate with no licence must stop the generator, not render a gap.
+$manifestBefore = [System.IO.File]::ReadAllText($manifestPath)
+try {
+    [System.IO.File]::WriteAllText($manifestPath, $manifestBefore.Replace("'com.hierynomus:smbj'", "'com.hierynomus:smbj-REMOVED'"))
+    $refusal = & pwsh -NoProfile -File $generator -Quiet 2>&1
+    $refusalCode = $LASTEXITCODE
+    Assert-That -Name 'an unlisted shipping coordinate exits 2' -Condition ($refusalCode -eq 2) -Detail "got $refusalCode"
+    Assert-That -Name 'the refusal names the missing coordinate' -Condition (($refusal | Out-String) -match 'com\.hierynomus:smbj')
+} finally {
+    [System.IO.File]::WriteAllText($manifestPath, $manifestBefore)
+    $null = & pwsh -NoProfile -File $generator -Quiet 2>&1
+}
+
+Assert-That -Name 'the tree is restored after the refusal case' -Condition ((& {
+    $null = & pwsh -NoProfile -File $generator -Check -Quiet 2>&1
+    $LASTEXITCODE
+}) -eq 0)
+
+Write-Host 'Generator - rendered pages'
+
+foreach ($page in @('docs/OPEN_SOURCE.md', 'docs/OPEN_SOURCE.ru.md', 'docs/OPEN_SOURCE.uk.md')) {
+    $full = Join-Path $RepoRoot $page
+    Assert-That -Name "$page exists" -Condition (Test-Path -LiteralPath $full)
+    $body = Get-Content -LiteralPath $full -Raw
+    Assert-That -Name "$page names the GPL component" -Condition ($body -match 'NewPipeExtractor')
+    Assert-That -Name "$page scopes the GPL component to noLegal" -Condition ($body -match 'NewPipeExtractor.*noLegal')
+    Assert-That -Name "$page carries the generated-file banner" -Condition ($body -match 'generate-oss-notices\.ps1')
+}
+
 Write-Host ''
 if ($script:Failures.Count -gt 0) {
     Write-Error "oss-notices tests: FAIL ($($script:Failures.Count)) - $($script:Failures -join ', ')" -ErrorAction Continue

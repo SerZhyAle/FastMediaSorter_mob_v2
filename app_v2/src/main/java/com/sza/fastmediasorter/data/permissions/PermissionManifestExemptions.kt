@@ -26,6 +26,11 @@ object PermissionManifestExemptions {
         "android.permission.CHANGE_WIFI_STATE" to
             "Normal permission, granted at install; lets the launcher Wi-Fi tile switch the radio itself " +
             "on firmwares that still allow it, falling back to the system screen where they do not.",
+        "android.permission.BLUETOOTH" to
+            "Install-time permission below API 31, declared by src/networkMonitor with maxSdkVersion 30; it " +
+            "is what lets the Monitor read the adapter state on Android 8.0-11. There is no dialog and no " +
+            "system screen to send the user to, and from API 31 the decision is BLUETOOTH_CONNECT, which has " +
+            "its own row.",
         "android.permission.CHANGE_WIFI_MULTICAST_STATE" to
             "Normal permission; needed to discover DLNA and SMB hosts by multicast.",
         "android.permission.WAKE_LOCK" to

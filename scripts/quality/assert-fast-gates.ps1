@@ -22,6 +22,7 @@
       - assert-retired-dependency-names (S1489 prose naming a dependency the project replaced)
       - assert-notification-small-icon (S1399 a small-icon setter handed a drawable literal)
       - assert-backup-rules-consistent (S1552 API 31+ extraction rules vs the pre-31 backup rules)
+      - assert-launcher-reset-coverage (S1540 launcher settings vs the launcher reset's field list)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
@@ -144,6 +145,11 @@ $gates = [ordered]@{
     # rejected: lite is the only flavor mounting src/cloudDisabled, so it sees half the defect class.
     # Parses one build file and two source trees, no gradle daemon.
     'assert-shared-test-flavor-scope.ps1'       = @('-Quiet')
+    # S1540: the launcher reset lists the settings it restores by name, and nothing held that list.
+    # A forgotten line compiles and passes every other gate, then reaches the user as a reset that
+    # returns half the launcher to defaults and leaves the rest as it was - an inconsistent store, not
+    # a cosmetic miss. Compares two source files as text, no gradle daemon.
+    'assert-launcher-reset-coverage.ps1'        = @('-Quiet')
 }
 
 # S1338: these five accept -ChangedFiles and used to be invoked with no arguments at

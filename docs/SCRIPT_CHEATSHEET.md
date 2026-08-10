@@ -1088,6 +1088,33 @@ scripts/docs/generate-flavor-matrix.ps1
   Exit: 0 artifacts written, or -Check found them current; 1 -Check found drift (regenerate without -Check); 2 could not verify: build file missing, productFlavors block not found,
 ```
 
+### generate-oss-notices.ps1
+S1495 - OSS notice generator (single source of truth renderer).
+
+```
+scripts/docs/generate-oss-notices.ps1
+  S1495 - OSS notice generator (single source of truth renderer).
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Manifest         [String]
+    -Check            [SwitchParameter]
+    -Quiet            [SwitchParameter]
+  Exit: 0 artifacts written, or -Check found them current; 1 -Check found drift (regenerate without -Check); 2 could not verify: parser or manifest missing, a shipping coordinate
+```
+
+### OssDependencyParser.ps1
+S1495 - dependency coordinate parser for the OSS notice generator.
+
+```
+scripts/docs/OssDependencyParser.ps1
+  S1495 - dependency coordinate parser for the OSS notice generator.
+  Params:
+    -RepoRoot          [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Census            [SwitchParameter]
+    -CensusOut         [String]
+  Exit: 0 parsed; 2 could not verify: build file missing, dependencies block not found,
+```
+
 ### render-icon-legend.ps1
 S0815 Phase 03 - render the trilingual icon-legend pages.
 
@@ -1139,6 +1166,19 @@ Shared Android VectorDrawable -> web SVG converter (S0815 core, extracted S0889)
 scripts/docs/lib/vectordrawable-svg.ps1
   Shared Android VectorDrawable -> web SVG converter (S0815 core, extracted S0889).
   (no param block)
+```
+
+## scripts\docs\oss-notices.tests
+
+### Run-Tests.ps1
+S1495 - test suite for the OSS notice parser and generator.
+
+```
+scripts/docs/oss-notices.tests/Run-Tests.ps1
+  S1495 - test suite for the OSS notice parser and generator.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: parser or fixture missing
 ```
 
 ## scripts\document_registry
@@ -1636,6 +1676,16 @@ scripts/quality/assert-icon-inventory-sync.ps1
   Exit: 0 - every enforced check passed, or the inventory was regenerated.; 1 - a check failed.; 2 - regeneration could not run (gradle returned non-zero).
 ```
 
+### assert-launcher-reset-coverage.ps1
+
+```
+scripts/quality/assert-launcher-reset-coverage.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 PASS - every launcher field is restored or excused.; 1 FAIL - a launcher field is not restored, or a restored name no longer exists.; 2 CANNOT VERIFY - a source file is missing or no launcher field could be parsed at all.
+```
+
 ### assert-layout-hardcoded-colors.ps1
 
 ```
@@ -1738,6 +1788,19 @@ scripts/quality/assert-notification-small-icon.ps1
 scripts/quality/assert-orientation-implied-feature.ps1
   Params:
     -Gate         [SwitchParameter]
+```
+
+### assert-oss-notices.ps1
+S1495 - OSS notice conformance gate.
+
+```
+scripts/quality/assert-oss-notices.ps1
+  S1495 - OSS notice conformance gate.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate             [SwitchParameter]
+    -Quiet            [SwitchParameter]
+  Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: generator, parser or manifest missing or unreadable
 ```
 
 ### assert-public-mutable-flow.ps1

@@ -383,6 +383,19 @@ $runsFlavorMatrixDocGate = (
     (Test-AnyChangedFile 'docs/HOW_TO[A-Z_]*\.md$') -or
     (Test-AnyChangedFile 'scripts/(quality/flavor-matrix-docs\.psd1|quality/assert-flavor-matrix-docs\.ps1|docs/generate-flavor-matrix\.ps1)$')
 )
+# S1495 OSS-notice conformance gate. Fires when the dependency set moves (either build file),
+# when the licence manifest or the rendering pipeline is touched, or when a rendered notice page
+# or its snapshot is edited. Two findings: a shipping coordinate with no licence entry, and a
+# published page that no longer matches what the generator produces. Before S1495 nothing tied
+# the two together, which is how the published page came to name 2 libraries out of 97 and to
+# state a wrong licence for two of them. Pure text plus one JSON, no gradle daemon.
+$runsOssNoticesGate = (
+    (Test-AnyChangedFile 'app_v2/build\.gradle\.kts$') -or
+    (Test-AnyChangedFile 'wear/build\.gradle\.kts$') -or
+    (Test-AnyChangedFile 'docs/OPEN_SOURCE[a-z.]*\.md$') -or
+    (Test-AnyChangedFile 'docs/legal/oss-notices\.json$') -or
+    (Test-AnyChangedFile 'scripts/(docs/oss-licenses\.psd1|docs/generate-oss-notices\.ps1|docs/OssDependencyParser\.ps1|quality/assert-oss-notices\.ps1)$')
+)
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
@@ -720,6 +733,17 @@ else {
     Skip-Step "flavor-matrix-doc-gate" "not applicable - no changed file is the flavor grid, the generated matrix, or a doc carrying a checked flavor table"
 }
 
+if ($runsOssNoticesGate) {
+    # Strict even under -ScopeToFile: both findings are attributable to the change that fired
+    # them - a coordinate this change declared, or a page this change edited. Not a count ratchet.
+    Invoke-Step "oss-notices-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-oss-notices.ps1") -Gate -Quiet
+    }
+}
+else {
+    Skip-Step "oss-notices-gate" "not applicable - no changed file is a build file, the licence manifest, the notice pipeline, or a rendered notice page"
+}
+
 # S1338 phase 05: the document-registry trigger. Reads docs/DOCUMENT_REGISTRY.jsonl and reports
 # every record whose `paths` cover a file in this change - a registered document moved, so its
 # siblings (other locales, the site export, the mirrored page) may now disagree with it. Fires on
@@ -805,6 +829,14 @@ else {
 # would otherwise block this ticket's closure. Strict on a full run.
 & $ratchetRunner "device-profile-matrix-gate" {
     & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-device-profile-matrix.ps1") -Gate -Quiet
+}
+
+# S1540: the fourth edit adding a launcher setting needs - the line in the launcher reset - had no gate,
+# so a forgotten one reached the user as a reset that leaves that setting alone. Stays FATAL under
+# -ScopeToFile, unlike the matrix gate above: it reads exactly two files and judges one rule between
+# them, so another ticket's WIP cannot make it fail unless that WIP is itself the defect.
+Invoke-Step "launcher-reset-coverage-gate" {
+    & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-launcher-reset-coverage.ps1") -Gate -Quiet
 }
 
 # S0848 Phase 02: join the detekt job started before the lexical gates. Preserves the old

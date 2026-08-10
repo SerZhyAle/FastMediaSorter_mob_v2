@@ -18,6 +18,7 @@ import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import androidx.media3.extractor.metadata.icy.IcyHeaders
 import androidx.media3.extractor.metadata.icy.IcyInfo
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
 import kotlinx.coroutines.delay
@@ -89,7 +90,15 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
     val trackSelector = if (!isRtsp) DefaultTrackSelector(context) else null
     if (!isRtsp) {
         // http(s): let the core auto-detect progressive / HLS / DASH (segmented resolves only where the modules exist).
-        builder.setMediaSourceFactory(DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory))
+        // S1512: the same loader policy the audio paths use. Without it the video session ran the stock
+        // policy, so the first segment error reached the player and the whole session was rebuilt by the
+        // application ladder - while radio on the same network merely paused and resumed.
+        builder.setMediaSourceFactory(
+            DefaultMediaSourceFactory(context)
+                .setDataSourceFactory(dataSourceFactory)
+                .setLoadErrorHandlingPolicy(RadioStreamBufferConfig.createLoadErrorHandlingPolicy(context))
+        )
+        Timber.d("S1512: http(s) video session built with the shared loader policy")
         trackSelector?.let { builder.setTrackSelector(it) }
     }
 
@@ -458,7 +467,11 @@ private fun VideoPlayerManager.streamPlaybackListener(
                 // S0685: same up-front "reconnecting" hint for the classified-retry path.
                 reconnecting = true
                 playerCallback.onStreamWaitPhase(VideoPlayerManager.StreamWaitPhase.RECONNECTING)
-                val backoffMs = STREAM_TRANSIENT_BASE_DELAY_MS shl (transientRetries - 1)
+                // S1512: capped like every other retry ladder in the project. Uncapped this reached 16s on
+                // the fourth attempt, and it is now the second echelon - the loader has already spent its
+                // own retries by the time an error gets here.
+                val backoffMs = (STREAM_TRANSIENT_BASE_DELAY_MS shl (transientRetries - 1))
+                    .coerceAtMost(RadioStreamBufferConfig.MAX_RETRY_DELAY_MS)
                 Timber.w(error, "Stream transient error - retrying in %dms (attempt %d): %s", backoffMs, transientRetries, path)
                 managerScope.launch {
                     delay(backoffMs)

@@ -156,7 +156,7 @@ Your build may show fewer of these than the list: a permission appears only when
 - `REQUEST_INSTALL_PACKAGES`: Optional. Granted on a system screen. Install an APK file you opened from a browsed folder. Present only in the build without legal restrictions
 - Screen capture consent: asked again by the system every time a screen recording starts, so it cannot be granted in advance. The app declares `FOREGROUND_SERVICE_MEDIA_PROJECTION` to keep the recording alive while it runs
 - `READ_PHONE_STATE`: Optional. Show the SIM signal level in the launcher's own status area. The level is read on the device and never leaves it - nothing is stored, sent, or shared. Denying it hides both SIM indicators and changes nothing else
-- `BIND_NOTIFICATION_LISTENER_SERVICE`: Optional. Turned on by you on a system screen. Mirror notification badges on the launcher's app icons
+- `BIND_NOTIFICATION_LISTENER_SERVICE`: Optional. Turned on by you on a system screen. Lets the Now Playing gadget on the launcher desktop show and control what other apps are playing. The app reads media sessions only and never reads the content of a notification
 - `READ_CONTACTS`: Optional. Show a pinned contact's name and photo on the launcher; denying it keeps a plain initial in place of the photo
 - `ACTIVITY_RECOGNITION`: Optional. Asked only when you add the steps gadget to the launcher desktop. The count comes from the counter your phone already keeps, is read only while the tile is on screen, and is neither stored by the app nor sent anywhere. Denying it leaves the tile idle with a message saying so
 

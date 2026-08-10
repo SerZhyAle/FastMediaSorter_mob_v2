@@ -62,6 +62,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps growth.
 - [No Sxxxx in permanent logs](reference_ticket_log_gate.md) · [Timber.e for real errors](feedback_log_levels.md)
 - [Settings docs Rule 22](feedback_settings_manifest_regen.md) · [Kotlin skips doc-pin](feedback_post_change_kotlin_skips_doc_pin_gate.md)
 - [-Files: whole set](feedback_post_change_dev_log_first_file_only.md) · [Gate cost](reference_gate_cost_mining.md) - detekt 86%; ms includes lock wait
+- [-RegistryAck up front](feedback_registry_ack_up_front.md) - else the re-run duplicates the dev-log row
 
 ## Long-run correctness
 - [Radio toggles: firmware](project_radio_toggle_restriction_is_firmware_not_targetsdk.md) - direct path works on 8
@@ -83,15 +84,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps growth.
 - [Shared layout: fix shared layer](feedback_shared_layout_fix_at_shared_layer.md)
 
 ## Streams / VR / players
-- [present() dead](project_link_download_present_suppressed.md) · [Ship every live channel](feedback_stream_catalog_all_live_channels.md) + [publish](reference_stream_catalog_publish.md)
-- [Favicon atlas](project_stream_favicon_atlas_delivery.md) + [publish](project_stream_catalog_atlas_publish.md) - no atlas.png wipes favicons
-- [Artwork = tile packs](project_stream_artwork_tile_packs.md) · [Streams test gate](project_streams_device_test_gate.md) · [radio vs video](project_stream_radio_vs_video_player_split.md)
-- [VR inclusion](project_vr_inclusion_hierarchy.md) - `src/vr` ships in TWO flavors · [supportsVrPlayer noLegal](project_supportsvrplayer_nolegal_only.md)
-- ["VR" = device or flavor?](project_xr_device_guard_lives_in_main.md) - ask first
-- [VR re-entry](project_vr_immersive_reentry_hotspot.md) + [logcat trap](reference_vr_immersive_logcat_capture_trap.md) · [HUD pitfalls](project_vr_hud_quirks.md)
-- [Quest panel opaque](reference_quest_panel_not_introspectable.md) · [2 texture channels](project_vr_native_two_texture_channels.md)
-- [Camera detekt ceilings](project_camera_session_manager_function_ceiling.md) · [Capture permission-free](project_camera_capture_permission_constraint.md)
-- [Headless + noHistory](project_headless_camera_capture_trampoline.md) · [progressBar owner](project_player_progressbar_single_owner.md) · [Shared-state audit](reference_shared_state_audit_tool.md)
+- Second-level index: [streams, VR/XR, camera, player family](INDEX_streams_vr.md) - open it when the task touches any of those; nothing else needs them.
 
 ## Spec lifecycle & catalog
 - [Unblocks at BlockNeedUserTest](feedback_blocker_unblocks_at_needusertest.md) - don't wait for Verified

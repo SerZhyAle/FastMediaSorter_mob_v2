@@ -21,6 +21,16 @@
         android:name="android.permission.BLUETOOTH_ADMIN"
         android:maxSdkVersion="30" />
 
+    <!--
+        S1515: the read half of the pair above. Below API 31 the adapter state and the bonded-device
+        count are guarded by this install-time permission, and it was declared nowhere - so the Bluetooth
+        section reported "no permission" forever on Android 8.0-11 and no screen could fix it: an
+        install-time permission has no request dialog, and requesting an undeclared one does nothing.
+    -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+
     <!-- Wi-Fi section: reading the current connection details on API 33+. -->
     <uses-permission
         android:name="android.permission.NEARBY_WIFI_DEVICES"
