@@ -499,7 +499,7 @@
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
                     <!-- Favorites export/import. Flow chip group: text-sized buttons wrap to new lines. -->
-                    <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
+                    <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/layoutFavoritesImportExport" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
 
                         <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowSettingsFavorites" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_verticalBias="0" app:flow_horizontalGap="@dimen/margin_small" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnExportFavorites,btnImportFavorites" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
 

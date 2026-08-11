@@ -631,6 +631,16 @@
       "titleUk": "Дозволити переміщення"
     },
     {
+      "key": "rowEnableNetworkMonitor",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Network Monitor",
+      "titleRu": "Сетевой монитор",
+      "titleUk": "Мережевий монітор"
+    },
+    {
       "key": "rowEnableSafeMode",
       "sectionId": "destinations",
       "destination": "OPERATIONS",

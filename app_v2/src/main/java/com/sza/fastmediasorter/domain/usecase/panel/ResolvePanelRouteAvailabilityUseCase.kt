@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +26,7 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
     private val capability: CapabilityAvailability,
     private val settingsRepository: SettingsRepository,
     private val mediaCapabilities: MediaCapabilities,
+    private val networkMonitorContract: NetworkMonitorContract,
     private val screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>,
 ) {
 
@@ -59,6 +61,11 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             InternalRouteCatalog.KEY_APP_LAUNCH_PANEL ->
                 Availability(availableInBuild = true, enabledAtRuntime = true)
             InternalRouteCatalog.KEY_CALCULATOR -> Availability(availableInBuild = true, enabledAtRuntime = true)
+            InternalRouteCatalog.KEY_NETWORK_MONITOR ->
+                Availability(
+                    availableInBuild = networkMonitorContract.isAvailableInBuild,
+                    enabledAtRuntime = settings.enableNetworkMonitor,
+                )
             InternalRouteCatalog.KEY_GAME ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.embeddedGameEnabled)
             InternalRouteCatalog.KEY_OCR -> Availability(capability.isOcrAvailable(context), enabledAtRuntime = true)

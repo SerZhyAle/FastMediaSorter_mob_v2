@@ -18,6 +18,10 @@
   "entries": [
     {
       "coordinate": "androidx.activity:activity-compose",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "AndroidX Activity Compose",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -39,6 +43,9 @@
     },
     {
       "coordinate": "androidx.activity:activity-ktx",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Activity KTX",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -60,6 +67,9 @@
     },
     {
       "coordinate": "androidx.appcompat:appcompat",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX AppCompat",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -81,6 +91,9 @@
     },
     {
       "coordinate": "androidx.browser:browser",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Browser",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -102,6 +115,9 @@
     },
     {
       "coordinate": "androidx.camera:camera-camera2",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX CameraX Camera2",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -123,6 +139,9 @@
     },
     {
       "coordinate": "androidx.camera:camera-core",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX CameraX Core",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -144,6 +163,9 @@
     },
     {
       "coordinate": "androidx.camera:camera-extensions",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX CameraX Extensions",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -165,6 +187,9 @@
     },
     {
       "coordinate": "androidx.camera:camera-lifecycle",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX CameraX Lifecycle",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -186,6 +211,9 @@
     },
     {
       "coordinate": "androidx.camera:camera-video",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX CameraX Video",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -207,6 +235,9 @@
     },
     {
       "coordinate": "androidx.camera:camera-view",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX CameraX View",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -228,6 +259,10 @@
     },
     {
       "coordinate": "androidx.compose.material:material-icons-core",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "Jetpack Compose Material Icons Core",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -249,6 +284,10 @@
     },
     {
       "coordinate": "androidx.compose.material:material-icons-extended",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "Jetpack Compose Material Icons Extended",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -270,6 +309,9 @@
     },
     {
       "coordinate": "androidx.compose.material3:material3",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Jetpack Compose Material 3",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -291,6 +333,10 @@
     },
     {
       "coordinate": "androidx.compose.ui:ui",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "Jetpack Compose UI",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -312,6 +358,9 @@
     },
     {
       "coordinate": "androidx.compose.ui:ui-graphics",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Jetpack Compose UI Graphics",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -333,6 +382,10 @@
     },
     {
       "coordinate": "androidx.compose.ui:ui-tooling-preview",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "Jetpack Compose UI Tooling Preview",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -354,6 +407,9 @@
     },
     {
       "coordinate": "androidx.constraintlayout:constraintlayout",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX ConstraintLayout",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -375,6 +431,9 @@
     },
     {
       "coordinate": "androidx.core:core-ktx",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Core KTX",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -396,6 +455,9 @@
     },
     {
       "coordinate": "androidx.credentials:credentials",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Credentials",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -417,6 +479,9 @@
     },
     {
       "coordinate": "androidx.credentials:credentials-play-services-auth",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Credentials Play Services Auth",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -438,6 +503,10 @@
     },
     {
       "coordinate": "androidx.datastore:datastore-preferences",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "AndroidX DataStore Preferences",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -459,6 +528,9 @@
     },
     {
       "coordinate": "androidx.documentfile:documentfile",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX DocumentFile",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -480,6 +552,9 @@
     },
     {
       "coordinate": "androidx.exifinterface:exifinterface",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX ExifInterface",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -501,6 +576,9 @@
     },
     {
       "coordinate": "androidx.fragment:fragment-ktx",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Fragment KTX",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -522,6 +600,9 @@
     },
     {
       "coordinate": "androidx.hilt:hilt-navigation-compose",
+      "modules": [
+        "wear"
+      ],
       "name": "AndroidX Hilt Navigation Compose",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -543,6 +624,9 @@
     },
     {
       "coordinate": "androidx.hilt:hilt-work",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Hilt WorkManager",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -564,6 +648,9 @@
     },
     {
       "coordinate": "androidx.lifecycle:lifecycle-livedata-ktx",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Lifecycle LiveData KTX",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -585,6 +672,9 @@
     },
     {
       "coordinate": "androidx.lifecycle:lifecycle-process",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Lifecycle Process",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -606,6 +696,9 @@
     },
     {
       "coordinate": "androidx.lifecycle:lifecycle-runtime-compose",
+      "modules": [
+        "wear"
+      ],
       "name": "AndroidX Lifecycle Runtime Compose",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -627,6 +720,10 @@
     },
     {
       "coordinate": "androidx.lifecycle:lifecycle-runtime-ktx",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "AndroidX Lifecycle Runtime KTX",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -648,6 +745,10 @@
     },
     {
       "coordinate": "androidx.lifecycle:lifecycle-viewmodel-compose",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "AndroidX Lifecycle ViewModel Compose",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -669,6 +770,9 @@
     },
     {
       "coordinate": "androidx.lifecycle:lifecycle-viewmodel-ktx",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Lifecycle ViewModel KTX",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -690,6 +794,10 @@
     },
     {
       "coordinate": "androidx.media3:media3-common",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "AndroidX Media3 Common",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -711,6 +819,9 @@
     },
     {
       "coordinate": "androidx.media3:media3-decoder",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Media3 Decoder",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -732,6 +843,9 @@
     },
     {
       "coordinate": "androidx.media3:media3-effect",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Media3 Effect",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -753,6 +867,10 @@
     },
     {
       "coordinate": "androidx.media3:media3-exoplayer",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "AndroidX Media3 ExoPlayer",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -774,6 +892,9 @@
     },
     {
       "coordinate": "androidx.media3:media3-exoplayer-dash",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Media3 ExoPlayer DASH",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -793,6 +914,9 @@
     },
     {
       "coordinate": "androidx.media3:media3-exoplayer-hls",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Media3 ExoPlayer HLS",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -812,6 +936,9 @@
     },
     {
       "coordinate": "androidx.media3:media3-exoplayer-midi",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Media3 ExoPlayer MIDI",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -832,6 +959,9 @@
     },
     {
       "coordinate": "androidx.media3:media3-exoplayer-rtsp",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Media3 ExoPlayer RTSP",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -851,6 +981,9 @@
     },
     {
       "coordinate": "androidx.media3:media3-session",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Media3 Session",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -872,6 +1005,9 @@
     },
     {
       "coordinate": "androidx.media3:media3-transformer",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Media3 Transformer",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -893,6 +1029,10 @@
     },
     {
       "coordinate": "androidx.media3:media3-ui",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "AndroidX Media3 UI",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -914,6 +1054,9 @@
     },
     {
       "coordinate": "androidx.mediarouter:mediarouter",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX MediaRouter",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -935,6 +1078,9 @@
     },
     {
       "coordinate": "androidx.paging:paging-runtime-ktx",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Paging Runtime KTX",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -956,6 +1102,9 @@
     },
     {
       "coordinate": "androidx.print:print",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Print",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -977,6 +1126,9 @@
     },
     {
       "coordinate": "androidx.profileinstaller:profileinstaller",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX ProfileInstaller",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -998,6 +1150,9 @@
     },
     {
       "coordinate": "androidx.recyclerview:recyclerview",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX RecyclerView",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1019,6 +1174,9 @@
     },
     {
       "coordinate": "androidx.room:room-ktx",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Room KTX",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1040,6 +1198,9 @@
     },
     {
       "coordinate": "androidx.room:room-runtime",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX Room Runtime",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1061,6 +1222,10 @@
     },
     {
       "coordinate": "androidx.security:security-crypto",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "AndroidX Security Crypto",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1082,6 +1247,9 @@
     },
     {
       "coordinate": "androidx.swiperefreshlayout:swiperefreshlayout",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX SwipeRefreshLayout",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1103,6 +1271,9 @@
     },
     {
       "coordinate": "androidx.viewpager2:viewpager2",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX ViewPager2",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1124,6 +1295,9 @@
     },
     {
       "coordinate": "androidx.wear:wear",
+      "modules": [
+        "wear"
+      ],
       "name": "AndroidX Wear",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1145,6 +1319,9 @@
     },
     {
       "coordinate": "androidx.wear.compose:compose-foundation",
+      "modules": [
+        "wear"
+      ],
       "name": "Wear Compose Foundation",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1166,6 +1343,9 @@
     },
     {
       "coordinate": "androidx.wear.compose:compose-material",
+      "modules": [
+        "wear"
+      ],
       "name": "Wear Compose Material",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1187,6 +1367,9 @@
     },
     {
       "coordinate": "androidx.wear.compose:compose-navigation",
+      "modules": [
+        "wear"
+      ],
       "name": "Wear Compose Navigation",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1208,6 +1391,9 @@
     },
     {
       "coordinate": "androidx.work:work-runtime-ktx",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AndroidX WorkManager Runtime KTX",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1229,6 +1415,9 @@
     },
     {
       "coordinate": "com.android.tools:desugar_jdk_libs",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Java 8+ API desugaring support",
       "spdx": "GPL-2.0-with-classpath-exception",
       "licenseUrl": "https://github.com/google/desugar_jdk_libs/blob/master/LICENSE",
@@ -1250,6 +1439,9 @@
     },
     {
       "coordinate": "com.dropbox.core:dropbox-core-sdk",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Dropbox Java SDK",
       "spdx": "MIT",
       "licenseUrl": "https://raw.githubusercontent.com/dropbox/dropbox-sdk-java/main/License.txt",
@@ -1271,6 +1463,9 @@
     },
     {
       "coordinate": "com.github.bumptech.glide:glide",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Glide",
       "spdx": "BSD-2-Clause AND Apache-2.0 AND MIT",
       "licenseUrl": "https://raw.githubusercontent.com/bumptech/glide/master/LICENSE",
@@ -1292,6 +1487,9 @@
     },
     {
       "coordinate": "com.github.bumptech.glide:okhttp3-integration",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Glide OkHttp3 Integration",
       "spdx": "BSD-2-Clause",
       "licenseUrl": "https://raw.githubusercontent.com/bumptech/glide/master/LICENSE",
@@ -1313,6 +1511,9 @@
     },
     {
       "coordinate": "com.github.chrisbanes:PhotoView",
+      "modules": [
+        "app_v2"
+      ],
       "name": "PhotoView",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://raw.githubusercontent.com/Baseflow/PhotoView/2.3.0/LICENSE",
@@ -1334,6 +1535,9 @@
     },
     {
       "coordinate": "com.github.chuckerteam.chucker:library-no-op",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Chucker (no-op)",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://raw.githubusercontent.com/ChuckerTeam/chucker/main/LICENSE.txt",
@@ -1355,6 +1559,10 @@
     },
     {
       "coordinate": "com.github.mwiede:jsch",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "JSch (mwiede fork)",
       "spdx": "BSD-3-Clause",
       "licenseUrl": "https://raw.githubusercontent.com/mwiede/jsch/master/LICENSE.txt",
@@ -1376,6 +1584,9 @@
     },
     {
       "coordinate": "com.github.TeamNewPipe:NewPipeExtractor",
+      "modules": [
+        "app_v2"
+      ],
       "name": "NewPipe Extractor",
       "spdx": "GPL-3.0-or-later",
       "licenseUrl": "https://raw.githubusercontent.com/TeamNewPipe/NewPipeExtractor/dev/LICENSE",
@@ -1392,6 +1603,9 @@
     },
     {
       "coordinate": "com.google.accompanist:accompanist-permissions",
+      "modules": [
+        "wear"
+      ],
       "name": "Accompanist Permissions",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1413,6 +1627,9 @@
     },
     {
       "coordinate": "com.google.android.material:material",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Material Components for Android",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1434,6 +1651,10 @@
     },
     {
       "coordinate": "com.google.dagger:hilt-android",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "Dagger Hilt Android",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1455,6 +1676,9 @@
     },
     {
       "coordinate": "com.google.zxing:core",
+      "modules": [
+        "app_v2"
+      ],
       "name": "ZXing Core",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1476,6 +1700,10 @@
     },
     {
       "coordinate": "com.hierynomus:smbj",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "SMBJ",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1497,6 +1725,10 @@
     },
     {
       "coordinate": "com.jakewharton.timber:timber",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "Timber",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1518,6 +1750,9 @@
     },
     {
       "coordinate": "com.microsoft.identity.client:msal",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Microsoft Authentication Library",
       "spdx": "MIT",
       "licenseUrl": "https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/LICENSE",
@@ -1539,6 +1774,10 @@
     },
     {
       "coordinate": "com.squareup.okhttp3:okhttp",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "OkHttp",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1560,6 +1799,10 @@
     },
     {
       "coordinate": "com.squareup.retrofit2:converter-gson",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "Retrofit Gson Converter",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1581,6 +1824,10 @@
     },
     {
       "coordinate": "com.squareup.retrofit2:retrofit",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "Retrofit",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1602,6 +1849,10 @@
     },
     {
       "coordinate": "commons-net:commons-net",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "Apache Commons Net",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://raw.githubusercontent.com/apache/commons-net/master/LICENSE.txt",
@@ -1623,6 +1874,9 @@
     },
     {
       "coordinate": "cz.adaptech:tesseract4android",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Tesseract4Android",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://raw.githubusercontent.com/adaptech-cz/Tesseract4Android/master/LICENSE",
@@ -1642,6 +1896,9 @@
     },
     {
       "coordinate": "io.coil-kt:coil-compose",
+      "modules": [
+        "wear"
+      ],
       "name": "Coil for Compose",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://raw.githubusercontent.com/coil-kt/coil/main/LICENSE.txt",
@@ -1663,6 +1920,9 @@
     },
     {
       "coordinate": "io.documentnode:epub4j-core",
+      "modules": [
+        "app_v2"
+      ],
       "name": "epub4j",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://raw.githubusercontent.com/documentnode/epub4j/main/LICENSE",
@@ -1684,6 +1944,9 @@
     },
     {
       "coordinate": "io.noties.markwon:core",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Markwon",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://raw.githubusercontent.com/noties/Markwon/master/LICENSE",
@@ -1705,6 +1968,9 @@
     },
     {
       "coordinate": "local:fms-ffmpeg-dts",
+      "modules": [
+        "app_v2"
+      ],
       "name": "FFmpeg (custom Media3 decoder build)",
       "spdx": "LGPL-2.1-or-later",
       "licenseUrl": "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html",
@@ -1724,6 +1990,9 @@
     },
     {
       "coordinate": "net.lingala.zip4j:zip4j",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Zip4j",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://raw.githubusercontent.com/srikanth-lingala/zip4j/master/LICENSE",
@@ -1745,6 +2014,9 @@
     },
     {
       "coordinate": "net.openid:appauth",
+      "modules": [
+        "app_v2"
+      ],
       "name": "AppAuth for Android",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://raw.githubusercontent.com/openid/AppAuth-Android/master/LICENSE",
@@ -1766,6 +2038,10 @@
     },
     {
       "coordinate": "org.bouncycastle:bcprov-jdk18on",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "Bouncy Castle Provider",
       "spdx": "MIT",
       "licenseUrl": "https://www.bouncycastle.org/licence.html",
@@ -1787,6 +2063,10 @@
     },
     {
       "coordinate": "org.jetbrains.kotlinx:kotlinx-coroutines-android",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "Kotlin Coroutines Android",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1808,6 +2088,9 @@
     },
     {
       "coordinate": "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Kotlin Coroutines Core",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1829,6 +2112,10 @@
     },
     {
       "coordinate": "org.jetbrains.kotlinx:kotlinx-coroutines-play-services",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "Kotlin Coroutines Play Services",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
@@ -1850,6 +2137,9 @@
     },
     {
       "coordinate": "org.jsoup:jsoup",
+      "modules": [
+        "app_v2"
+      ],
       "name": "jsoup",
       "spdx": "MIT",
       "licenseUrl": "https://raw.githubusercontent.com/jhy/jsoup/master/LICENSE",
@@ -1871,6 +2161,9 @@
     },
     {
       "coordinate": "org.khronos.openxr:openxr_loader_for_android",
+      "modules": [
+        "app_v2"
+      ],
       "name": "OpenXR Loader for Android",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://raw.githubusercontent.com/KhronosGroup/OpenXR-SDK/main/LICENSE",
@@ -1888,6 +2181,9 @@
     },
     {
       "coordinate": "org.nanohttpd:nanohttpd",
+      "modules": [
+        "app_v2"
+      ],
       "name": "NanoHTTPD",
       "spdx": "BSD-3-Clause",
       "licenseUrl": "https://raw.githubusercontent.com/NanoHttpd/nanohttpd/master/LICENSE.md",
@@ -1909,6 +2205,9 @@
     },
     {
       "coordinate": "com.google.android.gms:play-services-auth",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Google Play services Auth",
       "spdx": "Android Software Development Kit License",
       "licenseUrl": "https://developer.android.com/studio/terms.html",
@@ -1930,6 +2229,9 @@
     },
     {
       "coordinate": "com.google.android.gms:play-services-cast-framework",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Google Cast Framework",
       "spdx": "Android Software Development Kit License",
       "licenseUrl": "https://developer.android.com/studio/terms.html",
@@ -1951,6 +2253,10 @@
     },
     {
       "coordinate": "com.google.android.gms:play-services-wearable",
+      "modules": [
+        "app_v2",
+        "wear"
+      ],
       "name": "Google Play services Wearable",
       "spdx": "Android Software Development Kit License",
       "licenseUrl": "https://developer.android.com/studio/terms.html",
@@ -1972,6 +2278,9 @@
     },
     {
       "coordinate": "com.google.android.libraries.identity.googleid:googleid",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Google ID for Credential Manager",
       "spdx": "Android Software Development Kit License",
       "licenseUrl": "https://developer.android.com/studio/terms.html",
@@ -1992,6 +2301,9 @@
     },
     {
       "coordinate": "com.google.android.play:feature-delivery-ktx",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Play Feature Delivery",
       "spdx": "Play Core Software Development Kit Terms of Service",
       "licenseUrl": "https://developer.android.com/guide/playcore/license",
@@ -2013,6 +2325,9 @@
     },
     {
       "coordinate": "com.google.android.play:review-ktx",
+      "modules": [
+        "app_v2"
+      ],
       "name": "Play In-App Review",
       "spdx": "Play Core Software Development Kit Terms of Service",
       "licenseUrl": "https://developer.android.com/guide/playcore/license",
@@ -2034,6 +2349,9 @@
     },
     {
       "coordinate": "com.google.mlkit:language-id",
+      "modules": [
+        "app_v2"
+      ],
       "name": "ML Kit Language Identification",
       "spdx": "ML Kit Terms of Service",
       "licenseUrl": "https://developers.google.com/ml-kit/terms",
@@ -2053,6 +2371,9 @@
     },
     {
       "coordinate": "com.google.mlkit:translate",
+      "modules": [
+        "app_v2"
+      ],
       "name": "ML Kit Translation",
       "spdx": "ML Kit Terms of Service",
       "licenseUrl": "https://developers.google.com/ml-kit/terms",

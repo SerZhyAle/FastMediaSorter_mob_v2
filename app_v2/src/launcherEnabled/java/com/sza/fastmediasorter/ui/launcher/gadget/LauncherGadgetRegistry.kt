@@ -88,6 +88,10 @@ class LauncherGadgetRegistry @Inject constructor(
         const val KEY_ALTITUDE_CHART = "altitude_chart"
         const val KEY_STEPS = "steps"
 
+        // S1560: same contract again - a key is the stored `target`, so it is never renamed.
+        const val KEY_ALTITUDE = "altitude"
+        const val KEY_SATELLITES = "satellites"
+
         // S1178: same contract - the key is what a cell's `target` column stores, so it is never renamed.
         const val KEY_NETWORK = "network"
         const val KEY_BATTERY = "battery"

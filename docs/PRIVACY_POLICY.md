@@ -32,6 +32,10 @@ FastMediaSorter accesses the following data **only on your device and configured
    - Limited to folders you explicitly select
    - OAuth tokens for authenticated access
 
+4. **Location (Optional - Network Monitor)**
+   - A GNSS track only while you turn on its separate setting and keep the Monitor's Satellites screen open
+   - Stored on your device; it does not start in the background or leave the app unless you explicitly share its file
+
 ### What We Store Locally
 
 All data stored in app's private, encrypted storage:
@@ -46,7 +50,7 @@ All data stored in app's private, encrypted storage:
 - ❌ No analytics or usage tracking
 - ❌ No advertising data
 - ❌ No behavioral tracking
-- ❌ No location data
+- ❌ No background location tracking
 - ❌ No personal information (names, emails, phone numbers)
 - ❌ **No servers**: Your data never goes to our servers (we don't have any)
 - ❌ No third-party data sharing
@@ -118,6 +122,7 @@ Cloud access is subject to each provider's privacy policy:
 ### Internet Usage
 
 - Google Drive API: only for authenticated access to your files
+- External IP check: only after you ask for it, the Network Monitor contacts a third-party IP-echo service that can see your request address; the result is shown on screen and is not automatically saved
 - No telemetry, analytics, or tracking servers
 - All operations are user-initiated  
 
@@ -143,7 +148,7 @@ Your build may show fewer of these than the list: a permission appears only when
 
 - `CAMERA`: Optional. Shoot photos and video inside the app, recognize text, and scan a companion QR code
 - `RECORD_AUDIO`: Optional. Record voice notes and the sound in a screen recording
-- `ACCESS_FINE_LOCATION` / `ACCESS_COARSE_LOCATION`: Optional. Two features read it. It writes coordinates into the photos and videos you shoot in the app; and, on the launcher desktop, it gives the compass, speed and chart gadgets your speed and altitude while one of those tiles is on screen. Position is read only while a tile that needs it is visible - never in the background. The speed and altitude charts keep their readings on the device so the chart survives a restart, and each chart's reset button erases them. Nothing is sent anywhere. Denying it leaves captures without coordinates and those tiles idle with a message saying so
+- `ACCESS_FINE_LOCATION` / `ACCESS_COARSE_LOCATION`: Optional. Three features read it. It writes coordinates into the photos and videos you shoot in the app; on the launcher desktop, it gives the compass, speed and chart gadgets your speed and altitude while one of those tiles is on screen; and the Network Monitor can record a GNSS track only while its Satellites screen is open and you turned on the separate track setting. Position is never read in the background. Charts and an opted-in track stay on this device; nothing is sent anywhere unless you explicitly share a track file. Denying it leaves captures without coordinates and those tiles idle with a message saying so
 
 ### Notifications
 

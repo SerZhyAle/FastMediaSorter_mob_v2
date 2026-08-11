@@ -94,8 +94,13 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
             is AppLaunchPanelRouteTarget.Feature -> {
                 val route = InternalRouteCatalog.byKey(target.routeKey) ?: return null
                 // Degrade a feature that is not compiled into this build.
-                if (!resolveRouteAvailability(target.routeKey).availableInBuild) return null
+                if (!isRouteVisible(target.routeKey)) return null
                 // Feature glyphs are monochrome (ic_calculator, ic_cast, ..) - tint to stay legible.
+                tileUi(tile, context.getString(route.labelRes), route.iconRes, tintable = true)
+            }
+            is AppLaunchPanelRouteTarget.FeatureSection -> {
+                val route = InternalRouteCatalog.byKey(target.routeKey) ?: return null
+                if (!isRouteVisible(target.routeKey)) return null
                 tileUi(tile, context.getString(route.labelRes), route.iconRes, tintable = true)
             }
             is AppLaunchPanelRouteTarget.OsShortcut -> {
@@ -112,6 +117,18 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
             }
             null -> null
         }
+    }
+
+    /**
+     * S1433 is intentionally stricter than the historic panel behaviour for disabled features: its
+     * Monitor shortcut disappears instead of leading to Settings. Other feature shortcuts retain that
+     * established Settings hand-off when their runtime toggle is off.
+     */
+    private suspend fun isRouteVisible(routeKey: String): Boolean {
+        val availability = resolveRouteAvailability(routeKey)
+        return availability.availableInBuild && (
+            routeKey != InternalRouteCatalog.KEY_NETWORK_MONITOR || availability.enabledAtRuntime
+            )
     }
 
     /**

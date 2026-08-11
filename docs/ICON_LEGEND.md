@@ -38,9 +38,10 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Favorites |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Mini-game |
 | <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Download by link |
+| <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Network Monitor |
 | <img src="icons/svg/ic_nfc.svg" alt="ic_nfc" width="24" height="24"> | NFC |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Photo OCR translate |
-| <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Camera |
+| <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Quick capture |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Voice recording |
 | <img src="icons/svg/ic_widget_random_music.svg" alt="ic_widget_random_music" width="24" height="24"> | Random Music |
 | <img src="icons/svg/ic_widget_scheduled_tasks.svg" alt="ic_widget_scheduled_tasks" width="24" height="24"> | Scheduled Tasks |
@@ -96,6 +97,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Mini-game |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Calculator |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Enable Favorites |
+| <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Network Monitor |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Enable text recognition |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Background Playback |
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Enable Picture-in-Picture |
@@ -167,6 +169,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Share |
 | <img src="icons/svg/ic_sleep_timer.svg" alt="ic_sleep_timer" width="24" height="24"> | Sleep Timer |
 | <img src="icons/svg/ic_play.svg" alt="ic_play" width="24" height="24"> | Slideshow |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | About this channel |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
 | (system icon) | Toggle Markdown |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Translate |

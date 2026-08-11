@@ -37,17 +37,17 @@ class LauncherStarterSetsParityTest {
     @Test
     fun `starter gadget target keys match the registry consts`() {
         // Clock: the one gadget every profile seeds, whose bare target is the key itself.
-        val clock = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap())
+        val clock = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
             .first { it.kind == LauncherCellKind.GADGET }
         assertEquals(LauncherGadgetRegistry.KEY_CLOCK, clock.target)
 
         val folderPreview = LauncherStarterSets
-            .itemsFor(DeviceProfileType.PHOTO_FRAME, StarterResources(lastResourceId = 1L), emptyMap())
+            .itemsFor(DeviceProfileType.PHOTO_FRAME, StarterResources(lastResourceId = 1L), emptyMap(), emptySet())
             .first { it.target.startsWith(LauncherGadgetRegistry.KEY_FOLDER_PREVIEW) }
         assertEquals("${LauncherGadgetRegistry.KEY_FOLDER_PREVIEW}:1", folderPreview.target)
 
         val playlist = LauncherStarterSets
-            .itemsFor(DeviceProfileType.AUDIO_PLAYER, StarterResources(allAudioId = 2L), emptyMap())
+            .itemsFor(DeviceProfileType.AUDIO_PLAYER, StarterResources(allAudioId = 2L), emptyMap(), emptySet())
             .first { it.target.startsWith(LauncherGadgetRegistry.KEY_PLAYLIST) }
         assertEquals("${LauncherGadgetRegistry.KEY_PLAYLIST}:2", playlist.target)
 
@@ -56,6 +56,7 @@ class LauncherStarterSetsParityTest {
                 DeviceProfileType.AUDIO_PLAYER,
                 StarterResources(allAudioId = 2L),
                 mapOf(InternalRouteCatalog.KEY_STREAMS to true),
+                emptySet(),
             )
             .first { it.target == LauncherGadgetRegistry.KEY_STREAMS }
         assertEquals(LauncherGadgetRegistry.KEY_STREAMS, streams.target)

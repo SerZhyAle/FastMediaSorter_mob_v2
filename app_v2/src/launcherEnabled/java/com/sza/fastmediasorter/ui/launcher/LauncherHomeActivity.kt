@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
+import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.AppPickerDialogFragment
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.InternalRoutePickerDialogFragment
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.OsShortcutPickerDialogFragment
@@ -63,6 +64,8 @@ import com.sza.fastmediasorter.ui.launcher.picker.LauncherScheduledOpPickerDialo
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
+import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
+import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.showBoundToHost
@@ -71,6 +74,7 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
+import java.lang.ref.WeakReference
 import javax.inject.Inject
 
 /**
@@ -158,6 +162,12 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     private lateinit var wallpaperManager: LauncherWallpaperManager
 
     private lateinit var resizeManager: LauncherResizeManager
+
+    // S1560: one overlay per Activity, built on the first black-screen tap - a fresh manager per tap
+    // would leak the previous overlay view on the decor view instead of reusing its hide path.
+    private val blackScreenOverlayManager by lazy {
+        BlackScreenOverlayManager(WeakReference(this), SystemBarsManager(this))
+    }
 
     // Built lazily on the first long press: most Home visits never open the popup at all.
     private val shortcutMenuManager by lazy {
@@ -498,8 +508,17 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 LauncherSettingsDialogFragment()
                     .show(supportFragmentManager, LauncherSettingsDialogFragment.TAG)
 
+            LauncherActionCatalog.KEY_ALL_APPS -> showAllApps()
+
+            LauncherActionCatalog.KEY_BLACK_SCREEN -> showBlackScreen()
+
             LauncherActionCatalog.KEY_EXIT_LAUNCHER_MODE -> confirmExitLauncherMode()
         }
+    }
+
+    /** The overlay dismisses itself on touch, so the cell only ever has to raise it. */
+    private fun showBlackScreen() {
+        blackScreenOverlayManager.show()
     }
 
     private fun confirmExitLauncherMode() {
@@ -638,6 +657,17 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     LauncherWeatherLocationDialogFragment.TAG,
                 )
                 true
+            }
+            // S1560: a seeded weather cell carries no place, and its own tap opens a weather app - which
+            // leaves the "no location" message with no visible way out. Only the unconfigured case is
+            // redirected; a cell that already has a place keeps the gadget's own behaviour.
+            if (WeatherLocation.decode(decoded.second) == null) {
+                view.setOnClickListener {
+                    openPicker(
+                        LauncherWeatherLocationDialogFragment.newInstance(REQ_WEATHER_LOCATION, cellUi.cell.id),
+                        LauncherWeatherLocationDialogFragment.TAG,
+                    )
+                }
             }
         }
         container.addView(view)

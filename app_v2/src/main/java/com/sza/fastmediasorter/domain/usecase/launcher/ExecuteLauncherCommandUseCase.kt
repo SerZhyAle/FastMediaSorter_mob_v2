@@ -72,6 +72,9 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
     private suspend fun launchFeature(routeKey: String): Boolean {
         val route = InternalRouteCatalog.byKey(routeKey) ?: return false
         val availability = resolveRouteAvailability(routeKey)
+        if (routeKey == InternalRouteCatalog.KEY_NETWORK_MONITOR) {
+            Timber.d("S1433: launch Network Monitor from launcher, enabled=%s", availability.isLaunchable)
+        }
         return when {
             availability.isLaunchable -> startIntent(route.intent(context))
             // Compiled in but switched off: open the setting that controls it rather than dead-launch.

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.os.SystemClock
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
@@ -25,25 +26,41 @@ import timber.log.Timber
 internal fun VideoPlayerManager.startStreamStallWatchdog() {
     cancelStreamStallWatchdog()
     streamStallLastPosition = exoPlayer?.currentPosition ?: 0L
+    streamStallLastRenderedFrames = activeStreamAnalyticsListener?.renderedFrames()
     streamStallPolls = 0
     streamStallRunnable = Runnable { checkStreamStall() }
     retryHandler.postDelayed(streamStallRunnable!!, STALL_POLL_INTERVAL_MS)
 }
 
-/** Poll: detect a position frozen while the stream reports `STATE_READY` + `isPlaying`. */
+/** Poll live video by rendered frames, retaining position only for audio-only streams. */
 internal fun VideoPlayerManager.checkStreamStall() {
     val player = exoPlayer ?: return
     if (!player.isPlaying || player.playbackState != Player.STATE_READY) return
 
+    val previousPosition = streamStallLastPosition
     val currentPosition = player.currentPosition
-    val positionDelta = currentPosition - streamStallLastPosition
     streamStallLastPosition = currentPosition
+    val renderedFrames = activeStreamAnalyticsListener?.renderedFrames()
+    val hasVideo = player.videoFormat != null
+    val progressed = if (hasVideo) {
+        val previousFrames = streamStallLastRenderedFrames
+        streamStallLastRenderedFrames = renderedFrames
+        when {
+            previousFrames == null || renderedFrames == null -> {
+                streamStallRunnable?.let { retryHandler.postDelayed(it, STALL_POLL_INTERVAL_MS) }
+                return
+            }
+            else -> renderedFrames > previousFrames
+        }
+    } else {
+        currentPosition - previousPosition >= STALL_MIN_PROGRESS_MS
+    }
 
-    if (positionDelta < STALL_MIN_PROGRESS_MS) {
+    if (!progressed) {
         streamStallPolls++
         if (streamStallPolls >= STALL_MAX_POLLS) {
             streamStallPolls = 0
-            recoverFromStreamStall("position frozen")
+            recoverFromStreamStall(if (hasVideo) "rendered frames frozen" else "position frozen")
             return
         }
     } else {
@@ -56,6 +73,7 @@ internal fun VideoPlayerManager.checkStreamStall() {
 internal fun VideoPlayerManager.cancelStreamStallWatchdog() {
     streamStallRunnable?.let { retryHandler.removeCallbacks(it) }
     streamStallRunnable = null
+    streamStallLastRenderedFrames = null
     streamStallPolls = 0
     streamBufferingSince = 0L
 }
@@ -102,10 +120,11 @@ internal fun VideoPlayerManager.checkStreamBufferingTimeout(bufferedAtArm: Long)
  */
 internal fun VideoPlayerManager.recoverFromStreamStall(reason: String) {
     val stalledPlayer = exoPlayer ?: return
-    if (streamWatchdogRecoveries >= STREAM_MAX_WATCHDOG_RECOVERIES) {
+    val attempt = streamWatchdogRecoveryWindow.tryAcquire(SystemClock.elapsedRealtime())
+    if (attempt == null) {
         Timber.w(
             "Stream stall - watchdog budget exhausted (%d attempts, %s) path=%s",
-            streamWatchdogRecoveries,
+            STREAM_MAX_WATCHDOG_RECOVERIES,
             reason,
             currentFilePath
         )
@@ -122,11 +141,10 @@ internal fun VideoPlayerManager.recoverFromStreamStall(reason: String) {
         )
         return
     }
-    streamWatchdogRecoveries++
     streamWatchdogReconnecting = true
     Timber.w(
         "Stream stall - watchdog re-anchor (attempt %d, %s) path=%s",
-        streamWatchdogRecoveries,
+        attempt,
         reason,
         currentFilePath
     )

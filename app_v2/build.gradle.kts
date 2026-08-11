@@ -312,6 +312,7 @@ android {
         // ===== STANDARD (Full Featured) =====
         create("standard") {
             dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_standard"
             isDefault = true
             disableNativeBuild()
             // No applicationIdSuffix = keeps current package names
@@ -349,6 +350,7 @@ android {
         //   throws UnsatisfiedLinkError.
         create("noLegal") {
             dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_nolegal"
             // S0232: no applicationIdSuffix - noLegal shares com.sza.fastmediasorter with
             // standard so cloud OAuth/MSAL/Dropbox registrations cover it without per-flavor
             // setup. See policy comment above productFlavors block.
@@ -419,6 +421,7 @@ android {
         // ===== LITE (Lightweight, Local Files Only) =====
         create("lite") {
             dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_lite"
             applicationIdSuffix = ".lite"
             versionNameSuffix = "-Lite"
             disableNativeBuild()
@@ -449,6 +452,7 @@ android {
         // ===== PHOTOS (Images Only, with Cloud Support) =====
         create("photos") {
             dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_photos"
             applicationIdSuffix = ".photos"
             versionNameSuffix = "-Photos"
             disableNativeBuild()
@@ -478,6 +482,7 @@ android {
         // ===== LEGACY (Full Features, Android 6.0+) =====
         create("legacy") {
             dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_legacy"
             // CRITICAL: Do not change - legacy flavor for Android 6/7 devices (API 23-25)
             // Standard flavor covers API 26+ (Android 8+); legacy covers the remaining API 23-25 gap.
             minSdk = 23  // Android 6.0 (Marshmallow)
@@ -510,6 +515,7 @@ android {
         // ===== VR (Full Features + OpenXR Headset Rendering) =====
         create("vr") {
             dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_vr"
             // S0232: no applicationIdSuffix - vr shares com.sza.fastmediasorter with standard
             // for cloud OAuth identity. Re-add a .vr suffix here if/when this flavor lands on
             // Meta Horizon Store (the Store binds the listing identity to applicationId);

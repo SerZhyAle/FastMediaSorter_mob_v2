@@ -18,6 +18,8 @@ object LauncherActionCatalog {
     const val KEY_APP_SETTINGS = "app_settings"
     const val KEY_LAUNCHER_SETTINGS = "launcher_settings"
     const val KEY_EDIT_DESKTOP = "edit_desktop"
+    const val KEY_ALL_APPS = "all_apps"
+    const val KEY_BLACK_SCREEN = "black_screen"
     const val KEY_EXIT_LAUNCHER_MODE = "exit_launcher_mode"
 
     data class Action(
@@ -31,6 +33,8 @@ object LauncherActionCatalog {
         Action(KEY_APP_SETTINGS, R.string.launcher_menu_app_settings, R.drawable.ic_settings),
         Action(KEY_LAUNCHER_SETTINGS, R.string.launcher_menu_launcher_settings, R.drawable.ic_launcher_mode),
         Action(KEY_EDIT_DESKTOP, R.string.launcher_edit_enter, R.drawable.ic_tune),
+        Action(KEY_ALL_APPS, R.string.launcher_action_all_apps, R.drawable.ic_apps),
+        Action(KEY_BLACK_SCREEN, R.string.launcher_action_black_screen, R.drawable.ic_black_screen),
         Action(KEY_EXIT_LAUNCHER_MODE, R.string.launcher_menu_exit_mode, R.drawable.ic_exit_to_app),
     )
 

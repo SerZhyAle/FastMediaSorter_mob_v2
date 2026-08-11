@@ -142,10 +142,9 @@
 
     <!-- Open Source Licenses -->
     <string name="open_source_licenses_title">Лицензии открытого ПО</string>
-    <string name="lib_smbj_title">SMBJ - Библиотека SMBv2/v3 для Java</string>
-    <string name="lib_smbj_license">Лицензия: LGPL-2.1</string>
-    <string name="lib_epub4j_title">epub4j - Чтение/запись EPUB файлов</string>
-    <string name="lib_epub4j_license">Лицензия: LGPL-2.1</string>
+    <string name="oss_notices_unavailable">Уведомления о сторонних компонентах недоступны.</string>
+    <string name="oss_notice_license_label">Лицензия: %1$s</string>
+    <string name="oss_notice_vendor_terms_label">Условия поставщика: %1$s</string>
     <string name="view_source">Исходный код</string>
     <string name="view_license">Лицензия</string>
     <string name="doc_char_count_label">Символов: %1$d</string>
@@ -2222,9 +2221,6 @@
     <string name="s0117_batch_dialog_summary">Сохранено %1$d из %2$d элементов.</string>
     <string name="s0117_batch_dialog_failure_line">%1$s: %2$s</string>
     <string name="s0117_batch_dialog_more_failures">+ ещё %1$d ошибок</string>
-    <string name="s0117_license_lib_title">NewPipe Extractor - движок site extraction</string>
-    <string name="s0117_license_lib_project">Проект: TeamNewPipe</string>
-    <string name="s0117_license_lib_license">Лицензия: GPL-3.0-or-later</string>
 
     <!-- S0116 §5.1 pillars K, L: WebView authentication & saved auth sessions -->
     <string name="auth_sessions_empty">Нет сохранённых авторизаций</string>
@@ -3636,4 +3632,13 @@
     <string name="launcher_share_place_added_place">Место добавлено. Откроется переданное местоположение.</string>
     <string name="launcher_share_place_not_added">Не удалось добавить место в лаунчер.</string>
     <string name="background_operation_bar_description">Фоновая операция выполняется</string>
+    <string name="launcher_action_all_apps">Все программы</string>
+    <string name="launcher_action_black_screen">Чёрный экран</string>
+    <string name="launcher_gadget_altitude">Высота</string>
+    <string name="launcher_gadget_altitude_value">%1$d м</string>
+    <string name="launcher_gadget_altitude_description">Высота над уровнем моря: %1$s</string>
+    <string name="launcher_gadget_altitude_unknown">Высота пока неизвестна</string>
+    <string name="launcher_gadget_satellites">Спутники</string>
+    <string name="launcher_gadget_satellites_value">%1$d / %2$d</string>
+    <string name="launcher_gadget_satellites_description">Спутники: %1$d в решении из %2$d видимых</string>
 </resources>

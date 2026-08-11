@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.core.launcher
 
 import com.sza.fastmediasorter.core.launcher.LauncherStarterSets.StarterResources
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
+import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
@@ -35,6 +36,8 @@ class LauncherStarterSetsTest {
         "act:app_settings",
         "act:launcher_settings",
         "act:edit_desktop",
+        "act:all_apps",
+        "act:black_screen",
         "act:exit_launcher_mode",
         "sec:everything_else",
     )
@@ -48,21 +51,26 @@ class LauncherStarterSetsTest {
 
     @Test
     fun `every set opens with the app-functions section and closes with the common tail`() {
-        val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap())
+        val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
         assertEquals(sectionHead + "clock" + commonTail, items.map { it.target })
         assertEquals(LauncherCellKind.SECTION, items.first().kind)
     }
 
     @Test
-    fun `the four launcher actions sit between the two headers and are seeded once`() {
+    fun `every launcher action sits between the two headers and is seeded once`() {
         val targets = LauncherStarterSets
-            .itemsFor(DeviceProfileType.PERSONAL_SMARTPHONE, StarterResources(recentId = 1), allPaddingAvailable)
+            .itemsFor(
+                DeviceProfileType.PERSONAL_SMARTPHONE,
+                StarterResources(recentId = 1),
+                allPaddingAvailable,
+                emptySet(),
+            )
             .map { it.target }
         val firstHeader = targets.indexOf("sec:app_functions")
         val secondHeader = targets.indexOf("sec:everything_else")
         val actions = targets.filter { it.startsWith("act:") }
         // Strategic §6.5: they moved out of the tail rather than being duplicated into the section.
-        assertEquals(4, actions.size)
+        assertEquals(LauncherActionCatalog.all.size, actions.size)
         assertEquals(actions, targets.subList(firstHeader + 1, secondHeader))
     }
 
@@ -74,6 +82,7 @@ class LauncherStarterSetsTest {
             DeviceProfileType.AUDIO_PLAYER,
             StarterResources(allAudioId = 7),
             mapOf(InternalRouteCatalog.KEY_STREAMS to true),
+            emptySet(),
         )
         val secondHeader = items.indexOfFirst { it.target == "sec:everything_else" }
         assertFalse(items.take(secondHeader).any { it.kind == LauncherCellKind.GADGET })
@@ -92,6 +101,7 @@ class LauncherStarterSetsTest {
                 cameraId = 6,
             ),
             allPaddingAvailable,
+            emptySet(),
         )
         assertEquals(
             sectionHead + listOf(
@@ -109,6 +119,7 @@ class LauncherStarterSetsTest {
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(recentId = 1),
             mapOf(InternalRouteCatalog.KEY_CALCULATOR to true), // only calculator compiled in
+            emptySet(),
         )
         assertEquals(
             sectionHead + listOf("clock", "res:1:BROWSE", "fn:calculator") + commonTail,
@@ -122,6 +133,7 @@ class LauncherStarterSetsTest {
             DeviceProfileType.PHOTO_FRAME,
             StarterResources(lastResourceId = 5),
             emptyMap(),
+            emptySet(),
         )
         assertEquals(
             sectionHead + listOf("clock", "folder_preview:5", "res:5:SLIDESHOW") + commonTail,
@@ -131,7 +143,8 @@ class LauncherStarterSetsTest {
 
     @Test
     fun `null id dependencies are skipped, never seeded as dangling cells`() {
-        val items = LauncherStarterSets.itemsFor(DeviceProfileType.PHOTO_FRAME, StarterResources(), emptyMap())
+        val items = LauncherStarterSets
+            .itemsFor(DeviceProfileType.PHOTO_FRAME, StarterResources(), emptyMap(), emptySet())
         assertEquals(sectionHead + "clock" + commonTail, items.map { it.target })
     }
 
@@ -141,6 +154,7 @@ class LauncherStarterSetsTest {
             DeviceProfileType.AUDIO_PLAYER,
             StarterResources(allAudioId = 7),
             mapOf(InternalRouteCatalog.KEY_STREAMS to true),
+            emptySet(),
         )
         assertEquals(
             sectionHead + listOf("clock", "res:7:BROWSE", "playlist:7", "streams", "fn:streams") + commonTail,
@@ -150,9 +164,34 @@ class LauncherStarterSetsTest {
             DeviceProfileType.AUDIO_PLAYER,
             StarterResources(allAudioId = 7),
             emptyMap(),
+            emptySet(),
         )
         assertFalse(withoutStreams.any { it.target == "streams" })
         assertFalse(withoutStreams.any { it.target == "fn:streams" })
+    }
+
+    @Test
+    fun `no third-party app cell is seeded when nothing is installed`() {
+        DeviceProfileType.entries.forEach { profile ->
+            val targets = LauncherStarterSets
+                .itemsFor(profile, StarterResources(), allPaddingAvailable, emptySet())
+                .map { it.target }
+            LauncherStarterSets.candidatePackages.forEach { candidate ->
+                assertFalse("$profile seeded $candidate blind", targets.contains("app:$candidate"))
+            }
+        }
+    }
+
+    @Test
+    fun `an installed third-party app is seeded and an absent one is not`() {
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(),
+            allPaddingAvailable,
+            setOf(LauncherStarterSets.PACKAGE_YOUTUBE),
+        ).map { it.target }
+        assertEquals(1, targets.count { it == "app:${LauncherStarterSets.PACKAGE_YOUTUBE}" })
+        assertFalse(targets.contains("app:${LauncherStarterSets.PACKAGE_YOUTUBE_MUSIC}"))
     }
 
     // ── place (the overlap invariant) ───────────────────────────────────────
@@ -164,6 +203,7 @@ class LauncherStarterSetsTest {
             DeviceProfileType.AUDIO_PLAYER,
             StarterResources(allAudioId = 7),
             mapOf(InternalRouteCatalog.KEY_STREAMS to true),
+            emptySet(),
         )
         val placed = LauncherStarterSets.place(items, columns = 4)
         assertNoOverlap(placed)
@@ -178,6 +218,7 @@ class LauncherStarterSetsTest {
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(recentId = 1, allAudioId = 2, allImagesId = 3),
             allPaddingAvailable,
+            emptySet(),
         )
         columnCounts.forEach { columns ->
             val placed = LauncherStarterSets.place(items, columns)
@@ -192,7 +233,7 @@ class LauncherStarterSetsTest {
 
     @Test
     fun `a header persists the widest span while the packed one fits the grid it is seeded on`() {
-        val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap())
+        val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
         val placed = LauncherStarterSets.place(items, columns = 4)
         val header = placed.first { it.item.kind == LauncherCellKind.SECTION }
         assertEquals(4, header.spanW)
@@ -223,7 +264,7 @@ class LauncherStarterSetsTest {
 
     @Test
     fun `place preserves the own-app placeholder target for the use case to substitute`() {
-        val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap())
+        val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
         val placed = LauncherStarterSets.place(items, columns = 4)
         assertTrue(placed.any { it.item.target == "app:__self__" })
     }

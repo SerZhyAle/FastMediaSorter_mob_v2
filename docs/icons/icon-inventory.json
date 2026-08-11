@@ -393,6 +393,14 @@
   },
   {
     "surface": "player-command",
+    "key": "STREAM_INFO",
+    "feature": "stream_info_menu_title",
+    "drawable": "ic_info",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
     "key": "TEXT_SETTINGS",
     "feature": "translation_settings",
     "drawable": "ic_book",
@@ -657,6 +665,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "network_monitor",
+    "feature": "network_monitor_title",
+    "drawable": "ic_network_monitor",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "nfc",
     "feature": "app_launch_panel_os_nfc",
     "drawable": "ic_nfc",
@@ -674,7 +690,7 @@
   {
     "surface": "program-nav",
     "key": "quick_camera",
-    "feature": "quick_camera_menu_label",
+    "feature": "widget_camera_quick_capture_label",
     "drawable": "ic_camera_capture",
     "assetFormat": "vector",
     "public": true
@@ -1148,6 +1164,14 @@
     "key": "rowEnableFavorites",
     "feature": "enable_favorites",
     "drawable": "ic_resource_favorites",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnableNetworkMonitor",
+    "feature": "settings_enable_network_monitor",
+    "drawable": "ic_network_monitor",
     "assetFormat": "vector",
     "public": true
   },

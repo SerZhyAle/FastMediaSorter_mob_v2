@@ -2,9 +2,11 @@ package com.sza.fastmediasorter.ui.launcher.gadget.di
 
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.sensors.SensorSeriesId
+import com.sza.fastmediasorter.ui.launcher.gadget.AltitudeGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.CompassGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
+import com.sza.fastmediasorter.ui.launcher.gadget.SatellitesGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.SeriesChartGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.SpeedGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.StepsGadget
@@ -42,11 +44,15 @@ object SensorGadgetModule {
     fun provideSensorGadgets(
         compass: CompassGadget,
         speed: SpeedGadget,
+        altitude: AltitudeGadget,
+        satellites: SatellitesGadget,
         steps: StepsGadget,
         charts: SeriesChartDependencies,
     ): List<LauncherGadget> = listOf(
         compass,
         speed,
+        altitude,
+        satellites,
         steps,
         SeriesChartGadget(
             key = LauncherGadgetRegistry.KEY_SPEED_CHART,

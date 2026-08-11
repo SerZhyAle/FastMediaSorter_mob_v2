@@ -70,9 +70,9 @@
     "uk": "Відкриває редактор настроюваної панелі застосунків, яка показується в зонах жестів біля краю екрана."
   },
   "btnExportFavorites": {
-    "en": "Exports your saved favorites list to a file you can back up or transfer.",
-    "ru": "Экспортирует список избранного в файл для резервного копирования или переноса.",
-    "uk": "Експортує список обраного у файл для резервного копіювання або перенесення."
+    "en": "Exports your saved favorites list to a file you can back up or transfer. Available when Favorites is enabled.",
+    "ru": "Экспортирует список избранного в файл для резервного копирования или переноса. Доступно, когда включено избранное.",
+    "uk": "Експортує список обраного у файл для резервного копіювання або перенесення. Доступно, коли ввімкнено обране."
   },
   "btnExportResources": {
     "en": "Saves all configured resources (folders, network connections) to an export file.",
@@ -90,9 +90,9 @@
     "uk": "Відкриває покрокові інструкції з основних функцій застосунку."
   },
   "btnImportFavorites": {
-    "en": "Imports a previously exported favorites list from a file.",
-    "ru": "Импортирует ранее экспортированный список избранного из файла.",
-    "uk": "Імпортує раніше експортований список обраного з файлу."
+    "en": "Imports a previously exported favorites list from a file. Available when Favorites is enabled.",
+    "ru": "Импортирует ранее экспортированный список избранного из файла. Доступно, когда включено избранное.",
+    "uk": "Імпортує раніше експортований список обраного з файлу. Доступно, коли ввімкнено обране."
   },
   "btnImportResources": {
     "en": "Imports previously exported resources (folders, network connections) from a file.",
@@ -733,6 +733,11 @@
     "en": "Enables a quick-access calculator within the app.",
     "ru": "Включает быстрый доступ к калькулятору внутри приложения.",
     "uk": "Вмикає швидкий доступ до калькулятора всередині застосунку."
+  },
+  "rowEnableNetworkMonitor": {
+    "en": "Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself.",
+    "ru": "Добавляет Сетевой монитор в меню программ и поверхности лаунчера. По умолчанию он выключен и сам не запускает проверок.",
+    "uk": "Додає Мережевий монітор до меню програм і поверхонь лаунчера. Типово він вимкнений і сам не запускає перевірок."
   },
   "rowEnableCopying": {
     "en": "Allows files to be copied to Quick Sort destinations.",

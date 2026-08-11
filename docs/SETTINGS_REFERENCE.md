@@ -22,11 +22,11 @@ _Generated from the app. Do not edit by hand._
 | Clear streaming cache | Deletes temporary files buffered during streaming playback. |
 | How to publish PC folders to Android | Opens the PC-side guide on publishing folders to Android over SFTP (companion import / QR scan). |
 | Downloadable Extensions | Opens the downloadable extensions manager where you can install optional feature modules. |
-| Export Favorites | Exports your saved favorites list to a file you can back up or transfer. |
+| Export Favorites | Exports your saved favorites list to a file you can back up or transfer. Available when Favorites is enabled. |
 | Export resources to file | Saves all configured resources (folders, network connections) to an export file. |
 | Export All Settings to File | Saves all app settings to a file so you can restore or transfer them later. |
 | How-To Guides | Opens step-by-step how-to guides for the app's main features. |
-| Import Favorites | Imports a previously exported favorites list from a file. |
+| Import Favorites | Imports a previously exported favorites list from a file. Available when Favorites is enabled. |
 | Import resources from file | Imports previously exported resources (folders, network connections) from a file. |
 | Import Settings from File | Loads app settings from a previously exported file, replacing the current configuration. |
 | Import Test Setup | Imports a predefined test configuration used for QA and integration testing. |
@@ -252,6 +252,7 @@ _Available in: Standard, Legacy, VR_
 | Calculator | Enables a quick-access calculator within the app. |
 | Allow copying | Allows files to be copied to Quick Sort destinations. |
 | Allow moving | Allows files to be moved to Quick Sort destinations. |
+| Network Monitor | Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself. |
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
 | Use scheduled operations | Activates the scheduler so configured operations run automatically at their set times. |
 | Rotate screen with OS auto-rotate (except player) | When on, every app window except the player follows the OS auto-rotate setting; when off, they rotate by the device sensor regardless of the OS lock. |

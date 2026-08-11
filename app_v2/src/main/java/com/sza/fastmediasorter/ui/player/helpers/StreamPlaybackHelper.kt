@@ -45,9 +45,9 @@ import timber.log.Timber
 internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenReady: Boolean = true) {
     releasePlayer()
 
-    // S0936: a fresh playback session starts with a full watchdog-recovery budget, and a stale
+    // S0936: a fresh playback session starts with a full watchdog-recovery window, and a stale
     // "reconnecting" flag must not leak a RECONNECTING label into the new stream's first buffering.
-    streamWatchdogRecoveries = 0
+    streamWatchdogRecoveryWindow.clear()
     streamWatchdogReconnecting = false
 
     val isRtsp = path.startsWith("rtsp://")
@@ -357,8 +357,8 @@ private fun VideoPlayerManager.streamPlaybackListener(
                     behindLiveRecoveries = 0
                     transientRetries = 0
                     reconnecting = false
-                    // S0936: the watchdog budget holds the same invariant as the error budgets above.
-                    streamWatchdogRecoveries = 0
+                    // The watchdog keeps its recovery window across READY. A re-prepare reaches READY
+                    // before the next poll, so resetting here would make every recovery attempt read as one.
                     streamWatchdogReconnecting = false
                     // S0936: (re)start the position-stall poll; also clears any pending
                     // buffering-timeout runnable armed above (cancelStreamStallWatchdog is called first).

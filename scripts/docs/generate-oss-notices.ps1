@@ -69,6 +69,11 @@ $pages = @{
     ru = Join-Path $RepoRoot 'docs/OPEN_SOURCE.ru.md'
     uk = Join-Path $RepoRoot 'docs/OPEN_SOURCE.uk.md'
 }
+$appRawPaths = @{}
+foreach ($flavor in @('standard', 'noLegal', 'lite', 'photos', 'legacy', 'vr')) {
+    $rawName = "oss_notices_$($flavor.ToLowerInvariant())"
+    $appRawPaths[$flavor] = Join-Path $RepoRoot "app_v2/src/main/res/raw/$rawName.json"
+}
 
 # Framing prose per locale. Everything a reader needs in their own language; nothing that
 # names a library, a licence or a URL, because translating those would make the three pages
@@ -146,6 +151,7 @@ function New-NoticeSnapshot {
 
     $shipping = $declared | Where-Object { $_.Shipping }
     $entries = [System.Collections.Generic.List[object]]::new()
+    $modulesByCoordinate = @{}
     $missing = [System.Collections.Generic.List[string]]::new()
 
     foreach ($group in ($shipping | Group-Object { "$($_.Group):$($_.Artifact)" } | Sort-Object Name)) {
@@ -172,7 +178,9 @@ function New-NoticeSnapshot {
         }
         $shippedIn = @($shippedIn | Sort-Object -Unique)
 
-        $entries.Add((New-NoticeEntry -Coordinate $coordinate -Licence $licences[$coordinate] -ShippedIn $shippedIn -Flavors $flavors))
+        $modules = @($group.Group | ForEach-Object Module | Sort-Object -Unique)
+        $modulesByCoordinate[$coordinate] = $modules
+        $entries.Add((New-NoticeEntry -Coordinate $coordinate -Licence $licences[$coordinate] -ShippedIn $shippedIn -Flavors $flavors -Modules $modules))
     }
 
     if ($missing.Count -gt 0) {
@@ -187,7 +195,16 @@ function New-NoticeSnapshot {
         $entry = $licences[$coordinate]
         if (-not ($entry.Transitive -or $entry.Bundled)) { continue }
         $shippedIn = if ($entry.ShippedInOverride) { @($entry.ShippedInOverride) } else { $flavors }
-        $entries.Add((New-NoticeEntry -Coordinate $coordinate -Licence $entry -ShippedIn $shippedIn -Flavors $flavors))
+        $modules = if ($entry.Bundled) {
+            @('app_v2')
+        }
+        elseif ($entry.Transitive -and $entry.Via -and $modulesByCoordinate.ContainsKey($entry.Via)) {
+            $modulesByCoordinate[$entry.Via]
+        }
+        else {
+            @('app_v2', 'wear')
+        }
+        $entries.Add((New-NoticeEntry -Coordinate $coordinate -Licence $entry -ShippedIn $shippedIn -Flavors $flavors -Modules $modules))
     }
 
     return [pscustomobject]@{
@@ -202,7 +219,13 @@ function New-NoticeSnapshot {
 
 function New-NoticeEntry {
     [CmdletBinding()]
-    param([string] $Coordinate, [hashtable] $Licence, [string[]] $ShippedIn, [string[]] $Flavors)
+    param(
+        [string] $Coordinate,
+        [hashtable] $Licence,
+        [string[]] $ShippedIn,
+        [string[]] $Flavors,
+        [string[]] $Modules
+    )
 
     foreach ($field in @('Name', 'Spdx', 'LicenseUrl', 'SourceUrl')) {
         if (-not $Licence[$field]) {
@@ -213,6 +236,7 @@ function New-NoticeEntry {
 
     return [pscustomobject]@{
         coordinate = $Coordinate
+        modules    = @($Modules)
         name       = $Licence.Name
         spdx       = $Licence.Spdx
         licenseUrl = $Licence.LicenseUrl
@@ -310,6 +334,17 @@ function Format-NoticePage {
     return ($lines -join "`n")
 }
 
+function New-AppNoticePayload {
+    [CmdletBinding()]
+    param([object] $Snapshot, [string] $Flavor)
+
+    return @(
+        $Snapshot.entries |
+            Where-Object { $_.modules -contains 'app_v2' -and $_.shippedIn -contains $Flavor } |
+            Sort-Object -Property Coordinate
+    )
+}
+
 function Write-IfChanged {
     [CmdletBinding()]
     param([string] $Path, [string] $Content, [switch] $CheckOnly)
@@ -331,6 +366,9 @@ function Write-IfChanged {
 $snapshot = New-NoticeSnapshot -Root $RepoRoot -ManifestPath $Manifest
 $rendered = @{ $jsonPath = (($snapshot | ConvertTo-Json -Depth 6) + "`n") }
 foreach ($code in @('en', 'ru', 'uk')) { $rendered[$pages[$code]] = (Format-NoticePage -Snapshot $snapshot -Locale $code) }
+foreach ($flavor in $appRawPaths.Keys) {
+    $rendered[$appRawPaths[$flavor]] = ((New-AppNoticePayload -Snapshot $snapshot -Flavor $flavor | ConvertTo-Json -Depth 6) + "`n")
+}
 
 $drifted = [System.Collections.Generic.List[string]]::new()
 foreach ($path in ($rendered.Keys | Sort-Object)) {

@@ -1038,6 +1038,15 @@
                             app:str_helpMessage="@string/tooltip_calculator_message" />
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableNetworkMonitor"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            app:str_icon="@drawable/ic_network_monitor"
+                            app:str_title="@string/settings_enable_network_monitor"
+                            app:str_subtitle="@string/settings_enable_network_monitor_summary" />
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowEmbeddedGame"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

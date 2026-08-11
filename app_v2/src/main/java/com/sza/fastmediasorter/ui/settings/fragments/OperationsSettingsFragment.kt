@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.core.util.DeviceCapabilities
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.usecase.launcher.PlaceHomeWidgetOnLauncherDesktopUseCase
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
@@ -65,6 +66,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
 
     @Inject
     lateinit var capabilityAvailability: CapabilityAvailability
+
+    @Inject
+    lateinit var networkMonitorContract: NetworkMonitorContract
 
     @Inject
     lateinit var mediaCapabilities: MediaCapabilities
@@ -449,6 +453,11 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enableCalculator = isChecked))
         }
+        binding.rowEnableNetworkMonitor.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            Timber.d("S1433: Network Monitor enabled=%s", isChecked)
+            viewModel.updateSettings(viewModel.settings.value.copy(enableNetworkMonitor = isChecked))
+        }
         binding.rowEmbeddedGame.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateEmbeddedGameEnabled(isChecked)
@@ -594,6 +603,10 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             captureManager.render(settings)
                             if (binding.rowEnableCalculator.isChecked != settings.enableCalculator) {
                                 binding.rowEnableCalculator.setCheckedSilently(settings.enableCalculator)
+                            }
+                            binding.rowEnableNetworkMonitor.isVisible = networkMonitorContract.isAvailableInBuild
+                            if (binding.rowEnableNetworkMonitor.isChecked != settings.enableNetworkMonitor) {
+                                binding.rowEnableNetworkMonitor.setCheckedSilently(settings.enableNetworkMonitor)
                             }
                             if (binding.rowEmbeddedGame.isChecked != settings.embeddedGameEnabled) {
                                 binding.rowEmbeddedGame.setCheckedSilently(settings.embeddedGameEnabled)

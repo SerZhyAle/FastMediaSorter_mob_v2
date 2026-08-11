@@ -40,10 +40,24 @@ class LaunchAppLaunchPanelTileUseCase @Inject constructor(
                     else -> false
                 }
             }
+            is AppLaunchPanelRouteTarget.FeatureSection -> launchFeatureSection(target)
             is AppLaunchPanelRouteTarget.Resource ->
                 startIntent(AppLaunchPanelRouteIntents.resource(context, target.resourceId))
             is AppLaunchPanelRouteTarget.OsShortcut -> launchOsShortcut(target.targetKey)
             null -> false
+        }
+    }
+
+    private suspend fun launchFeatureSection(target: AppLaunchPanelRouteTarget.FeatureSection): Boolean {
+        if (target.routeKey != InternalRouteCatalog.KEY_NETWORK_MONITOR) return false
+        val availability = resolveRouteAvailability(target.routeKey)
+        return when {
+            availability.isLaunchable -> {
+                Timber.d("S1433: launch Network Monitor panel section=%s", target.sectionKey)
+                startIntent(AppLaunchPanelRouteIntents.networkMonitor(context, target.sectionKey))
+            }
+            availability.availableInBuild -> startIntent(AppLaunchPanelRouteIntents.networkMonitorSettings(context))
+            else -> false
         }
     }
 

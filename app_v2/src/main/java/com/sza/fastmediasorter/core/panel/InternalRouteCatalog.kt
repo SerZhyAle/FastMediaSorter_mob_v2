@@ -30,6 +30,7 @@ object InternalRouteCatalog {
     // S1103: launch the quick-access panel overlay from a launcher cell.
     const val KEY_APP_LAUNCH_PANEL = "app_launch_panel"
     const val KEY_CALCULATOR = "calculator"
+    const val KEY_NETWORK_MONITOR = "network_monitor"
     const val KEY_GAME = "game"
     const val KEY_OCR = "ocr"
     const val KEY_STREAMS = "streams"
@@ -67,6 +68,13 @@ object InternalRouteCatalog {
             labelRes = R.string.app_launch_panel_route_calculator,
             iconRes = R.drawable.ic_calculator,
             intent = AppLaunchPanelRouteIntents::calculator,
+        ),
+        Route(
+            key = KEY_NETWORK_MONITOR,
+            labelRes = R.string.network_monitor_title,
+            iconRes = R.drawable.ic_network_monitor,
+            intent = AppLaunchPanelRouteIntents::networkMonitor,
+            settingsIntent = AppLaunchPanelRouteIntents::networkMonitorSettings,
         ),
         Route(
             key = KEY_GAME,

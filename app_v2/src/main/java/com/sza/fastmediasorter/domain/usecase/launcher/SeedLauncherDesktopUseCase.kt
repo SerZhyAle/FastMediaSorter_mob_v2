@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.ProvisionDefaultResourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.apps.ResolveInstalledPackagesUseCase
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +37,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
     private val settings: SettingsRepository,
     private val routeAvailability: ResolvePanelRouteAvailabilityUseCase,
     private val provisionDefaultResources: ProvisionDefaultResourcesUseCase,
+    private val resolveInstalledPackages: ResolveInstalledPackagesUseCase,
     @ApplicationContext private val context: Context,
 ) {
 
@@ -66,8 +68,16 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             )
             val routeAvailableInBuild = routeAvailability.all()
                 .mapValues { (_, availability) -> availability.availableInBuild }
+            // Behind the already-seeded early-exit above, so a desktop that will not be seeded never pays
+            // for the package-manager probe (strategic §3.2).
+            val installedPackages = resolveInstalledPackages(LauncherStarterSets.candidatePackages)
 
-            val items = LauncherStarterSets.itemsFor(profile, starterResources, routeAvailableInBuild)
+            val items = LauncherStarterSets.itemsFor(
+                profile,
+                starterResources,
+                routeAvailableInBuild,
+                installedPackages,
+            )
             Timber.d(
                 "S1428: seeding %d starter items, %d of them section headers",
                 items.size,

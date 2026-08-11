@@ -43,6 +43,7 @@ import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsSink
@@ -152,6 +153,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var startupFullyDrawnReported = false
     private var startupAprilFoolsPrankChecked = false
     private var isCalculatorEnabled = false
+    private var isNetworkMonitorEnabled = false
     private var isEmbeddedGameEnabled = false
     private var isCameraOcrEnabled = false
     private var isQuickVoiceEnabled = false
@@ -229,6 +231,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     lateinit var capabilityAvailability: CapabilityAvailability
+
+    @Inject
+    lateinit var networkMonitorContract: NetworkMonitorContract
 
     // S0963 (Pillar 2): XR-gated launcher for the resource "Open in VR Cinema" entry (No-Op on non-VR).
     @Inject
@@ -765,6 +770,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         quickCamera = (isQuickPhotoEnabled && mediaCapabilities.supportsImages) ||
             (isQuickVideoEnabled && mediaCapabilities.supportsVideo),
         calculator = isCalculatorEnabled,
+        networkMonitor = isNetworkMonitorEnabled,
         cameraOcr = isCameraOcrEnabled,
         linkDownload = isLinkDownloadEnabled,
         miniGame = isEmbeddedGameEnabled,
@@ -1228,6 +1234,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         collectOnLifecycle(settingsRepository.getSettings()) { settings ->
             latestSettings = settings // S0770: keep the freshest snapshot for the panel item menus.
             val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
+            val networkMonitorNowEnabled =
+                settings.enableNetworkMonitor && networkMonitorContract.isAvailableInBuild
+            val networkMonitorEnabledChanged = isNetworkMonitorEnabled != networkMonitorNowEnabled
             val embeddedGameEnabledChanged = isEmbeddedGameEnabled != settings.embeddedGameEnabled
             val cameraOcrEnabledChanged = isCameraOcrEnabled != settings.cameraOcrTranslationEnabled
             // S0523: the quick-capture menu entries reuse the existing capture toggles - no separate
@@ -1247,6 +1256,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 settings.screenRecordingEnabled && screenVideoRecordingControllers.isNotEmpty()
             val screenRecordingEnabledChanged = isScreenRecordingEnabled != screenRecordingNowEnabled
             isCalculatorEnabled = settings.enableCalculator
+            isNetworkMonitorEnabled = networkMonitorNowEnabled
             isEmbeddedGameEnabled = settings.embeddedGameEnabled
             isCameraOcrEnabled = settings.cameraOcrTranslationEnabled
             isQuickVoiceEnabled = settings.micRecordingEnabled
@@ -1282,6 +1292,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             // (the programs panel mirrors the menu) and refreshes the three-dots button visibility.
             val panelInputsChanged = listOf(
                 calculatorEnabledChanged, embeddedGameEnabledChanged, cameraOcrEnabledChanged,
+                networkMonitorEnabledChanged,
                 quickVoiceEnabledChanged, quickVideoEnabledChanged, quickPhotoEnabledChanged,
                 linkDownloadEnabledChanged, streamsEnabledChanged, programsPanelChanged, streamsPanelChanged,
                 screenRecordingEnabledChanged,

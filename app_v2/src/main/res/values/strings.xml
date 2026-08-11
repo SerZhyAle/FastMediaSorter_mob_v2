@@ -927,10 +927,9 @@ Close the player and try again.</string>
 
     <!-- Open Source Licenses -->
     <string name="open_source_licenses_title">Open Source Licenses</string>
-    <string name="lib_smbj_title">SMBJ - SMBv2/v3 Library for Java</string>
-    <string name="lib_smbj_license">License: LGPL-2.1</string>
-    <string name="lib_epub4j_title">epub4j - Read/Write EPUB files</string>
-    <string name="lib_epub4j_license">License: LGPL-2.1</string>
+    <string name="oss_notices_unavailable">Third-party notices are unavailable.</string>
+    <string name="oss_notice_license_label">License: %1$s</string>
+    <string name="oss_notice_vendor_terms_label">Vendor terms: %1$s</string>
     <string name="view_source">View Source</string>
     <string name="view_license">View License</string>
     <string name="doc_char_count_label">Characters: %1$d</string>
@@ -2273,9 +2272,6 @@ Close the player and try again.</string>
     <string name="s0117_batch_dialog_summary">Saved %1$d of %2$d items.</string>
     <string name="s0117_batch_dialog_failure_line">%1$s: %2$s</string>
     <string name="s0117_batch_dialog_more_failures">+ %1$d more failures</string>
-    <string name="s0117_license_lib_title">NewPipe Extractor - site extraction engine</string>
-    <string name="s0117_license_lib_project">Project: TeamNewPipe</string>
-    <string name="s0117_license_lib_license">License: GPL-3.0-or-later</string>
 
     <!-- S0116 §5.1 pillars K, L: WebView authentication & saved auth sessions -->
     <string name="auth_sessions_empty">No saved authorizations</string>
@@ -3672,4 +3668,13 @@ Close the player and try again.</string>
     <string name="launcher_share_place_added_place">Place added. It will open the shared location.</string>
     <string name="launcher_share_place_not_added">Could not add the place to the launcher.</string>
     <string name="background_operation_bar_description">Background operation in progress</string>
+    <string name="launcher_action_all_apps">All apps</string>
+    <string name="launcher_action_black_screen">Black screen</string>
+    <string name="launcher_gadget_altitude">Altitude</string>
+    <string name="launcher_gadget_altitude_value">%1$d m</string>
+    <string name="launcher_gadget_altitude_description">Altitude above sea level: %1$s</string>
+    <string name="launcher_gadget_altitude_unknown">No altitude yet</string>
+    <string name="launcher_gadget_satellites">Satellites</string>
+    <string name="launcher_gadget_satellites_value">%1$d / %2$d</string>
+    <string name="launcher_gadget_satellites_description">Satellites: %1$d in fix out of %2$d visible</string>
 </resources>

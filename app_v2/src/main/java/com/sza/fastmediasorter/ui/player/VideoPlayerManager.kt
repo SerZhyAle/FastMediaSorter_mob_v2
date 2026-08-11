@@ -335,12 +335,15 @@ class VideoPlayerManager(
     // recovery cannot see (no PlaybackException thrown) and heals it with a bounded re-prepare.
     internal var streamStallRunnable: Runnable? = null
     internal var streamStallLastPosition = 0L
+    internal var streamStallLastRenderedFrames: Int? = null
     internal var streamStallPolls = 0
     internal var streamBufferingSince = 0L
 
     // Watchdog recovery budget - separate from the error-driven behindLiveRecoveries/transientRetries
-    // in streamPlaybackListener, so a stall storm and an error storm cannot mask each other's exhaustion.
-    internal var streamWatchdogRecoveries = 0
+    // in streamPlaybackListener, so a stall storm and an error storm cannot mask each other's
+    // exhaustion. Attempts expire as a group after stable playback rather than being refilled by READY.
+    internal val streamWatchdogRecoveryWindow =
+        com.sza.fastmediasorter.ui.player.helpers.StreamStallRecoveryWindow()
 
     // True while a watchdog-triggered re-prepare is in flight, so the listener labels the resulting
     // BUFFERING as RECONNECTING (owner-ratified: same label as error-driven recovery).
@@ -359,7 +362,8 @@ class VideoPlayerManager(
 
     // S1127: the stream player's AnalyticsListener (dropped frames / decoder / TTFF / stall metrics) and
     // its aggregator, tracked so both teardown paths remove the listener symmetrically and log the summary.
-    internal var activeStreamAnalyticsListener: androidx.media3.exoplayer.analytics.AnalyticsListener? = null
+    internal var activeStreamAnalyticsListener:
+        com.sza.fastmediasorter.ui.player.helpers.StreamDiagnosticsAnalyticsListener? = null
     internal var activeStreamDiagnostics: com.sza.fastmediasorter.ui.player.helpers.StreamPlaybackDiagnostics? = null
 
     // S1510: the periodic counterpart of the listener above. Held here for the same reason: it captures

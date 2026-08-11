@@ -38,9 +38,10 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Вибране |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Міні-гра |
 | <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Завантажити за посиланням |
+| <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Мережевий монітор |
 | <img src="icons/svg/ic_nfc.svg" alt="ic_nfc" width="24" height="24"> | NFC |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Фото-OCR-переклад |
-| <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Камера |
+| <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Швидка зйомка |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Запис із диктофона |
 | <img src="icons/svg/ic_widget_random_music.svg" alt="ic_widget_random_music" width="24" height="24"> | Випадкова музика |
 | <img src="icons/svg/ic_widget_scheduled_tasks.svg" alt="ic_widget_scheduled_tasks" width="24" height="24"> | Завдання за розкладом |
@@ -96,6 +97,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Мінігра |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Калькулятор |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Увімкнути обране |
+| <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Мережевий монітор |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Дозволити розпізнавання тексту |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Фонове відтворення |
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Увімкнути картинку в картинці |
@@ -167,6 +169,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Поділитися |
 | <img src="icons/svg/ic_sleep_timer.svg" alt="ic_sleep_timer" width="24" height="24"> | Таймер сну |
 | <img src="icons/svg/ic_play.svg" alt="ic_play" width="24" height="24"> | Слайдшоу |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Про канал |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Налаштування тексту |
 | (системний значок) | Перемкнути Markdown |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Перекласти |
