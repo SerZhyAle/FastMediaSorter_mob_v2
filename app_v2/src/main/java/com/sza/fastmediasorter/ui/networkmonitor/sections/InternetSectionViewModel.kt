@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.domain.usecase.networkmonitor.SubnetScanState
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.SubnetScanTarget
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ThroughputMode
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ThroughputState
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ExternalIpSessionStore
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.appendSample
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.emptySignalWindow
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -142,6 +143,7 @@ class InternetSectionViewModel @Inject constructor(
     observeTrafficRate: ObserveTrafficRateUseCase,
     resourceRepository: ResourceRepository,
     private val resolveExternalIp: ResolveExternalIpUseCase,
+    private val externalIpSessionStore: ExternalIpSessionStore,
     private val scanSubnet: ScanSubnetUseCase,
     private val measureThroughput: MeasureThroughputUseCase,
     private val checkSelectedResource: CheckSelectedResourceUseCase,
@@ -248,9 +250,14 @@ class InternetSectionViewModel @Inject constructor(
     private suspend fun runExternalIp() = resolveExternalIp(networkLabel()).collect { state ->
         when (state) {
             ExternalIpState.Resolving -> setProgress(null)
-            is ExternalIpState.Resolved ->
+            is ExternalIpState.Resolved -> {
+                externalIpSessionStore.update(state.address)
                 setResult(InternetActionResult.ExternalIp(state.address, state.verdict))
-            ExternalIpState.Unavailable -> setResult(InternetActionResult.ExternalIpUnavailable)
+            }
+            ExternalIpState.Unavailable -> {
+                externalIpSessionStore.clear()
+                setResult(InternetActionResult.ExternalIpUnavailable)
+            }
         }
     }
 

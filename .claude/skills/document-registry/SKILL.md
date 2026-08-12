@@ -15,7 +15,10 @@ Run this loop at task start, after a material scope change, at every engineering
 ```powershell
 pwsh -NoProfile -File scripts/document_registry/query.ps1 -ProductArea "<area>"
 pwsh -NoProfile -File scripts/document_registry/query.ps1 -Trigger "<trigger>"
+pwsh -NoProfile -File scripts/document_registry/query.ps1 -ListVocabulary
 ```
+
+A miss is never the end of the loop: the query resolves a near-miss value itself and prints a `resolved:` line, and a value it cannot resolve is answered with the vocabulary of both facets. Re-query from that list in the same turn before concluding nothing is registered.
 
 3. Read every returned record before deciding or editing.
 4. State which returned records are affected and why the remaining matches are unchanged.

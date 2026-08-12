@@ -77,20 +77,21 @@ class NetworkMonitorSummaryFragment : Fragment() {
         val transportRes = state.transport?.toLabelRes()
         val hasLink = transportRes != null
         binding.networkMonitorActiveHeadline.text = if (hasLink) {
-            headlineFor(getString(transportRes), state.networkName)
+            headlineFor(getString(transportRes), state.networkName, getString(state.internet.toLabelRes()))
         } else {
             getString(R.string.network_monitor_active_none)
         }
-        binding.networkMonitorActiveInternet.isVisible = hasLink
-        binding.networkMonitorActiveInternet.setText(state.internet.toLabelRes())
         binding.networkMonitorLocalIpRow.isVisible = hasLink
-        binding.networkMonitorLocalIpValue.text =
-            state.localIpv4 ?: getString(R.string.network_monitor_value_unknown)
+        binding.networkMonitorLocalIpValue.text = listOfNotNull(state.localIpv4, state.externalIp)
+            .joinToString(separator = " | ")
+            .ifBlank { getString(R.string.network_monitor_value_unknown) }
     }
 
     /** The transport alone when the platform gives no network name - an empty separator would read as a bug. */
-    private fun headlineFor(transportLabel: String, networkName: String?): String =
-        if (networkName.isNullOrBlank()) transportLabel else "$transportLabel - $networkName"
+    private fun headlineFor(transportLabel: String, networkName: String?, internet: String): String {
+        val connection = if (networkName.isNullOrBlank()) transportLabel else "$transportLabel - $networkName"
+        return "$connection - $internet"
+    }
 
     private fun tileCards(): Map<NetworkMonitorSection, MaterialCardView> = mapOf(
         NetworkMonitorSection.Wifi to binding.tileWifi,

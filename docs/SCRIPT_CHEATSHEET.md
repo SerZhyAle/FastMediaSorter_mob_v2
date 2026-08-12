@@ -204,19 +204,6 @@ scripts/disable-watchdog-find.ps1
     -Enable         [SwitchParameter]
 ```
 
-### log-ai-request.ps1
-
-```
-scripts/log-ai-request.ps1
-  Params:
-    -Question          (req)  [String]
-    -DateTime                 [String] = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss")
-    -Analyzer                 [String] = "Unknown"
-    -Complexity               [String] = "MEDIUM"  {LOW|MEDIUM|HIGH|CRITICAL}
-    -RecommendedModel         [String] = "Auto"
-    -Reasoning                [String] = "No reasoning provided"
-```
-
 ### post-change.ps1
 
 ```
@@ -241,76 +228,6 @@ scripts/post-change.ps1
 scripts/test-compatibility.ps1
   Params:
     -ApiLevel         [String] = "all"  {28|29|30|33|35|all}
-```
-
-## scripts\agent_continuity
-
-### dirty-tree-guard.ps1
-
-```
-scripts/agent_continuity/dirty-tree-guard.ps1
-  Params:
-    -Paths               (req)  [String[]]
-    -ExtraHighRiskPaths         [String[]]
-```
-
-### request-digest.ps1
-
-```
-scripts/agent_continuity/request-digest.ps1
-  Params:
-    -Window                    [Int32] = 30
-    -LogPath                   [String] = ''
-    -FunctionalityPath         [String] = ''
-    -PlanGlob                  [String] = ''
-```
-
-### request-log.ps1
-
-```
-scripts/agent_continuity/request-log.ps1
-  Params:
-    -Request             (req)  [String]
-    -Route                      [String] = ''
-    -Module                     [String] = ''
-    -Flavor                     [String] = ''
-    -Ticket                     [String] = ''
-    -FilesTouched               [String[]]
-    -ValidationKind             [String] = ''
-    -ValidationExit             [Int32] = 0
-    -InterruptionMarker         [String] = ''
-    -Outcome                    [String] = ''  {done|partial|aborted|escalated|}
-```
-
-### session-resume.ps1
-
-```
-scripts/agent_continuity/session-resume.ps1
-  Params:
-    -Agent          [String]
-    -Latest         [SwitchParameter] = $true
-```
-
-### session-snapshot.ps1
-
-```
-scripts/agent_continuity/session-snapshot.ps1
-  Params:
-    -Goal          (req)  [String]
-    -Ticket               [String]
-    -FilesTouched         [String[]]
-    -Decisions            [String]
-    -Blockers             [String]
-    -NextStep             [String]
-    -Agent                [String]
-```
-
-### start-packet.ps1
-
-```
-scripts/agent_continuity/start-packet.ps1
-  Params:
-    -Ticket         [String]
 ```
 
 ## scripts\all_features
@@ -1204,12 +1121,13 @@ Query the document registry by text, product area, trigger, or publication state
 scripts/document_registry/query.ps1
   Query the document registry by text, product area, trigger, or publication state.
   Params:
-    -Query               [String]
-    -ProductArea         [String]
-    -Trigger             [String]
-    -Publication         [String] = 'any'  {any|public|internal}
-    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-    -Help                [SwitchParameter]
+    -Query                  [String]
+    -ProductArea            [String]
+    -Trigger                [String]
+    -Publication            [String] = 'any'  {any|public|internal}
+    -ListVocabulary         [SwitchParameter]
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Help                   [SwitchParameter]
   Exit: 2 = invalid invocation / registry unreadable.
 ```
 
@@ -1652,6 +1570,15 @@ scripts/quality/assert-focus-highlight.ps1
     -List                   [SwitchParameter]
 ```
 
+### assert-gate-hints-sync.ps1
+
+```
+scripts/quality/assert-gate-hints-sync.ps1
+  Params:
+    -Gate         [SwitchParameter]
+  Exit: 0 - registry and facade agree (or audit mode).; 1 - substantive failure: at least one label or key is unpaired (-Gate only).; 2 - the gate itself cannot run: the facade or the registry is missing or
+```
+
 ### assert-globalscope.ps1
 
 ```
@@ -1661,6 +1588,17 @@ scripts/quality/assert-globalscope.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+```
+
+### assert-hook-inventory.ps1
+
+```
+scripts/quality/assert-hook-inventory.ps1
+  Params:
+    -Gate                       [SwitchParameter]
+    -RepoRoot                   [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -GlobalSettingsPath         [String] = (Join-Path $HOME '.claude/settings.json')
+  Exit: 0 in sync, or a divergence was reported without -Gate (advisories may print in both); 1 a real divergence between the registered set and the inventory, with -Gate; 2 could not verify - the inventory or .claude/settings.json is missing or unparsable
 ```
 
 ### assert-howto-settings-paths.ps1
@@ -1953,6 +1891,17 @@ scripts/quality/assert-string-format.ps1
     -SourceSet              [String] = 'main'
 ```
 
+### assert-string-lone-backslash.ps1
+
+```
+scripts/quality/assert-string-lone-backslash.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+```
+
 ### assert-string-quote-escaping.ps1
 
 ```
@@ -2113,7 +2062,20 @@ scripts/quality/detekt-preflight.ps1
     -BaselinePath           [String]
     -IgnoreBaseline         [SwitchParameter]
     -Json                   [SwitchParameter]
-  Exit: 0 - no finding in the checked files (or nothing to check).; 1 - at least one finding (only under -Gate; without it the findings print and; 2 - cannot verify: the config file is missing, or a named file does not exist.
+  Exit: 0 - the analyser found nothing in the checked files, or there was nothing to check,
+```
+
+### detekt-scoped.ps1
+
+```
+scripts/quality/detekt-scoped.ps1
+  Params:
+    -ChangedFiles         [String[]]
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -ConfigPath           [String]
+    -CacheRoot            [String] = (Join-Path $env:USERPROFILE '.gradle/caches/modules-2/files-2.1')
+    -Json                 [SwitchParameter]
+  Exit: 0 - the analyser ran and found nothing new in the named files (or there were none to check).; 1 - the analyser ran and found at least one new finding; each is printed.; 2 - CANNOT VERIFY. java missing, classpath incomplete, config or baseline absent, a named
 ```
 
 ### generate-toolchain-pins.ps1
@@ -2124,6 +2086,18 @@ scripts/quality/generate-toolchain-pins.ps1
     -Write         [SwitchParameter]
     -Check         [SwitchParameter]
   Exit: 0 - clean (pins in sync, or a successful -Write).; 1 - substantive failure: doc-vs-build pin drift under -Check.; 2 - the tool itself cannot run: a build file or target document is missing,
+```
+
+### measure-file-touch-frequency.ps1
+
+```
+scripts/quality/measure-file-touch-frequency.ps1
+  Params:
+    -Paths             [String[]]
+    -SinceDays         [Int32] = 90
+    -RepoRoot          [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Json              [SwitchParameter]
+  Exit: 0 - measured; one row printed per path.; 2 - cannot verify: dev/CHANGELOG.md is missing, or no path was given.
 ```
 
 ### measure-hotspots.ps1
@@ -2209,6 +2183,16 @@ scripts/quality/assert-exit-contract.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-hook-inventory.tests
+
+### run-tests.ps1
+
+```
+scripts/quality/assert-hook-inventory.tests/run-tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
 ## scripts\quality\assert-shared-test-flavor-scope.tests
 
 ### Run-Tests.ps1
@@ -2246,6 +2230,17 @@ scripts/quality/assert-ticket-acceptance-probes.tests/Run-Tests.ps1
 scripts/quality/assert-window-insets.tests/Run-Tests.ps1
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not acquire CODE.LOCK for the end-to-end case - re-run once the lock is free.
+```
+
+## scripts\quality\detekt-scoped.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/detekt-scoped.tests/Run-Tests.ps1
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\quality\lib
@@ -2606,6 +2601,22 @@ scripts/spec_catalog/plan-form-metrics.ps1
   Exit: 0 - action done.; 2 - bad arguments, or the data file exists but is unreadable/malformed.; 3 - -Action summary ran with fewer than two tickets measured in both forms.
 ```
 
+### plan-tick.ps1
+
+```
+scripts/spec_catalog/plan-tick.ps1
+  Params:
+    -Id        (req)  [String]
+    -Phase            [String]
+    -Steps     (req)  [String]
+    -Checkbox  (req)  [String]
+    -Target           [String] = 'Phase'  {Phase|Index}
+    -State     (req)  [String]  {NotDone|InProgress|Done|Manual}
+    -Note             [String] = ''
+    -Log              [String] = ''
+    -Json             [SwitchParameter]
+```
+
 ### preview.ps1
 
 ```
@@ -2709,6 +2720,21 @@ scripts/spec_catalog/select.ps1
     -IncludeArchived         [SwitchParameter]
     -Format                  [String] = 'table'  {table|json|tsv}
     -Help                    [SwitchParameter]
+```
+
+### session-bootstrap.ps1
+
+```
+scripts/spec_catalog/session-bootstrap.ps1
+  Params:
+    -Resume             [SwitchParameter]
+    -SkipDevice         [SwitchParameter]
+    -Claim              [SwitchParameter]
+    -Exclude            [String[]] = @()
+    -Threshold          [Int32] = 0
+    -Reason             [String] = 'session-bootstrap'
+    -Format             [String] = 'json'  {json|table}
+  Exit: 0 - every requested block succeeded.; 1 - at least one block failed.; 2 - usage error, or a component script is missing.
 ```
 
 ### skip-cache.ps1
@@ -2819,6 +2845,16 @@ scripts/spec_catalog/close-and-log.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\spec_catalog\plan-tick.tests
+
+### Run-Tests.ps1
+
+```
+scripts/spec_catalog/plan-tick.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the harness itself could not run.
+```
+
 ## scripts\spec_catalog\preview.tests
 
 ### Run-Tests.ps1
@@ -2827,6 +2863,16 @@ scripts/spec_catalog/close-and-log.tests/Run-Tests.ps1
 scripts/spec_catalog/preview.tests/Run-Tests.ps1
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\spec_catalog\session-bootstrap.tests
+
+### Run-Tests.ps1
+
+```
+scripts/spec_catalog/session-bootstrap.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the harness itself could not run (missing script, sandbox could not be built).
 ```
 
 ## scripts\spec_catalog\update.tests

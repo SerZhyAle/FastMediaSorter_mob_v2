@@ -364,6 +364,38 @@ function Measure-InvisibleResourceQuotes([string]$Text) {
     return $n
 }
 
+# S1586: AAPT2 reads a backslash as an escape introducer, so one that introduces nothing it knows is
+# consumed and the character never reaches the user - the same silent class of loss as the quote
+# above, with no build warning either. The escape table must stay identical to ConvertTo-AaptBackslash
+# in scripts/utils/set-android-string.ps1 and seed-locale-tranche.ps1, or the gate would flag exactly
+# what those writers just produced. The optional group is what makes \\ count as one recognised unit
+# instead of two lone slashes.
+$script:LoneResourceBackslashRx = [regex]'\\(u[0-9a-fA-F]{4}|[nt''"\\])?'
+
+function Find-LoneResourceBackslashLines([string]$Text) {
+    $hits = @()
+    if ([string]::IsNullOrEmpty($Text)) { return $hits }
+    foreach ($m in $script:ResourceBodyRx.Matches($Text)) {
+        $body = $m.Groups[3].Value
+        if ([string]::IsNullOrEmpty($body)) { continue }
+        $lone = @($script:LoneResourceBackslashRx.Matches($body) | Where-Object { -not $_.Groups[1].Success })
+        if ($lone.Count -eq 0) { continue }
+        $hits += ($Text.Substring(0, $m.Index) -split "`n").Count
+    }
+    return @($hits | Sort-Object -Unique)
+}
+
+function Measure-LoneResourceBackslashes([string]$Text) {
+    $n = 0
+    if ([string]::IsNullOrEmpty($Text)) { return $n }
+    foreach ($m in $script:ResourceBodyRx.Matches($Text)) {
+        $body = $m.Groups[3].Value
+        if ([string]::IsNullOrEmpty($body)) { continue }
+        $n += @($script:LoneResourceBackslashRx.Matches($body) | Where-Object { -not $_.Groups[1].Success }).Count
+    }
+    return $n
+}
+
 function New-RegexRule {
     param(
         [Parameter(Mandatory)][string]$Name,
@@ -559,6 +591,19 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-InvisibleResourceQuotes $t }
             LocateInText = { param($t) Find-InvisibleResourceQuoteLines $t }
             FailMessage  = 'new build-invisible double quote in a string resource. AAPT2 drops both a bare " and &quot; - write \" instead (S1567).'
+        },
+        # Same walk and same file set as the quote rule above - the second silent way a character is
+        # deleted between the resource file and the screen.
+        [pscustomobject]@{
+            Name         = 'string-lone-backslash'
+            Extensions   = @('.xml')
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/[^/]+/res/values[^/]*/'
+            Baseline     = 'string-lone-backslash-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-LoneResourceBackslashes $t }
+            LocateInText = { param($t) Find-LoneResourceBackslashLines $t }
+            FailMessage  = 'new lone backslash in a string resource. AAPT2 reads it as an escape introducer and drops the character - write \\ instead (S1586).'
         }
     )
 }

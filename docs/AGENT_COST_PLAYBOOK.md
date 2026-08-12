@@ -55,7 +55,11 @@ First touch of a file goes: one `Grep` or `Glob` to locate the region, then **on
 
 Measured on the 2026-06-30..2026-07-31 corpus: uncapped first reads of files over 8 KB were 10.7% of all `Read` calls and carried **43.8% of every byte read**, and only 21.7% of them had a `Grep` or `Glob` in the preceding three turns.
 
-Enforcement is `guard-uncapped-read.ps1`, a `PreToolUse` hook on `Read` in the per-machine Claude home (`~/.claude/hooks/`, wired in `~/.claude/settings.json`). It blocks a `Read` that has neither `offset` nor `limit` against a file longer than 200 lines, and allows everything else - including any read that names an explicit `limit`, however large. That escape hatch is unconditional on purpose: reviewing the KDoc of an affected area (Rule 8), auditing an implementation end to end (`/spec-check`) and opening a compliant 1500-LOC Kotlin file are all legitimate whole-file reads.
+Enforcement is `guard-uncapped-read.ps1`, a `PreToolUse` hook on `Read` in the per-machine Claude home (`~/.claude/hooks/`, wired in `~/.claude/settings.json`). It **rewrites** such a read rather than refusing it: a `Read` that has neither `offset` nor `limit`, against a file longer than 200 lines, gets `limit: 800` injected into its input and proceeds. When the file is longer than that window the hook also returns an `additionalContext` line naming the file's real length and how many lines are not shown, so a partial read is never silent. Everything else is passed through untouched - including any read that names an explicit `limit`, however large. That escape hatch is unconditional on purpose: reviewing the KDoc of an affected area (Rule 8), auditing an implementation end to end (`/spec-check`) and opening a compliant 1500-LOC Kotlin file are all legitimate whole-file reads.
+
+Agent-infrastructure directories are exempt outright - `.claude/commands/`, `.claude/skills/`, `.claude/templates/`, `.claude/reference/`, `.claude/agents/`. A command driver or a skill is meaningless to read partially, since a skipped fragment is a skipped step of the procedure.
+
+The hook refused rather than rewrote until S1594 (2026-08-12). It fired 381 times in the week of 2026-08-05, and **31.8% of those blocks were answered by re-reading the same file with `limit >= 1500`** - the whole thing anyway. The turn was spent and no context was saved. A `PreToolUse` hook can return `updatedInput` and modify the tool input rather than only allow/deny/ask, so the window is now injected instead of demanded: the saving survives and the 381 turns disappear. The window of 800 comes from what the model actually asked for after a block - 22.4% re-read with under 300 lines and 45.5% with 300-799. Contract tests: `.claude/hooks/global-hook-tests/Run-GuardUncappedRead-Tests.ps1`.
 
 The same advice already ships in the `Read` tool schema on every turn and gets 22% compliance. That gap - not the byte count - is why this one is a hook and not a line of prose in a command file, where it would sit in the per-turn preamble enforcing nothing.
 
@@ -126,11 +130,13 @@ Applied (S0825) - mechanical leaf skills on `sonnet`: `caveman-commit`, `caveman
 
 ## Measurement loop
 
-Do not promise exact token savings before a reproducible before/after exists (strategic §2 non-goal). The S0268 continuity layer is the measurement base:
+Do not promise exact token savings before a reproducible before/after exists (strategic §2 non-goal). The measurement base is the session transcript corpus under `~/.claude/projects/`, mined directly:
 
-- `scripts/agent_continuity/request-log.ps1` - appends one JSONL line per significant session to `dev/agent-continuity/requests.jsonl`.
-- `scripts/agent_continuity/request-digest.ps1` - prints a ranked profile over that log plus recent `PLAN/S*.md`.
+- Tool calls, their arguments and their failures are all in the transcripts, deduplicated by `requestId`. That is what the 2026-08-12 process audit measured, and what produced S1594-S1599.
+- An execution that goes through a script leaves its arguments in the transcript, which is why `scripts/spec_catalog/plan-tick.ps1` takes an explicit step list: the invocation is itself the record of which steps ran.
 - The external weekly usage summary is the outer before/after check that validates whether the rules above actually moved the axes.
+
+The S0268 request log and its digest used to be named here as the measurement base. They were invoked zero times in the audited week and were removed by S1596; a measurement base nobody writes to measures nothing.
 
 ---
 

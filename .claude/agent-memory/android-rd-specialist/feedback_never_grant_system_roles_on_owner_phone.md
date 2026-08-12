@@ -11,6 +11,8 @@ Two rules, learned together on 2026-07-26 during the S1107 run on the owner's wo
 
 **How to apply the scoped version:** on the test serial, record the current value (`appops get <pkg> <OP>`), change it, test, restore it, and report both readings. On a personal/working handset, decline and report the gate instead.
 
+**The HOME role is inside the test device's authorization, and refusing it there is the second time this rule was over-applied.** On 2026-08-12 (S1588, a landscape launcher fix) I read "system role" and parked the device test as forbidden while `RFCR110NBQJ` was the only device attached; the owner corrected it in one line - "подключенный телефон - для тестирования, там можно всё, в том числе сброс и переустановка". Making the app the home screen on the test device is expected work, not a hazard: it is the only way to reach any launcher-desktop screen ([[launcher-desktop-device-test-setup]]), and it is reversible from the same system chooser. Restore the previous home app when the test ends, and say which one you restored.
+
 **1. Never accept a system role or default-app dialog on the owner's device.** Verifying that the dialog *presents* is the check; granting the role is not required and is not yours to do. Decline instead - and on a ticket like S1107 the decline path is itself a criterion worth exercising.
 
 **Why:** on that run I intended to tap "Cancel" and the app became the phone's home screen. Restoring took `cmd role remove-role-holder` + `add-role-holder` for the Samsung launcher, and only luck made it recoverable without the owner's help - a launcher swap on a phone whose lock screen adb cannot open would have stranded him.

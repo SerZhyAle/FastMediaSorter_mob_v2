@@ -14,6 +14,20 @@
         android:orientation="vertical"
         android:padding="@dimen/margin_small">
 
+        <!-- S1587: the tile's own name. A seeded desktop shows a bare "53 m" with nothing saying which
+             reading it is, and the spoken description already carries the name, so this line is visual
+             only. -->
+        <TextView
+            android:id="@+id/gadgetAltitudeCaption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:importantForAccessibility="no"
+            android:maxLines="1"
+            android:text="@string/launcher_gadget_altitude"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="11sp" />
+
         <TextView
             android:id="@+id/gadgetAltitudeValue"
             android:layout_width="match_parent"

@@ -130,9 +130,6 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <include
-                    android:id="@+id/wifiLinkDetails"
-                    layout="@layout/view_network_monitor_link_details" />
             </LinearLayout>
 
             <LinearLayout
@@ -146,5 +143,9 @@
                     layout="@layout/view_network_monitor_signal_chart" />
             </LinearLayout>
         </LinearLayout>
+
+        <include
+            android:id="@+id/wifiLinkDetails"
+            layout="@layout/view_network_monitor_link_details" />
     </LinearLayout>
 </ScrollView>

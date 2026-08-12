@@ -37,10 +37,10 @@
 - **Workflow**: 
   - Write code and other objects iteratively.
   - Build and commit after each non-trivial step.
-  - Mark progress directly in the planning files (`[x]`).
+  - Mark progress with `pwsh -NoProfile -File scripts/spec_catalog/plan-tick.ps1 -Id Sxxxx -Phase NN -Steps 3,4,5 -State Done -Log "<what the run proved>"`, in one call per group of finished steps rather than one edit per checkbox. It writes the step marker, the Step Log entry and both counters together, and refuses when the plan's two surfaces already disagree. Never hand-edit a `[x]`.
   - **FLAVOR RULES**: If the task involves a specific flavor (e.g., `noLegal`, `vr`), strictly follow the isolation rules in `dev/FLAVOR_DEVELOPMENT_RULES.md`. DO NOT use `BuildConfig` checks in `src/main`.
   - **FEATURES UPDATE (MANDATORY)**: After implementing any new user-facing feature, add a description entry to ALL THREE files: `docs/FEATURES.md` (EN), `docs/FEATURES_RU.md` (RU), `docs/FEATURES_UK.md` (UK). Do this before marking the step complete. Use consistent bullet style matching existing entries.
-  - **PHASE-BOUNDARY AUDIT (MANDATORY)**: before starting the next phase, audit the phase just finished against `docs/CODE_AUDIT_PROTOCOL.md` (Layer 1 always; Layers 2-4 when lifecycle/coroutine/listener/player/Room was touched) and fix P0/P1 findings immediately - see CLAUDE.md §13 "Phase-boundary audits". A defect caught here costs this phase's rework; left for the end of the task it costs every later phase's rework too. `/spec-dev` runs this automatically per tactical phase; for work driven directly from this document, run it by hand at each phase boundary, right before the session-snapshot call below.
+  - **PHASE-BOUNDARY AUDIT (MANDATORY)**: before starting the next phase, audit the phase just finished against `docs/CODE_AUDIT_PROTOCOL.md` (Layer 1 always; Layers 2-4 when lifecycle/coroutine/listener/player/Room was touched) and fix P0/P1 findings immediately - see CLAUDE.md §13 "Phase-boundary audits". A defect caught here costs this phase's rework; left for the end of the task it costs every later phase's rework too. `/spec-dev` runs this automatically per tactical phase; for work driven directly from this document, run it by hand at each phase boundary.
 - **Validation ladder (mandatory):** Every implementation step closes with the level of evidence appropriate to its change type - see CLAUDE.md `## Validation Requirements` table. Grep-only is sufficient only for doc-only steps. Code, config, or script changes must close with the corresponding build/test/run gate. A step is NOT done until evidence passes.
 
 ### 9. PROGRESS JOURNAL
@@ -86,57 +86,8 @@ Rotated files are kept in `logs/` alongside timestamped logcat files. No automat
 
 ---
 
-## Agent Continuity Layer (S0268)
+## Session start and continuity
 
-The continuity layer is composed of five independent PowerShell utilities under `scripts/agent_continuity/`. Each one runs in isolation (ADR-4) and may be invoked alone; together they cover bootstrap, resume, request logging, request digest, and dirty-tree classification. Tactical decisions for every research item (§6.1..§6.6) are recorded in `scripts/agent_continuity/README.md`; consult that file when behaviour seems ambiguous.
+Session start is `scripts/spec_catalog/session-bootstrap.ps1` - one call composing round state, device readiness, selection preflight and the ticket lease.
 
-### Bootstrap packet
-
-Invoke at the start of any significant session.
-
-```
-pwsh -NoProfile -File scripts/agent_continuity/start-packet.ps1 [-Ticket S####]
-```
-
-Prints seven blocks: `## branch`, `## dirty-tree`, `## active-ticket`, `## modules`, `## prompt-routing`, `## docs-vs-gradle`, `## ux-volatility`. Output is fact-only; routing decisions stay with the agent.
-
-### Resume layer
-
-Invoke `session-snapshot.ps1` at every phase boundary (and at task end), `session-resume.ps1` at session start when continuing prior work.
-
-```
-pwsh -NoProfile -File scripts/agent_continuity/session-snapshot.ps1 -Goal "<title>" [-Ticket S####] [-FilesTouched @(...)] [-Decisions ...] [-Blockers ...] [-NextStep ...] [-Agent <id>]
-pwsh -NoProfile -File scripts/agent_continuity/session-resume.ps1 [-Agent <id>]
-```
-
-Snapshots land at `temp/sessions/<yyyyMMddHHmmss>_<agent>_state.md` with six sections: `## goal`, `## ticket`, `## files-touched`, `## decisions`, `## blockers`, `## next-step`. Reader prints the most recent snapshot or `NO-SNAPSHOT` when none exists.
-
-### Request logger
-
-Invoke at the end of a significant session (or at every phase boundary inside `/spec-dev`).
-
-```
-pwsh -NoProfile -File scripts/agent_continuity/request-log.ps1 -Request "<text>" [-Route /...] [-Module app_v2|wear] [-Flavor ...] [-Ticket S####] [-FilesTouched @(...)] [-ValidationKind ...] [-ValidationExit <int>] [-InterruptionMarker ...] [-Outcome done|partial|aborted|escalated]
-```
-
-Appends one JSONL line to `dev/agent-continuity/requests.jsonl` (gitignored) with eleven keys: `ts`, `request`, `route`, `module`, `flavor`, `ticket`, `files_touched`, `validation_kind`, `validation_exit`, `interruption_marker`, `outcome`.
-
-### Request digest
-
-Invoke on demand for periodic review or audit.
-
-```
-pwsh -NoProfile -File scripts/agent_continuity/request-digest.ps1 [-Window 30]
-```
-
-Prints `# Request Digest` header plus five sections: `## top-routes`, `## top-modules`, `## validation-cost`, `## interruptions`, `## ux-volatility`. Tolerates an absent request log and falls back to `dev/FUNCTIONALITY.log` plus recent `PLAN/S*.md` modification times.
-
-### Dirty-tree guard
-
-Invoke before editing `CLAUDE.md`, `AGENTS.md`, `app_v2/build.gradle.kts`, or any other shared-infrastructure file when working on a non-empty branch.
-
-```
-pwsh -NoProfile -File scripts/agent_continuity/dirty-tree-guard.ps1 -Paths @("path1","path2",...) [-ExtraHighRiskPaths @(...)]
-```
-
-Prints one of four categories: `clean`, `same area`, `same file`, `high-risk overlap`. The guard never blocks - it informs and the agent owns the decision.
+There is no separate continuity layer any more. S1596 deleted its bootstrap packet, request logger, request digest and dirty-tree guard after measuring zero invocations of each; S1603 deleted the remaining snapshot writer and reader after measuring 222 writes and zero reads across 2026-07-17..2026-08-12. What a resuming session needs to know already lives in two places that cannot go stale: the tactical plan's step markers and the ticket's status plus status note. A hand-written summary of those was never read, because it was a lossy copy of both.

@@ -30,6 +30,21 @@
             android:layout_weight="2"
             android:orientation="vertical">
 
+            <!-- S1587: shown only while the card carries no reading. A first-run phone has no place
+                 chosen yet, so the card would otherwise be an unlabelled instruction. -->
+            <TextView
+                android:id="@+id/gadgetWeatherCaption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:importantForAccessibility="no"
+                android:maxLines="1"
+                android:text="@string/launcher_gadget_weather"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="11sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
             <TextView
                 android:id="@+id/gadgetWeatherTemperature"
                 android:layout_width="match_parent"
@@ -72,7 +87,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:text="@string/launcher_gadget_weather_attribution"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="9sp" />

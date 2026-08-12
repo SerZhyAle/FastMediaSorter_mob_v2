@@ -81,6 +81,17 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); case \"$input\" in *\"o matches found\"*|*\"o files found\"*) printf '%s' \"$input\" | pwsh -NoProfile -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/observe-empty-grep.ps1\" ;; *) exit 0 ;; esac"
+          }
+        ]
+      }
     ]
   },
   "agent": "android-rd-specialist",

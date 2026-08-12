@@ -48,36 +48,41 @@ Everything else is excluded. Preflight applies eligibility itself; the loop neve
 
 ## Process
 
-### Stage 0 - Session init and device probe (once per session)
+### Stage 0 - Session bootstrap (once per session)
 
-**Session state.** `--resume` present -> `pwsh -NoProfile -File scripts/spec_catalog/spec-next-session.ps1 -Verb Resume`; seed the in-memory `processed` set from its `excludeCsv`. No `--resume` -> `pwsh -NoProfile -File scripts/spec_catalog/spec-next-session.ps1 -Verb Init` (add `-Threshold <n>` if `--threshold` was passed) - a fresh round, per Hard rules "round memory is session-scoped".
-
-**Parallel sessions are supported (S1437).** Two or three `/spec-next` or `/spec-do` sessions may run at once against one working tree: each gets its own round-state file, so `-Verb Init` no longer refuses. They take *different* tickets because each claims its pick (Stage 3.5 below) before working it. Own session after a threshold `/clear` -> the right verb was `--resume` all along; re-run with it.
-
-Before the loop, detect whether on-device verification is available this run:
+One call replaces the four that used to open every round - round state, device probe, device persist, first ranking - each of which cost a turn (S1596):
 
 ```powershell
-pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -CheckMcp -Json
+pwsh -NoProfile -File scripts/spec_catalog/session-bootstrap.ps1 [-Resume] [-Threshold <n>] [-SkipDevice]
 ```
 
-- Exit 0 (`ready:true`) -> `DEVICE_ONLINE = true`. The session will run **Stage 5.5 (device drain)** after the impl loop exhausts.
-- Any other exit -> `DEVICE_ONLINE = false`. The `BlockNeedUserTest` backlog stays parked for the human; Stage 5.5 is a silent no-op.
-- Either way, persist it: `pwsh -NoProfile -File scripts/spec_catalog/spec-next-session.ps1 -Verb Device -Online <true|false> [-SelectedDevice <id>]`. This is what lets a future threshold-triggered reset restore device state without re-deriving it from a `Resume` payload that could be stale - always re-probe even on `--resume`, a resumed process may be reconnecting after the device was unplugged mid-session.
+It returns one JSON payload with four blocks - `session`, `device`, `selection`, `lease` - each carrying its own `status` (`ok` / `failed` / `skipped`), the child's own `exitCode` and its `reason` verbatim. Read the payload; do not re-run the components it already ran.
+
+- `--resume` present -> pass `-Resume`, then seed the in-memory `processed` set from `session.payload.excludeCsv`. No `--resume` -> omit it: a fresh round, per Hard rules "round memory is session-scoped". `--threshold <n>` maps to `-Threshold <n>`.
+- `device.payload.ready` true -> `DEVICE_ONLINE = true`, and the session will run **Stage 5.5 (device drain)** after the impl loop exhausts. False -> `DEVICE_ONLINE = false`, the `BlockNeedUserTest` backlog stays parked for the human and Stage 5.5 is a silent no-op. The package has already persisted this into the round state - do not persist it again. It re-probes on every invocation including `-Resume`, because a resumed process may be reconnecting after the device was unplugged mid-session.
+- `selection` is this iteration's preflight payload. Go straight to Stage 2 with it.
+- Exit **0** -> every requested block assembled. Exit **1** -> read `failedBlocks` and each named block's `reason`; a failed `session` or `selection` block means the round cannot start, so report which one and stop rather than proceeding on partial data. Exit **2** -> a component script is missing, which is a repository defect rather than a round outcome.
+
+The package also accepts `-Claim`, and this skill never passes it: the drift gate (Stage 3) sits between selecting a ticket and claiming it, and a package that claimed up front would leave a lease on a ticket the gate is about to defer.
+
+**Parallel sessions are supported (S1437).** Two or three `/spec-next` or `/spec-do` sessions may run at once against one working tree: each gets its own round-state file, so a fresh round no longer refuses. They take *different* tickets because each claims its pick (Stage 3.5 below) before working it. Own session after a threshold `/clear` -> the right flag was `--resume` all along; re-run with it.
 
 ### Stage 1 - Preflight (rank + skip-cache + auto-skip + drift, one call)
+
+**First iteration: already done** - the payload is the `selection` block from Stage 0. Every later iteration re-ranks with the round's updated exclusion set:
 
 ```powershell
 pwsh -NoProfile -File scripts/spec_catalog/spec-next-preflight.ps1 -Exclude <processed-ids-csv>
 ```
 
-One read-only call returns a single JSON blob with `ranked[]`, `skip_cache` / `skip_cached_ids`, `auto_skipped[]` and `selected`. `order_source` and `current_release` are echoed at the top of the payload - quote them when reporting the pick. A field's exact shape -> "Preflight payload field contract" in `.claude/reference/spec-next.md`; the stages below need no more than those four names.
-
-`-Exclude` carries in-memory `processed` round-memory set (Stage 5) so each loop iteration gets next candidate in one call. First iteration: omit `-Exclude`.
+One read-only call returns a single JSON blob with `ranked[]`, `skip_cache` / `skip_cached_ids`, `auto_skipped[]` and `selected`. `order_source` and `current_release` are echoed at the top of the payload - quote them when reporting the pick. A field's exact shape -> "Preflight payload field contract" in `.claude/reference/spec-next.md`; the stages below need no more than those four names. The block Stage 0 hands over has exactly this shape - it is the same script's output.
 
 `selected == null` -> branch on `selected_none_reason`, because "the work is finished" and "the work is taken" call for different next moves (S1437):
 
 - `queue-exhausted` / `no-candidate` -> eligible set exhausted -> final report (Stage 6) and stop, as before.
 - `all-leased` -> eligible tickets exist but every one is held by a live sibling session. Report each holder from `leased_ids` (`id`, `sessionId`, `last_seen_minutes`), state that the queue is busy rather than finished and that re-running later picks one up, then stop. **Do not wait or poll** - a free ticket is not guaranteed to appear, so blocking would hold the session to a timeout for an answer that is already final.
+
+`-Exclude` carries in-memory `processed` round-memory set (Stage 5) so each loop iteration gets next candidate in one call.
 
 ### Stage 2 - Persist preflight side effects (only mutations in selection)
 

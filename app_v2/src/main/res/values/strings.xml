@@ -3292,4 +3292,7 @@
     <string name="launcher_gadget_map_actions_at">Map of %1$s. Tap to open the map application</string>
     <string name="browse_empty_filtered_out">%1$d files are hidden by the maximum file size setting.</string>
     <string name="browse_empty_filtered_out_hint">Raise the maximum file size in Settings to see them.</string>
+    <string name="network_monitor_ip_addresses_label">IP addresses</string>
+    <string name="network_monitor_permission_grant">Permission not granted. Tap to grant it.</string>
+    <string name="network_monitor_permission_open_settings">Permission is blocked. Tap to open app settings.</string>
 </resources>

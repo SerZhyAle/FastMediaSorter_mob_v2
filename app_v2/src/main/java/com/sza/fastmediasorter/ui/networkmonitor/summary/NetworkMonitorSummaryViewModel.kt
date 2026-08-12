@@ -8,10 +8,11 @@ import com.sza.fastmediasorter.domain.model.networkmonitor.SectionAvailability
 import com.sza.fastmediasorter.domain.model.networkmonitor.VisibleNetwork
 import com.sza.fastmediasorter.domain.repository.NetworkMonitorRepository
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ExternalIpSessionStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -41,6 +42,7 @@ data class NetworkMonitorSummaryUiState(
     val transport: NetworkTransport?,
     val networkName: String?,
     val localIpv4: String?,
+    val externalIp: String?,
     val internet: InternetReachability,
     val sections: Map<NetworkMonitorSection, SectionAvailability?>,
 ) {
@@ -51,6 +53,7 @@ data class NetworkMonitorSummaryUiState(
             transport = null,
             networkName = null,
             localIpv4 = null,
+            externalIp = null,
             internet = InternetReachability.OFFLINE,
             sections = emptyMap(),
         )
@@ -68,19 +71,23 @@ data class NetworkMonitorSummaryUiState(
 @HiltViewModel
 class NetworkMonitorSummaryViewModel @Inject constructor(
     repository: NetworkMonitorRepository,
+    externalIpSessionStore: ExternalIpSessionStore,
 ) : ViewModel() {
 
-    val uiState: StateFlow<NetworkMonitorSummaryUiState> = repository.observeSnapshot()
-        .map { it.toUiState() }
+    val uiState: StateFlow<NetworkMonitorSummaryUiState> = combine(
+        repository.observeSnapshot(),
+        externalIpSessionStore.address,
+    ) { snapshot, externalIp -> snapshot.toUiState(externalIp) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NetworkMonitorSummaryUiState.Empty)
 }
 
-private fun NetworkMonitorSnapshot.toUiState(): NetworkMonitorSummaryUiState {
+private fun NetworkMonitorSnapshot.toUiState(externalIp: String?): NetworkMonitorSummaryUiState {
     val active = networks.firstOrNull { it.isActive }
     return NetworkMonitorSummaryUiState(
         transport = active?.transport,
         networkName = resolveNetworkName(active?.transport),
         localIpv4 = activeLink?.ipv4Addresses?.firstOrNull(),
+        externalIp = externalIp,
         internet = active.toReachability(),
         sections = mapOf(
             NetworkMonitorSection.Wifi to wifi.availability,

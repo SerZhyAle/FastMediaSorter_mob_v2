@@ -139,9 +139,29 @@ if (-not (Test-Path -LiteralPath $sourcePath)) {
     exit 1
 }
 
+# S1586: AAPT2 reads a backslash as an escape introducer, so a literal one is consumed and the
+# character never reaches the user - silently, with no build warning. Doubling every backslash is not
+# an option: the seeded corpus carries intended \n line breaks, and a blanket pass would put two
+# visible characters on screen in place of each. So only a backslash that introduces nothing AAPT2
+# knows is doubled. The match takes \\ as one unit, which is what makes the pass idempotent - an
+# already-escaped value keeps its pair instead of growing a third slash. Two consequences worth
+# stating: a literal backslash directly before n, t or u is indistinguishable from the escape it
+# spells and must be written doubled in the source value; and a leading \@ / \? is out of scope,
+# because an unescaped @ or ? in that position fails the build loudly rather than losing a character.
+$script:AaptEscapeRx = [regex]'\\(u[0-9a-fA-F]{4}|[nt''"\\])?'
+
+function ConvertTo-AaptBackslash([AllowEmptyString()][string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return '' }
+    return $script:AaptEscapeRx.Replace($Text, {
+            param($m)
+            if ($m.Groups[1].Success) { return $m.Value }
+            return '\\'
+        })
+}
+
 # Must stay identical to ConvertTo-XmlText in set-android-string.ps1 - see .DESCRIPTION.
 function ConvertTo-XmlText([AllowEmptyString()][string]$Text) {
-    $escaped = [System.Security.SecurityElement]::Escape($Text)
+    $escaped = [System.Security.SecurityElement]::Escape((ConvertTo-AaptBackslash $Text))
     if ($null -eq $escaped) { return '' }
     # The optional leading backslash is what makes this idempotent: a value that already arrived
     # escaped matches too and collapses to the same single-backslash form, instead of growing a

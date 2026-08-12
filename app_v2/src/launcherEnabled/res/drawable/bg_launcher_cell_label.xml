@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1587: the plate a shortcut caption sits on. The branded wallpaper runs a high-contrast pattern
+     directly under the caption row, and the caption's own contour alone does not survive it. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <solid android:color="@color/launcher_cell_label_plate" />
+
+    <corners android:radius="@dimen/launcher_cell_label_plate_radius" />
+
+</shape>

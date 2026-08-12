@@ -347,15 +347,38 @@ if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
     }
     # S1338: print the rule, line and message the report already carries. Printing the bare
     # file path cost 2.38 further gradle round-trips per failure to discover what to fix.
+    # S1600: the detail lines carry this script's own prefix, and the verdict line names the rules
+    # itself. Every observed "header printed, nothing under it" failure (19 in the transcript
+    # corpus, all of them) was a CALLER-side line filter: the caller pipes this gate through
+    # `Select-String -Pattern 'assert-detekt'` or `'detekt|preflight|FAIL'`, which matches the
+    # header and the verdict but not an indented, unprefixed detail line. The gate had named the
+    # rule and the filter ate it, so the next step was another gradle round-trip to ask again.
+    # The gate cannot fix the caller's pattern; it can make its own lines survive one.
+    $myFindings = @(@($report.Findings) |
+            Where-Object { $mine -contains $_.File } |
+            Sort-Object File, { $_.Line -as [int] })
     Write-Host "assert-detekt: NEW findings in changed file(s):" -ForegroundColor Red
-    @($report.Findings) |
-        Where-Object { $mine -contains $_.File } |
-        Sort-Object File, { [int]$_.Line } |
-        ForEach-Object {
-            Write-Host "  $($_.File):$($_.Line):$($_.Column) - $($_.RuleId) - $($_.Message)"
-        }
+    foreach ($f in $myFindings) {
+        Write-Host "assert-detekt:   $($f.File):$($f.Line):$($f.Column) - $($f.RuleId) - $($f.Message)"
+    }
+    if ($myFindings.Count -eq 0) {
+        # Unreachable by construction - $mine is a subset of the reported files, so at least one
+        # finding must survive the filter above. Kept because the bare header is the exact symptom
+        # this ticket removed: if it ever does happen, it says so instead of looking like a gate
+        # that failed for no reason.
+        foreach ($file in $mine) { Write-Host "assert-detekt:   $file - (detail lost; read the report)" }
+    }
     if ($Gate) {
-        Write-Host "assert-detekt: FAIL [scoped] - fix the detekt finding(s) in your changed files." -ForegroundColor Red
+        # Self-contained on purpose: a caller keeping only the FAIL line - or only the last line -
+        # still walks away with the rule names, which is the whole cost of an unattributable gate.
+        $rules = @($myFindings | ForEach-Object { $_.RuleId } | Select-Object -Unique | Sort-Object)
+        $what = if ($rules.Count -gt 0) {
+            "$($myFindings.Count) finding(s) in $($mine.Count) file(s) - $($rules -join ', ')"
+        }
+        else {
+            "$($mine.Count) file(s) - see the lines above"
+        }
+        Write-Host "assert-detekt: FAIL [scoped] - $what. Fix the finding(s) listed above." -ForegroundColor Red
         exit 1
     }
     exit 0

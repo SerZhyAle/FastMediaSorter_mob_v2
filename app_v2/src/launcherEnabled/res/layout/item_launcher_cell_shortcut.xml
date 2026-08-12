@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S0404/S1173: one shortcut cell on the launcher desktop - icon over a label, with an optional badge
      marking which view mode a resource shortcut opens in. The cell is transparent at rest so the
-     desktop wallpaper shows through it; contrast lives in the icon's and the caption's own contour, not
-     in a card behind them. The whole cell stays the touch target. Edit mode restores the card look from
-     the binder, because that is what makes cell boundaries and drop targets visible while arranging.
+     desktop wallpaper shows through it; the icon's contrast comes from its own contour. S1587: the
+     caption additionally sits on a translucent plate, because the branded wallpaper draws a
+     high-contrast diagonal pattern straight under the caption row, where a 1dp contour on 10sp text
+     stops being enough to read. The whole cell stays the touch target. Edit mode restores the card look
+     from the binder, because that is what makes cell boundaries and drop targets visible while
+     arranging.
      Orientation-neutral: the cell is square in both layouts, so there is deliberately no layout-land
      counterpart. -->
 <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
@@ -30,9 +33,9 @@
         android:gravity="center"
         android:orientation="vertical"
         android:paddingStart="4dp"
-        android:paddingTop="10dp"
+        android:paddingTop="@dimen/launcher_cell_content_padding_vertical"
         android:paddingEnd="4dp"
-        android:paddingBottom="10dp">
+        android:paddingBottom="@dimen/launcher_cell_content_padding_vertical">
 
         <FrameLayout
             android:layout_width="wrap_content"
@@ -84,10 +87,15 @@
             android:id="@+id/cellLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="@dimen/launcher_cell_label_margin_top"
+            android:background="@drawable/bg_launcher_cell_label"
             android:ellipsize="end"
             android:gravity="center"
-            android:maxLines="1"
+            android:maxLines="2"
+            android:paddingStart="@dimen/launcher_cell_label_plate_padding_horizontal"
+            android:paddingTop="@dimen/launcher_cell_label_plate_padding_vertical"
+            android:paddingEnd="@dimen/launcher_cell_label_plate_padding_horizontal"
+            android:paddingBottom="@dimen/launcher_cell_label_plate_padding_vertical"
             android:textColor="?attr/colorOnSurface"
             android:textSize="@dimen/launcher_cell_label_text_size"
             app:otv_outlineWidth="@dimen/launcher_cell_outline_width"

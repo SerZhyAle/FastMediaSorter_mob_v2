@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.domain.model.networkmonitor.GnssSatellite
 import com.sza.fastmediasorter.domain.model.networkmonitor.GnssTrackState
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartValueUnit
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkMonitorPermissionManager
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.SignalChartBinder
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.formatChartValue
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.toReasonRes
@@ -41,6 +42,8 @@ class GnssSectionFragment : Fragment() {
         get() = requireNotNull(_binding) { "Binding is valid only between onCreateView and onDestroyView" }
 
     private val viewModel: GnssSectionViewModel by viewModels()
+
+    private val permissionManager = NetworkMonitorPermissionManager(this)
 
     private var chartBinder: SignalChartBinder? = null
 
@@ -86,7 +89,9 @@ class GnssSectionFragment : Fragment() {
         val snapshot = state.gnss.data
         binding.gnssDetailsGroup.isVisible = snapshot != null
         binding.gnssAvailability.isVisible = snapshot == null
-        binding.gnssAvailability.setText(state.gnss.availability.toReasonRes())
+        if (!permissionManager.bind(binding.gnssAvailability, state.gnss.availability)) {
+            binding.gnssAvailability.setText(state.gnss.availability.toReasonRes())
+        }
         binding.gnssVisibleValue.text = snapshot?.visibleCount?.toString() ?: unknown()
         binding.gnssUsedValue.text = snapshot?.usedInFixCount?.toString() ?: unknown()
         binding.gnssAcquiring.isVisible = state.isAcquiring
@@ -122,9 +127,10 @@ class GnssSectionFragment : Fragment() {
         val coordinate = snapshot?.coordinate
         binding.gnssPositionGroup.isVisible = coordinate != null
         binding.gnssPositionAvailability.isVisible = coordinate == null
-        binding.gnssPositionAvailability.setText(
-            (snapshot?.coordinateAvailability ?: state.gnss.availability).toReasonRes()
-        )
+        val availability = snapshot?.coordinateAvailability ?: state.gnss.availability
+        if (!permissionManager.bind(binding.gnssPositionAvailability, availability)) {
+            binding.gnssPositionAvailability.setText(availability.toReasonRes())
+        }
         binding.gnssLatitudeValue.text = coordinate?.let { degrees(it.latitudeDegrees) } ?: unknown()
         binding.gnssLongitudeValue.text = coordinate?.let { degrees(it.longitudeDegrees) } ?: unknown()
         binding.gnssAccuracyValue.text = coordinate?.accuracyMeters?.let { meters(it) } ?: unknown()

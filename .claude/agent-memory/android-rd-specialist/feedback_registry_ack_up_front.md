@@ -19,3 +19,10 @@ second one lands a near-duplicate changelog entry for the same logical change. H
 names in the set, or just grep the registry for the doc's directory. Read the matched records (the loop
 requires it anyway), check the sibling `paths` the change did NOT touch for the same edit, then close
 once with the ack. Acknowledging is a claim you read them - never pass `all` to silence the step.
+
+**If you already missed it (2026-08-12, S1595): do NOT re-run to clear the advisory.** The dev-log row
+is already written and `dev/CHANGELOG.md` may not be hand-edited, so the re-run buys a cosmetic PASS at
+the price of a permanent duplicate entry - strictly worse. Discharge the real obligation instead: read
+the named records, check every untouched sibling for the same edit, and write what you found and why no
+sibling needed changing into the phase file or the audit block. `PASS WITH ADVISORIES` with the
+reasoning recorded beats a bare `PASS` bought with a corrupted changelog.

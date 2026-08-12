@@ -3256,4 +3256,7 @@
     <string name="launcher_gadget_map_actions_at">Карта: %1$s. Нажмите, чтобы открыть приложение карт</string>
     <string name="browse_empty_filtered_out">%1$d файлов скрыто настройкой максимального размера файла.</string>
     <string name="browse_empty_filtered_out_hint">Увеличьте максимальный размер файла в настройках, чтобы увидеть их.</string>
+    <string name="network_monitor_ip_addresses_label">IP-адреса</string>
+    <string name="network_monitor_permission_grant">Разрешение не выдано. Нажмите, чтобы выдать его.</string>
+    <string name="network_monitor_permission_open_settings">Разрешение заблокировано. Нажмите, чтобы открыть настройки приложения.</string>
 </resources>

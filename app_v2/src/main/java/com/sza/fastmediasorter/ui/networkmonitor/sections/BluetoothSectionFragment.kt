@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorBluetoothBinding
 import com.sza.fastmediasorter.domain.model.networkmonitor.BluetoothDeviceEntry
 import com.sza.fastmediasorter.domain.model.networkmonitor.MonitorSection
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkMonitorPermissionManager
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.RadioToggleBinder
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.SignalChartBinder
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.toReasonRes
@@ -34,6 +35,8 @@ class BluetoothSectionFragment : Fragment() {
         get() = requireNotNull(_binding) { "Binding is valid only between onCreateView and onDestroyView" }
 
     private val viewModel: BluetoothSectionViewModel by viewModels()
+
+    private val permissionManager = NetworkMonitorPermissionManager(this)
 
     private var radioBinder: RadioToggleBinder? = null
     private var chartBinder: SignalChartBinder? = null
@@ -100,7 +103,9 @@ class BluetoothSectionFragment : Fragment() {
             }
         )
         binding.bluetoothAdapterAvailability.isVisible = entry == null
-        binding.bluetoothAdapterAvailability.setText(state.adapter.availability.toReasonRes())
+        if (!permissionManager.bind(binding.bluetoothAdapterAvailability, state.adapter.availability)) {
+            binding.bluetoothAdapterAvailability.setText(state.adapter.availability.toReasonRes())
+        }
     }
 
     /**
@@ -111,13 +116,14 @@ class BluetoothSectionFragment : Fragment() {
         val entries = devices.data.orEmpty()
         binding.bluetoothPairedList.isVisible = entries.isNotEmpty()
         binding.bluetoothPairedEmpty.isVisible = entries.isEmpty()
-        binding.bluetoothPairedEmpty.setText(
-            if (devices.data == null) {
-                devices.availability.toReasonRes()
+        if (devices.data == null) {
+            if (!permissionManager.bind(binding.bluetoothPairedEmpty, devices.availability)) {
+                binding.bluetoothPairedEmpty.setText(devices.availability.toReasonRes())
             } else {
-                R.string.network_monitor_bluetooth_paired_empty
+                return
             }
-        )
+        }
+        binding.bluetoothPairedEmpty.setText(R.string.network_monitor_bluetooth_paired_empty)
         binding.bluetoothPairedList.text = entries.joinToString(separator = "\n") { device -> describe(device) }
     }
 

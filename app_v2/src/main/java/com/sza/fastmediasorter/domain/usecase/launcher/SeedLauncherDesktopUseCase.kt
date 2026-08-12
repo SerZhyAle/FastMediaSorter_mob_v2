@@ -119,6 +119,10 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 addedAt = now,
             )
         }
+        Timber.d(
+            "S1587: seeding $orientation at $columns columns, ${cells.size} cells, " +
+                "last row ${cells.maxOfOrNull { it.rowIndex + it.spanH } ?: 0}",
+        )
         desktop.seedIfEmpty(orientation, cells)
     }
 }

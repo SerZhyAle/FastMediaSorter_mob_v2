@@ -61,4 +61,18 @@
          characters before the ellipsis - and the caption is the only thing telling two cells with the
          same icon apart. -->
     <dimen name="launcher_cell_label_text_size">10sp</dimen>
+
+    <!-- S1587: the caption plate. The radius is deliberately far under the cell's own 16dp - the plate
+         hugs two lines of 10sp text, and a cell-sized radius on a strip that short reads as a pill. The
+         paddings are the smallest that keep a glyph from touching the plate's edge. -->
+    <!-- S1587: the vertical breathing room a shortcut cell can afford. A 96dp cell holds a 44dp icon
+         plus two 10sp caption lines, and the old 10dp top and bottom pushed the second line past the
+         cell's bottom edge, where the grid clips it - a chopped glyph reads worse than the ellipsis the
+         second line exists to remove. -->
+    <dimen name="launcher_cell_content_padding_vertical">4dp</dimen>
+    <dimen name="launcher_cell_label_margin_top">3dp</dimen>
+
+    <dimen name="launcher_cell_label_plate_radius">6dp</dimen>
+    <dimen name="launcher_cell_label_plate_padding_horizontal">4dp</dimen>
+    <dimen name="launcher_cell_label_plate_padding_vertical">1dp</dimen>
 </resources>

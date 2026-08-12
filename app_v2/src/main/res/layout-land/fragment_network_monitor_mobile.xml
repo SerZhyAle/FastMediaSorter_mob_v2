@@ -67,49 +67,6 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
-
-                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
-
-                        <TextView
-                            android:id="@+id/mobileSimsAvailability"
-                            style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
-                            android:visibility="gone"
-                            tools:text="@string/network_monitor_status_no_permission"
-                            tools:visibility="visible" />
-
-                        <LinearLayout
-                            android:id="@+id/mobileSim1Group"
-                            style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
-
-                            <TextView
-                                android:id="@+id/mobileSim1Label"
-                                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
-                                tools:text="SIM 1" />
-
-                            <TextView
-                                android:id="@+id/mobileSim1Value"
-                                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
-                                tools:text="Operator" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/mobileSim2Group"
-                            style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
-
-                            <TextView
-                                android:id="@+id/mobileSim2Label"
-                                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
-                                tools:text="SIM 2" />
-
-                            <TextView
-                                android:id="@+id/mobileSim2Value"
-                                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
-                                tools:text="Operator" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
             <LinearLayout
@@ -127,5 +84,49 @@
                     layout="@layout/view_network_monitor_signal_chart" />
             </LinearLayout>
         </LinearLayout>
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <TextView
+                    android:id="@+id/mobileSimsAvailability"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:visibility="gone"
+                    tools:text="@string/network_monitor_status_no_permission"
+                    tools:visibility="visible" />
+
+                <LinearLayout
+                    android:id="@+id/mobileSim1Group"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                    <TextView
+                        android:id="@+id/mobileSim1Label"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                        tools:text="SIM 1" />
+
+                    <TextView
+                        android:id="@+id/mobileSim1Value"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                        tools:text="Operator" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/mobileSim2Group"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                    <TextView
+                        android:id="@+id/mobileSim2Label"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                        tools:text="SIM 2" />
+
+                    <TextView
+                        android:id="@+id/mobileSim2Value"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                        tools:text="Operator" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </ScrollView>

@@ -51,6 +51,10 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <include
+            android:id="@+id/bluetoothChart"
+            layout="@layout/view_network_monitor_signal_chart" />
+
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
 
@@ -140,8 +144,5 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <include
-            android:id="@+id/bluetoothChart"
-            layout="@layout/view_network_monitor_signal_chart" />
     </LinearLayout>
 </ScrollView>

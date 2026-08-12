@@ -40,7 +40,10 @@
 #        "post-change: PASS" or "post-change: PASS WITH ADVISORIES (n)" -
 #        the latter means a gate found something it could not attribute to
 #        this change, and the caller is expected to read the listed names.
-#     1  a gate failed. Something was inspected and judged defective.
+#     1  a gate failed. Something was inspected and judged defective. The run
+#        does NOT stop at that gate (S1598): every remaining gate still runs, and
+#        the tail reads "post-change: FAIL (n gate(s))" followed by the full list,
+#        each with the command that reproduces it alone. Nothing is written.
 #     2  could not verify. Nothing was inspected, or a gate could not run:
 #        an invalid/absent/unexpanded file argument, or missing tooling.
 #
@@ -140,6 +143,28 @@ $totalSw = [System.Diagnostics.Stopwatch]::StartNew()
 # verdict can report what it could not attribute instead of swallowing it.
 $script:AdvisoryFindings = @()
 
+# S1598: every FATAL gate failure lands here instead of ending the process on the
+# spot. Fail-fast made one set of defects cost several full runs of the facade:
+# 215 failed runs in the week of 2026-08-05, median 8 turns from a failed run to
+# the next one, because each run could only ever name the first thing wrong.
+$script:FatalFindings = @()
+
+# S1598: label -> @{ Repro = '<command that runs this gate alone>'; Fix = '<what to do>' }.
+# Data, not prose in the facade, so registering a new gate never edits the output
+# logic (owner input). A label with no entry prints without a hint - not an error;
+# assert-gate-hints-sync.ps1 is what keeps the two sets in step.
+$script:GateHints = @{}
+$hintFile = Join-Path $root "scripts/quality/gate-recovery-hints.psd1"
+if (Test-Path $hintFile) {
+    try { $script:GateHints = Import-PowerShellDataFile -LiteralPath $hintFile }
+    catch { Write-Host "  [gate-hints] WARN - unreadable: $($_.Exception.Message)" -ForegroundColor Yellow }
+}
+
+function Get-GateHint([string]$Label) {
+    if ($script:GateHints.ContainsKey($Label)) { return $script:GateHints[$Label] }
+    return $null
+}
+
 function Write-StepResult(
     [string]$Label,
     [ValidateSet('PASS', 'FAIL', 'SKIP')][string]$Status,
@@ -188,6 +213,60 @@ function Invoke-Step([string]$Label, [scriptblock]$Action) {
         Write-StepResult -Label $Label -Status FAIL -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details $reason
         exit $exitCode
     }
+}
+
+# S1598: the gate wrapper. Same verdict surface as Invoke-Step, but a failure is
+# recorded and the run continues, so ONE run names every gate the changed set
+# breaks. Certification is unchanged: Test-FatalFindings barricades the mutating
+# steps and exits 1, so a failed run still writes no changelog row and no catalog
+# index. Invoke-Step stays for those mutating steps, where "cannot go on" is real.
+function Invoke-Gate([string]$Label, [scriptblock]$Action) {
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+
+    try {
+        $global:LASTEXITCODE = 0
+        & $Action
+        $exitCode = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
+        if ($exitCode -ne 0) {
+            throw "exit $exitCode"
+        }
+
+        $sw.Stop()
+        Write-StepResult -Label $Label -Status PASS -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
+    }
+    catch {
+        $sw.Stop()
+        $exitCode = if ($LASTEXITCODE -and [int]$LASTEXITCODE -ne 0) { [int]$LASTEXITCODE } else { 1 }
+        $reason = $_.Exception.Message
+        if ($reason -eq "exit $exitCode") {
+            $reason = "child exit code $exitCode"
+        }
+
+        Write-StepResult -Label $Label -Status FAIL -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details $reason
+        $hint = Get-GateHint $Label
+        if ($hint) {
+            if ($hint.Repro) { Write-Host "      repro: $($hint.Repro)" -ForegroundColor Yellow }
+            if ($hint.Fix) { Write-Host "      fix:   $($hint.Fix)" -ForegroundColor Yellow }
+        }
+        $script:FatalFindings += [pscustomobject]@{ Label = $Label; ExitCode = $exitCode }
+    }
+}
+
+# S1598: the barrier. Called immediately before the first mutating step, so the
+# accumulated failures end the run exactly where fail-fast used to end it - with
+# nothing written. Exit 1 means "found a defect", per the exit contract above.
+function Test-FatalFindings {
+    if ($script:FatalFindings.Count -eq 0) { return }
+
+    Write-Host ''
+    Write-Host "post-change: FAIL ($($script:FatalFindings.Count) gate(s), $resolvedChangeType)" -ForegroundColor Red
+    foreach ($finding in $script:FatalFindings) {
+        Write-Host "  failed: $($finding.Label) (exit $($finding.ExitCode))" -ForegroundColor Red
+        $hint = Get-GateHint $finding.Label
+        if ($hint -and $hint.Repro) { Write-Host "      repro: $($hint.Repro)" -ForegroundColor Yellow }
+    }
+    Write-Host "  Nothing was written: no changelog row, no catalog sync. Fix the above and re-run." -ForegroundColor Red
+    exit 1
 }
 
 function Skip-Step([string]$Label, [string]$Reason) {
@@ -429,7 +508,7 @@ if ($runsStringsAudit) {
     # A strings edit under src/<flavor>/res must be audited against that flavor's locale dirs. Auditing
     # main instead would report a clean pass over files the change never touched.
     $auditSourceSet = if ($resourceSourceSet) { $resourceSourceSet } else { 'main' }
-    Invoke-Step "strings-audit" {
+    Invoke-Gate "strings-audit" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/check_strings_localized.ps1") `
             -Module $Module -SourceSet $auditSourceSet -KeyPrefix $auditPrefix
     }
@@ -439,7 +518,7 @@ else {
 }
 
 if ($runsStringFormatGate) {
-    Invoke-Step "string-format-gate" {
+    Invoke-Gate "string-format-gate" {
         $a = @(
             '-NoProfile',
             '-File',
@@ -459,7 +538,7 @@ else {
 }
 
 if ($runsTicketLogAudit) {
-    Invoke-Step "ticket-log-audit" {
+    Invoke-Gate "ticket-log-audit" {
         # S1338: -Quiet suppressed exactly the File:Line list needed to fix a violation,
         # so a FAIL here reported that something was wrong and nothing about where.
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-no-ticket-logs.ps1") -Gate
@@ -470,7 +549,7 @@ else {
 }
 
 if ($runsAcceptanceProbeGate) {
-    Invoke-Step "acceptance-probe-gate" {
+    Invoke-Gate "acceptance-probe-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-ticket-acceptance-probes.ps1") -Gate
     }
 }
@@ -479,7 +558,7 @@ else {
 }
 
 if ($runsDocPinsSync) {
-    Invoke-Step "doc-pins-sync" {
+    Invoke-Gate "doc-pins-sync" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/generate-toolchain-pins.ps1") -Check
     }
 }
@@ -488,7 +567,7 @@ else {
 }
 
 if ($runsDocPinDrift) {
-    Invoke-Step "doc-pin-drift" {
+    Invoke-Gate "doc-pin-drift" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-doc-pin-drift.ps1") -Gate -Quiet
     }
 }
@@ -499,7 +578,7 @@ else {
 # S1356: fatal, never advisory. The whole defect was that absorbing another ticket's debt produced
 # no signal at all - a warning here would reproduce it politely. Pure text, no gradle.
 if ($runsBaselineAbsorptionGate) {
-    Invoke-Step "detekt-baseline-absorption" {
+    Invoke-Gate "detekt-baseline-absorption" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-detekt-baseline-absorption.ps1") -Gate
     }
 }
@@ -510,7 +589,10 @@ else {
 # S0826: a project-wide gate without per-file delta support runs advisory (warn, non-fatal)
 # under -ScopeToFile; fatal otherwise. Since S0850 only icon-inventory-sync still uses this -
 # the count-ratchet gates all judge FATAL per-file deltas.
-$ratchetRunner = if ($ScopeToFile) { 'Invoke-AdvisoryStep' } else { 'Invoke-Step' }
+# S1598: the fatal branch dispatches to Invoke-Gate, not Invoke-Step - these are gates, and
+# Invoke-Step is now reserved for the two mutating steps, where ending the run on the spot is
+# the intended behaviour. Naming it here by string is why the rename had to be made by hand.
+$ratchetRunner = if ($ScopeToFile) { 'Invoke-AdvisoryStep' } else { 'Invoke-Gate' }
 
 # S0848 Phase 02: start the gradle-backed detekt gate as a background thread job BEFORE the
 # fast lexical/ratchet gates, then join it after them. detekt does not depend on the lexical
@@ -518,19 +600,33 @@ $ratchetRunner = if ($ScopeToFile) { 'Invoke-AdvisoryStep' } else { 'Invoke-Step
 # Verdict and exit code stay identical to the serial run. The try/finally below guarantees the
 # job is stopped even when a lexical gate fails and Invoke-Step calls exit (verified: a finally
 # runs before exit propagates), so no orphan detekt/gradle launcher survives a fail-fast close.
-# S1338 phase 04 step 04.7: the lexical preflight runs BEFORE the gradle detekt gate is even
-# started, so the three rules that make up most of this repo's detekt findings are reported in
-# well under a second instead of after a ~23 s round-trip. Advisory by construction: it is
-# lexical, it cannot see types, and assert-detekt below remains the verdict.
+# S1338 phase 04 step 04.7: the preflight runs BEFORE the gradle detekt gate is even started.
+# S1595 made it FATAL, and that is the change that actually recovers the round-trip. It used to be
+# advisory, so a finding it caught was still paid for in full: the gradle job started anyway and
+# failed on the same finding ~87 s later. Invoke-Step exits on a non-zero child, so the job below
+# is never started - and since S1595 the preflight's exit 1 comes from the REAL analyser run over
+# the changed files (detekt-scoped.ps1), whose verdict was measured finding-for-finding identical
+# to the whole-module gate's on the same set.
+#
+# Only exit 1 is fatal, and the preflight only returns it when the analyser actually ran. If the
+# analyser could not start, the preflight degrades to its lexical scan and exits 0 whatever that
+# scan found - a lexical guess must never abort a closure, and the gate below still judges.
 if ($runsDetektPreflight -and $changedFiles.Count -gt 0) {
-    Invoke-AdvisoryStep "detekt-preflight" {
+    Invoke-Gate "detekt-preflight" {
         & $pwsh '-NoProfile' '-File' (Join-Path $root "scripts/quality/detekt-preflight.ps1") `
             '-ChangedFiles' ($changedFiles -join ',') '-Gate'
-    } -AdvisoryDetails 'advisory (lexical, judged on YOUR changed files - fix the lines above; the detekt gate is the verdict)'
+    }
 }
 
+# S1598: collecting failures instead of exiting on the first one would have restored the
+# ~87 s the preflight exists to save - the job below would start even though the preflight
+# already ran the real analyser over the same files and already named the same findings.
+# The preflight's verdict therefore still suppresses the job, and the gate below reports
+# SKIP naming it, so the run stays honest about what was and was not judged.
+$detektPreflightFailed = @($script:FatalFindings | Where-Object { $_.Label -eq 'detekt-preflight' }).Count -gt 0
+
 $detektJob = $null
-if ($runsDetektGate) {
+if ($runsDetektGate -and -not $detektPreflightFailed) {
     $detektArgs = @(
         '-NoProfile'
         '-File'
@@ -562,7 +658,7 @@ if ($runsFlavorFlagGate) {
     # S0848 Phase 04: under -ScopeToFile this gate now judges a real delta on the changed file
     # (growth vs HEAD) rather than an advisory full scan, so it stays FATAL - a NEW flavor flag in
     # this change fails, while other tickets' pre-existing reads no longer trip it.
-    Invoke-Step "flavor-flag-gate" {
+    Invoke-Gate "flavor-flag-gate" {
         $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-flavor-flags-not-growing.ps1"), '-Gate')
         if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
         & $pwsh @a
@@ -576,7 +672,7 @@ if ($runsNeuroslopGate) {
     # S0850: under -ScopeToFile every child judges a real delta on the changed file (growth vs
     # HEAD) and the gate stays FATAL - a NEW violation in this change fails, while other
     # tickets' pre-existing findings no longer trip it (mirrors flavor-flags/deprecated-pm).
-    Invoke-Step "neuroslop-gate" {
+    Invoke-Gate "neuroslop-gate" {
         $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-neuroslop.ps1"), '-Gate')
         if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
         & $pwsh @a
@@ -590,7 +686,7 @@ if ($runsPublicMutableFlowGate) {
     # S1031: under -ScopeToFile the gate judges a real delta on the changed file (growth vs HEAD)
     # and stays FATAL - a NEW public mutable reactive-state declaration in this change fails,
     # while other tickets' pre-existing findings no longer trip it (mirrors neuroslop).
-    Invoke-Step "public-mutable-flow-gate" {
+    Invoke-Gate "public-mutable-flow-gate" {
         $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-public-mutable-flow.ps1"), '-Gate')
         if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
         & $pwsh @a
@@ -601,7 +697,7 @@ else {
 }
 
 if ($runsOrientationFeatureGate) {
-    Invoke-Step "orientation-implied-feature-gate" {
+    Invoke-Gate "orientation-implied-feature-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-orientation-implied-feature.ps1") -Gate
     }
 }
@@ -610,7 +706,7 @@ else {
 }
 
 if ($runsFgsGate) {
-    Invoke-Step "fgs-notification-gate" {
+    Invoke-Gate "fgs-notification-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-fgs-notifications.ps1") -Gate
     }
 }
@@ -622,7 +718,7 @@ if ($runsPmFlagsGate) {
     # S0848 Phase 04: real delta on the changed file under -ScopeToFile (growth vs HEAD), so this
     # gate stays FATAL - a NEW raw-int PackageManager overload in this change fails, unrelated
     # pre-existing ones in other files do not.
-    Invoke-Step "deprecated-pm-flags-gate" {
+    Invoke-Gate "deprecated-pm-flags-gate" {
         $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-deprecated-pm-flags.ps1"), '-Gate')
         if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
         & $pwsh @a
@@ -633,7 +729,7 @@ else {
 }
 
 if ($runsFocusHighlightGate) {
-    Invoke-Step "focus-highlight-gate" {
+    Invoke-Gate "focus-highlight-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-focus-highlight.ps1") -Gate
     }
 }
@@ -642,7 +738,7 @@ else {
 }
 
 if ($runsDialogCancelGate) {
-    Invoke-Step "dialog-cancel-style-gate" {
+    Invoke-Gate "dialog-cancel-style-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-dialog-cancel-style.ps1") -Gate
     }
 }
@@ -653,7 +749,7 @@ else {
 if ($runsRtlLayoutGate) {
     # Scoped to the changed layouts under -ScopeToFile: the project-wide baseline says how many
     # absolute attributes may exist at all, and a file being edited is not the one to raise it.
-    Invoke-Step "rtl-layout-attrs-gate" {
+    Invoke-Gate "rtl-layout-attrs-gate" {
         $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-rtl-layout-attrs.ps1"), '-Gate')
         if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
         & $pwsh @a
@@ -667,7 +763,7 @@ if ($runsListenerSymmetryGate) {
     # S0850: under -ScopeToFile the gate judges per-file imbalance growth vs HEAD and stays
     # FATAL - an edit that degrades symmetry in this change fails, unrelated pre-existing
     # imbalance elsewhere does not.
-    Invoke-Step "listener-symmetry-gate" {
+    Invoke-Gate "listener-symmetry-gate" {
         $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-listener-symmetry.ps1"), '-Gate')
         if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
         & $pwsh @a
@@ -678,7 +774,7 @@ else {
 }
 
 if ($runsAllFeaturesGate) {
-    Invoke-Step "all-features-gate" {
+    Invoke-Gate "all-features-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-allfeatures-sync.ps1") -Gate -Quiet
     }
 }
@@ -687,7 +783,7 @@ else {
 }
 
 if ($runsSettingsDocGate) {
-    Invoke-Step "settings-doc-sync-gate" {
+    Invoke-Gate "settings-doc-sync-gate" {
         # S1338 step 04.7: under -ScopeToFile hand it the changed set so its ~28 s gradle stage
         # runs only when a manifest input actually moved. Same rule as the detekt branch above -
         # an unscoped run (release, CI) keeps the strict project-wide judgement.
@@ -701,7 +797,7 @@ else {
 }
 
 if ($runsHowToPathGate) {
-    Invoke-Step "howto-settings-paths-gate" {
+    Invoke-Gate "howto-settings-paths-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-howto-settings-paths.ps1") -Gate
     }
 }
@@ -737,7 +833,7 @@ if ($runsFlavorMatrixDocGate) {
     # Strict even under -ScopeToFile: the gate judges each declared table against the generated
     # snapshot, so its verdict is attributable to the tables named in this change and never to
     # another ticket's in-flight drift. Nothing about it is a project-wide count ratchet.
-    Invoke-Step "flavor-matrix-doc-gate" {
+    Invoke-Gate "flavor-matrix-doc-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-flavor-matrix-docs.ps1") -Gate -Quiet
     }
 }
@@ -748,7 +844,7 @@ else {
 if ($runsOssNoticesGate) {
     # Strict even under -ScopeToFile: both findings are attributable to the change that fired
     # them - a coordinate this change declared, or a page this change edited. Not a count ratchet.
-    Invoke-Step "oss-notices-gate" {
+    Invoke-Gate "oss-notices-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-oss-notices.ps1") -Gate -Quiet
     }
 }
@@ -815,7 +911,7 @@ if (Test-Path -LiteralPath $registryPath) {
             }
         }
         if ($unacked.Count -eq 0) {
-            Invoke-Step "document-registry" {
+            Invoke-Gate "document-registry" {
                 Write-Host ("  acknowledged: {0}" -f (($matchedRecords | ForEach-Object { $_.Id }) -join ', '))
                 $global:LASTEXITCODE = 0
             }
@@ -847,15 +943,18 @@ else {
 # so a forgotten one reached the user as a reset that leaves that setting alone. Stays FATAL under
 # -ScopeToFile, unlike the matrix gate above: it reads exactly two files and judges one rule between
 # them, so another ticket's WIP cannot make it fail unless that WIP is itself the defect.
-Invoke-Step "launcher-reset-coverage-gate" {
+Invoke-Gate "launcher-reset-coverage-gate" {
     & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-launcher-reset-coverage.ps1") -Gate -Quiet
 }
 
 # S0848 Phase 02: join the detekt job started before the lexical gates. Preserves the old
 # inline verdict surface (failing rule lines printed, fatal on FAIL). Nulling $detektJob right
 # after the drain keeps the finally cleanup a no-op once the job has already been received.
-if ($runsDetektGate) {
-    Invoke-Step "detekt-gate" {
+if ($runsDetektGate -and $detektPreflightFailed) {
+    Skip-Step "detekt-gate" "detekt-preflight already failed on the same files - fix those findings first"
+}
+elseif ($runsDetektGate) {
+    Invoke-Gate "detekt-gate" {
         $r = Receive-Job -Job $detektJob -Wait -AutoRemoveJob
         $script:detektJob = $null
         if ($r -and -not [string]::IsNullOrWhiteSpace($r.Output)) {
@@ -870,7 +969,7 @@ else {
 
 }
 finally {
-    # Guarantee no orphan detekt/gradle launcher survives a fail-fast exit from a lexical gate.
+    # Guarantee no orphan detekt/gradle launcher survives an early exit from the gate block.
     if ($detektJob) {
         try { Stop-Job -Job $detektJob -ErrorAction SilentlyContinue } catch { }
         try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
@@ -887,6 +986,12 @@ finally {
         Write-Host "  [code-lock-release] WARN - could not release CODE.LOCK: $($_.Exception.Message)" -ForegroundColor Yellow
     }
 }
+
+# S1598: the barrier. Sits after the finally so CODE.LOCK is released on a failed run
+# too, and before the first mutating step so "a gate failed" still means nothing was
+# written. Exits 1 with the full list of failed gates - the whole point of collecting
+# them rather than ending the run at the first one.
+Test-FatalFindings
 
 # S1338: the two mutating steps run only after every gate has passed. Before this
 # they ran first, so 430 failed closures still paid for catalog-sync and still

@@ -34,6 +34,9 @@ class LauncherStarterSetsTest {
     /** The utilities every profile closes with, below the second header. */
     private val commonTail = listOf("fn:favorites", "os:settings", "app:__self__")
 
+    /** S1587: content opens the desktop, so the first item of every set is the everything-else header. */
+    private val contentHeader = listOf("sec:everything_else")
+
     private val columnCounts = listOf(3, 4, 6, 12)
 
     private data class ProfileGrid(
@@ -81,18 +84,19 @@ class LauncherStarterSetsTest {
     // ── itemsFor ────────────────────────────────────────────────────────────
 
     @Test
-    fun `every set opens with the app-functions section and closes with the common tail`() {
+    fun `every set opens with the content section and closes with the launcher actions`() {
         val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
         assertEquals(
-            sectionHead(DeviceProfileType.OTHER) +
-                listOf("clock", "search", "weather", "os:wifi", "os:bluetooth") + commonTail,
+            contentHeader +
+                listOf("clock", "search", "weather", "os:wifi", "os:bluetooth") +
+                sectionTail(DeviceProfileType.OTHER),
             items.map { it.target },
         )
         assertEquals(LauncherCellKind.SECTION, items.first().kind)
     }
 
     @Test
-    fun `every launcher action sits between the two headers and is seeded once`() {
+    fun `every launcher action sits under the second header and is seeded once`() {
         val targets = LauncherStarterSets
             .itemsFor(
                 DeviceProfileType.PERSONAL_SMARTPHONE,
@@ -101,26 +105,27 @@ class LauncherStarterSetsTest {
                 emptySet(),
             )
             .map { it.target }
-        val firstHeader = targets.indexOf("sec:app_functions")
-        val secondHeader = targets.indexOf("sec:everything_else")
+        val contentHeaderIndex = targets.indexOf("sec:everything_else")
+        val actionsHeaderIndex = targets.indexOf("sec:app_functions")
         val actions = targets.filter { it.startsWith("act:") }
         // Strategic §6.5: they moved out of the tail rather than being duplicated into the section.
         assertEquals(LauncherActionCatalog.all.size - 1, actions.size)
-        assertEquals(actions, targets.subList(firstHeader + 1, secondHeader))
+        assertTrue("content header must come first", contentHeaderIndex < actionsHeaderIndex)
+        assertEquals(actions, targets.subList(actionsHeaderIndex + 1, targets.size - commonTail.size))
     }
 
     @Test
     fun `no gadget is seeded inside the app-functions section`() {
-        // Strategic §6.11: a gadget may not cover a header row. The clock is the one gadget every
-        // profile gets, so the seeded order has to keep it below the second header by construction.
+        // Strategic §6.11: a gadget may not cover a header row. S1587 moved that section to the end of
+        // the set, so the constraint now reads: nothing below the second header is a gadget.
         val items = LauncherStarterSets.itemsFor(
             DeviceProfileType.AUDIO_PLAYER,
             StarterResources(allAudioId = 7),
             mapOf(InternalRouteCatalog.KEY_STREAMS to true),
             emptySet(),
         )
-        val secondHeader = items.indexOfFirst { it.target == "sec:everything_else" }
-        assertFalse(items.take(secondHeader).any { it.kind == LauncherCellKind.GADGET })
+        val actionsHeaderIndex = items.indexOfFirst { it.target == "sec:app_functions" }
+        assertFalse(items.drop(actionsHeaderIndex).any { it.kind == LauncherCellKind.GADGET })
     }
 
     @Test
@@ -139,12 +144,12 @@ class LauncherStarterSetsTest {
             emptySet(),
         )
         assertEquals(
-            sectionHead(DeviceProfileType.PERSONAL_SMARTPHONE) + listOf(
+            contentHeader + listOf(
                 "clock", "search", "weather",
                 "res:1:BROWSE", "res:2:BROWSE", "res:3:BROWSE", "res:4:BROWSE", "res:5:BROWSE", "res:6:BROWSE",
                 "altitude", "satellites",
                 "fn:streams", "fn:quick_camera", "fn:quick_voice", "fn:calculator", "fn:network_monitor", "fn:ocr",
-            ) + commonTail,
+            ) + sectionTail(DeviceProfileType.PERSONAL_SMARTPHONE),
             items.map { it.target },
         )
     }
@@ -158,9 +163,9 @@ class LauncherStarterSetsTest {
             emptySet(),
         )
         assertEquals(
-            sectionHead(DeviceProfileType.PERSONAL_SMARTPHONE) +
+            contentHeader +
                 listOf("clock", "search", "weather", "res:1:BROWSE", "altitude", "satellites", "fn:calculator") +
-                commonTail,
+                sectionTail(DeviceProfileType.PERSONAL_SMARTPHONE),
             items.map { it.target },
         )
     }
@@ -174,9 +179,9 @@ class LauncherStarterSetsTest {
             emptySet(),
         )
         assertEquals(
-            sectionHead(DeviceProfileType.PHOTO_FRAME) +
+            contentHeader +
                 listOf("clock", "search", "weather", "folder_preview:5", "res:5:SLIDESHOW", "os:wifi") +
-                commonTail,
+                sectionTail(DeviceProfileType.PHOTO_FRAME),
             items.map { it.target },
         )
     }
@@ -186,7 +191,7 @@ class LauncherStarterSetsTest {
         val items = LauncherStarterSets
             .itemsFor(DeviceProfileType.PHOTO_FRAME, StarterResources(), emptyMap(), emptySet())
         assertEquals(
-            sectionHead(DeviceProfileType.PHOTO_FRAME) + "clock" + "search" + "weather" + "os:wifi" + commonTail,
+            contentHeader + "clock" + "search" + "weather" + "os:wifi" + sectionTail(DeviceProfileType.PHOTO_FRAME),
             items.map { it.target },
         )
     }
@@ -200,10 +205,10 @@ class LauncherStarterSetsTest {
             emptySet(),
         )
         assertEquals(
-            sectionHead(DeviceProfileType.AUDIO_PLAYER) + listOf(
+            contentHeader + listOf(
                 "clock", "search", "res:7:BROWSE", "playlist:7", "streams", "os:wifi", "os:bluetooth",
                 "audio_now_playing", "fn:streams",
-            ) + commonTail,
+            ) + sectionTail(DeviceProfileType.AUDIO_PLAYER),
             withStreams.map { it.target },
         )
         val withoutStreams = LauncherStarterSets.itemsFor(
@@ -383,14 +388,71 @@ class LauncherStarterSetsTest {
         placed.forEach { assertTrue("cell past right edge", it.colIndex + it.spanW <= MIN_COLUMNS) }
     }
 
-    private fun sectionHead(profile: DeviceProfileType): List<String> = buildList {
+    @Test
+    fun `no cell is packed above the section floor its header set`() {
+        val items = smartphoneFullSet()
+        intArrayOf(3, 4, 8).forEach { columns ->
+            val placed = LauncherStarterSets.place(items, columns)
+            var floor = 0
+            placed.forEach { cell ->
+                assertTrue("${cell.item.target} above its header at $columns", cell.rowIndex >= floor)
+                if (cell.item.kind == LauncherCellKind.SECTION) floor = cell.rowIndex
+            }
+        }
+    }
+
+    @Test
+    fun `positional membership matches the section each cell was seeded under`() {
+        // S1428 reads membership off the rows, so a cell that packs above its own header belongs to the
+        // section before it - the defect S1587 recorded on the device.
+        val placed = LauncherStarterSets.place(smartphoneFullSet(), columns = 4)
+        var seededUnder: String? = null
+        placed.forEach { cell ->
+            if (cell.item.kind == LauncherCellKind.SECTION) {
+                seededUnder = cell.item.target
+                return@forEach
+            }
+            val ownedBy = placed
+                .filter { it.item.kind == LauncherCellKind.SECTION && it.rowIndex <= cell.rowIndex }
+                .maxByOrNull { it.rowIndex }
+                ?.item?.target
+            assertEquals("${cell.item.target} drifted out of its section", seededUnder, ownedBy)
+        }
+    }
+
+    @Test
+    fun `first_screen on a phone carries the resources, not the launcher actions`() {
+        val placed = LauncherStarterSets.place(smartphoneFullSet(), columns = PHONE_COLUMNS)
+        placed.filter { it.item.target.startsWith("res:") }.forEach {
+            assertTrue("${it.item.target} fell below the fold", it.rowIndex < FIRST_SCREEN_ROWS)
+        }
+        val firstAction = placed.first { it.item.target.startsWith("act:") }
+        assertTrue("launcher actions still occupy the first screen", firstAction.rowIndex >= FIRST_SCREEN_ROWS)
+    }
+
+    private fun smartphoneFullSet(): List<LauncherStarterSets.StarterItem> = LauncherStarterSets.itemsFor(
+        DeviceProfileType.PERSONAL_SMARTPHONE,
+        StarterResources(
+            recentId = 1,
+            allAudioId = 2,
+            allImagesId = 3,
+            allVideoId = 4,
+            allDocsId = 5,
+            cameraId = 6,
+        ),
+        allPaddingAvailable,
+        setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
+    )
+
+    /** S1587: the launcher's own actions close the set, under the second header, above the common tail. */
+    private fun sectionTail(profile: DeviceProfileType): List<String> = buildList {
         add("sec:app_functions")
         addAll(
             LauncherActionCatalog.all
                 .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || profile in BLACK_SCREEN_PROFILES }
                 .map { "act:${it.key}" },
         )
-        add("sec:everything_else")
+        addAll(commonTail)
     }
 
     private fun assertNoOverlap(placed: List<LauncherStarterSets.PlacedStarterItem>) {
@@ -407,6 +469,12 @@ class LauncherStarterSetsTest {
     private companion object {
         const val FM_RADIO_PACKAGE = "com.android.fmradio"
         const val MIN_COLUMNS = 3
+
+        /** The reference phone of S1587: 384dp wide at density factor 1.0, so four 96dp columns. */
+        const val PHONE_COLUMNS = 4
+
+        /** Cell rows that fit above the fold on that phone - research `02__first-screen-order.md`. */
+        const val FIRST_SCREEN_ROWS = 7
 
         val BLACK_SCREEN_PROFILES = setOf(
             DeviceProfileType.CAR_HEAD_UNIT,

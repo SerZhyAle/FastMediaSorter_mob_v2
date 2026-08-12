@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorWifiBinding
 import com.sza.fastmediasorter.databinding.ViewNetworkMonitorLinkDetailsBinding
 import com.sza.fastmediasorter.domain.model.networkmonitor.ActiveLink
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkMonitorPermissionManager
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.RadioToggleBinder
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.SignalChartBinder
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.toReasonRes
@@ -31,6 +32,8 @@ class WifiSectionFragment : Fragment() {
         get() = requireNotNull(_binding) { "Binding is valid only between onCreateView and onDestroyView" }
 
     private val viewModel: WifiSectionViewModel by viewModels()
+
+    private val permissionManager = NetworkMonitorPermissionManager(this)
 
     private var radioBinder: RadioToggleBinder? = null
     private var chartBinder: SignalChartBinder? = null
@@ -84,7 +87,9 @@ class WifiSectionFragment : Fragment() {
         val available = entry != null
         binding.wifiDetailsGroup.isVisible = available
         binding.wifiAvailability.isVisible = !available
-        binding.wifiAvailability.setText(state.wifi.availability.toReasonRes())
+        if (!permissionManager.bind(binding.wifiAvailability, state.wifi.availability)) {
+            binding.wifiAvailability.setText(state.wifi.availability.toReasonRes())
+        }
         binding.wifiNetworkValue.text = entry?.ssid ?: unknown()
         binding.wifiFrequencyValue.text = entry?.frequencyMhz?.let {
             getString(R.string.network_monitor_value_mhz, it)

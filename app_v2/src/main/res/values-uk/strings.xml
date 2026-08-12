@@ -3241,4 +3241,7 @@
     <string name="launcher_gadget_map_actions_at">Карта: %1$s. Натисніть, щоб відкрити застосунок карт</string>
     <string name="browse_empty_filtered_out">%1$d файлів приховано налаштуванням максимального розміру файлу.</string>
     <string name="browse_empty_filtered_out_hint">Збільште максимальний розмір файлу в налаштуваннях, щоб побачити їх.</string>
+    <string name="network_monitor_ip_addresses_label">IP-адреси</string>
+    <string name="network_monitor_permission_grant">Дозвіл не надано. Натисніть, щоб надати його.</string>
+    <string name="network_monitor_permission_open_settings">Дозвіл заблоковано. Натисніть, щоб відкрити налаштування програми.</string>
 </resources>

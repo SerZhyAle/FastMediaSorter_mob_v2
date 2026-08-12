@@ -184,9 +184,15 @@ object LauncherStarterSets {
     /**
      * The starter set for [profile]. Items whose id-dependency is null (no last resource, no all-audio
      * resource) or whose feature is unavailable (streams) are skipped, so the desktop never seeds a
-     * dangling cell. Every set opens with the app-functions section over the four launcher actions,
-     * continues past a second header with the clock, and closes with the common tail (favorites, Android
-     * settings, this app), so even an unknown profile lands on a useful desktop.
+     * dangling cell. Every set opens with the everything-else section over the clock, the search and the
+     * content the profile earns, and closes with the app-functions section over the launcher actions and
+     * the common tail (favorites, Android settings, this app), so even an unknown profile lands on a
+     * useful desktop.
+     *
+     * S1587: content leads and the launcher's own actions trail, because the first screen of a phone is
+     * otherwise spent on five service shortcuts while the media resources fall below the fold (owner
+     * ruling, strategic §3.3). The actions stay reachable from the Start menu, which is what makes the
+     * move safe.
      *
      * S1428: the second header is what ends the first section. Membership is positional and the last
      * section on the desktop has no lower bound, so a single header would own every cell below it.
@@ -198,9 +204,7 @@ object LauncherStarterSets {
         installedPackages: Set<String>,
     ): List<StarterItem> {
         val streamsAvailable = routeAvailableInBuild[InternalRouteCatalog.KEY_STREAMS] == true
-        val items = mutableListOf(section(LauncherCellCommand.SECTION_APP_FUNCTIONS))
-        items += launcherActions(profile)
-        items += section(LauncherCellCommand.SECTION_EVERYTHING_ELSE)
+        val items = mutableListOf(section(LauncherCellCommand.SECTION_EVERYTHING_ELSE))
         items += clock()
         // S1566: directly after the clock, never before it - LauncherStarterSetsParityTest reads the first
         // GADGET item of an OTHER-profile set and expects the clock.
@@ -210,6 +214,8 @@ object LauncherStarterSets {
         items += profileItems(profile, resources, streamsAvailable, installedPackages)
         items += commonFeatures(routeAvailableInBuild)
         items += commonThirdPartyApps(installedPackages)
+        items += section(LauncherCellCommand.SECTION_APP_FUNCTIONS)
+        items += launcherActions(profile)
         items += commonTail()
         return items
     }
@@ -323,17 +329,25 @@ object LauncherStarterSets {
      * anchor whose whole `spanW x spanH` footprint is free, so no two footprints overlap. Spans are
      * clamped to the grid width first (so `firstFreeAnchor` can never build an empty column range and
      * spin forever). Pure and unit-tested; see the class KDoc for why it is the sole overlap guarantor.
+     *
+     * S1587: a section header raises the packing floor to its own row, so nothing placed after it can
+     * anchor above it. Without the floor the scan restarts at row 0 for every item and backfills the
+     * gap a shorter group left behind - and since membership is positional (see
+     * [LauncherSectionMembership][com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership]),
+     * an item that lands above its own header belongs to the section before it and collapses with it.
      */
     fun place(items: List<StarterItem>, columns: Int): List<PlacedStarterItem> {
         val cols = columns.coerceAtLeast(1)
         val occupied = mutableSetOf<Long>()
+        var sectionFloor = 0
         return items.map { item ->
             val spanW = item.spanW.coerceIn(1, cols)
             val spanH = item.spanH.coerceAtLeast(1)
-            val (row, col) = firstFreeAnchor(occupied, cols, spanW, spanH)
+            val (row, col) = firstFreeAnchor(occupied, cols, spanW, spanH, sectionFloor)
             for (r in row until row + spanH) {
                 for (c in col until col + spanW) occupied += cellKey(r, c)
             }
+            if (item.kind == LauncherCellKind.SECTION) sectionFloor = row
             PlacedStarterItem(item, row, col, spanW, spanH)
         }
     }
@@ -402,8 +416,14 @@ object LauncherStarterSets {
     ): StarterItem? = candidates.firstOrNull { it in installedPackages }
         ?.let { shortcut(LauncherCellCommand.App(it)) }
 
-    private fun firstFreeAnchor(occupied: Set<Long>, cols: Int, spanW: Int, spanH: Int): Pair<Int, Int> {
-        var row = 0
+    private fun firstFreeAnchor(
+        occupied: Set<Long>,
+        cols: Int,
+        spanW: Int,
+        spanH: Int,
+        floor: Int,
+    ): Pair<Int, Int> {
+        var row = floor
         while (true) {
             for (col in 0..(cols - spanW)) {
                 if (fits(occupied, row, col, spanW, spanH)) return row to col

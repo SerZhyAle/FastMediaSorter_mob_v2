@@ -271,6 +271,23 @@ pwsh -NoProfile -File scripts/quality/audit-shared-state-writers.ps1 -Surface al
 
 `-Surface ui|data|all`, `-Top N`, `-MinWriters N`. Stage 2 hands the JSON plus the agent prompt `scripts/quality/shared-state-audit-prompt.md` to a research agent that adjudicates indirect writers / concurrency and lists survivors as `/spec-draft` candidates.
 
+### Closure facade failure reporting - S1598
+
+`scripts/post-change.ps1` **runs every applicable gate before it gives up**. It used to end the process at the first non-zero child, so a changed set breaking three gates cost three full runs of the facade to discover - 215 failed runs in the week of 2026-08-05, median 8 turns from a failed run to the next one. The tail of a failed run now reads:
+
+```text
+post-change: FAIL (2 gate(s), Kotlin)
+  failed: ticket-log-audit (exit 1)
+      repro: pwsh -NoProfile -File scripts/quality/assert-no-ticket-logs.ps1
+  failed: neuroslop-gate (exit 1)
+      repro: pwsh -NoProfile -File scripts/quality/assert-neuroslop.ps1 -Gate -ChangedFiles "<your,files>"
+  Nothing was written: no changelog row, no catalog sync. Fix the above and re-run.
+```
+
+What did **not** change: exit codes stay `0` passed / `1` a gate failed / `2` could not verify, and a failed run still writes nothing - the barrier sits before `catalog-sync` and `dev-log`, so "there is a changelog row" still means "the closure passed". `detekt-preflight` still suppresses the whole-module `detekt-gate` when it fails, since it already ran the real analyser over the same files; the gate then reports `SKIP` naming the preflight rather than pretending it judged.
+
+Each failed gate prints two extra lines - `repro:`, the command that runs that gate **alone**, and `fix:`, one sentence on what to do with the finding. Both come from `scripts/quality/gate-recovery-hints.psd1`, keyed by the gate label exactly as the facade prints it. Registering a new gate means adding an entry there, never editing the facade's output logic; `scripts/quality/assert-gate-hints-sync.ps1` (in `.\a.ps1 fg`) fails when a label has no entry or an entry names no label, because a missing hint is otherwise invisible until the moment that gate fails.
+
 ### Static analysis (detekt + ktlint) - S0720
 
 A standalone static gate over Kotlin sources - detekt's code-smell/complexity rules plus the ktlint formatting ruleset. It is deliberately NOT wired into `assemble*`, so it never changes the runtime artifact or slows a normal build. Runs lexically (no type resolution), so it is fast and needs no full compile.
@@ -292,9 +309,38 @@ Ratchet model: each module has a committed baseline freezing every pre-existing 
 - Baselines: `config/detekt/baseline-app_v2.xml`, `config/detekt/baseline-wear.xml`.
 - Plugin: applied per-subproject in the root `build.gradle.kts` (`subprojects { }`), detekt `1.23.8` + `detekt-formatting`.
 
-**Detekt-clean-first authoring tips (S0826).** Write touched `.kt` to pass this gate on the first build, not the second:
-- Keep log/probe lines `<=120` chars (wrap args or shorten) - detekt's line-length rule fires on long `Timber.d(...)` calls as readily as on any other statement.
+**Scoped preflight (S1595) - the cheap step that now decides.** `post-change.ps1` runs
+`scripts/quality/detekt-preflight.ps1` before it starts the gradle gate, and since S1595 that step
+runs the **real** analyser over only the changed files (`scripts/quality/detekt-scoped.ps1`,
+detekt's CLI with the same config, the same `--build-upon-default-config` and the module's own
+baseline). Measured 2.1 s for one file, 3.1 s as the `[detekt-preflight]` step; it takes no
+`BUILD.LOCK`.
+
+```powershell
+# Judge just these files with the real analyser - no gradle, no lock
+pwsh -NoProfile -File scripts/quality/detekt-scoped.ps1 -ChangedFiles "a.kt,b.kt"
+```
+
+Three outcomes, and the third is the one that matters:
+
+- **exit 0** - the analyser ran and found nothing new in those files.
+- **exit 1** - it ran and found something; every finding prints with rule, line and message, and
+  the step is FATAL, so the closure stops before the ~87 s gradle gate is even started.
+- **exit 2 - could not verify.** The analyser is assembled from the gradle dependency cache, so a
+  version bump can break it. The preflight then prints a `DEGRADED` banner, falls back to its old
+  three-rule lexical scan, and **exits 0 whatever that scan finds** - a lexical guess must never
+  abort a closure. The gradle gate still runs behind it and still decides.
+
+Why it replaced the lexical emulation: measured over the transcript corpus, the three hand-written
+rules fired on 35.7% of attributable gate failures and fully covered 13.9%, so 86% of failures paid
+the round-trip anyway; nine hand-listed rules would reach only 48.1%; and the size rules cannot be
+reproduced lexically at all. Evidence in `PLAN/S1595_detekt-preflight-coverage-gap/research/`.
+
+**Detekt-clean-first authoring tips (S0826).** Write touched `.kt` to pass this gate on the first build, not the second. The preflight above now names any violation in seconds, so these are about not writing one in the first place:
+- Keep log/probe lines `<=120` chars (wrap args or shorten) - detekt's line-length rule fires on long `Timber.d(...)` calls as readily as on any other statement. Note that a long line trips **two** rules, `style:MaxLineLength` and ktlint's `MaximumLineLength`, and neither can be auto-corrected: no rule in this stack reflows a line.
 - Avoid bare numeric literals - reuse `TimeUnit`, a companion `const`, or an existing const; `ignoreNumbers` in the ruleset config only covers -1/0/1/2.
+- Keep functions to at most two `return` statements. `ReturnCount` was the second-largest cause of gate failures in the S1595 corpus (22) and is invisible to the old lexical scan.
+- Put each argument on its own line once a call does not fit one line - `ArgumentListWrapping` was the fourth-largest cause (15), and one wide call typically produces several findings at once.
 - Never add `@Suppress` to a method that already has a baselined finding - it shifts that finding's baseline signature and can surface a second, unrelated one (e.g. `FunctionNaming`) as a false "new" hit.
 
 **Baseline-drift diagnostic (S1334).** A baseline entry is keyed to the full, whitespace-collapsed text of the code element it froze - if that element's shape changes (a parameter added, an import reordered), the entry silently stops matching. The finding it used to suppress does not disappear: it lies dormant until an unrelated change to the same file trips the diff-scoped gate, which then blames that unrelated ticket. `scripts/quality/audit-detekt-baseline-drift.ps1` surfaces this class of staleness on demand:

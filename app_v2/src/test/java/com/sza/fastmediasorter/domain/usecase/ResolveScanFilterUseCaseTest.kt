@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -33,10 +34,11 @@ class ResolveScanFilterUseCaseTest {
 
     private fun resource(
         types: Set<MediaType> = setOf(MediaType.IMAGE),
-        allFiles: Boolean = false
+        allFiles: Boolean = false,
+        path: String = LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS
     ) = MediaResource(
         name = "Camera Photos",
-        path = "virtual://camera_photos",
+        path = path,
         type = ResourceType.LOCAL,
         supportedMediaTypes = types,
         allFiles = allFiles
@@ -44,6 +46,9 @@ class ResolveScanFilterUseCaseTest {
 
     private fun useCase(capabilities: MediaCapabilities = allCapabilities) =
         ResolveScanFilterUseCase(capabilities)
+
+    private fun mediaTypesFor(path: String, settings: AppSettings): Set<MediaType> =
+        useCase()(resource(types = emptySet(), path = path), settings).mediaTypes
 
     @Test
     fun `carries the user size ceiling instead of an unbounded one`() {
@@ -66,17 +71,65 @@ class ResolveScanFilterUseCaseTest {
     }
 
     @Test
-    fun `yields no types when the resource snapshot went stale against the settings`() {
+    fun `aggregate virtual resource follows live settings instead of stale snapshot`() {
         val settings = AppSettings(supportImages = true, supportVideos = false, supportGifs = false)
 
         val filter = useCase()(resource(types = setOf(MediaType.VIDEO)), settings)
+
+        assertEquals(setOf(MediaType.IMAGE), filter.mediaTypes)
+    }
+
+    @Test
+    fun `ordinary resource still intersects its stale snapshot with settings`() {
+        val settings = AppSettings(supportImages = true, supportVideos = false, supportGifs = false)
+
+        val filter = useCase()(
+            resource(
+                types = setOf(MediaType.VIDEO),
+                path = "/storage/emulated/0/Pictures"
+            ),
+            settings
+        )
 
         assertTrue(filter.mediaTypes.isEmpty())
     }
 
     @Test
+    fun `all aggregate families derive their types from current settings`() {
+        val settings = AppSettings()
+
+        assertEquals(
+            setOf(MediaType.AUDIO),
+            mediaTypesFor(LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO, settings)
+        )
+        assertEquals(
+            setOf(MediaType.VIDEO),
+            mediaTypesFor(LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO, settings)
+        )
+        assertEquals(
+            setOf(MediaType.IMAGE, MediaType.GIF),
+            mediaTypesFor(LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES, settings)
+        )
+        assertEquals(
+            setOf(MediaType.IMAGE, MediaType.GIF, MediaType.VIDEO),
+            mediaTypesFor(LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS, settings)
+        )
+        assertEquals(
+            setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT),
+            mediaTypesFor(LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS, settings)
+        )
+    }
+
+    @Test
     fun `allFiles resource ignores the snapshot and takes every type the flavor allows`() {
-        val filter = useCase()(resource(types = setOf(MediaType.IMAGE), allFiles = true), AppSettings())
+        val filter = useCase()(
+            resource(
+                types = setOf(MediaType.IMAGE),
+                allFiles = true,
+                path = LocalMediaScanner.VIRTUAL_PATH_RECENT
+            ),
+            AppSettings()
+        )
 
         assertEquals(MediaType.entries.toSet(), filter.mediaTypes)
     }
@@ -86,7 +139,10 @@ class ResolveScanFilterUseCaseTest {
         val photosLike = allCapabilities.copy(supportsVideo = false, supportsAudio = false)
         val settings = AppSettings(allFiles = true)
 
-        val filter = useCase(photosLike)(resource(allFiles = true), settings)
+        val filter = useCase(photosLike)(
+            resource(allFiles = true, path = LocalMediaScanner.VIRTUAL_PATH_RECENT),
+            settings
+        )
 
         assertTrue(MediaType.VIDEO !in filter.mediaTypes)
         assertTrue(MediaType.AUDIO !in filter.mediaTypes)

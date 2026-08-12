@@ -1311,9 +1311,13 @@ if (isNoLegalBuild) {
                     // Still on nightly - PyPI stable remains 2026.7.4, older than the pinned nightly
                     // date, so it does not supersede. Freshest nightly at ship time; needs an on-device
                     // link-download to verify extraction.
+                    // 2026-08-12 (pre-release refresh): bumped 2026.07.23.234303 → 2026.08.04.234419.
+                    // Still on nightly - PyPI stable remains 2026.7.4, older than the pinned nightly
+                    // date, so it does not supersede. Freshest nightly at ship time; needs an on-device
+                    // link-download to verify extraction.
                     install(
                         "yt-dlp @ https://github.com/yt-dlp/yt-dlp-nightly-builds/" +
-                            "releases/download/2026.07.23.234303/yt-dlp.tar.gz",
+                            "releases/download/2026.08.04.234419/yt-dlp.tar.gz",
                     )
                 }
             }

@@ -77,6 +77,8 @@ private class WeatherGadgetView(
 
     private fun showSnapshot(snapshot: WeatherSnapshot, stale: Boolean) {
         binding.gadgetWeatherIcon.setImageResource(iconFor(snapshot.condition, snapshot.isDay))
+        binding.gadgetWeatherIcon.isVisible = true
+        binding.gadgetWeatherCaption.isVisible = false
         binding.gadgetWeatherTemperature.text = formatTemperature(snapshot)
         binding.gadgetWeatherPlace.text = snapshot.location.label
         binding.gadgetWeatherPlace.isVisible = true
@@ -90,7 +92,13 @@ private class WeatherGadgetView(
     private fun showMessage(messageRes: Int) {
         binding.gadgetWeatherMessage.setText(messageRes)
         binding.gadgetWeatherMessage.isVisible = true
-        binding.gadgetWeatherPlace.isVisible = binding.gadgetWeatherTemperature.text.isNotEmpty()
+        val hasReading = binding.gadgetWeatherTemperature.text.isNotEmpty()
+        binding.gadgetWeatherPlace.isVisible = hasReading
+        // S1587: with no reading the icon holds a third of the card for an empty image, which is what
+        // pushed the message text into the middle of a first-run card; the name takes that role instead.
+        binding.gadgetWeatherIcon.isVisible = hasReading
+        binding.gadgetWeatherCaption.isVisible = !hasReading
+        Timber.d("S1587: weather card message state, hasReading=$hasReading")
     }
 
     private fun formatTemperature(snapshot: WeatherSnapshot): String {

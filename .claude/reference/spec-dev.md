@@ -11,15 +11,14 @@ Sections:
 5. Android string edit shortcut - flag catalogue (Process step 7b)
 6. ChangeType selection (Process step 10)
 7. Audit severity handling (phase boundary)
-8. Session snapshot arguments (phase boundary)
-9. Verify-smoke verdicts (after all phases)
-10. Finalization - `close-and-log.ps1` (after all phases)
-11. Device-test gate - chat notes (after all phases)
-12. Step Log format (Phase File Conventions)
-13. Landscape parity - the no-variant branch (Constraints)
-14. Debug verification tags - prefix reservation (Constraints)
-15. Implementation constraints - full text (Constraints)
-16. Spec catalog hooks - status transition commands (Spec Catalog hooks)
+8. Verify-smoke verdicts (after all phases)
+9. Finalization - `close-and-log.ps1` (after all phases)
+10. Device-test gate - chat notes (after all phases)
+11. Step Log format (Phase File Conventions)
+12. Landscape parity - the no-variant branch (Constraints)
+13. Debug verification tags - prefix reservation (Constraints)
+14. Implementation constraints - full text (Constraints)
+15. Spec catalog hooks - status transition commands (Spec Catalog hooks)
 
 ---
 
@@ -89,16 +88,6 @@ This is a fast self-review scoped to one phase, not a replacement for `/spec-che
 
 ---
 
-## Session snapshot arguments
-
-Open before calling `scripts/agent_continuity/session-snapshot.ps1` at a phase boundary.
-
-Pass `-Ticket <Sxxxx>` (active spec id), `-Goal "<phase title>"` (just-finished phase title), `-FilesTouched` (from this phase's `Files Touched` table), `-NextStep "<cursor>"` (next step printed in chat, or `phase-complete` when whole phase was the final one).
-
-`-FilesTouched` takes **a comma-joined string** when the script is run the usual way, `pwsh -NoProfile -File ...`: that invocation hands the script flat strings, so a real `@(a, b, c)` array arrives as separate tokens. Until 2026-08-06 those extra tokens bound to `-Decisions` and `-Blockers` by declaration order and the script still exited 0, writing a snapshot that named one file and filed the rest under the wrong headings (found in S0429). The script now binds by name only, so that shape fails loudly instead - pass `-FilesTouched "a.kt,b.kt,c.kt"`, or call it through the `&` operator where a genuine array survives.
-
----
-
 ## Verify-smoke verdicts
 
 Open before reading the `/verify --build` verdict line, under `--verify-smoke`.
@@ -164,6 +153,14 @@ Open when creating a phase file's `## Step Log` for the first time.
 
 - <YYYY-MM-DD> - Verification N/N PASS. Files: path/Foo.kt (+N LOC). Dev log recorded.
 ```
+
+Both parts are written by one call, not typed:
+
+```powershell
+pwsh -NoProfile -File scripts/spec_catalog/plan-tick.ps1 -Id <Sxxxx> -Phase <NN> -Steps 3,4,5 -State Done -Log "<YYYY-MM-DD> - Verification N/N PASS. Files: .."
+```
+
+`-Note` is the short clause that may trail the marker; `-Log` is the account of the run that goes in the Step Log. They are separate parameters because one value serving both forced a paragraph into the marker.
 
 ---
 

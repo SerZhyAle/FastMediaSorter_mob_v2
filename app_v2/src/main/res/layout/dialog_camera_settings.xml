@@ -4,203 +4,211 @@
      S0924: setting rows live in a ColumnFlowLayout that switches to 2 columns in landscape (driven
      by CameraSettingsDialogRotationManager); title + action row stay full-width outside it.
      S1418: the four selector rows use sdr_inline so label and value share one line. The slider rows
-     (exposure/ISO/shutter) keep the stacked shape - a slider needs the full width under its label. -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+     (exposure/ISO/shutter) keep the stacked shape - a slider needs the full width under its label.
+     S1590: only the settings flow scrolls; title and action row are pinned outside the ScrollView.
+     In the rotated landscape presentation the content extent is the card's SHORT screen axis, which
+     two columns of rows already fill - turning on manual ISO + shutter added two slider rows and
+     pushed the tail of the content (the shutter row, then Cancel/Apply themselves) past the card
+     edge with nothing left to scroll them back. The scroll region now absorbs that overflow.
+     wrap_content + weight, not 0dp + weight: under this dialog's AT_MOST height spec a 0dp weighted
+     child collapses to zero, while wrap_content shrinks only by the overflow and stays untouched in
+     portrait, where nothing overflows. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/padding_normal">
 
-    <LinearLayout
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="@dimen/padding_normal">
+        android:layout_marginBottom="@dimen/margin_small"
+        android:text="@string/camera_settings_title"
+        android:textSize="@dimen/text_size_title_dialog"
+        android:textStyle="bold" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:text="@string/camera_settings_title"
-            android:textSize="@dimen/text_size_title_dialog"
-            android:textStyle="bold" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
 
         <com.sza.fastmediasorter.ui.common.widget.ColumnFlowLayout
             android:id="@+id/cameraSettingsFlow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowCameraTimer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:sdr_inline="true"
-            app:sdr_title="@string/camera_setting_timer" />
-
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowCameraGrid"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:str_title="@string/camera_setting_grid" />
-
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowCameraAspect"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:sdr_inline="true"
-            app:sdr_title="@string/camera_setting_aspect" />
-
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowCameraResolution"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:sdr_inline="true"
-            app:sdr_title="@string/camera_setting_resolution" />
-
-        <LinearLayout
-            android:id="@+id/rowCameraExposure"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:orientation="vertical">
-
-            <LinearLayout
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowCameraTimer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_marginBottom="@dimen/margin_small"
+                app:sdr_inline="true"
+                app:sdr_title="@string/camera_setting_timer" />
 
-                <TextView
-                    android:layout_width="0dp"
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowCameraGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_title="@string/camera_setting_grid" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowCameraAspect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:sdr_inline="true"
+                app:sdr_title="@string/camera_setting_aspect" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowCameraResolution"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:sdr_inline="true"
+                app:sdr_title="@string/camera_setting_resolution" />
+
+            <LinearLayout
+                android:id="@+id/rowCameraExposure"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/camera_setting_exposure"
-                    android:textStyle="bold" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/tvCameraExposureValue"
-                    android:layout_width="wrap_content"
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/camera_setting_exposure"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvCameraExposureValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/sliderCameraExposure"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
-            <com.google.android.material.slider.Slider
-                android:id="@+id/sliderCameraExposure"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
-
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowCameraWhiteBalance"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:sdr_inline="true"
-            app:sdr_title="@string/camera_setting_white_balance" />
-
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowCameraManualSensor"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:str_title="@string/camera_setting_manual_sensor" />
-
-        <LinearLayout
-            android:id="@+id/layoutCameraIsoControls"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:orientation="vertical">
-
-            <LinearLayout
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowCameraWhiteBalance"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_marginBottom="@dimen/margin_small"
+                app:sdr_inline="true"
+                app:sdr_title="@string/camera_setting_white_balance" />
 
-                <TextView
-                    android:layout_width="0dp"
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowCameraManualSensor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_title="@string/camera_setting_manual_sensor" />
+
+            <LinearLayout
+                android:id="@+id/layoutCameraIsoControls"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/camera_setting_iso"
-                    android:textStyle="bold" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/tvCameraIsoValue"
-                    android:layout_width="wrap_content"
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/camera_setting_iso"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvCameraIsoValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/sliderCameraIso"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
-            <com.google.android.material.slider.Slider
-                android:id="@+id/sliderCameraIso"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/layoutCameraShutterControls"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:orientation="vertical">
-
             <LinearLayout
+                android:id="@+id/layoutCameraShutterControls"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_marginBottom="@dimen/margin_small"
+                android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/camera_setting_shutter"
-                    android:textStyle="bold" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/tvCameraShutterValue"
-                    android:layout_width="wrap_content"
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/camera_setting_shutter"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvCameraShutterValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/sliderCameraShutter"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
-            <com.google.android.material.slider.Slider
-                android:id="@+id/sliderCameraShutter"
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowCameraHdr"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
-
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowCameraHdr"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:str_title="@string/camera_setting_hdr" />
-
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_title="@string/camera_setting_hdr" />
         </com.sza.fastmediasorter.ui.common.widget.ColumnFlowLayout>
+    </ScrollView>
 
-        <LinearLayout
-            android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCameraSettingsCancel"
+            style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_small"
-            android:gravity="end"
-            android:orientation="horizontal">
+            android:text="@string/cancel" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCameraSettingsCancel"
-                style="@style/Widget.FastMediaSorter.Button.DialogCancel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/cancel" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCameraSettingsApply"
-                style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/dialog_action_button_gap"
-                android:text="@string/apply" />
-        </LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCameraSettingsApply"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_action_button_gap"
+            android:text="@string/apply" />
     </LinearLayout>
-</ScrollView>
+</LinearLayout>

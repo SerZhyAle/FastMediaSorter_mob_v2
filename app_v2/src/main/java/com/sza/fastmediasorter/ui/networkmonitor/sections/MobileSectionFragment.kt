@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorMobileBinding
 import com.sza.fastmediasorter.databinding.ViewNetworkMonitorSignalChartBinding
 import com.sza.fastmediasorter.domain.model.networkmonitor.MonitorSection
 import com.sza.fastmediasorter.domain.model.networkmonitor.SimEntry
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkMonitorPermissionManager
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.SignalChartBinder
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.startFirstAvailableSystemSurface
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.toReasonRes
@@ -37,6 +38,8 @@ class MobileSectionFragment : Fragment() {
         get() = requireNotNull(_binding) { "Binding is valid only between onCreateView and onDestroyView" }
 
     private val viewModel: MobileSectionViewModel by viewModels()
+
+    private val permissionManager = NetworkMonitorPermissionManager(this)
 
     private var chartBinders: List<SignalChartBinder> = emptyList()
 
@@ -93,7 +96,9 @@ class MobileSectionFragment : Fragment() {
     private fun renderSims(sims: MonitorSection<List<SimEntry>>) {
         val entries = sims.data.orEmpty()
         binding.mobileSimsAvailability.isVisible = entries.isEmpty()
-        binding.mobileSimsAvailability.setText(sims.availability.toReasonRes())
+        if (!permissionManager.bind(binding.mobileSimsAvailability, sims.availability)) {
+            binding.mobileSimsAvailability.setText(sims.availability.toReasonRes())
+        }
         renderSim(binding.mobileSim1Group, binding.mobileSim1Label, binding.mobileSim1Value, entries.getOrNull(0))
         renderSim(binding.mobileSim2Group, binding.mobileSim2Label, binding.mobileSim2Value, entries.getOrNull(1))
     }

@@ -23,7 +23,11 @@ data class NetworkPathNode(
     val label: String,
     val value: String?,
     val reachable: Boolean,
-)
+) {
+    /** Visible, one-line form. The fragment separately supplies the unabridged accessibility text. */
+    val displayText: String
+        get() = value?.takeIf(String::isNotBlank)?.let { "$label: $it" } ?: label
+}
 
 /**
  * S1433: draws the device -> gateway -> DNS -> internet chain as boxes joined by connectors.
@@ -71,13 +75,8 @@ class NetworkPathDiagramView @JvmOverloads constructor(
         pathEffect = dash()
     }
 
-    private val labelPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = LABEL_SP * density
-        textAlign = Paint.Align.CENTER
-    }
-
-    private val valuePaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = VALUE_SP * density
+    private val nodeTextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = NODE_TEXT_SP * density
         textAlign = Paint.Align.CENTER
     }
 
@@ -90,8 +89,7 @@ class NetworkPathDiagramView @JvmOverloads constructor(
         absentNodePaint.color = variant
         linkPaint.color = outline
         absentLinkPaint.color = variant
-        labelPaint.color = themeColor(MaterialR.attr.colorOnSurface)
-        valuePaint.color = variant
+        nodeTextPaint.color = themeColor(MaterialR.attr.colorOnSurface)
     }
 
     /** Replaces the whole chain; the section rebuilds it rather than mutating one hop. */
@@ -161,13 +159,8 @@ class NetworkPathDiagramView @JvmOverloads constructor(
         canvas.drawRoundRect(bounds, radius, radius, if (node.reachable) nodePaint else absentNodePaint)
         val inner = bounds.width() - INNER_PADDING_DP * density * 2f
         val centerX = bounds.centerX()
-        canvas.drawText(fit(node.label, labelPaint, inner), centerX, bounds.centerY(), labelPaint)
-        canvas.drawText(
-            fit(node.value.orEmpty(), valuePaint, inner),
-            centerX,
-            bounds.centerY() + valuePaint.textSize + VALUE_GAP_DP * density,
-            valuePaint,
-        )
+        val baseline = bounds.centerY() - (nodeTextPaint.ascent() + nodeTextPaint.descent()) / 2f
+        canvas.drawText(fit(node.displayText, nodeTextPaint, inner), centerX, baseline, nodeTextPaint)
     }
 
     /** A hop is joined to the previous one with a solid line only when both ends actually answered. */
@@ -205,9 +198,7 @@ class NetworkPathDiagramView @JvmOverloads constructor(
         const val CONNECTOR_DP = 16f
         const val CORNER_DP = 8f
         const val INNER_PADDING_DP = 6f
-        const val LABEL_SP = 12f
-        const val VALUE_SP = 11f
-        const val VALUE_GAP_DP = 2f
+        const val NODE_TEXT_SP = 14f
         const val DASH_ON_DP = 4f
         const val DASH_OFF_DP = 3f
 

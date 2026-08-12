@@ -24,6 +24,7 @@
       - assert-backup-rules-consistent (S1552 API 31+ extraction rules vs the pre-31 backup rules)
       - assert-launcher-reset-coverage (S1540 launcher settings vs the launcher reset's field list)
       - assert-unreferenced-strings   (S1568 string keys nothing under <module>/src references)
+      - assert-hook-inventory        (S1604 registered Claude Code hooks vs docs/AGENT_HOOKS.md)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
@@ -156,6 +157,16 @@ $gates = [ordered]@{
     # returns half the launcher to defaults and leaves the rest as it was - an inconsistent store, not
     # a cosmetic miss. Compares two source files as text, no gradle daemon.
     'assert-launcher-reset-coverage.ps1'        = @('-Quiet')
+    # S1598: the closure facade prints a recovery hint under every failed gate, keyed by the
+    # gate label. A label the hint registry never heard of fails mute, and the gap is invisible
+    # until that gate next fails - which is precisely the moment the hint was needed. Reads two
+    # files as text, no gradle daemon.
+    'assert-gate-hints-sync.ps1'                = @()
+    # S1604: five of the eleven registered hooks were documented nowhere an agent reads, and two
+    # of those alter the tool call itself - one refuses a Grep/Glob, one rewrites Read input. An
+    # agent refused by an undocumented guard cannot find out what refused it. Compares the two
+    # settings files against docs/AGENT_HOOKS.md as text, no gradle daemon.
+    'assert-hook-inventory.ps1'                 = @()
 }
 
 # S1338: these five accept -ChangedFiles and used to be invoked with no arguments at

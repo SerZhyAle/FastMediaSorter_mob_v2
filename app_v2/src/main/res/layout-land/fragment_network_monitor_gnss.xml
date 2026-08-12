@@ -92,81 +92,6 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
-
-                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
-
-                        <TextView
-                            style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
-                            android:layout_marginStart="0dp"
-                            android:layout_marginTop="0dp"
-                            android:text="@string/network_monitor_gnss_position_heading"
-                            android:textSize="@dimen/text_size_normal" />
-
-                        <TextView
-                            android:id="@+id/gnssPositionAvailability"
-                            style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
-                            android:visibility="gone"
-                            tools:text="@string/network_monitor_status_no_network"
-                            tools:visibility="visible" />
-
-                        <LinearLayout
-                            android:id="@+id/gnssPositionGroup"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
-
-                            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
-
-                                <TextView
-                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
-                                    android:text="@string/network_monitor_gnss_latitude_label" />
-
-                                <TextView
-                                    android:id="@+id/gnssLatitudeValue"
-                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
-                                    tools:text="50.45012" />
-                            </LinearLayout>
-
-                            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
-
-                                <TextView
-                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
-                                    android:text="@string/network_monitor_gnss_longitude_label" />
-
-                                <TextView
-                                    android:id="@+id/gnssLongitudeValue"
-                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
-                                    tools:text="30.52340" />
-                            </LinearLayout>
-
-                            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
-
-                                <TextView
-                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
-                                    android:text="@string/network_monitor_gnss_accuracy_label" />
-
-                                <TextView
-                                    android:id="@+id/gnssAccuracyValue"
-                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
-                                    tools:text="±6 m" />
-                            </LinearLayout>
-
-                            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
-
-                                <TextView
-                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
-                                    android:text="@string/network_monitor_gnss_fix_time_label" />
-
-                                <TextView
-                                    android:id="@+id/gnssFixTimeValue"
-                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
-                                    tools:text="14:21" />
-                            </LinearLayout>
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
             <LinearLayout
@@ -226,5 +151,81 @@
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
         </LinearLayout>
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/network_monitor_gnss_position_heading"
+                    android:textSize="@dimen/text_size_normal" />
+
+                <TextView
+                    android:id="@+id/gnssPositionAvailability"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:visibility="gone"
+                    tools:text="@string/network_monitor_status_no_network"
+                    tools:visibility="visible" />
+
+                <LinearLayout
+                    android:id="@+id/gnssPositionGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                        <TextView
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                            android:text="@string/network_monitor_gnss_latitude_label" />
+
+                        <TextView
+                            android:id="@+id/gnssLatitudeValue"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                            tools:text="50.45012" />
+                    </LinearLayout>
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                        <TextView
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                            android:text="@string/network_monitor_gnss_longitude_label" />
+
+                        <TextView
+                            android:id="@+id/gnssLongitudeValue"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                            tools:text="30.52340" />
+                    </LinearLayout>
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                        <TextView
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                            android:text="@string/network_monitor_gnss_accuracy_label" />
+
+                        <TextView
+                            android:id="@+id/gnssAccuracyValue"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                            tools:text="±6 m" />
+                    </LinearLayout>
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                        <TextView
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                            android:text="@string/network_monitor_gnss_fix_time_label" />
+
+                        <TextView
+                            android:id="@+id/gnssFixTimeValue"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                            tools:text="14:21" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </ScrollView>

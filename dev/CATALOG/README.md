@@ -183,6 +183,15 @@ scope. Definitions of the named sectors live in `sectors.json`; the hook is
 `app_v2.jsonl` or `wear.jsonl` directly, or use `rg` if the target is not a
 catalogued Kotlin symbol. Keep this path narrow and deterministic.
 
+**Narrow the file filter, not the directory (S1599).** "Narrow" above means `glob`
+and `type` - which files to read. Narrowing by `path` is what produces the misses:
+of 651 empty `Grep` results in the week of 2026-08-05, **93.9% carried an explicit
+`path` and an unscoped `Grep` missed zero times**, because a symbol usually lives one
+directory above where it was expected. A `Grep` that finds nothing under a `path` now
+gets a `PostToolUse` note when the same pattern hits elsewhere
+(`.claude/hooks/observe-empty-grep.ps1`), but the note only fires on the empty result -
+not narrowing by directory in the first place is still cheaper.
+
 **Read/write rule:** direct `.jsonl` reads are allowed for narrow lookup, but
 writes remain script-only through `scan.ps1`, `set.ps1`, and `remove.ps1`.
 Never hand-edit catalogue records.

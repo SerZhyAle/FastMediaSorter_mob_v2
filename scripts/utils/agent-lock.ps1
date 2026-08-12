@@ -155,6 +155,24 @@ function Get-AgentLockQueueDir {
     return $queueDir
 }
 
+function Get-AgentSessionId {
+    <#
+    .SYNOPSIS
+        Identity of the calling agent session, never empty.
+    .DESCRIPTION
+        No session id in the environment - a plain shell, a cron run, a nested tool - falls back
+        to a process-scoped identity so the caller is still distinguishable. Liveness for such an
+        identity degrades to its wall-clock ceiling, which is why this returns the fallback rather
+        than $null: a caller that must name someone is better served by "pid-1234" than by blank.
+
+        Added by S1596 as the shared accessor for an idiom that had been inlined four times.
+        Existing call sites are left as they are - converting them is a separate change.
+    #>
+    $sessionId = $env:CLAUDE_CODE_SESSION_ID
+    if ([string]::IsNullOrWhiteSpace($sessionId)) { return "pid-$PID" }
+    return $sessionId
+}
+
 function Get-AgentSessionTranscriptPath {
     <#
     .SYNOPSIS

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -29,11 +30,13 @@ class ResolveScanFilterUseCase @Inject constructor(
 ) {
 
     operator fun invoke(resource: MediaResource, settings: AppSettings): ScanFilter {
-        val requestedTypes = if (resource.allFiles) {
-            MediaType.entries.toSet()
-        } else {
-            resource.supportedMediaTypes.intersect(settings.getGloballyEnabledMediaTypes())
-        }
+        val globallyEnabledTypes = settings.getGloballyEnabledMediaTypes()
+        val requestedTypes = aggregateVirtualTypes(resource.path, globallyEnabledTypes)
+            ?: if (resource.allFiles) {
+                MediaType.entries.toSet()
+            } else {
+                resource.supportedMediaTypes.intersect(globallyEnabledTypes)
+            }
         return ScanFilter(
             mediaTypes = applyFlavorMediaTypeRestrictions(requestedTypes),
             sizeFilter = SizeFilter(
@@ -59,6 +62,30 @@ class ResolveScanFilterUseCase @Inject constructor(
             audioSizeMax = Long.MAX_VALUE
         )
     )
+
+    private fun aggregateVirtualTypes(
+        path: String,
+        globallyEnabledTypes: Set<MediaType>
+    ): Set<MediaType>? {
+        val aggregateTypes = when (path) {
+            LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO -> setOf(MediaType.AUDIO)
+            LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO -> setOf(MediaType.VIDEO)
+            LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES -> setOf(MediaType.IMAGE, MediaType.GIF)
+            LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS -> setOf(
+                MediaType.IMAGE,
+                MediaType.GIF,
+                MediaType.VIDEO
+            )
+            LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS -> setOf(
+                MediaType.TEXT,
+                MediaType.PDF,
+                MediaType.EPUB,
+                MediaType.OFFICE_DOCUMENT
+            )
+            else -> return null
+        }
+        return aggregateTypes.intersect(globallyEnabledTypes)
+    }
 
     /**
      * Drop media types the current product flavor cannot handle (photos has no video/audio, lite has

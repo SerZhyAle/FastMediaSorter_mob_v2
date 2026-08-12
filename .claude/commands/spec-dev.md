@@ -56,15 +56,17 @@ For each step in plan order:
    - Per CLAUDE.md Rule 2 (1500 LOC file size limit) - obey it as written; a projected post-edit size that crosses it → abort: "line budget violation, split via Manager pattern."
    - File in `res/layout/` → per CLAUDE.md Rule 11 (layout-land parity) - obey it as written. If the landscape variant exists and is NOT listed in this step's `Files Touched` → abort: "landscape counterpart `res/layout-land/<file>.xml` not covered in step - update `Files Touched` and prompt before proceeding."
    - **Flavor isolation guard:** see Hard Stops #14 - abort on a `src/main/java/**` flavor guard; do not silently rewrite, push back through `/spec-update`.
-6. **Flip step to `[~] in progress`** in phase file.
+6. **Flip step to `[~] in progress`** with `pwsh -NoProfile -File scripts/spec_catalog/plan-tick.ps1 -Id <Sxxxx> -Phase <NN> -Steps <M> -State InProgress`. Never hand-edit the marker: the tool keeps the phase file, its `**Steps done:**` header and the INDEX row in step, and it refuses when those already disagree.
 6a. **CODE.LOCK (CLAUDE.md Rule 23).** Only when this step touches `app_v2/`/`wear/` source (`.kt`/`.java`/`.xml`/`build.gradle.kts`) - run `pwsh -NoProfile -File scripts/utils/enter-code-lock.ps1 -Reason "/spec-dev <Sxxxx> step <NN.M>"` before the edit. Skip for doc/spec-only steps; released automatically by `post-change.ps1` at step 10. It warns → `.claude/reference/spec-dev.md` §CODE.LOCK warnings before reacting.
 7. **Apply the edit** - `Edit` or `Write` per Prompt. Scope strictly to what prompt specifies: no surrounding refactors, no extra comments, no unrelated import cleanup.
 7a. **Communication policy check.** If edit adds/changes user-visible strings, verify against `docs/COMMUNICATION_POLICY.md` §2 and §6 before marking step done.
 7b. **Android string edit shortcut.** For `<string>` work prefer `pwsh -NoProfile -File scripts/utils/set-android-string.ps1` (byte-preserving) over manual XML editing. Use manual edits only for `plurals`, `string-array`, comments, regrouping, or bulk rewrites. `-Action set|add|get|remove|rename|list` flags before the first call: `.claude/reference/spec-dev.md` §Android string edit shortcut - never guess them.
 8. **Run `Verification:` predicates** (Glob/Grep/value equality/size checks).
 9. **Outcome:**
-   - All predicates PASS → flip to `[x] done`. Append Step Log entry.
+   - All predicates PASS → `plan-tick.ps1 -Id <Sxxxx> -Phase <NN> -Steps <M> -State Done -Log "<what the run proved>"`, which flips the marker, appends the Step Log entry and recomputes both counters in one call. **Consecutive steps finished in the same pass are ticked in one call** - `-Steps 3,4,5` - rather than one call each; that batching is the whole point (S1596 measured 1 437 bookkeeping edits in a week, about 61% of all plan-file edits).
    - Any predicate FAIL → leave at `[~] in progress`. Append FAIL note. **Hard stop.**
+
+   The tool writes state; it judges nothing. A step reaches `Done` only when every Verification predicate returned PASS in the current run - passing `-State Done` for a step that did not is exactly the false tick the tool refuses to make easy, which is why it has no whole-phase form.
 10. **Run mechanical post-change closure** for every modified file.
   - `pwsh -NoProfile -File scripts/post-change.ps1 -File "<path>" -Target "<target>" -Description "<short EN description>" -ChangeType <Doc|Script|Config|Tooling|Kotlin|Xml|Mixed> [-Module <app_v2|wear>] [-KeyPrefix "<key_prefix>"]`.
   - Unsure which `-ChangeType` a step's files map to → `.claude/reference/spec-dev.md` §ChangeType selection.
@@ -81,8 +83,6 @@ After all planned steps in current phase complete:
 - Every criterion ticked → flip phase `Status:` to `✅ Done`, set `Completed:`, update INDEX row + counter.
 - Any criterion unticked → leave `🚧 In Progress`, update step counter only. Hard stop.
 - **Phase-boundary audit (mandatory - CLAUDE.md §13 / `docs/CODE_AUDIT_PROTOCOL.md` "Phase-boundary audits").** Immediately after this phase flips `✅ Done`, before the next phase's first step: self-audit this phase's `Files Touched` against the protocol. Layer 1 (architecture/readability) always; Layer 2 (lifecycle/coroutine/concurrency), Layer 3 (memory/listener ownership), Layer 4 (Room) when the phase touched that surface. Skip entirely when `Files Touched` is empty or doc-only (e.g. `docs-catalog-cleanup`). Tag findings by severity. **Audit found something → `.claude/reference/spec-dev.md` §Audit severity handling, follow the P0/P1/P2/P3 branch it names** before editing or deferring anything; P0/P1 are always fixed in this phase, never deferred. A fix that requires a design decision not derivable from the spec/codebase is an ambiguity → Hard Stop #1 (`BlockQuestions`), same as any other ambiguous prompt - do not guess.
-- **Write session snapshot (S0268 Agent Continuity Layer).** After phase boundary closes (success or hard-stop), invoke `scripts/agent_continuity/session-snapshot.ps1`. One call per phase boundary; snapshot lands under `temp/sessions/` as resume-layer hand-off for next session. Its four argument values: `.claude/reference/spec-dev.md` §Session snapshot arguments, read before the call.
-
 After all phases done:
 
 - **Optional verification smoke (only when `--verify-smoke`).** Before flipping strategic status, run `/verify --build` once with no scenario arg. Skill writes artefacts under `temp/scratch/verify_*`; do not touch them. **Read `.claude/reference/spec-dev.md` §Verify-smoke verdicts before reading the verdict line** - it holds the strings to match and the literal stop message. The decisions: clean → flip status as normal; any FAIL row, any crash, any fresh exception from the package under test → **abort the status flip**, leave the ticket at `In Progress`, append a `VERIFY-SMOKE FAIL` line to the last phase's `## Step Log`, stop; no usable device (`ready: false`, still exit 0) → skip and flip as normal.
@@ -129,19 +129,21 @@ Stop immediately and report - never guess or recover, never assume missing/ambig
 
 ## Phase File Conventions
 
-Step `Status:` progression: `[ ] not done` → `[~] in progress` → `[x] done`.
+Step `Status:` progression: `[ ] not done` → `[~] in progress` → `[x] done`, plus `[manual - deferred]` for a step whose gate is hands-on. All four are written by `plan-tick.ps1 -State NotDone|InProgress|Done|Manual`, never by hand.
 
-Append Step Log on each execution; when creating it for the first time, copy the literal block from `.claude/reference/spec-dev.md` §Step Log format.
+The Step Log is written by the same call (`-Log "<text>"`) and is append-only - re-executions add lines, never overwrite. A wrong batch is undone with the same tool (`-State NotDone`), which restores every marker and deliberately leaves the log: changing a state back does not erase the record that it was once set.
 
-Step Log append-only. Re-executions add new lines, never overwrite.
+Ticking a `Prerequisites` or `Phase Done Criteria` bullet uses the same tool's checkbox form, `-Checkbox "<label fragment>" -State Done`. A fragment matching zero or several bullets is refused with the candidates named - it never guesses which gate you meant.
 
 ---
 
 ## INDEX Conventions
 
-After step completion → bump row `Steps` counter.
-After phase completion → flip status to `✅ Done`, bump `Phases: X/N done`.
-Do NOT touch `Pre-Implementation Blockers`, `Completion Gate`, `Blockers Log`, `Change Log` - owned by user/`/spec-tech`.
+The `Steps` cell, the row `Status` cell, `**Phases:** X/N done` and `**Last updated:**` are all recomputed by `plan-tick.ps1` from the phase file on every call - do not edit them. `**Last updated:**` is read mechanically by the drift check, so a hand edit that forgets it silently weakens a gate.
+
+Recomputed, never incremented: if the index and the phase file already disagree, the tool exits 3, writes nothing and names both counts. Reconcile them first rather than letting a batch paper over the divergence.
+
+Do NOT touch `Pre-Implementation Blockers`, `Blockers Log`, `Change Log` - owned by user/`/spec-tech`. `Completion Gate` bullets are ticked with `-Checkbox ... -Target Index`.
 If user manually set phase to `⛔ Blocked` between runs → stop and ask whether to resume.
 
 ---

@@ -19,7 +19,8 @@ import timber.log.Timber
  * Draws a bright-red, wide-stroke draggable rectangle over the captured photo for the Camera-OCR
  * crop step. The frame is constrained to the rectangle the photo actually occupies inside the view
  * (the `fitCenter` content rect), so it hugs the image rather than the screen edges and the
- * normalized selection it exposes maps 1:1 onto the source bitmap. The area outside the selection is
+ * normalized selection it exposes maps 1:1 onto the source bitmap - every edge, the bottom one
+ * included, may be dragged all the way to that content rect. The area outside the selection is
  * dimmed so the selection is distinguishable without relying on colour alone. Exposes the selection
  * as a normalized [RectF] via [getNormalizedRect] and whether the user moved it via [isFrameTouched]
  * - an untouched frame means "use the whole photo" (no crop). Supports touch drag/resize and D-pad /
@@ -36,7 +37,6 @@ class CropOverlayView @JvmOverloads constructor(
     private val minSidePx = MIN_SIDE_DP * density
     private val handleSlopPx = HANDLE_SLOP_DP * density
     private val keyStepPx = KEY_STEP_DP * density
-    private val bottomSafeInsetPx = BOTTOM_SAFE_INSET_DP * density
 
     private val selection = RectF()
 
@@ -132,21 +132,14 @@ class CropOverlayView @JvmOverloads constructor(
         contentRect.set(left, top, left + drawnW, top + drawnH)
     }
 
-    /**
-     * Lowest Y the frame's bottom edge may reach: a safe band above the content bottom so the bottom
-     * handle never sits crammed against the command bar below the overlay (S1047 - the edge was
-     * ungrabbable there). Floored at min-side above the top for degenerate short content.
-     */
-    private fun effectiveBottom(): Float =
-        (contentRect.bottom - bottomSafeInsetPx).coerceAtLeast(contentRect.top + minSidePx)
-
     private fun applyDefaultFrame() {
         if (contentRect.isEmpty) return
+        Timber.d("S1602: crop frame default, contentBottom=%.1f viewH=%d", contentRect.bottom, height)
         selection.set(
             contentRect.left + defaultInsetPx,
             contentRect.top + defaultInsetPx,
             contentRect.right - defaultInsetPx,
-            effectiveBottom()
+            contentRect.bottom - defaultInsetPx
         )
         // Tiny content rect: the inset could invert the frame - fall back to the full content rect.
         if (selection.right - selection.left < minSidePx || selection.bottom - selection.top < minSidePx) {
@@ -231,13 +224,25 @@ class CropOverlayView @JvmOverloads constructor(
         touched = true
     }
 
+    /**
+     * Centre of an edge's +-[handleSlopPx] grab band, pushed inwards so the whole band stays within
+     * `0..`[limit]. Without it an edge sitting at the view border keeps half of its band off-screen,
+     * where no touch can land - the bottom edge lost that half under the command bar below (S1602).
+     */
+    private fun grabBandCenter(edge: Float, limit: Float): Float =
+        edge.coerceIn(handleSlopPx, (limit - handleSlopPx).coerceAtLeast(handleSlopPx))
+
     private fun handleAt(x: Float, y: Float): Handle {
-        val nearLeft = abs(x - selection.left) <= handleSlopPx
-        val nearRight = abs(x - selection.right) <= handleSlopPx
-        val nearTop = abs(y - selection.top) <= handleSlopPx
-        val nearBottom = abs(y - selection.bottom) <= handleSlopPx
-        val insideX = x in (selection.left - handleSlopPx)..(selection.right + handleSlopPx)
-        val insideY = y in (selection.top - handleSlopPx)..(selection.bottom + handleSlopPx)
+        val leftBand = grabBandCenter(selection.left, width.toFloat())
+        val rightBand = grabBandCenter(selection.right, width.toFloat())
+        val topBand = grabBandCenter(selection.top, height.toFloat())
+        val bottomBand = grabBandCenter(selection.bottom, height.toFloat())
+        val nearLeft = abs(x - leftBand) <= handleSlopPx
+        val nearRight = abs(x - rightBand) <= handleSlopPx
+        val nearTop = abs(y - topBand) <= handleSlopPx
+        val nearBottom = abs(y - bottomBand) <= handleSlopPx
+        val insideX = x in (leftBand - handleSlopPx)..(rightBand + handleSlopPx)
+        val insideY = y in (topBand - handleSlopPx)..(bottomBand + handleSlopPx)
         if (!insideX || !insideY) return Handle.NONE
 
         return when {
@@ -286,9 +291,8 @@ class CropOverlayView @JvmOverloads constructor(
         var ny = dy
         if (selection.left + nx < contentRect.left) nx = contentRect.left - selection.left
         if (selection.right + nx > contentRect.right) nx = contentRect.right - selection.right
-        val maxBottom = effectiveBottom()
         if (selection.top + ny < contentRect.top) ny = contentRect.top - selection.top
-        if (selection.bottom + ny > maxBottom) ny = maxBottom - selection.bottom
+        if (selection.bottom + ny > contentRect.bottom) ny = contentRect.bottom - selection.bottom
         selection.offset(nx, ny)
     }
 
@@ -302,8 +306,8 @@ class CropOverlayView @JvmOverloads constructor(
         value.coerceIn(contentRect.top, selection.bottom - minSidePx)
 
     private fun clampBottom(value: Float): Float {
-        // Cap at the reserved-band bottom, guarded so the lower bound never exceeds the upper.
-        val maxBottom = effectiveBottom().coerceAtLeast(selection.top + minSidePx)
+        // Guarded so the lower bound never exceeds the upper on degenerate short content.
+        val maxBottom = contentRect.bottom.coerceAtLeast(selection.top + minSidePx)
         return value.coerceIn(selection.top + minSidePx, maxBottom)
     }
 
@@ -318,7 +322,6 @@ class CropOverlayView @JvmOverloads constructor(
         private const val KEY_STEP_DP = 16f
         private const val STROKE_DP = 6f
         private const val SCRIM_ALPHA = 102 // ~40%
-        private const val BOTTOM_SAFE_INSET_DP = 48f
         private const val BORDER_ALPHA = 191 // 75% opaque (25% transparent)
     }
 }

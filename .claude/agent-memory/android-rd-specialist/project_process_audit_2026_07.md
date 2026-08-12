@@ -31,4 +31,57 @@ The core economics: cost is `accumulated context x turns`. Cache reads are **72.
 - S1341 routing: agent frontmatter is fixed, but product days reverted to ~97% Opus - the Sonnet share lives entirely in the two meta days.
 - **Do not re-measure before ~2026-08-15.** Five days cannot clear the PRE window's own variance; POST sits inside PRE's contiguous 5-day range on every headline metric (p41..p91).
 
-Measurement method and its traps: [[transcript-cost-mining]].
+**Second pass 2026-08-12 - action patterns, not cost.** Owner asked what repeated manual work can be
+automated. Measured over 2026-08-05..11 (954 files, 497 sessions, 31,776 requests) and written up in
+`dev/AGENT_PROCESS_AUDIT_2026-08-12.md`; six findings parked as **S1594-S1599** (release package 31).
+Headline numbers worth not re-deriving: warm-up to first edit median **28 turns**; `post-change.ps1`
+824 runs / **215 failures (26%)**, recovery median 8 turns; `detekt-gate` 458 runs / 113 fails /
+**11.2 h = 75% of all gate wall time** while `detekt-preflight` checks only 3 rules and misses the
+LargeClass/LongMethod that actually fail it; `exit 127` 181x (**python3 91** - the machine has `python`
+only, PS cmdlets piped in the Bash tool ~89, node 22); `guard-uncapped-read` 381 blocks of which
+**31.8% retry with limit>=1500**, i.e. read the whole file anyway; `document_registry/query`
+**56.7% empty** (was 39% in July, worse because work moved into launcher); Grep 4,264 calls with
+12.8% zero-hit and 1,963 consecutive Grep->Grep pairs. Total mechanically removable ~2,700 turns/week,
+~10% of traffic. **How to apply:** these are measured, not guesses - cite them instead of re-mining,
+and when working any of S1594-S1599 read that report first.
+
+**S1595 is Verified (2026-08-12).** F3 is closed, and the fix is NOT the one the audit proposed.
+Extending the lexical preflight to more rules was measured and refuted: its three rules fully cover
+only **13.9%** of attributable gate failures, nine hand-listed rules reach 48.1%, `ComplexMethod`
+(named in the capture) caused **zero** failures while the two biggest misses were `ReturnCount` 22
+and `ArgumentListWrapping` 15, and the size rules cannot be reproduced lexically at all - flagged
+and unflagged classes overlap by a 240-line band under every metric. Instead `detekt-preflight.ps1`
+now runs the REAL analyser scoped to the changed files via `detekt-scoped.ps1` (detekt CLI
+`--input`, no gradle, no `BUILD.LOCK`, 2.1 s) and is **FATAL**, so a finding aborts the closure
+before the ~87 s gate starts. Whole-module vs scoped measured finding-for-finding identical (14/14,
+zero unique either way). `--auto-correct` was rejected: the only switch is the shared `formatting`
+flag, which would arm ~5,591 findings, 46% of the baseline. Debt-ticket priorities were NOT
+rewritten - touch frequency is 41/17/1/1, not the "all four weekly" the audit assumed, and the
+ruling is the owner's (§6.3 still Open). Parked from its research: **S1600** - `assert-detekt`
+prints an empty findings list then FAILs, 37 times, 14 under current code.
+
+**S1594 is Verified (2026-08-12)** - the F4+F5 half is shipped, so ~562 of those turns/week are gone:
+`~/bin/python3` shims the 91 `python3` failures, the new global guard
+`guard-bash-unavailable-command.ps1` refuses PowerShell cmdlets / `node`-`npm`-`npx` / `& {` before
+the call (CLAUDE.md Rule 28), and `guard-uncapped-read.ps1` now **rewrites instead of blocking** -
+it injects `limit: 800` plus a truncation notice and exempts `.claude/commands|skills|templates|
+reference|agents`. S1596-S1599 remain Draft in release package 31.
+
+**S1599 is BlockNeedUserTest (2026-08-12), and its capture's numbers are RETRACTED.** F7's
+"typical zero-hit patterns" list was produced by a counter incremented on *every* Grep and
+printed under the zero-hit heading - so it is the week's most frequent patterns, not the
+missing ones, and the two-kinds split drawn from it is unsupported. Corrected: **651 / 4,297 =
+15.2%** empty, not 544 / 12.8%. The real shape is **scope, not naming**: 93.9% of empty results
+carried an explicit `path` and an unscoped Grep missed **zero** times; 66.1% were abandoned with
+no follow-up at all; 6.9% are absence checks where zero is the right answer. All three
+directions in the capture are refuted or capped - multipattern is already the dominant shape
+(75.7% of *failing* calls are alternations), doc-structure navigation is 2.6%, a catalog member
+index tops out at ~1.8%. Shipped instead: `.claude/hooks/observe-empty-grep.ps1`, a `PostToolUse`
+hook that re-runs an empty path-scoped Grep at the repo root and attaches the count - **silent
+when the widened run also misses**, so a false positive is impossible by construction. **How to
+apply:** the abandoned-66% is a *correctness* problem, not a token one - an empty result reads
+as "does not exist" and nobody re-asks; do not sell fixes for it as savings. And before quoting
+any audit number, read the branch of the mining script that produced it.
+
+Measurement method and its traps: [[transcript-cost-mining]]. Harness capabilities a hook can and
+cannot use: [[claude-code-hook-capabilities]].

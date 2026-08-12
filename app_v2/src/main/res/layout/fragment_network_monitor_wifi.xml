@@ -118,11 +118,11 @@
         </com.google.android.material.card.MaterialCardView>
 
         <include
-            android:id="@+id/wifiLinkDetails"
-            layout="@layout/view_network_monitor_link_details" />
-
-        <include
             android:id="@+id/wifiChart"
             layout="@layout/view_network_monitor_signal_chart" />
+
+        <include
+            android:id="@+id/wifiLinkDetails"
+            layout="@layout/view_network_monitor_link_details" />
     </LinearLayout>
 </ScrollView>

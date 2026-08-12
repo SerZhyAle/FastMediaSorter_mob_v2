@@ -245,6 +245,26 @@ function Get-FileEncodingForWrite([string]$Path) {
 $INLINE_MARKUP_TAGS = @('b', 'i', 'u', 'em', 'strong', 'sup', 'sub', 'strike', 'tt', 'big', 'small', 'br', 'xliff:g')
 $INLINE_MARKUP_PATTERN = '(?i)</?(?:' + (($INLINE_MARKUP_TAGS | ForEach-Object { [regex]::Escape($_) }) -join '|') + ')(?:\s[^<>]*?)?/?>'
 
+# S1586: AAPT2 reads a backslash as an escape introducer, so a literal one is consumed and the
+# character never reaches the user - silently, with no build warning. Doubling every backslash is not
+# an option: the seeded corpus carries intended \n line breaks, and a blanket pass would put two
+# visible characters on screen in place of each. So only a backslash that introduces nothing AAPT2
+# knows is doubled. The match takes \\ as one unit, which is what makes the pass idempotent - an
+# already-escaped value keeps its pair instead of growing a third slash. Two consequences worth
+# stating: a literal backslash directly before n, t or u is indistinguishable from the escape it
+# spells and must be written doubled in the source value; and a leading \@ / \? is out of scope,
+# because an unescaped @ or ? in that position fails the build loudly rather than losing a character.
+$script:AaptEscapeRx = [regex]'\\(u[0-9a-fA-F]{4}|[nt''"\\])?'
+
+function ConvertTo-AaptBackslash([AllowEmptyString()][string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return '' }
+    return $script:AaptEscapeRx.Replace($Text, {
+            param($m)
+            if ($m.Groups[1].Success) { return $m.Value }
+            return '\\'
+        })
+}
+
 # Escapes one run of plain text. Refuses anything tag-shaped: silently escaping an unrecognised tag
 # is the same defect as before, just deferred to the next caller.
 function ConvertTo-EscapedXmlSegment([AllowEmptyString()][string]$Text) {
@@ -256,7 +276,7 @@ function ConvertTo-EscapedXmlSegment([AllowEmptyString()][string]$Text) {
             'literal text and shipped to the user, so it is refused instead. Edit the file by hand if the ' +
             'tag is genuinely needed.')
     }
-    $escaped = [System.Security.SecurityElement]::Escape($Text)
+    $escaped = [System.Security.SecurityElement]::Escape((ConvertTo-AaptBackslash $Text))
     if ($null -eq $escaped) { return '' }
     # S1567: must stay identical to ConvertTo-XmlText in scripts/utils/seed-locale-tranche.ps1, whose
     # .DESCRIPTION carries the measured AAPT2 truth table. A quote survives only when a backslash
@@ -285,7 +305,23 @@ function ConvertFrom-XmlText([AllowEmptyString()][string]$Text) {
     # S1567: the decode has to unwind the quote escape too, or -ExpectedOldValue never matches a value
     # written after the escaping fix and `get` prints the backslash back to the caller. HtmlDecode runs
     # first so the legacy \&quot; spelling reduces to \" before the backslash comes off.
-    return ([System.Net.WebUtility]::HtmlDecode($Text)).Replace("\'", "'").Replace('\"', '"')
+    #
+    # S1586: it unwinds the doubled backslash for the same reason, and in the same single pass rather
+    # than with a chain of .Replace calls - a chain reduces \\' to ' by taking the second slash as the
+    # quote escape's own. Recognised escapes that have no plain spelling (\n, \t, \uXXXX) are left
+    # alone, because the encoder leaves them alone too and the pair has to round-trip. A value that
+    # arrives already doubled decodes to the single character it stands for, so the tool canonicalises
+    # rather than preserving the spelling - encode(decode(x)) is stable from there on.
+    $decoded = [System.Net.WebUtility]::HtmlDecode($Text)
+    return $script:AaptEscapeRx.Replace($decoded, {
+            param($m)
+            switch ($m.Groups[1].Value) {
+                '\' { return '\' }
+                "'" { return "'" }
+                '"' { return '"' }
+                default { return $m.Value }
+            }
+        })
 }
 
 function Get-LocaleDir([string]$dir) { Join-Path $resDir $dir }

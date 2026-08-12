@@ -68,11 +68,47 @@ function Get-DetektFindings {
         [string[]]$Modules
     )
 
+    $reports = [ordered]@{}
+    foreach ($m in $Modules) { $reports[$m] = (Join-Path $RepoRoot "$m/build/reports/detekt/detekt.xml") }
+    return Get-DetektFindingsFromReports -Reports $reports
+}
+
+<#
+.SYNOPSIS
+    Collect the individual NEW detekt findings from explicitly-named Checkstyle reports.
+
+.DESCRIPTION
+    S1595 split this out of Get-DetektFindings, which could only ever read the gradle task's own
+    output path. The scoped runner writes its report elsewhere on purpose - assert-detekt.ps1
+    narrows a project-wide failure against <module>/build/reports/detekt/detekt.xml and judges that
+    file's staleness by mtime, so a second writer there would corrupt an unrelated gate's verdict.
+
+    Both callers share this one parser deliberately: its fail-closed contract and its StrictMode
+    handling of a clean <checkstyle/> document were both bought by defects, and a second copy would
+    be a second place to lose them.
+
+.PARAMETER Reports
+    Ordered dictionary of label -> report path. The label names the source in Reason, so a caller
+    reading the failure can tell which report was missing.
+
+.OUTPUTS
+    Hashtable:
+      Ok       [bool]   - $false when at least one named report is missing or unparseable.
+      Findings [array]  - objects with File (lowercased, forward-slashed), Line, Column, RuleId, Message.
+      Reason   [string] - why Ok is $false; empty when Ok.
+#>
+function Get-DetektFindingsFromReports {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [System.Collections.IDictionary]$Reports
+    )
+
     $findings = [System.Collections.Generic.List[object]]::new()
     $problems = [System.Collections.Generic.List[string]]::new()
 
-    foreach ($m in $Modules) {
-        $reportPath = Join-Path $RepoRoot "$m/build/reports/detekt/detekt.xml"
+    foreach ($m in @($Reports.Keys)) {
+        $reportPath = $Reports[$m]
         if (-not (Test-Path $reportPath)) {
             $problems.Add("$m - no report at $reportPath")
             continue

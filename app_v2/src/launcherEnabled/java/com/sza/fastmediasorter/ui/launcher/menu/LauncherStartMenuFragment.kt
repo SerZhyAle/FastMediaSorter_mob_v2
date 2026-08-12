@@ -8,6 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResultListener
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -98,7 +100,18 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
     override fun onStart() {
         super.onStart()
         dialog?.let { DialogKeyboardDelegate.applyToDialogFragment(it, onConfirm = {}) }
+        expandSheet()
         binding.rowOpenApp.requestFocus()
+    }
+
+    // S1588: left collapsed, the sheet's visible height is Material's auto-peek formula
+    // max(peekHeightMin, parentHeight - parentWidth * 9 / 16), which covers the rows in portrait by
+    // accident and collapses to a single row in landscape. Expanding explicitly drops that dependency
+    // on screen geometry; skipCollapsed keeps a downward swipe from parking at the peek height.
+    private fun expandSheet() {
+        val behavior = (dialog as? BottomSheetDialog)?.behavior ?: return
+        behavior.skipCollapsed = true
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
     override fun onDestroyView() {

@@ -5,11 +5,10 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps growth.
 - [About Me](about_me.md) - solo owner, no Kotlin · [Audience](feedback_target_audience_non_technical.md) - zero jargon
 - [Argue then obey](feedback_argue_then_obey.md) + [after pushback](feedback_owner_decision_after_pushback.md)
 - [Architecture answers it](feedback_no_owner_questions_when_architecture_already_answers.md) · [research forks](feedback_research_over_owner_question.md) · [clarify framing](feedback_clarify_task_when_framing_unclear.md)
-- [Finish follow-ups](feedback_finish_mechanical_followups_in_context.md) · [Skill aliases](feedback_skill_aliases.md)
+- [Finish follow-ups](feedback_finish_mechanical_followups_in_context.md) · [Skill aliases](feedback_skill_aliases.md) · [/quick+Sxxxx still closes](feedback_skill_fix_with_ticket_id_still_closes_ticket.md) - skip-list is id-less only
 - [Agent Kit](reference_universal_agent_kit.md) · [No paid services](feedback_no_paid_or_key_services.md) · [Open-Meteo](project_weather_gadget_open_meteo.md)
 - [fms_companion](project_fms_companion_subproject.md) - Go+Wails, out of repo · [Windows rebrand](project_fms_windows_rebrand.md)
-- [Process audit](project_process_audit_2026_07.md) - cost is context×turns · [Cost mining](reference_transcript_cost_mining.md)
-- [Canon copy](reference_canon_working_copy.md) - stale; hooks load-bearing
+- [Process audit](project_process_audit_2026_07.md) - context×turns · [Mining](reference_transcript_cost_mining.md) · [Canon copy](reference_canon_working_copy.md) - stale
 
 ## Devices & release
 - [Devices](reference_test_device_galaxy_s21.md) · [adb CLI](reference_adb_swiss_army.md) + [.debug pkg](reference_adb_and_debug_package.md)
@@ -59,6 +58,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps growth.
 ## detekt / lint / gates / logging
 - **OPEN BEFORE WRITING ANY KOTLIN:** [detekt-clean first time](feedback_write_detekt_clean_first_time.md) - ReturnCount>2, MagicNumber, >120-char lines, brace-less if/else.
 - detekt, by symptom: [gate](project_detekt_gate_in_post_change.md) · [dirty](feedback_detekt_gate_dirty_tree.md) · [scope](feedback_closure_on_dirty_tree.md) · [resurface](feedback_detekt_baseline_signature_resurface.md) · [imports](project_detekt_ktlint_import_layout.md) · [shift](feedback_detekt_scoped_gate_line_shift.md) · [debt](feedback_detekt_scoped_gate_surfaces_untouched_debt.md) · [1 file](feedback_post_change_scopes_detekt_to_one_file.md) · [hand-edit](project_detekt_baseline_hand_edit_daemon_stale.md) · [stale](feedback_post_change_detekt_stale_report.md) · [no -Gate](feedback_assert_detekt_exit_zero_without_gate.md)
+- [Coroutine wrap trips swallowed-cancellation](feedback_wrapping_code_in_coroutine_trips_swallowed_cancellation.md) - re-indented catches count as new
 - [Debt premise decays](feedback_detekt_debt_ticket_premise_decays.md) · [lint needs FQN](project_lint_test_modes_enforce_resolution.md) · [lint baseline fuzzy](project_lint_baseline_matching_and_runner.md)
 - [Stale test XML](feedback_stale_test_results_xml.md) · [fu OOMs mid-run](project_unit_suite_oom_truncation.md) - verify per class
 - [FAIL may mean never ran](feedback_gate_fail_may_mean_never_ran.md) - read the XML
@@ -69,6 +69,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps growth.
 
 ## Long-run correctness
 - [Radio toggles: firmware](project_radio_toggle_restriction_is_firmware_not_targetsdk.md) - direct path works on 8
+- [EPUB asset-URL error is noise](project_epub_asset_handler_log_noise.md) - interception serves it 2 ms later
 - [Notification id registry](project_notification_id_registry.md) · [Idle-disconnect](project_network_idle_disconnect_contract.md) - 30s timers killed live links
 
 ## UI conventions
@@ -93,6 +94,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps growth.
 - [Unblocks at BlockNeedUserTest](feedback_blocker_unblocks_at_needusertest.md) - don't wait for Verified
 - [Tags may be line-wrapped](feedback_probe_tag_multiline_grep.md) · [Verify spec id first](feedback_verify_spec_id_before_pipeline.md)
 - [DRIFT from a commit mention](feedback_drift_check_false_positive_on_commit_mention.md) - 0 markers = not done
+- [drift-check reads .kt only](feedback_drift_check_scans_kotlin_only.md) - XML-only fix looks CLEAN; grep layouts
 - [IDE finalizes mid-task](feedback_ide_open_spec_may_finalize_midtask.md) · [Draft style gate](feedback_draft_style_gate.md) · [Status auto-syncs](feedback_spec_header_autosync.md)
 - [Owner gate](feedback_strategic_spec_owner_gate.md) · [§3.3 ≠ owner ruling](feedback_spec_tech_ui_placement_refusal.md) · [plan quality](feedback_spec_tech_plan_quality.md) · [Phase audit](feedback_phase_boundary_audit.md)
 - [Verify code first](feedback_spec_dev_continue_verify_code_first.md) · [Plan file lists can be wrong](feedback_tactical_plan_file_list_may_be_wrong.md)
