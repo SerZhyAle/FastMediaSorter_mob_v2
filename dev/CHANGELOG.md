@@ -25610,3 +25610,5 @@ Format: | datetime | file | target | description |
 | 2026-08-12 17:30:07 | `PLAN/S1612_add-new-maestro-features.md` | `spec` | Scaffold strategic spec skeleton S1612 [branch: DEBUG-v031] |
 | 2026-08-12 17:31:33 | `temp/done/S1611_bugfix-epub-inline-images-not-loading.md` | `spec-all` | S1611 closed as non-defect: EPUB image delivery proven working from capture log; archived [branch: DEBUG-v031] |
 | 2026-08-12 18:24:46 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.8121.822 - plateau merge from DEBUG-v031 [branch: DEBUG-v031] |
+| 2026-08-12 18:29:54 | `PLAN/S1613_launcher-desktop-shortcuts-import.md` | `spec` | Scaffold strategic spec skeleton S1613 [branch: DEBUG-v032] |
+| 2026-08-12 18:41:46 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.8121.822 from ALL_FEATURES diff [branch: DEBUG-v032] |
