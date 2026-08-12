@@ -988,30 +988,6 @@
     "note": null
   },
   {
-    "coordinate": "androidx.mediarouter:mediarouter",
-    "modules": [
-      "app_v2"
-    ],
-    "name": "AndroidX MediaRouter",
-    "spdx": "Apache-2.0",
-    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
-    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
-    "oss": true,
-    "shippedIn": [
-      "legacy",
-      "lite",
-      "noLegal",
-      "photos",
-      "standard",
-      "vr"
-    ],
-    "allFlavors": true,
-    "transitive": false,
-    "via": null,
-    "bundled": false,
-    "note": null
-  },
-  {
     "coordinate": "androidx.paging:paging-runtime-ktx",
     "modules": [
       "app_v2"
@@ -1430,30 +1406,6 @@
     "spdx": "Android Software Development Kit License",
     "licenseUrl": "https://developer.android.com/studio/terms.html",
     "sourceUrl": "https://developers.google.com/android/guides/setup",
-    "oss": false,
-    "shippedIn": [
-      "legacy",
-      "lite",
-      "noLegal",
-      "photos",
-      "standard",
-      "vr"
-    ],
-    "allFlavors": true,
-    "transitive": false,
-    "via": null,
-    "bundled": false,
-    "note": null
-  },
-  {
-    "coordinate": "com.google.android.gms:play-services-cast-framework",
-    "modules": [
-      "app_v2"
-    ],
-    "name": "Google Cast Framework",
-    "spdx": "Android Software Development Kit License",
-    "licenseUrl": "https://developer.android.com/studio/terms.html",
-    "sourceUrl": "https://developers.google.com/cast",
     "oss": false,
     "shippedIn": [
       "legacy",
@@ -2138,29 +2090,5 @@
     "via": null,
     "bundled": false,
     "note": "Loader sources carry Apache-2.0 OR MIT. The shipped native library statically links jsoncpp (MIT), jnipp (MIT) and android-jni-wrappers (BSL-1.0)."
-  },
-  {
-    "coordinate": "org.nanohttpd:nanohttpd",
-    "modules": [
-      "app_v2"
-    ],
-    "name": "NanoHTTPD",
-    "spdx": "BSD-3-Clause",
-    "licenseUrl": "https://raw.githubusercontent.com/NanoHttpd/nanohttpd/master/LICENSE.md",
-    "sourceUrl": "https://github.com/NanoHttpd/nanohttpd",
-    "oss": true,
-    "shippedIn": [
-      "legacy",
-      "lite",
-      "noLegal",
-      "photos",
-      "standard",
-      "vr"
-    ],
-    "allFlavors": true,
-    "transitive": false,
-    "via": null,
-    "bundled": false,
-    "note": "Licence inherited from the nanohttpd-project POM; the artifact declares no licences block of its own."
   }
 ]

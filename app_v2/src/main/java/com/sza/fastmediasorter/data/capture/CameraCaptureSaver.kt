@@ -72,7 +72,12 @@ class CameraCaptureSaver @Inject constructor(
         name: String,
         target: CameraCaptureTarget,
         upload: suspend (tempFile: File, name: String, resource: CameraCaptureTarget.Resource) -> Boolean,
-    ): SaveResult {
+    ): SaveResult = withContext(Dispatchers.IO) {
+        // S1573: the saver owns its dispatcher rather than inheriting the caller's. Every production
+        // entry point reaches it from lifecycleScope.launch, i.e. Dispatchers.Main.immediate, which
+        // left the settings read, the media-scanner broadcast, the whole network upload and the
+        // temp-file delete on the main thread - StrictMode reported the last of those. withContext
+        // returns to the caller's context, so the post-save UI work keeps running on Main unchanged.
         Timber.d("S1354: camera capture local destination save")
         var savedPath = resolveSavedPath(target, name)
         Timber.i(
@@ -134,7 +139,7 @@ class CameraCaptureSaver @Inject constructor(
             tempFile.delete()
         }
         Timber.i("CameraCaptureSaver: save EXIT success=%b name=%s", success, name)
-        return when {
+        when {
             success -> {
                 // S0473: a media capture completed. This saver is media-agnostic, so classify by the
                 // output file name - a video extension counts as a recorded video, otherwise a photo.

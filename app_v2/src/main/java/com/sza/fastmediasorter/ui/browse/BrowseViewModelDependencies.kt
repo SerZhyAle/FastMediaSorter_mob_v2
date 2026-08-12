@@ -76,6 +76,7 @@ class BrowseContentDiscoveryDependencies @Inject constructor(
     val audioMetadataLoader: AudioMetadataLoader,
     val unifiedCache: UnifiedFileCache,
     val syncMediaStoreUseCase: SyncMediaStoreUseCase,
+    val resolveScanFilterUseCase: com.sza.fastmediasorter.domain.usecase.ResolveScanFilterUseCase,
 )
 
 /** User/resource-scoped state that outlives the screen - favorites, manual order, resume state. */

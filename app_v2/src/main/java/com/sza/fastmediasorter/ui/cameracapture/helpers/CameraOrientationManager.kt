@@ -59,7 +59,6 @@ class CameraOrientationManager(
             // emulator fleet - never gets onOrientationChanged, so the display is the only rotation
             // signal left. Re-read on every enable: the screen can have turned since construction.
             currentRotation = displayRotation()
-            Timber.d("S1457: display rotation fallback -> %d", currentRotation)
         }
         dispatch()
     }

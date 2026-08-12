@@ -17,9 +17,29 @@
     build and crashes at format time in front of the user.
 
     Escaping matches ConvertTo-XmlText in scripts/utils/set-android-string.ps1 exactly - XML-escape,
-    then &apos; back to \'. The two are deliberately not shared: that tool keeps its helpers private
-    inside its own body, and hoisting them into a module would rewrite a file this ticket does not
-    otherwise touch. Changing escaping in one place means changing it in both.
+    then both &apos; and &quot; back to the backslash form. The two are deliberately not shared: that
+    tool keeps its helpers private inside its own body, and hoisting them into a module would rewrite
+    a file this ticket does not otherwise touch. Changing escaping in one place means changing it in
+    both.
+
+    S1567: a quote or apostrophe survives the build only when a backslash precedes it after XML
+    decoding, so &quot; is not a safe encoding - the XML parser decodes it before AAPT2's quoting
+    pass and the character is then dropped exactly like a literal one. Measured with aapt2 compile
+    plus aapt2 dump apc, build-tools 36.0.0:
+
+        say "hello" now          -> say hello now      quotes dropped
+        say \"hello\" now        -> say "hello" now    correct
+        say &quot;hello&quot;   -> say hello now      quotes dropped
+        say \&quot;hello\&quot; -> say "hello" now    correct
+        say \\"hello\\" now      -> say \hello\ now    literal slash, quote dropped
+        it\'s here               -> it's here          correct
+        it&apos;s here           -> compile error      entity refused
+        it\\'s here              -> compile error      double escape refused
+
+    The escaping is therefore idempotent: a map may supply either the bare or the pre-escaped form of
+    both characters and gets the same output. That is deliberate rather than tidy. Before S1567 the
+    contract was asymmetric and undocumented - a quote had to arrive pre-escaped while an apostrophe
+    had to arrive bare, because a pre-escaped apostrophe became \\' and AAPT2 refused the file.
 
 .PARAMETER Module
     Module path relative to repo root. Default app_v2.
@@ -123,7 +143,11 @@ if (-not (Test-Path -LiteralPath $sourcePath)) {
 function ConvertTo-XmlText([AllowEmptyString()][string]$Text) {
     $escaped = [System.Security.SecurityElement]::Escape($Text)
     if ($null -eq $escaped) { return '' }
-    return $escaped.Replace('&apos;', "\'")
+    # The optional leading backslash is what makes this idempotent: a value that already arrived
+    # escaped matches too and collapses to the same single-backslash form, instead of growing a
+    # second slash that AAPT2 either refuses (apostrophe) or ships literally (quote).
+    $escaped = [regex]::Replace($escaped, '\\?&apos;', "\'")
+    return [regex]::Replace($escaped, '\\?&quot;', '\"')
 }
 
 function Get-FormatSignature([AllowEmptyString()][string]$Text) {
@@ -275,17 +299,21 @@ foreach ($element in $elements) {
             Add-CarriedFallback $name
             continue
         }
-        $out.Add("    <string name=`"$name`">$(ConvertTo-ResourceBody $value)</string>")
+        # S1577: carry the source element's attributes. Dropping them silently stripped
+        # formatted="false" from every seeded locale of a key whose body holds literal percent signs,
+        # which aapt then read as positional substitutions. translatable="false" cannot reach here -
+        # Test-Translatable filtered it out above.
+        $out.Add("    <string name=`"$name`"$attrs>$(ConvertTo-ResourceBody $value)</string>")
     } elseif ($kind -eq 'plurals') {
         if ($value -isnot [hashtable]) { [void]$rejected.Add("$name (expected an object for <plurals>)"); Add-CarriedFallback $name; continue }
-        $out.Add("    <plurals name=`"$name`">")
+        $out.Add("    <plurals name=`"$name`"$attrs>")
         foreach ($quantity in $value.Keys) {
             $out.Add("        <item quantity=`"$quantity`">$(ConvertTo-ResourceBody $value[$quantity])</item>")
         }
         $out.Add('    </plurals>')
     } else {
         if ($value -isnot [array]) { [void]$rejected.Add("$name (expected an array for <string-array>)"); Add-CarriedFallback $name; continue }
-        $out.Add("    <string-array name=`"$name`">")
+        $out.Add("    <string-array name=`"$name`"$attrs>")
         foreach ($item in $value) { $out.Add("        <item>$(ConvertTo-ResourceBody $item)</item>") }
         $out.Add('    </string-array>')
     }

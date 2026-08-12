@@ -23,6 +23,7 @@
       - assert-notification-small-icon (S1399 a small-icon setter handed a drawable literal)
       - assert-backup-rules-consistent (S1552 API 31+ extraction rules vs the pre-31 backup rules)
       - assert-launcher-reset-coverage (S1540 launcher settings vs the launcher reset's field list)
+      - assert-unreferenced-strings   (S1568 string keys nothing under <module>/src references)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
@@ -60,6 +61,7 @@ else {
 # name -> extra args (beyond -Gate). Order matters: cheapest/most-deterministic first.
 $gates = [ordered]@{
     'assert-no-ticket-logs.ps1'                 = @('-Quiet')
+    'assert-ticket-acceptance-probes.ps1'       = @('-Quiet')
     # S1338: one entry, twelve lexical rules, ONE walk of the tree. It replaces the five
     # separate entries that each spawned a pwsh process and each re-walked app_v2/src -
     # neuroslop (nine rules), flavor-flags, public-mutable-flow and deprecated-pm-flags.
@@ -67,6 +69,10 @@ $gates = [ordered]@{
     'assert-source-gates.ps1'                   = @()
     'assert-listener-symmetry.ps1'              = @()
     'assert-orientation-implied-feature.ps1'    = @()
+    # S1568: a string resource nothing references. 397 had accumulated in values/strings.xml, each
+    # one paid for again by every locale tranche. Baseline is an allowlist of NAMES, not a count, so
+    # a new dead key cannot hide behind a deleted one.
+    'assert-unreferenced-strings.ps1'           = @('-Quiet')
     # S1070: guards the tooling itself rather than app sources - a bare Write-Error under
     # EAP=Stop makes the following `exit N` unreachable, so a script's documented code
     # collapses to 1. Cheap (scans scripts/*.ps1 only) and the class has regrown 3 times.

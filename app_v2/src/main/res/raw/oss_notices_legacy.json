@@ -1002,10 +1002,9 @@
       "lite",
       "noLegal",
       "photos",
-      "standard",
-      "vr"
+      "standard"
     ],
-    "allFlavors": true,
+    "allFlavors": false,
     "transitive": false,
     "via": null,
     "bundled": false,
@@ -1460,10 +1459,9 @@
       "lite",
       "noLegal",
       "photos",
-      "standard",
-      "vr"
+      "standard"
     ],
-    "allFlavors": true,
+    "allFlavors": false,
     "transitive": false,
     "via": null,
     "bundled": false,
@@ -2134,10 +2132,9 @@
       "lite",
       "noLegal",
       "photos",
-      "standard",
-      "vr"
+      "standard"
     ],
-    "allFlavors": true,
+    "allFlavors": false,
     "transitive": false,
     "via": null,
     "bundled": false,

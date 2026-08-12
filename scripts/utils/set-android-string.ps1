@@ -14,8 +14,13 @@
       add    - create a new key in ALL THREE locales in lockstep (-Key -En -Ru -Uk [-File]).
                Fails if the key already exists in any strings*.xml of any locale.
       get    - print one key's value across EN/RU/UK (scans all strings*.xml). Exit 1 if missing anywhere.
-      remove - delete one key from every locale (scans all strings*.xml). Reports .kt/@string references.
-      rename - rename one key across every locale (-Key -NewKey). Reports .kt/@string references.
+      remove - delete one key from every locale (scans all strings*.xml). Deletes whichever element
+               declares it - <string>, <plurals> or <string-array> - including its <item> children.
+               REFUSES when the key is still referenced anywhere under <module>/src (any source set, any
+               resource kind); -Force overrides the refusal but never the scan.
+      rename - rename one key across every locale (-Key -NewKey), for all three element kinds. Lists the
+               references that must be rewritten to the new name, before touching any file. Advisory:
+               renaming a referenced key is the normal case, so it never refuses.
       list   - list strings*.xml files per locale with their string counts.
       move   - relocate a key from its current strings*.xml into a thematic -File, in ALL THREE locales
                in lockstep, byte-preserving (verbatim block, no reserialization). Single key via -Key,
@@ -23,9 +28,10 @@
                ATOMIC per key: all source removals + target insertions are computed in memory and written
                only if every locale planned cleanly, so an abort can never lose a key. A key missing in
                any locale, or already in the target, is skipped (lockstep safety). Creates -File if absent.
-      audit  - print, per locale, the sorted union of every <string name> across all strings*.xml plus a
-               count. Diff-friendly (one "<LOCALE>\t<key>" line each) - the before/after oracle that proves
-               no key was lost or duplicated by a multi-file move. (S0339.)
+      audit  - print, per locale, the sorted union of every <string>, <plurals> and <string-array> name
+               across all strings*.xml plus a count. Diff-friendly (one "<LOCALE>\t<key>" line each) - the
+               before/after oracle that proves no key was lost or duplicated by a multi-file move.
+               (S0339; widened past <string> in S1568.)
 
     Locale parity: add/get/remove/rename/move always work on EN (values), RU (values-ru), UK (values-uk)
     together. set is single-locale by design (per-locale tone fixes).
@@ -43,7 +49,10 @@
     Android string resource key.
 
 .PARAMETER Value
-    New string body for 'set'. Raw Android string text.
+    New string body for 'set'. Raw Android string text. Inline markup Android renders inside a
+    <string> body (b, i, u, em, strong, sup, sub, strike, tt, big, small, br, xliff:g) is written
+    through verbatim; any other tag-shaped fragment is refused rather than escaped into literal text
+    (S1576). A '<' that is not tag-shaped, e.g. "1 < 2", is still escaped as text.
 
 .PARAMETER En / -Ru / -Uk
     Raw (unescaped) per-locale values for 'add'. All three required - parity is mandatory.
@@ -59,6 +68,12 @@
 .PARAMETER Prefix
     'move' bulk mode. Moves every key in the residual strings.xml whose name starts with this prefix.
 
+.PARAMETER KeyList
+    'remove' batch mode. Path to a file holding one key per line; blank lines and lines starting with
+    '#' are ignored, and anything after the key on a line is treated as a comment, so an audit report
+    with trailing reasons can be fed in unedited. Builds the reference index ONCE for the whole list
+    instead of walking the source tree per key. Mutually exclusive with -Key.
+
 .PARAMETER ExpectedOldValue
     'set' safety guard. If the current decoded value differs, the script aborts.
 
@@ -67,6 +82,19 @@
 
 .PARAMETER DryRun
     Prints the planned change without writing.
+
+.PARAMETER Force
+    'remove' only. Proceeds even though the key is still referenced. The reference scan still runs and still
+    prints - only the refusal is waived.
+
+.NOTES
+    Exit codes:
+      0 - the requested action completed.
+      1 - invalid arguments, a lockstep/parity precondition failed, or the value carries markup this
+          editor will not silently escape (thrown).
+      3 - 'remove' refused: the key is still referenced under <module>/src. Pass -Force to override.
+          In -KeyList batch mode this means AT LEAST ONE key was refused; the rest of the list was
+          still applied. A partially refused batch never exits 0.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale en -Key "cloud_check_failed" -Value "Could not check the cloud connection. Try again."
@@ -116,15 +144,19 @@ param(
 
     [string]$Prefix,
 
+    [string]$KeyList,
+
     [string]$ExpectedOldValue,
     [switch]$CreateIfMissing,
-    [switch]$DryRun
+    [switch]$DryRun,
+    [switch]$Force
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot '..\quality\lib\android-string-format.ps1')
+. (Join-Path $PSScriptRoot '..\quality\lib\android-string-liveness.ps1')
 
 # Capture at script scope: $PSBoundParameters inside a function refers to the function, not the script.
 $valueBound = $PSBoundParameters.ContainsKey('Value')
@@ -207,14 +239,53 @@ function Get-FileEncodingForWrite([string]$Path) {
     return [System.Text.UTF8Encoding]::new($hasBom)
 }
 
-function ConvertTo-XmlText([AllowEmptyString()][string]$Text) {
+# S1576: inline markup Android parses inside a <string> body. A '<' means two different things in a
+# string value - literal text that must be escaped, and markup that must not be - and escaping both
+# alike shipped a literal "&lt;b&gt;" to the user with no refusal and no warning.
+$INLINE_MARKUP_TAGS = @('b', 'i', 'u', 'em', 'strong', 'sup', 'sub', 'strike', 'tt', 'big', 'small', 'br', 'xliff:g')
+$INLINE_MARKUP_PATTERN = '(?i)</?(?:' + (($INLINE_MARKUP_TAGS | ForEach-Object { [regex]::Escape($_) }) -join '|') + ')(?:\s[^<>]*?)?/?>'
+
+# Escapes one run of plain text. Refuses anything tag-shaped: silently escaping an unrecognised tag
+# is the same defect as before, just deferred to the next caller.
+function ConvertTo-EscapedXmlSegment([AllowEmptyString()][string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return '' }
+    $suspect = [regex]::Match($Text, '<[A-Za-z/][^<>]{0,40}>?')
+    if ($suspect.Success) {
+        throw ("Unsupported markup '$($suspect.Value)' in the value. This editor passes these inline tags " +
+            "through verbatim: $($INLINE_MARKUP_TAGS -join ', '). Anything else would be escaped into " +
+            'literal text and shipped to the user, so it is refused instead. Edit the file by hand if the ' +
+            'tag is genuinely needed.')
+    }
     $escaped = [System.Security.SecurityElement]::Escape($Text)
     if ($null -eq $escaped) { return '' }
-    return $escaped.Replace('&apos;', "\'")
+    # S1567: must stay identical to ConvertTo-XmlText in scripts/utils/seed-locale-tranche.ps1, whose
+    # .DESCRIPTION carries the measured AAPT2 truth table. A quote survives only when a backslash
+    # precedes it after XML decoding, so &quot; is not a safe encoding. The optional leading backslash
+    # makes the pass idempotent: an already-escaped value collapses to the same single-backslash form
+    # rather than growing a second slash, which AAPT2 refuses for an apostrophe and ships as a literal
+    # slash for a quote.
+    $escaped = [regex]::Replace($escaped, '\\?&apos;', "\'")
+    return [regex]::Replace($escaped, '\\?&quot;', '\"')
+}
+
+function ConvertTo-XmlText([AllowEmptyString()][string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return '' }
+    $builder = [System.Text.StringBuilder]::new()
+    $cursor = 0
+    foreach ($tag in [regex]::Matches($Text, $INLINE_MARKUP_PATTERN)) {
+        [void]$builder.Append((ConvertTo-EscapedXmlSegment $Text.Substring($cursor, $tag.Index - $cursor)))
+        [void]$builder.Append($tag.Value)
+        $cursor = $tag.Index + $tag.Length
+    }
+    [void]$builder.Append((ConvertTo-EscapedXmlSegment $Text.Substring($cursor)))
+    return $builder.ToString()
 }
 
 function ConvertFrom-XmlText([AllowEmptyString()][string]$Text) {
-    return ([System.Net.WebUtility]::HtmlDecode($Text)).Replace("\'", "'")
+    # S1567: the decode has to unwind the quote escape too, or -ExpectedOldValue never matches a value
+    # written after the escaping fix and `get` prints the backslash back to the caller. HtmlDecode runs
+    # first so the legacy \&quot; spelling reduces to \" before the backslash comes off.
+    return ([System.Net.WebUtility]::HtmlDecode($Text)).Replace("\'", "'").Replace('\"', '"')
 }
 
 function Get-LocaleDir([string]$dir) { Join-Path $resDir $dir }
@@ -264,22 +335,69 @@ function Find-Key([string]$dir, [string]$key) {
     return $null
 }
 
-function Report-References([string]$key) {
-    Write-Host ''
-    Write-Host "Code references to '$key' (NOT modified - handle manually):" -ForegroundColor Yellow
-    $srcRoot = Join-Path $resDir '..'
-    $patterns = @(
-        @{ Glob = '*.kt';   Pat = "R\.string\.$([regex]::Escape($key))\b" },
-        @{ Glob = '*.java'; Pat = "R\.string\.$([regex]::Escape($key))\b" },
-        @{ Glob = '*.xml';  Pat = "@string/$([regex]::Escape($key))\b" }
-    )
-    $found = 0
-    foreach ($p in $patterns) {
-        $hits = Get-ChildItem -Path $srcRoot -Recurse -Filter $p.Glob -File -ErrorAction SilentlyContinue |
-            Select-String -Pattern $p.Pat -Encoding UTF8 -ErrorAction SilentlyContinue
-        foreach ($h in $hits) { $found++; Write-Host ("  {0}:{1}" -f $h.Path, $h.LineNumber) -ForegroundColor DarkYellow }
+# Scan root is <module>/src, not <module>/src/main: 40 of app_v2's 41 source-set directories are flavor,
+# feature or test sets, and 222 keys of values/strings.xml are referenced ONLY from one of them - against
+# which the old src/main-only scan printed "none", i.e. "safe to delete" (S1571). All three resource kinds
+# are matched because <plurals> and <string-array> names share this file and previously had no check at all.
+#
+# S1568: the scan itself now lives in scripts/quality/lib/android-string-liveness.ps1 and is shared with
+# the audit report and the ratchet gate. Removal and audit must answer from one definition of "a
+# reference" (strategic ADR-2) - when they were separate functions, the shorter one was the one holding
+# the safety catch on an irreversible deletion.
+function Get-KeyReferences([string]$key) {
+    $srcRoot = Join-Path $repoRoot (Join-Path $Module 'src')
+    return @(Get-ResourceReferenceLocations -SrcRoot $srcRoot -Name $key -RepoRoot $repoRoot)
+}
+
+# Resolves what KIND of element declares this key in this file, then builds the regex that deletes that
+# whole element including any <item> children. Returns $null when the file does not declare the key.
+#
+# S1568: the previous version hard-coded <string> on both ends, so a <plurals> or <string-array> name was
+# reported as "not found in any locale" and quietly survived every removal - the audit found one genuinely
+# dead <plurals> (sync_interval_hours) that could not be deleted at all. `<string\b` is also not a safe
+# stand-in for "a string element": the g/- junction is a word boundary, so it matches `<string-array` too.
+function Get-KeyRemovalRegex([string]$Content, [string]$Key) {
+    $decl = [regex]::Match($Content, (New-ResourceDeclarationPattern -Name $Key))
+    if (-not $decl.Success) { return $null }
+
+    $kind = $decl.Groups['kind'].Value
+    $esc = [regex]::Escape($Key)
+    # Line-anchored and byte-preserving, exactly as before: match the element and the newline that ends
+    # its line, so surrounding text and indentation of neighbours are untouched.
+    return "(?m)^[ \t]*<$kind\b(?=[^>]*\bname\s*=\s*`"$esc`")(?:[^>]*)>(?s:.*?)</$kind>[ \t]*\r?\n"
+}
+
+# Deletes one key from every locale on disk, not just the strict trio: a key deleted only from en/ru/uk
+# leaves an orphan in every translated locale, and no gate in the repository notices that (S1568).
+# Returns $true when at least one locale carried it. Shared by the single-key and batch paths so the two
+# cannot drift on what "removing a key" means.
+function Remove-KeyFromLocales([string]$Key) {
+    $removed = $false
+    foreach ($loc in $allLocales) {
+        foreach ($f in Get-StringFiles (Get-LocaleDir $loc.Dir)) {
+            $content = [System.IO.File]::ReadAllText($f.FullName)
+            $rx = Get-KeyRemovalRegex -Content $content -Key $Key
+            if (-not $rx) { continue }
+            $new = [regex]::Replace($content, $rx, '', 1)
+            if ($DryRun) { Write-Host "[$($loc.Tag)] would remove '$Key' from $($f.Name)" -ForegroundColor Yellow }
+            else { Save-File $f.FullName $new; Write-Host "[$($loc.Tag)] removed '$Key' from $($f.Name)" -ForegroundColor Green }
+            $removed = $true
+            break
+        }
     }
-    if ($found -eq 0) { Write-Host '  none' -ForegroundColor DarkGray }
+    return $removed
+}
+
+# Prints the scan and hands the hits back, so a caller can decide BEFORE mutating. The old function only
+# printed, and printed after the deletion had already happened - a post-mortem, not a safety check.
+function Show-KeyReferences([string]$key, [string[]]$hits, [string]$note) {
+    Write-Host ''
+    if ($hits.Count -eq 0) {
+        Write-Host "No references to '$key' anywhere under $Module/src." -ForegroundColor DarkGray
+        return
+    }
+    Write-Host "References to '$key' under $Module/src ($($hits.Count)) - $note" -ForegroundColor Yellow
+    foreach ($h in $hits) { Write-Host "  $h" -ForegroundColor DarkYellow }
 }
 
 # ----- single-locale set (original behavior, byte-for-byte compatible) -----
@@ -344,6 +462,9 @@ function Invoke-Set {
         Write-Host "[dry-run] $action ${Locale}:$Key in $filePath" -ForegroundColor Cyan
         if ($null -ne $oldDecodedValue) { Write-Host "Old: $oldDecodedValue" -ForegroundColor DarkGray }
         Write-Host "New: $Value" -ForegroundColor Green
+        # S1576: the escaped form is what actually lands in the file. Printing only -Value made the
+        # preview unable to show the very substitution it exists to catch.
+        Write-Host "Escaped: $escapedValue" -ForegroundColor DarkGreen
         return
     }
     Save-File $filePath $updatedContent
@@ -470,7 +591,9 @@ function Invoke-Audit {
         $keys = New-Object System.Collections.Generic.List[string]
         foreach ($f in Get-StringFiles $dir) {
             $content = [System.IO.File]::ReadAllText($f.FullName)
-            foreach ($m in [regex]::Matches($content, '<string\b[^>]*\bname\s*=\s*"([^"]+)"')) {
+            # All three kinds: as the before/after oracle for a migration, an audit blind to <plurals>
+            # and <string-array> would report "no change" across a deletion that did remove one.
+            foreach ($m in [regex]::Matches($content, '<(?:string-array|plurals|string)\b[^>]*\bname\s*=\s*"([^"]+)"')) {
                 $keys.Add($m.Groups[1].Value)
             }
         }
@@ -574,26 +697,68 @@ switch ($Action) {
     }
 
     'remove' {
-        if (-not $Key) { throw "remove requires -Key." }
-        $esc = [regex]::Escape($Key)
-        $rx = "(?m)^[ \t]*<string\b(?=[^>]*\bname\s*=\s*`"$esc`")(?:[^>]*)>(?s:.*?)</string>[ \t]*\r?\n"
-        # Sweeps every locale that exists on disk, not just the strict trio: a key deleted only from
-        # en/ru/uk would leave an orphan entry in every translated locale.
-        $removed = $false
-        foreach ($loc in $allLocales) {
-            foreach ($f in Get-StringFiles (Get-LocaleDir $loc.Dir)) {
-                $content = [System.IO.File]::ReadAllText($f.FullName)
-                if ($content -match $rx) {
-                    $new = [regex]::Replace($content, $rx, '', 1)
-                    if ($DryRun) { Write-Host "[$($loc.Tag)] would remove '$Key' from $($f.Name)" -ForegroundColor Yellow }
-                    else { Save-File $f.FullName $new; Write-Host "[$($loc.Tag)] removed '$Key' from $($f.Name)" -ForegroundColor Green }
-                    $removed = $true
-                    break
-                }
+        if ($Key -and $KeyList) { throw "remove takes -Key or -KeyList, not both." }
+        if (-not $Key -and -not $KeyList) { throw "remove requires -Key or -KeyList." }
+
+        if ($Key) {
+            # The gate runs first: removal is one-way across every locale on disk, so a reference
+            # discovered afterwards is a build (or runtime) break with nothing left to undo it from.
+            # @() at the call site, not only inside the function: PowerShell unrolls a single-element
+            # array on return, and under StrictMode the resulting bare string has no .Count.
+            $refs = @(Get-KeyReferences $Key)
+            Show-KeyReferences $Key $refs 'each of these breaks if the key is removed'
+            if ($refs.Count -gt 0 -and -not $Force) {
+                Write-Error "remove refused: '$Key' is still referenced under $Module/src ($($refs.Count) hit(s)). Update those call sites first, or pass -Force." -ErrorAction Continue
+                exit 3
             }
+            if (-not (Remove-KeyFromLocales -Key $Key)) {
+                Write-Host "Key '$Key' not found in any locale." -ForegroundColor Yellow
+            }
+            exit 0
         }
-        if (-not $removed) { Write-Host "Key '$Key' not found in any locale." -ForegroundColor Yellow }
-        Report-References $Key
+
+        # ----- batch -----
+        # One reference index for the whole list, not one tree walk per key. The per-key scan reads all
+        # 3892 source files, so a 397-key list would walk the tree 397 times while holding CODE.LOCK -
+        # which is what makes running this in parallel with a live translation ticket possible (S1568).
+        if (-not (Test-Path -LiteralPath $KeyList)) { throw "Key list not found: $KeyList" }
+        $keys = @(
+            [System.IO.File]::ReadAllLines($KeyList) |
+            ForEach-Object { $_.Trim() } |
+            Where-Object { $_ -and -not $_.StartsWith('#') } |
+            ForEach-Object { ($_ -split '\s+')[0] }
+        )
+        if ($keys.Count -eq 0) { throw "Key list is empty: $KeyList" }
+
+        $srcRoot = Join-Path $repoRoot (Join-Path $Module 'src')
+        Write-Host "Building reference index over $Module/src .." -ForegroundColor DarkGray
+        $referenced = Get-ReferencedResourceNames -SrcRoot $srcRoot
+        Write-Host "Indexed $($referenced.Count) referenced name(s); processing $($keys.Count) key(s)." -ForegroundColor DarkGray
+
+        $removedCount = 0
+        $refusedCount = 0
+        $absentCount = 0
+        foreach ($k in $keys) {
+            if ($referenced.Contains($k) -and -not $Force) {
+                # Locate only the refusals: the walk is per key, and a clean batch has none.
+                $hits = @(Get-KeyReferences $k)
+                Show-KeyReferences $k $hits 'refused - each of these breaks if the key is removed'
+                $refusedCount++
+                continue
+            }
+            if (Remove-KeyFromLocales -Key $k) { $removedCount++ } else { $absentCount++ }
+        }
+
+        $verb = if ($DryRun) { 'would remove' } else { 'removed' }
+        Write-Host ''
+        Write-Host "batch remove: $verb=$removedCount refused=$refusedCount absent=$absentCount of $($keys.Count) key(s)." -ForegroundColor Cyan
+
+        # Exit 3 on ANY refusal: a partially refused batch that exited 0 would read as a clean run, and
+        # the caller would move on believing the list was fully applied.
+        if ($refusedCount -gt 0) {
+            Write-Error "batch remove: $refusedCount key(s) refused - still referenced under $Module/src." -ErrorAction Continue
+            exit 3
+        }
         exit 0
     }
 
@@ -605,8 +770,15 @@ switch ($Action) {
             $clash = Find-Key (Get-LocaleDir $loc.Dir) $NewKey
             if ($clash) { throw "Target key '$NewKey' already exists in [$($loc.Tag)] $($clash.File.Name) - aborting." }
         }
+        # All three kinds, for the same reason as remove: a <plurals> or <string-array> rename that
+        # silently matched nothing left the old name in place and reported success.
         $esc = [regex]::Escape($Key)
-        $rx = "(<string\b[^>]*\bname\s*=\s*`")$esc(`")"
+        $rx = "(<(?:string-array|plurals|string)\b[^>]*\bname\s*=\s*`")$esc(`")"
+
+        # Advisory, not a gate: renaming a referenced key is the normal case, so a refusal here would break
+        # the ordinary workflow. Printed before the mutation so the list is actionable rather than forensic.
+        Show-KeyReferences $Key @(Get-KeyReferences $Key) "rewrite each to '$NewKey' - rename does not touch them"
+
         $renamed = $false
         # Every locale on disk, for the same reason as remove - a half-renamed key is a missing string.
         foreach ($loc in $allLocales) {
@@ -622,7 +794,6 @@ switch ($Action) {
             }
         }
         if (-not $renamed) { Write-Host "Key '$Key' not found in any locale." -ForegroundColor Yellow }
-        Report-References $Key
         exit 0
     }
 }

@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -26,20 +27,8 @@ class LauncherStarterSetsTest {
         InternalRouteCatalog.KEY_QUICK_CAMERA to true,
         InternalRouteCatalog.KEY_QUICK_VOICE to true,
         InternalRouteCatalog.KEY_CALCULATOR to true,
+        InternalRouteCatalog.KEY_NETWORK_MONITOR to true,
         InternalRouteCatalog.KEY_OCR to true,
-    )
-
-    // S1428: every set opens with the app-functions header over the four launcher actions, and a second
-    // header ends that section. Named once so a fifth action is one edit here, not six.
-    private val sectionHead = listOf(
-        "sec:app_functions",
-        "act:app_settings",
-        "act:launcher_settings",
-        "act:edit_desktop",
-        "act:all_apps",
-        "act:black_screen",
-        "act:exit_launcher_mode",
-        "sec:everything_else",
     )
 
     /** The utilities every profile closes with, below the second header. */
@@ -47,12 +36,58 @@ class LauncherStarterSetsTest {
 
     private val columnCounts = listOf(3, 4, 6, 12)
 
+    private data class ProfileGrid(
+        val wifi: Boolean = false,
+        val bluetooth: Boolean = false,
+        val nowPlaying: Boolean = false,
+        val blackScreen: Boolean = false,
+        val locationTiles: Boolean = false,
+        val maps: Boolean = false,
+        val fmRadio: Boolean = false,
+    )
+
+    private val profileGrid = mapOf(
+        DeviceProfileType.CAR_HEAD_UNIT to ProfileGrid(
+            wifi = true,
+            bluetooth = true,
+            nowPlaying = true,
+            blackScreen = true,
+            locationTiles = true,
+            maps = true,
+            fmRadio = true,
+        ),
+        DeviceProfileType.PERSONAL_SMARTPHONE to ProfileGrid(locationTiles = true, maps = true),
+        DeviceProfileType.HOME_TABLET to ProfileGrid(),
+        DeviceProfileType.AUDIO_PLAYER to ProfileGrid(
+            wifi = true,
+            bluetooth = true,
+            nowPlaying = true,
+            blackScreen = true,
+        ),
+        DeviceProfileType.TV_MEDIA_BOX to ProfileGrid(
+            wifi = true,
+            bluetooth = true,
+            nowPlaying = true,
+            blackScreen = true,
+        ),
+        DeviceProfileType.MEDIA_PLAYER to ProfileGrid(wifi = true, bluetooth = true, nowPlaying = true),
+        DeviceProfileType.VIDEO_PLAYER to ProfileGrid(wifi = true, bluetooth = true, nowPlaying = true),
+        DeviceProfileType.PHOTO_FRAME to ProfileGrid(wifi = true, blackScreen = true),
+        DeviceProfileType.EBOOK_READER to ProfileGrid(),
+        DeviceProfileType.VR_HEADSET to ProfileGrid(wifi = true, bluetooth = true),
+        DeviceProfileType.OTHER to ProfileGrid(wifi = true, bluetooth = true),
+    )
+
     // ── itemsFor ────────────────────────────────────────────────────────────
 
     @Test
     fun `every set opens with the app-functions section and closes with the common tail`() {
         val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
-        assertEquals(sectionHead + "clock" + commonTail, items.map { it.target })
+        assertEquals(
+            sectionHead(DeviceProfileType.OTHER) +
+                listOf("clock", "search", "weather", "os:wifi", "os:bluetooth") + commonTail,
+            items.map { it.target },
+        )
         assertEquals(LauncherCellKind.SECTION, items.first().kind)
     }
 
@@ -70,7 +105,7 @@ class LauncherStarterSetsTest {
         val secondHeader = targets.indexOf("sec:everything_else")
         val actions = targets.filter { it.startsWith("act:") }
         // Strategic §6.5: they moved out of the tail rather than being duplicated into the section.
-        assertEquals(LauncherActionCatalog.all.size, actions.size)
+        assertEquals(LauncherActionCatalog.all.size - 1, actions.size)
         assertEquals(actions, targets.subList(firstHeader + 1, secondHeader))
     }
 
@@ -104,10 +139,11 @@ class LauncherStarterSetsTest {
             emptySet(),
         )
         assertEquals(
-            sectionHead + listOf(
-                "clock",
+            sectionHead(DeviceProfileType.PERSONAL_SMARTPHONE) + listOf(
+                "clock", "search", "weather",
                 "res:1:BROWSE", "res:2:BROWSE", "res:3:BROWSE", "res:4:BROWSE", "res:5:BROWSE", "res:6:BROWSE",
-                "fn:streams", "fn:quick_camera", "fn:quick_voice", "fn:calculator", "fn:ocr",
+                "altitude", "satellites",
+                "fn:streams", "fn:quick_camera", "fn:quick_voice", "fn:calculator", "fn:network_monitor", "fn:ocr",
             ) + commonTail,
             items.map { it.target },
         )
@@ -122,7 +158,9 @@ class LauncherStarterSetsTest {
             emptySet(),
         )
         assertEquals(
-            sectionHead + listOf("clock", "res:1:BROWSE", "fn:calculator") + commonTail,
+            sectionHead(DeviceProfileType.PERSONAL_SMARTPHONE) +
+                listOf("clock", "search", "weather", "res:1:BROWSE", "altitude", "satellites", "fn:calculator") +
+                commonTail,
             items.map { it.target },
         )
     }
@@ -136,7 +174,9 @@ class LauncherStarterSetsTest {
             emptySet(),
         )
         assertEquals(
-            sectionHead + listOf("clock", "folder_preview:5", "res:5:SLIDESHOW") + commonTail,
+            sectionHead(DeviceProfileType.PHOTO_FRAME) +
+                listOf("clock", "search", "weather", "folder_preview:5", "res:5:SLIDESHOW", "os:wifi") +
+                commonTail,
             items.map { it.target },
         )
     }
@@ -145,7 +185,10 @@ class LauncherStarterSetsTest {
     fun `null id dependencies are skipped, never seeded as dangling cells`() {
         val items = LauncherStarterSets
             .itemsFor(DeviceProfileType.PHOTO_FRAME, StarterResources(), emptyMap(), emptySet())
-        assertEquals(sectionHead + "clock" + commonTail, items.map { it.target })
+        assertEquals(
+            sectionHead(DeviceProfileType.PHOTO_FRAME) + "clock" + "search" + "weather" + "os:wifi" + commonTail,
+            items.map { it.target },
+        )
     }
 
     @Test
@@ -157,7 +200,10 @@ class LauncherStarterSetsTest {
             emptySet(),
         )
         assertEquals(
-            sectionHead + listOf("clock", "res:7:BROWSE", "playlist:7", "streams", "fn:streams") + commonTail,
+            sectionHead(DeviceProfileType.AUDIO_PLAYER) + listOf(
+                "clock", "search", "res:7:BROWSE", "playlist:7", "streams", "os:wifi", "os:bluetooth",
+                "audio_now_playing", "fn:streams",
+            ) + commonTail,
             withStreams.map { it.target },
         )
         val withoutStreams = LauncherStarterSets.itemsFor(
@@ -192,6 +238,49 @@ class LauncherStarterSetsTest {
         ).map { it.target }
         assertEquals(1, targets.count { it == "app:${LauncherStarterSets.PACKAGE_YOUTUBE}" })
         assertFalse(targets.contains("app:${LauncherStarterSets.PACKAGE_YOUTUBE_MUSIC}"))
+    }
+
+    @Test
+    fun `car and smartphone starter sets differ`() {
+        val installed = setOf(LauncherStarterSets.PACKAGE_MAPS, FM_RADIO_PACKAGE)
+        val car = LauncherStarterSets.itemsFor(
+            DeviceProfileType.CAR_HEAD_UNIT,
+            StarterResources(),
+            allPaddingAvailable,
+            installed,
+        ).map { it.target }.toSet()
+        val smartphone = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(),
+            allPaddingAvailable,
+            installed,
+        ).map { it.target }.toSet()
+
+        assertNotEquals(car, smartphone)
+        assertTrue("car needs speed", "speed" in car)
+        assertFalse("smartphone must not get speed", "speed" in smartphone)
+    }
+
+    @Test
+    fun `profile starter table matches every approved cross profile assignment`() {
+        val installed = setOf(LauncherStarterSets.PACKAGE_MAPS, FM_RADIO_PACKAGE)
+        assertEquals(DeviceProfileType.entries.toSet(), profileGrid.keys)
+        profileGrid.forEach { (profile, expected) ->
+            val targets = LauncherStarterSets
+                .itemsFor(profile, StarterResources(), allPaddingAvailable, installed)
+                .map { it.target }.toSet()
+            assertEquals("$profile weather", profile != DeviceProfileType.AUDIO_PLAYER, "weather" in targets)
+            assertEquals("$profile Wi-Fi", expected.wifi, "os:wifi" in targets)
+            assertEquals("$profile Bluetooth", expected.bluetooth, "os:bluetooth" in targets)
+            assertEquals("$profile now-playing", expected.nowPlaying, "audio_now_playing" in targets)
+            assertEquals("$profile black screen", expected.blackScreen, "act:black_screen" in targets)
+            assertEquals("$profile altitude", expected.locationTiles, "altitude" in targets)
+            assertEquals("$profile satellites", expected.locationTiles, "satellites" in targets)
+            assertEquals("$profile speed", profile == DeviceProfileType.CAR_HEAD_UNIT, "speed" in targets)
+            assertEquals("$profile maps", expected.maps, "app:${LauncherStarterSets.PACKAGE_MAPS}" in targets)
+            assertEquals("$profile FM radio", expected.fmRadio, "app:$FM_RADIO_PACKAGE" in targets)
+            assertTrue("$profile all apps", "act:all_apps" in targets)
+        }
     }
 
     // ── place (the overlap invariant) ───────────────────────────────────────
@@ -269,6 +358,41 @@ class LauncherStarterSetsTest {
         assertTrue(placed.any { it.item.target == "app:__self__" })
     }
 
+    @Test
+    fun `car starter set packs without overlap at the minimum column count`() {
+        val items = LauncherStarterSets.itemsFor(
+            DeviceProfileType.CAR_HEAD_UNIT,
+            StarterResources(
+                recentId = 1,
+                allAudioId = 2,
+                allImagesId = 3,
+                allVideoId = 4,
+                allDocsId = 5,
+                cameraId = 6,
+            ),
+            allPaddingAvailable,
+            setOf(
+                LauncherStarterSets.PACKAGE_YOUTUBE,
+                LauncherStarterSets.PACKAGE_YOUTUBE_MUSIC,
+                LauncherStarterSets.PACKAGE_MAPS,
+                FM_RADIO_PACKAGE,
+            ),
+        )
+        val placed = LauncherStarterSets.place(items, columns = MIN_COLUMNS)
+        assertNoOverlap(placed)
+        placed.forEach { assertTrue("cell past right edge", it.colIndex + it.spanW <= MIN_COLUMNS) }
+    }
+
+    private fun sectionHead(profile: DeviceProfileType): List<String> = buildList {
+        add("sec:app_functions")
+        addAll(
+            LauncherActionCatalog.all
+                .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || profile in BLACK_SCREEN_PROFILES }
+                .map { "act:${it.key}" },
+        )
+        add("sec:everything_else")
+    }
+
     private fun assertNoOverlap(placed: List<LauncherStarterSets.PlacedStarterItem>) {
         val occupied = mutableSetOf<Pair<Int, Int>>()
         for (p in placed) {
@@ -278,5 +402,17 @@ class LauncherStarterSetsTest {
                 }
             }
         }
+    }
+
+    private companion object {
+        const val FM_RADIO_PACKAGE = "com.android.fmradio"
+        const val MIN_COLUMNS = 3
+
+        val BLACK_SCREEN_PROFILES = setOf(
+            DeviceProfileType.CAR_HEAD_UNIT,
+            DeviceProfileType.AUDIO_PLAYER,
+            DeviceProfileType.TV_MEDIA_BOX,
+            DeviceProfileType.PHOTO_FRAME,
+        )
     }
 }

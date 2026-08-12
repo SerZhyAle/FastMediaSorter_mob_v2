@@ -21,6 +21,10 @@ import androidx.media3.extractor.metadata.icy.IcyInfo
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.playback.NowPlayingMetadata
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
+import com.sza.fastmediasorter.core.playback.resilience.StreamAudioFailure
+import com.sza.fastmediasorter.core.playback.resilience.StreamFailureClass
+import com.sza.fastmediasorter.core.playback.resilience.StreamInlineRetryDecision
+import com.sza.fastmediasorter.core.playback.resilience.StreamInlineRetryPolicy
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.StreamDataSourceFactoryProvider
@@ -54,9 +58,11 @@ class StreamInlineAudioManager(
     // S0593: guard so a single play records "OK" once, even though isPlaying can toggle (re-buffer).
     private var successReported = false
     private val recoveryHandler = Handler(Looper.getMainLooper())
-    private var connectionStartedAtMs = 0L
+
+    // S1513: the reconnect decision - connect window, attempt counter and the usingService routing -
+    // in pure code. The flag below stays here because the stall timeout co-owns it (S1513 Phase 04).
+    private val retryPolicy = StreamInlineRetryPolicy()
     private var hasSuccessfulPlayback = false
-    private var retryAttempt = 0
     private var noSignalVisible = false
     private val toleranceRunnable = Runnable { handleToleranceTimeout() }
     private val retryRunnable = Runnable { retryLocalPlayback() }
@@ -130,12 +136,22 @@ class StreamInlineAudioManager(
         override fun onPlayerError(error: PlaybackException) {
             val failed = currentSource
             Timber.w(error, "StreamInlineAudioManager: inline audio error - %s", failed?.url)
-            if (canRetry(error)) {
-                if (!usingService) scheduleLocalRetry()
-                return
+            val decision = retryPolicy.onFailure(
+                failure = error.toStreamFailure(),
+                hasEverPlayed = hasSuccessfulPlayback,
+                usingService = usingService,
+                nowMs = SystemClock.elapsedRealtime(),
+            )
+            when (decision) {
+                is StreamInlineRetryDecision.RetryAfter -> scheduleLocalRetry(decision.delayMs)
+                // S0577: the background service owns this stream and runs its own ladder - the
+                // mini-player deliberately schedules nothing rather than open a second connection.
+                StreamInlineRetryDecision.OwnedByService -> Unit
+                StreamInlineRetryDecision.GiveUp -> {
+                    stop()
+                    failed?.let(callbacks.onError)
+                }
             }
-            stop()
-            failed?.let(callbacks.onError)
         }
     }
 
@@ -186,8 +202,7 @@ class StreamInlineAudioManager(
         currentSource = source
         successReported = false
         hasSuccessfulPlayback = source.lastPlayedAt != null
-        connectionStartedAtMs = SystemClock.elapsedRealtime()
-        retryAttempt = 0
+        retryPolicy.onStreamStarted(SystemClock.elapsedRealtime())
         noSignalVisible = false
         scheduleToleranceTimeout()
         nowPlaying.value = null
@@ -320,7 +335,7 @@ class StreamInlineAudioManager(
      */
     private fun markPlaybackHealthy() {
         recoveryHandler.removeCallbacks(toleranceRunnable)
-        retryAttempt = 0
+        retryPolicy.onPlaybackHealthy()
         if (noSignalVisible) {
             noSignalVisible = false
             renderTitle()
@@ -362,42 +377,33 @@ class StreamInlineAudioManager(
         }
     }
 
-    private fun canRetry(error: PlaybackException): Boolean {
-        val firstIoCode = PlaybackException.ERROR_CODE_IO_UNSPECIFIED
-        val lastIoCode = PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE
-        return error.errorCode in firstIoCode..lastIoCode && canContinueRetrying()
-    }
+    /**
+     * This site has never read a response code out of the `cause` chain, so no HTTP status is ever
+     * observed here. The policy answers the bad-HTTP-status code from the code alone, which is what
+     * the flat IO range did before the move (S1513).
+     */
+    private fun PlaybackException.toStreamFailure(): StreamAudioFailure =
+        StreamAudioFailure(StreamFailureClass.classify(errorCode, httpStatus = null), errorCode)
 
-    private fun scheduleLocalRetry() {
-        val delay = (RadioStreamBufferConfig.BASE_RETRY_DELAY_MS shl retryAttempt)
-            .coerceAtMost(RadioStreamBufferConfig.MAX_RETRY_DELAY_MS)
-        retryAttempt = (retryAttempt + 1).coerceAtMost(MAX_BACKOFF_SHIFT)
+    private fun scheduleLocalRetry(delayMs: Long) {
         recoveryHandler.removeCallbacks(retryRunnable)
-        recoveryHandler.postDelayed(retryRunnable, delay)
+        recoveryHandler.postDelayed(retryRunnable, delayMs)
     }
 
     private fun retryLocalPlayback() {
         val local = localPlayer ?: return
-        if (currentSource == null || !canContinueRetrying()) return
+        val mayReconnect = retryPolicy.mayReconnect(hasSuccessfulPlayback, SystemClock.elapsedRealtime())
+        if (currentSource == null || !mayReconnect) {
+            return
+        }
         local.prepare()
         local.playWhenReady = true
     }
 
-    private fun canContinueRetrying(): Boolean = hasSuccessfulPlayback ||
-        elapsedSinceConnectionStart() < RadioStreamBufferConfig.DIALOG_TIMEOUT_MS
-
-    private fun elapsedSinceConnectionStart(): Long =
-        SystemClock.elapsedRealtime() - connectionStartedAtMs
-
     private fun clearRecoveryState() {
         recoveryHandler.removeCallbacks(toleranceRunnable)
         recoveryHandler.removeCallbacks(retryRunnable)
-        connectionStartedAtMs = 0L
-        retryAttempt = 0
+        retryPolicy.onCleared()
         noSignalVisible = false
-    }
-
-    private companion object {
-        const val MAX_BACKOFF_SHIFT = 2
     }
 }

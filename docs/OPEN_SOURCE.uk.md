@@ -58,7 +58,7 @@ FastMediaSorter побудований на перелічених нижче к
 | AndroidX Media3 Session | `androidx.media3:media3-session` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://github.com/androidx/media) |
 | AndroidX Media3 Transformer | `androidx.media3:media3-transformer` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://github.com/androidx/media) |
 | AndroidX Media3 UI | `androidx.media3:media3-ui` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://github.com/androidx/media) |
-| AndroidX MediaRouter | `androidx.mediarouter:mediarouter` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://android.googlesource.com/platform/frameworks/support/) |
+| AndroidX MediaRouter | `androidx.mediarouter:mediarouter` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | legacy, lite, noLegal, photos, standard | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Paging Runtime KTX | `androidx.paging:paging-runtime-ktx` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Print | `androidx.print:print` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX ProfileInstaller | `androidx.profileinstaller:profileinstaller` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://android.googlesource.com/platform/frameworks/support/) |
@@ -105,7 +105,7 @@ FastMediaSorter побудований на перелічених нижче к
 | Kotlin Coroutines Play Services | `org.jetbrains.kotlinx:kotlinx-coroutines-play-services` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://github.com/Kotlin/kotlinx.coroutines) |
 | jsoup | `org.jsoup:jsoup` | [MIT](https://raw.githubusercontent.com/jhy/jsoup/master/LICENSE) | усі збірки | [link](https://github.com/jhy/jsoup) |
 | OpenXR Loader for Android | `org.khronos.openxr:openxr_loader_for_android` | [Apache-2.0](https://raw.githubusercontent.com/KhronosGroup/OpenXR-SDK/main/LICENSE) | noLegal, vr | [link](https://github.com/KhronosGroup/OpenXR-SDK-Source) |
-| NanoHTTPD | `org.nanohttpd:nanohttpd` | [BSD-3-Clause](https://raw.githubusercontent.com/NanoHttpd/nanohttpd/master/LICENSE.md) | усі збірки | [link](https://github.com/NanoHttpd/nanohttpd) |
+| NanoHTTPD | `org.nanohttpd:nanohttpd` | [BSD-3-Clause](https://raw.githubusercontent.com/NanoHttpd/nanohttpd/master/LICENSE.md) | legacy, lite, noLegal, photos, standard | [link](https://github.com/NanoHttpd/nanohttpd) |
 
 ## Компоненти на умовах постачальника
 
@@ -114,7 +114,7 @@ FastMediaSorter побудований на перелічених нижче к
 | Бібліотека | Координата | Ліцензія | У яких збірках | Джерела |
 |---|---|---|---|---|
 | Google Play services Auth | `com.google.android.gms:play-services-auth` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | усі збірки | [link](https://developers.google.com/android/guides/setup) |
-| Google Cast Framework | `com.google.android.gms:play-services-cast-framework` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | усі збірки | [link](https://developers.google.com/cast) |
+| Google Cast Framework | `com.google.android.gms:play-services-cast-framework` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | legacy, lite, noLegal, photos, standard | [link](https://developers.google.com/cast) |
 | Google Play services Wearable | `com.google.android.gms:play-services-wearable` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | усі збірки | [link](https://developers.google.com/android/guides/setup) |
 | Google ID for Credential Manager | `com.google.android.libraries.identity.googleid:googleid` | [Android Software Development Kit License](https://developer.android.com/studio/terms.html) | legacy, noLegal, photos, standard, vr | [link](https://developer.android.com/identity/sign-in/credential-manager-siwg) |
 | Play Feature Delivery | `com.google.android.play:feature-delivery-ktx` | [Play Core Software Development Kit Terms of Service](https://developer.android.com/guide/playcore/license) | усі збірки | [link](https://developer.android.com/guide/playcore) |
@@ -128,7 +128,7 @@ FastMediaSorter побудований на перелічених нижче к
 - **Glide** (`BSD-2-Clause AND Apache-2.0 AND MIT`) - Compound licence: BSD-2-Clause for Glide itself, Apache-2.0 for third_party/disklrucache, MIT for third_party/gif_decoder, plus two permissive grants in third_party/gif_encoder that have no SPDX identifier.
 - **PhotoView** (`Apache-2.0`) - Published on JitPack under the original author coordinate; the canonical repository is Baseflow/PhotoView.
 - **JSch (mwiede fork)** (`BSD-3-Clause`) - The POM declares three licences: BSD-3-Clause for JSch, BSD-3-Clause for the bundled JZlib, ISC for the bundled jBCrypt.
-- **NewPipe Extractor** (`GPL-3.0-or-later`) - Copyleft without a linking exception, linked only into the sideload-only noLegal build. GPLv3 also obliges providing the corresponding source to recipients of that build - tracked as S1563.
+- **NewPipe Extractor** (`GPL-3.0-or-later`) - Copyleft without a linking exception, linked only into the sideload-only noLegal build. In accordance with GPLv3 §6, the Corresponding Source code (including both the application source code and the extractor source code) is available at https://github.com/SerZhyAle/FastMediaSorter_mob_v2 and https://github.com/TeamNewPipe/NewPipeExtractor.
 - **ZXing Core** (`Apache-2.0`) - Licence inherited from the zxing-parent POM; the core artifact declares no licences block of its own.
 - **SMBJ** (`Apache-2.0`) - Apache-2.0 per the repository LICENSE_HEADER and the licences block of the 0.12.1 POM. The LGPL sometimes associated with SMB clients on Android belongs to jcifs-ng, a different library this project does not use.
 - **Tesseract4Android** (`Apache-2.0`) - Bundles Tesseract OCR (Apache-2.0) and Leptonica (BSD-2-Clause) as native libraries.

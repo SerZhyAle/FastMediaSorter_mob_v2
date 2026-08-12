@@ -399,6 +399,8 @@ class BrowseViewModel @Inject constructor(
         cleanupOrphanedTempFilesUseCase = cleanupUseCases.cleanupOrphanedTempFilesUseCase,
         getResourcesUseCase = contentDiscovery.getResourcesUseCase,
         remoteSourceGate = remoteAccess.remoteSourceGate,
+        resolveScanFilter = contentDiscovery.resolveScanFilterUseCase,
+        mediaScannerFactory = contentDiscovery.mediaScannerFactory,
         cacheManager = cacheManager,
         loadingManager = loadingManager,
         scope = viewModelScope,

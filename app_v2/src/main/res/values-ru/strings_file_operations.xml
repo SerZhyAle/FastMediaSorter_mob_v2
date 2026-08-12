@@ -120,7 +120,7 @@
     <string name="file_name">Имя файла</string>
     <string name="file_name_label">Имя: %1$s</string>
     <string name="file_not_found">Файл не найден</string>
-    <string name="file_not_found_message">Файл "%1$s" больше не существует. Возможно, он был удалён или перемещён вне приложения. Обновить ресурс?</string>
+    <string name="file_not_found_message">Файл \"%1$s\" больше не существует. Возможно, он был удалён или перемещён вне приложения. Обновить ресурс?</string>
     <string name="file_not_found_name">Файл не найден: %1$s</string>
     <string name="file_not_found_title">Файл не найден</string>
     <string name="file_operation_progress_preparing">Подготовка..</string>

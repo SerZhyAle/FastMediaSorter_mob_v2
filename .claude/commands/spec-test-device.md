@@ -88,7 +88,7 @@ Sanity-check chosen device (one call - model, Android release, SDK, density, siz
 pwsh -NoProfile -File scripts/devtest/adb.ps1 props -DeviceId <id> -Json
 ```
 
-One-off device chores outside mobile-mcp scenario loop (force-stop, reset data, ad-hoc screenshot, quick log tail): use same swiss-army instead of raw `adb`: `adb.ps1 stop` / `clear` / `shot` / `log -Tail N -Grep <re>` / `shell -Cmd "..."` (`.\a.ps1 adb <verb>`).
+One-off device chores outside mobile-mcp scenario loop (force-stop, ad-hoc screenshot, quick log tail): use same swiss-army instead of raw `adb`: `adb.ps1 stop` / `shot` / `log -Tail N -Grep <re>` / `logcat-clear` / `shell -Cmd "..."` (`.\a.ps1 adb <verb>`). Resetting app data is `wipe-data -Yes` and is one-way - it destroys settings, runtime grants and onboarding, so never reach for it to clear a log buffer (`logcat-clear` does that). The old `clear` verb is gone and refuses.
 
 Record device profile in scenario file header.
 

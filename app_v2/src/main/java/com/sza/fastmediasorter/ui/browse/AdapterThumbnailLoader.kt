@@ -7,9 +7,9 @@ import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
-import androidx.documentfile.provider.DocumentFile
 import com.bumptech.glide.Glide
 import com.bumptech.glide.Priority
+import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
@@ -173,14 +173,10 @@ class AdapterThumbnailLoader(
         val isNetworkPath = file.path.startsWith("smb://") ||
             file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
 
-        if (!isNetworkPath && !isCloudPath) {
-            if (!checkFileExists(file, context, isListMode)) {
-                Timber.w("File no longer exists: ${file.path}")
-                showGeneratedPlaceholder(imageView, file)
-                return newKey
-            }
-        }
-
+        // S1569: no existence probe here. It ran inside RecyclerView bind on the main thread - eight
+        // StrictMode disk reads of 25-68 ms in one frame - and bought nothing: every local branch below
+        // already ends in .error(generatedPlaceholder), so a missing file paints the same placeholder,
+        // decided by Glide on its own thread.
         when (file.type) {
             MediaType.EPUB -> loadEpub(imageView, file, context, isNetworkPath, isCloudPath, generatedPlaceholder, isListMode, isScrolling)
             MediaType.PDF -> loadPdf(imageView, file, context, isNetworkPath, isCloudPath, generatedPlaceholder, isListMode, isScrolling)
@@ -277,18 +273,45 @@ class AdapterThumbnailLoader(
 
     // ─── Private helpers ──────────────────────────────────────────────────────
 
-    private fun checkFileExists(file: MediaFile, context: Context, isListMode: Boolean): Boolean {
-        if (file.path.startsWith("content://")) {
-            if (!isListMode) return true // Grid skips SAF check
-            return try {
-                val uri = Uri.parse(file.path)
-                DocumentFile.fromSingleUri(context, uri)?.exists() == true
-            } catch (e: Exception) {
-                Timber.w(e, "Failed to check SAF URI existence: ${file.path}")
-                false
-            }
-        }
-        return File(file.path).exists()
+    /**
+     * S1569: what Glide should load, decided without touching the disk.
+     *
+     * The previous form asked `File(path).canRead()` first and fell back to the content URI. That probe ran
+     * during RecyclerView bind, on the main thread. A row that carries a content URI carries it because the
+     * item is MediaStore-backed, which is also the handle that survives scoped storage, so it leads here and
+     * the raw path becomes the fallback - see [thumbnailFallbackModel]. Where both resolve they are the same
+     * bytes, and the Glide signature is keyed on path and size either way, so the cache does not split.
+     */
+    private fun thumbnailModel(file: MediaFile): Any = when {
+        file.path.startsWith("content://") -> Uri.parse(file.path)
+        !file.contentUri.isNullOrEmpty() -> Uri.parse(file.contentUri)
+        else -> File(file.path)
+    }
+
+    /**
+     * S1569: the second attempt, or null when there is nothing else to try. Glide runs it off the main
+     * thread only after the primary model fails, which is what preserves the old behaviour of using the raw
+     * path whenever it is readable - without asking the disk during bind whether it is.
+     */
+    private fun thumbnailFallbackModel(file: MediaFile): Any? = when {
+        file.path.startsWith("content://") -> null
+        file.contentUri.isNullOrEmpty() -> null
+        else -> File(file.path)
+    }
+
+    /** S1569: [thumbnailFallbackModel] wrapped as the request Glide runs when the primary model fails. */
+    private fun thumbnailErrorRequest(
+        context: Context,
+        file: MediaFile,
+        generatedPlaceholder: BitmapDrawable,
+    ): RequestBuilder<android.graphics.drawable.Drawable>? {
+        val fallback = thumbnailFallbackModel(file) ?: return null
+        return Glide.with(context)
+            .load(fallback)
+            .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
+            .centerCrop()
+            .dontAnimate()
+            .error(generatedPlaceholder)
     }
 
     private fun detectCloudProvider(path: String): CloudProvider = when {
@@ -314,22 +337,21 @@ class AdapterThumbnailLoader(
         isScrolling: Boolean
     ) {
         if (!isCloudPath && !isNetworkPath) {
-            val epubFile = File(file.path)
-            if (epubFile.exists()) {
-                Glide.with(context)
-                    .asBitmap()
-                    .load(epubFile)
-                    .format(decodeFormatResolver.decodeFormat())
-                    .signature(ObjectKey("${file.path}_${file.size}"))
-                    .placeholder(generatedPlaceholder)
-                    .error(generatedPlaceholder)
-                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                    .onlyRetrieveFromCache(isScrolling)
-                    .dontAnimate()
-                    .into(imageView)
-            } else {
-                showGeneratedPlaceholder(imageView, file)
-            }
+            // S1569: no exists() probe - it ran on the main thread during bind (the same defect the
+            // image and video branches were already cleared of). The .error placeholder below is the
+            // same bitmap the removed else-branch painted, chosen by Glide off the main thread.
+            Timber.d("S1569: epub bind %s", file.name)
+            Glide.with(context)
+                .asBitmap()
+                .load(File(file.path))
+                .format(decodeFormatResolver.decodeFormat())
+                .signature(ObjectKey("${file.path}_${file.size}"))
+                .placeholder(generatedPlaceholder)
+                .error(generatedPlaceholder)
+                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                .onlyRetrieveFromCache(isScrolling)
+                .dontAnimate()
+                .into(imageView)
         } else if (isNetworkPath) {
             val isSmbPath = file.path.startsWith("smb://")
             val maxSize = if (isSmbPath) SMB_EPUB_MAX_SIZE else NETWORK_EPUB_MAX_SIZE
@@ -394,23 +416,21 @@ class AdapterThumbnailLoader(
         val largePdfThumbnails = getShowPdfThumbnails()
 
         if (!isCloudPath && !isNetworkPath) {
-            val pdfFile = File(file.path)
-            if (pdfFile.exists()) {
-                Glide.with(context)
-                    .asBitmap()
-                    .load(pdfFile)
-                    .format(decodeFormatResolver.decodeFormat())
-                    .signature(ObjectKey("${file.path}_${file.size}"))
-                    .placeholder(generatedPlaceholder)
-                    .error(generatedPlaceholder)
-                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                    .onlyRetrieveFromCache(isScrolling)
-                    .dontAnimate()
-                    .into(imageView)
-            } else {
-                if (isListMode) showGeneratedPlaceholder(imageView, file)
-                else imageView.setImageBitmap(createExtensionBitmap("PDF"))
-            }
+            // S1569: no exists() probe - it cost 18 ms on the main thread during bind. Both arms of
+            // the removed else-branch painted the PDF extension bitmap, which is exactly what
+            // .error(generatedPlaceholder) paints, so a missing file still shows the same tile.
+            Timber.d("S1569: pdf bind %s", file.name)
+            Glide.with(context)
+                .asBitmap()
+                .load(File(file.path))
+                .format(decodeFormatResolver.decodeFormat())
+                .signature(ObjectKey("${file.path}_${file.size}"))
+                .placeholder(generatedPlaceholder)
+                .error(generatedPlaceholder)
+                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                .onlyRetrieveFromCache(isScrolling)
+                .dontAnimate()
+                .into(imageView)
         } else if (isNetworkPath) {
             val isSmbPath = file.path.startsWith("smb://")
             val maxSize = if (largePdfThumbnails) {
@@ -564,13 +584,8 @@ class AdapterThumbnailLoader(
                 }
             }
             else -> {
-                val data: Any = when {
-                    file.path.startsWith("content://") -> Uri.parse(file.path)
-                    !File(file.path).canRead() && !file.contentUri.isNullOrEmpty() -> Uri.parse(file.contentUri)
-                    else -> File(file.path)
-                }
                 val localImageBuilder = Glide.with(context)
-                    .load(data)
+                    .load(thumbnailModel(file))
                     .format(decodeFormatResolver.decodeFormat())
                     .signature(ObjectKey("${file.path}_${file.size}"))
                     .priority(Priority.HIGH)
@@ -581,6 +596,7 @@ class AdapterThumbnailLoader(
                     .dontAnimate()
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
+                    .error(thumbnailErrorRequest(context, file, generatedPlaceholder))
                 // S0110: no error/stats listener during scroll - cache miss triggers .error() placeholder naturally
                 if (!isScrolling) {
                     localImageBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {
@@ -699,13 +715,8 @@ class AdapterThumbnailLoader(
                     showGeneratedPlaceholder(imageView, file)
                     return
                 }
-                val data: Any = when {
-                    file.path.startsWith("content://") -> Uri.parse(file.path)
-                    !File(file.path).canRead() && !file.contentUri.isNullOrEmpty() -> Uri.parse(file.contentUri)
-                    else -> File(file.path)
-                }
                 val localVideoBuilder = Glide.with(context)
-                    .load(data)
+                    .load(thumbnailModel(file))
                     .format(decodeFormatResolver.decodeFormat())
                     .signature(ObjectKey("${file.path}_${file.size}"))
                     .priority(Priority.NORMAL)
@@ -716,6 +727,7 @@ class AdapterThumbnailLoader(
                     .dontAnimate()
                     .placeholder(generatedPlaceholder)
                     .error(generatedPlaceholder)
+                    .error(thumbnailErrorRequest(context, file, generatedPlaceholder))
                 // S0110: no failure-marking listener during scroll - cache miss triggers .error() placeholder naturally
                 if (!isScrolling) {
                     localVideoBuilder.listener(object : RequestListener<android.graphics.drawable.Drawable> {

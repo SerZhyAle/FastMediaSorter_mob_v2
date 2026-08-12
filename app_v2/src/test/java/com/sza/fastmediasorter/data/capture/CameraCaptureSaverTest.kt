@@ -11,9 +11,13 @@ import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.testing.fakes.FakeSettingsRepository
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,6 +26,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.io.File
 import java.io.OutputStream
+import java.util.concurrent.Executors
 
 /**
  * Routing tests for [CameraCaptureSaver] (S0369 + S0465 + S0522): the three save destinations,
@@ -213,5 +218,46 @@ class CameraCaptureSaverTest {
 
         assertEquals(SaveResult.Failure.Io, result)
         assertFalse(temp.exists())
+    }
+
+    /**
+     * S1573: the saver must own its dispatcher instead of inheriting the caller's. Every production
+     * entry point reaches it from `lifecycleScope.launch`, i.e. Dispatchers.Main.immediate, so a
+     * suspend body without its own `withContext` put the settings read, the media-scanner broadcast,
+     * the network upload and the temp-file delete on the main thread - the last of those is what
+     * StrictMode reported. The upload strategy runs inside that outer body, which makes it the
+     * honest place to observe the dispatcher from: the leaf writers already switch to IO themselves
+     * and would pass this assertion even with the defect present.
+     */
+    @Test
+    fun `save body leaves the caller thread`() = runTest {
+        val temp = newTempFile()
+        val target = CameraCaptureTarget.Resource(
+            id = 7L,
+            name = "NAS",
+            path = "smb://host/share",
+            type = ResourceType.SMB,
+        )
+        var bodyThread: String? = null
+        val executor = Executors.newSingleThreadExecutor { runnable -> Thread(runnable, CALLER_THREAD_NAME) }
+        val callerDispatcher = executor.asCoroutineDispatcher()
+
+        try {
+            withContext(callerDispatcher) {
+                saver.save(temp, "thread.jpg", target) { _, _, _ ->
+                    bodyThread = Thread.currentThread().name
+                    true
+                }
+            }
+        } finally {
+            callerDispatcher.close()
+        }
+
+        assertNotNull("the upload strategy must have run", bodyThread)
+        assertNotEquals("saver body must not run on the caller thread", CALLER_THREAD_NAME, bodyThread)
+    }
+
+    private companion object {
+        const val CALLER_THREAD_NAME = "s1573-caller"
     }
 }

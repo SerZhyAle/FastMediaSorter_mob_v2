@@ -317,6 +317,53 @@ function Measure-UntrackedDialogText([string]$Text) {
     return @(Find-UntrackedDialogLines $Text).Count
 }
 
+# S1567: a double quote inside a string resource survives the build only when a backslash precedes it
+# after XML decoding. Both the bare " and the &quot; entity are dropped by AAPT2's quoting pass - the
+# entity because the XML parser decodes it first - so both spellings silently delete the character.
+#
+# The tag name is captured and closed by a backreference: <string-array name="a"> satisfies <string\b
+# and would otherwise pair with the first </item> inside it. (?<!/) drops self-closing elements, which
+# would otherwise open a body running to the next closing tag.
+$script:ResourceBodyRx = [regex]'(?s)<(string|item)((?:\s[^>]*)?)(?<!/)>(.*?)</\1>'
+
+# A body wrapped in a quote pair with whitespace just inside it is Android's whitespace-preservation
+# form, not a visible quote, so its outer pair is exempt. The whitespace test is load-bearing:
+# "%1$s" -> folder "%2$s" opens and closes with a quote only because a placeholder sits at each end,
+# and exempting its outer pair would leave two of its four quotes invisible.
+function Get-ResourceQuoteBodyInner([string]$Body) {
+    if ($Body.Length -ge 2 -and $Body[0] -eq '"' -and $Body[-1] -eq '"' -and $Body[-2] -ne '\') {
+        $candidate = $Body.Substring(1, $Body.Length - 2)
+        if ($candidate -match '^\s' -or $candidate -match '\s$') { return $candidate }
+    }
+    return $Body
+}
+
+function Find-InvisibleResourceQuoteLines([string]$Text) {
+    $hits = @()
+    if ([string]::IsNullOrEmpty($Text)) { return $hits }
+    foreach ($m in $script:ResourceBodyRx.Matches($Text)) {
+        $inner = Get-ResourceQuoteBodyInner $m.Groups[3].Value
+        if ([string]::IsNullOrEmpty($inner)) { continue }
+        $entities = ([regex]::Matches($inner, '&quot;')).Count
+        $bares = ([regex]::Matches($inner, '(?<!\\)"')).Count
+        if (($entities + $bares) -eq 0) { continue }
+        $hits += ($Text.Substring(0, $m.Index) -split "`n").Count
+    }
+    return @($hits | Sort-Object -Unique)
+}
+
+function Measure-InvisibleResourceQuotes([string]$Text) {
+    $n = 0
+    if ([string]::IsNullOrEmpty($Text)) { return $n }
+    foreach ($m in $script:ResourceBodyRx.Matches($Text)) {
+        $inner = Get-ResourceQuoteBodyInner $m.Groups[3].Value
+        if ([string]::IsNullOrEmpty($inner)) { continue }
+        $n += ([regex]::Matches($inner, '&quot;')).Count
+        $n += ([regex]::Matches($inner, '(?<!\\)"')).Count
+    }
+    return $n
+}
+
 function New-RegexRule {
     param(
         [Parameter(Mandatory)][string]$Name,
@@ -499,6 +546,19 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-UntrackedDialogText $t }
             LocateInText = { param($t) Find-UntrackedDialogLines $t }
             FailMessage  = 'new dialog shown with a bare .show(). Show it with showBoundTo(owner) from util/LifecycleDialogExt.kt so the host lifecycle dismisses it (S1456).'
+        },
+        # Reuses the app_v2/src root the rule above already walks, so this costs one regex pass over
+        # text that is loaded anyway rather than a second walk of the resource tree.
+        [pscustomobject]@{
+            Name         = 'string-quote-escaping'
+            Extensions   = @('.xml')
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/[^/]+/res/values[^/]*/'
+            Baseline     = 'string-quote-escaping-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-InvisibleResourceQuotes $t }
+            LocateInText = { param($t) Find-InvisibleResourceQuoteLines $t }
+            FailMessage  = 'new build-invisible double quote in a string resource. AAPT2 drops both a bare " and &quot; - write \" instead (S1567).'
         }
     )
 }

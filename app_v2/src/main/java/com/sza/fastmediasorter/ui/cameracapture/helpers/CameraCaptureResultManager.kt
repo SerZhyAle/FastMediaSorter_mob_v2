@@ -60,7 +60,6 @@ class CameraCaptureResultManager(
         // thread, while the user is still framing the shot.
         lifecycleScope.launch(Dispatchers.IO) {
             runCatching { Glide.get(activity.applicationContext) }
-                .onSuccess { Timber.d("S1480: Glide warmed off the main thread") }
                 .onFailure { Timber.w(it, "CameraCaptureResultManager: Glide warm-up failed") }
         }
     }

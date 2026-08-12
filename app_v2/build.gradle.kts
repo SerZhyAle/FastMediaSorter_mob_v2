@@ -157,8 +157,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260808230
-val defaultAppVersionName = "2.60.8082.309"
+val defaultAppVersionCode = 260811231
+val defaultAppVersionName = "2.60.8112.319"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -730,8 +730,10 @@ android {
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
-            // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
-            kotlin.directories.add("src/castEnabled/java")
+            // S1439: vr declares SUPPORT_CAST=false because Horizon OS has no Play Services Cast
+            // module, so it mounts the no-op seam impl - shipping the real one packaged an SDK the
+            // platform cannot back, behind two safeguards nothing recorded as requirements.
+            kotlin.directories.add("src/castDisabled/java")
             // S0403: vr has no Wear companion -> mount the wearStub no-op (no Play Services Wearable).
             kotlin.directories.add("src/wearStub/java")
             kotlin.directories.add("src/ocrEnabled/java")
@@ -1135,7 +1137,9 @@ androidComponents {
         // AndroidManifest automatically. Inject the Cast OPTIONS_PROVIDER meta-data overlay for every
         // cast-capable flavor. addStaticManifestFile is additive, so it coexists with noLegal's
         // manifest.srcFile(src/vr) override. foss never mounts castEnabled, so it never registers it.
-        val castFlavors = setOf("standard", "noLegal", "lite", "photos", "legacy", "vr")
+        // S1439: vr is off this list for the same reason - it mounts castDisabled, and registering a
+        // provider for an impl the flavor does not ship is what made the two halves disagree.
+        val castFlavors = setOf("standard", "noLegal", "lite", "photos", "legacy")
         if (flavorName in castFlavors) {
             variant.sources.manifests.addStaticManifestFile("src/castEnabled/AndroidManifest.xml")
         }
@@ -1558,28 +1562,26 @@ dependencies {
     implementation("com.microsoft.identity.client:msal:6.0.1")
     
     // Google Cast SDK + MediaRouter (Chromecast output from player) + NanoHTTPD proxy.
-    // S0403: consumed only by src/castEnabled (CastMediaManagerImpl / LocalCastProxyServer), mounted
-    // into every flavor EXCEPT foss (which mounts castDisabled). Scoped per-flavor so the FOSS APK
-    // never packages the proprietary Google Cast SDK. Keep this list in sync with the castEnabled
-    // sourceSets mounts above.
+    // S0403: consumed only by src/castEnabled (CastMediaManagerImpl / LocalCastProxyServer). Scoped
+    // per-flavor so a flavor mounting castDisabled never packages the proprietary Google Cast SDK.
+    // S1439: vr is off all three lists - it mounts castDisabled, and none of the three has any other
+    // consumer in the tree, so leaving them would ship an SDK, a router and an HTTP server for code
+    // that is not in the APK. Keep these lists in sync with the castEnabled sourceSets mounts above.
     "standardImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
     "noLegalImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
     "liteImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
     "photosImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
     "legacyImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
-    "vrImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
     "standardImplementation"("androidx.mediarouter:mediarouter:1.7.0")
     "noLegalImplementation"("androidx.mediarouter:mediarouter:1.7.0")
     "liteImplementation"("androidx.mediarouter:mediarouter:1.7.0")
     "photosImplementation"("androidx.mediarouter:mediarouter:1.7.0")
     "legacyImplementation"("androidx.mediarouter:mediarouter:1.7.0")
-    "vrImplementation"("androidx.mediarouter:mediarouter:1.7.0")
     "standardImplementation"("org.nanohttpd:nanohttpd:2.3.1")
     "noLegalImplementation"("org.nanohttpd:nanohttpd:2.3.1")
     "liteImplementation"("org.nanohttpd:nanohttpd:2.3.1")
     "photosImplementation"("org.nanohttpd:nanohttpd:2.3.1")
     "legacyImplementation"("org.nanohttpd:nanohttpd:2.3.1")
-    "vrImplementation"("org.nanohttpd:nanohttpd:2.3.1")
 
     // Logging
     implementation("com.jakewharton.timber:timber:5.0.1")

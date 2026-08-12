@@ -46,6 +46,25 @@ if ($PSBoundParameters.ContainsKey('Priority')) {
     }
 }
 
+# S1582: explicit acceptance-probe contracts are source-backed at write time.
+# Unmarked prose remains free-form, so historic status notes are not reinterpreted.
+if ($PSBoundParameters.ContainsKey('StatusNote') -and $StatusNote -ne '' -and
+    $StatusNote -match '(?im)^\s*Probe\s+(literal|template|none)\s*:') {
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    $helperPath = Join-Path $repoRoot 'scripts/quality/lib/ticket-acceptance-probes.ps1'
+    $sourceRoots = @((Join-Path $repoRoot 'app_v2/src'), (Join-Path $repoRoot 'wear/src'))
+    if (-not (Test-Path -LiteralPath $helperPath) -or @($sourceRoots | Where-Object { -not (Test-Path -LiteralPath $_) }).Count -gt 0) {
+        throw 'Cannot validate acceptance-probe contract: helper or source roots are unavailable.'
+    }
+    . $helperPath
+    $probeResults = @(Test-TicketAcceptanceProbeNote -Ticket $Id -StatusNote $StatusNote -SourceRoots $sourceRoots)
+    $invalidProbe = @($probeResults | Where-Object { $_.Outcome -ne 'pass' })
+    if ($invalidProbe.Count -gt 0) {
+        $reasons = ($invalidProbe | ForEach-Object { $_.Outcome }) -join ', '
+        throw "Invalid acceptance-probe contract for ${Id}: $reasons."
+    }
+}
+
 # Resolve from the active journal first, then the archive journal (so updating
 # or reviving an Archived ticket still works under the split).
 $records = [System.Collections.Generic.List[object]]::new()

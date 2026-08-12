@@ -19,6 +19,10 @@ import androidx.media3.extractor.metadata.icy.IcyHeaders
 import androidx.media3.extractor.metadata.icy.IcyInfo
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
+import com.sza.fastmediasorter.core.playback.resilience.StreamFailureClass
+import com.sza.fastmediasorter.core.playback.resilience.StreamVideoFailure
+import com.sza.fastmediasorter.core.playback.resilience.StreamVideoRetryDecision
+import com.sza.fastmediasorter.core.playback.resilience.StreamVideoRetryPolicy
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
 import kotlinx.coroutines.delay
@@ -315,11 +319,14 @@ private fun VideoPlayerManager.streamPlaybackListener(
 ): Player.Listener =
     object : Player.Listener {
         private val isRtsp = path.startsWith("rtsp://")
-        private var behindLiveRecoveries = 0
-        private var transientRetries = 0
+
+        // S1513: the two recovery budgets and both backoff ladders. Session-scoped like the counters
+        // it replaced - a new stream starts with a full allowance because the listener is new.
+        private val retryPolicy = StreamVideoRetryPolicy()
+
         // S0685: true while a recovery path (re-anchor / classified retry) is re-establishing the stream,
-        // so the next BUFFERING is labelled "reconnecting" instead of a plain buffer fill. Set by the
-        // recovery branches in onPlayerError, cleared on a confirmed READY and on hard-fail.
+        // so the next BUFFERING is labelled "reconnecting" instead of a plain buffer fill. Set by
+        // recoverAfter, cleared on a confirmed READY and on the surfacing branch of onPlayerError.
         private var reconnecting = false
 
         // S1128: gate the quality step-down to genuine stalls only. hadFirstFrame flips once playback has
@@ -354,8 +361,7 @@ private fun VideoPlayerManager.streamPlaybackListener(
                 Player.STATE_READY -> {
                     // Reset the recovery budgets only on a confirmed READY, never on BUFFERING: a stream
                     // that flaps buffering<->error must not silently refill its quota and spin forever.
-                    behindLiveRecoveries = 0
-                    transientRetries = 0
+                    retryPolicy.onReady()
                     reconnecting = false
                     // The watchdog keeps its recovery window across READY. A re-prepare reaches READY
                     // before the next poll, so resetting here would make every recovery attempt read as one.
@@ -433,89 +439,99 @@ private fun VideoPlayerManager.streamPlaybackListener(
             }
         }
 
+        /**
+         * S1513: read the failure, ask the policy, apply the answer. The ladder itself - both
+         * budgets, both backoff shapes and the RTSP gate - lives in [StreamVideoRetryPolicy] and is
+         * unit-tested there; what stays here is everything that needs a Player.
+         */
         override fun onPlayerError(error: PlaybackException) {
             // S0895: capture the errored instance now - exoPlayer is a mutable property that can be
             // reassigned to a different file's player before the delayed recovery below fires (user
             // navigates away during the backoff window). Acting on the stale reference would yank
             // that file's already-restored position instead of recovering the stream that errored.
             val erroredPlayer = exoPlayer
-            // P0 - routine live-edge desync: the manifest's sliding window moved past the playhead. This
-            // is NOT a dead channel. A bare prepare() re-prepares at the same expired position and fails
-            // again, so seek to the live edge first, then prepare. RTSP has no sliding window, so the seek
-            // is gated off it. Budget bounds a genuinely dead window; backoff is linear and short.
-            if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW && !isRtsp) {
-                if (behindLiveRecoveries < STREAM_MAX_BEHIND_LIVE_RECOVERIES) {
-                    behindLiveRecoveries++
-                    // S0685: flip the wait label to "reconnecting" up front so the user sees the recovery
-                    // even before the player re-enters BUFFERING during the re-prepare.
-                    reconnecting = true
-                    playerCallback.onStreamWaitPhase(VideoPlayerManager.StreamWaitPhase.RECONNECTING)
-                    val backoffMs = (behindLiveRecoveries * 1_000L).coerceAtMost(5_000L)
-                    Timber.w(error, "Stream behind live window - re-anchoring to live edge (attempt %d): %s", behindLiveRecoveries, path)
-                    managerScope.launch {
-                        delay(backoffMs)
-                        if (exoPlayer !== erroredPlayer) return@launch
-                        exoPlayer?.seekToDefaultPosition()
-                        exoPlayer?.prepare()
-                    }
-                    return
+            val failure = StreamVideoFailure(
+                failureClass = StreamFailureClass.classify(error.errorCode, error.httpStatusOrNull()),
+                errorCode = error.errorCode,
+                isRtsp = isRtsp,
+            )
+            when (val decision = retryPolicy.onFailure(failure)) {
+                is StreamVideoRetryDecision.ReAnchor -> {
+                    Timber.w(
+                        error,
+                        "Stream behind live window - re-anchoring to live edge (attempt %d): %s",
+                        decision.attempt,
+                        path,
+                    )
+                    recoverAfter(erroredPlayer, decision.delayMs, reAnchorToLiveEdge = true)
                 }
-            } else if (isRecoverableStreamError(error) && transientRetries < STREAM_MAX_TRANSIENT_RETRIES) {
-                // P1 - transient/HTTP-5xx error: bounded retry with exponential backoff. On a live stream
-                // re-anchor before re-preparing (a stale live position just fails again); radio/VOD do not.
-                transientRetries++
-                // S0685: same up-front "reconnecting" hint for the classified-retry path.
-                reconnecting = true
-                playerCallback.onStreamWaitPhase(VideoPlayerManager.StreamWaitPhase.RECONNECTING)
-                // S1512: capped like every other retry ladder in the project. Uncapped this reached 16s on
-                // the fourth attempt, and it is now the second echelon - the loader has already spent its
-                // own retries by the time an error gets here.
-                val backoffMs = (STREAM_TRANSIENT_BASE_DELAY_MS shl (transientRetries - 1))
-                    .coerceAtMost(RadioStreamBufferConfig.MAX_RETRY_DELAY_MS)
-                Timber.w(error, "Stream transient error - retrying in %dms (attempt %d): %s", backoffMs, transientRetries, path)
-                managerScope.launch {
-                    delay(backoffMs)
-                    if (exoPlayer !== erroredPlayer) return@launch
-                    if (!isRtsp && exoPlayer?.isCurrentMediaItemLive == true) exoPlayer?.seekToDefaultPosition()
-                    exoPlayer?.prepare()
+                is StreamVideoRetryDecision.Retry -> {
+                    Timber.w(
+                        error,
+                        "Stream transient error - retrying in %dms (attempt %d): %s",
+                        decision.delayMs,
+                        decision.attempt,
+                        path,
+                    )
+                    recoverAfter(erroredPlayer, decision.delayMs, reAnchorToLiveEdge = false)
                 }
-                return
+                StreamVideoRetryDecision.Surface -> {
+                    Timber.w(error, "Stream playback error - surfacing to user: %s", path)
+                    reconnecting = false
+                    playerCallback.onBuffering(false)
+                    playerCallback.onStreamWaitPhase(null)
+                    playerCallback.onPlaybackError(error)
+                }
             }
-            Timber.w(error, "Stream playback error - surfacing to user: %s", path)
-            reconnecting = false
-            playerCallback.onBuffering(false)
-            playerCallback.onStreamWaitPhase(null)
-            playerCallback.onPlaybackError(error)
+        }
+
+        /**
+         * Schedules the re-prepare the policy asked for.
+         *
+         * [reAnchorToLiveEdge] separates the two branches at the only point they differ. A live-edge
+         * desync must seek unconditionally - a bare `prepare()` re-prepares at the same expired
+         * position and fails again - while a transient failure only needs the seek when the item
+         * turns out to be live, and that has to be read after the wait, off the player that is still
+         * current. RTSP has no sliding window on either branch.
+         */
+        private fun recoverAfter(erroredPlayer: ExoPlayer?, delayMs: Long, reAnchorToLiveEdge: Boolean) {
+            // S0685: flip the wait label to "reconnecting" up front so the user sees the recovery
+            // even before the player re-enters BUFFERING during the re-prepare.
+            reconnecting = true
+            playerCallback.onStreamWaitPhase(VideoPlayerManager.StreamWaitPhase.RECONNECTING)
+            managerScope.launch {
+                delay(delayMs)
+                // S0895: the stale-player guard - the user navigated away during the backoff, so the
+                // recovery belongs to a session that no longer owns the player. Drop it.
+                if (exoPlayer !== erroredPlayer) return@launch
+                if (reAnchorToLiveEdge || (!isRtsp && exoPlayer?.isCurrentMediaItemLive == true)) {
+                    exoPlayer?.seekToDefaultPosition()
+                }
+                exoPlayer?.prepare()
+            }
         }
     }
 
 /**
- * Classifies a stream [PlaybackException] as silently recoverable (bounded retry) vs hard-fail (surface
- * the "channel unavailable" dialog at once). `BehindLiveWindow` is handled by its own path and is not
- * routed here. A bad HTTP status is recoverable only for 429/5xx (server-side, retryable); a 4xx is a
- * permanent client error and surfaces immediately.
+ * The response code the server answered with, or null when none is on record.
+ *
+ * Only a bad-HTTP-status failure carries one, and only somewhere down its `cause` chain, so anything
+ * else answers null without walking it. Null is not "the server was fine": the classifier reads an
+ * absent status as not-retryable (S1513 ADR-4), which is exactly what the superseded status check
+ * answered when it walked this same chain and found no response code in it. Which codes are then
+ * worth retrying - 429 and 5xx, never a 4xx - is the classifier's call now.
  */
-@UnstableApi
-private fun isRecoverableStreamError(error: PlaybackException): Boolean = when (error.errorCode) {
-    PlaybackException.ERROR_CODE_TIMEOUT,
-    PlaybackException.ERROR_CODE_IO_UNSPECIFIED,
-    PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
-    PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> true
-    PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> isRetryableHttpStatus(error)
-    else -> false
-}
-
-/** True only when a bad-HTTP-status error carries a retryable response code (429 or any 5xx). */
-private fun isRetryableHttpStatus(error: PlaybackException): Boolean {
-    var cause: Throwable? = error.cause
-    while (cause != null) {
-        if (cause is HttpDataSource.InvalidResponseCodeException) {
-            val code = cause.responseCode
-            return code == 429 || code in 500..599
+private fun PlaybackException.httpStatusOrNull(): Int? {
+    var current: Throwable? =
+        cause.takeIf { errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS }
+    while (current != null) {
+        val responseCode = (current as? HttpDataSource.InvalidResponseCodeException)?.responseCode
+        if (responseCode != null) {
+            return responseCode
         }
-        cause = cause.cause
+        current = current.cause
     }
-    return false
+    return null
 }
 
 /** S0937: human-readable label for a Media3 [Player] playback state - keeps stream state logs greppable. */
@@ -551,9 +567,6 @@ private fun VideoPlayerManager.updateNowPlayingTitle(title: String) {
     }
 }
 
-private const val STREAM_MAX_BEHIND_LIVE_RECOVERIES = 3
-private const val STREAM_MAX_TRANSIENT_RETRIES = 4
-private const val STREAM_TRANSIENT_BASE_DELAY_MS = 2_000L
 private const val STREAM_FRAME_CAPTURE_DELAY_MS = 750L
 private const val STREAM_FRAME_CAPTURE_WIDTH = 640
 private const val STREAM_FRAME_CAPTURE_HEIGHT = 360

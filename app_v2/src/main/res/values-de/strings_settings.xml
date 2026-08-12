@@ -9,7 +9,7 @@
     <string name="settings_already_default_player">✓ Bereits als Standard festgelegt</string>
     <string name="settings_application_log_title">Anwendungsprotokoll</string>
     <string name="settings_black_screen_button_desc">Eine Schaltfläche in der Player-Leiste anzeigen, die den Bildschirm dunkel schaltet, während Audio oder Video weiterläuft</string>
-    <string name="settings_black_screen_button_title">Schaltfläche &quot;Schwarzer Bildschirm&quot; anzeigen</string>
+    <string name="settings_black_screen_button_title">Schaltfläche \"Schwarzer Bildschirm\" anzeigen</string>
     <string name="settings_cache_size_range_error">Die Cache-Größe muss zwischen 512 und 16384 MB liegen.</string>
     <string name="settings_category_about">Über</string>
     <string name="settings_category_app_data">Sicherungen, Wiederherstellung und Export der Einstellungen</string>
@@ -56,14 +56,10 @@
     <string name="settings_general_network_sync">Netzwerksynchronisierung</string>
     <string name="settings_general_permissions">Berechtigungen</string>
     <string name="settings_general_system">Netzwerk und System</string>
-    <string name="settings_log_current_session_body">Protokoll der laufenden Sitzung (%1$d Zeilen):
-
-%2$s</string>
+    <string name="settings_log_current_session_body">Protokoll der laufenden Sitzung (%1$d Zeilen):\n\n%2$s</string>
     <string name="settings_log_empty">Keine Protokolleinträge gefunden.</string>
     <string name="settings_log_empty_session">Für die laufende Sitzung wurden keine Protokolleinträge gefunden.</string>
-    <string name="settings_log_last_lines">Letzte %1$d Protokollzeilen:
-
-%2$s</string>
+    <string name="settings_log_last_lines">Letzte %1$d Protokollzeilen:\n\n%2$s</string>
     <string name="settings_log_save_destination_title">Protokoll am Ziel speichern</string>
     <string name="settings_log_save_failed">Das Protokoll ließ sich nicht speichern.</string>
     <string name="settings_log_saved_to_resource">Protokoll gespeichert unter: %1$s</string>
@@ -91,10 +87,10 @@
         <item quantity="one">Der Wechsel zu diesem Profil ersetzt %1$d Einstellung durch den Wert, den dieses Profil vorgibt. Fortfahren?</item>
         <item quantity="other">Der Wechsel zu diesem Profil ersetzt %1$d Einstellungen durch die Werte, die dieses Profil vorgibt. Fortfahren?</item>
     </plurals>
-    <string name="settings_all_files_create_resource">Quelle &quot;Alle Dateien&quot; anlegen</string>
-    <string name="settings_all_files_resource_created">Quelle &quot;Alle Dateien&quot; wurde angelegt.</string>
-    <string name="settings_all_files_profile_confirm_title">Quelle &quot;Alle Dateien&quot; anlegen</string>
-    <string name="settings_all_files_profile_confirm_message">Dieses Profil aktiviert den Dateimanager-Modus und legt die fehlende Quelle &quot;Alle Dateien&quot; an. Fortfahren?</string>
+    <string name="settings_all_files_create_resource">Quelle \"Alle Dateien\" anlegen</string>
+    <string name="settings_all_files_resource_created">Quelle \"Alle Dateien\" wurde angelegt.</string>
+    <string name="settings_all_files_profile_confirm_title">Quelle \"Alle Dateien\" anlegen</string>
+    <string name="settings_all_files_profile_confirm_message">Dieses Profil aktiviert den Dateimanager-Modus und legt die fehlende Quelle \"Alle Dateien\" an. Fortfahren?</string>
     <string name="settings_reset_settings_failed">Die Einstellungen ließen sich nicht zurücksetzen. Versuchen Sie es erneut.</string>
     <string name="settings_reset_smb_failed">Die SMB-Verbindungen ließen sich nicht zurücksetzen. Versuchen Sie es erneut.</string>
     <string name="settings_saved">Einstellungen gespeichert</string>
@@ -168,7 +164,7 @@
     <string name="setting_photos_during_audio_desc">Zufällige Bilder während der Wiedergabe (eine Audioliste wählen - Bilder ansehen)</string>
     <string name="setting_play_to_end_desc">Medien bis zum Ende abspielen statt das Diashow-Intervall zu nutzen</string>
     <string name="setting_prevent_sleep_desc">Bildschirm während der Nutzung der App anlassen</string>
-    <string name="setting_primary_media_player_desc">FastMediaSorter in &quot;Öffnen mit&quot; anzeigen und Medientasten verarbeiten</string>
+    <string name="setting_primary_media_player_desc">FastMediaSorter in \"Öffnen mit\" anzeigen und Medientasten verarbeiten</string>
     <string name="setting_resume_on_next_launch">Wiedergabe beim nächsten Start fortsetzen</string>
     <string name="setting_resume_on_next_launch_desc">Beim Start der App die zuletzt gespielte Datei automatisch an der Stelle öffnen, an der Sie aufgehört haben</string>
     <string name="setting_safe_mode_desc">Vor zerstörenden Vorgängen (Löschen, Verschieben) bestätigen</string>
@@ -197,14 +193,14 @@
     <string name="setting_translation_lens_style_desc">Übersetzungsergebnisse als Block-Überlagerungen anzeigen</string>
     <string name="pref_crop_images_fullscreen_summary">Bilder im Vollbild oder in der Diashow zuschneiden, sodass sie den Bildschirm füllen, wenn die Ausrichtung passt</string>
     <string name="pref_crop_images_fullscreen_title">Bilder bildschirmfüllend zuschneiden</string>
-    <string name="pref_dynamic_background_summary">&quot;Schwarze Balken&quot; füllen, indem die Randfarben des Bildes fortgesetzt werden (Ambilight-Effekt)</string>
+    <string name="pref_dynamic_background_summary">\"Schwarze Balken\" füllen, indem die Randfarben des Bildes fortgesetzt werden (Ambilight-Effekt)</string>
     <string name="pref_dynamic_background_title">Dynamische Hintergrunderweiterung</string>
     <string name="pref_file_ops_overflow_menu_desc">Fasst Kopieren, Verschieben, Umbenennen und Löschen in einer ⋮-Schaltfläche je Dateizeile zusammen. Die Wiedergabe-Schaltfläche bleibt immer separat.</string>
     <string name="pref_file_ops_overflow_menu_title">Dateiaktionen im Überlaufmenü</string>
     <string name="pref_panel_stereo_single_eye_summary">Wenn EIN, werden Side-by-Side- und Over-Under-Stereovideos sowie Vollbildfotos auf ein Auge zugeschnitten und auf den ganzen Bildschirm gestreckt - bequem ohne 3D-Brille. Voreinstellung: EIN. Die immersive VR-Darstellung setzt diese Einstellung außer Kraft und zeigt das volle Stereobild.</string>
     <string name="pref_panel_stereo_single_eye_title">3D-Inhalte einäugig zeigen</string>
     <string name="pref_prefetch_cache_auto">Automatisch</string>
-    <string name="pref_prefetch_cache_help_message">Legt fest, wie viel eines gestreamten Videos im Voraus gepuffert wird.\n\n• Weniger (0,5×) - minimale Pufferung. Die Vorab-Cache-Anzeige und das Angebot &quot;zwischengespeichertes Video sichern&quot; werden ausgeblendet. Spart Speicher und Datenvolumen; in langsamen Netzen kann die Wiedergabe stocken.\n• Automatisch - vom Player anhand von Gerät und aktuellem Netz gewählte Größe.\n• Mehr (2×) - größerer Puffer für flüssigere Wiedergabe in instabilen Netzen. Braucht mehr Speicherplatz.</string>
+    <string name="pref_prefetch_cache_help_message">Legt fest, wie viel eines gestreamten Videos im Voraus gepuffert wird.\n\n• Weniger (0,5×) - minimale Pufferung. Die Vorab-Cache-Anzeige und das Angebot \"zwischengespeichertes Video sichern\" werden ausgeblendet. Spart Speicher und Datenvolumen; in langsamen Netzen kann die Wiedergabe stocken.\n• Automatisch - vom Player anhand von Gerät und aktuellem Netz gewählte Größe.\n• Mehr (2×) - größerer Puffer für flüssigere Wiedergabe in instabilen Netzen. Braucht mehr Speicherplatz.</string>
     <string name="pref_prefetch_cache_help_title">Größe des Video-Vorab-Caches</string>
     <string name="pref_prefetch_cache_less">Weniger (0,5×)</string>
     <string name="pref_prefetch_cache_more">Mehr (2×)</string>

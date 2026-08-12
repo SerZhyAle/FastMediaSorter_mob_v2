@@ -11,7 +11,7 @@
     <string name="welcome_default_player_title">डिफ़ॉल्ट प्लेयर</string>
     <string name="welcome_description_1">आपका सब कुछ एक जगह रखने वाला मीडिया प्रबंधक।\nलोकल, नेटवर्क और क्लाउड स्टोरेज की फ़ाइलें ब्राउज़ करें, छाँटें और संभालें - सब कुछ सहज टच जेस्चर से।</string>
     <string name="welcome_description_1_details">FastMediaSorter हर तरह के मीडिया को एक जगह ले आता है। अपने डिवाइस से, नेटवर्क शेयर से या क्लाउड स्टोरेज से फ़ोटो, वीडियो, GIF और संगीत खोलें - और लंबे दबाव वाले मेन्यू के बजाय झटपट टैप से उन्हें छाँटें।\n\nयहाँ आप जो भी सेट करेंगे वह बाद में सेटिंग में बदला जा सकता है, इसलिए इस स्क्रीन पर कोई गलत विकल्प नहीं है - आगे बढ़ने के लिए बस अगला दबाएँ।</string>
-    <string name="welcome_description_3">प्लेयर त्वरित क्रियाओं के लिए 9 टच क्षेत्र (3×3 ग्रिड) इस्तेमाल करता है। नेविगेट करने, फ़ाइलें कॉपी करने, हटाने या कमांड पैनल खोलने के लिए क्षेत्रों पर टैप करें। विवरण के लिए ऊपर की योजना देखें।</string>
+    <string name="welcome_description_3" formatted="false">प्लेयर त्वरित क्रियाओं के लिए 9 टच क्षेत्र (3×3 ग्रिड) इस्तेमाल करता है। नेविगेट करने, फ़ाइलें कॉपी करने, हटाने या कमांड पैनल खोलने के लिए क्षेत्रों पर टैप करें। विवरण के लिए ऊपर की योजना देखें।</string>
     <string name="welcome_language_picker_hint">ऐप की भाषा चुनें</string>
     <string name="welcome_profile_audio_player_desc">केवल ऑडियो वाले डिवाइस या MP3 प्लेयर के लिए सबसे अच्छा। फ़ोटो और वीडियो छिपाता है; पृष्ठभूमि ऑडियो और अभी चल रही स्क्रीन को बेहतर बनाता है।</string>
     <string name="welcome_profile_audio_player_title">ऑडियो प्लेयर</string>
@@ -140,7 +140,7 @@
     <string name="welcome_func_downloading">डाउनलोड हो रहा है.. %1$d%%</string>
     <string name="welcome_func_download_failed">डाउनलोड विफल - फिर कोशिश करने के लिए टैप करें</string>
     <string name="welcome_func_download_done">तैयार</string>
-    <string name="welcome_permissions_title">&quot;कुछ&quot; अनुमतियाँ</string>
+    <string name="welcome_permissions_title">\"कुछ\" अनुमतियाँ</string>
     <string name="welcome_permissions_subtitle">पहुँच दें ताकि ऐप आपका मीडिया दिखा सके।</string>
     <string name="welcome_func_streams">स्ट्रीम</string>
     <string name="welcome_streams_catalog_done">सूची डाउनलोड हो गई</string>

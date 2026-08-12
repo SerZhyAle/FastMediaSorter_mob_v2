@@ -48,6 +48,7 @@ $updatePs1 = Join-Path $repoRoot 'scripts/spec_catalog/update.ps1'
 $insertPs1 = Join-Path $repoRoot 'scripts/spec_catalog/insert.ps1'
 $selectPs1 = Join-Path $repoRoot 'scripts/spec_catalog/select.ps1'
 $catalog = Join-Path $repoRoot 'PLAN/spec-catalog.jsonl'
+$probeHelper = Join-Path $repoRoot 'scripts/quality/lib/ticket-acceptance-probes.ps1'
 
 $script:pass = 0
 $script:fail = 0
@@ -82,6 +83,9 @@ if (-not $subject) { Write-Host "Cannot resolve $SubjectId" -ForegroundColor Red
 $subjectStatus = $subject.status
 $priorNote = if ($subject.PSObject.Properties.Name -contains 'statusNote') { $subject.statusNote } else { $null }
 $priorName = $subject.name
+$candidateId = $null
+$candidateStatus = $null
+$candidatePriorNote = $null
 Write-Host "subject: $SubjectId (status '$subjectStatus', name '$priorName')" -ForegroundColor DarkGray
 
 try {
@@ -122,6 +126,28 @@ try {
     Assert-That "C2 note stored verbatim" ((Get-SubjectField 'statusNote') -eq $goodNote) "stored=$(Get-SubjectField 'statusNote')"
     Assert-That "C3 name untouched by the note" ((Get-SubjectField 'name') -eq $priorName) "name=$(Get-SubjectField 'name')"
 
+    # --- C2: explicit markers must be source-backed. Pick an existing temporary
+    # Timber.d probe so the positive case does not add a fixture to production sources. ---
+    Write-Host "C2: explicit acceptance-probe contracts are checked before write" -ForegroundColor Yellow
+    . $probeHelper
+    $active = @((Get-Content -LiteralPath $catalog | ForEach-Object { $_ | ConvertFrom-Json }) | ForEach-Object { $_.id })
+    $candidate = @(Get-TimberProbeTemplates -SourceRoots @((Join-Path $repoRoot 'app_v2/src'), (Join-Path $repoRoot 'wear/src')) |
+        Where-Object { $_.Ticket -in $active } | Select-Object -First 1)[0]
+    Assert-That "C2.1 a source-backed probe exists" ($null -ne $candidate) 'no active temporary Timber probe found'
+    if ($null -ne $candidate) {
+        $candidateId = $candidate.Ticket
+        $candidateRecord = (& $pwshExe -NoProfile -File $selectPs1 -Id $candidateId -Format json | ConvertFrom-Json)
+        $candidateStatus = $candidateRecord.status
+        $candidatePriorNote = if ($candidateRecord.PSObject.Properties.Name -contains 'statusNote') { $candidateRecord.statusNote } else { $null }
+        $acceptedNote = "Probe literal: $($candidate.Ticket): $($candidate.Template)"
+        $outC2 = & $pwshExe -NoProfile -File $updatePs1 -Id $candidateId -Status $candidateStatus -StatusNote $acceptedNote 2>&1 | Out-String
+        $exitC2 = $LASTEXITCODE
+        Assert-That "C2.2 source-backed contract accepted" ($exitC2 -eq 0) "exit=$exitC2 out=$($outC2.Trim())"
+        $outC3 = & $pwshExe -NoProfile -File $updatePs1 -Id $candidateId -Status $candidateStatus -StatusNote "Probe literal: S9999: absent literal" 2>&1 | Out-String
+        $exitC3 = $LASTEXITCODE
+        Assert-That "C2.3 foreign/absent contract rejected" ($exitC3 -ne 0 -and $outC3 -match 'Invalid acceptance-probe contract') "exit=$exitC3 out=$($outC3.Trim())"
+    }
+
     # --- D: the write-time net. Even if some future caller finds a new way to smuggle a fragment
     # into `name`, Assert-Record refuses it before it reaches disk. ---
     Write-Host "D: Assert-Record refuses a name carrying quote/backslash/control chars" -ForegroundColor Yellow
@@ -158,6 +184,13 @@ finally {
         & $pwshExe -NoProfile -File $updatePs1 -Id $SubjectId -Status $subjectStatus -StatusNote $priorNote | Out-Null
     } else {
         & $pwshExe -NoProfile -File $updatePs1 -Id $SubjectId -Status $subjectStatus -StatusNote '' | Out-Null
+    }
+    if ($null -ne $candidateId) {
+        if ($null -ne $candidatePriorNote) {
+            & $pwshExe -NoProfile -File $updatePs1 -Id $candidateId -Status $candidateStatus -StatusNote $candidatePriorNote | Out-Null
+        } else {
+            & $pwshExe -NoProfile -File $updatePs1 -Id $candidateId -Status $candidateStatus -StatusNote '' | Out-Null
+        }
     }
     Write-Host "subject restored ($SubjectId status note)" -ForegroundColor DarkGray
 }

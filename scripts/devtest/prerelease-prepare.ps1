@@ -118,7 +118,7 @@ if ([string]::IsNullOrWhiteSpace($TargetDevice)) {
 $env:ANDROID_SERIAL = $TargetDevice
 
 # Uninstall the prior build if present; a missing package (adb.ps1 exit 4) is not an error.
-$unArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'uninstall', '-DeviceId', $TargetDevice)
+$unArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/adb.ps1", 'uninstall', '-DeviceId', $TargetDevice, '-Yes')
 & pwsh @unArgs *> $null
 Add-Stage 'uninstall' 'OK' "removed $DebugPackage if present"
 

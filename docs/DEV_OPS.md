@@ -72,21 +72,27 @@
 | `.\a.ps1 cls`  | Clean Gradle caches |
 | `.\a.ps1 ss`   | Show unresolved specs (`sca-specs`) |
 | `.\a.ps1 adb <verb>` | Ad-hoc adb swiss-army passthrough (see DEVICE OPS below) |
-| `.\a.ps1 adb-devices` / `adb-shot` / `adb-log` / `adb-current` / `adb-launch` / `adb-clear` | Fixed-verb device shortcuts |
+| `.\a.ps1 adb-devices` / `adb-shot` / `adb-log` / `adb-current` / `adb-launch` / `adb-logcat-clear` | Fixed-verb device shortcuts |
 
 ## DEVICE OPS (ad-hoc)
 
 `scripts/devtest/adb.ps1` is the quick swiss-army for one-off work against a connected
 emulator / device - runs natively (~0 LLM tokens), auto-discovers adb (not on PATH),
 takes `-DeviceId` / `-Release` / `-Package` / `-Json`, and uses stable exit codes
-(0 ok / 1 no-adb-or-bad-args / 2 no-device / 3 multi-device / 4 pkg-not-installed / 7 adb-failed).
+(0 ok / 1 no-adb-or-bad-args / 2 no-device / 3 multi-device / 4 pkg-not-installed /
+5 destructive verb refused / 7 adb-failed).
+
+**Two verbs are one-way and both require `-Yes`: `wipe-data` and `uninstall`.** The verb that used to be
+called `clear` is gone - it was twice read as "clear the log" and wiped app data instead (S1167, S1572), so
+`clear` now refuses and names its two replacements. "Clear the log" is `logcat-clear`.
 
 ```powershell
 .\a.ps1 adb devices                          # online devices: model + Android version
 .\a.ps1 adb props                             # selected device: model, release, sdk, density, size
 .\a.ps1 adb launch                            # start app (debug: explicit MainActivity, dodges LeakCanary)
 .\a.ps1 adb stop                              # force-stop
-.\a.ps1 adb clear                             # pm clear (reset app data)
+.\a.ps1 adb logcat-clear                      # empty the logcat buffer (no app state touched)
+.\a.ps1 adb wipe-data -Yes                    # DESTRUCTIVE pm clear: data, grants and onboarding gone
 .\a.ps1 adb shot                              # screenshot -> temp/
 .\a.ps1 adb log -Tail 400 -Grep "S0035|Net"  # app's own process lines + lines naming the package
 .\a.ps1 adb current                           # focused activity / package
@@ -412,6 +418,27 @@ pwsh -File scripts/check_strings_localized.ps1 -Module app_v2 -KeyPrefix "cloud_
 ```
 
 Use the string updater scripts for targeted `<string>` edits. Manual XML editing is still appropriate for structural resource changes such as `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
+
+### Unreferenced string keys - S1568
+
+```powershell
+# WHICH KEYS DOES NOTHING REFERENCE (report; any count is a valid result)
+pwsh -NoProfile -File scripts/utils/audit-unreferenced-strings.ps1 -Module app_v2 -File strings.xml
+
+# THE SAME MEASUREMENT AS A GATE (fails on a name that is neither referenced nor baselined)
+pwsh -NoProfile -File scripts/quality/assert-unreferenced-strings.ps1 -Gate
+
+# DELETE MANY KEYS IN ONE PASS, FROM EVERY LOCALE, WITH ONE REFERENCE SCAN
+pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Action remove -KeyList temp/S1568/removal-candidates.txt -DryRun
+```
+
+Three facts a reader cannot derive from the commands:
+
+- **Liveness is decided per module.** `app_v2` and `wear` are separate resource namespaces with no dependency between them, so a key of one is unreachable from the other. 15 names exist in both, and a scan spanning both trees reports each of them as alive on the strength of the wrong module.
+- **Every source set under `<module>/src` is scanned, not `src/main`.** Restricting the walk to `src/main` raises app_v2's dead count from 397 to 619: **222 names are referenced only from a flavor, feature or test source set**, and a main-only scan calls every one of them safe to delete.
+- **A key kept despite being unreferenced belongs in the baseline, with a reason.** `scripts/quality/assert-unreferenced-strings-baseline.txt` is an allowlist of names, not a count, so a new dead key cannot slip in behind a deleted one. The reason column is the record of why the key was kept - an unexplained entry is how the previous 397 accumulated.
+
+The three actions share one definition of "a reference", in `scripts/quality/lib/android-string-liveness.ps1`. Change it there, never in a caller.
 
 ## BUILD TYPES
 

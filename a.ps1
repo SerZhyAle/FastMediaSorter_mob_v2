@@ -38,7 +38,7 @@
     nl   - Build noLegal Release
     nd   - Build noLegal Debug
     adb  - adb swiss-army passthrough (scripts\devtest\adb.ps1); verb + options ride in via $Rest
-    adb-devices / adb-shot / adb-log / adb-current / adb-launch / adb-clear - fixed-verb shortcuts
+    adb-devices / adb-shot / adb-log / adb-current / adb-launch / adb-logcat-clear - fixed-verb shortcuts
 .EXAMPLE
     .\a.ps1 d
     .\a d
@@ -119,6 +119,9 @@ $scripts = @{
     'adb-log'   = @{ Path = 'scripts\devtest\adb.ps1'; Args = @{ Verb = 'log' } }
     'adb-current' = @{ Path = 'scripts\devtest\adb.ps1'; Args = @{ Verb = 'current' } }
     'adb-launch' = @{ Path = 'scripts\devtest\adb.ps1'; Args = @{ Verb = 'launch' } }
+    'adb-logcat-clear' = @{ Path = 'scripts\devtest\adb.ps1'; Args = @{ Verb = 'logcat-clear' } }
+    # Kept, and kept pointing at the removed verb on purpose: it now refuses and names both replacements,
+    # which is the whole remedy. Repointing it at either one silently would rebuild the S1572 trap.
     'adb-clear' = @{ Path = 'scripts\devtest\adb.ps1'; Args = @{ Verb = 'clear' } }
 }
 
@@ -162,7 +165,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  nl   - Build noLegal Release" -ForegroundColor Cyan
     Write-Host "  nd   - Build noLegal Debug" -ForegroundColor Cyan
     Write-Host "  adb  - adb swiss-army passthrough, e.g. 'adb log -Tail 400 -Grep S0035'" -ForegroundColor Cyan
-    Write-Host "  adb-devices / adb-shot / adb-log / adb-current / adb-launch / adb-clear" -ForegroundColor Cyan
+    Write-Host "  adb-devices / adb-shot / adb-log / adb-current / adb-launch / adb-logcat-clear" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Usage: .\a.ps1 <command>" -ForegroundColor Gray
     Write-Host "Example: .\a.ps1 d" -ForegroundColor Gray

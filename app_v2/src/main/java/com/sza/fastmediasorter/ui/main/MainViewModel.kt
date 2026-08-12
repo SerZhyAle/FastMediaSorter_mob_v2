@@ -153,6 +153,7 @@ class MainViewModel @Inject constructor(
     private val appShortcutsManager: com.sza.fastmediasorter.core.AppShortcutsManager,
     private val networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer,
     private val remoteSourceGate: RemoteSourceAvailabilityGate,
+    private val resolveScanFilterUseCase: com.sza.fastmediasorter.domain.usecase.ResolveScanFilterUseCase,
     // S1195: capture + streams-panel operations the Activity used to inject and hand to its managers.
     private val saveCapturedMediaUseCase: SaveCapturedMediaUseCase,
     private val observePinnedStreamSourcesUseCase: ObservePinnedStreamSourcesUseCase,
@@ -212,7 +213,8 @@ class MainViewModel @Inject constructor(
         mediaScannerFactory = mediaScannerFactory,
         settingsRepository = settingsRepository,
         smbOperationsUseCase = smbOperationsUseCase,
-        remoteSourceGate = remoteSourceGate
+        remoteSourceGate = remoteSourceGate,
+        resolveScanFilter = resolveScanFilterUseCase
     )
 
     init {

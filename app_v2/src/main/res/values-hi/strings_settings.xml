@@ -9,7 +9,7 @@
     <string name="settings_already_default_player">✓ पहले से डिफ़ॉल्ट सेट है</string>
     <string name="settings_application_log_title">एप्लिकेशन लॉग</string>
     <string name="settings_black_screen_button_desc">प्लेयर टूलबार में एक बटन दिखाएँ जो ऑडियो या वीडियो चलते रहने के दौरान स्क्रीन बुझा दे</string>
-    <string name="settings_black_screen_button_title">&quot;काली स्क्रीन&quot; बटन दिखाएँ</string>
+    <string name="settings_black_screen_button_title">\"काली स्क्रीन\" बटन दिखाएँ</string>
     <string name="settings_cache_size_range_error">कैश का आकार 512 और 16384 MB के बीच होना चाहिए।</string>
     <string name="settings_category_about">बारे में</string>
     <string name="settings_category_app_data">बैकअप, पुनर्स्थापना और सेटिंग निर्यात</string>
@@ -56,14 +56,10 @@
     <string name="settings_general_network_sync">नेटवर्क सिंक</string>
     <string name="settings_general_permissions">अनुमतियाँ</string>
     <string name="settings_general_system">नेटवर्क और सिस्टम</string>
-    <string name="settings_log_current_session_body">मौजूदा सत्र का लॉग (%1$d पंक्तियाँ):
-
-%2$s</string>
+    <string name="settings_log_current_session_body">मौजूदा सत्र का लॉग (%1$d पंक्तियाँ):\n\n%2$s</string>
     <string name="settings_log_empty">कोई लॉग प्रविष्टि नहीं मिली।</string>
     <string name="settings_log_empty_session">मौजूदा सत्र के लिए कोई लॉग प्रविष्टि नहीं मिली।</string>
-    <string name="settings_log_last_lines">लॉग की अंतिम %1$d पंक्तियाँ:
-
-%2$s</string>
+    <string name="settings_log_last_lines">लॉग की अंतिम %1$d पंक्तियाँ:\n\n%2$s</string>
     <string name="settings_log_save_destination_title">लॉग को गंतव्य पर सहेजें</string>
     <string name="settings_log_save_failed">लॉग सहेजा नहीं जा सका।</string>
     <string name="settings_log_saved_to_resource">लॉग यहाँ सहेजा गया: %1$s</string>
@@ -91,10 +87,10 @@
         <item quantity="one">इस प्रोफ़ाइल पर जाने से %1$d सेटिंग उस मान से बदल जाएगी जो यह प्रोफ़ाइल तय करती है। जारी रखें?</item>
         <item quantity="other">इस प्रोफ़ाइल पर जाने से %1$d सेटिंग उन मानों से बदल जाएँगी जो यह प्रोफ़ाइल तय करती है। जारी रखें?</item>
     </plurals>
-    <string name="settings_all_files_create_resource">&quot;सभी फ़ाइलें&quot; स्रोत बनाएँ</string>
-    <string name="settings_all_files_resource_created">&quot;सभी फ़ाइलें&quot; स्रोत बन गया।</string>
-    <string name="settings_all_files_profile_confirm_title">&quot;सभी फ़ाइलें&quot; स्रोत बनाएँ</string>
-    <string name="settings_all_files_profile_confirm_message">यह प्रोफ़ाइल फ़ाइल-प्रबंधक मोड चालू करती है और लापता &quot;सभी फ़ाइलें&quot; स्रोत बना देगी। जारी रखें?</string>
+    <string name="settings_all_files_create_resource">\"सभी फ़ाइलें\" स्रोत बनाएँ</string>
+    <string name="settings_all_files_resource_created">\"सभी फ़ाइलें\" स्रोत बन गया।</string>
+    <string name="settings_all_files_profile_confirm_title">\"सभी फ़ाइलें\" स्रोत बनाएँ</string>
+    <string name="settings_all_files_profile_confirm_message">यह प्रोफ़ाइल फ़ाइल-प्रबंधक मोड चालू करती है और लापता \"सभी फ़ाइलें\" स्रोत बना देगी। जारी रखें?</string>
     <string name="settings_reset_settings_failed">सेटिंग रीसेट नहीं हो सकीं। फिर कोशिश करें।</string>
     <string name="settings_reset_smb_failed">SMB कनेक्शन रीसेट नहीं हो सके। फिर कोशिश करें।</string>
     <string name="settings_saved">सेटिंग सहेजी गईं</string>
@@ -168,7 +164,7 @@
     <string name="setting_photos_during_audio_desc">प्लेबैक के दौरान यादृच्छिक छवियाँ (ऑडियो सूची चुनें - छवियाँ देखें)</string>
     <string name="setting_play_to_end_desc">स्लाइडशो अंतराल के बजाय मीडिया को अंत तक चलाएँ</string>
     <string name="setting_prevent_sleep_desc">ऐप के उपयोग के दौरान स्क्रीन चालू रखें</string>
-    <string name="setting_primary_media_player_desc">&quot;इससे खोलें&quot; में FastMediaSorter दिखाएँ और मीडिया बटन संभालें</string>
+    <string name="setting_primary_media_player_desc">\"इससे खोलें\" में FastMediaSorter दिखाएँ और मीडिया बटन संभालें</string>
     <string name="setting_resume_on_next_launch">अगली बार शुरू करने पर प्लेबैक जारी रखें</string>
     <string name="setting_resume_on_next_launch_desc">ऐप शुरू होने पर आख़िरी चली फ़ाइल वहीं से अपने आप खोलें जहाँ आपने छोड़ा था</string>
     <string name="setting_safe_mode_desc">विनाशकारी कार्यों (हटाना, स्थानांतरण) से पहले पुष्टि करें</string>
@@ -197,14 +193,14 @@
     <string name="setting_translation_lens_style_desc">अनुवाद के परिणाम ब्लॉक ओवरले के रूप में दिखाएँ</string>
     <string name="pref_crop_images_fullscreen_summary">पूर्ण स्क्रीन या स्लाइडशो में, दिशा मेल खाने पर छवियों को स्क्रीन भरने के लिए काटें</string>
     <string name="pref_crop_images_fullscreen_title">स्क्रीन भरने के लिए छवियाँ काटें</string>
-    <string name="pref_dynamic_background_summary">छवि के किनारे के रंग बढ़ाकर &quot;काली पट्टियाँ&quot; भरें (Ambilight प्रभाव)</string>
+    <string name="pref_dynamic_background_summary">छवि के किनारे के रंग बढ़ाकर \"काली पट्टियाँ\" भरें (Ambilight प्रभाव)</string>
     <string name="pref_dynamic_background_title">गतिशील पृष्ठभूमि विस्तार</string>
     <string name="pref_file_ops_overflow_menu_desc">कॉपी, स्थानांतरण, नाम बदलना और हटाना को हर फ़ाइल पंक्ति के ⋮ बटन में समेटता है। चलाने का बटन हमेशा अलग रहता है।</string>
     <string name="pref_file_ops_overflow_menu_title">अतिरिक्त मेन्यू में फ़ाइल क्रियाएँ</string>
     <string name="pref_panel_stereo_single_eye_summary">चालू होने पर, साथ-साथ और ऊपर-नीचे वाले स्टीरियो वीडियो तथा पूर्ण-स्क्रीन तस्वीरें एक आँख तक काटकर पूरी स्क्रीन पर फैला दी जाती हैं - 3D चश्मे के बिना देखने में आरामदायक। डिफ़ॉल्ट: चालू। इमर्सिव VR रेंडरिंग इस सेटिंग को दरकिनार कर पूरा स्टीरियो फ़्रेम दिखाती है।</string>
     <string name="pref_panel_stereo_single_eye_title">3D सामग्री एक आँख से दिखाएँ</string>
     <string name="pref_prefetch_cache_auto">स्वचालित</string>
-    <string name="pref_prefetch_cache_help_message">तय करता है कि स्ट्रीम किए जा रहे वीडियो का कितना हिस्सा प्लेहेड से आगे बफ़र किया जाए।\n\n• कम (0.5×) - न्यूनतम बफ़रिंग। प्री-कैश प्रगति संकेतक और &quot;कैश किया वीडियो सहेजें&quot; का प्रस्ताव छिपे रहते हैं। जगह और डेटा बचाता है; धीमे नेटवर्क पर प्लेबैक रुक सकता है।\n• स्वचालित - डिवाइस और मौजूदा नेटवर्क के आधार पर प्लेयर द्वारा चुना गया डिफ़ॉल्ट आकार।\n• अधिक (2×) - अस्थिर नेटवर्क पर सहज प्लेबैक के लिए बड़ा बफ़र। अधिक डिस्क जगह लेता है।</string>
+    <string name="pref_prefetch_cache_help_message">तय करता है कि स्ट्रीम किए जा रहे वीडियो का कितना हिस्सा प्लेहेड से आगे बफ़र किया जाए।\n\n• कम (0.5×) - न्यूनतम बफ़रिंग। प्री-कैश प्रगति संकेतक और \"कैश किया वीडियो सहेजें\" का प्रस्ताव छिपे रहते हैं। जगह और डेटा बचाता है; धीमे नेटवर्क पर प्लेबैक रुक सकता है।\n• स्वचालित - डिवाइस और मौजूदा नेटवर्क के आधार पर प्लेयर द्वारा चुना गया डिफ़ॉल्ट आकार।\n• अधिक (2×) - अस्थिर नेटवर्क पर सहज प्लेबैक के लिए बड़ा बफ़र। अधिक डिस्क जगह लेता है।</string>
     <string name="pref_prefetch_cache_help_title">वीडियो प्री-कैश का आकार</string>
     <string name="pref_prefetch_cache_less">कम (0.5×)</string>
     <string name="pref_prefetch_cache_more">अधिक (2×)</string>

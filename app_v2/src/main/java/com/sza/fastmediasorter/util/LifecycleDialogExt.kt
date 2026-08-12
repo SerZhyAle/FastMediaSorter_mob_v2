@@ -149,7 +149,6 @@ private fun Context.findLifecycleOwner(): LifecycleOwner? {
  */
 private fun <T : Dialog> T.bindTo(owner: LifecycleOwner): T {
     val lifecycle = owner.lifecycle
-    Timber.d("S1447: dialog bound to ${owner.javaClass.simpleName} (state ${lifecycle.currentState})")
     // Deregistration happens in onDestroy rather than from an OnDismissListener: a listener set here
     // would silently overwrite the caller's own, which several settings helpers rely on to revert
     // their row when the dialog is cancelled. A dismissed dialog is therefore held until the owner
@@ -157,7 +156,6 @@ private fun <T : Dialog> T.bindTo(owner: LifecycleOwner): T {
     lifecycle.addObserver(
         object : DefaultLifecycleObserver {
             override fun onDestroy(owner: LifecycleOwner) {
-                Timber.d("S1447: owner destroyed, dialog showing=$isShowing")
                 if (isShowing) dismiss()
                 owner.lifecycle.removeObserver(this)
             }

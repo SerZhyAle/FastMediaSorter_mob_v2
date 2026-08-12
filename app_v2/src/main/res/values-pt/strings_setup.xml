@@ -11,7 +11,7 @@
     <string name="welcome_default_player_title">Leitor padrão</string>
     <string name="welcome_description_1">O seu organizador de mídia completo.\nNavegue, ordene e gerencie arquivos no armazenamento local, de rede e na nuvem, tudo com gestos de toque intuitivos.</string>
     <string name="welcome_description_1_details">O FastMediaSorter reúne todo tipo de mídia num só lugar. Abra fotos, vídeos, GIFs e músicas do seu aparelho, de uma pasta compartilhada na rede ou da nuvem, e ordene-os com toques rápidos em vez de menus de toque longo.\n\nTudo o que você configurar aqui pode ser alterado depois nas Configurações, então não há escolha errada nesta tela: toque em Avançar para continuar.</string>
-    <string name="welcome_description_3">O leitor usa 9 zonas de toque (grade 3×3) para ações rápidas. Toque nas zonas para navegar, copiar, mover ou excluir arquivos, ou para abrir o painel de comandos. Veja o esquema acima para mais detalhes.</string>
+    <string name="welcome_description_3" formatted="false">O leitor usa 9 zonas de toque (grade 3×3) para ações rápidas. Toque nas zonas para navegar, copiar, mover ou excluir arquivos, ou para abrir o painel de comandos. Veja o esquema acima para mais detalhes.</string>
     <string name="welcome_language_picker_hint">Escolher o idioma do aplicativo</string>
     <string name="welcome_profile_audio_player_desc">Ideal para aparelhos só de áudio ou tocadores de MP3. Oculta fotos e vídeos; otimiza o áudio em segundo plano e a tela de reprodução.</string>
     <string name="welcome_profile_audio_player_title">Tocador de áudio</string>
@@ -140,7 +140,7 @@
     <string name="welcome_func_downloading">Baixando.. %1$d%%</string>
     <string name="welcome_func_download_failed">Falha no download - toque para tentar de novo</string>
     <string name="welcome_func_download_done">Pronto</string>
-    <string name="welcome_permissions_title">&quot;Algumas&quot; permissões</string>
+    <string name="welcome_permissions_title">\"Algumas\" permissões</string>
     <string name="welcome_permissions_subtitle">Conceda acesso para que o aplicativo possa mostrar sua mídia.</string>
     <string name="welcome_func_streams">Transmissões</string>
     <string name="welcome_streams_catalog_done">Catálogo baixado</string>

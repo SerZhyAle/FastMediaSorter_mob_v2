@@ -272,6 +272,7 @@ $runsCatalogSync = $isCodeChange
 $runsStringsAudit = $isResourceChange -and $hasStringResource
 $runsStringFormatGate = $isResourceChange -and $hasStringResource
 $runsTicketLogAudit = $isCodeChange
+$runsAcceptanceProbeGate = Test-AnyChangedFile 'scripts/(quality/(assert-ticket-acceptance-probes|lib/ticket-acceptance-probes)|spec_catalog/update)\.ps1$'
 $runsDetektPreflight = $resolvedChangeType -in @('Kotlin', 'Mixed')
 $runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling')
 # S1075: same trigger as doc-pins-sync - drift enters via a Gradle bump (Config) or a
@@ -279,7 +280,9 @@ $runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling'
 $runsDocPinDrift = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling')
 $runsFlavorFlagGate = $isCodeChange
 # S0383 neuroslop ratchet gate. Covers Kotlin (trivial comments / swallowing catch /
-# unsafe Flow collects) and Xml (hardcoded layout colors). Baselines only ratchet DOWN.
+# unsafe Flow collects) and Xml (hardcoded layout colors, build-invisible string-resource
+# quotes). Baselines only ratchet DOWN. The live set is whatever source-matchers.ps1
+# registers - the umbrella forwards unfiltered, so a new rule needs no wiring here.
 $runsNeuroslopGate = $isCodeChange -or $isResourceChange
 # S1031 public-mutable-reactive-state ratchet gate. Bans a public (non-private) val/var of
 # Mutable(StateFlow|LiveData|SharedFlow). Kotlin/Mixed only. Baseline ratchets DOWN.
@@ -464,6 +467,15 @@ if ($runsTicketLogAudit) {
 }
 else {
     Skip-Step "ticket-log-audit" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsAcceptanceProbeGate) {
+    Invoke-Step "acceptance-probe-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-ticket-acceptance-probes.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "acceptance-probe-gate" "not applicable - no acceptance-probe or catalog mutation script changed"
 }
 
 if ($runsDocPinsSync) {

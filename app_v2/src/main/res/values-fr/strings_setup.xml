@@ -11,7 +11,7 @@
     <string name="welcome_default_player_title">Lecteur par défaut</string>
     <string name="welcome_description_1">Votre gestionnaire multimédia tout-en-un.\nParcourez, triez et gérez vos fichiers sur le stockage local, réseau et cloud, le tout avec des gestes tactiles intuitifs.</string>
     <string name="welcome_description_1_details">FastMediaSorter rassemble tous vos médias au même endroit. Ouvrez photos, vidéos, GIF et musique depuis votre appareil, depuis un partage réseau ou depuis le cloud, et triez-les d\'une simple pression plutôt qu\'avec des menus d\'appui long.\n\nTout ce que vous configurez ici pourra être modifié plus tard dans les Paramètres : il n\'y a donc pas de mauvais choix sur cet écran, touchez simplement Suivant.</string>
-    <string name="welcome_description_3">Le lecteur utilise 9 zones tactiles (grille 3×3) pour les actions rapides. Touchez les zones pour naviguer, copier, déplacer ou supprimer des fichiers, ou pour ouvrir le panneau de commandes. Voir le schéma ci-dessus pour le détail.</string>
+    <string name="welcome_description_3" formatted="false">Le lecteur utilise 9 zones tactiles (grille 3×3) pour les actions rapides. Touchez les zones pour naviguer, copier, déplacer ou supprimer des fichiers, ou pour ouvrir le panneau de commandes. Voir le schéma ci-dessus pour le détail.</string>
     <string name="welcome_language_picker_hint">Choisir la langue de l\'application</string>
     <string name="welcome_profile_audio_player_desc">Idéal pour les appareils audio seuls ou les lecteurs MP3. Masque photos et vidéos ; optimise la lecture en arrière-plan et l\'écran de lecture en cours.</string>
     <string name="welcome_profile_audio_player_title">Lecteur audio</string>
@@ -140,7 +140,7 @@
     <string name="welcome_func_downloading">Téléchargement.. %1$d%%</string>
     <string name="welcome_func_download_failed">Échec du téléchargement - touchez pour réessayer</string>
     <string name="welcome_func_download_done">Prêt</string>
-    <string name="welcome_permissions_title">&quot;Quelques&quot; autorisations</string>
+    <string name="welcome_permissions_title">\"Quelques\" autorisations</string>
     <string name="welcome_permissions_subtitle">Accordez l\'accès pour que l\'application puisse afficher vos médias.</string>
     <string name="welcome_func_streams">Flux</string>
     <string name="welcome_streams_catalog_done">Catalogue téléchargé</string>

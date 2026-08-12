@@ -76,6 +76,10 @@ class EdgeGestureConfigManager(
     // Held so teardown() can detach it symmetrically on the dialog's onDestroyView.
     private var tabSelectedListener: TabLayout.OnTabSelectedListener? = null
 
+    // S1408: which zone the open tab edits. Screen state, not a setting - it is never persisted, and a
+    // rotation restores it from the tab the dialog carries across the re-inflate.
+    private var selectedZone: ScreenshotGestureZone? = null
+
     fun setup() {
         // The dialog is reachable only behind the non-empty controller gate; guard defensively anyway.
         if (screenGestureControllers.isEmpty()) return
@@ -432,6 +436,11 @@ class EdgeGestureConfigManager(
 
     private fun showZoneBlock(position: Int) {
         tabZones.forEachIndexed { index, zone -> blockFor(zone).isVisible = index == position }
+        // S1408: both ways of choosing a zone land here - the tab itself, and the schema tap that
+        // selects that tab - so the marker follows either without a second path into the view.
+        selectedZone = tabZones.getOrNull(position)
+        Timber.d("S1408: edge gesture zone selected -> ${selectedZone?.name}")
+        binding.edgeGestureSchema.setState(buildSchemaState(viewModel.settings.value))
     }
 
     private fun blockFor(zone: ScreenshotGestureZone): View = when (zone) {
@@ -455,7 +464,7 @@ class EdgeGestureConfigManager(
             }.toSet()
             EdgeGestureSchemaView.SchemaState.ZoneState(settings.screenshotGestureZoneEnabled(zone), assigned)
         }
-        return EdgeGestureSchemaView.SchemaState(zones)
+        return EdgeGestureSchemaView.SchemaState(zones, selectedZone)
     }
 
     private fun applyEnabled(s: AppSettings, zone: ScreenshotGestureZone, enabled: Boolean): AppSettings = when (zone) {

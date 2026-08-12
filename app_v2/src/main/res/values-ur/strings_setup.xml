@@ -11,9 +11,9 @@
     <string name="welcome_default_player_title">طے شدہ پلیئر</string>
     <string name="welcome_description_1">آپ کا سب کچھ ایک جگہ رکھنے والا میڈیا منتظم۔\nمقامی، نیٹ ورک اور کلاؤڈ اسٹوریج کی فائلیں دیکھیں، ترتیب دیں اور سنبھالیں - سب کچھ آسان لمس اشاروں سے۔</string>
     <string name="welcome_description_1_details">FastMediaSorter ہر قسم کا میڈیا ایک جگہ لے آتا ہے۔ اپنے آلے سے، نیٹ ورک شیئر سے یا کلاؤڈ اسٹوریج سے تصاویر، ویڈیو، GIF اور موسیقی کھولیں - اور دیر تک دبانے والے مینو کے بجائے تیز ٹیپ سے انہیں ترتیب دیں۔\n\nیہاں آپ جو کچھ طے کریں گے وہ بعد میں ترتیبات میں بدلا جا سکتا ہے، اس لیے اس اسکرین پر کوئی غلط انتخاب نہیں - آگے بڑھنے کے لیے صرف اگلا دبائیں۔</string>
-    <string name="welcome_description_3">پلیئر تیز کاموں کے لیے 9 لمس علاقے (3×3 گرڈ) استعمال کرتا ہے۔ گھومنے، فائلیں نقل کرنے، منتقل کرنے، حذف کرنے یا کمانڈ پینل کھولنے کے لیے علاقوں پر ٹیپ کریں۔ تفصیل کے لیے اوپر کا خاکہ دیکھیں۔</string>
+    <string name="welcome_description_3" formatted="false">پلیئر تیز کاموں کے لیے 9 لمس علاقے (3×3 گرڈ) استعمال کرتا ہے۔ گھومنے، فائلیں نقل کرنے، منتقل کرنے، حذف کرنے یا کمانڈ پینل کھولنے کے لیے علاقوں پر ٹیپ کریں۔ تفصیل کے لیے اوپر کا خاکہ دیکھیں۔</string>
     <string name="welcome_language_picker_hint">ایپ کی زبان منتخب کریں</string>
-    <string name="welcome_profile_audio_player_desc">صرف آڈیو آلات یا MP3 پلیئرز کے لیے بہترین۔ تصاویر اور ویڈیو چھپاتا ہے؛ پس منظر کی آواز اور &quot;ابھی چل رہا ہے&quot; اسکرین بہتر بناتا ہے۔</string>
+    <string name="welcome_profile_audio_player_desc">صرف آڈیو آلات یا MP3 پلیئرز کے لیے بہترین۔ تصاویر اور ویڈیو چھپاتا ہے؛ پس منظر کی آواز اور \"ابھی چل رہا ہے\" اسکرین بہتر بناتا ہے۔</string>
     <string name="welcome_profile_audio_player_title">آڈیو پلیئر</string>
     <string name="welcome_profile_car_head_unit_desc">Android کار اسٹیریو کے لیے بہترین۔ نہایت بڑے بٹن استعمال کرتا ہے، اسکرین روشن رکھتا ہے اور فائل کاموں پر میڈیا چلانے کو ترجیح دیتا ہے۔</string>
     <string name="welcome_profile_car_head_unit_title">کار ہیڈ یونٹ</string>
@@ -140,7 +140,7 @@
     <string name="welcome_func_downloading">ڈاؤن لوڈ ہو رہا ہے.. %1$d%%</string>
     <string name="welcome_func_download_failed">ڈاؤن لوڈ ناکام - دوبارہ کوشش کے لیے ٹیپ کریں</string>
     <string name="welcome_func_download_done">تیار</string>
-    <string name="welcome_permissions_title">&quot;چند&quot; اجازتیں</string>
+    <string name="welcome_permissions_title">\"چند\" اجازتیں</string>
     <string name="welcome_permissions_subtitle">رسائی دیں تاکہ ایپ آپ کا میڈیا دکھا سکے۔</string>
     <string name="welcome_func_streams">اسٹریمز</string>
     <string name="welcome_streams_catalog_done">فہرست ڈاؤن لوڈ ہو گئی</string>

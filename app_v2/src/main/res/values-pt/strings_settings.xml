@@ -9,7 +9,7 @@
     <string name="settings_already_default_player">✓ Já definido como padrão</string>
     <string name="settings_application_log_title">Registro do aplicativo</string>
     <string name="settings_black_screen_button_desc">Mostrar na barra do leitor um botão que apaga a tela enquanto o áudio ou o vídeo continua</string>
-    <string name="settings_black_screen_button_title">Mostrar o botão &quot;Tela preta&quot;</string>
+    <string name="settings_black_screen_button_title">Mostrar o botão \"Tela preta\"</string>
     <string name="settings_cache_size_range_error">O tamanho do cache precisa ficar entre 512 e 16384 MB.</string>
     <string name="settings_category_about">Sobre</string>
     <string name="settings_category_app_data">Backups, restauração e exportação das configurações</string>
@@ -56,14 +56,10 @@
     <string name="settings_general_network_sync">Sincronização de rede</string>
     <string name="settings_general_permissions">Permissões</string>
     <string name="settings_general_system">Rede e sistema</string>
-    <string name="settings_log_current_session_body">Registro da sessão atual (%1$d linhas):
-
-%2$s</string>
+    <string name="settings_log_current_session_body">Registro da sessão atual (%1$d linhas):\n\n%2$s</string>
     <string name="settings_log_empty">Nenhuma entrada de registro encontrada.</string>
     <string name="settings_log_empty_session">Nenhuma entrada de registro encontrada para a sessão atual.</string>
-    <string name="settings_log_last_lines">Últimas %1$d linhas do registro:
-
-%2$s</string>
+    <string name="settings_log_last_lines">Últimas %1$d linhas do registro:\n\n%2$s</string>
     <string name="settings_log_save_destination_title">Salvar o registro no destino</string>
     <string name="settings_log_save_failed">Não foi possível salvar o registro.</string>
     <string name="settings_log_saved_to_resource">Registro salvo em: %1$s</string>
@@ -91,10 +87,10 @@
         <item quantity="one">Mudar para este perfil substitui %1$d configuração pelo valor que o perfil define. Continuar?</item>
         <item quantity="other">Mudar para este perfil substitui %1$d configurações pelos valores que o perfil define. Continuar?</item>
     </plurals>
-    <string name="settings_all_files_create_resource">Criar a fonte &quot;Todos os arquivos&quot;</string>
-    <string name="settings_all_files_resource_created">Fonte &quot;Todos os arquivos&quot; criada.</string>
-    <string name="settings_all_files_profile_confirm_title">Criar a fonte &quot;Todos os arquivos&quot;</string>
-    <string name="settings_all_files_profile_confirm_message">Este perfil ativa o modo gerenciador de arquivos e criará a fonte &quot;Todos os arquivos&quot; que falta. Continuar?</string>
+    <string name="settings_all_files_create_resource">Criar a fonte \"Todos os arquivos\"</string>
+    <string name="settings_all_files_resource_created">Fonte \"Todos os arquivos\" criada.</string>
+    <string name="settings_all_files_profile_confirm_title">Criar a fonte \"Todos os arquivos\"</string>
+    <string name="settings_all_files_profile_confirm_message">Este perfil ativa o modo gerenciador de arquivos e criará a fonte \"Todos os arquivos\" que falta. Continuar?</string>
     <string name="settings_reset_settings_failed">Não foi possível restaurar as configurações. Tente de novo.</string>
     <string name="settings_reset_smb_failed">Não foi possível restaurar as conexões SMB. Tente de novo.</string>
     <string name="settings_saved">Configurações salvas</string>
@@ -168,7 +164,7 @@
     <string name="setting_photos_during_audio_desc">Imagens aleatórias durante a reprodução (escolha uma lista de áudio e veja imagens)</string>
     <string name="setting_play_to_end_desc">Reproduzir a mídia até o fim em vez de usar o intervalo da apresentação</string>
     <string name="setting_prevent_sleep_desc">Manter a tela ligada enquanto usa o aplicativo</string>
-    <string name="setting_primary_media_player_desc">Mostrar o FastMediaSorter em &quot;Abrir com&quot; e tratar os botões de mídia</string>
+    <string name="setting_primary_media_player_desc">Mostrar o FastMediaSorter em \"Abrir com\" e tratar os botões de mídia</string>
     <string name="setting_resume_on_next_launch">Retomar a reprodução na próxima abertura</string>
     <string name="setting_resume_on_next_launch_desc">Ao abrir o aplicativo, reabrir automaticamente o último arquivo reproduzido de onde você parou</string>
     <string name="setting_safe_mode_desc">Confirmar antes de operações destrutivas (excluir, mover)</string>
@@ -197,14 +193,14 @@
     <string name="setting_translation_lens_style_desc">Mostrar os resultados da tradução como blocos sobrepostos</string>
     <string name="pref_crop_images_fullscreen_summary">Em tela cheia ou na apresentação, cortar as imagens para preencher a tela se a orientação coincidir</string>
     <string name="pref_crop_images_fullscreen_title">Cortar imagens para preencher a tela</string>
-    <string name="pref_dynamic_background_summary">Preencher as &quot;faixas pretas&quot; prolongando as cores da borda da imagem (efeito Ambilight)</string>
+    <string name="pref_dynamic_background_summary">Preencher as \"faixas pretas\" prolongando as cores da borda da imagem (efeito Ambilight)</string>
     <string name="pref_dynamic_background_title">Extensão dinâmica do fundo</string>
     <string name="pref_file_ops_overflow_menu_desc">Reúne copiar, mover, renomear e excluir num botão ⋮ em cada linha de arquivo. O botão de reproduzir fica sempre separado.</string>
     <string name="pref_file_ops_overflow_menu_title">Ações de arquivo no menu adicional</string>
     <string name="pref_panel_stereo_single_eye_summary">Quando ligado, vídeos estéreo lado a lado e sobrepostos e fotos em tela cheia são cortados para um olho e esticados para a tela inteira - confortável de ver sem óculos 3D. Padrão: ligado. A renderização imersiva de RV ignora esta configuração e mostra o quadro estéreo completo.</string>
     <string name="pref_panel_stereo_single_eye_title">Mostrar conteúdo 3D com um olho só</string>
     <string name="pref_prefetch_cache_auto">Automático</string>
-    <string name="pref_prefetch_cache_help_message">Controla quanto de um vídeo em streaming é armazenado à frente do ponto de reprodução.\n\n• Menos (0,5×) - buffer mínimo. O indicador de pré-cache e a oferta de &quot;salvar o vídeo em cache&quot; ficam ocultos. Economiza espaço e dados; em redes lentas a reprodução pode travar.\n• Automático - tamanho padrão escolhido pelo leitor conforme o aparelho e a rede atual.\n• Mais (2×) - buffer maior para uma reprodução mais fluida em redes instáveis. Ocupa mais espaço em disco.</string>
+    <string name="pref_prefetch_cache_help_message">Controla quanto de um vídeo em streaming é armazenado à frente do ponto de reprodução.\n\n• Menos (0,5×) - buffer mínimo. O indicador de pré-cache e a oferta de \"salvar o vídeo em cache\" ficam ocultos. Economiza espaço e dados; em redes lentas a reprodução pode travar.\n• Automático - tamanho padrão escolhido pelo leitor conforme o aparelho e a rede atual.\n• Mais (2×) - buffer maior para uma reprodução mais fluida em redes instáveis. Ocupa mais espaço em disco.</string>
     <string name="pref_prefetch_cache_help_title">Tamanho do pré-cache de vídeo</string>
     <string name="pref_prefetch_cache_less">Menos (0,5×)</string>
     <string name="pref_prefetch_cache_more">Mais (2×)</string>

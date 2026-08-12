@@ -101,7 +101,7 @@
     <string name="file_count_format">%d files</string>
     <string name="file_count_over_1000">>1000 files</string>
     <string name="file_date_label">Date: %1$s</string>
-    <string name="file_deleted">"%1$s" deleted</string>
+    <string name="file_deleted">\"%1$s\" deleted</string>
     <string name="file_info">File Info</string>
     <string name="file_info_copy_path">Copy path</string>
     <string name="file_info_copy_path_done">Path copied</string>
@@ -120,7 +120,7 @@
     <string name="file_name">File name</string>
     <string name="file_name_label">Name: %1$s</string>
     <string name="file_not_found">File not found</string>
-    <string name="file_not_found_message">The file "%1$s" no longer exists. It may have been deleted or moved outside the app. Refresh this resource?</string>
+    <string name="file_not_found_message">The file \"%1$s\" no longer exists. It may have been deleted or moved outside the app. Refresh this resource?</string>
     <string name="file_not_found_name">File not found: %1$s</string>
     <string name="file_not_found_title">File Not Found</string>
     <string name="file_operation_progress_preparing">Preparing..</string>

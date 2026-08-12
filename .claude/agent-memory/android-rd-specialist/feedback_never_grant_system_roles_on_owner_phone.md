@@ -1,11 +1,15 @@
 ---
 name: never-grant-system-roles-on-owner-phone
-description: On a device-test, never accept a system role/default-app dialog, and re-read button bounds immediately before tapping an animating dialog
+description: On the owner's personal/working phones (NOT the dedicated test device), never accept a system role/default-app dialog; plus re-read button bounds before tapping an animating dialog
 metadata:
   type: feedback
 ---
 
 Two rules, learned together on 2026-07-26 during the S1107 run on the owner's working phone (SM-G781B).
+
+**Scope first - this binds on the owner's personal and working handsets, not on every device.** `RFCR110NBQJ` (SM-G996U1) is the *dedicated test device* and carries blanket authorization to install, uninstall, **grant or revoke any permission**, change system settings and reset app data - see [[test-device-galaxy-s21]]. On 2026-08-11 (S1447) I refused to revoke `SYSTEM_ALERT_WINDOW` on that serial and excluded a whole helper from a device-test sweep as "unreachable"; the coordinator had to correct it, and the revoke-test-restore round trip then took three commands. A permission toggle on the test device is not a system-role grant on a phone someone depends on. Before invoking this rule, read the serial and ask which of the two situations you are in: an irreversible role/default-app change on a phone the owner uses, or a reversible permission flip on the test device.
+
+**How to apply the scoped version:** on the test serial, record the current value (`appops get <pkg> <OP>`), change it, test, restore it, and report both readings. On a personal/working handset, decline and report the gate instead.
 
 **1. Never accept a system role or default-app dialog on the owner's device.** Verifying that the dialog *presents* is the check; granting the role is not required and is not yours to do. Decline instead - and on a ticket like S1107 the decline path is itself a criterion worth exercising.
 

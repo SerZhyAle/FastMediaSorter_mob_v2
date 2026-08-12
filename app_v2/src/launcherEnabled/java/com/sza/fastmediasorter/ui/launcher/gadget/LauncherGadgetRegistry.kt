@@ -20,6 +20,9 @@ class LauncherGadgetRegistry @Inject constructor(
     playlist: PlaylistGadget,
     streams: StreamsGadget,
     folderPreview: FolderPreviewGadget,
+    // S1566: the ninth parameter of ten. The next gadget joins a qualified list module instead of the
+    // constructor - one more direct parameter here trips detekt's constructorThreshold.
+    search: SearchGadget,
     // S1170: the home-widget counterparts arrive as one qualified collection, not one parameter each -
     // fourteen more constructor arguments would put this class at nineteen, past detekt's threshold of
     // 10 and past the point where the list says anything.
@@ -39,7 +42,7 @@ class LauncherGadgetRegistry @Inject constructor(
 ) {
 
     private val gadgets: List<LauncherGadget> =
-        listOf(clock, weather, playlist, streams, folderPreview) + homeWidgets + sensors + technical
+        listOf(clock, weather, playlist, streams, folderPreview, search) + homeWidgets + sensors + technical
 
     /** Picker order (Phase 07): cheapest and most universal first. */
     fun all(): List<LauncherGadget> = gadgets
@@ -80,6 +83,7 @@ class LauncherGadgetRegistry @Inject constructor(
         const val KEY_PLAYLIST = "playlist"
         const val KEY_STREAMS = "streams"
         const val KEY_FOLDER_PREVIEW = "folder_preview"
+        const val KEY_AUDIO_NOW_PLAYING = "audio_now_playing"
 
         // S1179: a key is a storage format written into a cell's `target` column - never renamed.
         const val KEY_COMPASS = "compass"
@@ -92,11 +96,17 @@ class LauncherGadgetRegistry @Inject constructor(
         const val KEY_ALTITUDE = "altitude"
         const val KEY_SATELLITES = "satellites"
 
+        // S1175: same contract - the key is what a cell's `target` column stores, so it is never renamed.
+        const val KEY_MAP = "map"
+
         // S1178: same contract - the key is what a cell's `target` column stores, so it is never renamed.
         const val KEY_NETWORK = "network"
         const val KEY_BATTERY = "battery"
         const val KEY_STORAGE = "storage"
         const val KEY_RESOURCES = "resources"
+
+        // S1566: same contract - the key is what a cell's `target` column stores, so it is never renamed.
+        const val KEY_SEARCH = "search"
 
         private const val SEPARATOR = ':'
     }

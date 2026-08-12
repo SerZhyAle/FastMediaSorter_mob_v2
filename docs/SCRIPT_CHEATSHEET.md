@@ -769,8 +769,11 @@ scripts/devtest/adb.ps1
     -Text             [String]
     -Key              [String]
     -Cmd              [String]
+    -Remote           [String]
+    -Local            [String]
+    -Latest           [SwitchParameter]
     -Json             [SwitchParameter]
-  Exit: 0 - OK; 1 - adb not found, or bad arguments; 2 - no online device; 3 - multiple online devices and -DeviceId not supplied (for verbs needing a device); 4 - target package not installed (for app verbs); 7 - the underlying adb command returned non-zero
+    -Yes              [SwitchParameter]
 ```
 
 ### device-ready.ps1
@@ -1208,6 +1211,16 @@ scripts/document_registry/query.ps1
     -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -Help                [SwitchParameter]
   Exit: 2 = invalid invocation / registry unreadable.
+```
+
+### suggest_localized_urls.ps1
+Suggest localized_urls for registry entries by scanning source files for permalink front matter.
+
+```
+scripts/document_registry/suggest_localized_urls.ps1
+  Suggest localized_urls for registry entries by scanning source files for permalink front matter.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 ```
 
 ### validate.ps1
@@ -1940,6 +1953,17 @@ scripts/quality/assert-string-format.ps1
     -SourceSet              [String] = 'main'
 ```
 
+### assert-string-quote-escaping.ps1
+
+```
+scripts/quality/assert-string-quote-escaping.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+```
+
 ### assert-stub-todo.ps1
 
 ```
@@ -1986,6 +2010,16 @@ scripts/quality/assert-test-suite-complete.ps1
     -RepoRoot                 [String]
 ```
 
+### assert-ticket-acceptance-probes.ps1
+
+```
+scripts/quality/assert-ticket-acceptance-probes.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - clean, or mismatches reported in audit mode.; 1 - `-Gate` found a missing source template or invalid alternative evidence.; 2 - required catalog, helper, or source roots cannot be read.
+```
+
 ### assert-trivial-comments.ps1
 
 ```
@@ -1995,6 +2029,20 @@ scripts/quality/assert-trivial-comments.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+```
+
+### assert-unreferenced-strings.ps1
+
+```
+scripts/quality/assert-unreferenced-strings.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -Quiet                  [SwitchParameter]
+    -Module                 [String] = 'app_v2'
+    -File                   [String] = 'strings.xml'
+  Exit: 0 - no new unreferenced name (or reporting mode, which never fails).; 1 - under -Gate: at least one unreferenced name is not in the baseline.; 2 - cannot verify: the module, its values directory, or the strings file could not be read.
 ```
 
 ### assert-unsafe-collect.ps1
@@ -2113,6 +2161,13 @@ scripts/quality/sector-gate-pilot.ps1
 
 ## scripts\quality.tests
 
+### android-string-liveness.Tests.ps1
+
+```
+scripts/quality.tests/android-string-liveness.Tests.ps1
+  (no param block)
+```
+
 ### check-device-profile-presets.Tests.ps1
 
 ```
@@ -2124,6 +2179,13 @@ scripts/quality.tests/check-device-profile-presets.Tests.ps1
 
 ```
 scripts/quality.tests/Run-Tests.ps1
+  (no param block)
+```
+
+### set-android-string-remove.Tests.ps1
+
+```
+scripts/quality.tests/set-android-string-remove.Tests.ps1
   (no param block)
 ```
 
@@ -2167,6 +2229,15 @@ scripts/quality/assert-swallowed-cancellation.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not verify - the baseline file is missing.
 ```
 
+## scripts\quality\assert-ticket-acceptance-probes.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-ticket-acceptance-probes.tests/Run-Tests.ps1
+  (no param block)
+```
+
 ## scripts\quality\assert-window-insets.tests
 
 ### Run-Tests.ps1
@@ -2183,6 +2254,15 @@ scripts/quality/assert-window-insets.tests/Run-Tests.ps1
 
 ```
 scripts/quality/lib/android-string-format.ps1
+  (no param block)
+```
+
+### android-string-liveness.ps1
+S1568: one definition of "is this string resource name referenced", shared by the audit report, the removal tool and the ratchet gate.
+
+```
+scripts/quality/lib/android-string-liveness.ps1
+  S1568: one definition of "is this string resource name referenced", shared by the audit report, the removal tool and the ratchet gate.
   (no param block)
 ```
 
@@ -2225,6 +2305,13 @@ scripts/quality/lib/source-matchers.ps1
 
 ```
 scripts/quality/lib/source-scan.ps1
+  (no param block)
+```
+
+### ticket-acceptance-probes.ps1
+
+```
+scripts/quality/lib/ticket-acceptance-probes.ps1
   (no param block)
 ```
 
@@ -2873,6 +2960,18 @@ scripts/utils/archive-vscode-cruft.ps1
     -Force                           [SwitchParameter]
 ```
 
+### audit-unreferenced-strings.ps1
+
+```
+scripts/utils/audit-unreferenced-strings.ps1
+  Params:
+    -Module          [String] = 'app_v2'
+    -File            [String] = 'strings.xml'
+    -Format          [String] = 'text'  {text|json}
+    -OutFile         [String]
+  Exit: 0 - the scan completed. Any number of unreferenced names is a valid result, including zero.; 2 - cannot verify: the module, its values directory, or the strings file does not exist.
+```
+
 ### batch-set-android-string.ps1
 Updates multiple Android <string> resources from a JSON file.
 
@@ -3264,9 +3363,11 @@ scripts/utils/set-android-string.ps1
     -NewKey                   [String]
     -File                     [String] = 'strings.xml'
     -Prefix                   [String]
+    -KeyList                  [String]
     -ExpectedOldValue         [String]
     -CreateIfMissing          [SwitchParameter]
     -DryRun                   [SwitchParameter]
+    -Force                    [SwitchParameter]
 ```
 
 ### set-android-strings.ps1

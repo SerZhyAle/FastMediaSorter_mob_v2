@@ -11,7 +11,7 @@
     <string name="welcome_default_player_title">Standard-Player</string>
     <string name="welcome_description_1">Ihr Medienmanager für alles.\nDurchsuchen, sortieren und verwalten Sie Dateien auf lokalem, Netzwerk- und Cloud-Speicher - alles mit intuitiven Touch-Gesten.</string>
     <string name="welcome_description_1_details">FastMediaSorter bringt jede Art von Medien an einen Ort. Öffnen Sie Fotos, Videos, GIFs und Musik von Ihrem Gerät, von einer Netzwerkfreigabe oder aus dem Cloud-Speicher - und sortieren Sie sie mit kurzen Tipps statt mit Menüs beim langen Drücken.\n\nAlles, was Sie hier einrichten, lässt sich später in den Einstellungen ändern. Auf diesem Bildschirm gibt es also keine falsche Wahl - tippen Sie einfach auf Weiter.</string>
-    <string name="welcome_description_3">Der Player nutzt 9 Berührungszonen (3×3-Raster) für schnelle Aktionen. Tippen Sie auf Zonen, um zu navigieren, Dateien zu kopieren, zu verschieben, zu löschen oder das Befehlsfeld zu öffnen. Details zeigt das Schema oben.</string>
+    <string name="welcome_description_3" formatted="false">Der Player nutzt 9 Berührungszonen (3×3-Raster) für schnelle Aktionen. Tippen Sie auf Zonen, um zu navigieren, Dateien zu kopieren, zu verschieben, zu löschen oder das Befehlsfeld zu öffnen. Details zeigt das Schema oben.</string>
     <string name="welcome_language_picker_hint">App-Sprache wählen</string>
     <string name="welcome_profile_audio_player_desc">Ideal für reine Audiogeräte oder MP3-Player. Blendet Fotos und Videos aus, optimiert Hintergrundwiedergabe und Wiedergabeanzeige.</string>
     <string name="welcome_profile_audio_player_title">Audioplayer</string>
@@ -140,7 +140,7 @@
     <string name="welcome_func_downloading">Wird heruntergeladen.. %1$d%%</string>
     <string name="welcome_func_download_failed">Download fehlgeschlagen - zum Wiederholen tippen</string>
     <string name="welcome_func_download_done">Bereit</string>
-    <string name="welcome_permissions_title">&quot;Ein paar&quot; Berechtigungen</string>
+    <string name="welcome_permissions_title">\"Ein paar\" Berechtigungen</string>
     <string name="welcome_permissions_subtitle">Erteilen Sie Zugriff, damit die App Ihre Medien anzeigen kann.</string>
     <string name="welcome_func_streams">Streams</string>
     <string name="welcome_streams_catalog_done">Katalog heruntergeladen</string>

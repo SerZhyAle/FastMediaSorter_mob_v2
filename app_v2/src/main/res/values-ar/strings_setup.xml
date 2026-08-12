@@ -11,9 +11,9 @@
     <string name="welcome_default_player_title">المشغّل الافتراضي</string>
     <string name="welcome_description_1">منظّم الوسائط الشامل الخاص بك.\nتصفّح الملفات ورتّبها وأدرها على التخزين المحلي والشبكي والسحابي، كل ذلك بإيماءات لمس بديهية.</string>
     <string name="welcome_description_1_details">يجمع FastMediaSorter كل أنواع الوسائط في مكان واحد. افتح الصور ومقاطع الفيديو وصور GIF والموسيقى من جهازك أو من مجلد مشترك على الشبكة أو من التخزين السحابي، ورتّبها بنقرات سريعة بدل قوائم الضغط المطوّل.\n\nكل ما تضبطه هنا يمكن تغييره لاحقًا في الإعدادات، فلا يوجد اختيار خاطئ في هذه الشاشة - انقر التالي للمتابعة.</string>
-    <string name="welcome_description_3">يستخدم المشغّل 9 مناطق لمس (شبكة 3×3) للإجراءات السريعة. انقر المناطق للتنقل أو نسخ الملفات أو نقلها أو حذفها أو فتح لوحة الأوامر. راجع المخطط أعلاه للتفاصيل.</string>
+    <string name="welcome_description_3" formatted="false">يستخدم المشغّل 9 مناطق لمس (شبكة 3×3) للإجراءات السريعة. انقر المناطق للتنقل أو نسخ الملفات أو نقلها أو حذفها أو فتح لوحة الأوامر. راجع المخطط أعلاه للتفاصيل.</string>
     <string name="welcome_language_picker_hint">اختر لغة التطبيق</string>
-    <string name="welcome_profile_audio_player_desc">الأنسب للأجهزة الصوتية فقط أو مشغّلات MP3. يخفي الصور والفيديو، ويحسّن التشغيل في الخلفية وشاشة &quot;قيد التشغيل&quot;.</string>
+    <string name="welcome_profile_audio_player_desc">الأنسب للأجهزة الصوتية فقط أو مشغّلات MP3. يخفي الصور والفيديو، ويحسّن التشغيل في الخلفية وشاشة \"قيد التشغيل\".</string>
     <string name="welcome_profile_audio_player_title">مشغّل صوت</string>
     <string name="welcome_profile_car_head_unit_desc">الأنسب لأجهزة السيارات بنظام Android. يستخدم أزرارًا كبيرة جدًا، ويُبقي الشاشة مضاءة، ويقدّم تشغيل الوسائط على عمليات الملفات.</string>
     <string name="welcome_profile_car_head_unit_title">جهاز السيارة</string>
@@ -140,7 +140,7 @@
     <string name="welcome_func_downloading">جارٍ التنزيل.. %1$d%%</string>
     <string name="welcome_func_download_failed">فشل التنزيل - انقر لإعادة المحاولة</string>
     <string name="welcome_func_download_done">جاهز</string>
-    <string name="welcome_permissions_title">&quot;بعض&quot; الأذونات</string>
+    <string name="welcome_permissions_title">\"بعض\" الأذونات</string>
     <string name="welcome_permissions_subtitle">امنح الوصول ليتمكّن التطبيق من عرض وسائطك.</string>
     <string name="welcome_func_streams">البثوث</string>
     <string name="welcome_streams_catalog_done">تم تنزيل الدليل</string>

@@ -9,7 +9,7 @@
     <string name="settings_already_default_player">✓ پہلے ہی طے شدہ کے طور پر مقرر ہے</string>
     <string name="settings_application_log_title">ایپلیکیشن لاگ</string>
     <string name="settings_black_screen_button_desc">پلیئر کی پٹی میں ایسا بٹن دکھائیں جو آڈیو یا ویڈیو چلتے رہنے کے دوران اسکرین بجھا دے</string>
-    <string name="settings_black_screen_button_title">&quot;سیاہ اسکرین&quot; بٹن دکھائیں</string>
+    <string name="settings_black_screen_button_title">\"سیاہ اسکرین\" بٹن دکھائیں</string>
     <string name="settings_cache_size_range_error">کیشے کا حجم 512 اور 16384 MB کے درمیان ہونا چاہیے۔</string>
     <string name="settings_category_about">تعارف</string>
     <string name="settings_category_app_data">بیک اپ، بحالی اور ترتیبات کی برآمد</string>
@@ -56,14 +56,10 @@
     <string name="settings_general_network_sync">نیٹ ورک مطابقت پذیری</string>
     <string name="settings_general_permissions">اجازتیں</string>
     <string name="settings_general_system">نیٹ ورک اور نظام</string>
-    <string name="settings_log_current_session_body">موجودہ سیشن کا لاگ (%1$d سطریں):
-
-%2$s</string>
+    <string name="settings_log_current_session_body">موجودہ سیشن کا لاگ (%1$d سطریں):\n\n%2$s</string>
     <string name="settings_log_empty">کوئی لاگ اندراج نہیں ملا۔</string>
     <string name="settings_log_empty_session">موجودہ سیشن کے لیے کوئی لاگ اندراج نہیں ملا۔</string>
-    <string name="settings_log_last_lines">لاگ کی آخری %1$d سطریں:
-
-%2$s</string>
+    <string name="settings_log_last_lines">لاگ کی آخری %1$d سطریں:\n\n%2$s</string>
     <string name="settings_log_save_destination_title">لاگ کو منزل پر محفوظ کریں</string>
     <string name="settings_log_save_failed">لاگ محفوظ نہ ہو سکا۔</string>
     <string name="settings_log_saved_to_resource">لاگ یہاں محفوظ ہوا: %1$s</string>
@@ -91,10 +87,10 @@
         <item quantity="one">اس پروفائل پر جانے سے %1$d ترتیب اس قدر سے بدل جائے گی جو یہ پروفائل مقرر کرتی ہے۔ جاری رکھیں؟</item>
         <item quantity="other">اس پروفائل پر جانے سے %1$d ترتیبات ان اقدار سے بدل جائیں گی جو یہ پروفائل مقرر کرتی ہے۔ جاری رکھیں؟</item>
     </plurals>
-    <string name="settings_all_files_create_resource">&quot;تمام فائلیں&quot; ذریعہ بنائیں</string>
-    <string name="settings_all_files_resource_created">&quot;تمام فائلیں&quot; ذریعہ بن گیا۔</string>
-    <string name="settings_all_files_profile_confirm_title">&quot;تمام فائلیں&quot; ذریعہ بنائیں</string>
-    <string name="settings_all_files_profile_confirm_message">یہ پروفائل فائل مینیجر موڈ فعال کرتی ہے اور غائب &quot;تمام فائلیں&quot; ذریعہ بنا دے گی۔ جاری رکھیں؟</string>
+    <string name="settings_all_files_create_resource">\"تمام فائلیں\" ذریعہ بنائیں</string>
+    <string name="settings_all_files_resource_created">\"تمام فائلیں\" ذریعہ بن گیا۔</string>
+    <string name="settings_all_files_profile_confirm_title">\"تمام فائلیں\" ذریعہ بنائیں</string>
+    <string name="settings_all_files_profile_confirm_message">یہ پروفائل فائل مینیجر موڈ فعال کرتی ہے اور غائب \"تمام فائلیں\" ذریعہ بنا دے گی۔ جاری رکھیں؟</string>
     <string name="settings_reset_settings_failed">ترتیبات دوبارہ ترتیب نہ ہو سکیں۔ دوبارہ کوشش کریں۔</string>
     <string name="settings_reset_smb_failed">SMB کنکشن دوبارہ ترتیب نہ ہو سکے۔ دوبارہ کوشش کریں۔</string>
     <string name="settings_saved">ترتیبات محفوظ ہو گئیں</string>
@@ -168,7 +164,7 @@
     <string name="setting_photos_during_audio_desc">چلانے کے دوران بے ترتیب تصاویر (آڈیو کی فہرست چنیں - تصاویر دیکھیں)</string>
     <string name="setting_play_to_end_desc">سلائیڈ شو کے وقفے کے بجائے میڈیا کو آخر تک چلائیں</string>
     <string name="setting_prevent_sleep_desc">ایپ کے استعمال کے دوران اسکرین روشن رکھیں</string>
-    <string name="setting_primary_media_player_desc">&quot;اس سے کھولیں&quot; میں FastMediaSorter دکھائیں اور میڈیا بٹن سنبھالیں</string>
+    <string name="setting_primary_media_player_desc">\"اس سے کھولیں\" میں FastMediaSorter دکھائیں اور میڈیا بٹن سنبھالیں</string>
     <string name="setting_resume_on_next_launch">اگلی بار چلانے پر پلے بیک جاری رکھیں</string>
     <string name="setting_resume_on_next_launch_desc">ایپ شروع ہونے پر آخری چلائی گئی فائل وہیں سے خودکار طور پر کھولیں جہاں آپ نے چھوڑا تھا</string>
     <string name="setting_safe_mode_desc">تباہ کن کارروائیوں (حذف، منتقلی) سے پہلے تصدیق کریں</string>
@@ -197,14 +193,14 @@
     <string name="setting_translation_lens_style_desc">ترجمے کے نتائج بلاک کی صورت میں اوپر دکھائیں</string>
     <string name="pref_crop_images_fullscreen_summary">پوری اسکرین یا سلائیڈ شو میں، رخ ملنے پر تصاویر کاٹ کر اسکرین بھریں</string>
     <string name="pref_crop_images_fullscreen_title">اسکرین بھرنے کے لیے تصاویر کاٹیں</string>
-    <string name="pref_dynamic_background_summary">تصویر کے کنارے کے رنگ بڑھا کر &quot;سیاہ پٹیاں&quot; بھریں (Ambilight اثر)</string>
+    <string name="pref_dynamic_background_summary">تصویر کے کنارے کے رنگ بڑھا کر \"سیاہ پٹیاں\" بھریں (Ambilight اثر)</string>
     <string name="pref_dynamic_background_title">متحرک پس منظر کی توسیع</string>
     <string name="pref_file_ops_overflow_menu_desc">نقل، منتقلی، نام بدلنا اور حذف کو ہر فائل سطر کے ⋮ بٹن میں سمیٹتا ہے۔ چلانے کا بٹن ہمیشہ الگ رہتا ہے۔</string>
     <string name="pref_file_ops_overflow_menu_title">اضافی مینو میں فائل کی کارروائیاں</string>
     <string name="pref_panel_stereo_single_eye_summary">فعال ہونے پر ساتھ ساتھ اور اوپر نیچے والی سٹیریو ویڈیوز اور پوری اسکرین تصاویر ایک آنکھ تک کاٹ کر پوری اسکرین پر پھیلا دی جاتی ہیں - 3D عینک کے بغیر دیکھنے میں آرام دہ۔ طے شدہ: فعال۔ غرق کن VR رینڈرنگ اس ترتیب کو نظرانداز کر کے مکمل سٹیریو فریم دکھاتی ہے۔</string>
     <string name="pref_panel_stereo_single_eye_title">3D مواد ایک آنکھ سے دکھائیں</string>
     <string name="pref_prefetch_cache_auto">خودکار</string>
-    <string name="pref_prefetch_cache_help_message">طے کرتا ہے کہ سٹریم ہوتی ویڈیو کا کتنا حصہ چلنے کے مقام سے آگے پہلے سے محفوظ کیا جائے۔\n\n• کم (0.5×) - کم سے کم بفرنگ۔ پیشگی کیشے کا اشاریہ اور &quot;محفوظ شدہ ویڈیو رکھیں&quot; کی پیشکش چھپی رہتی ہے۔ جگہ اور ڈیٹا بچاتا ہے؛ سست نیٹ ورک پر چلنا رک سکتا ہے۔\n• خودکار - آلے اور موجودہ نیٹ ورک کے مطابق پلیئر کا چنا ہوا طے شدہ حجم۔\n• زیادہ (2×) - غیر مستحکم نیٹ ورک پر ہموار چلنے کے لیے بڑا بفر۔ زیادہ ڈسک جگہ لیتا ہے۔</string>
+    <string name="pref_prefetch_cache_help_message">طے کرتا ہے کہ سٹریم ہوتی ویڈیو کا کتنا حصہ چلنے کے مقام سے آگے پہلے سے محفوظ کیا جائے۔\n\n• کم (0.5×) - کم سے کم بفرنگ۔ پیشگی کیشے کا اشاریہ اور \"محفوظ شدہ ویڈیو رکھیں\" کی پیشکش چھپی رہتی ہے۔ جگہ اور ڈیٹا بچاتا ہے؛ سست نیٹ ورک پر چلنا رک سکتا ہے۔\n• خودکار - آلے اور موجودہ نیٹ ورک کے مطابق پلیئر کا چنا ہوا طے شدہ حجم۔\n• زیادہ (2×) - غیر مستحکم نیٹ ورک پر ہموار چلنے کے لیے بڑا بفر۔ زیادہ ڈسک جگہ لیتا ہے۔</string>
     <string name="pref_prefetch_cache_help_title">ویڈیو پیشگی کیشے کا حجم</string>
     <string name="pref_prefetch_cache_less">کم (0.5×)</string>
     <string name="pref_prefetch_cache_more">زیادہ (2×)</string>

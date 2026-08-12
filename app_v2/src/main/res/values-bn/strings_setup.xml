@@ -11,7 +11,7 @@
     <string name="welcome_default_player_title">ডিফল্ট প্লেয়ার</string>
     <string name="welcome_description_1">আপনার সবকিছু এক জায়গায় রাখা মিডিয়া ব্যবস্থাপক।\nলোকাল, নেটওয়ার্ক ও ক্লাউড স্টোরেজের ফাইল ব্রাউজ করুন, সাজান ও পরিচালনা করুন - সবই সহজ স্পর্শ অঙ্গভঙ্গিতে।</string>
     <string name="welcome_description_1_details">FastMediaSorter সব ধরনের মিডিয়া এক জায়গায় নিয়ে আসে। আপনার ডিভাইস থেকে, নেটওয়ার্ক শেয়ার থেকে বা ক্লাউড স্টোরেজ থেকে ছবি, ভিডিও, GIF ও গান খুলুন - এবং দীর্ঘক্ষণ চেপে ধরা মেনুর বদলে দ্রুত ট্যাপে সেগুলো সাজান।\n\nএখানে যা কিছু ঠিক করবেন তা পরে সেটিংসে বদলানো যাবে, তাই এই পর্দায় ভুল পছন্দ বলে কিছু নেই - এগোতে শুধু পরবর্তী চাপুন।</string>
-    <string name="welcome_description_3">প্লেয়ার দ্রুত কাজের জন্য ৯টি স্পর্শ অঞ্চল (৩×৩ গ্রিড) ব্যবহার করে। চলাচল, ফাইল কপি, সরানো, মোছা বা কমান্ড প্যানেল খুলতে অঞ্চলগুলোতে ট্যাপ করুন। বিস্তারিত উপরের নকশায় দেখুন।</string>
+    <string name="welcome_description_3" formatted="false">প্লেয়ার দ্রুত কাজের জন্য ৯টি স্পর্শ অঞ্চল (৩×৩ গ্রিড) ব্যবহার করে। চলাচল, ফাইল কপি, সরানো, মোছা বা কমান্ড প্যানেল খুলতে অঞ্চলগুলোতে ট্যাপ করুন। বিস্তারিত উপরের নকশায় দেখুন।</string>
     <string name="welcome_language_picker_hint">অ্যাপের ভাষা বেছে নিন</string>
     <string name="welcome_profile_audio_player_desc">শুধু অডিও ডিভাইস বা MP3 প্লেয়ারের জন্য সবচেয়ে উপযুক্ত। ছবি ও ভিডিও লুকায়; পটভূমির অডিও ও এখন বাজছে পর্দা উন্নত করে।</string>
     <string name="welcome_profile_audio_player_title">অডিও প্লেয়ার</string>
@@ -140,7 +140,7 @@
     <string name="welcome_func_downloading">ডাউনলোড হচ্ছে.. %1$d%%</string>
     <string name="welcome_func_download_failed">ডাউনলোড ব্যর্থ - আবার চেষ্টা করতে ট্যাপ করুন</string>
     <string name="welcome_func_download_done">প্রস্তুত</string>
-    <string name="welcome_permissions_title">&quot;কয়েকটি&quot; অনুমতি</string>
+    <string name="welcome_permissions_title">\"কয়েকটি\" অনুমতি</string>
     <string name="welcome_permissions_subtitle">প্রবেশাধিকার দিন যাতে অ্যাপ আপনার মিডিয়া দেখাতে পারে।</string>
     <string name="welcome_func_streams">স্ট্রিম</string>
     <string name="welcome_streams_catalog_done">তালিকা ডাউনলোড হয়েছে</string>

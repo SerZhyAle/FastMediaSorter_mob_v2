@@ -11,7 +11,7 @@
     <string name="welcome_default_player_title">Reproductor predeterminado</string>
     <string name="welcome_description_1">Su organizador multimedia todo en uno.\nExplore, ordene y gestione archivos en almacenamiento local, de red y en la nube, todo con gestos táctiles intuitivos.</string>
     <string name="welcome_description_1_details">FastMediaSorter reúne todo tipo de contenido en un solo lugar. Abra fotos, vídeos, GIF y música desde su dispositivo, desde un recurso compartido de red o desde la nube, y ordénelos con toques rápidos en lugar de menús de pulsación larga.\n\nTodo lo que configure aquí se puede cambiar después en Ajustes, así que en esta pantalla no hay elección equivocada: toque Siguiente para continuar.</string>
-    <string name="welcome_description_3">El reproductor usa 9 zonas táctiles (cuadrícula de 3×3) para acciones rápidas. Toque las zonas para navegar, copiar, mover o eliminar archivos, o para abrir el panel de comandos. Vea el esquema de arriba para más detalles.</string>
+    <string name="welcome_description_3" formatted="false">El reproductor usa 9 zonas táctiles (cuadrícula de 3×3) para acciones rápidas. Toque las zonas para navegar, copiar, mover o eliminar archivos, o para abrir el panel de comandos. Vea el esquema de arriba para más detalles.</string>
     <string name="welcome_language_picker_hint">Seleccionar idioma de la aplicación</string>
     <string name="welcome_profile_audio_player_desc">Ideal para dispositivos solo de audio o reproductores MP3. Oculta fotos y vídeos; optimiza el audio en segundo plano y la pantalla de reproducción.</string>
     <string name="welcome_profile_audio_player_title">Reproductor de audio</string>
@@ -140,7 +140,7 @@
     <string name="welcome_func_downloading">Descargando.. %1$d%%</string>
     <string name="welcome_func_download_failed">Error de descarga: toque para reintentar</string>
     <string name="welcome_func_download_done">Listo</string>
-    <string name="welcome_permissions_title">&quot;Unos pocos&quot; permisos</string>
+    <string name="welcome_permissions_title">\"Unos pocos\" permisos</string>
     <string name="welcome_permissions_subtitle">Conceda acceso para que la aplicación pueda mostrar su contenido.</string>
     <string name="welcome_func_streams">Emisiones</string>
     <string name="welcome_streams_catalog_done">Catálogo descargado</string>

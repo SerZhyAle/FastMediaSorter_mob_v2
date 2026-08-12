@@ -9,7 +9,7 @@
     <string name="settings_already_default_player">✓ ইতিমধ্যেই ডিফল্ট হিসেবে সেট করা</string>
     <string name="settings_application_log_title">অ্যাপ্লিকেশন লগ</string>
     <string name="settings_black_screen_button_desc">প্লেয়ারের টুলবারে এমন একটি বোতাম দেখান যা অডিও বা ভিডিও চলতে থাকা অবস্থায় পর্দা নিভিয়ে দেয়</string>
-    <string name="settings_black_screen_button_title">&quot;কালো পর্দা&quot; বোতাম দেখান</string>
+    <string name="settings_black_screen_button_title">\"কালো পর্দা\" বোতাম দেখান</string>
     <string name="settings_cache_size_range_error">ক্যাশের আকার ৫১২ থেকে ১৬৩৮৪ MB-এর মধ্যে হতে হবে।</string>
     <string name="settings_category_about">সম্পর্কে</string>
     <string name="settings_category_app_data">ব্যাকআপ, পুনরুদ্ধার ও সেটিংস রপ্তানি</string>
@@ -56,14 +56,10 @@
     <string name="settings_general_network_sync">নেটওয়ার্ক সিঙ্ক</string>
     <string name="settings_general_permissions">অনুমতি</string>
     <string name="settings_general_system">নেটওয়ার্ক ও সিস্টেম</string>
-    <string name="settings_log_current_session_body">চলতি সেশনের লগ (%1$d লাইন):
-
-%2$s</string>
+    <string name="settings_log_current_session_body">চলতি সেশনের লগ (%1$d লাইন):\n\n%2$s</string>
     <string name="settings_log_empty">কোনো লগ এন্ট্রি পাওয়া যায়নি।</string>
     <string name="settings_log_empty_session">চলতি সেশনের জন্য কোনো লগ এন্ট্রি পাওয়া যায়নি।</string>
-    <string name="settings_log_last_lines">লগের শেষ %1$d লাইন:
-
-%2$s</string>
+    <string name="settings_log_last_lines">লগের শেষ %1$d লাইন:\n\n%2$s</string>
     <string name="settings_log_save_destination_title">লগ গন্তব্যে সংরক্ষণ করুন</string>
     <string name="settings_log_save_failed">লগ সংরক্ষণ করা যায়নি।</string>
     <string name="settings_log_saved_to_resource">লগ এখানে সংরক্ষিত হয়েছে: %1$s</string>
@@ -91,10 +87,10 @@
         <item quantity="one">এই ধরনে যাওয়ার ফলে %1$d টি সেটিং এই ধরনের নির্ধারিত মান দিয়ে বদলে যাবে। চালিয়ে যাবেন?</item>
         <item quantity="other">এই ধরনে যাওয়ার ফলে %1$d টি সেটিং এই ধরনের নির্ধারিত মান দিয়ে বদলে যাবে। চালিয়ে যাবেন?</item>
     </plurals>
-    <string name="settings_all_files_create_resource">&quot;সব ফাইল&quot; উৎস তৈরি করুন</string>
-    <string name="settings_all_files_resource_created">&quot;সব ফাইল&quot; উৎস তৈরি হয়েছে।</string>
-    <string name="settings_all_files_profile_confirm_title">&quot;সব ফাইল&quot; উৎস তৈরি করুন</string>
-    <string name="settings_all_files_profile_confirm_message">এই ধরনটি ফাইল-ব্যবস্থাপক মোড চালু করে এবং অনুপস্থিত &quot;সব ফাইল&quot; উৎস তৈরি করবে। চালিয়ে যাবেন?</string>
+    <string name="settings_all_files_create_resource">\"সব ফাইল\" উৎস তৈরি করুন</string>
+    <string name="settings_all_files_resource_created">\"সব ফাইল\" উৎস তৈরি হয়েছে।</string>
+    <string name="settings_all_files_profile_confirm_title">\"সব ফাইল\" উৎস তৈরি করুন</string>
+    <string name="settings_all_files_profile_confirm_message">এই ধরনটি ফাইল-ব্যবস্থাপক মোড চালু করে এবং অনুপস্থিত \"সব ফাইল\" উৎস তৈরি করবে। চালিয়ে যাবেন?</string>
     <string name="settings_reset_settings_failed">সেটিংস পুনঃস্থাপন করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="settings_reset_smb_failed">SMB সংযোগ পুনঃস্থাপন করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="settings_saved">সেটিংস সংরক্ষিত হয়েছে</string>
@@ -168,7 +164,7 @@
     <string name="setting_photos_during_audio_desc">চালানোর সময় এলোমেলো ছবি (একটি অডিও তালিকা বেছে নিন - ছবি দেখুন)</string>
     <string name="setting_play_to_end_desc">স্লাইডশোর বিরতির বদলে মিডিয়া শেষ পর্যন্ত চালান</string>
     <string name="setting_prevent_sleep_desc">অ্যাপ ব্যবহারের সময় পর্দা জাগিয়ে রাখুন</string>
-    <string name="setting_primary_media_player_desc">&quot;দিয়ে খুলুন&quot;-এ FastMediaSorter দেখান এবং মিডিয়া বোতাম সামলান</string>
+    <string name="setting_primary_media_player_desc">\"দিয়ে খুলুন\"-এ FastMediaSorter দেখান এবং মিডিয়া বোতাম সামলান</string>
     <string name="setting_resume_on_next_launch">পরের বার চালু করলে প্লেব্যাক চালিয়ে যান</string>
     <string name="setting_resume_on_next_launch_desc">অ্যাপ শুরু হলে শেষ চালানো ফাইলটি যেখানে থেমেছিলেন সেখান থেকেই স্বয়ংক্রিয়ভাবে খুলুন</string>
     <string name="setting_safe_mode_desc">ধ্বংসাত্মক কাজের (মোছা, সরানো) আগে নিশ্চিত করুন</string>
@@ -197,14 +193,14 @@
     <string name="setting_translation_lens_style_desc">অনুবাদের ফল ব্লক আকারে উপরে বসিয়ে দেখান</string>
     <string name="pref_crop_images_fullscreen_summary">পূর্ণ পর্দায় বা স্লাইডশোতে, দিক মিলে গেলে ছবি কেটে পর্দা ভরান</string>
     <string name="pref_crop_images_fullscreen_title">পর্দা ভরাতে ছবি কাটুন</string>
-    <string name="pref_dynamic_background_summary">ছবির কিনারার রং বাড়িয়ে &quot;কালো পট্টি&quot; ভরান (Ambilight প্রভাব)</string>
+    <string name="pref_dynamic_background_summary">ছবির কিনারার রং বাড়িয়ে \"কালো পট্টি\" ভরান (Ambilight প্রভাব)</string>
     <string name="pref_dynamic_background_title">গতিশীল পটভূমি সম্প্রসারণ</string>
     <string name="pref_file_ops_overflow_menu_desc">কপি, সরানো, নাম বদল ও মোছা প্রতিটি ফাইল সারির ⋮ বোতামে গুটিয়ে নেয়। চালানোর বোতাম সবসময় আলাদা থাকে।</string>
     <string name="pref_file_ops_overflow_menu_title">অতিরিক্ত মেনুতে ফাইলের কাজ</string>
     <string name="pref_panel_stereo_single_eye_summary">চালু থাকলে পাশাপাশি ও উপর-নিচ স্টিরিও ভিডিও এবং পূর্ণ পর্দার ছবি এক চোখ পর্যন্ত কেটে পুরো পর্দায় ছড়িয়ে দেওয়া হয় - 3D চশমা ছাড়াই দেখতে আরামদায়ক। ডিফল্ট: চালু। নিমজ্জিত VR রেন্ডারিং এই সেটিং উপেক্ষা করে পুরো স্টিরিও ফ্রেম দেখায়।</string>
     <string name="pref_panel_stereo_single_eye_title">3D বিষয়বস্তু এক চোখে দেখান</string>
     <string name="pref_prefetch_cache_auto">স্বয়ংক্রিয়</string>
-    <string name="pref_prefetch_cache_help_message">স্ট্রিম করা ভিডিওর কতটা অংশ চালানোর বিন্দুর আগেই জমা রাখা হবে তা নিয়ন্ত্রণ করে।\n\n• কম (0.5×) - সর্বনিম্ন জমা। প্রি-ক্যাশের অগ্রগতি সূচক ও &quot;জমা রাখা ভিডিও সংরক্ষণ&quot; প্রস্তাব লুকানো থাকে। জায়গা ও ডেটা বাঁচায়; ধীর নেটওয়ার্কে চলা আটকে যেতে পারে।\n• স্বয়ংক্রিয় - ডিভাইস ও বর্তমান নেটওয়ার্ক দেখে প্লেয়ারের বেছে নেওয়া ডিফল্ট আকার।\n• বেশি (2×) - অস্থির নেটওয়ার্কে মসৃণ চলার জন্য বড় জমা। বেশি ডিস্ক জায়গা নেয়।</string>
+    <string name="pref_prefetch_cache_help_message">স্ট্রিম করা ভিডিওর কতটা অংশ চালানোর বিন্দুর আগেই জমা রাখা হবে তা নিয়ন্ত্রণ করে।\n\n• কম (0.5×) - সর্বনিম্ন জমা। প্রি-ক্যাশের অগ্রগতি সূচক ও \"জমা রাখা ভিডিও সংরক্ষণ\" প্রস্তাব লুকানো থাকে। জায়গা ও ডেটা বাঁচায়; ধীর নেটওয়ার্কে চলা আটকে যেতে পারে।\n• স্বয়ংক্রিয় - ডিভাইস ও বর্তমান নেটওয়ার্ক দেখে প্লেয়ারের বেছে নেওয়া ডিফল্ট আকার।\n• বেশি (2×) - অস্থির নেটওয়ার্কে মসৃণ চলার জন্য বড় জমা। বেশি ডিস্ক জায়গা নেয়।</string>
     <string name="pref_prefetch_cache_help_title">ভিডিও প্রি-ক্যাশের আকার</string>
     <string name="pref_prefetch_cache_less">কম (0.5×)</string>
     <string name="pref_prefetch_cache_more">বেশি (2×)</string>

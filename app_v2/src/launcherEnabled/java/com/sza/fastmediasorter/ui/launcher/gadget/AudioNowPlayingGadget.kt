@@ -39,7 +39,7 @@ import javax.inject.Inject
  */
 class AudioNowPlayingGadget @Inject constructor() : LauncherGadget {
 
-    override val key: String = KEY
+    override val key: String = LauncherGadgetRegistry.KEY_AUDIO_NOW_PLAYING
     override val defaultSpanW: Int = SPAN_W
     override val defaultSpanH: Int = SPAN_H
     override val labelRes: Int = R.string.widget_audio_now_playing_label
@@ -50,8 +50,6 @@ class AudioNowPlayingGadget @Inject constructor() : LauncherGadget {
         AudioNowPlayingGadgetView(container.context, host)
 
     private companion object {
-        const val KEY = "audio_now_playing"
-
         /** The widget's own declared `targetCellWidth` / `targetCellHeight`. */
         const val SPAN_W = 2
         const val SPAN_H = 1

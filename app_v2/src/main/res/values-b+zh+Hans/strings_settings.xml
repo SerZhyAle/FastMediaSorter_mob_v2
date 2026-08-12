@@ -56,14 +56,10 @@
     <string name="settings_general_network_sync">网络同步</string>
     <string name="settings_general_permissions">权限</string>
     <string name="settings_general_system">网络与系统</string>
-    <string name="settings_log_current_session_body">本次会话日志（%1$d 行）：
-
-%2$s</string>
+    <string name="settings_log_current_session_body">本次会话日志（%1$d 行）：\n\n%2$s</string>
     <string name="settings_log_empty">未找到日志条目。</string>
     <string name="settings_log_empty_session">本次会话没有日志条目。</string>
-    <string name="settings_log_last_lines">最后 %1$d 行日志：
-
-%2$s</string>
+    <string name="settings_log_last_lines">最后 %1$d 行日志：\n\n%2$s</string>
     <string name="settings_log_save_destination_title">将日志保存到目标位置</string>
     <string name="settings_log_save_failed">无法保存日志。</string>
     <string name="settings_log_saved_to_resource">日志已保存到：%1$s</string>

@@ -334,10 +334,12 @@ class VideoPlayerManager(
     // Stream stall watchdog (S0936): detects a silent freeze the stream-listener's error-driven
     // recovery cannot see (no PlaybackException thrown) and heals it with a bounded re-prepare.
     internal var streamStallRunnable: Runnable? = null
-    internal var streamStallLastPosition = 0L
-    internal var streamStallLastRenderedFrames: Int? = null
-    internal var streamStallPolls = 0
-    internal var streamBufferingSince = 0L
+
+    // S1513: the poll counters and the buffering deadline the watchdog used to keep as manager
+    // fields. Held here for the same reason as the recovery window below - the watchdog is a set of
+    // extension functions with no instance of its own, and this state belongs to one player session.
+    internal val streamStallRule =
+        com.sza.fastmediasorter.core.playback.resilience.StreamStallRule()
 
     // Watchdog recovery budget - separate from the error-driven behindLiveRecoveries/transientRetries
     // in streamPlaybackListener, so a stall storm and an error storm cannot mask each other's

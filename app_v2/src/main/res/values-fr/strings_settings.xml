@@ -9,7 +9,7 @@
     <string name="settings_already_default_player">✓ Déjà défini par défaut</string>
     <string name="settings_application_log_title">Journal de l\'application</string>
     <string name="settings_black_screen_button_desc">Afficher dans la barre du lecteur un bouton qui éteint l\'écran pendant que l\'audio ou la vidéo continue</string>
-    <string name="settings_black_screen_button_title">Afficher le bouton &quot;Écran noir&quot;</string>
+    <string name="settings_black_screen_button_title">Afficher le bouton \"Écran noir\"</string>
     <string name="settings_cache_size_range_error">La taille du cache doit être comprise entre 512 et 16384 Mo.</string>
     <string name="settings_category_about">À propos</string>
     <string name="settings_category_app_data">Sauvegardes, restauration et export des paramètres</string>
@@ -56,14 +56,10 @@
     <string name="settings_general_network_sync">Synchronisation réseau</string>
     <string name="settings_general_permissions">Autorisations</string>
     <string name="settings_general_system">Réseau et système</string>
-    <string name="settings_log_current_session_body">Journal de la session en cours (%1$d lignes) :
-
-%2$s</string>
+    <string name="settings_log_current_session_body">Journal de la session en cours (%1$d lignes) :\n\n%2$s</string>
     <string name="settings_log_empty">Aucune entrée de journal trouvée.</string>
     <string name="settings_log_empty_session">Aucune entrée de journal trouvée pour la session en cours.</string>
-    <string name="settings_log_last_lines">Dernières %1$d lignes du journal :
-
-%2$s</string>
+    <string name="settings_log_last_lines">Dernières %1$d lignes du journal :\n\n%2$s</string>
     <string name="settings_log_save_destination_title">Enregistrer le journal vers la destination</string>
     <string name="settings_log_save_failed">Impossible d\'enregistrer le journal.</string>
     <string name="settings_log_saved_to_resource">Journal enregistré dans : %1$s</string>
@@ -91,10 +87,10 @@
         <item quantity="one">Passer à ce profil remplace %1$d paramètre par la valeur que ce profil définit. Continuer ?</item>
         <item quantity="other">Passer à ce profil remplace %1$d paramètres par les valeurs que ce profil définit. Continuer ?</item>
     </plurals>
-    <string name="settings_all_files_create_resource">Créer la source &quot;Tous les fichiers&quot;</string>
-    <string name="settings_all_files_resource_created">La source &quot;Tous les fichiers&quot; a été créée.</string>
-    <string name="settings_all_files_profile_confirm_title">Créer la source &quot;Tous les fichiers&quot;</string>
-    <string name="settings_all_files_profile_confirm_message">Ce profil active le mode gestionnaire de fichiers et créera la source &quot;Tous les fichiers&quot; manquante. Continuer ?</string>
+    <string name="settings_all_files_create_resource">Créer la source \"Tous les fichiers\"</string>
+    <string name="settings_all_files_resource_created">La source \"Tous les fichiers\" a été créée.</string>
+    <string name="settings_all_files_profile_confirm_title">Créer la source \"Tous les fichiers\"</string>
+    <string name="settings_all_files_profile_confirm_message">Ce profil active le mode gestionnaire de fichiers et créera la source \"Tous les fichiers\" manquante. Continuer ?</string>
     <string name="settings_reset_settings_failed">Impossible de réinitialiser les paramètres. Réessayez.</string>
     <string name="settings_reset_smb_failed">Impossible de réinitialiser les connexions SMB. Réessayez.</string>
     <string name="settings_saved">Paramètres enregistrés</string>
@@ -168,7 +164,7 @@
     <string name="setting_photos_during_audio_desc">Images aléatoires pendant la lecture (choisissez une liste audio et regardez des images)</string>
     <string name="setting_play_to_end_desc">Lire le média jusqu\'au bout au lieu d\'utiliser l\'intervalle du diaporama</string>
     <string name="setting_prevent_sleep_desc">Garder l\'écran allumé pendant l\'utilisation de l\'application</string>
-    <string name="setting_primary_media_player_desc">Afficher FastMediaSorter dans &quot;Ouvrir avec&quot; et gérer les touches multimédias</string>
+    <string name="setting_primary_media_player_desc">Afficher FastMediaSorter dans \"Ouvrir avec\" et gérer les touches multimédias</string>
     <string name="setting_resume_on_next_launch">Reprendre la lecture au prochain lancement</string>
     <string name="setting_resume_on_next_launch_desc">Au démarrage de l\'application, rouvrir automatiquement le dernier fichier lu là où vous vous êtes arrêté</string>
     <string name="setting_safe_mode_desc">Confirmer avant les opérations destructrices (suppression, déplacement)</string>
@@ -197,14 +193,14 @@
     <string name="setting_translation_lens_style_desc">Afficher les résultats de traduction sous forme de blocs superposés</string>
     <string name="pref_crop_images_fullscreen_summary">En plein écran ou en diaporama, rogner les images pour remplir l\'écran si les orientations correspondent</string>
     <string name="pref_crop_images_fullscreen_title">Rogner les images pour remplir l\'écran</string>
-    <string name="pref_dynamic_background_summary">Combler les &quot;bandes noires&quot; en prolongeant les couleurs du bord de l\'image (effet Ambilight)</string>
+    <string name="pref_dynamic_background_summary">Combler les \"bandes noires\" en prolongeant les couleurs du bord de l\'image (effet Ambilight)</string>
     <string name="pref_dynamic_background_title">Extension dynamique de l\'arrière-plan</string>
     <string name="pref_file_ops_overflow_menu_desc">Regroupe copier, déplacer, renommer et supprimer dans un bouton ⋮ sur chaque ligne de fichier. Le bouton Lecture reste toujours séparé.</string>
     <string name="pref_file_ops_overflow_menu_title">Actions de fichier dans le menu déroulant</string>
     <string name="pref_panel_stereo_single_eye_summary">Quand l\'option est activée, les vidéos stéréo côte à côte et haut-bas ainsi que les photos plein écran sont rognées à un seul œil et étirées sur tout l\'écran - confortable à regarder sans lunettes 3D. Par défaut : activé. Le rendu VR immersif ignore ce réglage et affiche l\'image stéréo complète.</string>
     <string name="pref_panel_stereo_single_eye_title">Afficher le contenu 3D d\'un seul œil</string>
     <string name="pref_prefetch_cache_auto">Automatique</string>
-    <string name="pref_prefetch_cache_help_message">Détermine quelle portion d\'une vidéo en streaming est mise en mémoire tampon en avance.\n\n• Moins (0,5×) - tampon minimal. L\'indicateur de pré-cache et la proposition d\'&quot;enregistrer la vidéo mise en cache&quot; sont masqués. Économise l\'espace disque et la bande passante ; sur un réseau lent la lecture peut saccader.\n• Automatique - taille par défaut choisie par le lecteur selon l\'appareil et le réseau du moment.\n• Plus (2×) - tampon plus grand pour une lecture plus fluide sur les réseaux instables. Occupe plus d\'espace disque.</string>
+    <string name="pref_prefetch_cache_help_message">Détermine quelle portion d\'une vidéo en streaming est mise en mémoire tampon en avance.\n\n• Moins (0,5×) - tampon minimal. L\'indicateur de pré-cache et la proposition d\'\"enregistrer la vidéo mise en cache\" sont masqués. Économise l\'espace disque et la bande passante ; sur un réseau lent la lecture peut saccader.\n• Automatique - taille par défaut choisie par le lecteur selon l\'appareil et le réseau du moment.\n• Plus (2×) - tampon plus grand pour une lecture plus fluide sur les réseaux instables. Occupe plus d\'espace disque.</string>
     <string name="pref_prefetch_cache_help_title">Taille du pré-cache vidéo</string>
     <string name="pref_prefetch_cache_less">Moins (0,5×)</string>
     <string name="pref_prefetch_cache_more">Plus (2×)</string>

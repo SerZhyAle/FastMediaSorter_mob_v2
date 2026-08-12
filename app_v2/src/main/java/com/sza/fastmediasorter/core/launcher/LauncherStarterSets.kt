@@ -41,6 +41,9 @@ object LauncherStarterSets {
     private const val GADGET_SATELLITES = "satellites"
     private const val GADGET_AUDIO_NOW_PLAYING = "audio_now_playing"
 
+    // S1566: same duplication contract again - the web search field every profile opens with.
+    private const val GADGET_SEARCH = "search"
+
     /**
      * Every gadget key this table can emit. Public because the parity test cannot reach the private
      * consts above, and a hand-written list over there is what let the previous four-key guard fall
@@ -56,6 +59,7 @@ object LauncherStarterSets {
         GADGET_ALTITUDE,
         GADGET_SATELLITES,
         GADGET_AUDIO_NOW_PLAYING,
+        GADGET_SEARCH,
     )
 
     // S1560: third-party targets this table may seed. A cell is placed only when its package is present,
@@ -198,6 +202,9 @@ object LauncherStarterSets {
         items += launcherActions(profile)
         items += section(LauncherCellCommand.SECTION_EVERYTHING_ELSE)
         items += clock()
+        // S1566: directly after the clock, never before it - LauncherStarterSetsParityTest reads the first
+        // GADGET item of an OTHER-profile set and expects the clock.
+        items += gadget(GADGET_SEARCH)
         weatherOrNull(profile)?.let { items += it }
         items += commonResources(resources)
         items += profileItems(profile, resources, streamsAvailable, installedPackages)
@@ -363,8 +370,8 @@ object LauncherStarterSets {
 
     /**
      * S1428: the launcher actions lead the set under their own header, reversing the ordering S1402
-     * chose (strategic §3.1.1, §6.5). S1560: black_screen is seeded only to [BLACK_SCREEN_PROFILES]
-     * (strategic §6.4), so it is excluded here and placed by [profileItems] instead.
+     * chose (strategic §3.1.1, §6.5). S1560: black_screen remains in this action section only for
+     * [BLACK_SCREEN_PROFILES] (strategic §6.4).
      */
     private fun launcherActions(profile: DeviceProfileType): List<StarterItem> =
         LauncherActionCatalog.all

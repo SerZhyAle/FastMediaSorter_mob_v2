@@ -41,6 +41,7 @@ import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -127,6 +128,11 @@ class CameraCaptureActivity :
     private var captureInFlight = false
     private var autoCaptureFired = false
 
+    // S1579: the two halves of the shutter-arming condition. The output answer now arrives off the
+    // main thread, so it can land before or after the bind - whichever is last arms the button.
+    private var previewReady = false
+    private var outputReady = false
+
     /** S1262: the sport trade-off notice is shown once per screen session, not per re-pick. */
     private var sportNoticeShown = false
     private var recordingPaused = false
@@ -156,8 +162,6 @@ class CameraCaptureActivity :
         initializeHelperManagers()
         binding.cameraTopBar.applySystemBarInsetPadding(applyBottom = false)
         binding.cameraActionBar.applySystemBarInsetPadding(applyTop = false)
-
-        if (!flowManager.resolveOutput()) return
 
         binding.btnCloseCamera.setOnClickListener { flowManager.onClose() }
         binding.btnCameraSettings.setOnClickListener { settingsCallbackHandler.show(supportFragmentManager) }
@@ -190,6 +194,18 @@ class CameraCaptureActivity :
         val hasPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED
         flowManager.ensurePermissionAndBind(hasPermission)
+
+        // S1579: the output target is confirmed off the main thread, so the screen is assembled
+        // without waiting for the answer. A negative answer still ends in the same error + close;
+        // the shutter, disabled above, is armed only once this and the bind have both answered.
+        lifecycleScope.launch {
+            if (!flowManager.resolveOutput()) return@launch
+            outputReady = true
+            if (previewReady) {
+                binding.btnCapturePhoto.isEnabled = true
+                maybeAutoCapture()
+            }
+        }
 
         // S0766: warm the location source as early as possible (only when opted in + permission held),
         // so a fix is ready by the first shutter; consent is taken in settings, never re-prompted here.
@@ -335,8 +351,14 @@ class CameraCaptureActivity :
         sessionManager.bind(
             previewView = binding.previewViewCamera,
             onReady = {
-                binding.btnCapturePhoto.isEnabled = true
-                maybeAutoCapture()
+                previewReady = true
+                // S1579: warm the extension-availability map for the lens/mode pairs this bind did
+                // not touch, so a mode or lens switch no longer reads the vendor config from disk.
+                lifecycleScope.launch(Dispatchers.IO) { sessionManager.warmOfferedExtensions() }
+                if (outputReady) {
+                    binding.btnCapturePhoto.isEnabled = true
+                    maybeAutoCapture()
+                }
             },
             onError = {
                 showError(R.string.camera_capture_error_no_camera_app)

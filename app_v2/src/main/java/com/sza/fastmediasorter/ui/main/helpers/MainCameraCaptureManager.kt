@@ -65,26 +65,31 @@ class MainCameraCaptureManager(
             showSnackbar(R.string.camera_capture_error_no_camera_app)
             return
         }
-        val dir = createScratchDir() ?: run {
-            showSnackbar(R.string.camera_capture_error_temp_file)
-            return
+        // S1579: creating the scratch dir touches the disk, so it no longer runs inline on the main
+        // thread; the launch below resumes on the caller's main dispatcher to dispatch the intent.
+        coroutineScope.launch {
+            val dir = withContext(Dispatchers.IO) { createScratchDir() }
+            if (dir == null) {
+                showSnackbar(R.string.camera_capture_error_temp_file)
+                return@launch
+            }
+            val baseName = "CAP_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+            val initialMode = if (photoAvailable) CameraCaptureMode.PHOTO else CameraCaptureMode.VIDEO
+            val allowSwitch = photoAvailable && videoOk
+            pendingDir = dir
+            pendingBaseName = baseName
+            multiCapture = true
+            dispatch(
+                CameraCaptureContract.createSwitchableIntent(
+                    activity,
+                    dir.absolutePath,
+                    baseName,
+                    initialMode,
+                    allowSwitch,
+                    multiCapture = true,
+                ),
+            )
         }
-        val baseName = "CAP_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val initialMode = if (photoAvailable) CameraCaptureMode.PHOTO else CameraCaptureMode.VIDEO
-        val allowSwitch = photoAvailable && videoOk
-        pendingDir = dir
-        pendingBaseName = baseName
-        multiCapture = true
-        dispatch(
-            CameraCaptureContract.createSwitchableIntent(
-                activity,
-                dir.absolutePath,
-                baseName,
-                initialMode,
-                allowSwitch,
-                multiCapture = true,
-            ),
-        )
     }
 
     private fun dispatch(intent: Intent) {

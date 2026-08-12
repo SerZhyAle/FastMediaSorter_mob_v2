@@ -206,7 +206,12 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
         appShortcutDataSource.start(command.packageName, command.shortcutId, sourceBounds = null)
 
     /** Uses only documented Maps URLs and intents; no Maps-internal activity names are relied upon. */
-    private fun geographicIntent(command: LauncherCellCommand.Geographic): Intent = when (command.action) {
+    private fun geographicIntent(command: LauncherCellCommand.Geographic): Intent {
+        Timber.d("S1175: geographic cell tapped, action=%s", command.action)
+        return geographicIntentFor(command)
+    }
+
+    private fun geographicIntentFor(command: LauncherCellCommand.Geographic): Intent = when (command.action) {
         LauncherGeographicAction.DIRECTIONS -> Intent(
             Intent.ACTION_VIEW,
             Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${Uri.encode(command.query)}"),

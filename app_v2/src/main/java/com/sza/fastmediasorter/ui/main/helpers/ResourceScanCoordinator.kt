@@ -2,13 +2,12 @@ package com.sza.fastmediasorter.ui.main.helpers
 
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.domain.model.MediaResource
-import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
-import com.sza.fastmediasorter.domain.usecase.SizeFilter
+import com.sza.fastmediasorter.domain.usecase.ResolveScanFilterUseCase
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import com.sza.fastmediasorter.util.VirtualPathUtils
@@ -41,7 +40,8 @@ class ResourceScanCoordinator @Inject constructor(
     private val mediaScannerFactory: MediaScannerFactory,
     private val settingsRepository: SettingsRepository,
     private val smbOperationsUseCase: SmbOperationsUseCase,
-    private val remoteSourceGate: RemoteSourceAvailabilityGate
+    private val remoteSourceGate: RemoteSourceAvailabilityGate,
+    private val resolveScanFilter: ResolveScanFilterUseCase
 ) {
     
     /**
@@ -279,23 +279,17 @@ class ResourceScanCoordinator @Inject constructor(
      */
     private suspend fun getFileCount(scanner: com.sza.fastmediasorter.domain.usecase.MediaScanner, resource: MediaResource): Int {
         val currentSettings = settingsRepository.getSettings().first()
-        val supportedTypes = currentSettings.getGloballyEnabledMediaTypes()
-        
-        val sizeFilter = SizeFilter(
-            imageSizeMin = currentSettings.imageSizeMin,
-            imageSizeMax = Long.MAX_VALUE,
-            videoSizeMin = currentSettings.videoSizeMin,
-            videoSizeMax = Long.MAX_VALUE,
-            audioSizeMin = currentSettings.audioSizeMin,
-            audioSizeMax = Long.MAX_VALUE
-        )
-        
+        // S1584: the card counter must promise exactly what Browse will list, so the filter is resolved
+        // in one place for both. Deriving it here independently is what let the card claim 45 files
+        // against an empty list.
+        val scanFilter = resolveScanFilter(resource, currentSettings)
+
         Timber.d("Counting files for ${resource.name}...")
         val fileCount = try {
             scanner.getFileCount(
-                resource.path, 
-                supportedTypes, 
-                sizeFilter = sizeFilter, 
+                resource.path,
+                scanFilter.mediaTypes,
+                sizeFilter = scanFilter.sizeFilter,
                 credentialsId = resource.credentialsId,
                 scanSubdirectories = resource.scanSubdirectories
             )

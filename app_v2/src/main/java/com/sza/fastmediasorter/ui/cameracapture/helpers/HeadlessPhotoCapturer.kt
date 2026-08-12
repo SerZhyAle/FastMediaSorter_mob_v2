@@ -128,7 +128,6 @@ class HeadlessPhotoCapturer(
                     // that is at least STARTED, and this registry is the one it will watch.
                     captureLifecycle.resume()
                     provider.bindToLifecycle(captureLifecycle, selector, imageCapture)
-                    Timber.d("S1360: bound to own capture lifecycle, host stop cannot abort the frame")
                     takePicture(imageCapture, outputFile, location, aspectRatio, onSaved, onError)
                 }.onFailure { error ->
                     Timber.e(error, "HeadlessPhotoCapturer: provider/bind failed")

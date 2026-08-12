@@ -60,5 +60,34 @@ class LauncherStarterSetsParityTest {
             )
             .first { it.target == LauncherGadgetRegistry.KEY_STREAMS }
         assertEquals(LauncherGadgetRegistry.KEY_STREAMS, streams.target)
+
+        val sensors = LauncherStarterSets.itemsFor(
+            DeviceProfileType.CAR_HEAD_UNIT,
+            StarterResources(),
+            emptyMap(),
+            emptySet(),
+        ).map { it.target }.toSet()
+        assertEquals(true, LauncherGadgetRegistry.KEY_WEATHER in sensors)
+        assertEquals(true, LauncherGadgetRegistry.KEY_SPEED in sensors)
+        assertEquals(true, LauncherGadgetRegistry.KEY_ALTITUDE in sensors)
+        assertEquals(true, LauncherGadgetRegistry.KEY_SATELLITES in sensors)
+        assertEquals(true, LauncherGadgetRegistry.KEY_AUDIO_NOW_PLAYING in sensors)
+    }
+
+    @Test
+    fun `every starter gadget key resolves through the registry`() {
+        val registryKeys = setOf(
+            LauncherGadgetRegistry.KEY_CLOCK,
+            LauncherGadgetRegistry.KEY_WEATHER,
+            LauncherGadgetRegistry.KEY_PLAYLIST,
+            LauncherGadgetRegistry.KEY_STREAMS,
+            LauncherGadgetRegistry.KEY_FOLDER_PREVIEW,
+            LauncherGadgetRegistry.KEY_SPEED,
+            LauncherGadgetRegistry.KEY_ALTITUDE,
+            LauncherGadgetRegistry.KEY_SATELLITES,
+            LauncherGadgetRegistry.KEY_AUDIO_NOW_PLAYING,
+            LauncherGadgetRegistry.KEY_SEARCH,
+        )
+        assertEquals(registryKeys, LauncherStarterSets.gadgetKeys)
     }
 }

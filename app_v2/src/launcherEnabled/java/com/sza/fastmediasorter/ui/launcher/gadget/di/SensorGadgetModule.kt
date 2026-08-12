@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.ui.launcher.gadget.AltitudeGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.CompassGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
+import com.sza.fastmediasorter.ui.launcher.gadget.MapGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.SatellitesGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.SeriesChartGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.SpeedGadget
@@ -47,6 +48,9 @@ object SensorGadgetModule {
         altitude: AltitudeGadget,
         satellites: SatellitesGadget,
         steps: StepsGadget,
+        // S1175: the map tile is a location reader like the compass and the speed tile, and it takes
+        // the same permission row, so it belongs to this list rather than to a sixth qualifier.
+        map: MapGadget,
         charts: SeriesChartDependencies,
     ): List<LauncherGadget> = listOf(
         compass,
@@ -54,6 +58,7 @@ object SensorGadgetModule {
         altitude,
         satellites,
         steps,
+        map,
         SeriesChartGadget(
             key = LauncherGadgetRegistry.KEY_SPEED_CHART,
             labelRes = R.string.launcher_gadget_speed_chart,

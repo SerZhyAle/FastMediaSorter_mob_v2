@@ -75,6 +75,7 @@
             android:name=".LauncherPlaceShare"
             android:enabled="false"
             android:exported="true"
+            android:icon="@drawable/ic_pin"
             android:label="@string/launcher_share_place_label"
             android:targetActivity="com.sza.fastmediasorter.ui.launcher.share.LauncherPlaceShareActivity">
             <intent-filter>

@@ -9,7 +9,7 @@
     <string name="settings_already_default_player">✓ Ya está establecido como predeterminado</string>
     <string name="settings_application_log_title">Registro de la aplicación</string>
     <string name="settings_black_screen_button_desc">Mostrar en la barra del reproductor un botón que apague la pantalla mientras el audio o el vídeo continúan</string>
-    <string name="settings_black_screen_button_title">Mostrar el botón &quot;Pantalla negra&quot;</string>
+    <string name="settings_black_screen_button_title">Mostrar el botón \"Pantalla negra\"</string>
     <string name="settings_cache_size_range_error">El tamaño de la caché debe estar entre 512 y 16384 MB.</string>
     <string name="settings_category_about">Acerca de</string>
     <string name="settings_category_app_data">Copias, restauración y exportación de ajustes</string>
@@ -56,14 +56,10 @@
     <string name="settings_general_network_sync">Sincronización de red</string>
     <string name="settings_general_permissions">Permisos</string>
     <string name="settings_general_system">Red y sistema</string>
-    <string name="settings_log_current_session_body">Registro de la sesión actual (%1$d líneas):
-
-%2$s</string>
+    <string name="settings_log_current_session_body">Registro de la sesión actual (%1$d líneas):\n\n%2$s</string>
     <string name="settings_log_empty">No se han encontrado entradas de registro.</string>
     <string name="settings_log_empty_session">No se han encontrado entradas de registro para la sesión actual.</string>
-    <string name="settings_log_last_lines">Últimas %1$d líneas del registro:
-
-%2$s</string>
+    <string name="settings_log_last_lines">Últimas %1$d líneas del registro:\n\n%2$s</string>
     <string name="settings_log_save_destination_title">Guardar el registro en el destino</string>
     <string name="settings_log_save_failed">No se pudo guardar el registro.</string>
     <string name="settings_log_saved_to_resource">Registro guardado en: %1$s</string>
@@ -91,10 +87,10 @@
         <item quantity="one">Cambiar a este perfil sustituye %1$d ajuste por el valor que define este perfil. ¿Continuar?</item>
         <item quantity="other">Cambiar a este perfil sustituye %1$d ajustes por los valores que define este perfil. ¿Continuar?</item>
     </plurals>
-    <string name="settings_all_files_create_resource">Crear la fuente &quot;Todos los archivos&quot;</string>
-    <string name="settings_all_files_resource_created">Se ha creado la fuente &quot;Todos los archivos&quot;.</string>
-    <string name="settings_all_files_profile_confirm_title">Crear la fuente &quot;Todos los archivos&quot;</string>
-    <string name="settings_all_files_profile_confirm_message">Este perfil activa el modo gestor de archivos y creará la fuente &quot;Todos los archivos&quot; que falta. ¿Continuar?</string>
+    <string name="settings_all_files_create_resource">Crear la fuente \"Todos los archivos\"</string>
+    <string name="settings_all_files_resource_created">Se ha creado la fuente \"Todos los archivos\".</string>
+    <string name="settings_all_files_profile_confirm_title">Crear la fuente \"Todos los archivos\"</string>
+    <string name="settings_all_files_profile_confirm_message">Este perfil activa el modo gestor de archivos y creará la fuente \"Todos los archivos\" que falta. ¿Continuar?</string>
     <string name="settings_reset_settings_failed">No se pudieron restablecer los ajustes. Inténtelo de nuevo.</string>
     <string name="settings_reset_smb_failed">No se pudieron restablecer las conexiones SMB. Inténtelo de nuevo.</string>
     <string name="settings_saved">Ajustes guardados</string>
@@ -168,7 +164,7 @@
     <string name="setting_photos_during_audio_desc">Imágenes aleatorias durante la reproducción (elija una lista de audio y mire imágenes)</string>
     <string name="setting_play_to_end_desc">Reproducir el contenido hasta el final en vez de usar el intervalo de la presentación</string>
     <string name="setting_prevent_sleep_desc">Mantener la pantalla encendida mientras usa la aplicación</string>
-    <string name="setting_primary_media_player_desc">Mostrar FastMediaSorter en &quot;Abrir con&quot; y atender los botones multimedia</string>
+    <string name="setting_primary_media_player_desc">Mostrar FastMediaSorter en \"Abrir con\" y atender los botones multimedia</string>
     <string name="setting_resume_on_next_launch">Reanudar la reproducción al iniciar de nuevo</string>
     <string name="setting_resume_on_next_launch_desc">Al abrir la aplicación, volver automáticamente al último archivo reproducido en el punto donde lo dejó</string>
     <string name="setting_safe_mode_desc">Confirmar antes de operaciones destructivas (eliminar, mover)</string>
@@ -197,14 +193,14 @@
     <string name="setting_translation_lens_style_desc">Mostrar los resultados de la traducción como bloques superpuestos</string>
     <string name="pref_crop_images_fullscreen_summary">En pantalla completa o en la presentación, recortar las imágenes para llenar la pantalla si coincide la orientación</string>
     <string name="pref_crop_images_fullscreen_title">Recortar imágenes para llenar la pantalla</string>
-    <string name="pref_dynamic_background_summary">Rellenar las &quot;bandas negras&quot; prolongando los colores del borde de la imagen (efecto Ambilight)</string>
+    <string name="pref_dynamic_background_summary">Rellenar las \"bandas negras\" prolongando los colores del borde de la imagen (efecto Ambilight)</string>
     <string name="pref_dynamic_background_title">Extensión dinámica del fondo</string>
     <string name="pref_file_ops_overflow_menu_desc">Agrupa copiar, mover, renombrar y eliminar en un botón ⋮ en cada fila de archivo. El botón de reproducir siempre queda aparte.</string>
     <string name="pref_file_ops_overflow_menu_title">Acciones de archivo en el menú adicional</string>
     <string name="pref_panel_stereo_single_eye_summary">Cuando está activado, los vídeos estéreo lado a lado y arriba-abajo y las fotos a pantalla completa se recortan a un ojo y se estiran a toda la pantalla: cómodo de ver sin gafas 3D. Valor predeterminado: activado. El renderizado inmersivo de RV ignora este ajuste y muestra el fotograma estéreo completo.</string>
     <string name="pref_panel_stereo_single_eye_title">Mostrar el contenido 3D con un solo ojo</string>
     <string name="pref_prefetch_cache_auto">Automático</string>
-    <string name="pref_prefetch_cache_help_message">Controla cuánto vídeo en streaming se almacena por delante del punto de reproducción.\n\n• Menos (0,5×): almacenamiento mínimo. Se ocultan el indicador de precarga y la oferta de &quot;guardar el vídeo en caché&quot;. Ahorra espacio y datos; en redes lentas la reproducción puede entrecortarse.\n• Automático: tamaño predeterminado que elige el reproductor según el dispositivo y la red actual.\n• Más (2×): búfer mayor para una reproducción más fluida en redes inestables. Ocupa más espacio en disco.</string>
+    <string name="pref_prefetch_cache_help_message">Controla cuánto vídeo en streaming se almacena por delante del punto de reproducción.\n\n• Menos (0,5×): almacenamiento mínimo. Se ocultan el indicador de precarga y la oferta de \"guardar el vídeo en caché\". Ahorra espacio y datos; en redes lentas la reproducción puede entrecortarse.\n• Automático: tamaño predeterminado que elige el reproductor según el dispositivo y la red actual.\n• Más (2×): búfer mayor para una reproducción más fluida en redes inestables. Ocupa más espacio en disco.</string>
     <string name="pref_prefetch_cache_help_title">Tamaño de la precarga de vídeo</string>
     <string name="pref_prefetch_cache_less">Menos (0,5×)</string>
     <string name="pref_prefetch_cache_more">Más (2×)</string>

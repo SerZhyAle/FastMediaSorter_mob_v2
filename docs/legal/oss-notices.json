@@ -1067,10 +1067,9 @@
         "lite",
         "noLegal",
         "photos",
-        "standard",
-        "vr"
+        "standard"
       ],
-      "allFlavors": true,
+      "allFlavors": false,
       "transitive": false,
       "via": null,
       "bundled": false,
@@ -1599,7 +1598,7 @@
       "transitive": false,
       "via": null,
       "bundled": false,
-      "note": "Copyleft without a linking exception, linked only into the sideload-only noLegal build. GPLv3 also obliges providing the corresponding source to recipients of that build - tracked as S1563."
+      "note": "Copyleft without a linking exception, linked only into the sideload-only noLegal build. In accordance with GPLv3 §6, the Corresponding Source code (including both the application source code and the extractor source code) is available at https://github.com/SerZhyAle/FastMediaSorter_mob_v2 and https://github.com/TeamNewPipe/NewPipeExtractor."
     },
     {
       "coordinate": "com.google.accompanist:accompanist-permissions",
@@ -2194,10 +2193,9 @@
         "lite",
         "noLegal",
         "photos",
-        "standard",
-        "vr"
+        "standard"
       ],
-      "allFlavors": true,
+      "allFlavors": false,
       "transitive": false,
       "via": null,
       "bundled": false,
@@ -2242,10 +2240,9 @@
         "lite",
         "noLegal",
         "photos",
-        "standard",
-        "vr"
+        "standard"
       ],
-      "allFlavors": true,
+      "allFlavors": false,
       "transitive": false,
       "via": null,
       "bundled": false,

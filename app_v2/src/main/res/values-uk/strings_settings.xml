@@ -54,14 +54,10 @@
     <string name="settings_general_network_sync">Мережева синхронізація</string>
     <string name="settings_general_permissions">Дозволи</string>
     <string name="settings_general_system">Мережа та система</string>
-    <string name="settings_log_current_session_body">Лог поточної сесії (%1$d рядків):
-
-%2$s</string>
+    <string name="settings_log_current_session_body">Лог поточної сесії (%1$d рядків):\n\n%2$s</string>
     <string name="settings_log_empty">Записів у лозі не знайдено.</string>
     <string name="settings_log_empty_session">Для поточної сесії записів у лозі не знайдено.</string>
-    <string name="settings_log_last_lines">Останні %1$d рядків логу:
-
-%2$s</string>
+    <string name="settings_log_last_lines">Останні %1$d рядків логу:\n\n%2$s</string>
     <string name="settings_log_save_destination_title">Зберегти лог у ресурс</string>
     <string name="settings_log_save_failed">Не вдалося зберегти лог.</string>
     <string name="settings_log_saved_to_resource">Лог збережено в: %1$s</string>

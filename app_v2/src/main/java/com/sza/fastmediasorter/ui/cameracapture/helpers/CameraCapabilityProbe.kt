@@ -13,6 +13,7 @@ import androidx.camera.core.CameraSelector
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraLensEntry
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import timber.log.Timber
+import kotlin.math.abs
 
 /**
  * Reads runtime capabilities of the active lens into a [CameraRuntimeCapabilities] snapshot.
@@ -45,6 +46,28 @@ class CameraCapabilityProbe {
         lenses.filter { it.lensFacing == facing }
             .maxByOrNull { it.minFocusDistanceDiopters }
             ?.takeIf { it.minFocusDistanceDiopters >= MACRO_MIN_DIOPTERS }
+
+    /**
+     * S1581: true when [lens] is genuinely dedicated macro optics - the facing's macro candidate, and
+     * not the facing's own main lens.
+     *
+     * The two questions differ exactly on a device that has no macro lens at all: there the
+     * closest-focusing back lens is the main one (14.3 dpt on an S21+), so labelling the bound lens
+     * from [macroLensFor] told the user their ordinary main camera was a macro lens. Main is the lens
+     * whose equivalent multiplier sits closest to 1, the same definition
+     * [CameraLensEnumerationManager.initialLensIndex] binds a fresh session by.
+     *
+     * Availability keeps using [macroLensFor]: a main lens that focuses close really can deliver the
+     * macro profile, and narrowing that too would withdraw the profile from a user standing on the
+     * ultra-wide of such a device.
+     */
+    fun isDedicatedMacroLens(lenses: List<CameraLensEntry>, lens: CameraLensEntry): Boolean {
+        val ofFacing = lenses.filter { it.lensFacing == lens.lensFacing }
+        val mainLens = ofFacing
+            .minByOrNull { abs(it.equivalentMultiplier - CameraRuntimeCapabilities.DEFAULT_ZOOM) }
+        val candidate = macroLensFor(lenses, lens.lensFacing)
+        return candidate != null && candidate.id != mainLens?.id && candidate.id == lens.id
+    }
 
     fun probe(
         camera: Camera,

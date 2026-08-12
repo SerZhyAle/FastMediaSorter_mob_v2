@@ -547,7 +547,7 @@
              own lifecycle, then saves/routes the photo. No android:noHistory here (unlike the sibling
              trampolines): the shot is taken in-process, so the activity must survive the first-use CAMERA
              permission dialog - noHistory destroyed it mid-capture and the photo was lost. -->
-        <activity android:name=".widget.PhotoCaptureLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" />
+        <activity android:name=".widget.PhotoCaptureLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:configChanges="orientation|screenSize" />
 
         <!-- Screen-recording edge-gesture trampoline (S0797): hosts the MediaProjection consent + permission launchers -->
         <activity android:name=".widget.ScreenRecordingLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />

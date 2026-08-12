@@ -80,6 +80,9 @@ class LauncherSensorPermissionManager(private val activity: FragmentActivity) {
             LauncherGadgetRegistry.KEY_COMPASS to Manifest.permission.ACCESS_FINE_LOCATION,
             LauncherGadgetRegistry.KEY_SPEED to Manifest.permission.ACCESS_FINE_LOCATION,
             LauncherGadgetRegistry.KEY_STEPS to Manifest.permission.ACTIVITY_RECOGNITION,
+            // S1175: the map tile asks here and nowhere else - strategic §3.2 forbids requesting
+            // location at startup, and a refusal still places the cell in its no-permission state.
+            LauncherGadgetRegistry.KEY_MAP to Manifest.permission.ACCESS_FINE_LOCATION,
         )
     }
 }

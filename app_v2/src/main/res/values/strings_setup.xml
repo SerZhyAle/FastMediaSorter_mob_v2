@@ -5,8 +5,7 @@
     <string name="welcome_default_player_btn_images">Images</string>
     <string name="welcome_default_player_btn_video">Video</string>
     <string name="welcome_default_player_description">Set FastMediaSorter as your default media player</string>
-    <string name="welcome_default_player_hint">Tap a button below - a dialog will appear. Select FastMediaSorter and tap <b>Always</b>.
-    </string>
+    <string name="welcome_default_player_hint">Tap a button below - a dialog will appear. Select FastMediaSorter and tap <b>Always</b>.</string>
     <string name="welcome_default_player_title">Default Player</string>
     <string name="welcome_description_1">Your all-in-one media organizer.\nBrowse, sort, and manage files across local, network, and cloud storage - all with intuitive touch gestures.</string>
     <string name="welcome_description_1_details">FastMediaSorter brings every kind of media into one place. Open photos, videos, GIFs and music from your device, from a network share, or from cloud storage - and sort them with quick taps instead of long-press menus.\n\nEverything you set up here can be changed later in Settings, so there is no wrong choice on this screen - just tap Next to keep going.</string>
@@ -143,7 +142,7 @@
     <string name="welcome_func_download_failed">Download failed - tap to retry</string>
     <string name="welcome_func_download_done">Ready</string>
     <!-- S0402 permissions page -->
-    <string name="welcome_permissions_title">&quot;A few&quot; permissions</string>
+    <string name="welcome_permissions_title">\"A few\" permissions</string>
     <string name="welcome_permissions_subtitle">Grant access so the app can show your media.</string>
     <string name="welcome_func_streams">Streams</string>
     <string name="welcome_streams_catalog_done">Catalog downloaded</string>
