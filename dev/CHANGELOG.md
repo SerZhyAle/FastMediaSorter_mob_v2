@@ -25612,3 +25612,4 @@ Format: | datetime | file | target | description |
 | 2026-08-12 18:24:46 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.8121.822 - plateau merge from DEBUG-v031 [branch: DEBUG-v031] |
 | 2026-08-12 18:29:54 | `PLAN/S1613_launcher-desktop-shortcuts-import.md` | `spec` | Scaffold strategic spec skeleton S1613 [branch: DEBUG-v032] |
 | 2026-08-12 18:41:46 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.8121.822 from ALL_FEATURES diff [branch: DEBUG-v032] |
+| 2026-08-12 20:22:54 | `app_v2/src/main/java/com/sza/fastmediasorter/data/sensors/DeviceSensorAvailabilityRepositoryImpl.kt` | `sensors` | S1614: ACTIVITY_RECOGNITION declared by noLegal only; step counter capability reads the merged manifest [set of 3: app_v2/src/launcherEnabled/AndroidManifest.xml, app_v2/src/noLegal/AndroidManifest.xml] [branch: DEBUG-v032] |

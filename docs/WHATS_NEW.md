@@ -6,7 +6,7 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.8121.822** (August 2026)
+**Current release: 2.60.8122.034** (August 2026)
 
 > Changes since version 2.60.8042.332
 
@@ -32,6 +32,8 @@ permalink: /docs/WHATS_NEW.html
 - **Transfer progress on every screen.**
 - **Document translation** reachable from the Office menu.
 - **Wear OS SFTP connection test.**
+
+Note: the step-counter desktop tile ships only in the sideload build for now.
 
 ## What's Fixed
 

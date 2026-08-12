@@ -15,10 +15,16 @@
     android.hardware.telephony is inferred and Play device reach is unchanged.
 
     S1179 added ACTIVITY_RECOGNITION on the same terms: requested at run time, and only when the user
-    adds the steps gadget; a refusal leaves that tile on the desktop in an honest empty state. It is
-    declared here rather than in src/main because the flavors without a launcher have nothing that could
-    ever use it. No <uses-feature> either - a step-counter feature entry as required="false" buys nothing,
-    and a required="true" one would cut Play device reach for the whole app.
+    adds the steps gadget; a refusal leaves that tile on the desktop in an honest empty state. No
+    <uses-feature> either - a step-counter feature entry as required="false" buys nothing, and a
+    required="true" one would cut Play device reach for the whole app.
+
+    S1614 moved that permission OUT of this source set into src/noLegal. Play treats
+    ACTIVITY_RECOGNITION as a health feature and refuses to commit a release until the Health
+    declaration is filled in; the sideload flavor faces no such review. The gadget's own code stays
+    here - DeviceSensorAvailabilityRepositoryImpl reports STEP_COUNTER absent when the merged
+    manifest carries no ACTIVITY_RECOGNITION, so a build without the permission never offers the
+    tile. Returning it to the store flavors is its own decision, tracked by S1614.
 
     S0429: the notification-listener service below is declared, never requested. It is the key
     MediaSessionManager demands before it will name another app's active media session, and it is inert
@@ -33,7 +39,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 
     <application>
         <activity
