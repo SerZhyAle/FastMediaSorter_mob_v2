@@ -53,6 +53,13 @@ $removeListener = [regex]'\bremove[A-Za-z0-9_]*Listener\b'
 
 $addCallback = [regex]'\badd[A-Za-z0-9_]*Callback\b'
 $removeCallback = [regex]'\bremove[A-Za-z0-9_]*Callback\b'
+# S1433: onBackPressedDispatcher.addCallback(owner, ..) is unregistered by the lifecycle it is handed,
+# so it has no remove* counterpart to pair with and never can have one. Counting it failed every NEW
+# Activity that handles Back - a delta-mode file is entirely new, so its whole count reads as growth -
+# while the dozen existing screens using the identical call passed only because they sit in the
+# baseline. Subtracted rather than dropped from the pattern, matching how registerReceiver(null, ..)
+# is already discounted above.
+$addCallbackLifecycle = [regex]'\bonBackPressedDispatcher\s*(?:\r?\n\s*)?\.\s*addCallback\b'
 
 $addObserver = [regex]'\badd[A-Za-z0-9_]*Observer\b'
 $removeObserver = [regex]'\bremove[A-Za-z0-9_]*Observer\b'
@@ -64,7 +71,7 @@ function Get-FileImbalance([string]$text) {
     $dObs = [Math]::Abs($regContentObserver.Matches($text).Count - $unregContentObserver.Matches($text).Count)
     $dRec = [Math]::Abs(($regReceiver.Matches($text).Count - $regReceiverNull.Matches($text).Count) - $unregReceiver.Matches($text).Count)
     $dList = [Math]::Abs($addListener.Matches($text).Count - $removeListener.Matches($text).Count)
-    $dCb = [Math]::Abs($addCallback.Matches($text).Count - $removeCallback.Matches($text).Count)
+    $dCb = [Math]::Abs(($addCallback.Matches($text).Count - $addCallbackLifecycle.Matches($text).Count) - $removeCallback.Matches($text).Count)
     $dObs2 = [Math]::Abs($addObserver.Matches($text).Count - $removeObserver.Matches($text).Count)
     return $dObs + $dRec + $dList + $dCb + $dObs2
 }
@@ -74,7 +81,23 @@ function Get-FileImbalance([string]$text) {
 # imbalance is ignored (it is already in HEAD / the committed baseline).
 if ($ChangedFiles) {
     . (Join-Path $PSScriptRoot 'lib/changed-files-delta.ps1')
-    $scoped = @($ChangedFiles | Where-Object { ($_ -replace '\\', '/') -match '(app_v2|wear)/src/main/' })
+    # S1501: expand BEFORE filtering. The filter used to run over the raw -ChangedFiles elements, and
+    # pwsh -File binds a comma-joined list as ONE element - so a whole CSV was kept or dropped by
+    # whether ANY path inside it matched. Same file, two answers: alone it was dropped and reported
+    # clean, riding next to a src/main path it was measured and failed. A real leak
+    # (LauncherStatusStripManager, an observer and an insets listener never removed) survived six
+    # per-step runs that way, and only the ticket-wide run caught it - a false clean, which is the
+    # dangerous direction.
+    #
+    # S1501: the scope is every source set of the two modules, not src/main alone. Delta mode asks
+    # "did THIS change add an imbalance", which is a question about the edit and not about the
+    # integer baseline below - and the file that leaked lived in a flavor source set. The full scan
+    # further down still counts src/main only; widening that needs a deliberate re-seed and is S1559.
+    $expanded = @(Expand-ChangedFiles -ChangedFiles $ChangedFiles)
+    $scoped = @($expanded | Where-Object {
+            $p = $_ -replace '\\', '/'
+            $p -match '(app_v2|wear)/src/' -and $p -notmatch '(app_v2|wear)/src/(test|androidTest)'
+        })
     $countFn = { param($t) Get-FileImbalance $t }
     $d = Measure-ChangedFileGrowth -ChangedFiles $scoped -RepoRoot $repoRoot -Extensions @('.kt') -CountInText $countFn
     Write-Host ("listener-symmetry [delta over changed files]: new imbalance {0}" -f $d.Growth)

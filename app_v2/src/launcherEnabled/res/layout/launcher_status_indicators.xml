@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1415: the five device indicators in the order the owner fixed (strategic §3.3) - Bluetooth, SIM1,
+     SIM2, network type, battery. Bluetooth and the two SIM slots start GONE: each appears only once its
+     own source reports a value, so an unreadable indicator is absent rather than empty (ADR-1).
+     S1431: defined once and inflated by both placements, so the set and the order cannot drift apart. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/trayIndicators"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/trayBluetooth"
+        android:layout_width="@dimen/launcher_tray_icon_size"
+        android:layout_height="@dimen/launcher_tray_icon_size"
+        android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
+        android:visibility="gone"
+        tools:src="@drawable/ic_bluetooth"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/traySim1"
+        android:layout_width="@dimen/launcher_tray_icon_size"
+        android:layout_height="@dimen/launcher_tray_icon_size"
+        android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
+        android:visibility="gone"
+        tools:src="@drawable/ic_signal_cellular"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/traySim2"
+        android:layout_width="@dimen/launcher_tray_icon_size"
+        android:layout_height="@dimen/launcher_tray_icon_size"
+        android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
+        android:visibility="gone"
+        tools:src="@drawable/ic_signal_cellular"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/trayNetwork"
+        android:layout_width="@dimen/launcher_tray_icon_size"
+        android:layout_height="@dimen/launcher_tray_icon_size"
+        android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
+        tools:src="@drawable/ic_wifi" />
+
+    <TextView
+        android:id="@+id/trayBatteryLevel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/launcher_tray_battery_outline"
+        android:paddingStart="4dp"
+        android:paddingTop="1dp"
+        android:paddingEnd="4dp"
+        android:paddingBottom="1dp"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="12sp"
+        tools:text="86" />
+
+</LinearLayout>

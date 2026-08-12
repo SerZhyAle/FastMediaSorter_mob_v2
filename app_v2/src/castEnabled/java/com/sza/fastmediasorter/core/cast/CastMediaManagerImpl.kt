@@ -292,11 +292,13 @@ class CastMediaManagerImpl(
         val castUrl = proxyServer.castUrl()
         val mimeType = LocalCastProxyServer.mimeType(localFile)
         Timber.d("S1155: cast local file mime=$mimeType name=${file.name}")
-        // TODO(phase-06-deferred): apply panel single-eye crop to Cast output.
-        // See PLAN/spec_panel-stereo-single-eye/PHASE_06__cast-feasibility.md.
-        // Default Cast receiver decodes the original file natively; implementing the crop
-        // requires either FFmpeg transcode in the proxy (heavy CPU/IO + doubled cache) or a
-        // custom Cast receiver app. Deferred until either path is greenlit.
+        // S1499: the panel's single-eye crop deliberately does not reach Cast output. It is a GL Crop
+        // effect inside ExoPlayer's render pipeline, and nothing in that pipeline travels to the
+        // receiver - the proxy above range-streams the original file untouched, and MediaInfo carries
+        // no crop or region-of-interest hint the default Chromecast receiver honours. Applying it
+        // needs either an FFmpeg transcode in the proxy (encode latency at session start, ~2x cache,
+        // battery) or a custom receiver app (Cast console registration plus hosting). Deferred until
+        // one is funded; S1558 owns that decision and carries both cost estimates.
         Timber.d("CastMediaManager: casting ${file.name} via $castUrl")
 
         withContext(Dispatchers.Main) {

@@ -36,12 +36,23 @@
          compile on a dirty dev tree (unrelated WIP), so the JVM check is CI/opt-in.
 
     Checks 1-5 are pure text/file analysis (no JVM/gradle) so a doc edit stays
-    fast. Exit 0 only when every enforced check passes. Run with -Gate from
-    post-change.ps1; the switch is cosmetic so the call site reads intentionally.
+    fast. Run with -Gate from post-change.ps1; the switch is cosmetic so the call
+    site reads intentionally.
+
+    -RegenerateInventory (S1402) runs the same export test in generate mode under
+    BUILD.LOCK and rewrites docs/icons/icon-inventory.json, then exits without
+    running checks 1-5: it is the fix the freshness failure names, and before it
+    existed the only route was a bare gradlew call, which takes no lock (Rule 23).
+
+    Exit codes:
+      0 - every enforced check passed, or the inventory was regenerated.
+      1 - a check failed.
+      2 - regeneration could not run (gradle returned non-zero).
 #>
 param(
     [switch] $Gate,
     [switch] $IncludeExportTest,
+    [switch] $RegenerateInventory,
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 )
 
@@ -288,6 +299,26 @@ if ($parityReadable) {
 }
 
 # --- Check 6: inventory-vs-source freshness (opt-in, JVM) ----------------------
+if ($RegenerateInventory) {
+    # S1402: the freshness check names the fix (-Dicon.inventory.generate=true) but nothing here could
+    # run it, so the only route was a bare gradlew call - which Rule 23 forbids because it takes no
+    # BUILD.LOCK. The regeneration belongs to the gate that detects the staleness.
+    Enter-BuildLockOrExit -Reason "assert-icon-inventory-sync.ps1 (IconInventoryExportTest, generate mode)"
+    Push-Location $RepoRoot
+    try {
+        & '.\gradlew.bat' ':app_v2:testStandardDebugUnitTest' '--tests' '*IconInventoryExportTest' `
+            '-Dicon.inventory.generate=true' | Out-Null
+        $genExit = $LASTEXITCODE
+    }
+    finally { Pop-Location; Exit-AgentLock -Name Build }
+    if ($genExit -ne 0) {
+        Write-Error "assert-icon-inventory-sync: regeneration run failed (gradle exit $genExit)" -ErrorAction Continue
+        exit 2
+    }
+    Write-Host 'icon-inventory-sync: docs/icons/icon-inventory.json regenerated - review and commit it.' -ForegroundColor Green
+    exit 0
+}
+
 if ($IncludeExportTest) {
     Enter-BuildLockOrExit -Reason "assert-icon-inventory-sync.ps1 (IconInventoryExportTest)"
     Push-Location $RepoRoot

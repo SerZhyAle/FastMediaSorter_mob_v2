@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -254,7 +255,7 @@ object ScrollableTextDialog {
         }
 
         return try {
-            dialog.show()
+            dialog.showBoundToHost(context)
             // Resize to 90% of screen width (parity with the former DialogUtils path).
             val width = (context.resources.displayMetrics.widthPixels * 0.9).toInt()
             dialog.window?.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)

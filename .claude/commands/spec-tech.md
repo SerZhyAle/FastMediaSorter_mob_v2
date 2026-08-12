@@ -68,6 +68,7 @@ Extract: feature name, tier, priority, goals (§2), constraints (§3.2), pillars
 - `docs/ARCHITECTURE.md`
 - `app_v2/build.gradle.kts`
 - All source files for affected area. Every file path referenced in a step must exist or be explicitly marked "New".
+- Before fixing an approach, open `dev/REFUTED_APPROACHES.md`; if a measurement rejects a proposed approach, add the ticket, measurement, and shipped alternative there.
 
 **2.5 - Evaluate complexity (PRIMITIVE check).** Score against checklist:
 

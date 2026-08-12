@@ -16,6 +16,7 @@ import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
+import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.player.helpers.StreamDataSourceFactoryProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -58,6 +59,9 @@ class StreamFrameSnapshotManager(
     // S0933: window-attached off-screen ViewGroup hosting the transient capture TextureView (an Activity
     // view; null when no streams UI is attached, so capture is skipped and the favicon stays).
     private val hostProvider: () -> ViewGroup? = { null },
+    // S1469: current connectivity, asked per request. Defaults to "assume online" so a construction
+    // site that does not supply it keeps the pre-S1469 behaviour.
+    private val hasNetwork: () -> Boolean = { true },
 ) {
 
     /** Invoked on the main thread after a successful capture so the adapter can repaint that url's tile. */
@@ -83,6 +87,10 @@ class StreamFrameSnapshotManager(
     private val nextEligibleAt = HashMap<String, Long>()
     private val consecutiveFailures = HashMap<String, Int>()
 
+    // S1469: true while the sweep is gated by a dead network, so the reason is logged once per offline
+    // spell instead of once per visible tile. Only touched from [request], which the grid calls on main.
+    private var offlineGateEngaged = false
+
     /**
      * Enqueue a snapshot for [url]. Already-pending urls are always skipped; a still-fresh cached url is
      * skipped too unless [force] is set (an explicit pull-to-refresh re-captures even a fresh tile). The
@@ -96,6 +104,18 @@ class StreamFrameSnapshotManager(
         // MAX_CONCURRENT_CAPTURES (tried 2, then 1, identical crash). See [capture]'s layout-settle-delay
         // comment for the current experiment and S0700's 2026-07-03 19:05 audit for the failed attempts.
         if (!CAPTURE_ENABLED || (!force && cache.isFresh(url))) return
+        // S1469: with no network every visible tile would still pay a full CAPTURE_TIMEOUT_MS before
+        // failing, and the per-url backoff cannot damp that - the refusal arrives to all urls at once.
+        // Gate the whole sweep here instead, before any queueing or cooldown bookkeeping.
+        if (!hasNetwork()) {
+            if (!offlineGateEngaged) {
+                offlineGateEngaged = true
+                Timber.d("S1469: snapshot sweep gated at request() - no network")
+                Timber.i("Stream snapshot: no network - capture sweep gated")
+            }
+            return
+        }
+        offlineGateEngaged = false
         // S1169: an explicit force (pull-to-refresh) clears the cooldown; otherwise honour it.
         if (force) {
             synchronized(backoffLock) {
@@ -120,14 +140,20 @@ class StreamFrameSnapshotManager(
     // S1169: update the per-url cooldown from a capture outcome - a failure extends the backoff, a
     // success clears it so the tile refreshes normally again.
     private fun recordCaptureOutcome(url: String, ok: Boolean) {
+        // S1469: a failure that landed while the device had no network records nothing at all - it falls
+        // through both branches, so an outage cannot put a live channel into a dead channel's cooldown.
+        val penalise = shouldPenaliseCaptureFailure(ok, hasNetwork())
         synchronized(backoffLock) {
-            if (ok) {
-                nextEligibleAt.remove(url)
-                consecutiveFailures.remove(url)
-            } else {
-                val count = (consecutiveFailures[url] ?: 0) + 1
-                consecutiveFailures[url] = count
-                nextEligibleAt[url] = SystemClock.elapsedRealtime() + backoffDelayMs(count)
+            when {
+                ok -> {
+                    nextEligibleAt.remove(url)
+                    consecutiveFailures.remove(url)
+                }
+                penalise -> {
+                    val count = (consecutiveFailures[url] ?: 0) + 1
+                    consecutiveFailures[url] = count
+                    nextEligibleAt[url] = SystemClock.elapsedRealtime() + backoffDelayMs(count)
+                }
             }
         }
     }
@@ -288,6 +314,18 @@ internal fun backoffDelayMs(consecutiveFailures: Int): Long {
     val shift = (consecutiveFailures - 1).coerceAtMost(BACKOFF_MAX_SHIFT)
     return (BACKOFF_BASE_MS shl shift).coerceAtMost(BACKOFF_CAP_MS)
 }
+
+/**
+ * S1469: whether a finished capture should extend this url's cooldown. Only a failure that happened
+ * while the device actually had a network says anything about the url - during an outage every url
+ * fails at once, and counting that would leave live channels serving a dead channel's five-minute
+ * cooldown for a cause that was never theirs.
+ *
+ * S1509: the attribution half of that rule now lives in [RecordStreamPlayOutcomeUseCase], which the
+ * terminal failure dialog reads too; this function keeps only the "a success is never a penalty" half.
+ */
+internal fun shouldPenaliseCaptureFailure(ok: Boolean, hasNetwork: Boolean): Boolean =
+    !ok && RecordStreamPlayOutcomeUseCase.isChannelAttributableFailure(hasNetwork)
 
 private const val BACKOFF_BASE_MS = 60_000L
 private const val BACKOFF_CAP_MS = 300_000L

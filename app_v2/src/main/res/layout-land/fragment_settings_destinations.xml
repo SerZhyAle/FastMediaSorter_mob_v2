@@ -437,7 +437,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_tiny"
-                            android:text="@string/grant_notifications_permission"
+                            android:text="@string/perm_title_post_notifications"
                             android:textSize="@dimen/toggler_title_text_size"
                             android:visibility="gone" />
 
@@ -1036,6 +1036,15 @@
                             app:str_showHelp="true"
                             app:str_helpTitle="@string/tooltip_calculator_title"
                             app:str_helpMessage="@string/tooltip_calculator_message" />
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableNetworkMonitor"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            app:str_icon="@drawable/ic_network_monitor"
+                            app:str_title="@string/settings_enable_network_monitor"
+                            app:str_subtitle="@string/settings_enable_network_monitor_summary" />
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowEmbeddedGame"

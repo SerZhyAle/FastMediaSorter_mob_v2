@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S1433: permissions the Network Monitor program needs. They live here rather than in src/main
+    because src/main merges into every flavor, and a permission declared without the feature behind
+    it is what PermissionRegistryManifestParityTest fails a release on (S1442, S1454).
+
+    READ_PHONE_STATE is deliberately absent: src/launcherEnabled already declares it and the same
+    two flavors mount both source sets, so a second declaration would be dead weight.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        S1441: back, together with the code that uses it - RadioControlContractImpl calls
+        WifiManager.setWifiEnabled when a launcher Wi-Fi tile is tapped. S1472 had removed it precisely
+        because no such caller existed yet, and the parity test failed standard on the unused declaration.
+    -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+
+    <!-- Bluetooth section on API 30 and below; API 31+ routes through BLUETOOTH_CONNECT instead. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+
+    <!--
+        S1515: the read half of the pair above. Below API 31 the adapter state and the bonded-device
+        count are guarded by this install-time permission, and it was declared nowhere - so the Bluetooth
+        section reported "no permission" forever on Android 8.0-11 and no screen could fix it: an
+        install-time permission has no request dialog, and requesting an undeclared one does nothing.
+    -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+
+    <!-- Wi-Fi section: reading the current connection details on API 33+. -->
+    <uses-permission
+        android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:minSdkVersion="33" />
+
+    <!-- Bluetooth section: adapter state and bonded-device names on API 31+. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_CONNECT"
+        android:minSdkVersion="31" />
+
+</manifest>

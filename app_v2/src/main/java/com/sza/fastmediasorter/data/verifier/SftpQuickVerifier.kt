@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.verifier
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy
 import com.sza.fastmediasorter.domain.verifier.QuickVerifier
@@ -49,6 +50,7 @@ class SftpQuickVerifier @Inject constructor(
                     missing
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.w(
                     e,
                     "QuickVerifier(SFTP): probe error for resource=%d, returning no-op",

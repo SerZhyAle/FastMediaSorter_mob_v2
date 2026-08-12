@@ -9,6 +9,13 @@ enum class LauncherOrientation {
 enum class LauncherCellKind {
     SHORTCUT,
     GADGET,
+
+    /**
+     * S1428: a full-width titled header. Its own kind rather than a [SHORTCUT] command prefix because
+     * the shortcut binding path attaches the long-press listener and the "show actions" accessibility
+     * action before the command is parsed, and strategic §6.8 rules the header is not long-pressable.
+     */
+    SECTION,
 }
 
 /**

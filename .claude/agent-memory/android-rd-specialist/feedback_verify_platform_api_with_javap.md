@@ -28,4 +28,16 @@ far cheaper than a wrong plan. `javap` ships with the Android Studio JBR, which 
 the full path above. Works for any `android.*` class; the compileSdk in `app_v2/build.gradle.kts`
 decides which platform directory to point at.
 
-Related: [[verify-full-evidence]], [[tactical-plan-file-list-may-be-wrong]].
+**What javap cannot tell you - and what that costs.** A signature proves a member exists; it says nothing
+about the runtime contract behind it. S1471 (2026-08-09): javap confirmed `ShortcutInfoCompat.Builder(
+ShortcutInfoCompat)` exists, the code compiled, detekt/neuroslop/the full scoped `post-change` gate all
+passed, and a dedicated read-only code audit found four other real defects in the same files - yet
+pinning a stream shortcut crashed the app on first try with `NullPointerException: intent's action must
+be set`. `ShortcutInfo.Builder.build()` requires the shortcut Intent to carry an action even when its
+component is explicit, and nothing in the type system, the docs skim or the audit expressed that. Only
+the device run caught it, on the ticket's own primary flow. So: use javap to settle "does X exist", never
+to settle "will X work". Any change to a shortcut, widget, notification, foreground-service or
+share-target payload - the places where the platform validates a Bundle/Intent at runtime - needs the
+gesture actually performed on a device before the ticket is called done.
+
+Related: [[verify-full-evidence]], [[tactical-plan-file-list-may-be-wrong]], [[feedback-phase-boundary-audit]].

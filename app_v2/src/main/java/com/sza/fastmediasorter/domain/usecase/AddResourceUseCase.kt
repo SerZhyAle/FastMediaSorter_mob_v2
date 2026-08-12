@@ -19,7 +19,10 @@ data class AddMultipleResult(
     // stays 0). Names carry the affected resources so the caller can name the single-affected case.
     val updatedCount: Int = 0,
     val addedNames: List<String> = emptyList(),
-    val updatedNames: List<String> = emptyList()
+    val updatedNames: List<String> = emptyList(),
+    // S1423: row ids of the inserted resources only, index-aligned with addedNames. The
+    // matchExistingByPath path updates existing rows, so those never appear here.
+    val createdResourceIds: List<Long> = emptyList()
 )
 
 class AddResourceUseCase @Inject constructor(
@@ -116,7 +119,7 @@ class AddResourceUseCase @Inject constructor(
                 }
             }
 
-            resourcesToAdd.forEach { repository.addResource(it) }
+            val createdResourceIds = resourcesToAdd.map { repository.addResource(it) }
 
             StructuredLogger.i(
                 "SUCCESS add multiple",
@@ -131,7 +134,8 @@ class AddResourceUseCase @Inject constructor(
                     skippedDestinations = skippedDestinations,
                     updatedCount = updatedNames.size,
                     addedNames = resourcesToAdd.map { it.name },
-                    updatedNames = updatedNames
+                    updatedNames = updatedNames,
+                    createdResourceIds = createdResourceIds
                 )
             )
         } catch (e: Exception) {

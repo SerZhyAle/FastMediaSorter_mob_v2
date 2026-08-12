@@ -5,104 +5,165 @@
     <!-- Open the current file's location in FastMediaSorter browser -->
     <item
         android:id="@+id/menu_open_in_fms"
+        android:icon="@drawable/ic_open_in_browse"
         android:title="@string/open_in_fms"
         app:showAsAction="never" />
 
-    <!-- S0390: Group A image actions that spill to overflow (shown only for editable local images) -->
+    <!-- S1364: every command whose result is a changed image, in one section. Hosts that implement
+         none of these hide the parent item, not just the children - hiding only the children would
+         leave an empty section, which Android does not remove on its own. -->
     <item
-        android:id="@+id/menu_edit_crop_to_file"
-        android:title="@string/menu_crop_to_file"
+        android:id="@+id/menu_edit_section_standalone"
+        android:title="@string/menu_edit_submenu_title"
+        app:showAsAction="never">
+        <menu>
+
+            <!-- S0393 wave-C: full image edit (rotate/flip/filters/adjust) via the generic ImageEditDialog -->
+            <item
+                android:id="@+id/menu_edit_image"
+                android:icon="@drawable/ic_edit_20"
+                android:title="@string/menu_edit_adjust"
+                app:showAsAction="never" />
+
+            <!-- S1364: crop in place, reaching the same cropDelegate the inline btnEditCrop uses -->
+            <item
+                android:id="@+id/menu_edit_crop_standalone"
+                android:icon="@drawable/ic_crop"
+                android:title="@string/menu_crop"
+                app:showAsAction="never" />
+
+            <!-- S0390: Group A image actions that spill to overflow (shown only for editable local images) -->
+            <item
+                android:id="@+id/menu_edit_crop_to_file"
+                android:icon="@drawable/ic_crop_to_file"
+                android:title="@string/menu_crop_to_file"
+                app:showAsAction="never" />
+
+            <item
+                android:id="@+id/menu_edit_compress"
+                android:icon="@drawable/ic_compress"
+                android:title="@string/menu_compress_copy"
+                app:showAsAction="never" />
+
+            <!-- S0410: draw overlay (static image host) -->
+            <item
+                android:id="@+id/menu_draw_overlay"
+                android:icon="@drawable/ic_draw_overlay"
+                android:title="@string/menu_draw_overlay"
+                app:showAsAction="never" />
+
+            <!-- S0995: manual 90° visual frame rotation (image/gif/video host). -->
+            <item
+                android:id="@+id/menu_rotate_content_standalone"
+                android:icon="@drawable/ic_rotate_90"
+                android:title="@string/rotate_content_90_title"
+                app:showAsAction="never" />
+
+            <!-- S1364: the counter-clockwise twin -->
+            <item
+                android:id="@+id/menu_rotate_content_ccw_standalone"
+                android:icon="@drawable/ic_rotate_90"
+                android:title="@string/rotate_content_ccw_title"
+                app:showAsAction="never" />
+        </menu>
+    </item>
+
+    <!-- S1364: parity with the embedded player. Rename stays outside the editing section.
+         Undo is deliberately absent from this menu: PlayerDeleteUndoCoordinator is constructed
+         against PlayerViewModel.PlayerState and calls back into PlayerViewModel, so no standalone
+         host can reach it without generifying the coordinator - a design decision owned by S1326.
+         A permanently-hidden item would be dead weight, so there is none. -->
+    <item
+        android:id="@+id/menu_rename_standalone"
+        android:icon="@drawable/ic_rename"
+        android:title="@string/rename"
         app:showAsAction="never" />
 
+    <!-- S1364: screen-autorotate toggle, parity with the embedded player. -->
     <item
-        android:id="@+id/menu_edit_compress"
-        android:title="@string/menu_compress_copy"
-        app:showAsAction="never" />
-
-    <!-- S0393 wave-C: full image edit (rotate/flip/filters/adjust) via the generic ImageEditDialog -->
-    <item
-        android:id="@+id/menu_edit_image"
-        android:title="@string/edit"
+        android:id="@+id/menu_autorotate_standalone"
+        android:icon="@drawable/ic_rotation_unlocked"
+        android:title="@string/menu_autorotate_screen_title"
+        android:checkable="true"
         app:showAsAction="never" />
 
     <!-- S0393 wave-C: black-screen overlay (video). Image/video-only items above are hidden by the
          non-image hosts (Audio/Document/Text) which share this menu. -->
     <item
         android:id="@+id/menu_black_screen"
+        android:icon="@drawable/ic_black_screen"
         android:title="@string/black_screen_button_title"
         app:showAsAction="never" />
 
     <!-- S0393 wave-C: Google Lens (image host only) -->
     <item
         android:id="@+id/menu_google_lens"
+        android:icon="@drawable/ic_google_lens"
         android:title="@string/google_lens"
         app:showAsAction="never" />
 
     <!-- S0393 wave-C: OCR extract text from image (image host only; ENABLE_TRANSLATION) -->
     <item
         android:id="@+id/menu_ocr_image"
+        android:icon="@drawable/ic_ocr"
         android:title="@string/camera_ocr_pane_original"
         app:showAsAction="never" />
 
     <!-- S0393 wave-C: YouTube Music search (audio host only) -->
     <item
         android:id="@+id/menu_youtube_music"
+        android:icon="@drawable/ic_youtube_music"
         android:title="@string/search_in_youtube_music"
         app:showAsAction="never" />
 
     <!-- S0393 wave-C: image translate (image host; ENABLE_TRANSLATION) -->
     <item
         android:id="@+id/menu_translate_image"
+        android:icon="@drawable/ic_translate"
         android:title="@string/translate"
         app:showAsAction="never" />
 
     <!-- S0410: translation/OCR settings (image host; ENABLE_TRANSLATION) -->
     <item
         android:id="@+id/menu_image_text_settings"
+        android:icon="@drawable/ic_book"
         android:title="@string/translation_settings"
-        app:showAsAction="never" />
-
-    <!-- S0410: draw overlay (static image host) -->
-    <item
-        android:id="@+id/menu_draw_overlay"
-        android:title="@string/menu_draw_overlay"
         app:showAsAction="never" />
 
     <!-- S0393 wave-C: print image (image host) -->
     <item
         android:id="@+id/menu_print"
+        android:icon="@drawable/ic_print"
         android:title="@string/menu_print"
         app:showAsAction="never" />
 
     <!-- S0393 wave-C: save current video frame (video host) -->
     <item
         android:id="@+id/menu_save_frame"
+        android:icon="@drawable/ic_save_frame"
         android:title="@string/menu_save_frame"
         app:showAsAction="never" />
 
     <!-- S0393 wave-C: sleep timer (audio/video host) -->
     <item
         android:id="@+id/menu_sleep_timer"
+        android:icon="@drawable/ic_sleep_timer"
         android:title="@string/menu_sleep_timer"
         app:showAsAction="never" />
 
     <!-- S0393 wave-C: lyrics (audio host) -->
     <item
         android:id="@+id/menu_lyrics"
+        android:icon="@drawable/ic_book"
         android:title="@string/lyrics"
         app:showAsAction="never" />
 
     <!-- S0393: playback speed (audio host) -->
     <item
         android:id="@+id/menu_playback_speed"
+        android:icon="@drawable/ic_speed"
         android:title="@string/cd_playback_speed"
         app:showAsAction="never" />
 
-    <!-- S0995: manual 90° visual frame rotation (image/gif/video host). Text-only per this menu's
-         convention (no icons on any item). -->
-    <item
-        android:id="@+id/menu_rotate_content_standalone"
-        android:title="@string/rotate_content_90_title"
-        app:showAsAction="never" />
 
 </menu>

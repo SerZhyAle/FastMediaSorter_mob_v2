@@ -11,7 +11,11 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.repository.StorageVolumeRepository
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
+import com.sza.fastmediasorter.utils.FtpPathUtils
+import com.sza.fastmediasorter.utils.SftpPathUtils
+import com.sza.fastmediasorter.utils.SmbPathUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -19,9 +23,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import com.sza.fastmediasorter.utils.FtpPathUtils
-import com.sza.fastmediasorter.utils.SftpPathUtils
-import com.sza.fastmediasorter.utils.SmbPathUtils
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,9 +30,10 @@ import javax.inject.Singleton
 class ResourceRepositoryImpl @Inject constructor(
     private val resourceDao: ResourceDao,
     private val credentialsRepository: NetworkCredentialsRepository,
-    private val smbOperationsUseCase: SmbOperationsUseCase
+    private val smbOperationsUseCase: SmbOperationsUseCase,
+    private val storageVolumeRepository: StorageVolumeRepository
 ) : ResourceRepository {
-    
+
     override fun getAllResources(): Flow<List<MediaResource>> {
         return combine(
             resourceDao.getAllResources(),
@@ -42,16 +44,56 @@ class ResourceRepositoryImpl @Inject constructor(
                 val accountId = entity.credentialsId?.let { credMap[it]?.accountId }
                 entity.toDomain(accountId)
             }
-        }
+        }.map { applyVolumeAvailability(it) }
     }
-    
+
     override suspend fun getAllResourcesSync(): List<MediaResource> {
         val entities = resourceDao.getAllResourcesSync()
         val credentials = credentialsRepository.getAllCredentials().first()
         val credMap = credentials.associateBy { it.credentialId }
-        return entities.map { entity ->
-            val accountId = entity.credentialsId?.let { credMap[it]?.accountId }
-            entity.toDomain(accountId)
+        return applyVolumeAvailability(
+            entities.map { entity ->
+                val accountId = entity.credentialsId?.let { credMap[it]?.accountId }
+                entity.toDomain(accountId)
+            }
+        )
+    }
+
+    /**
+     * S1378: `isAvailable` is DERIVED for a volume-bound resource - [applyVolumeAvailability] forces
+     * it false while the volume is unmounted, and every caller that edits an unrelated field does so
+     * on a `copy()` of that loaded object. Writing the derived value back would make an eject
+     * permanent: nothing sets the stored flag true again when the card returns, so the resource would
+     * stay dead after reinsertion. Keep what is on disk for a bound resource; an unbound resource
+     * still authors the field exactly as before.
+     */
+    private suspend fun ResourceEntity.withStoredAvailabilityIfVolumeBound(): ResourceEntity {
+        if (storageVolumeId == null) return this
+        val stored = resourceDao.getResourceByIdSync(id)
+        return if (stored == null) this else copy(isAvailable = stored.isAvailable)
+    }
+
+    /**
+     * S1378: a resource bound to a volume that is gone or unmounted reads as unavailable, so an
+     * ejected card shows a clear state instead of an empty folder. Only the in-memory flag is
+     * touched - the stored binding and the granted access outlive the eject, which is what lets the
+     * resource come back by itself when the card is reinserted.
+     *
+     * The volume registry re-enumerates and runs StatFs per mounted volume on every call, so the
+     * unbound case (every install until a volume-bound resource exists) must not pay for it.
+     */
+    private suspend fun applyVolumeAvailability(resources: List<MediaResource>): List<MediaResource> {
+        if (resources.none { it.storageVolumeId != null }) return resources
+        val mountedIds = storageVolumeRepository.getVolumes()
+            .filter { it.isMounted }
+            .mapTo(mutableSetOf()) { it.id }
+        return resources.map { resource ->
+            val boundVolumeId = resource.storageVolumeId
+            if (boundVolumeId != null && boundVolumeId !in mountedIds) {
+                resource.copy(isAvailable = false)
+            } else {
+                resource
+            }
         }
     }
     
@@ -77,9 +119,9 @@ class ResourceRepositoryImpl @Inject constructor(
                 val accountId = entity.credentialsId?.let { credMap[it]?.accountId }
                 entity.toDomain(accountId)
             }
-        }
+        }.map { applyVolumeAvailability(it) }
     }
-    
+
     override fun getDestinations(): Flow<List<MediaResource>> {
         return combine(
             resourceDao.getDestinations(),
@@ -90,7 +132,7 @@ class ResourceRepositoryImpl @Inject constructor(
                 val accountId = entity.credentialsId?.let { credMap[it]?.accountId }
                 entity.toDomain(accountId)
             }
-        }
+        }.map { applyVolumeAvailability(it) }
     }
     
     override suspend fun getFilteredResources(
@@ -219,10 +261,12 @@ class ResourceRepositoryImpl @Inject constructor(
 
         // S1009: hide ad-hoc local folders from browse (type/media/sort). The FTS name-search branch
         // above stays unfiltered - resource search may surface hidden rows per owner decision.
-        return entities.map { entity ->
-            val accountId = entity.credentialsId?.let { credMap[it]?.accountId }
-            entity.toDomain(accountId)
-        }.filterNot { it.isHidden }
+        return applyVolumeAvailability(
+            entities.map { entity ->
+                val accountId = entity.credentialsId?.let { credMap[it]?.accountId }
+                entity.toDomain(accountId)
+            }.filterNot { it.isHidden }
+        )
     }
 
     private fun getComparator(sortMode: SortMode): Comparator<MediaResource> {
@@ -256,7 +300,7 @@ class ResourceRepositoryImpl @Inject constructor(
     }
     
     override suspend fun updateResource(resource: MediaResource) {
-        val entity = resource.toEntity()
+        val entity = resource.toEntity().withStoredAvailabilityIfVolumeBound()
         Timber.d("🔶 SORT_DEBUG Repository.updateResource: id=${entity.id}, name=${entity.name}, sortMode=${entity.sortMode}, displayMode=${entity.displayMode}")
         resourceDao.update(entity)
         Timber.d("🔶 SORT_DEBUG Repository.updateResource: COMPLETED for id=${entity.id}, sortMode=${entity.sortMode}")
@@ -524,7 +568,8 @@ class ResourceRepositoryImpl @Inject constructor(
             needsSignIn = needsSignIn, // S0200: propagate the "needs sign-in" flag from entity to domain.
             altAccessPaths = parseAltPaths(altAccessPaths), // S1006
             accessNote = accessNote, // S1014
-            isHidden = isHidden // S1009: propagate hidden flag entity -> domain
+            isHidden = isHidden, // S1009: propagate hidden flag entity -> domain
+            storageVolumeId = storageVolumeId // S1378: propagate volume binding entity -> domain
         )
     }
 
@@ -585,7 +630,8 @@ class ResourceRepositoryImpl @Inject constructor(
             needsSignIn = needsSignIn, // S0200: propagate the "needs sign-in" flag from domain to entity.
             altAccessPaths = serializeAltPaths(altAccessPaths), // S1006
             accessNote = accessNote, // S1014
-            isHidden = isHidden // S1009: propagate hidden flag domain -> entity
+            isHidden = isHidden, // S1009: propagate hidden flag domain -> entity
+            storageVolumeId = storageVolumeId // S1378: propagate volume binding domain -> entity
         )
     }
 

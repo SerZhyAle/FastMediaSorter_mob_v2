@@ -27,6 +27,9 @@ if (-not $PSBoundParameters.ContainsKey('Status') -and $Priority -lt 0) {
 # Phase 1: validate all ids before touching the journal
 $errors = New-Object System.Collections.Generic.List[string]
 $allRecords = [System.Collections.Generic.List[object]]::new()
+# S1437: read -> mutate -> write is one critical section. Two processes holding the same
+# snapshot lose one change entirely - the later write replaces the whole journal.
+Enter-CatalogLock
 foreach ($r in (Read-Catalog)) { $allRecords.Add($r) }
 
 $indexMap = @{}
@@ -110,6 +113,8 @@ if ($PSBoundParameters.ContainsKey('Status')) {
         [void](Sync-SpecHeaderStatus -PathRef $rec.file -Status $rec.status)
     }
 }
+
+Exit-CatalogLock
 
 foreach ($line in $results) { Write-Output $line }
 exit 0

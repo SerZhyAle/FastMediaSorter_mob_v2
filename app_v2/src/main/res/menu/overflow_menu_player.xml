@@ -29,6 +29,13 @@
         android:title="@string/file_information"
         app:showAsAction="never" />
 
+    <!-- S1474: about the playing channel. Offered only while a live video stream is playing. -->
+    <item
+        android:id="@+id/menu_stream_info"
+        android:icon="@drawable/ic_info"
+        android:title="@string/stream_info_menu_title"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/menu_fullscreen"
         android:icon="@drawable/ic_fullscreen"
@@ -154,13 +161,13 @@
     <item
         android:id="@+id/menu_edit"
         android:icon="@drawable/ic_edit_20"
-        android:title="@string/edit"
+        android:title="@string/menu_edit_adjust"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/menu_edit_text"
         android:icon="@drawable/ic_edit_20"
-        android:title="@string/edit"
+        android:title="@string/menu_edit_file_text"
         app:showAsAction="never" />
 
     <!-- Undo (if available) -->
@@ -273,10 +280,17 @@
         android:title="@string/menu_draw_overlay"
         app:showAsAction="never" />
 
+    <!-- S1364: reverse content rotation. Declared here for the id only - this file is never inflated. -->
+    <item
+        android:id="@+id/menu_rotate_content_ccw"
+        android:icon="@drawable/ic_rotate_90"
+        android:title="@string/rotate_content_ccw_title"
+        app:showAsAction="never" />
+
     <!-- S0162: Rotation toggle -->
     <item
         android:id="@+id/menu_rotation_toggle"
-        android:title="@string/rotation_toggle_title"
+        android:title="@string/menu_autorotate_screen_title"
         app:showAsAction="never" />
 
     <!-- S0995: manual 90° visual frame rotation (image/video) - id pool for the dynamic overflow -->

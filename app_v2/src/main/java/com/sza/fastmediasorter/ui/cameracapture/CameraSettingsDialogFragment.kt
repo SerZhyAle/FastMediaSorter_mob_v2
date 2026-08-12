@@ -16,6 +16,7 @@ import com.google.android.material.slider.Slider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogCameraSettingsBinding
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraSettingsDialogRotationManager
+import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraUseCaseFactory
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
 import kotlinx.coroutines.Job
@@ -23,9 +24,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.Locale
 import kotlin.math.exp
 import kotlin.math.ln
+import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 class CameraSettingsDialogFragment : DialogFragment() {
@@ -170,19 +173,33 @@ class CameraSettingsDialogFragment : DialogFragment() {
             }
         }
 
-        val resolutionLabels = capabilities.photoResolutions.map(::resolutionLabel)
+        // S1457: the photo pipeline pins the 4:3 sensor stream, and CameraUseCaseFactory silently
+        // drops any resolution that does not match it - offering one offered a value the capture
+        // would ignore, so the saved file came back at a size the user never chose.
+        val resolutions = capabilities.photoResolutions.filter {
+            CameraUseCaseFactory.resolutionMatchesAspect(it, CameraUseCaseFactory.PHOTO_ASPECT_RATIO)
+        }
+        val resolutionLabels = resolutions.map(::resolutionLabel)
         binding.rowCameraResolution.isVisible = resolutionLabels.isNotEmpty()
         if (resolutionLabels.isNotEmpty()) {
-            val selectedResolution = capabilities.photoResolutions.indexOf(draft.resolution).coerceAtLeast(0)
+            // S1457: -1 when nothing is applied yet, which SettingsDropdownRow renders as no
+            // selection. Coercing it to 0 showed the first entry as chosen while the session ran on
+            // whatever CameraX picked for itself.
+            val selectedResolution = resolutions.indexOf(draft.resolution)
             bindDropdown(binding.rowCameraResolution, resolutionLabels, selectedResolution) { index ->
-                draft = draft.copy(resolution = capabilities.photoResolutions[index])
+                draft = draft.copy(resolution = resolutions[index])
             }
         }
 
-        val awbModes = capabilities.awbModes.distinct()
-            .sortedBy { if (it == CameraMetadata.CONTROL_AWB_MODE_AUTO) 0 else 1 }
+        val awbModes = presentableWhiteBalanceModes(capabilities.awbModes)
         binding.rowCameraWhiteBalance.isVisible = awbModes.size > 1
         if (awbModes.size > 1) {
+            // A draft holding a mode the dialog no longer offers - a session left on OFF before
+            // S1574 - would show Auto in the row while confirming the dialog wrote OFF back into
+            // the session. Coerce the draft itself, not just the displayed index.
+            if (draft.whiteBalanceMode !in awbModes) {
+                draft = draft.copy(whiteBalanceMode = CameraMetadata.CONTROL_AWB_MODE_AUTO)
+            }
             bindDropdown(
                 binding.rowCameraWhiteBalance,
                 awbModes.map(::whiteBalanceLabel),
@@ -215,7 +232,7 @@ class CameraSettingsDialogFragment : DialogFragment() {
         binding.sliderCameraExposure.valueFrom = -maxIndex
         binding.sliderCameraExposure.valueTo = maxIndex
         binding.sliderCameraExposure.stepSize = SLIDER_STEP
-        binding.sliderCameraExposure.value = draft.exposureCompensationIndex.toFloat()
+        binding.sliderCameraExposure.setSnappedValue(draft.exposureCompensationIndex.toFloat())
         binding.tvCameraExposureValue.text = signedValue(draft.exposureCompensationIndex)
         val listener = Slider.OnChangeListener { _, value, fromUser ->
             binding.tvCameraExposureValue.text = signedValue(value.toInt())
@@ -241,16 +258,19 @@ class CameraSettingsDialogFragment : DialogFragment() {
         binding.sliderCameraIso.valueFrom = isoRange.lower.toFloat()
         binding.sliderCameraIso.valueTo = isoRange.upper.toFloat()
         binding.sliderCameraIso.stepSize = SLIDER_STEP
-        binding.sliderCameraIso.value = defaultIso.toFloat()
+        binding.sliderCameraIso.setSnappedValue(defaultIso.toFloat())
         binding.tvCameraIsoValue.text = defaultIso.toString()
         binding.sliderCameraShutter.valueFrom = SHUTTER_SLIDER_MIN
         binding.sliderCameraShutter.valueTo = SHUTTER_SLIDER_MAX
         binding.sliderCameraShutter.stepSize = SLIDER_STEP
-        binding.sliderCameraShutter.value = shutterNsToSlider(defaultShutter, shutterRange.lower, shutterRange.upper)
+        binding.sliderCameraShutter.setSnappedValue(
+            shutterNsToSlider(defaultShutter, shutterRange.lower, shutterRange.upper),
+        )
         binding.tvCameraShutterValue.text = shutterLabel(defaultShutter)
         binding.rowCameraManualSensor.setOnCheckedChangeListener { checked ->
             binding.layoutCameraIsoControls.isVisible = checked
             binding.layoutCameraShutterControls.isVisible = checked
+            Timber.d("S1590: manual sensor toggled to $checked, iso/shutter rows now in scroll region")
             draft = draft.copy(
                 manualSensorEnabled = checked,
                 manualIso = binding.sliderCameraIso.value.toInt(),
@@ -331,16 +351,14 @@ class CameraSettingsDialogFragment : DialogFragment() {
 
     private fun signedValue(value: Int): String = if (value > 0) "+$value" else value.toString()
 
-    private fun whiteBalanceLabel(mode: Int): String = when (mode) {
-        CameraMetadata.CONTROL_AWB_MODE_AUTO -> getString(R.string.camera_setting_wb_auto)
-        CameraMetadata.CONTROL_AWB_MODE_INCANDESCENT -> getString(R.string.camera_setting_wb_incandescent)
-        CameraMetadata.CONTROL_AWB_MODE_FLUORESCENT -> getString(R.string.camera_setting_wb_fluorescent)
-        CameraMetadata.CONTROL_AWB_MODE_WARM_FLUORESCENT -> getString(R.string.camera_setting_wb_warm_fluorescent)
-        CameraMetadata.CONTROL_AWB_MODE_DAYLIGHT -> getString(R.string.camera_setting_wb_daylight)
-        CameraMetadata.CONTROL_AWB_MODE_CLOUDY_DAYLIGHT -> getString(R.string.camera_setting_wb_cloudy)
-        CameraMetadata.CONTROL_AWB_MODE_TWILIGHT -> getString(R.string.camera_setting_wb_twilight)
-        CameraMetadata.CONTROL_AWB_MODE_SHADE -> getString(R.string.camera_setting_wb_shade)
-        else -> getString(R.string.camera_setting_wb_auto)
+    private fun whiteBalanceLabel(mode: Int): String = getString(WHITE_BALANCE_LABELS.getValue(mode))
+
+    /**
+     * S1583: assign a slider value that Material will accept. Call after `valueFrom`, `valueTo` and
+     * `stepSize` are set - the snap is computed from the track as it stands.
+     */
+    private fun Slider.setSnappedValue(rawValue: Float) {
+        value = snapToSliderStep(rawValue, valueFrom, valueTo, stepSize)
     }
 
     private fun sliderToShutterNs(value: Float, minNs: Long, maxNs: Long): Long {
@@ -374,6 +392,53 @@ class CameraSettingsDialogFragment : DialogFragment() {
     companion object {
         const val TAG = "CameraSettingsDialog"
         private val TIMER_OPTIONS = listOf(0, 3, 5, 10)
+
+        /**
+         * S1574: the white-balance modes this dialog offers, in display order (automatic first).
+         * One map serves as both the filter and the label source, so a mode can no longer reach the
+         * list without a label of its own - the previous `else -> "Auto"` fallback made
+         * CONTROL_AWB_MODE_OFF, which most devices report, appear as a second "Auto" row that did
+         * the opposite thing.
+         *
+         * CONTROL_AWB_MODE_OFF is deliberately absent rather than relabelled: Camera2 hands white
+         * balance to the app in that mode, expecting COLOR_CORRECTION_TRANSFORM and
+         * COLOR_CORRECTION_GAINS, and this app sets neither - so the mode has no defined result to
+         * offer a user.
+         */
+        private val WHITE_BALANCE_LABELS: Map<Int, Int> = linkedMapOf(
+            CameraMetadata.CONTROL_AWB_MODE_AUTO to R.string.camera_setting_wb_auto,
+            CameraMetadata.CONTROL_AWB_MODE_INCANDESCENT to R.string.camera_setting_wb_incandescent,
+            CameraMetadata.CONTROL_AWB_MODE_FLUORESCENT to R.string.camera_setting_wb_fluorescent,
+            CameraMetadata.CONTROL_AWB_MODE_WARM_FLUORESCENT to R.string.camera_setting_wb_warm_fluorescent,
+            CameraMetadata.CONTROL_AWB_MODE_DAYLIGHT to R.string.camera_setting_wb_daylight,
+            CameraMetadata.CONTROL_AWB_MODE_CLOUDY_DAYLIGHT to R.string.camera_setting_wb_cloudy,
+            CameraMetadata.CONTROL_AWB_MODE_TWILIGHT to R.string.camera_setting_wb_twilight,
+            CameraMetadata.CONTROL_AWB_MODE_SHADE to R.string.camera_setting_wb_shade,
+        )
+
+        /**
+         * Intersect what the camera reports with what this dialog can label and honour. Display
+         * order comes from [WHITE_BALANCE_LABELS], so automatic stays first without a separate sort.
+         */
+        internal fun presentableWhiteBalanceModes(reportedModes: List<Int>): List<Int> {
+            val reported = reportedModes.toSet()
+            return WHITE_BALANCE_LABELS.keys.filter { it in reported }
+        }
+
+        /**
+         * S1583: Material's slider rejects any value that is not `valueFrom` plus a whole multiple of
+         * `stepSize`, and it validates lazily - on the first measure pass, which for a row that starts
+         * GONE happens long after the assignment, so the crash surfaced as an unrelated layout failure.
+         * The shutter position is log-mapped and lands on fractions (91.168594 on the reporting device);
+         * exposure and ISO come from a saved draft that a lens switch can push outside the live range.
+         * Both are the same defect - a value assigned without being fitted to the track it is going on.
+         */
+        internal fun snapToSliderStep(rawValue: Float, from: Float, to: Float, step: Float): Float {
+            if (step <= 0f) return rawValue.coerceIn(from, to)
+            val lastStep = ((to - from) / step).toInt()
+            val stepIndex = ((rawValue - from) / step).roundToInt().coerceIn(0, lastStep)
+            return from + (stepIndex * step)
+        }
 
         // Material Slider config: 1-unit steps for all sliders; the shutter slider maps log-scaled
         // nanoseconds onto a fixed 0..100 track (see shutterNsToSlider/sliderToShutterNs).

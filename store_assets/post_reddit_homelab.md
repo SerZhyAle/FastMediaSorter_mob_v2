@@ -32,7 +32,7 @@ So I built one. Two years of development, now stable enough to share.
 - File list indexed in local Room DB - big NAS directories open instantly on re-entry
 - Atomic MOVE: copy → verify → delete. Failed copy never touches the source.
 
-**Architecture:** Kotlin 100%, MVVM + Clean Arch, Hilt, ExoPlayer Media3, SMBJ/SSHJ/Apache Commons Net.
+**Architecture:** Kotlin 100%, MVVM + Clean Arch, Hilt, ExoPlayer Media3, SMBJ/JSch/Apache Commons Net.
 
 Tested on Synology DSM 7, QNAP QTS, TrueNAS SCALE, and plain Samba on Linux. Works over LAN and VPN (WireGuard tested).
 

@@ -53,6 +53,13 @@ abstract class DeliveryModule {
         impl: com.sza.fastmediasorter.data.delivery.DeliverableInventoryImpl
     ): com.sza.fastmediasorter.domain.delivery.DeliverableInventory
 
+    /** S1483: freshness of the unpinned artwork payloads is read from the mirror's manifest. */
+    @Binds
+    @Singleton
+    abstract fun bindArtworkManifestSource(
+        impl: com.sza.fastmediasorter.data.delivery.ArtworkManifestClient
+    ): com.sza.fastmediasorter.domain.delivery.ArtworkManifestSource
+
     companion object {
 
         /**

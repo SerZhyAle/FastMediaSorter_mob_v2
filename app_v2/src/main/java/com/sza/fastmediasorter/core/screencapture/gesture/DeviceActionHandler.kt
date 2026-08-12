@@ -27,7 +27,6 @@ class DeviceActionHandler @Inject constructor() {
 
     /** Returns true when [action] is a device-control action this handler owns (performed or degraded). */
     fun handle(context: Context, action: ScreenshotGestureAction): Boolean {
-        Timber.d("S1038: device action %s", action)
         return when (action) {
         ScreenshotGestureAction.TOGGLE_FLASHLIGHT -> {
             toggleFlashlight(context)

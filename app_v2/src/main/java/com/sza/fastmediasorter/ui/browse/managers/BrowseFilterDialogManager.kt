@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.DialogFilterBinding
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.util.showBoundToHost
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -116,7 +117,7 @@ internal class BrowseFilterDialogManager(
             dialog.dismiss()
         }
 
-        dialog.show()
+        dialog.showBoundToHost(activity)
         com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
     }
 

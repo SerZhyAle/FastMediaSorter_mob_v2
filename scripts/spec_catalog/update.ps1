@@ -1,4 +1,9 @@
-[CmdletBinding()]
+# PositionalBinding = $false (S1504): a stray unnamed token is never intentional here, and the
+# first free positional slot is $Name - so it renamed the ticket instead of failing. Backslash is
+# not an escape character in PowerShell, so a note written `.. tagged \"S1474:\" ..` closes its
+# string early and the remainder reaches the parameter binder as separate arguments. With
+# positional binding off they die at bind time instead of overwriting a field.
+[CmdletBinding(PositionalBinding = $false)]
 param(
     # Not [Parameter(Mandatory)]: a mandatory parameter makes the host prompt before the
     # body runs, so -Help could never print. Absence is reported explicitly below instead.
@@ -41,9 +46,31 @@ if ($PSBoundParameters.ContainsKey('Priority')) {
     }
 }
 
+# S1582: explicit acceptance-probe contracts are source-backed at write time.
+# Unmarked prose remains free-form, so historic status notes are not reinterpreted.
+if ($PSBoundParameters.ContainsKey('StatusNote') -and $StatusNote -ne '' -and
+    $StatusNote -match '(?im)^\s*Probe\s+(literal|template|none)\s*:') {
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    $helperPath = Join-Path $repoRoot 'scripts/quality/lib/ticket-acceptance-probes.ps1'
+    $sourceRoots = @((Join-Path $repoRoot 'app_v2/src'), (Join-Path $repoRoot 'wear/src'))
+    if (-not (Test-Path -LiteralPath $helperPath) -or @($sourceRoots | Where-Object { -not (Test-Path -LiteralPath $_) }).Count -gt 0) {
+        throw 'Cannot validate acceptance-probe contract: helper or source roots are unavailable.'
+    }
+    . $helperPath
+    $probeResults = @(Test-TicketAcceptanceProbeNote -Ticket $Id -StatusNote $StatusNote -SourceRoots $sourceRoots)
+    $invalidProbe = @($probeResults | Where-Object { $_.Outcome -ne 'pass' })
+    if ($invalidProbe.Count -gt 0) {
+        $reasons = ($invalidProbe | ForEach-Object { $_.Outcome }) -join ', '
+        throw "Invalid acceptance-probe contract for ${Id}: $reasons."
+    }
+}
+
 # Resolve from the active journal first, then the archive journal (so updating
 # or reviving an Archived ticket still works under the split).
 $records = [System.Collections.Generic.List[object]]::new()
+# S1437: read -> mutate -> write is one critical section. Two processes holding the same
+# snapshot lose one change entirely - the later write replaces the whole journal.
+Enter-CatalogLock
 foreach ($r in (Read-Catalog)) { $records.Add($r) }
 
 $idx = -1
@@ -172,6 +199,8 @@ if ($statusChanged -or $noteExplicit) {
         Write-Host ("  header synced -> {0}{1}" -f $updated.status, $noteHint) -ForegroundColor DarkGray
     }
 }
+
+Exit-CatalogLock
 
 Write-Output ("{0} {1} -> {2}" -f $Id, $oldStatus, $updated.status)
 exit 0

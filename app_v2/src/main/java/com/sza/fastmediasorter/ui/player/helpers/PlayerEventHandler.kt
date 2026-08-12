@@ -10,7 +10,9 @@ import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.domain.mutation.Mutation
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import com.sza.fastmediasorter.ui.streams.StreamUnavailableDialog
 import com.sza.fastmediasorter.util.AppErrorNotifier
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.UUID
@@ -90,7 +92,7 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
             }
             // S0581: a list stream failed to play - offer retry / remove-from-list.
             is PlayerViewModel.PlayerEvent.ShowStreamUnavailable -> {
-                showStreamUnavailable(event.source)
+                showStreamUnavailable(event.source, event.offline)
             }
         }
     }
@@ -151,7 +153,7 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                 .setTitle(R.string.file_not_found_title)
                 .setMessage(activity.getString(R.string.player_file_not_found_message, fileName))
                 .setPositiveButton(android.R.string.ok, null)
-                .show()
+                .showBoundTo(activity)
         } catch (e: WindowManager.BadTokenException) {
             Timber.e(e, "PlayerEventHandler: showFileNotFound failed - bad window token")
         }
@@ -161,23 +163,26 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
      * S0581: a video/RTSP stream from the list did not respond. Offer to retry the same URL or
      * remove the dead stream from the local list (then leave the player, since there is nothing to
      * show). Cancel simply closes the player.
+     *
+     * S1509: [offline] suppresses the remove action - the dialog now lives in [StreamUnavailableDialog]
+     * so this host and the streams screen ask the same question rather than two copies of it.
      */
     private fun showStreamUnavailable(
-        source: com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+        source: com.sza.fastmediasorter.data.local.db.StreamSourceEntity,
+        offline: Boolean
     ) {
-        if (activity.isFinishing || activity.isDestroyed) return
         activeDialog?.dismiss()
-        activeDialog = AlertDialog.Builder(activity)
-            .setTitle(R.string.streams_unavailable_title)
-            .setMessage(activity.getString(R.string.streams_unavailable_message, source.title))
-            .setPositiveButton(R.string.retry) { _, _ -> activity.playVideo(source.url) }
-            .setNeutralButton(R.string.streams_remove) { _, _ ->
+        activeDialog = StreamUnavailableDialog.show(
+            activity = activity,
+            channelTitle = source.title,
+            offline = offline,
+            onRetry = { activity.playVideo(source.url) },
+            onRemove = {
                 activity.viewModel.removeStreamSource(source)
                 activity.finish()
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> activity.finish() }
-            .setOnCancelListener { activity.finish() }
-            .show()
+            },
+            onDismiss = { activity.finish() },
+        )
     }
 
     fun showCloudAuthenticationError(providerName: String? = null) {

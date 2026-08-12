@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S1507: the noLegal icon plus the themed-icon layer, qualified -v33 for the same reason as the main
+    copy. It needs its own file: without one, API 33+ would resolve the main v33 icon and this build
+    would silently lose the skull badge its v26 icon carries.
+
+    The monochrome layer itself is the shared silhouette, badge included only in the coloured foreground.
+    A badged monochrome asset does not exist and drawing one is out of this ticket's scope by its own
+    section 0 - noted as a limitation rather than invented.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@mipmap/ic_launcher_adaptive_back" />
+    <foreground android:drawable="@drawable/ic_launcher_nolegal_fore" />
+    <monochrome android:drawable="@drawable/ic_launcher_monochrome" />
+</adaptive-icon>

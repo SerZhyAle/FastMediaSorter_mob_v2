@@ -214,6 +214,188 @@ function Measure-SwallowedCancellationText([string]$Text) {
     return @(Find-SwallowedCancellationLines $Text).Count
 }
 
+# S1329: CLAUDE.md Rule 3 - an Activity is a host, not a place for domain wiring. The rule is the
+# lint detector's own (lint-rules/../ActivityLogicDetector.kt): an @Inject field in a *Activity class
+# whose declared type names a Repository, UseCase, DataSource, Dao or Database. It is mirrored here
+# because app_v2/lint-baseline.xml is regenerated only by a full build, so nothing stopped the count
+# growing between builds - which is how it reached 78 unnoticed.
+$script:ActivityClassRx = [regex]'\bclass\s+\w*Activity\b'
+# Modifiers and extra annotations sit between @Inject and `var`, and a long declaration wraps before
+# its type. Both shapes are real here - PlayerActivity carries wrapped declarations and `internal`
+# ones - and a line-oriented scan silently undercounts every one of them.
+$script:ActivityInjectFieldRx = [regex]'@Inject\s+(?:(?:@[\w.]+(?:\([^)]*\))?|internal|private|protected|public|open|final|lateinit)\s+)*var\s+\w+\s*:\s*([A-Za-z0-9_.<>?, ]+)'
+# Case-SENSITIVE by construction - [regex] does not fold case the way PowerShell's -match does.
+# BrowseActivity's FaviconAtlasStore sits in a `data.repository.streams` package and is NOT a
+# violation; folding case would over-count it.
+$script:ActivityDomainTypeRx = [regex]'Repository|UseCase|DataSource|Dao|Database'
+
+function Find-ActivityLogicLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return @() }
+    if (-not $script:ActivityClassRx.IsMatch($Text)) { return @() }
+    $hits = @()
+    foreach ($m in $script:ActivityInjectFieldRx.Matches($Text)) {
+        if (-not $script:ActivityDomainTypeRx.IsMatch($m.Groups[1].Value)) { continue }
+        $hits += ($Text.Substring(0, $m.Index) -split "`n").Count
+    }
+    return $hits
+}
+
+function Measure-ActivityLogicText([string]$Text) {
+    return @(Find-ActivityLogicLines $Text).Count
+}
+
+# S1456: a dialog shown with a bare `.show()` throws the returned AlertDialog away, so nothing can
+# dismiss it once the host dies and the window outlives the destroyed Fragment and Activity (S1447).
+# util/LifecycleDialogExt.kt carries the cure on both receivers - the builder and an already-created
+# dialog - because two shapes reach a bare show(): the fluent chain ending in `.show()`, and the
+# builder assigned to a name whose `.create()` result is shown a few lines further down.
+$script:DialogBuilderRx = [regex]'(?:MaterialAlertDialogBuilder|AlertDialog\.Builder)\s*\('
+$script:DialogAssignRx = [regex]'(?:val|var)\s+([A-Za-z_][A-Za-z0-9_]*)\s*(?::[^=]+)?=\s*$'
+
+# Walk forward from the construction with paren and brace depth counters and return the names of the
+# calls made at chain level - the identifier after every `.` seen at depth zero. A newline at depth
+# zero ends the chain unless the next non-space character is a `.`, which is what keeps a multi-line
+# builder chain in one piece instead of cutting it at the first `.setTitle(..)` line.
+#
+# Depth matters: searching the statement text for `.show()` counts a `Toast.makeText(..).show()`
+# written inside a `setItems` lambda as the chain's terminator, which called two compliant sites
+# violations. Braces and parens inside comments and strings are a known, accepted approximation.
+function Get-DialogChainCalls([string]$Text, [int]$Start) {
+    $calls = [System.Collections.Generic.List[string]]::new()
+    $depthParen = 0
+    $depthBrace = 0
+    $i = $Start
+    $len = $Text.Length
+    while ($i -lt $len) {
+        $c = $Text[$i]
+        if ($c -eq '(') { $depthParen++ }
+        elseif ($c -eq ')') { $depthParen--; if ($depthParen -lt 0) { break } }
+        elseif ($c -eq '{') { $depthBrace++ }
+        elseif ($c -eq '}') { $depthBrace--; if ($depthBrace -lt 0) { break } }
+        elseif ($c -eq '.' -and $depthParen -eq 0 -and $depthBrace -eq 0) {
+            $j = $i + 1
+            $name = ''
+            while ($j -lt $len -and $Text[$j] -match '[A-Za-z0-9_]') { $name += $Text[$j]; $j++ }
+            if ($name) { $calls.Add($name) }
+        }
+        elseif ($c -eq "`n" -and $depthParen -le 0 -and $depthBrace -le 0) {
+            $j = $i + 1
+            while ($j -lt $len -and ($Text[$j] -eq ' ' -or $Text[$j] -eq "`t" -or $Text[$j] -eq "`r")) { $j++ }
+            if ($j -ge $len -or $Text[$j] -ne '.') { break }
+        }
+        $i++
+    }
+    return $calls
+}
+
+function Find-UntrackedDialogLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return @() }
+    if (-not $script:DialogBuilderRx.IsMatch($Text)) { return @() }
+    $hits = @()
+    foreach ($m in $script:DialogBuilderRx.Matches($Text)) {
+        $calls = Get-DialogChainCalls $Text $m.Index
+        if ($calls -match '^showBoundTo') { continue }
+        if ($calls -contains 'show') {
+            $hits += ($Text.Substring(0, $m.Index) -split "`n").Count
+            continue
+        }
+        $lineStart = $Text.LastIndexOf("`n", [Math]::Max($m.Index - 1, 0)) + 1
+        $declaration = $Text.Substring($lineStart, $m.Index - $lineStart).TrimEnd()
+        $assign = $script:DialogAssignRx.Match($declaration)
+        if (-not $assign.Success) { continue }
+        $held = [regex]::Escape($assign.Groups[1].Value)
+        foreach ($use in ([regex]"\b$held\.show\s*\(\s*\)").Matches($Text)) {
+            $hits += ($Text.Substring(0, $use.Index) -split "`n").Count
+        }
+    }
+    # One site is reachable twice when a file assigns two builders to the same name, so the rule
+    # counts distinct lines - counting matches would report the square of the real number.
+    return @($hits | Sort-Object -Unique)
+}
+
+function Measure-UntrackedDialogText([string]$Text) {
+    return @(Find-UntrackedDialogLines $Text).Count
+}
+
+# S1567: a double quote inside a string resource survives the build only when a backslash precedes it
+# after XML decoding. Both the bare " and the &quot; entity are dropped by AAPT2's quoting pass - the
+# entity because the XML parser decodes it first - so both spellings silently delete the character.
+#
+# The tag name is captured and closed by a backreference: <string-array name="a"> satisfies <string\b
+# and would otherwise pair with the first </item> inside it. (?<!/) drops self-closing elements, which
+# would otherwise open a body running to the next closing tag.
+$script:ResourceBodyRx = [regex]'(?s)<(string|item)((?:\s[^>]*)?)(?<!/)>(.*?)</\1>'
+
+# A body wrapped in a quote pair with whitespace just inside it is Android's whitespace-preservation
+# form, not a visible quote, so its outer pair is exempt. The whitespace test is load-bearing:
+# "%1$s" -> folder "%2$s" opens and closes with a quote only because a placeholder sits at each end,
+# and exempting its outer pair would leave two of its four quotes invisible.
+function Get-ResourceQuoteBodyInner([string]$Body) {
+    if ($Body.Length -ge 2 -and $Body[0] -eq '"' -and $Body[-1] -eq '"' -and $Body[-2] -ne '\') {
+        $candidate = $Body.Substring(1, $Body.Length - 2)
+        if ($candidate -match '^\s' -or $candidate -match '\s$') { return $candidate }
+    }
+    return $Body
+}
+
+function Find-InvisibleResourceQuoteLines([string]$Text) {
+    $hits = @()
+    if ([string]::IsNullOrEmpty($Text)) { return $hits }
+    foreach ($m in $script:ResourceBodyRx.Matches($Text)) {
+        $inner = Get-ResourceQuoteBodyInner $m.Groups[3].Value
+        if ([string]::IsNullOrEmpty($inner)) { continue }
+        $entities = ([regex]::Matches($inner, '&quot;')).Count
+        $bares = ([regex]::Matches($inner, '(?<!\\)"')).Count
+        if (($entities + $bares) -eq 0) { continue }
+        $hits += ($Text.Substring(0, $m.Index) -split "`n").Count
+    }
+    return @($hits | Sort-Object -Unique)
+}
+
+function Measure-InvisibleResourceQuotes([string]$Text) {
+    $n = 0
+    if ([string]::IsNullOrEmpty($Text)) { return $n }
+    foreach ($m in $script:ResourceBodyRx.Matches($Text)) {
+        $inner = Get-ResourceQuoteBodyInner $m.Groups[3].Value
+        if ([string]::IsNullOrEmpty($inner)) { continue }
+        $n += ([regex]::Matches($inner, '&quot;')).Count
+        $n += ([regex]::Matches($inner, '(?<!\\)"')).Count
+    }
+    return $n
+}
+
+# S1586: AAPT2 reads a backslash as an escape introducer, so one that introduces nothing it knows is
+# consumed and the character never reaches the user - the same silent class of loss as the quote
+# above, with no build warning either. The escape table must stay identical to ConvertTo-AaptBackslash
+# in scripts/utils/set-android-string.ps1 and seed-locale-tranche.ps1, or the gate would flag exactly
+# what those writers just produced. The optional group is what makes \\ count as one recognised unit
+# instead of two lone slashes.
+$script:LoneResourceBackslashRx = [regex]'\\(u[0-9a-fA-F]{4}|[nt''"\\])?'
+
+function Find-LoneResourceBackslashLines([string]$Text) {
+    $hits = @()
+    if ([string]::IsNullOrEmpty($Text)) { return $hits }
+    foreach ($m in $script:ResourceBodyRx.Matches($Text)) {
+        $body = $m.Groups[3].Value
+        if ([string]::IsNullOrEmpty($body)) { continue }
+        $lone = @($script:LoneResourceBackslashRx.Matches($body) | Where-Object { -not $_.Groups[1].Success })
+        if ($lone.Count -eq 0) { continue }
+        $hits += ($Text.Substring(0, $m.Index) -split "`n").Count
+    }
+    return @($hits | Sort-Object -Unique)
+}
+
+function Measure-LoneResourceBackslashes([string]$Text) {
+    $n = 0
+    if ([string]::IsNullOrEmpty($Text)) { return $n }
+    foreach ($m in $script:ResourceBodyRx.Matches($Text)) {
+        $body = $m.Groups[3].Value
+        if ([string]::IsNullOrEmpty($body)) { continue }
+        $n += @($script:LoneResourceBackslashRx.Matches($body) | Where-Object { -not $_.Groups[1].Success }).Count
+    }
+    return $n
+}
+
 function New-RegexRule {
     param(
         [Parameter(Mandatory)][string]$Name,
@@ -329,6 +511,16 @@ function Get-SourceRules {
                 -Baseline 'flavor-flag-baseline.txt' `
                 -ExcludeNames @('PermissionRegistryRepositoryImpl.kt') `
                 -FailMessage 'new flavor flag read in src/main. Use an interface plus a flavor source set (CLAUDE.md Rule 14).'),
+        # S1406: the player overflow menu reached PopupMenu's private mPopup field by reflection to
+        # hang a long-press on the popup's internal ListView, inside a broad catch. Restricted-API
+        # access that fails SILENTLY - an AppCompat update would drop the affordance with no signal,
+        # and the catch guaranteed nobody would notice. Scoped to AppCompat menu internals on
+        # purpose: DeliveredNativeLibraryLoader (BaseDexClassLoader) and the FastMediaSorterApp
+        # settings dump reflect legitimately and must stay unflagged.
+        (New-RegexRule -Name 'restricted-menu-reflection' `
+                -Pattern ([regex]'(?:getDeclaredField|getDeclaredMethod)\s*\(\s*"(?:mPopup|mMenuItems|mMenuView|getListView)"|androidx\.appcompat\.view\.menu\.') `
+                -Baseline 'restricted-menu-reflection-baseline.txt' `
+                -FailMessage 'new reflection into AppCompat menu internals introduced. It breaks silently on an AppCompat update - model the affordance as a menu command instead (S1406).'),
         [pscustomobject]@{
             Name        = 'public-mutable-flow'
             Extensions  = @('.kt')
@@ -360,6 +552,58 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-SwallowedCancellationText $t }
             LocateInText = { param($t) Find-SwallowedCancellationLines $t }
             FailMessage  = 'new broad catch in coroutine code that swallows CancellationException. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363).'
+        },
+        [pscustomobject]@{
+            Name         = 'activity-logic'
+            Extensions   = @('.kt')
+            # Every source set, not just main - ScreenCaptureConsentActivity lives in
+            # app_v2/src/screenCapture/. Test source sets are out: the rule judges shipped hosts.
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/(?!androidTest/|test|benchmark/)'
+            Baseline     = 'activity-logic-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-ActivityLogicText $t }
+            LocateInText = { param($t) Find-ActivityLogicLines $t }
+            FailMessage  = 'new domain-layer field injection in an Activity. Move the dependency into a ViewModel or a Manager the host delegates to (CLAUDE.md Rule 3).'
+        },
+        [pscustomobject]@{
+            Name         = 'untracked-dialog'
+            Extensions   = @('.kt')
+            # Every shipped source set, like activity-logic above: the leak reaches launcherEnabled,
+            # noLegal and screenCapture, and a src/main-only filter would call those three clean.
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/(?!androidTest/|test|benchmark/)'
+            Baseline     = 'untracked-dialog-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-UntrackedDialogText $t }
+            LocateInText = { param($t) Find-UntrackedDialogLines $t }
+            FailMessage  = 'new dialog shown with a bare .show(). Show it with showBoundTo(owner) from util/LifecycleDialogExt.kt so the host lifecycle dismisses it (S1456).'
+        },
+        # Reuses the app_v2/src root the rule above already walks, so this costs one regex pass over
+        # text that is loaded anyway rather than a second walk of the resource tree.
+        [pscustomobject]@{
+            Name         = 'string-quote-escaping'
+            Extensions   = @('.xml')
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/[^/]+/res/values[^/]*/'
+            Baseline     = 'string-quote-escaping-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-InvisibleResourceQuotes $t }
+            LocateInText = { param($t) Find-InvisibleResourceQuoteLines $t }
+            FailMessage  = 'new build-invisible double quote in a string resource. AAPT2 drops both a bare " and &quot; - write \" instead (S1567).'
+        },
+        # Same walk and same file set as the quote rule above - the second silent way a character is
+        # deleted between the resource file and the screen.
+        [pscustomobject]@{
+            Name         = 'string-lone-backslash'
+            Extensions   = @('.xml')
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/[^/]+/res/values[^/]*/'
+            Baseline     = 'string-lone-backslash-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-LoneResourceBackslashes $t }
+            LocateInText = { param($t) Find-LoneResourceBackslashLines $t }
+            FailMessage  = 'new lone backslash in a string resource. AAPT2 reads it as an escape introducer and drops the character - write \\ instead (S1586).'
         }
     )
 }

@@ -12,6 +12,7 @@ import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import timber.log.Timber
 
@@ -66,7 +67,8 @@ object MediaNotificationManager {
             .setNotificationId(NOTIFICATION_ID)
             .build()
 
-        provider.setSmallIcon(R.drawable.ic_notification_audio)
+        provider.setSmallIcon(NotificationIcons.STATUS_BAR)
+        Timber.d("S1399: Media3 playback notification provider configured with the branded status-bar icon")
 
         return provider
     }

@@ -37,7 +37,7 @@ Stage 2 persists the `auto_skipped[]` entries preflight produced. These close de
 
 **Conditional - the two special cases.**
 
-`BlockByOtherTask` - **conditional**: included by preflight, then auto-skipped (`reason: blocker-not-verified`) unless blocker named in §10 of spec file is currently `Verified`.
+`BlockByOtherTask` - **conditional**: included by preflight, then auto-skipped (`reason: blocker-not-verified`) unless the named blocker is currently `Verified`. The blocker is read only from a channel that states the direction - a `**Depends on:**` line, or a `Blocker: Sxxxx` / `Блокер: Sxxxx` token in §10 or in the statusNote. A ticket merely listed in §10 prose is a relation, not a blocker (S1482); a spec that records none gets `reason: blocker-unresolvable`, which means "fix the spec", not "wait".
 
 **Device-conditional** (the autonomous-verification backlog): `BlockNeedUserTest` - **not** an impl candidate for `/spec-all`, but **is** drainable autonomous work *when a device/emulator is attached*. The impl loop ignores these; the post-impl **Stage 5.5 device drain** routes the whole `BlockNeedUserTest` backlog to `/spec-sweep`, which runs each ticket's device test and flips it to `Verified`/`Partial`/`Broken`. With no device attached they stay parked (listed under "Waiting on human" in the final report). Tickets whose `statusNote` says a **real device** is required (not an emulator) are attempted by `/spec-sweep`, which reports them back as still-blocked when the emulator cannot satisfy the check - those remain human-gated.
 
@@ -58,7 +58,12 @@ Auto-skip predicates: they replace every previous owner-gate / tier-5 / VR-child
 - `ranked[]` - eligible set (statuses above), already sorted by the release plan: queue package asc -> queue line order asc -> `priority` desc -> `updated` desc -> `id` asc, with active persistent skip-cache and `-Exclude` round-memory set already removed. Each row carries `release` (its package, `--` when parked, `null` when in neither file) and `side` (`queue` = work left, `ready` = finished content awaiting audit).
 - `skip_cache` / `skip_cached_ids` - active persistent skips and which ranked ids they removed (informational; no action needed).
 - `auto_skipped[]` - candidates preflight previewed and rejected while walking down to selection. Each `{ id, reason, detail }`, `reason ∈ { tier-5-epic | owner-gate | blocker-not-verified }`. These are structural / human gates only; preflight never auto-skips a `Draft`/`Approved` for a heavy research section - `research_open_count` stays informational.
-- `selected` - chosen ticket's full `preview.ps1` payload (`status`, `frontmatter`, `sections`, `tactical_folder`, `last_audit_present`, `timber_tags_kt`, `depends_on`) plus `drift` (`drift-check.ps1` verdict object) and `status_mismatch` (`{catalog,file}` or `null`). `null` when eligible set exhausted.
+- `leased_ids[]` - candidates dropped because a **live sibling session** holds a ticket lease on them (S1437). Each `{ id, sessionId, host, reason, last_seen_minutes }`; `last_seen_minutes` is `null` when that session's transcript is unreachable. Own-session leases are never listed and never exclude. Empty array when running alone. Report these verbatim when `selected_none_reason` is `all-leased` - the holder is the answer to "why is there nothing to do".
+- `selected_none_reason` - `null` when a ticket was selected. Otherwise one of:
+  - `queue-exhausted` - no eligible ticket existed at all. The backlog is done.
+  - `all-leased` - eligible tickets exist and every one is held by a live sibling. The queue is **busy, not finished**; re-running later picks one up. Never wait or poll on this - a free ticket is not guaranteed to appear.
+  - `no-candidate` - eligible tickets existed but none survived skip-cache, `-Exclude`, auto-skip or the `-MaxScan` walk. Same handling as `queue-exhausted`.
+- `selected` - chosen ticket's full `preview.ps1` payload (`status`, `frontmatter`, `sections`, `tactical_folder`, `last_audit_present`, `timber_tags_kt`, `depends_on`) plus `drift` (`drift-check.ps1` verdict object) and `status_mismatch` (`{catalog,file}` or `null`). `null` when nothing was selected - read `selected_none_reason` for which of the three cases it was.
 
 The call itself replaces the previous `search.ps1` + manual rank + `skip-cache.ps1 -Action list` + per-candidate `preview.ps1` + `drift-check.ps1` chain.
 
@@ -68,7 +73,13 @@ The call itself replaces the previous `search.ps1` + manual rank + `skip-cache.p
 
 **Stage 0 - device probe.** This is a single read-only probe; never blocks the loop. Runs every invocation, including `--resume` - a resumed process is a fresh probe, not a continuation, since the device may have changed while the session was stopped. The result is persisted via `-Verb Device` so Stage 5.5's `DEVICE_ONLINE` check never depends on in-memory state surviving a reset.
 
-**Stage 3 - the drift verdict.** `selected.drift.verdict == DRIFT` = git commits carrying spec id marker AND/OR inline `// <id>:` markers exist in `app_v2/src/`. Fix is likely already (partly) in code and `/spec-all` would re-discover it expensively.
+**Stage 3 - the drift verdicts (S1429).** Three values, because two different facts used to share one:
+
+- `CLEAN` - no commit carries the id and no inline marker does.
+- `COMMIT_ONLY` - a commit carries the id, no inline `// <id>:` marker does. Expected of any ticket that has been worked on at all; the tree holds nothing unaccounted, so it never parks the ticket. This shape produced six of the `drift-needs-review` skip-cache entries standing on 2026-08-09, each one explaining in its own words that the finding was false.
+- `DRIFT` - inline markers exist in `app_v2/src/`. The fix is likely already (partly) in code and `/spec-all` would re-discover it expensively, unless something accounts for it.
+
+The third proof against `DRIFT` is `selected.tactical_index.fresh`: a tactical plan whose `Last updated` is not older than the newest in-window commit. A Tier-3 ticket records progress in its plan's phase counters, not in the strategic spec, so reading only `Last Audit` and `Implementation State` called every in-flight tactical ticket unaccounted. Freshness is dated against the commit rather than merely required to exist, so a plan abandoned months ago cannot vouch for work that landed yesterday.
 
 **Stage 4 handoff - what `/spec-all` skips.** `/spec-all` trusts this context and skips its own opening `select.ps1` / catalog re-query for this ticket (its Resume Map keys off handed `status`). It does NOT re-run `preview.ps1` / `drift-check.ps1` for same ticket.
 
@@ -84,7 +95,9 @@ The call itself replaces the previous `search.ps1` + manual rank + `skip-cache.p
 
 ## Context management (mid-loop reset)
 
-The loop is designed to run for many rounds and will accumulate context - that is expected. It no longer self-judges when to reset: `-Verb CheckContext` (Stage 5b) is the sole trigger, on the fixed threshold (default 300000, `-Threshold`/`--threshold` overridable). On a threshold stop, `-Verb Handoff` recommends `/clear` rather than `/compact` - round state (`processed`, tally, `DEVICE_ONLINE`, `selectedDevice`) already lives on disk in `temp/spec-next-session.json`, so a `/compact` summary would only re-carry what the state file already holds at zero cost. After `/clear`, `/spec-next --resume` reads that file back (`-Verb Resume`) and continues at Stage 1 with the restored `-Exclude` set - nothing is re-derived, nothing is reprocessed.
+The loop is designed to run for many rounds and will accumulate context - that is expected. It no longer self-judges when to reset: `-Verb CheckContext` (Stage 5b) is the sole trigger, on the fixed threshold (default 300000, `-Threshold`/`--threshold` overridable). On a threshold stop, `-Verb Handoff` recommends `/clear` rather than `/compact` - round state (`processed`, tally, `DEVICE_ONLINE`, `selectedDevice`) already lives on disk in `temp/spec-next-session.<sessionId>.json`, so a `/compact` summary would only re-carry what the state file already holds at zero cost. After `/clear`, `/spec-next --resume` reads that file back (`-Verb Resume`) and continues at Stage 1 with the restored `-Exclude` set - nothing is re-derived, nothing is reprocessed.
+
+The state file is **per session** (S1437): `temp/spec-next-session.<sessionId>.json`, so two or three pickers run side by side without sharing one file. `-Verb Init` no longer refuses - the exit-4 refusal it used to carry (S1396) existed to stop two sessions duplicating tickets, and the ticket lease now prevents that properly one layer up. A legacy single-file `temp/spec-next-session.json` is adopted into the per-session path on the first `Init`/`Resume`, reported as `adoptedLegacy` in `Resume`'s JSON, so a session mid-round across the upgrade keeps its round. `-Verb Resume` still adopts ownership and prints the displaced owner as `previousOwner`. `-Verb Record` is keyed by ticket id: a ticket recorded twice in one session (`advanced` when the impl lands, `verified` once the audit passes) updates its own row and the tally is recomputed, so `processed` counts tickets rather than status changes.
 
 ---
 
@@ -171,7 +184,8 @@ Phases generator produces (status → command map is fixed):
 
 ## Spec Catalog hooks
 
-- **Reads:** `device-ready.ps1` (Stage 0 device probe, read-only), `spec-next-preflight.ps1` (single Stage 1 selection call: rank + skip-cache consume + per-candidate preview + drift, read-only), `select.ps1` (post-`/spec-all` status check in Stage 5), `search.ps1 -Status BlockNeedUserTest` (Stage 5.5 backlog list, read-only), `release-plan.ps1` (single `--plan` call: whole-catalog phased release sequence, read-only).
+- **Session start:** `session-bootstrap.ps1` (Stage 0, one call). It composes four children and reports each as its own block: `session` - `spec-next-session.ps1 -Verb Init|Resume|Device`, **writes** the round-state file; `device` - `device-ready.ps1`, read-only; `selection` - `spec-next-preflight.ps1`, read-only; `lease` - `ticket-lease.ps1 -Verb Claim`, **writes**, and this skill never enables it because the drift gate must run first. The package itself derives nothing: ranking, skip-cache policy, release-queue order and the drift verdict all come out of the children unchanged.
+- **Reads:** `spec-next-preflight.ps1` (Stage 1 on every iteration after the first - the first one's payload arrives inside the bootstrap; rank + skip-cache consume + per-candidate preview + drift, read-only), `select.ps1` (post-`/spec-all` status check in Stage 5), `search.ps1 -Status BlockNeedUserTest` (Stage 5.5 backlog list, read-only), `release-plan.ps1` (single `--plan` call: whole-catalog phased release sequence, read-only).
 - **Writes:** `skip-cache.ps1 -Action add` for each `auto_skipped[]` entry and on `drift-needs-review`; `update.ps1 -Status` only when preflight reports `status_mismatch`; `skip-cache.ps1 -Action reset` on `--reset-skips`.
 - **Delegations:** impl rounds -> `/spec-all` (Stage 4); device-verification drain -> `/spec-sweep` (Stage 5.5). This skill selects; the delegated skills execute and own their catalog transitions.
 - **Indirect writes:** all status transitions during execution come from `/spec-all`, `/spec-sweep`, and their sub-skills (`/spec-tech`, `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-test-device`). This skill never sets `Implemented`, `Verified`, `Partial`, `Broken`, or any `Block*` directly.

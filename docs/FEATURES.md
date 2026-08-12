@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-07-27*
+*Last updated: 2026-08-04*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -31,16 +31,21 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Unified "Send to.." hub** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: One command gathers Share, Telegram, email, Lens, Keep, print, and other enabled targets into a single clean list instead of scattering export actions across menus.
 - **Home-screen camera widget** `[Standard]`: Add a launcher widget that opens capture directly, so a photo lands in your chosen folder in one tap without opening the app first.
 - **Every lens the device really has** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Capture offers each physical lens, its true zoom floor including sub-1x, a working macro mode, and the sensor's full resolution, while System info reports the whole camera layout so a problem can be diagnosed from the phone itself.
+- **Pick the shot before you take it** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: One button offers night, portrait, selfie, macro, and sport, listing only the scenarios your device can actually deliver and naming the active one.
+- **Send captures where you want them** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Assign any local folder as the write destination for captures, screenshots, snapshots, and auto-downloads, separately from your browsing sources.
 
 ## 4. Replace a basic file viewer with a sorting workstation
 - **Instant sorting panel** `[Standard / VR]`: Keep up to 30 favorite destination folders in the player and sort the current file in one tap, with optional auto-advance to the next item.
 - **Open a file from another app and keep browsing nearby files** `[Standard / VR]`: When another app hands off one file, continue with next, previous, random, or slideshow inside the same folder instead of getting stuck on a single item.
 - **File Manager Mode** `[Standard / VR]`: Show hidden files and bypass media-only filters to handle mixed folders, archives, APKs, EXEs, and other non-media content.
+- **Move whole folders, not just files** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Select subfolders the way you select files and copy or move them across protocols, and a transfer sent to the background stays on a tappable strip you can reopen.
 
 ## 5. Replace several media viewers and editors
 - **Image viewer with real file actions** `[Standard / VR]`: Crop, rotate, flip, adjust colors, speed-control GIFs, and export GIF frames without switching to a separate image utility.
 - **Video frame capture to any destination** `[Standard / VR]`: Save a clean frame from video as PNG/JPG directly to local or network storage.
 - **2D/360/VR playback in the sideload noLegal build** `[noLegal Only]`: Play SBS/OU, VR180, and 360 content, or watch normal 2D files on a giant virtual screen in the OpenXR build.
+- **Controls that stay in the headset** `[noLegal Only]`: A HUD strip carries a seek bar you drag with the controller ray plus the track, subtitle, and depth pickers that apply to the file, the thumbstick seeks and steps between files, and a legend lists every binding.
+- **Read PDFs by touch** `[Standard / Legacy / VR / noLegal]`: Turn pages with a swipe, long-press to select the page's own text without waiting for an OCR pass, and keep your zoom and framing through the turn.
 - **Animated WebP and APNG playback** `[Standard]`: Short WebP and APNG animations now play in the image viewer instead of showing a single frozen frame.
 
 ## 6. Replace OCR, translation, and note extraction tools
@@ -69,3 +74,5 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Weather without a location permission** `[Standard / noLegal]`: A desktop gadget shows current conditions for a place you name, using keyless Open-Meteo data instead of your device location.
 - **App quick actions on the desktop** `[Standard / noLegal]`: Long-press an installed app to list the shortcuts it publishes and start the one you want directly.
 - **Edit the desktop, then lock it** `[Standard / noLegal]`: Long-press empty space to rearrange things, and switch on a lock so a finished desktop survives accidental taps.
+- **Widgets and your own status area** `[Standard / noLegal]`: Place the app's home-screen widgets onto the launcher desktop, and choose whether Android's status bar stays or the launcher shows its own clock and indicators.
+- **Pin a person, not a permission** `[Standard / noLegal]`: A contact cell opens that person in the system contacts app without granting a contacts permission - grant it only if you want their name and photo on the cell.

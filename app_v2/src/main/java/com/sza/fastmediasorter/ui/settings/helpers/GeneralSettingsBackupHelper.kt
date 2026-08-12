@@ -9,10 +9,9 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.google.android.material.snackbar.Snackbar
-import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.model.FavoritesConflictStrategy
 import com.sza.fastmediasorter.domain.model.FavoritesImportResult
@@ -24,6 +23,8 @@ import com.sza.fastmediasorter.ui.settings.FavoritesExportUiState
 import com.sza.fastmediasorter.ui.settings.FavoritesImportUiState
 import com.sza.fastmediasorter.ui.settings.ResourceShareExportUiState
 import com.sza.fastmediasorter.ui.settings.ResourceShareImportUiState
+import com.sza.fastmediasorter.util.showBoundTo
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import timber.log.Timber
 import java.io.File
 
@@ -149,7 +150,7 @@ class GeneralSettingsBackupHelper(
             .setPositiveButton(R.string.restore_from_google_drive) { _, _ -> backupViewModel.confirmRestore() }
             .setNegativeButton(android.R.string.cancel) { _, _ -> backupViewModel.resetState() }
             .setOnCancelListener { backupViewModel.resetState() }
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun showRestoreSuccessMessage(result: RestoreFromGoogleDriveUseCase.RestoreResult) {
@@ -188,7 +189,7 @@ class GeneralSettingsBackupHelper(
                     }
                 }
                 .setNegativeButton(android.R.string.cancel, null)
-                .show()
+                .showBoundTo(fragment)
         }
         binding.btnImportResources.setOnClickListener {
             try {
@@ -253,7 +254,7 @@ class GeneralSettingsBackupHelper(
                     .setTitle(R.string.resource_share_export_title)
                     .setMessage(fragment.getString(R.string.resource_share_export_success, state.exported, state.skipped))
                     .setPositiveButton(android.R.string.ok, null)
-                    .show()
+                    .showBoundTo(fragment)
                 backupViewModel.resetExportResState()
             }
             is ResourceShareExportUiState.Error -> {
@@ -276,7 +277,7 @@ class GeneralSettingsBackupHelper(
                     .setTitle(R.string.resource_share_import_title)
                     .setMessage(fragment.getString(R.string.resource_share_import_success, state.created, state.updated, state.skipped))
                     .setPositiveButton(android.R.string.ok, null)
-                    .show()
+                    .showBoundTo(fragment)
                 backupViewModel.resetImportResState()
             }
             is ResourceShareImportUiState.Error -> {
@@ -293,7 +294,7 @@ class GeneralSettingsBackupHelper(
             .setMessage(R.string.export_fav_success_message)
             .setPositiveButton(R.string.share) { _, _ -> shareFavoritesFile(filePath) }
             .setNegativeButton(android.R.string.ok, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun showImportFavPreviewDialog(uri: Uri) {
@@ -310,7 +311,7 @@ class GeneralSettingsBackupHelper(
             }
             .setNegativeButton(android.R.string.cancel) { _, _ -> backupViewModel.resetImportFavState() }
             .setOnCancelListener { backupViewModel.resetImportFavState() }
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun showImportFavResultDialog(result: FavoritesImportResult) {
@@ -324,7 +325,7 @@ class GeneralSettingsBackupHelper(
             .setTitle(R.string.import_fav_success_title)
             .setMessage(message)
             .setPositiveButton(android.R.string.ok, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun showResourceImportPreviewDialog(state: ResourceShareImportUiState.Preview) {
@@ -340,7 +341,7 @@ class GeneralSettingsBackupHelper(
             .setPositiveButton(R.string.resource_share_import_action) { _, _ -> backupViewModel.confirmResourceImport(state.uri) }
             .setNegativeButton(android.R.string.cancel) { _, _ -> backupViewModel.resetImportResState() }
             .setOnCancelListener { backupViewModel.resetImportResState() }
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun shareFavoritesFile(filePath: String) {

@@ -2,7 +2,10 @@
 <!-- S1088: System-launcher configuration dialog, extracted from fragment_settings_destinations' launcher
      group. Row ids mirror the former inline block so LauncherSettingsDialogFragment reuses the same
      binding wiring; the enable toggle stays in General settings. Every id must also exist in
-     layout-land/dialog_launcher_settings.xml (one ViewBinding). -->
+     layout-land/dialog_launcher_settings.xml (one ViewBinding).
+     S1422: the rows are wrapped into four collapsible groups in the order they already sat in the file -
+     no row changed place. LauncherSettingsDialogFragment registers each header/container pair with
+     CollapsibleSectionsManager, which owns restore, animation and persistence. -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -32,6 +35,16 @@
                 android:textStyle="bold" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnResetLauncher"
+                style="@style/Widget.FastMediaSorter.Button.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:contentDescription="@string/launcher_settings_reset_button_description"
+                android:focusable="true"
+                app:icon="@drawable/ic_restore_defaults" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClose"
                 style="@style/Widget.FastMediaSorter.Button.DialogCancel"
                 android:layout_width="wrap_content"
@@ -41,75 +54,204 @@
 
         </LinearLayout>
 
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowLauncherShowRecents"
+        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+            android:id="@+id/headerLauncherTaskbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:str_title="@string/launcher_settings_show_recents_title" />
+            app:csh_icon="@drawable/ic_apps"
+            app:csh_title="@string/launcher_settings_group_taskbar" />
 
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowLauncherShowPinned"
+        <LinearLayout
+            android:id="@+id/containerLauncherTaskbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:str_title="@string/launcher_settings_show_pinned_title" />
+            android:orientation="vertical"
+            android:paddingStart="@dimen/margin_small"
+            android:paddingEnd="@dimen/margin_small"
+            android:paddingBottom="@dimen/margin_small">
 
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowLauncherShowTray"
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLauncherShowRecents"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_title="@string/launcher_settings_show_recents_title" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLauncherShowPinned"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_title="@string/launcher_settings_show_pinned_title" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLauncherShowTray"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_title="@string/launcher_settings_show_tray_title" />
+
+            <!-- S1415: the tray's own composition, in the order the icons appear left to right. Placed under
+                 the tray toggle above, which is the master switch for the whole block - these only decide what
+                 the block contains. -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLauncherTrayClock"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_title="@string/launcher_settings_tray_clock_title" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLauncherTrayBluetooth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_subtitle="@string/launcher_settings_tray_bluetooth_subtitle"
+                app:str_title="@string/launcher_settings_tray_bluetooth_title" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLauncherTraySim1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_subtitle="@string/launcher_settings_tray_sim_subtitle"
+                app:str_title="@string/launcher_settings_tray_sim1_title" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLauncherTraySim2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_subtitle="@string/launcher_settings_tray_sim_subtitle"
+                app:str_title="@string/launcher_settings_tray_sim2_title" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLauncherTrayNetwork"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_title="@string/launcher_settings_tray_network_title" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLauncherTrayBattery"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_title="@string/launcher_settings_tray_battery_title" />
+
+        </LinearLayout>
+
+        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+            android:id="@+id/headerLauncherTopBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:str_title="@string/launcher_settings_show_tray_title" />
+            app:csh_icon="@drawable/ic_display"
+            app:csh_title="@string/launcher_settings_group_top_bar" />
 
-        <!-- S1087: sits next to the tray toggle because both decide what the launcher's own top area
-             shows; OFF keeps the Android status bar and drops the duplicate FMS indicators. -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowLauncherReplaceStatusArea"
+        <LinearLayout
+            android:id="@+id/containerLauncherTopBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:str_title="@string/launcher_settings_replace_status_area_title" />
+            android:orientation="vertical"
+            android:paddingStart="@dimen/margin_small"
+            android:paddingEnd="@dimen/margin_small"
+            android:paddingBottom="@dimen/margin_small">
 
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowLauncherDensity"
+            <!-- S1087: OFF keeps the Android status bar and drops the duplicate FMS indicators. -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLauncherReplaceStatusArea"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_title="@string/launcher_settings_replace_status_area_title" />
+
+            <!-- S1431: directly under the setting that gates it - the mode needs the freed band, so the
+                 row above is its precondition and the fragment disables this one while that is off. -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLauncherTopStatusStrip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_subtitle="@string/launcher_settings_top_status_strip_summary"
+                app:str_title="@string/launcher_settings_top_status_strip_title" />
+
+        </LinearLayout>
+
+        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+            android:id="@+id/headerLauncherDesktop"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_tiny"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:sdr_inline="true"
-            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-            app:sdr_title="@string/launcher_settings_density_title" />
+            app:csh_icon="@drawable/ic_view_grid"
+            app:csh_title="@string/launcher_settings_group_desktop" />
 
-        <!-- S1090: blocks the long-press entry into desktop edit mode; the Start-menu entry is a
-             deliberate action and stays reachable while locked. -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-            android:id="@+id/rowLauncherLockDesktop"
+        <LinearLayout
+            android:id="@+id/containerLauncherDesktop"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:str_title="@string/launcher_settings_lock_desktop_title" />
+            android:orientation="vertical"
+            android:paddingStart="@dimen/margin_small"
+            android:paddingEnd="@dimen/margin_small"
+            android:paddingBottom="@dimen/margin_small">
 
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowLauncherWallpaper"
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowLauncherDensity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:sdr_inline="true"
+                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                app:sdr_title="@string/launcher_settings_density_title" />
+
+            <!-- S1090: blocks the long-press entry into desktop edit mode; the Start-menu entry is a
+                 deliberate action and stays reachable while locked. -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLauncherLockDesktop"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_title="@string/launcher_settings_lock_desktop_title" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowLauncherWallpaper"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:sdr_inline="true"
+                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                app:sdr_title="@string/launcher_settings_wallpaper_title" />
+
+        </LinearLayout>
+
+        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+            android:id="@+id/headerLauncherSystem"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_tiny"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:sdr_inline="true"
-            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-            app:sdr_title="@string/launcher_settings_wallpaper_title" />
+            app:csh_icon="@drawable/ic_android"
+            app:csh_title="@string/launcher_settings_group_system" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/rowLauncherOpenHomeSettings"
-            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/containerLauncherSystem"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_small"
-            android:clickable="true"
-            android:focusable="true"
-            android:text="@string/launcher_settings_open_home_chooser_title"
-            android:textAllCaps="false" />
+            android:orientation="vertical"
+            android:paddingStart="@dimen/margin_small"
+            android:paddingEnd="@dimen/margin_small"
+            android:paddingBottom="@dimen/margin_small">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/rowLauncherOpenHomeSettings"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="@string/launcher_settings_open_home_chooser_title"
+                android:textAllCaps="false" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

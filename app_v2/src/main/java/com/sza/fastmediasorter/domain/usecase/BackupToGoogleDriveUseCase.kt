@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import com.google.gson.GsonBuilder
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -198,6 +199,7 @@ class BackupToGoogleDriveUseCase @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Backup to Google Drive failed")
             Result.failure(e)
         }
@@ -238,6 +240,7 @@ class BackupToGoogleDriveUseCase @Inject constructor(
                 progressCallback = null
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.w(e, "Failed to upload README.md (non-critical)")
         }
     }

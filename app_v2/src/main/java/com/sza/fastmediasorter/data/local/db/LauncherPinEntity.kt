@@ -30,4 +30,7 @@ interface LauncherPinDao {
 
     @Query("DELETE FROM launcher_pins WHERE position = :position")
     suspend fun deleteByPosition(position: Int)
+
+    @Query("DELETE FROM launcher_pins")
+    suspend fun deleteAll()
 }

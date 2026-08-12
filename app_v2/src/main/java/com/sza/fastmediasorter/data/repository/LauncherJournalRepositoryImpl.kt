@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.repository
 
 import com.sza.fastmediasorter.data.local.db.LauncherJournalDao
 import com.sza.fastmediasorter.data.local.db.LauncherJournalEntity
+import com.sza.fastmediasorter.data.local.db.LauncherLaunchStatsDao
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import kotlinx.coroutines.Dispatchers
@@ -13,14 +14,18 @@ import javax.inject.Inject
 
 class LauncherJournalRepositoryImpl @Inject constructor(
     private val dao: LauncherJournalDao,
+    private val statsDao: LauncherLaunchStatsDao,
 ) : LauncherJournalRepository {
 
     override suspend fun record(target: LauncherCellCommand) {
         withContext(Dispatchers.IO) {
-            dao.insert(
-                LauncherJournalEntity(target = target.encode(), launchedAt = System.currentTimeMillis())
-            )
+            val encoded = target.encode()
+            val launchedAt = System.currentTimeMillis()
+            dao.insert(LauncherJournalEntity(target = encoded, launchedAt = launchedAt))
             dao.trim(MAX_JOURNAL_ROWS)
+            // S1401: the counter lives outside the trimmed journal, so the "most used" order keeps
+            // counting past the 50 rows the recent strip retains.
+            statsDao.recordLaunch(encoded, launchedAt)
         }
     }
 
@@ -36,6 +41,12 @@ class LauncherJournalRepositoryImpl @Inject constructor(
                     .toList()
             }
             .distinctUntilChanged()
+
+    override suspend fun clearJournal() {
+        withContext(Dispatchers.IO) {
+            dao.deleteAll()
+        }
+    }
 
     private companion object {
         const val MAX_JOURNAL_ROWS = 50

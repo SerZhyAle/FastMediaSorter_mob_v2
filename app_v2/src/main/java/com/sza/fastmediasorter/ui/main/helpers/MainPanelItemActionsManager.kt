@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.streams.StreamTitleFormatter
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -73,7 +74,7 @@ class MainPanelItemActionsManager(
                 activity.lifecycleScope.launch { settingsRepository.updateSettings(apply(current)) }
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     /** S0779: turn off the Streams master toggle from the panel's entry menu; the settings collector then
@@ -114,6 +115,6 @@ class MainPanelItemActionsManager(
                 unpinStreamSource(channel.id)
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(activity)
     }
 }

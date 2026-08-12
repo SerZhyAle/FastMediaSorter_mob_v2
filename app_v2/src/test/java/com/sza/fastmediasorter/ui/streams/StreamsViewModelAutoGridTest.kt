@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamPlayOutcomesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.testing.MainDispatcherRule
 import io.mockk.every
@@ -35,6 +36,8 @@ class StreamsViewModelAutoGridTest {
         every { settingsRepository.getSettings() } returns flowOf(AppSettings())
         val favoritesUseCase = mockk<FavoritesUseCase>(relaxed = true)
         every { favoritesUseCase.observeFavoriteStreamUrls() } returns flowOf(emptySet())
+        val observeStreamPlayOutcomes = mockk<ObserveStreamPlayOutcomesUseCase>()
+        every { observeStreamPlayOutcomes() } returns flowOf(emptyMap())
         return StreamsViewModel(
             observeStreamSources = observeStreamSources,
             addStreamSource = mockk(relaxed = true),
@@ -46,6 +49,7 @@ class StreamsViewModelAutoGridTest {
             reorderPinnedStream = mockk(relaxed = true),
             removeStreamSource = mockk(relaxed = true),
             recordStreamPlayOutcome = mockk(relaxed = true),
+            observeStreamPlayOutcomes = observeStreamPlayOutcomes,
             getStreamSourceByUrl = mockk(relaxed = true),
             favoritesUseCase = favoritesUseCase,
             settingsRepository = settingsRepository,
@@ -55,6 +59,11 @@ class StreamsViewModelAutoGridTest {
             streamTrackPreferenceUseCase = mockk(relaxed = true),
             streamResumeStateRepository = mockk(relaxed = true),
             applicationScope = CoroutineScope(dispatcherRule.testDispatcher),
+            topicLabelProvider = mockk(relaxed = true),
+            // S1502: the catalog pass now runs on an injected dispatcher. Handing it the rule's test
+            // dispatcher keeps the emission synchronous, so the assertions below still observe the
+            // state without waiting on a real background thread.
+            defaultDispatcher = dispatcherRule.testDispatcher,
         )
     }
 

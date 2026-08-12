@@ -25,10 +25,18 @@ class ChannelPreviewAtlasStore @Inject constructor(
 ) {
     private val dir: File get() = File(File(context.filesDir, "delivery"), "CHANNEL_PREVIEW_ATLAS")
     private val atlas: File get() = File(dir, "channel-preview-atlas.webp")
+    private val tilePack: File get() = File(dir, "channel-preview-tiles.zip")
     private val coordsJson: File get() = File(dir, "channel-preview-coords.json")
 
     /** The downloaded atlas sheet, or null when the atlas is not installed. */
     fun atlasFile(): File? = atlas.takeIf { it.isFile }
+
+    /**
+     * S1445: the downloaded tile-pack container, or null when this install still carries the older
+     * sprite-sheet payload. The two coexist on purpose - the sheet stays readable until the user
+     * accepts the payload update.
+     */
+    fun tilePackFile(): File? = tilePack.takeIf { it.isFile }
 
     /**
      * The persisted `url -> tile_index` map. An absent or corrupt sidecar yields an empty map

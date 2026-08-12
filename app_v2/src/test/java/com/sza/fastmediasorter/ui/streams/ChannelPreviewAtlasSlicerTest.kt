@@ -17,7 +17,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [34])
 class ChannelPreviewAtlasSlicerTest {
 
-    private val slicer = ChannelPreviewAtlasSlicer { null }
+    private val slicer = ChannelPreviewAtlasSlicer({ null })
 
     @Test
     fun `rectFor matches the 240x135 34-col contract`() {

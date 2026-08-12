@@ -51,7 +51,7 @@
     <string name="sftp_test_connection">Перевірити з\'єднання</string>
     <string name="sftp_username">Ім\'я користувача</string>
     <string name="cloud_auth_copy_error">Потрібна авторизація Google Drive.\n\nБудь ласка, перейдіть в Ресурси та увійдіть у цей Cloud-ресурс.</string>
-    <string name="cloud_auth_dialog_message">Для доступу до \&quot;%1$s\&quot; потрібно увійти за допомогою акаунту %2$s.</string>
+    <string name="cloud_auth_dialog_message">Для доступу до \"%1$s\" потрібно увійти за допомогою акаунту %2$s.</string>
     <string name="cloud_auth_required">%1$s потребує повторної авторизації. Будь ласка, увійдіть знову.</string>
     <string name="cloud_check_failed">Не вдалося перевірити файл у хмарі. Спробуйте ще раз.</string>
     <string name="cloud_create_folder_failed">Не вдалося створити теку в хмарі. Спробуйте ще раз.</string>
@@ -60,7 +60,7 @@
     <string name="cloud_list_files_failed">Не вдалося завантажити файли з хмари. Спробуйте ще раз.</string>
     <string name="cloud_list_folders_failed">Не вдалося завантажити теки з хмари. Спробуйте ще раз.</string>
     <string name="cloud_metadata_failed">Не вдалося завантажити відомості про файл із хмари. Спробуйте ще раз.</string>
-    <string name="cloud_restore_instructions">Потрібно відновити з\'\u0454днання з Google Drive.\n\nБудь ласка:\n1. Перейдіть в Головне меню\n2. Відкрийте \'Ресурси\'\n3. Натисніть на \&quot;%1$s\&quot;\n4. Увійдіть за допомогою Google-акаунту</string>
+    <string name="cloud_restore_instructions">Потрібно відновити з\'\u0454днання з Google Drive.\n\nБудь ласка:\n1. Перейдіть в Головне меню\n2. Відкрийте \'Ресурси\'\n3. Натисніть на \"%1$s\"\n4. Увійдіть за допомогою Google-акаунту</string>
     <string name="cloud_search_failed">Не вдалося виконати пошук у хмарному сховищі. Спробуйте ще раз.</string>
     <string name="cloud_sign_out_failed">Не вдалося вийти з хмарного облікового запису. Спробуйте ще раз.</string>
     <string name="cloud_storage">Хмарне сховище</string>

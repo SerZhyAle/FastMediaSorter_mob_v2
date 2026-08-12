@@ -24,10 +24,12 @@ class MediaFamilyResolverTest {
 
     @Test
     fun testResolveDocument() {
+        // S1455: PDF and EPUB only. MediaTypeUtils recognises both from hardcoded literals, so they hold
+        // on every flavor. The office formats moved to MediaFamilyResolverDocumentsTest in
+        // src/testDocumentsEnabled - they come from OfficeDocumentFamilyCatalog, whose lite and photos
+        // copies are empty, so asserting them here failed on exactly the builds that never ship them.
         assertEquals(MediaFamily.DOCUMENT, MediaFamilyResolver.resolve("application/pdf", "test.pdf"))
         assertEquals(MediaFamily.DOCUMENT, MediaFamilyResolver.resolve("application/epub+zip", "test.epub"))
-        assertEquals(MediaFamily.DOCUMENT, MediaFamilyResolver.resolve("application/msword", "test.doc"))
-        assertEquals(MediaFamily.DOCUMENT, MediaFamilyResolver.resolve("text/rtf", "test.rtf"))
     }
 
     @Test

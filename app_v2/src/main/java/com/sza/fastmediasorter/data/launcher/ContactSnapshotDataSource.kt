@@ -41,15 +41,15 @@ class ContactSnapshotDataSource @Inject constructor(
 ) {
 
     /**
-     * The system picker whose result [readProfile] / [readDialTarget] / [readMessageChannels] consume.
+     * The system picker whose result [readProfile] / [readPhoneTarget] / [readMessageChannels] consume.
      *
-     * `DIAL` gets the phone-number picker rather than the contact picker on purpose: it returns the
-     * exact number row the user chose, so a contact with a work and a mobile number pins the one they
-     * meant instead of whichever the app would have guessed - and that row is readable under the grant
-     * with no deeper query at all.
+     * The two number-based actions get the phone-number picker rather than the contact picker on
+     * purpose: it returns the exact number row the user chose, so a contact with a work and a mobile
+     * number pins the one they meant instead of whichever the app would have guessed - and that row is
+     * readable under the grant with no deeper query at all.
      */
     fun pickIntent(action: LauncherContactAction): Intent = when (action) {
-        LauncherContactAction.DIAL ->
+        LauncherContactAction.DIAL, LauncherContactAction.SMS ->
             Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
 
         LauncherContactAction.PROFILE, LauncherContactAction.MESSAGE ->
@@ -67,11 +67,19 @@ class ContactSnapshotDataSource @Inject constructor(
         }?.takeIf { it.isUsable }
     }
 
-    /** Reads the picked phone row itself, so the number is the one the user pointed at. */
-    suspend fun readDialTarget(phoneUri: Uri): LauncherContactTarget? = withContext(Dispatchers.IO) {
+    /**
+     * Reads the picked phone row itself, so the number is the one the user pointed at.
+     *
+     * Serves both number-based actions: a call and an SMS pin the same row and differ only in the
+     * intent the cell fires later, so [action] is carried through rather than read from the row.
+     */
+    suspend fun readPhoneTarget(
+        phoneUri: Uri,
+        action: LauncherContactAction,
+    ): LauncherContactTarget? = withContext(Dispatchers.IO) {
         readRow(phoneUri, PHONE_PROJECTION) { cursor ->
             LauncherContactTarget(
-                action = LauncherContactAction.DIAL,
+                action = action,
                 lookupKey = cursor.getString(INDEX_PHONE_LOOKUP_KEY).orEmpty(),
                 phoneNumber = cursor.getString(INDEX_PHONE_NUMBER).orEmpty(),
                 displayName = cursor.getString(INDEX_PHONE_NAME).orEmpty(),

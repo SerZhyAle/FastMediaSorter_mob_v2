@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1560: the altitude gadget, built on the speed tile's shape. Nothing here sets a fixed height -
+     the desktop grid measures the cell and the value autosizes into it. The message line sits below
+     the value rather than replacing it, so a reading that momentarily goes missing does not blank a
+     tile that already had a number on it. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="@dimen/margin_small">
+
+        <!-- S1587: the tile's own name. A seeded desktop shows a bare "53 m" with nothing saying which
+             reading it is, and the spoken description already carries the name, so this line is visual
+             only. -->
+        <TextView
+            android:id="@+id/gadgetAltitudeCaption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:importantForAccessibility="no"
+            android:maxLines="1"
+            android:text="@string/launcher_gadget_altitude"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/gadgetAltitudeValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autoSizeMaxTextSize="40sp"
+            android:autoSizeMinTextSize="12sp"
+            android:autoSizeTextType="uniform"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold"
+            tools:ignore="UnusedAttribute"
+            tools:text="412 m" />
+
+        <TextView
+            android:id="@+id/gadgetAltitudeMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="11sp"
+            android:visibility="gone"
+            tools:text="No altitude yet"
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+</merge>

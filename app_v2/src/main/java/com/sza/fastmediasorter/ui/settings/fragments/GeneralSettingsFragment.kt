@@ -85,6 +85,9 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     // S0391: gate decides whether the cloud group toggle row is visible on this flavor.
     @Inject lateinit var remoteSourceAvailabilityGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 
+    // S1190: asks Play for the chosen interface language before the switch is applied.
+    @Inject lateinit var languageSplitInstaller: com.sza.fastmediasorter.core.util.LanguageSplitInstaller
+
     private val viewModel: SettingsViewModel by activityViewModels()
     private val backupViewModel: BackupRestoreViewModel by viewModels()
 
@@ -220,6 +223,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             ),
             ensureAllFilesPredefinedResourceUseCase = ensureAllFilesPredefinedResourceUseCase,
             remoteSourceAvailabilityGate = remoteSourceAvailabilityGate,
+            languageSplitInstaller = languageSplitInstaller,
         )
     }
     // S0328: color theme spinner (Auto/Light/Dark) in General → Interface, after the language spinner.

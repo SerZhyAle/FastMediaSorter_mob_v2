@@ -22,11 +22,11 @@ _Generated from the app. Do not edit by hand._
 | Clear streaming cache | Deletes temporary files buffered during streaming playback. |
 | How to publish PC folders to Android | Opens the PC-side guide on publishing folders to Android over SFTP (companion import / QR scan). |
 | Downloadable Extensions | Opens the downloadable extensions manager where you can install optional feature modules. |
-| Export Favorites | Exports your saved favorites list to a file you can back up or transfer. |
+| Export Favorites | Exports your saved favorites list to a file you can back up or transfer. Available when Favorites is enabled. |
 | Export resources to file | Saves all configured resources (folders, network connections) to an export file. |
 | Export All Settings to File | Saves all app settings to a file so you can restore or transfer them later. |
 | How-To Guides | Opens step-by-step how-to guides for the app's main features. |
-| Import Favorites | Imports a previously exported favorites list from a file. |
+| Import Favorites | Imports a previously exported favorites list from a file. Available when Favorites is enabled. |
 | Import resources from file | Imports previously exported resources (folders, network connections) from a file. |
 | Import Settings from File | Loads app settings from a previously exported file, replacing the current configuration. |
 | Import Test Setup | Imports a predefined test configuration used for QA and integration testing. |
@@ -69,7 +69,7 @@ _Generated from the app. Do not edit by hand._
 | Preload thumbnails | Preloads thumbnails for files ahead of scrolling so the grid loads faster. |
 | File operations in overflow menu | Moves file operations (copy, move, delete) into the overflow menu instead of showing them as buttons. |
 | Hide quick action buttons on thumbnails | Hides the quick action buttons overlaid on thumbnails in grid view. |
-| Language/Язык/Мова | Selects the language used for the app interface. |
+| Language/Язык/Мова | Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. |
 | Make this app the home screen | Makes the app the device home screen, so the Home button opens your own desktop. |
 | System launcher settings | Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density. |
 | Statistics | Opens the usage statistics screen. |
@@ -252,6 +252,7 @@ _Available in: Standard, Legacy, VR_
 | Calculator | Enables a quick-access calculator within the app. |
 | Allow copying | Allows files to be copied to Quick Sort destinations. |
 | Allow moving | Allows files to be moved to Quick Sort destinations. |
+| Network Monitor | Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself. |
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
 | Use scheduled operations | Activates the scheduler so configured operations run automatically at their set times. |
 | Rotate screen with OS auto-rotate (except player) | When on, every app window except the player follows the OS auto-rotate setting; when off, they rotate by the device sensor regardless of the OS lock. |
@@ -277,14 +278,25 @@ _Settings -> General -> System launcher settings_
 
 | Setting | What it does |
 |---|---|
+| Desktop | Settings for the launcher desktop itself: icon grid density, the edit lock and the wallpaper. |
+| System | Entry to the Android home-app chooser, where the system launcher is selected. |
+| Taskbar | Settings for the launcher taskbar at the bottom: recent and pinned apps, and which icons its tray shows. |
+| Top bar | Settings for the launcher's own top strip, which can replace the system status area. |
 | Grid density | Sets how many icons the launcher desktop grid fits per row and column. |
 | Lock desktop | Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable. |
 | Change home screen | Opens Android's default-launcher chooser to switch the system home screen. |
 | Replace system status area | Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar. |
 | Show pinned apps | Shows pinned apps on the launcher desktop. |
 | Show recent apps | Shows recently used apps on the launcher desktop. |
-| Show clock and status | Shows the clock and status indicators in the launcher's tray area. |
-| Desktop wallpaper | Chooses the launcher desktop's wallpaper. |
+| Show status tray | Master switch for the launcher's tray block; the switches below it decide which indicators the block contains. |
+| Clock and indicators on the top bar | Moves the clock with seconds to the left of the launcher top bar and the device indicators to the right, freeing the Start panel for more recent apps; available only while the system status area is replaced. |
+| Battery | Shows the battery charge in the launcher tray as a number in an outline, yellow below 30 percent, red below 15, blinking below 10. |
+| Bluetooth | Shows a Bluetooth icon in the launcher tray while the adapter is on. |
+| Clock | Shows the clock in the launcher tray. |
+| Network type | Shows the current connection type - Wi-Fi, mobile or wired - in the launcher tray. |
+| SIM 1 signal | Shows the signal level of the first SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or without a SIM in the slot. |
+| SIM 2 signal | Shows the signal level of the second SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or on a single-SIM device. |
+| Desktop wallpaper | Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, or your own image. |
 
 ## Edge gestures
 
@@ -297,17 +309,29 @@ _Settings -> Destinations -> Configure gestures_
 | General gesture settings | Section header for the general edge-gesture settings - screenshot destination, clipboard copy, and the app-launch panel editor. |
 | Save screenshots to clipboard | Also copies every captured screenshot to the clipboard, ready to paste. |
 | Down gesture action | Assigns the action triggered by swiping down from the left edge's lower gesture zone. |
+| App to launch | Chooses the app launched by swiping down in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Right gesture action | Assigns the action triggered by swiping right from the left edge's lower gesture zone. |
+| App to launch | Chooses the app launched by swiping right in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Up gesture action | Assigns the action triggered by swiping up from the left edge's lower gesture zone. |
+| App to launch | Chooses the app launched by swiping up in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Down gesture action | Assigns the action triggered by swiping down from the left edge's upper gesture zone. |
+| App to launch | Chooses the app launched by swiping down in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Right gesture action | Assigns the action triggered by swiping right from the left edge's upper gesture zone. |
+| App to launch | Chooses the app launched by swiping right in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Up gesture action | Assigns the action triggered by swiping up from the left edge's upper gesture zone. |
+| App to launch | Chooses the app launched by swiping up in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Down gesture action | Assigns the action triggered by swiping down from the right edge's lower gesture zone. |
+| App to launch | Chooses the app launched by swiping down in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Right gesture action | Assigns the action triggered by swiping right from the right edge's lower gesture zone. |
+| App to launch | Chooses the app launched by swiping right in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Up gesture action | Assigns the action triggered by swiping up from the right edge's lower gesture zone. |
+| App to launch | Chooses the app launched by swiping up in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Down gesture action | Assigns the action triggered by swiping down from the right edge's upper gesture zone. |
+| App to launch | Chooses the app launched by swiping down in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Right gesture action | Assigns the action triggered by swiping right from the right edge's upper gesture zone. |
+| App to launch | Chooses the app launched by swiping right in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Up gesture action | Assigns the action triggered by swiping up from the right edge's upper gesture zone. |
+| App to launch | Chooses the app launched by swiping up in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter. |
 | Left edge - lower band | Enables the edge-gesture zone at the left edge's lower band. |
 | Show the gesture strip | Shows the semi-transparent gesture-strip guide for the left edge's lower zone. |
 | Left edge - upper band | Enables the edge-gesture zone at the left edge's upper band. |
@@ -354,3 +378,11 @@ _Reached from the on-screen translation overlay, not from Settings._
 | Font Family | Chooses the font family used to render translated text. |
 | Font Size | Chooses the font size used to render translated text. |
 | Translation result in blocks | Shows the translation result as opaque blocks over the original text, matching Google Lens style. |
+
+## Network Monitor
+
+_Reached from Network Monitor -> Satellites, not from Settings._
+
+| Setting | What it does |
+|---|---|
+| Record the track on this device | Writes the satellite positions to a file on this device while the Network Monitor Satellites screen is open. Off after installation; the track never leaves the device and can be shared from that screen. |

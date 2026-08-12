@@ -6,6 +6,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import androidx.room.withTransaction
 import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -378,6 +379,7 @@ class ImportSettingsUseCase @Inject constructor(
             Result.success(Unit)
             } // End of inputStream.use block
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to import settings")
             Result.failure(e)
         }
@@ -562,6 +564,7 @@ class ImportSettingsUseCase @Inject constructor(
             Timber.e(e, "Backup JSON is corrupted")
             Result.failure(Exception("Backup file is damaged. Cannot restore."))
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to import JSON backup")
             Result.failure(e)
         }

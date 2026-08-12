@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.data.repository
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.okio.OkioStorage
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.PreferencesSerializer
 import androidx.datastore.preferences.core.preferencesOf
 import com.sza.fastmediasorter.domain.model.AppSettings
 import io.mockk.coEvery
@@ -17,11 +19,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import okio.FileSystem
+import okio.Path.Companion.toOkioPath
 import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -61,6 +64,19 @@ class SettingsRepositoryImplTest {
 
     // S1045: real DataStore + real context for genuine persistence round-trips of the key mapping.
     private val realStoreScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    /**
+     * S1449: okio storage, not the default File storage. FileStorage persists via File.renameTo,
+     * which on Windows cannot replace an existing destination, so every write after the first one
+     * failed. OkioStorage moves via Files.move(ATOMIC_MOVE, REPLACE_EXISTING), which does replace.
+     */
+    private fun realDataStore(fileName: String): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create(
+            storage = OkioStorage(FileSystem.SYSTEM, PreferencesSerializer) {
+                tempFolder.root.resolve(fileName).toOkioPath()
+            },
+            scope = realStoreScope,
+        )
 
     @After
     fun tearDown() {
@@ -121,35 +137,33 @@ class SettingsRepositoryImplTest {
     // write lands.
     @Test
     fun `updateSettings transform overload serializes concurrent writers - no lost update`() = runTest {
-        val state = MutableStateFlow(AppSettings(enableOcr = false, enableTranslation = false))
-        every { repo.getSettings() } returns state
-        coEvery { repo.updateSettings(any<AppSettings>()) } coAnswers {
-            state.value = it.invocation.args[0] as AppSettings
-        }
+        val realRepo = SettingsRepositoryImpl(
+            RuntimeEnvironment.getApplication(),
+            realDataStore("s0876_concurrent_settings.preferences_pb")
+        )
 
         val writerA = launch {
-            repo.updateSettings { current ->
-                delay(50) // holds transformMutex, forcing writer B to queue behind this transform
+            realRepo.updateSettings { current ->
+                delay(50) // holds the settings mutex, forcing writer B to queue behind this transform
                 current.copy(enableOcr = true)
             }
         }
         val writerB = launch {
-            repo.updateSettings { current -> current.copy(enableTranslation = true) }
+            realRepo.updateSettings { current -> current.copy(enableTranslation = true) }
         }
         writerA.join()
         writerB.join()
 
-        assertTrue("writer A's field must survive writer B's write", state.value.enableOcr)
-        assertTrue("writer B's field must survive writer A's write", state.value.enableTranslation)
+        val result = realRepo.getSettings().first()
+        assertTrue("writer A's field must survive writer B's write", result.enableOcr)
+        assertTrue("writer B's field must survive writer A's write", result.enableTranslation)
     }
 
     // S1045: secureSensitiveScreens must default to true on a fresh install (absent key) and
     // survive a save-false -> load-false round-trip through a real DataStore.
     @Test
     fun `secureSensitiveScreens defaults true and round-trips false through DataStore`() = runTest {
-        val realStore = PreferenceDataStoreFactory.create(scope = realStoreScope) {
-            tempFolder.newFile("s1045_settings.preferences_pb")
-        }
+        val realStore = realDataStore("s1045_settings.preferences_pb")
         val realRepo = SettingsRepositoryImpl(
             RuntimeEnvironment.getApplication(),
             realStore
@@ -171,9 +185,7 @@ class SettingsRepositoryImplTest {
 
     @Test
     fun `launcherReplaceSystemStatusArea defaults false and round-trips true through DataStore`() = runTest {
-        val realStore = PreferenceDataStoreFactory.create(scope = realStoreScope) {
-            tempFolder.newFile("s1087_settings.preferences_pb")
-        }
+        val realStore = realDataStore("s1087_settings.preferences_pb")
         val realRepo = SettingsRepositoryImpl(RuntimeEnvironment.getApplication(), realStore)
 
         assertFalse(

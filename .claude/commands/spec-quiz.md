@@ -59,7 +59,7 @@ Read spec and pull concrete items blocking next transition:
 
 - **`Draft`** - every §3.3 bullet whose value is unfilled bracketed placeholder or empty; every §6 research item with `Status: Open`; any §3/§4 scope ambiguity author flagged for owner.
 - **`BlockQuestions`** - questions verbatim from `**Status note:**`, plus any §6 `Open` items and §0 captured text the block refers to.
-- **`BlockByOtherTask`** - dependency id named in §10 / status note.
+- **`BlockByOtherTask`** - dependency id carried as a `Blocker: Sxxxx` token in §10 or the status note; a bare §10 mention is a relation, not a dependency (S1482).
 
 For each candidate decision point, **research a recommended answer first** (codebase via `dev/CATALOG/scripts/query.ps1`, docs, existing tickets via `search.ps1`). Two outcomes:
 

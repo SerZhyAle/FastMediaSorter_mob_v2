@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.applaunchpanel.edit
 
 import android.app.Dialog
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -25,6 +26,7 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.flow
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -52,6 +54,10 @@ class ResourcePickerDialogFragment : DialogFragment() {
     // its media; null keeps the panel editor's list unfiltered.
     private var mediaTypeFilter: MediaType? = null
 
+    // S1423: opt-in "Create new.." row. Defaults to off, because this dialog is shared with the
+    // app-launch-panel editor, which ships in every flavor and has no home screen to pin to.
+    private var allowCreateNew: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NO_TITLE, 0)
@@ -59,6 +65,7 @@ class ResourcePickerDialogFragment : DialogFragment() {
         requestKey = requireArguments().getString(ARG_REQUEST_KEY) ?: RESULT_KEY
         mediaTypeFilter = requireArguments().getString(ARG_MEDIA_TYPE_FILTER)
             ?.let { name -> MediaType.entries.firstOrNull { it.name == name } }
+        allowCreateNew = requireArguments().getBoolean(ARG_ALLOW_CREATE_NEW, false)
     }
 
     override fun onCreateView(
@@ -74,15 +81,38 @@ class ResourcePickerDialogFragment : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.tvOptionPickerTitle.text = getString(R.string.app_launch_panel_picker_resource_title)
         binding.tvOptionPickerTitle.isVisible = true
+        val columns = SearchableOptionPickerWindow.columnsFor(resources.displayMetrics)
+        Timber.d("S1413: resource picker attached with %d columns", columns)
         collectOnLifecycle(flow { emit(buildOptions()) }) { options ->
-            SearchableOptionPickerController.attach(binding, options, selectedId = null, resetRow = null) { picked ->
+            SearchableOptionPickerController.attach(
+                binding = binding,
+                options = options,
+                selectedId = null,
+                resetRow = null,
+                columns = columns,
+            ) { picked ->
                 picked?.let { onResourcePicked(it.id) }
             }
         }
     }
 
-    private suspend fun buildOptions(): List<Option> =
-        resourceRepository.getAllResourcesSync()
+    /**
+     * S1413: a host that absorbs rotation through android:configChanges never recreates this dialog, so
+     * the column count derived in [onViewCreated] would stay at the portrait value on a screen twice as
+     * wide. Only the span count changes - re-attaching would throw away the user's search text.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (_binding == null) return
+        SearchableOptionPickerWindow.apply(dialog, binding)
+        SearchableOptionPickerController.reflowColumns(
+            binding,
+            SearchableOptionPickerWindow.columnsFor(resources.displayMetrics),
+        )
+    }
+
+    private suspend fun buildOptions(): List<Option> {
+        val resourceOptions = resourceRepository.getAllResourcesSync()
             .filter { matchesMediaFilter(it) }
             .map { resource ->
                 Option(
@@ -91,6 +121,15 @@ class ResourcePickerDialogFragment : DialogFragment() {
                     leading = LeadingVisual.IconRes(resourceIconRes(resource.type)),
                 )
             }
+        if (!allowCreateNew) return resourceOptions
+        // First position, so D-pad focus reaches "Create new.." before the resource list.
+        val createNew = Option(
+            id = OPTION_CREATE_NEW,
+            label = getString(R.string.launcher_create_resource_picker_item),
+            leading = LeadingVisual.IconRes(R.drawable.ic_add),
+        )
+        return listOf(createNew) + resourceOptions
+    }
 
     /**
      * S0404: permissive by design. The test is `AUDIO in supportedMediaTypes`, not `isAudioOnly()`, so a
@@ -106,10 +145,14 @@ class ResourcePickerDialogFragment : DialogFragment() {
     private fun resourceIconRes(type: ResourceType): Int = ResourceTypeIconMap.iconFor(type)
 
     private fun onResourcePicked(resourceId: String) {
-        setFragmentResult(
-            requestKey,
-            bundleOf(RESULT_SLOT to slotIndex, RESULT_RESOURCE_ID to resourceId.toLong()),
-        )
+        // S1423: the create-new row is not a row id - the branch must come before toLong(), which
+        // would throw on it. The host reads RESULT_CREATE_NEW and starts creation itself.
+        val result = if (resourceId == OPTION_CREATE_NEW) {
+            bundleOf(RESULT_SLOT to slotIndex, RESULT_CREATE_NEW to true)
+        } else {
+            bundleOf(RESULT_SLOT to slotIndex, RESULT_RESOURCE_ID to resourceId.toLong())
+        }
+        setFragmentResult(requestKey, result)
         dismiss()
     }
 
@@ -134,9 +177,16 @@ class ResourcePickerDialogFragment : DialogFragment() {
         const val RESULT_SLOT = "result_slot"
         const val RESULT_RESOURCE_ID = "result_resource_id"
 
+        /** S1423: true when the user picked "Create new.." instead of an existing resource. */
+        const val RESULT_CREATE_NEW = "result_create_new"
+
         private const val ARG_SLOT = "arg_slot"
         private const val ARG_REQUEST_KEY = "arg_request_key"
         private const val ARG_MEDIA_TYPE_FILTER = "arg_media_type_filter"
+        private const val ARG_ALLOW_CREATE_NEW = "arg_allow_create_new"
+
+        // Not a resource row id, so it can never collide with one - those are Long.toString().
+        private const val OPTION_CREATE_NEW = "option_create_new"
 
         fun newInstance(slotIndex: Int): ResourcePickerDialogFragment =
             ResourcePickerDialogFragment().apply { arguments = bundleOf(ARG_SLOT to slotIndex) }
@@ -159,6 +209,18 @@ class ResourcePickerDialogFragment : DialogFragment() {
                 arguments = bundleOf(
                     ARG_REQUEST_KEY to requestKey,
                     ARG_MEDIA_TYPE_FILTER to mediaTypeFilter?.name,
+                )
+            }
+
+        /**
+         * S1423: host factory that also offers a "Create new.." row as the first option. Only a host
+         * with a home screen to pin to asks for it; every other factory leaves it off.
+         */
+        fun newInstance(requestKey: String, allowCreateNew: Boolean): ResourcePickerDialogFragment =
+            ResourcePickerDialogFragment().apply {
+                arguments = bundleOf(
+                    ARG_REQUEST_KEY to requestKey,
+                    ARG_ALLOW_CREATE_NEW to allowCreateNew,
                 )
             }
     }

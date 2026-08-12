@@ -1,32 +1,42 @@
 package com.sza.fastmediasorter.ui.launcher.helpers
 
+import android.Manifest
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactChannel
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactTarget
 import com.sza.fastmediasorter.domain.usecase.launcher.PickContactShortcutUseCase
+import com.sza.fastmediasorter.ui.common.permissions.canRequestPermission
+import com.sza.fastmediasorter.ui.common.permissions.markPermissionRequested
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
+import com.sza.fastmediasorter.ui.launcher.picker.LauncherPhoneNumberDialogFragment
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
- * S1176: drives "put a person on the desktop" - ask what the cell should do, hand off to the system
- * picker for that action, and report back the snapshot to pin. The Activity only says where the cell
- * goes; none of this flow lives there (Rule 3).
+ * S1176: drives "put a person on the desktop" - hand off to the system picker for the chosen action
+ * and report back the snapshot to pin. The Activity only says where the cell goes; none of this flow
+ * lives there (Rule 3).
  *
- * **The action is asked before the contact, not after.** It decides which system picker opens: calling
- * uses the phone-number picker so the user pins the exact number they meant, while the other two use
- * the contact picker. Asking afterwards would mean guessing a number on their behalf.
+ * **The action arrives already chosen, and it decides which system picker opens.** S0428 turned it
+ * into four rows of the editor's own first list, so nothing here asks for it. Calling and texting use
+ * the phone-number picker, so the user pins the exact number they meant rather than one the app would
+ * have guessed; the other two use the contact picker.
  *
  * S1195: the two operations arrive as functions rather than the use case, so the host Activity routes
  * them through its ViewModel instead of injecting a domain type (CLAUDE.md Rule 3). They stay lazy for
@@ -46,20 +56,116 @@ class LauncherContactPickManager(
      */
     private var pendingAction: LauncherContactAction? = null
 
+    /**
+     * S1206: the pick waiting on the contacts answer. Held like [pendingAction] above and
+     * `LauncherSensorPermissionManager.pendingPlacement`, for the same reason - one modal flow at a time.
+     */
+    private var pendingPick: (() -> Unit)? = null
+
     private val systemPicker = activity.registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { result -> onPickResult(result) }
 
-    /** Entry point: the user chose "Contact" on the empty cell they tapped. */
-    fun start() {
-        val options = LauncherContactAction.entries.map { action ->
-            SearchableOptionPickerDialog.Option(id = action.name, label = activity.getString(labelOf(action)))
+    private val contactsPermission = activity.registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) {
+        val pending = pendingPick
+        pendingPick = null
+        pending?.invoke()
+    }
+
+    /**
+     * Entry point: the user chose one of the four contact rows on the empty cell they tapped.
+     *
+     * S1206: the contacts permission is asked for here, at the moment the person is pinned, because
+     * that is where its effect is visible. The answer never decides whether the cell appears - a
+     * refusal simply leaves it working from the snapshot, which is what it has always done.
+     */
+    fun start(action: LauncherContactAction) {
+        Timber.d("S0428: contact cell flow started action=%s", action.name)
+        val granted = ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_CONTACTS) ==
+            PackageManager.PERMISSION_GRANTED
+        val askable = activity.canRequestPermission(Manifest.permission.READ_CONTACTS)
+        Timber.d("S1206: pin flow contacts granted=%s askable=%s", granted, askable)
+        if (askable) {
+            explainThenAsk(action)
+        } else {
+            pick(action)
         }
-        showPicker(R.string.launcher_contact_action_title, options, TAG_ACTION, KEY_ACTION) { pickedId ->
-            LauncherContactAction.entries
-                .firstOrNull { it.name == pickedId }
-                ?.let(::launchSystemPicker)
+    }
+
+    private fun explainThenAsk(action: LauncherContactAction) {
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.permissions_required_title)
+            .setMessage(
+                activity.permissionRationale(
+                    Manifest.permission.READ_CONTACTS,
+                    PermissionTask.CONTACT_CELL_PINNING,
+                ),
+            )
+            .setPositiveButton(R.string.grant_permissions) { _, _ ->
+                pendingPick = { pick(action) }
+                activity.markPermissionRequested(Manifest.permission.READ_CONTACTS)
+                contactsPermission.launch(Manifest.permission.READ_CONTACTS)
+            }
+            .setNegativeButton(R.string.continue_anyway) { _, _ -> pick(action) }
+            // Back or a tap outside is an answer too, and it must not swallow the pin the user asked for.
+            .setOnCancelListener { pick(action) }
+            .show()
+    }
+
+    private fun pick(action: LauncherContactAction) {
+        when (action) {
+            LauncherContactAction.DIAL, LauncherContactAction.SMS -> askNumberSource(action)
+            LauncherContactAction.PROFILE, LauncherContactAction.MESSAGE -> launchSystemPicker(action)
         }
+    }
+
+    /**
+     * S0428: the address book is the usual source of a number, not the only one. A number that was
+     * never saved, or a device carrying no contacts at all, would otherwise dead-end on a toast.
+     */
+    private fun askNumberSource(action: LauncherContactAction) {
+        val options = listOf(
+            SearchableOptionPickerDialog.Option(
+                id = SOURCE_PICK,
+                label = activity.getString(R.string.launcher_contact_source_pick),
+            ),
+            SearchableOptionPickerDialog.Option(
+                id = SOURCE_MANUAL,
+                label = activity.getString(R.string.launcher_contact_source_manual),
+            ),
+        )
+        showPicker(R.string.launcher_contact_source_title, options, TAG_SOURCE, KEY_SOURCE) { pickedId ->
+            when (pickedId) {
+                SOURCE_PICK -> launchSystemPicker(action)
+                SOURCE_MANUAL -> askNumber(action)
+            }
+        }
+    }
+
+    /**
+     * The typed number is its own caption: there is no name to show, and a cell labelled with the
+     * number is what the user just told us they wanted on the desktop.
+     */
+    private fun askNumber(action: LauncherContactAction) {
+        val manager = activity.supportFragmentManager
+        manager.setFragmentResultListener(KEY_NUMBER, activity) { _, bundle ->
+            bundle.getString(LauncherPhoneNumberDialogFragment.RESULT_NUMBER)?.let { number ->
+                // Length only - the number itself is user data and never reaches the log.
+                Timber.d("S0428: manual number pinned action=%s digits=%d", action.name, number.length)
+                onTargetPicked(
+                    LauncherContactTarget(
+                        action = action,
+                        phoneNumber = number,
+                        displayName = number,
+                    ),
+                )
+            }
+        }
+        if (manager.findFragmentByTag(LauncherPhoneNumberDialogFragment.TAG) != null) return
+        LauncherPhoneNumberDialogFragment.newInstance(KEY_NUMBER)
+            .show(manager, LauncherPhoneNumberDialogFragment.TAG)
     }
 
     private fun launchSystemPicker(action: LauncherContactAction) {
@@ -140,18 +246,11 @@ class LauncherContactPickManager(
         ).show(manager, tag)
     }
 
-    @StringRes
-    private fun labelOf(action: LauncherContactAction): Int = when (action) {
-        LauncherContactAction.PROFILE -> R.string.launcher_contact_action_profile
-        LauncherContactAction.DIAL -> R.string.launcher_contact_action_dial
-        LauncherContactAction.MESSAGE -> R.string.launcher_contact_action_message
-    }
-
     /** Per-action wording: "this contact has no number" is a different fact from "cannot read it". */
     @StringRes
     private fun unavailableMessage(action: LauncherContactAction): Int = when (action) {
         LauncherContactAction.PROFILE -> R.string.launcher_contact_read_failed
-        LauncherContactAction.DIAL -> R.string.launcher_contact_no_number
+        LauncherContactAction.DIAL, LauncherContactAction.SMS -> R.string.launcher_contact_no_number
         LauncherContactAction.MESSAGE -> R.string.launcher_contact_no_channel
     }
 
@@ -160,11 +259,15 @@ class LauncherContactPickManager(
     }
 
     private companion object {
-        const val TAG_ACTION = "LauncherContactAction"
         const val TAG_CHANNEL = "LauncherContactChannel"
+        const val TAG_SOURCE = "LauncherContactNumberSource"
 
-        // One key per picker this manager can open, so the action pick never lands in the channel step.
-        const val KEY_ACTION = "launcher_contact_action_pick"
+        // One key per dialog this manager can open, so a pick never lands in another step's listener.
         const val KEY_CHANNEL = "launcher_contact_channel_pick"
+        const val KEY_SOURCE = "launcher_contact_source_pick"
+        const val KEY_NUMBER = "launcher_contact_number_entry"
+
+        const val SOURCE_PICK = "pick"
+        const val SOURCE_MANUAL = "manual"
     }
 }

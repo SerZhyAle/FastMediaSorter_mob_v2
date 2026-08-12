@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [string] $Id,
     [switch] $Confirm,
@@ -26,6 +26,9 @@ trap {
 if ($Id -notmatch '^S\d{4}$') { throw "Invalid -Id '$Id' (must match S####)." }
 
 $records = [System.Collections.Generic.List[object]]::new()
+# S1437: read -> mutate -> write is one critical section. The early-exit paths below leave the
+# lock held until the process ends, which releases it - these scripts exit immediately after.
+Enter-CatalogLock
 foreach ($r in (Read-Catalog)) { $records.Add($r) }
 
 $idx = -1
@@ -64,5 +67,6 @@ Assert-Record -Record $archived
 Add-ArchiveRecord -Record $archived
 $remaining = @($records | Where-Object { $_.id -ne $Id })
 Write-Catalog -Records ([object[]]$remaining)
+Exit-CatalogLock
 Write-Output "$Id Archived."
 exit 0

@@ -54,6 +54,7 @@ import com.sza.fastmediasorter.ui.browse.managers.BrowseManagerInitializer
 import com.sza.fastmediasorter.ui.browse.managers.BrowseMicRecordingManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowsePassthroughCaptureProvider
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -82,7 +83,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         if (granted) {
             viewModel.state.value.resource?.let { micRecordingManager.startRecording(it) }
         } else {
-            Toast.makeText(this, R.string.mic_recording_permission_denied, Toast.LENGTH_LONG).show()
+            val message = permissionRationaleShort(Manifest.permission.RECORD_AUDIO)
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -333,6 +335,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     override fun getViewBinding(): ActivityBrowseBinding {
         return ActivityBrowseBinding.inflate(layoutInflater)
     }
+
+    // S1398 §6.2: the S1227 text strip already reports a backgrounded transfer here, with the
+    // percent in figures and a tap that brings the dialog back, so the hairline bar would be a
+    // second indicator in the same zone.
+    override fun showsBackgroundOperationBar(): Boolean = false
 
     // S0230 Phase 02 - TV initial focus on the file list so the first D-pad press lands on a row.
     // S0289: when list is empty, fall back to btnBack so D-pad has a visible target.

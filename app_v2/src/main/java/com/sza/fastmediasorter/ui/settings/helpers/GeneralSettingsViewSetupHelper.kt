@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
 import com.sza.fastmediasorter.core.logging.DebugLogMirrorPrefs
 import com.sza.fastmediasorter.core.logging.LoggingHelper
+import com.sza.fastmediasorter.core.util.LanguageSplitInstaller
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
@@ -28,6 +29,7 @@ import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.statistics.StatisticsActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
+import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -40,6 +42,7 @@ class GeneralSettingsViewSetupHelper(
     private val actionHelpers: GeneralSettingsActionHelpers,
     private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase,
     private val remoteSourceAvailabilityGate: RemoteSourceAvailabilityGate,
+    private val languageSplitInstaller: LanguageSplitInstaller,
 ) {
     // S1351: delegating properties, not a body-wide holder-prefix rewrite - every setupXxx
     // function below keeps reading the bare short name it always did (binding.xxx, viewModel.xxx,
@@ -169,7 +172,7 @@ class GeneralSettingsViewSetupHelper(
                         isUpdatingSpinner.set(false)
                         dialog.dismiss()
                     }
-                    .show()
+                    .showBoundTo(fragment)
             }
         }
         // S0911: main-window programs panel toggle (moved from Operations > Additional Programs).
@@ -299,7 +302,7 @@ class GeneralSettingsViewSetupHelper(
                 isUpdatingSpinner.set(false)
                 dialog.dismiss()
             }
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun groupHasResources(types: List<ResourceType>): Boolean =
@@ -561,7 +564,7 @@ class GeneralSettingsViewSetupHelper(
                 .setMessage(R.string.import_resources_message)
                 .setPositiveButton(R.string.yes) { _, _ -> viewModel.importSzaResources(fragment.requireContext()) }
                 .setNegativeButton(R.string.no, null)
-                .show()
+                .showBoundTo(fragment)
         }
     }
 
@@ -685,17 +688,39 @@ class GeneralSettingsViewSetupHelper(
         MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.restart_app_title)
             .setMessage(fragment.getString(R.string.restart_app_message, languageName))
-            .setPositiveButton(R.string.restart) { _, _ ->
-                val currentSettings = viewModel.settings.value
-                viewModel.updateSettings(currentSettings.copy(language = newLanguageCode))
-                LocaleHelper.markReturnToSettings(fragment.requireContext())
-                LocaleHelper.changeLanguage(fragment.requireActivity(), newLanguageCode)
-            }
+            .setPositiveButton(R.string.restart) { _, _ -> applyLanguageWhenAvailable(newLanguageCode) }
             // Declining needs no restore: the row keeps showing the language still in effect, because
             // its value only changes once the observer sees the saved setting.
             .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
             .setCancelable(false)
-            .show()
+            .showBoundTo(fragment)
+    }
+
+    // S1190: an install from Play carries only the locales the device asked for, so a language the
+    // user never had has to arrive before it is applied - applying first restarts into the old strings.
+    private fun applyLanguageWhenAvailable(newLanguageCode: String) {
+        Timber.d("S1190: settings language switch confirmed, resolving availability")
+        // The sentinel names no split: whatever the system is set to is a locale the install already has.
+        if (newLanguageCode == LocaleHelper.FOLLOW_SYSTEM_LANGUAGE) {
+            applyLanguage(newLanguageCode)
+            return
+        }
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            when (languageSplitInstaller.ensureLanguage(newLanguageCode)) {
+                is LanguageSplitInstaller.Outcome.Failed -> Toast.makeText(
+                    fragment.requireContext(),
+                    R.string.language_download_failed,
+                    Toast.LENGTH_LONG
+                ).show()
+                else -> applyLanguage(newLanguageCode)
+            }
+        }
+    }
+
+    private fun applyLanguage(newLanguageCode: String) {
+        viewModel.updateSettings(viewModel.settings.value.copy(language = newLanguageCode))
+        LocaleHelper.markReturnToSettings(fragment.requireContext())
+        LocaleHelper.changeLanguage(fragment.requireActivity(), newLanguageCode)
     }
 
     private fun openUrl(url: String, notFoundMessage: String) {

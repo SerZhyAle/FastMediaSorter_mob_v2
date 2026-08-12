@@ -1,6 +1,9 @@
 package com.sza.fastmediasorter.ui.launcher.grid
 
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 
 /**
  * S0404: desktop grid sizing. The column count is derived from the screen at render time and the
@@ -37,6 +40,18 @@ object LauncherGridGeometry {
     fun rowsFor(cells: List<LauncherCell>): Int =
         cells.maxOfOrNull { safeRow(it.rowIndex) + safeSpanH(it.spanH) } ?: 1
 
+    /**
+     * How many rows a viewport of [availableHeightPx] covers - the second axis of [columns], and the
+     * only thing that lets edit mode fill the screen instead of stopping under the last cell (S1288).
+     *
+     * Rounded up on purpose: a partially visible row at the bottom edge costs nothing and doubles as
+     * the sign that the desktop scrolls, while rounding down leaves exactly the strip of bare
+     * wallpaper this exists to remove. Returns 0 when either input is still unknown, so a caller that
+     * asks before the surface is measured falls back to its content-driven row count.
+     */
+    fun rowsForViewport(availableHeightPx: Int, cellSizePx: Int): Int =
+        if (availableHeightPx <= 0 || cellSizePx <= 0) 0 else (availableHeightPx + cellSizePx - 1) / cellSizePx
+
     /** The squares a cell occupies once clamped to the grid it is being drawn on. */
     data class CellFootprint(val row: Int, val col: Int, val spanW: Int, val spanH: Int) {
         val rows: IntRange get() = row until row + spanH
@@ -69,8 +84,70 @@ object LauncherGridGeometry {
         )
     }
 
+    /**
+     * S1428: the width a cell is actually drawn at. A section header always spans the whole row,
+     * whatever span it was stored with: [footprint]'s clamp only ever narrows a span, so a header
+     * saved on a three-column grid would keep a strip of empty space to its right once the density
+     * factor or a rotation widened the grid (strategic §5.1.2).
+     *
+     * Every caller that positions a cell or counts occupied squares must go through this. If the
+     * renderer widened the header while the empty-slot sweep still used the stored span, edit mode
+     * would draw "tap to add" squares on top of a live header - the exact failure [footprint]'s own
+     * KDoc describes.
+     */
+    fun renderSpanW(cell: LauncherCell, columns: Int): Int =
+        if (cell.kind == LauncherCellKind.SECTION) columns.coerceAtLeast(1) else cell.spanW
+
     fun footprintOf(cell: LauncherCell, columns: Int): CellFootprint =
-        footprint(cell.rowIndex, cell.colIndex, cell.spanW, cell.spanH, columns)
+        footprint(cell.rowIndex, cell.colIndex, renderSpanW(cell, columns), cell.spanH, columns)
+
+    /** S1428: a cell paired with the row it is drawn on once collapsed sections are folded shut. */
+    data class RenderedCell(val item: LauncherCellUi, val renderRow: Int)
+
+    /**
+     * S1428: the desktop as it is drawn - every cell inside a collapsed section dropped, everything
+     * below one lifted by that section's height. Storage is untouched: this is a projection of the
+     * stored rows, computed on every render (strategic §5.1.6).
+     *
+     * The row arithmetic itself lives in
+     * [LauncherSectionMembership][com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership]
+     * rather than here, and deliberately: this object is in `src/launcherEnabled`, which the four
+     * launcher-less flavors do not compile, so a shared unit test cannot reach it. Only the plumbing
+     * that needs [LauncherCellUi] stays on this side.
+     *
+     * A section is addressed by the encoded target of its header cell, never by its row: a header the
+     * user drags to another row is the same section, and a row that later carries a different header is
+     * not.
+     */
+    fun renderPlan(cells: List<LauncherCellUi>, collapsedSections: Set<String>): List<RenderedCell> {
+        val stored = cells.map { it.cell }
+        val headerRows = LauncherSectionMembership.headerRows(stored)
+        val collapsedHeaderRows = stored
+            .filter { it.kind == LauncherCellKind.SECTION && it.target in collapsedSections }
+            .map { it.rowIndex.coerceAtLeast(0) }
+            .toSet()
+        return cells.mapNotNull { item ->
+            LauncherSectionMembership.renderRowFor(item.cell.rowIndex, headerRows, collapsedHeaderRows)
+                ?.let { RenderedCell(item, it) }
+        }
+    }
+
+    /**
+     * Rows the canvas needs for an already folded desktop - [rowsFor] over drawn rows instead of stored
+     * ones. Folding has to shrink the canvas with it, or the desktop keeps scrolling over the empty
+     * height the hidden cells used to occupy.
+     */
+    fun rowsForRendered(rendered: List<RenderedCell>): Int =
+        rendered.maxOfOrNull { safeRow(it.renderRow) + safeSpanH(it.item.cell.spanH) } ?: 1
+
+    /** [footprintOf] at the drawn row, so layout and the empty-slot sweep agree on a folded desktop. */
+    fun footprintOfRendered(rendered: RenderedCell, columns: Int): CellFootprint = footprint(
+        row = rendered.renderRow,
+        col = rendered.item.cell.colIndex,
+        spanW = renderSpanW(rendered.item.cell, columns),
+        spanH = rendered.item.cell.spanH,
+        columns = columns,
+    )
 
     /** Where a cell actually lands, given the column count resolved right now. */
     fun boundsFor(cell: LauncherCell, cellSize: Int, columns: Int): CellBounds =

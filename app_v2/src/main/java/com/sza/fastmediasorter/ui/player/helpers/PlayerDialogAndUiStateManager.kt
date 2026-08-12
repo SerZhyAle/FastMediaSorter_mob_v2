@@ -2,9 +2,9 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import com.google.android.material.snackbar.Snackbar
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
+import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.ui.player.DestinationButtonsManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerDialogHelper
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -181,7 +182,7 @@ class PlayerDialogAndUiStateManager(
                 }
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundTo(activity)
     }
     
     /**
@@ -587,6 +588,30 @@ class PlayerDialogAndUiStateManager(
         } else currentFile
         Timber.d("showFileInfo: exoDuration=$exoDuration, exoSize=${exoWidth}x${exoHeight}")
         dialogHelper.showFileInfo(enrichedFile)
+    }
+
+    /**
+     * S1474: "about this channel" for the stream the player is showing.
+     *
+     * The running engine is handed to the window rather than a second connection being opened, so the
+     * picture the user is watching is never disturbed - and it is only borrowed: nothing here prepares,
+     * stops or releases it. A channel the list does not know still opens the window, with its address and
+     * its measured values and without a stored part (owner ruling, 2026-08-07).
+     */
+    @androidx.media3.common.util.UnstableApi
+    fun showStreamInfo() {
+        val url = viewModel.state.value.currentFile?.path
+        if (url.isNullOrBlank()) {
+            Toast.makeText(activity, activity.getString(R.string.file_info_unavailable), Toast.LENGTH_SHORT).show()
+            return
+        }
+        lifecycleScope.launch {
+            val source = viewModel.streamSourceByUrl(url)
+            val engine = activity._videoPlayerManager?.getPlayer()
+            val outcome = source?.let { viewModel.streamPlayOutcome(it.id) }
+            Timber.d("S1474: player menu opens the window, in list = %s, engine = %s", source != null, engine != null)
+            com.sza.fastmediasorter.ui.dialog.StreamInfoDialog(activity, source, url, engine, outcome).show()
+        }
     }
 
     /**

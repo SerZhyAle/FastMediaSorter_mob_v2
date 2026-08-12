@@ -11,12 +11,12 @@ import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
-import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.usecase.CleanupOrphanedTempFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
+import com.sza.fastmediasorter.domain.usecase.ScanFilter
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
@@ -58,6 +58,8 @@ class BrowseResourceLoadManager(
     private val cleanupOrphanedTempFilesUseCase: CleanupOrphanedTempFilesUseCase,
     private val getResourcesUseCase: com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase,
     private val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
+    private val resolveScanFilter: com.sza.fastmediasorter.domain.usecase.ResolveScanFilterUseCase,
+    private val mediaScannerFactory: com.sza.fastmediasorter.domain.usecase.MediaScannerFactory,
     private val cacheManager: BrowseCacheManager,
     private val loadingManager: BrowseLoadingManager,
     private val scope: CoroutineScope,
@@ -331,20 +333,16 @@ class BrowseResourceLoadManager(
             setStopButtonTimerJobRef(stopTimerJob)
 
             val settings = getSettings()
-            val sizeFilter = SizeFilter(
-                imageSizeMin = settings.imageSizeMin, imageSizeMax = settings.imageSizeMax,
-                videoSizeMin = settings.videoSizeMin, videoSizeMax = settings.videoSizeMax,
-                audioSizeMin = settings.audioSizeMin, audioSizeMax = settings.audioSizeMax
-            )
-
-            val effectiveMediaTypes = if (resource.allFiles) {
-                MediaType.entries.toSet()
-            } else {
-                resource.supportedMediaTypes.intersect(settings.getGloballyEnabledMediaTypes())
-            }
+            // S1584: resolved in one place so the main-screen card counter cannot promise files this
+            // scan will drop. Keeping a second copy of the derivation here is what let the two drift.
+            val scanFilter = resolveScanFilter(resource, settings)
+            val sizeFilter = scanFilter.sizeFilter
+            val effectiveMediaTypes = scanFilter.mediaTypes
             val resourceForScan = if (effectiveMediaTypes != resource.supportedMediaTypes) {
                 resource.copy(supportedMediaTypes = effectiveMediaTypes)
-            } else resource
+            } else {
+                resource
+            }
 
             if (resource.fileCount > 0 && resource.lastBrowseDate != null) {
                 updateState { it.copy(totalFileCount = resource.fileCount) }
@@ -359,6 +357,8 @@ class BrowseResourceLoadManager(
             } finally {
                 stopTimerJob?.cancel()
             }
+
+            reportFilterSuppressedFiles(resourceForScan, scanFilter)
         }
         currentScanJob = filesJob
         setLoadFilesJobRef(filesJob)
@@ -373,6 +373,44 @@ class BrowseResourceLoadManager(
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
+
+    /**
+     * An empty list means one of two different things, and the empty state used to assert the wrong
+     * one - "we checked twice" reads as a promise the folder really holds nothing, so the user does
+     * not look again. S1584: re-count with the size ceilings lifted, so a folder emptied by the size
+     * filter can be told apart from a folder that is genuinely empty, and say which one happened.
+     */
+    private suspend fun reportFilterSuppressedFiles(resource: MediaResource, scanFilter: ScanFilter) {
+        // A scan the user stopped also ends with an empty list, and blaming the size filter for it
+        // would be a second false explanation on top of the one this ticket removes.
+        if (shouldStopScanRef.get() || stateFlow.value.mediaFiles.isNotEmpty()) {
+            if (stateFlow.value.filteredOutCount != 0) {
+                updateState { it.copy(filteredOutCount = 0) }
+            }
+            return
+        }
+        val unbounded = resolveScanFilter.withoutSizeCeiling(scanFilter)
+        if (unbounded.sizeFilter == scanFilter.sizeFilter) {
+            return
+        }
+        val suppressed = try {
+            mediaScannerFactory.getScanner(resource.type).getFileCount(
+                path = resource.path,
+                supportedTypes = unbounded.mediaTypes,
+                sizeFilter = unbounded.sizeFilter,
+                credentialsId = resource.credentialsId,
+                scanSubdirectories = resource.scanSubdirectories
+            )
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Falling back to the plain empty state is correct here: the probe is an explanation, and
+            // failing to explain must not turn an empty list into an error.
+            Timber.w(e, "BrowseResourceLoadManager: size-filter probe failed")
+            0
+        }
+        updateState { it.copy(filteredOutCount = suppressed) }
+    }
 
     /**
      * Early auth guard - runs before any scan scaffolding is allocated.

@@ -114,6 +114,15 @@ foreach ($file in Get-ChildItem -LiteralPath $memoryDir -Filter '*.md' -File) {
         $candidate = $m.Groups[1].Value
         # A wildcard is a pattern, not a path.
         if ($candidate -match '[*?]') { continue }
+        # S1542: a URL can end in something this pattern reads as a repo path - the host
+        # `test-streams.mux.dev` followed by `/x36xhzz/x36xhzz.m3u8` matched the `dev/` alternative and
+        # was reported as a missing file for months. A match inside a URL token is prose, not a claim
+        # about the tree.
+        if ($m.Index -gt 0) {
+            $sepIndex = $text.LastIndexOfAny([char[]]@(' ', "`t", "`n", "`r", '(', '[', '"', "'", '`'), $m.Index - 1)
+            $token = $text.Substring($sepIndex + 1, $m.Index - $sepIndex - 1)
+            if ($token -match '://') { continue }
+        }
         if (-not (Test-Path -LiteralPath (Join-Path $repoRoot $candidate))) { $missing += $candidate }
     }
     if ($missing.Count -gt 0) {

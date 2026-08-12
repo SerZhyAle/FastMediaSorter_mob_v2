@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S1507: same icon as mipmap-anydpi-v26 plus the themed-icon layer. Qualified -v33 rather than adding
+    <monochrome> to the v26 file, so devices below API 33 keep byte-identical resources and the new tag
+    is never handed to a parser that predates it - a provable no-op there instead of a bet on leniency.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@mipmap/ic_launcher_adaptive_back"/>
+    <foreground android:drawable="@mipmap/ic_launcher_adaptive_fore"/>
+    <monochrome android:drawable="@drawable/ic_launcher_monochrome"/>
+</adaptive-icon>

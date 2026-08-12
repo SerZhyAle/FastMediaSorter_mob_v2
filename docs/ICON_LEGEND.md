@@ -38,14 +38,15 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Favorites |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Mini-game |
 | <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Download by link |
+| <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Network Monitor |
 | <img src="icons/svg/ic_nfc.svg" alt="ic_nfc" width="24" height="24"> | NFC |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Photo OCR translate |
-| <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Camera |
+| <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Quick capture |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Voice recording |
 | <img src="icons/svg/ic_widget_random_music.svg" alt="ic_widget_random_music" width="24" height="24"> | Random Music |
 | <img src="icons/svg/ic_widget_scheduled_tasks.svg" alt="ic_widget_scheduled_tasks" width="24" height="24"> | Scheduled Tasks |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen video recording |
-| <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Settings |
+| <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Settings |
 | <img src="icons/svg/ic_volume_up.svg" alt="ic_volume_up" width="24" height="24"> | Sound |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Start video recording |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Storage |
@@ -96,6 +97,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Mini-game |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Calculator |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Enable Favorites |
+| <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Network Monitor |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Enable text recognition |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Background Playback |
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Enable Picture-in-Picture |
@@ -126,9 +128,9 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_crop.svg" alt="ic_crop" width="24" height="24"> | Crop |
 | <img src="icons/svg/ic_crop_to_file.svg" alt="ic_crop_to_file" width="24" height="24"> | Crop to file |
 | <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | Delete |
-| <img src="icons/svg/ic_draw_overlay.svg" alt="ic_draw_overlay" width="24" height="24"> | Draw |
-| (system icon) | Edit |
-| (system icon) | Edit |
+| <img src="icons/svg/ic_draw_overlay.svg" alt="ic_draw_overlay" width="24" height="24"> | Drawing |
+| (system icon) | Adjust |
+| (system icon) | File text |
 | <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Reader Settings |
 | (system icon) | Search All Chapters |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
@@ -143,6 +145,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Extract Text |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Extract Text |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Extract Text |
+| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
 | <img src="icons/svg/ic_open_in_browse.svg" alt="ic_open_in_browse" width="24" height="24"> | Open in new window |
 | <img src="icons/svg/ic_night_mode.svg" alt="ic_night_mode" width="24" height="24"> | Night Mode |
 | <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Scroll Mode |
@@ -155,7 +158,8 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Rename |
 | (system icon) | Re-open with Encoding.. |
 | <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Rotate 90° |
-| <img src="icons/svg/ic_rotation_unlocked.svg" alt="ic_rotation_unlocked" width="24" height="24"> | Rotation |
+| <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Rotate -90° |
+| <img src="icons/svg/ic_rotation_unlocked.svg" alt="ic_rotation_unlocked" width="24" height="24"> | Screen autorotate |
 | <img src="icons/svg/ic_save_frame.svg" alt="ic_save_frame" width="24" height="24"> | Save Frame |
 | (system icon) | Search |
 | (system icon) | Search |
@@ -165,6 +169,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Share |
 | <img src="icons/svg/ic_sleep_timer.svg" alt="ic_sleep_timer" width="24" height="24"> | Sleep Timer |
 | <img src="icons/svg/ic_play.svg" alt="ic_play" width="24" height="24"> | Slideshow |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | About this channel |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
 | (system icon) | Toggle Markdown |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Translate |

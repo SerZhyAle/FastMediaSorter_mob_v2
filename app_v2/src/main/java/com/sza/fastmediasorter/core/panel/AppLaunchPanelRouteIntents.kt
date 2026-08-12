@@ -9,6 +9,8 @@ import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity
 import com.sza.fastmediasorter.ui.main.MainActivity
+import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
+import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
@@ -33,6 +35,19 @@ object AppLaunchPanelRouteIntents {
 
     fun calculator(context: Context): Intent =
         Intent(context, CalculatorActivity::class.java).withPanelFlags()
+
+    fun networkMonitor(
+        context: Context,
+        section: NetworkMonitorSection = NetworkMonitorSection.Summary,
+    ): Intent = NetworkMonitorActivity.createIntent(context, section).withPanelFlags()
+
+    fun networkMonitor(context: Context, sectionKey: String): Intent =
+        networkMonitor(context, NetworkMonitorSection.fromKey(sectionKey))
+
+    fun networkMonitorSettings(context: Context): Intent =
+        Intent(context, SettingsActivity::class.java)
+            .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
+            .withPanelFlags()
 
     fun game(context: Context): Intent =
         GameLaunchIntents.game(context).withPanelFlags()

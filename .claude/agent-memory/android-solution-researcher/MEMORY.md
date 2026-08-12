@@ -1,7 +1,6 @@
 # Memory Index
 
 - [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) - docs/FEATURES*.md are for standard/VR published builds; noLegal docs live in gitignored docs/FEATURES_noLegal.md
-- [Timestamp every chat message](feedback_timestamp_in_chat.md) - prefix each response with [HH:MM:SS]; never shell out to `date`
 - [Capability inventory](project_functionality_log.md) - FUNCTIONALITY.log RETIRED (S0489); capability history is docs/ALL_FEATURES.jsonl + git/release diffs; researcher reads, never writes
 - [No backticks in Bash-tool args](feedback_no_backticks_in_bash_args.md) - bash performs command substitution on `text` even in quoted strings; descriptions with backticks lose words silently
 - [Catalog scan source sets](project_catalog_scan_source_sets.md) - scan.ps1 hard-codes source roots; zero hits for a class you see on disk = catalog gap, fall back to direct grep
@@ -13,7 +12,7 @@
 - [VR inclusion hierarchy: standard ⊂ vr ⊂ noLegal](project_vr_inclusion_hierarchy.md) - S0240 architecture; noLegal inherits src/vr/; vrUnlicensed archived in S0250
 - [Never call scaffolding "done"](feedback_no_scaffolding_as_done.md) - distinguish "contract exists" from "behavior works" in the Current Architecture vs Risks sections
 - [pwsh-bash dollar-escape trap](feedback_pwsh_bash_dollar_escape_trap.md) - inside bash `-Command "..."`, `\$LASTEXITCODE` collapses to empty and PowerShell parse fails silently; use newline-separated or single-quoted forms
-- [minSdk per flavor](project_minsdk_flavors.md) - 26 standard/lite/photos, 23 legacy, 28 wear; compileSdk=35 universal; cite per-flavor in API Level Constraints
+- [minSdk per flavor](project_minsdk_flavors.md) - 26 standard/lite/photos, 23 legacy, 28 wear; compileSdk=36 universal; cite per-flavor in API Level Constraints
 - [Author style: .. and Ё](user_author_style.md) - use `..` not `...`; always use `ё`/`Ё` in Russian; intentional style, not typos
 - [pwsh 7 path](feedback_pwsh_path.md) - pwsh 7 at `/c/Program Files/PowerShell/7/pwsh.exe`, not on bash PATH; full quoted path for PS7-only scripts
 - [Timber.d("Sxxxx:") tags are live test markers](feedback_timber_tags_before_test.md) - when grepping, cross-check spec status via select.ps1 before drawing conclusions

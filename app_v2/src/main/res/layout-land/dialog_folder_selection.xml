@@ -237,6 +237,22 @@
 
         </LinearLayout>
 
+        <!-- Removable media - filled at runtime, hidden while nothing is connected -->
+        <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+            android:id="@+id/headerRemovableVolumes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:csh_title="@string/removable_volumes_section"
+            app:csh_expanded="true" />
+
+        <LinearLayout
+            android:id="@+id/containerRemovableVolumes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone" />
+
         <!-- Divider -->
         <View
             android:layout_width="match_parent"

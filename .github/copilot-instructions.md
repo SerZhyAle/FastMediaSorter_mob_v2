@@ -26,7 +26,7 @@
 - Packages: `ui/` (no business logic), `domain/`, `data/`, `di/`, `core/`, `util/`, `utils/`, `worker/`, `widget/`.
 
 ## 5. Strict Constraints
-1. No root writes; use `temp/`, organized by ticket: ticket-bound work -> `temp/Sxxxx/`, no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root (`BUILD.LOCK`, `CODE.LOCK`, `done/`, `spec-next-skip-cache.json`, `current.log` + `fastmediasorter_*.log`, stream-catalog files). See CLAUDE.md Rule 10.1.
+1. No root writes; use `temp/`, organized by ticket: ticket-bound work -> `temp/Sxxxx/`, no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root (`BUILD.LOCK`, `CODE.LOCK`, `spec-all-queue.lock`, `done/`, `spec-next-skip-cache.json`, `current.log` + `fastmediasorter_*.log`, stream-catalog files). See CLAUDE.md Rule 10.1.
 2. File size limit 1500 LOC. Extract logic to `helpers/*Manager.kt`.
 3. No Activity logic. Delegate to Manager/Helper classes.
 4. Timber only (no `Log.d()`). No `Sxxxx` ticket in permanent logs.
@@ -43,8 +43,9 @@
 15. Lazy optimization: Hilt `dagger.Lazy<T>`; `<ViewStub>` for optional layouts; release player/media resources immediately when paused.
 16. Dead-weight hygiene: delete orphaned classes, resources, string keys, keep rules in same change.
 17. Detekt-clean-first: author touched `.kt` to pass detekt on the first build - log/probe lines `<=120` chars, no bare numeric literals (`TimeUnit`/companion `const`/reuse a const), never `@Suppress` a method with a baselined finding. On the always-dirty tree close via `scripts/post-change.ps1 -ScopeToFile` (diff-scoped detekt + advisory project-wide ratchets); omit for release/CI.
-18. Bash `find` safety (CLAUDE.md Rule 24): never run `find` with a disk-wide root path (`/`, `~`, drive root, `/c/`, `//host`) or without `-maxdepth`; prefer Glob/Grep or `dev/CATALOG/scripts/query.ps1`. On Windows/MSYS an orphaned `find.exe` from a dropped session scans the whole disk and floods handles. Enforced by the global PreToolUse hook `~/.claude/hooks/guard-find-command.ps1`.
-19. Settings docs sync (CLAUDE.md Rule 22): any change to a setting, including one hosted in a dialog/bottom-sheet/wizard page, must regenerate `docs/settings/settings-manifest.json` + `docs/SETTINGS_REFERENCE*.md` and update `docs/settings/settings-annotations.json`. A non-screen surface registers in `SettingsDocScopeCatalog`, never in `SettingsSearchLayoutCatalog` (S1035/S1313). Gate: `scripts/quality/assert-settings-doc-sync.ps1`.
+18. Bash `find` safety (CLAUDE.md Rule 24): never run `find` with a disk-wide root path (`/`, `~`, drive root, `/c/`, `//host`) or without `-maxdepth`; prefer Glob/Grep or `dev/CATALOG/scripts/query.ps1`. On Windows/MSYS an orphaned `find.exe` from a dropped session scans the whole disk and floods handles.
+19. Hooks intercept tool calls (CLAUDE.md Rules 24-29): a hook may **refuse** a call, **rewrite** its input, **observe** its result or **warn**. `docs/AGENT_HOOKS.md` is the complete inventory - every registered hook, its event, verdict shape, escape hatch, and whether it is global (per-machine, absent on a fresh checkout) or project (travels with the repository). A refusal names its hook and rule, so read the inventory when a call is refused or a result looks altered. Two alter calls without a rule of their own: `guard-catalog-before-kt-search` refuses an unnarrowed `.kt` search until the class catalogue was queried this session, and `guard-uncapped-read` rewrites a `Read` carrying no explicit window. Gate: `scripts/quality/assert-hook-inventory.ps1`.
+20. Settings docs sync (CLAUDE.md Rule 22): any change to a setting, including one hosted in a dialog/bottom-sheet/wizard page, must regenerate `docs/settings/settings-manifest.json` + `docs/SETTINGS_REFERENCE*.md` and update `docs/settings/settings-annotations.json`. A non-screen surface registers in `SettingsDocScopeCatalog`, never in `SettingsSearchLayoutCatalog` (S1035/S1313). Gate: `scripts/quality/assert-settings-doc-sync.ps1`.
 
 ## 6. Workflow Stages (5-Step Engineering Workflow)
 - Step 0 TASK DEFINITION: ask clarifying questions; output RU desc to `dev/`; UI gate checks.
@@ -66,7 +67,7 @@
 - Builds: `scripts/builders/build-debug.PS1` (`-SkipZip`, `-AutoVersion`), `build-debug-clean.PS1`, `build-lite-debug.ps1`, `build-photos-debug.ps1`, `build-legacy-debug.ps1`, `clean-gradle-caches.ps1`, `build-standard-release.ps1`, `build-wear-release.PS1`.
 - Fast checks: `scripts/builders/check-standard-fast.ps1 -Mode Code|Resources|CodeAndResources|Unit|Assemble [-Flavor Standard|NoLegal|Lite|Photos|Legacy]`. Prefer `Code` / `CodeAndResources` over full debug APK builds when only a few symbols changed.
 - Gate batch: `scripts/quality/assert-fast-gates.ps1` runs the fast static gates (no-ticket-logs, flavor-flags, neuroslop, deprecated-pm, listener-symmetry) in one process (`-IncludeDetekt` opt-in).
-- Closure facade: `scripts/post-change.ps1 -ChangeType <type>` chains dev-log + catalog-sync + gates; add `-ScopeToFile` for per-change closure on the always-dirty tree (diff-scoped detekt + advisory project-wide ratchets).
+- Closure facade: `scripts/post-change.ps1 -ChangeType <type>` chains dev-log + catalog-sync + gates; use `Tooling` for build/config-plus-script sets, and add `-ScopeToFile` for per-change closure on the always-dirty tree (source gates require matching files; detekt stays diff-scoped).
 - Device: `scripts/utils/extract-device-logs.ps1`, `Install_release_on_adb_connected_device.ps1`, `build-standard-device.ps1`.
 - Tests: `scripts/utils/run-maestro-smoke.ps1`, `run-stress.ps1`, `setup_test_media.ps1`.
 - Utilities: `scripts/utils/commit-push.ps1`, `generate-changelog.ps1`, `check-typo-lint.ps1`, `set-android-string.ps1`, `add_to_dev_log.ps1`, `catalog_sync.ps1`.

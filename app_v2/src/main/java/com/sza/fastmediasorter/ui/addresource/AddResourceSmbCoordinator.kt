@@ -202,7 +202,7 @@ internal class AddResourceSmbCoordinator(
                     } else {
                         bridge.emit(AddResourceEvent.ShowMessage(message))
                     }
-                    bridge.emit(AddResourceEvent.ResourcesAdded)
+                    bridge.emit(AddResourceEvent.ResourcesAdded(addResult.createdResourceIds))
                 }.onFailure { e ->
                     Timber.e(e, "Failed to add SMB resources")
                     bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_add_failed)))
@@ -285,7 +285,7 @@ internal class AddResourceSmbCoordinator(
                     profile = profile
                 )
 
-                addResourceUseCase.addMultiple(listOf(resource)).onSuccess { _ ->
+                addResourceUseCase.addMultiple(listOf(resource)).onSuccess { addResult ->
                     Timber.d("Added manually entered SMB resource")
 
                     // Skip write-test when the user marked it read-only - avoids spurious
@@ -310,7 +310,7 @@ internal class AddResourceSmbCoordinator(
                             context.getString(R.string.smb_resource_added_unavailable, shareName)
                         ))
                     }
-                    bridge.emit(AddResourceEvent.ResourcesAdded)
+                    bridge.emit(AddResourceEvent.ResourcesAdded(addResult.createdResourceIds))
                 }.onFailure { e ->
                     Timber.e(e, "Failed to add SMB resource")
                     bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_add_failed)))

@@ -6,6 +6,7 @@ import android.graphics.drawable.GradientDrawable
 import android.view.View
 import android.widget.GridLayout
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
 
 /**
@@ -53,7 +54,7 @@ class DrawColorGridDialog(
             grid.addView(swatch)
         }
 
-        dialog.show()
+        dialog.showBoundToHost(activity)
     }
 
     private fun dp(value: Int): Int =

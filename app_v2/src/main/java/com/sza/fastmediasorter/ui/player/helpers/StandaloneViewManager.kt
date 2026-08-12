@@ -49,6 +49,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
 import com.sza.fastmediasorter.ui.player.VideoColorProcessor
+import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.Lazy
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -774,7 +775,7 @@ class StandaloneViewManager(
                 shareOfficeDocument(mediaFile)
             }
             .setNegativeButton(R.string.office_viewer_fallback_cancel, null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     /**
@@ -887,7 +888,7 @@ class StandaloneViewManager(
                 Toast.makeText(activity, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton(R.string.close, null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     private fun translateOfficeSelection(text: String) {

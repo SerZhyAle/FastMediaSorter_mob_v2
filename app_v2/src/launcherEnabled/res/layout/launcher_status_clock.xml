@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1431: the clock is its own layout because the two placements put it in different company - beside
+     the indicators in the taskbar tray, at the opposite edge of the top strip from them. The format is
+     left unset here and chosen by the renderer per placement, since only the strip shows seconds.
+     TextClock registers its own time/timezone receivers on attach and drops them on detach, so neither
+     placement needs clock lifecycle wiring and both honour the 12/24h system setting. -->
+<TextClock xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/trayClock"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
+    android:textColor="?attr/colorOnSurface"
+    android:textSize="14sp"
+    tools:text="12:45" />

@@ -16,6 +16,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.domain.model.MIN_SCHEDULED_INTERVAL_MS
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
@@ -123,7 +124,7 @@ class ScheduledOperationsWorker @AssistedInject constructor(
             .setContentTitle(context.getString(R.string.scheduled_ops_notif_permission_title))
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
-            .setSmallIcon(R.drawable.ic_notification_audio)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setAutoCancel(true)
             .apply { buildAllFilesAccessIntent()?.let { setContentIntent(it) } }
             .build()
@@ -166,10 +167,11 @@ class ScheduledOperationsWorker @AssistedInject constructor(
     }
 
     private fun buildNotification(): Notification {
+        Timber.d("S1399: scheduled-operations progress notification built with the branded status-bar icon")
         return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(context.getString(R.string.scheduled_ops_notif_channel_name))
             .setContentText(context.getString(R.string.scheduled_ops_notif_running))
-            .setSmallIcon(R.drawable.ic_notification_audio)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setOngoing(true)
             .setSilent(true)
             .build()

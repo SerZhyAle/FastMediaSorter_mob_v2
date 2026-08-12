@@ -1,23 +1,28 @@
 package com.sza.fastmediasorter.ui.player
 
 import android.widget.Toast
+import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.sza.fastmediasorter.R
 import com.google.android.material.snackbar.Snackbar
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.mutation.Mutation
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager
-import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
-import com.sza.fastmediasorter.ui.player.helpers.FilenameOverlayAutoHideManager
+import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperation
+import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationEvent
+import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager
+import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 import com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager
-import com.sza.fastmediasorter.ui.player.helpers.SaveVideoFrameManager
 import com.sza.fastmediasorter.ui.player.helpers.ExoPlayerControlsManager
-import com.sza.fastmediasorter.ui.player.helpers.seekForward
-import com.sza.fastmediasorter.ui.player.helpers.seekBackward
+import com.sza.fastmediasorter.ui.player.helpers.FilenameOverlayAutoHideManager
 import com.sza.fastmediasorter.ui.player.helpers.GoogleLensButtonsManager
 import com.sza.fastmediasorter.ui.player.helpers.ImageOcrManager
 import com.sza.fastmediasorter.ui.player.helpers.LyricsManager
@@ -26,19 +31,19 @@ import com.sza.fastmediasorter.ui.player.helpers.NowPlayingManager
 import com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerAudioMetadataManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerControlsSetupManager
-import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.player.helpers.PlayerDialogAndUiStateManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
-import com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerGestureSetupManager
-import com.sza.fastmediasorter.ui.player.helpers.PlayerTouchZoneSetupManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerImageTranslationManager
+import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationManager
-import com.sza.fastmediasorter.ui.player.helpers.PlayerVrLaunchManager
+import com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
-import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.player.helpers.PlayerShareManager
+import com.sza.fastmediasorter.ui.player.helpers.PlayerTouchZoneSetupManager
+import com.sza.fastmediasorter.ui.player.helpers.PlayerVrLaunchManager
+import com.sza.fastmediasorter.ui.player.helpers.SaveVideoFrameManager
 import com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager
 import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
@@ -46,18 +51,14 @@ import com.sza.fastmediasorter.ui.player.helpers.TouchZoneGestureManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationButtonManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager
-import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.ui.player.helpers.seekBackward
+import com.sza.fastmediasorter.ui.player.helpers.seekForward
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperation
-import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationEvent
-import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
 import java.io.File
 import java.util.UUID
 
@@ -499,7 +500,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                             }
                             .setNegativeButton(R.string.cancel) { _, _ -> onCancel() }
                             .setCancelable(false)
-                            .show()
+                            .showBoundTo(activity)
                     }
                 }
             }
@@ -735,7 +736,9 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             activityBinding = activity.activityBinding,
             fragmentManager = activity.supportFragmentManager,
             audioServiceController = activity.audioServiceController!!,
-            persistentAudioCompiledIn = activity.capabilityAvailability.isPersistentAudioPlaybackAvailable()
+            persistentAudioCompiledIn = activity.capabilityAvailability.isPersistentAudioPlaybackAvailable(),
+            faviconAtlasStore = activity.faviconAtlasStore,
+            scope = activity.lifecycleScope
         )
         activity.sleepTimerManager = SleepTimerManager(
             vinylView = activity.activityBinding.vinylIndicator,

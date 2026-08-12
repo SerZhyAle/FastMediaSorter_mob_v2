@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -52,19 +53,32 @@
         android:textStyle="bold"
         android:layout_marginBottom="@dimen/margin_tiny" />
 
-    <LinearLayout
+    <!-- Flow chip group: text-sized buttons wrap to a new line instead of being clipped in long locales. -->
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="end"
         android:layout_marginBottom="@dimen/margin_tiny">
+
+        <androidx.constraintlayout.helper.widget.Flow
+            android:id="@+id/flowRotation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:constraint_referenced_ids="btnRotateLeft,btnRotate180,btnRotateRight"
+            app:flow_horizontalBias="1"
+            app:flow_horizontalGap="@dimen/margin_small"
+            app:flow_horizontalStyle="packed"
+            app:flow_verticalBias="0"
+            app:flow_verticalGap="@dimen/margin_tiny"
+            app:flow_wrapMode="chain"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRotateLeft"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/margin_tiny"
             android:text="@string/image_edit_rotate_left" />
 
         <com.google.android.material.button.MaterialButton
@@ -72,8 +86,6 @@
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/margin_tiny"
-            android:layout_marginEnd="@dimen/margin_tiny"
             android:text="@string/image_edit_rotate_180" />
 
         <com.google.android.material.button.MaterialButton
@@ -81,9 +93,8 @@
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/margin_tiny"
             android:text="@string/image_edit_rotate_right" />
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Flip Section -->
     <TextView
@@ -95,19 +106,31 @@
         android:layout_marginTop="@dimen/margin_small"
         android:layout_marginBottom="@dimen/margin_tiny" />
 
-    <LinearLayout
+    <!-- Flow chip group: the Ukrainian flip labels are the longest of the three locales and overflow a fixed row. -->
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="end"
-        android:layout_marginBottom="0dp">
+        android:layout_height="wrap_content">
+
+        <androidx.constraintlayout.helper.widget.Flow
+            android:id="@+id/flowFlip"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:constraint_referenced_ids="btnFlipHorizontal,btnFlipVertical"
+            app:flow_horizontalBias="1"
+            app:flow_horizontalGap="@dimen/margin_small"
+            app:flow_horizontalStyle="packed"
+            app:flow_verticalBias="0"
+            app:flow_verticalGap="@dimen/margin_tiny"
+            app:flow_wrapMode="chain"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFlipHorizontal"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/dialog_field_spacing"
             android:text="@string/image_edit_flip_horizontal" />
 
         <com.google.android.material.button.MaterialButton
@@ -116,7 +139,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/image_edit_flip_vertical" />
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Filters Section -->
     <TextView
@@ -128,19 +151,31 @@
         android:layout_marginTop="@dimen/margin_small"
         android:layout_marginBottom="@dimen/margin_tiny" />
 
-    <LinearLayout
+    <!-- Flow chip group: the Russian and Ukrainian grayscale labels push this three-button row past a phone width. -->
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="0dp"
-        android:gravity="end|center_vertical"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content">
+
+        <androidx.constraintlayout.helper.widget.Flow
+            android:id="@+id/flowFilters"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:constraint_referenced_ids="btnGrayscale,btnSepia,btnNegative"
+            app:flow_horizontalBias="1"
+            app:flow_horizontalGap="@dimen/margin_small"
+            app:flow_horizontalStyle="packed"
+            app:flow_verticalBias="0"
+            app:flow_verticalGap="@dimen/margin_tiny"
+            app:flow_wrapMode="chain"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGrayscale"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/margin_tiny"
             android:text="@string/image_edit_grayscale" />
 
         <com.google.android.material.button.MaterialButton
@@ -148,8 +183,6 @@
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/margin_tiny"
-            android:layout_marginEnd="@dimen/margin_tiny"
             android:text="@string/image_edit_sepia" />
 
         <com.google.android.material.button.MaterialButton
@@ -157,9 +190,8 @@
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/margin_tiny"
             android:text="@string/image_edit_negative" />
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Adjustments Section -->
     <TextView

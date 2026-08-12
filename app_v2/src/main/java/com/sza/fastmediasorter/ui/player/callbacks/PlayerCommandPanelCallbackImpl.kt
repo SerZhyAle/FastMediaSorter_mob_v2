@@ -196,6 +196,10 @@ class PlayerCommandPanelCallbackImpl(
         activity.showFileInfo()
     }
 
+    override fun onStreamInfoClicked() {
+        activity.showStreamInfo()
+    }
+
     override fun onLyricsClicked() {
         activity.searchAndShowLyrics()
     }
@@ -280,12 +284,6 @@ class PlayerCommandPanelCallbackImpl(
 
     override fun onEditTextClicked() {
         activity.activityBinding.btnEditTextCmd.performClick()
-    }
-
-    override fun onOcrSettingsClicked() {
-        // Long-press on OCR shows translation settings (same as translate button)
-        Timber.d("OCR settings requested - showing translation settings dialog")
-        activity.translationButtonManager.showTranslationSettingsDialog()
     }
 
     override fun onTranslationSettingsClicked() {
@@ -390,6 +388,11 @@ class PlayerCommandPanelCallbackImpl(
         val newAngle = viewModel.state.value.sessionRotationAngle
         Timber.d("S0995: internal rotate90 tap -> $newAngle")
         activity.applyContentRotation(newAngle)
+    }
+
+    override fun onRotateContentCounter90Clicked() {
+        viewModel.rotateSessionCounter90()
+        activity.applyContentRotation(viewModel.state.value.sessionRotationAngle)
     }
 
     // Builds a content:// URI for a local file via FileProvider; returns null for network paths

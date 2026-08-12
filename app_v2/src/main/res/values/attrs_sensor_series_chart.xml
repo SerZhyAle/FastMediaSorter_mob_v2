@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1179: colours for SensorSeriesChartView. Declared as attributes so a host theme sets them and
+     the view carries no literal colour of its own. -->
+<resources>
+    <declare-styleable name="SensorSeriesChartView">
+        <attr name="sensorSeriesPrimaryColor" format="color" />
+        <attr name="sensorSeriesSecondaryColor" format="color" />
+        <!-- S1446: only read while showValueAxis is on, which no gadget tile turns on. -->
+        <attr name="sensorSeriesAxisLabelColor" format="color" />
+    </declare-styleable>
+</resources>

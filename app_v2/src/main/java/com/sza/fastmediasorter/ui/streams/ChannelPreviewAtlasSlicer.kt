@@ -21,9 +21,15 @@ import java.io.IOException
  *
  * The [atlasFileProvider] is re-read on each (re)open, so [invalidate] after a re-download picks up
  * the new sheet.
+ *
+ * S1445: this sheet path is now the FALLBACK. When a tile pack is installed, [tilePackReader] serves
+ * the tile instead, because a region decode out of the sheet costs a share of a full 61,7 Mpx decode
+ * and the grid filled one cell at a time. The sheet path stays because updating the payload is the
+ * user's decision - an install that has not taken the update must keep showing pictures.
  */
 class ChannelPreviewAtlasSlicer(
-    private val atlasFileProvider: () -> File?
+    private val atlasFileProvider: () -> File?,
+    private val tilePackReader: StreamTilePackReader? = null,
 ) {
     private val mutex = Mutex()
     private var decoder: BitmapRegionDecoder? = null
@@ -59,6 +65,8 @@ class ChannelPreviewAtlasSlicer(
      */
     suspend fun tileFor(index: Int): Bitmap? = withContext(Dispatchers.IO) {
         if (index < 0) return@withContext null
+        val pack = tilePackReader
+        if (pack != null && pack.hasPack()) return@withContext pack.tile(index)
         val activeDecoder = decoder() ?: return@withContext null
         // S1220: decoder() releases the mutex before returning, so invalidate() can recycle this
         // reference at any moment and EVERY member access then throws - width/height as much as
@@ -82,10 +90,15 @@ class ChannelPreviewAtlasSlicer(
     }
 
     /** Recycles the cached decoder so the next [tileFor] re-reads [atlasFileProvider] (post-download). */
-    suspend fun invalidate() = mutex.withLock {
-        decoder?.recycle()
-        decoder = null
-        opened = false
+    suspend fun invalidate() {
+        // The pack reader holds its own handle and tile cache, so a payload update has to reset both
+        // halves of this slicer or the stale one keeps answering.
+        tilePackReader?.invalidate()
+        mutex.withLock {
+            decoder?.recycle()
+            decoder = null
+            opened = false
+        }
     }
 
     private suspend fun decoder(): BitmapRegionDecoder? = mutex.withLock {

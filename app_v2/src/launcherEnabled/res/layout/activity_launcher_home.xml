@@ -31,6 +31,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- S1421: the band the system status bar leaves behind. GONE unless the launcher replaces the status
+         area, and a GONE include collapses onto its own anchor, so the grid below lands at the parent top
+         exactly as it did before this strip existed. Ids must exist in layout-land/ too (one ViewBinding,
+         Rule 11). -->
+    <include
+        android:id="@+id/launcherStatusStrip"
+        layout="@layout/launcher_status_strip"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/launcher_status_strip_height"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- One screen plus downward scroll, no desktop pages (strategic §3.3). fillViewport is what makes
          a desktop shorter than the screen still fill it, so the grid is not a floating strip on top. -->
     <androidx.core.widget.NestedScrollView
@@ -38,13 +51,16 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
+        android:fadeScrollbars="false"
         android:fillViewport="true"
+        android:scrollbarThumbVertical="@color/scrollbar_thumb"
+        android:scrollbars="vertical"
         android:paddingStart="@dimen/margin_small"
         android:paddingEnd="@dimen/margin_small"
         app:layout_constraintBottom_toTopOf="@+id/launcherTaskbar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/launcherStatusStrip">
 
         <com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
             android:id="@+id/launcherDesktop"
@@ -62,16 +78,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Floats over the desktop only while editing. Edit mode is entered from the Start-menu row or, since
-         S1090, by long-pressing empty desktop unless the desktop is locked in launcher settings. -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/launcherEditDone"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/margin_small"
-        android:text="@string/launcher_edit_done"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <!-- S1412: the "done" button lives on the taskbar (launcher_taskbar.xml), not here - floating over
+         the grid's top-right corner covered up to two cells that edit mode then could not reach. -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -64,10 +64,15 @@
     "ru": "Открывает менеджер загружаемых расширений для установки дополнительных модулей.",
     "uk": "Відкриває менеджер додаткових модулів для встановлення опціональних розширень."
   },
+  "btnEditAppPanel": {
+    "en": "Opens the editor for the customizable app-launch panel shown in edge-gesture zones.",
+    "ru": "Открывает редактор настраиваемой панели приложений, которая показывается в зонах жестов по краю экрана.",
+    "uk": "Відкриває редактор настроюваної панелі застосунків, яка показується в зонах жестів біля краю екрана."
+  },
   "btnExportFavorites": {
-    "en": "Exports your saved favorites list to a file you can back up or transfer.",
-    "ru": "Экспортирует список избранного в файл для резервного копирования или переноса.",
-    "uk": "Експортує список обраного у файл для резервного копіювання або перенесення."
+    "en": "Exports your saved favorites list to a file you can back up or transfer. Available when Favorites is enabled.",
+    "ru": "Экспортирует список избранного в файл для резервного копирования или переноса. Доступно, когда включено избранное.",
+    "uk": "Експортує список обраного у файл для резервного копіювання або перенесення. Доступно, коли ввімкнено обране."
   },
   "btnExportResources": {
     "en": "Saves all configured resources (folders, network connections) to an export file.",
@@ -85,9 +90,9 @@
     "uk": "Відкриває покрокові інструкції з основних функцій застосунку."
   },
   "btnImportFavorites": {
-    "en": "Imports a previously exported favorites list from a file.",
-    "ru": "Импортирует ранее экспортированный список избранного из файла.",
-    "uk": "Імпортує раніше експортований список обраного з файлу."
+    "en": "Imports a previously exported favorites list from a file. Available when Favorites is enabled.",
+    "ru": "Импортирует ранее экспортированный список избранного из файла. Доступно, когда включено избранное.",
+    "uk": "Імпортує раніше експортований список обраного з файлу. Доступно, коли ввімкнено обране."
   },
   "btnImportResources": {
     "en": "Imports previously exported resources (folders, network connections) from a file.",
@@ -209,6 +214,11 @@
     "ru": "Выбирает ресурс-назначение для сохранения записей экрана.",
     "uk": "Вибирає ресурс призначення для збереження записів екрана."
   },
+  "btnSelectScreenshotDestination": {
+    "en": "Opens a folder picker for where captured screenshots are saved.",
+    "ru": "Открывает выбор папки для сохранения сделанных скриншотов.",
+    "uk": "Відкриває вибір теки для збереження зроблених скриншотів."
+  },
   "btnSelectSnapshotResource": {
     "en": "Selects the destination resource where video frame snapshots are saved.",
     "ru": "Выбирает ресурс-назначение для сохранения снимков кадров видео.",
@@ -238,6 +248,26 @@
     "en": "Registers this app as the default handler for video files on the device.",
     "ru": "Назначает приложение видеоплеером по умолчанию на устройстве.",
     "uk": "Призначає застосунок типовим відеоплеєром на пристрої."
+  },
+  "btnSettingsDefaultPlayerAudio": {
+    "en": "Opens Android's default-app chooser to register this app as the default audio player.",
+    "ru": "Открывает системный выбор приложения по умолчанию, чтобы назначить это приложение аудиоплеером по умолчанию.",
+    "uk": "Відкриває системний вибір застосунку за замовчуванням, щоб призначити цей застосунок аудіоплеєром за замовчуванням."
+  },
+  "btnSettingsDefaultPlayerDocs": {
+    "en": "Opens Android's default-app chooser to register this app as the default document viewer.",
+    "ru": "Открывает системный выбор приложения по умолчанию, чтобы назначить это приложение программой просмотра документов по умолчанию.",
+    "uk": "Відкриває системний вибір застосунку за замовчуванням, щоб призначити цей застосунок переглядачем документів за замовчуванням."
+  },
+  "btnSettingsDefaultPlayerImages": {
+    "en": "Opens Android's default-app chooser to register this app as the default image viewer.",
+    "ru": "Открывает системный выбор приложения по умолчанию, чтобы назначить это приложение программой просмотра изображений по умолчанию.",
+    "uk": "Відкриває системний вибір застосунку за замовчуванням, щоб призначити цей застосунок переглядачем зображень за замовчуванням."
+  },
+  "btnSettingsDefaultPlayerVideo": {
+    "en": "Opens Android's default-app chooser to register this app as the default video player.",
+    "ru": "Открывает системный выбор приложения по умолчанию, чтобы назначить это приложение видеоплеером по умолчанию.",
+    "uk": "Відкриває системний вибір застосунку за замовчуванням, щоб призначити цей застосунок відеоплеєром за замовчуванням."
   },
   "btnShareLogs": {
     "en": "Shares the current debug log via the system share sheet.",
@@ -304,6 +334,11 @@
     "ru": "Открывает тот же список виджетов, но кладёт выбранный на собственный рабочий стол лаунчера, а не на домашний экран Android. Видна только при включённом режиме лаунчера.",
     "uk": "Відкриває той самий список віджетів, але кладе вибраний на власний робочий стіл лаунчера, а не на домашній екран Android. Показується лише за увімкненого режиму лаунчера."
   },
+  "cbOcrOnly": {
+    "en": "Skips the translation step and shows the recognized text as-is.",
+    "ru": "Пропускает этап перевода и показывает распознанный текст как есть.",
+    "uk": "Пропускає етап перекладу і показує розпізнаний текст як є."
+  },
   "etIconSize": {
     "en": "Sets the thumbnail icon size in pixels for grid view.",
     "ru": "Задаёт размер иконок-миниатюр в пикселях для режима отображения сеткой.",
@@ -364,6 +399,11 @@
     "ru": "Папки и ресурсы, используемые как назначения при быстрой сортировке файлов.",
     "uk": "Теки та ресурси, що використовуються як призначення при швидкому сортуванні файлів."
   },
+  "headerEdgeGestureGeneral": {
+    "en": "Section header for the general edge-gesture settings - screenshot destination, clipboard copy, and the app-launch panel editor.",
+    "ru": "Заголовок раздела общих настроек жестов по краю экрана - папка для скриншотов, копирование в буфер обмена и редактор панели приложений.",
+    "uk": "Заголовок розділу загальних налаштувань жестів біля краю екрана - тека для скриншотів, копіювання в буфер обміну та редактор панелі застосунків."
+  },
   "headerFileBrowser": {
     "en": "Settings that control the layout and behavior of the file browser.",
     "ru": "Настройки, управляющие внешним видом и поведением браузера файлов.",
@@ -378,6 +418,26 @@
     "en": "Settings that control the overall look and interaction style of the app.",
     "ru": "Настройки, определяющие общий вид и стиль взаимодействия с приложением.",
     "uk": "Налаштування, що визначають загальний вигляд і стиль взаємодії з застосунком."
+  },
+  "headerLauncherDesktop": {
+    "en": "Settings for the launcher desktop itself: icon grid density, the edit lock and the wallpaper.",
+    "ru": "Настройки самого рабочего стола лаунчера: плотность сетки значков, блокировка правки и обои.",
+    "uk": "Налаштування самого робочого стола лаунчера: щільність сітки значків, блокування редагування та шпалери."
+  },
+  "headerLauncherSystem": {
+    "en": "Entry to the Android home-app chooser, where the system launcher is selected.",
+    "ru": "Переход к системному выбору приложения главного экрана, где назначается лаунчер.",
+    "uk": "Перехід до системного вибору застосунку головного екрана, де призначається лаунчер."
+  },
+  "headerLauncherTaskbar": {
+    "en": "Settings for the launcher taskbar at the bottom: recent and pinned apps, and which icons its tray shows.",
+    "ru": "Настройки нижней панели задач лаунчера: недавние и закреплённые приложения и состав значков трея.",
+    "uk": "Налаштування нижньої панелі задач лаунчера: нещодавні та закріплені застосунки і склад значків трея."
+  },
+  "headerLauncherTopBar": {
+    "en": "Settings for the launcher's own top strip, which can replace the system status area.",
+    "ru": "Настройки собственной верхней полосы лаунчера, которая может замещать системную область статуса.",
+    "uk": "Налаштування власної верхньої смуги лаунчера, яка може замінювати системну область стану."
   },
   "headerMainWindowInterface": {
     "en": "Settings that control which optional panels and menus appear on the main window.",
@@ -454,6 +514,16 @@
     "ru": "Управляет загружаемыми компонентами OCR и перевода.",
     "uk": "Керує завантажуваними компонентами OCR та перекладу."
   },
+  "row_saved_authorizations": {
+    "en": "Opens the list of saved sign-ins to remote sources so you can review or remove them.",
+    "ru": "Открывает список сохранённых входов в удалённые источники для просмотра или удаления.",
+    "uk": "Відкриває список збережених входів до віддалених джерел для перегляду або видалення."
+  },
+  "rowAcceptSharedFiles": {
+    "en": "Allows the app to receive files shared from other apps.",
+    "ru": "Разрешает приложению получать файлы, переданные через меню «Поделиться» из других приложений.",
+    "uk": "Дозволяє застосунку отримувати файли, надіслані через меню «Поділитися» з інших застосунків."
+  },
   "rowAllFiles": {
     "en": "Grants access to all files on the device, including system folders (requires All Files permission).",
     "ru": "Открывает доступ ко всем файлам на устройстве, включая системные папки (требует разрешения «Все файлы»).",
@@ -494,6 +564,11 @@
     "ru": "Предлагает ввести имя для каждого снятого фото сразу после съёмки.",
     "uk": "Пропонує ввести ім'я для кожного знятого фото одразу після зйомки."
   },
+  "rowCameraAspect": {
+    "en": "Sets the photo aspect ratio used by the camera capture.",
+    "ru": "Задаёт соотношение сторон фото при съёмке камерой.",
+    "uk": "Задає співвідношення сторін фото під час зйомки камерою."
+  },
   "rowCameraCopyToClipboard": {
     "en": "Automatically copies each captured photo to the clipboard after saving.",
     "ru": "Автоматически копирует каждое снятое фото в буфер обмена после сохранения.",
@@ -503,6 +578,21 @@
     "en": "Saves your GPS location in the EXIF of photos taken with the built-in camera. Needs location permission and is off by default.",
     "ru": "Сохраняет ваши GPS-координаты в EXIF фото, снятых встроенной камерой. Требует разрешение на геолокацию; по умолчанию выключено.",
     "uk": "Зберігає ваші GPS-координати в EXIF фото, знятих вбудованою камерою. Потрібен дозвіл на геолокацію; типово вимкнено."
+  },
+  "rowCameraGrid": {
+    "en": "Shows a composition grid overlay in the camera viewfinder.",
+    "ru": "Показывает сетку композиции поверх видоискателя камеры.",
+    "uk": "Показує сітку композиції поверх видошукача камери."
+  },
+  "rowCameraHdr": {
+    "en": "Enables HDR capture for higher dynamic range photos.",
+    "ru": "Включает съёмку в HDR для фото с расширенным динамическим диапазоном.",
+    "uk": "Вмикає зйомку в HDR для фото з розширеним динамічним діапазоном."
+  },
+  "rowCameraManualSensor": {
+    "en": "Enables manual control of ISO and shutter speed instead of automatic exposure.",
+    "ru": "Включает ручное управление ISO и выдержкой вместо автоматической экспозиции.",
+    "uk": "Вмикає ручне керування ISO та витримкою замість автоматичної експозиції."
   },
   "rowCameraOcrOnly": {
     "en": "Runs OCR on the captured photo but skips translation, showing only the recognized text.",
@@ -519,10 +609,25 @@
     "ru": "Открывает снятое фото в редакторе изображений сразу после съёмки.",
     "uk": "Відкриває зняте фото в редакторі зображень одразу після зйомки."
   },
+  "rowCameraResolution": {
+    "en": "Sets the photo resolution used by the camera capture.",
+    "ru": "Задаёт разрешение фото при съёмке камерой.",
+    "uk": "Задає роздільну здатність фото під час зйомки камерою."
+  },
+  "rowCameraTimer": {
+    "en": "Sets a countdown delay before the camera captures a photo.",
+    "ru": "Задаёт задержку обратного отсчёта перед съёмкой фото камерой.",
+    "uk": "Задає затримку зворотного відліку перед зйомкою фото камерою."
+  },
   "rowCameraToResourceEnabled": {
     "en": "Enables the built-in camera button so you can capture photos directly into the app.",
     "ru": "Включает встроенную кнопку камеры для съёмки фото прямо в приложении.",
     "uk": "Вмикає вбудовану кнопку камери для зйомки фото безпосередньо в застосунку."
+  },
+  "rowCameraWhiteBalance": {
+    "en": "Sets the camera's white balance mode.",
+    "ru": "Задаёт режим баланса белого камеры.",
+    "uk": "Задає режим балансу білого камери."
   },
   "rowCatalogRefresh": {
     "en": "Chooses when the app refreshes the channel list - only when you ask, by offering an update when you open Streams, or automatically on Wi-Fi.",
@@ -548,6 +653,11 @@
     "en": "Opens the controls and key-binding configuration for navigation and playback.",
     "ru": "Открывает настройку управления и привязок клавиш для навигации и воспроизведения.",
     "uk": "Відкриває налаштування керування та прив'язок клавіш для навігації та відтворення."
+  },
+  "rowCopyScreenshotToClipboard": {
+    "en": "Also copies every captured screenshot to the clipboard, ready to paste.",
+    "ru": "Дополнительно копирует каждый сделанный скриншот в буфер обмена, готовый для вставки.",
+    "uk": "Додатково копіює кожен зроблений скриншот у буфер обміну, готовий для вставлення."
   },
   "rowCropImagesToFullscreen": {
     "en": "Crops images to fill the entire screen when viewing in fullscreen, removing letterboxing.",
@@ -623,6 +733,11 @@
     "en": "Enables a quick-access calculator within the app.",
     "ru": "Включает быстрый доступ к калькулятору внутри приложения.",
     "uk": "Вмикає швидкий доступ до калькулятора всередині застосунку."
+  },
+  "rowEnableNetworkMonitor": {
+    "en": "Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself.",
+    "ru": "Добавляет Сетевой монитор в меню программ и поверхности лаунчера. По умолчанию он выключен и сам не запускает проверок.",
+    "uk": "Додає Мережевий монітор до меню програм і поверхонь лаунчера. Типово він вимкнений і сам не запускає перевірок."
   },
   "rowEnableCopying": {
     "en": "Allows files to be copied to Quick Sort destinations.",
@@ -704,10 +819,130 @@
     "ru": "Поворачивает экран плеера вместе с системным авто-поворотом устройства, независимо от общей настройки.",
     "uk": "Повертає екран плеєра разом із системним авто-поворотом пристрою, незалежно від загального налаштування."
   },
+  "rowGestureLeftBottomDown": {
+    "en": "Assigns the action triggered by swiping down from the left edge's lower gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у левого края (нижняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля лівого краю (нижня смуга)."
+  },
+  "rowGestureLeftBottomDownApp": {
+    "en": "Chooses the app launched by swiping down in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение, которое запускается свайпом вниз в зоне жеста у левого края (нижняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок, який запускається свайпом вниз у зоні жесту біля лівого краю (нижня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  },
+  "rowGestureLeftBottomRight": {
+    "en": "Assigns the action triggered by swiping right from the left edge's lower gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у левого края (нижняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля лівого краю (нижня смуга)."
+  },
+  "rowGestureLeftBottomRightApp": {
+    "en": "Chooses the app launched by swiping right in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение, которое запускается свайпом вправо в зоне жеста у левого края (нижняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок, який запускається свайпом вправо у зоні жесту біля лівого краю (нижня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  },
+  "rowGestureLeftBottomUp": {
+    "en": "Assigns the action triggered by swiping up from the left edge's lower gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у левого края (нижняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля лівого краю (нижня смуга)."
+  },
+  "rowGestureLeftBottomUpApp": {
+    "en": "Chooses the app launched by swiping up in the left edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение, которое запускается свайпом вверх в зоне жеста у левого края (нижняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок, який запускається свайпом вгору у зоні жесту біля лівого краю (нижня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  },
+  "rowGestureLeftTopDown": {
+    "en": "Assigns the action triggered by swiping down from the left edge's upper gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у левого края (верхняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля лівого краю (верхня смуга)."
+  },
+  "rowGestureLeftTopDownApp": {
+    "en": "Chooses the app launched by swiping down in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение, которое запускается свайпом вниз в зоне жеста у левого края (верхняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок, який запускається свайпом вниз у зоні жесту біля лівого краю (верхня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  },
+  "rowGestureLeftTopRight": {
+    "en": "Assigns the action triggered by swiping right from the left edge's upper gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у левого края (верхняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля лівого краю (верхня смуга)."
+  },
+  "rowGestureLeftTopRightApp": {
+    "en": "Chooses the app launched by swiping right in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение, которое запускается свайпом вправо в зоне жеста у левого края (верхняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок, який запускається свайпом вправо у зоні жесту біля лівого краю (верхня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  },
+  "rowGestureLeftTopUp": {
+    "en": "Assigns the action triggered by swiping up from the left edge's upper gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у левого края (верхняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля лівого краю (верхня смуга)."
+  },
+  "rowGestureLeftTopUpApp": {
+    "en": "Chooses the app launched by swiping up in the left edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение, которое запускается свайпом вверх в зоне жеста у левого края (верхняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок, який запускається свайпом вгору у зоні жесту біля лівого краю (верхня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  },
   "rowGestureOverlayEnabled": {
     "en": "Enables the left-edge gesture overlay, allowing swipe shortcuts to trigger file operations.",
     "ru": "Включает оверлей жестов на левом крае экрана для запуска операций свайпом.",
     "uk": "Вмикає оверлей жестів на лівому краї екрана для запуску операцій свайпом."
+  },
+  "rowGestureRightBottomDown": {
+    "en": "Assigns the action triggered by swiping down from the right edge's lower gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у правого края (нижняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля правого краю (нижня смуга)."
+  },
+  "rowGestureRightBottomDownApp": {
+    "en": "Chooses the app launched by swiping down in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение, которое запускается свайпом вниз в зоне жеста у правого края (нижняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок, який запускається свайпом вниз у зоні жесту біля правого краю (нижня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  },
+  "rowGestureRightBottomRight": {
+    "en": "Assigns the action triggered by swiping right from the right edge's lower gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у правого края (нижняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля правого краю (нижня смуга)."
+  },
+  "rowGestureRightBottomRightApp": {
+    "en": "Chooses the app launched by swiping right in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение, которое запускается свайпом вправо в зоне жеста у правого края (нижняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок, який запускається свайпом вправо у зоні жесту біля правого краю (нижня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  },
+  "rowGestureRightBottomUp": {
+    "en": "Assigns the action triggered by swiping up from the right edge's lower gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у правого края (нижняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля правого краю (нижня смуга)."
+  },
+  "rowGestureRightBottomUpApp": {
+    "en": "Chooses the app launched by swiping up in the right edge's lower gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение, которое запускается свайпом вверх в зоне жеста у правого края (нижняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок, який запускається свайпом вгору у зоні жесту біля правого краю (нижня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  },
+  "rowGestureRightTopDown": {
+    "en": "Assigns the action triggered by swiping down from the right edge's upper gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у правого края (верхняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля правого краю (верхня смуга)."
+  },
+  "rowGestureRightTopDownApp": {
+    "en": "Chooses the app launched by swiping down in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение, которое запускается свайпом вниз в зоне жеста у правого края (верхняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок, який запускається свайпом вниз у зоні жесту біля правого краю (верхня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  },
+  "rowGestureRightTopRight": {
+    "en": "Assigns the action triggered by swiping right from the right edge's upper gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у правого края (верхняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля правого краю (верхня смуга)."
+  },
+  "rowGestureRightTopRightApp": {
+    "en": "Chooses the app launched by swiping right in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение, которое запускается свайпом вправо в зоне жеста у правого края (верхняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок, який запускається свайпом вправо у зоні жесту біля правого краю (верхня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
+  },
+  "rowGestureRightTopUp": {
+    "en": "Assigns the action triggered by swiping up from the right edge's upper gesture zone.",
+    "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у правого края (верхняя полоса).",
+    "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля правого краю (верхня смуга)."
+  },
+  "rowGestureRightTopUpApp": {
+    "en": "Chooses the app launched by swiping up in the right edge's upper gesture zone, and clears that choice. Shown only while this direction's action launches an app; with no app chosen the gesture opens FastMediaSorter.",
+    "ru": "Выбирает приложение, которое запускается свайпом вверх в зоне жеста у правого края (верхняя полоса), и сбрасывает этот выбор. Строка видна, только пока действие направления - запуск приложения; если приложение не выбрано, жест открывает FastMediaSorter.",
+    "uk": "Вибирає застосунок, який запускається свайпом вгору у зоні жесту біля правого краю (верхня смуга), і скидає цей вибір. Рядок видно, лише поки дія напрямку - запуск застосунку; якщо застосунок не вибрано, жест відкриває FastMediaSorter."
   },
   "rowGoToNextAfterCopy": {
     "en": "Automatically advances to the next file in the list after a copy operation completes.",
@@ -730,19 +965,94 @@
     "uk": "Не дає екрану вимкнутися під час роботи медіаплеєра."
   },
   "rowLanguage": {
-    "en": "Selects the language used for the app interface.",
-    "ru": "Выбирает язык интерфейса приложения.",
-    "uk": "Вибирає мову інтерфейсу застосунку."
+    "en": "Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using.",
+    "ru": "Открывает список языков интерфейса с поиском. В сборке из Play выбранный язык сначала догружается; если загрузить не удалось, приложение остаётся на текущем языке.",
+    "uk": "Відкриває список мов інтерфейсу з пошуком. У збірці з Play вибрана мова спочатку завантажується; якщо завантажити не вдалося, застосунок залишається поточною мовою."
+  },
+  "rowLauncherDensity": {
+    "en": "Sets how many icons the launcher desktop grid fits per row and column.",
+    "ru": "Задаёт, сколько значков помещается по строкам и столбцам сетки рабочего стола лаунчера.",
+    "uk": "Задає, скільки піктограм вміщується в рядках і стовпцях сітки робочого столу лаунчера."
+  },
+  "rowLauncherLockDesktop": {
+    "en": "Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable.",
+    "ru": "Блокирует вход в режим редактирования рабочего стола долгим нажатием; вход через меню «Пуск» остаётся доступным.",
+    "uk": "Блокує вхід у режим редагування робочого стола довгим натисканням; вхід через меню «Пуск» лишається доступним."
   },
   "rowLauncherModeEnabled": {
     "en": "Makes the app the device home screen, so the Home button opens your own desktop.",
     "ru": "Делает приложение домашним экраном устройства - кнопка «Домой» открывает ваш рабочий стол.",
     "uk": "Робить застосунок домашнім екраном пристрою - кнопка «Додому» відкриває ваш робочий стіл."
   },
+  "rowLauncherOpenHomeSettings": {
+    "en": "Opens Android's default-launcher chooser to switch the system home screen.",
+    "ru": "Открывает системный выбор лаунчера по умолчанию для смены домашнего экрана.",
+    "uk": "Відкриває системний вибір лаунчера за замовчуванням для зміни домашнього екрана."
+  },
+  "rowLauncherReplaceStatusArea": {
+    "en": "Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar.",
+    "ru": "Заменяет системную строку состояния собственной областью часов/статуса лаунчера; выключено - остаётся системная строка состояния.",
+    "uk": "Замінює системний рядок стану власною областю годинника/статусу лаунчера; вимкнено - лишається системний рядок стану."
+  },
   "rowLauncherSettings": {
     "en": "Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density.",
     "ru": "Открывает диалог настроек системного лаунчера для настройки рабочего стола, панели задач и плотности сетки.",
     "uk": "Відкриває діалог налаштувань системного лаунчера для налаштування робочого столу, панелі задач і щільності сітки."
+  },
+  "rowLauncherShowPinned": {
+    "en": "Shows pinned apps on the launcher desktop.",
+    "ru": "Показывает закреплённые приложения на рабочем столе лаунчера.",
+    "uk": "Показує закріплені застосунки на робочому столі лаунчера."
+  },
+  "rowLauncherShowRecents": {
+    "en": "Shows recently used apps on the launcher desktop.",
+    "ru": "Показывает недавно использованные приложения на рабочем столе лаунчера.",
+    "uk": "Показує нещодавно використані застосунки на робочому столі лаунчера."
+  },
+  "rowLauncherShowTray": {
+    "en": "Master switch for the launcher's tray block; the switches below it decide which indicators the block contains.",
+    "ru": "Общий выключатель блока трея лаунчера; переключатели ниже решают, какие индикаторы в него входят.",
+    "uk": "Загальний вимикач блока трея лаунчера; перемикачі нижче вирішують, які індикатори до нього входять."
+  },
+  "rowLauncherTopStatusStrip": {
+    "en": "Moves the clock with seconds to the left of the launcher top bar and the device indicators to the right, freeing the Start panel for more recent apps; available only while the system status area is replaced.",
+    "ru": "Переносит часы с секундами в левый край верхней полосы лаунчера, а показатели устройства - в правый, освобождая панель «Пуск» под большее число недавних приложений; доступно только при замещённой системной области статуса.",
+    "uk": "Переносить годинник із секундами в лівий край верхньої смуги лаунчера, а показники пристрою - в правий, звільняючи панель «Пуск» під більшу кількість нещодавніх застосунків; доступно лише при заміщеній системній області статусу."
+  },
+  "rowLauncherTrayBattery": {
+    "en": "Shows the battery charge in the launcher tray as a number in an outline, yellow below 30 percent, red below 15, blinking below 10.",
+    "ru": "Показывает заряд батареи в трее лаунчера числом в обводке: ниже 30 процентов - жёлтым, ниже 15 - красным, ниже 10 - мигающим.",
+    "uk": "Показує заряд батареї в треї лаунчера числом в обводці: нижче 30 відсотків - жовтим, нижче 15 - червоним, нижче 10 - миготливим."
+  },
+  "rowLauncherTrayBluetooth": {
+    "en": "Shows a Bluetooth icon in the launcher tray while the adapter is on.",
+    "ru": "Показывает значок Bluetooth в трее лаунчера, пока адаптер включён.",
+    "uk": "Показує значок Bluetooth у треї лаунчера, поки адаптер увімкнено."
+  },
+  "rowLauncherTrayClock": {
+    "en": "Shows the clock in the launcher tray.",
+    "ru": "Показывает часы в трее лаунчера.",
+    "uk": "Показує годинник у треї лаунчера."
+  },
+  "rowLauncherTrayNetwork": {
+    "en": "Shows the current connection type - Wi-Fi, mobile or wired - in the launcher tray.",
+    "ru": "Показывает тип текущего подключения - Wi-Fi, мобильное или проводное - в трее лаунчера.",
+    "uk": "Показує тип поточного підключення - Wi-Fi, мобільне або дротове - у треї лаунчера."
+  },
+  "rowLauncherTraySim1": {
+    "en": "Shows the signal level of the first SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or without a SIM in the slot.",
+    "ru": "Показывает уровень сигнала первой SIM в трее лаунчера. Нужно разрешение на чтение состояния телефона; без него или без SIM в слоте индикатора нет.",
+    "uk": "Показує рівень сигналу першої SIM у треї лаунчера. Потрібен дозвіл на читання стану телефона; без нього або без SIM у слоті індикатора немає."
+  },
+  "rowLauncherTraySim2": {
+    "en": "Shows the signal level of the second SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or on a single-SIM device.",
+    "ru": "Показывает уровень сигнала второй SIM в трее лаунчера. Нужно разрешение на чтение состояния телефона; без него или на устройстве с одной SIM индикатора нет.",
+    "uk": "Показує рівень сигналу другої SIM у треї лаунчера. Потрібен дозвіл на читання стану телефона; без нього або на пристрої з однією SIM індикатора немає."
+  },
+  "rowLauncherWallpaper": {
+    "en": "Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, or your own image.",
+    "ru": "Выбирает заставку рабочего стола лаунчера: фирменную анимацию, застывший кадр в стиле полос, который обновляется при возвращении в лаунчер, пустой фон или своё изображение.",
+    "uk": "Вибирає заставку робочого стола лаунчера: фірмову анімацію, застиглий кадр у стилі смуг, що оновлюється після повернення до лаунчера, порожній фон або власне зображення."
   },
   "rowLinkAutodownloadEnabled": {
     "en": "Automatically downloads a file when a link is shared into the app.",
@@ -814,20 +1124,30 @@
     "ru": "Отображает 3D-контент (side-by-side) с перспективой одного глаза для обычного просмотра без VR.",
     "uk": "Відображає 3D-контент (side-by-side) з перспективою одного ока для звичайного перегляду без VR."
   },
-  "rowPlayToEnd": {
-    "en": "Waits for video or audio to finish playing before advancing to the next slide in a slideshow.",
-    "ru": "Ждёт окончания воспроизведения видео или аудио перед переходом к следующему слайду в слайдшоу.",
-    "uk": "Чекає завершення відтворення відео або аудіо перед переходом до наступного слайду в слайдшоу."
-  },
   "rowPlayerShowFps": {
     "en": "Displays the current frames-per-second counter over the video while it is playing.",
     "ru": "Показывает счётчик кадров в секунду поверх видео во время воспроизведения.",
     "uk": "Показує лічильник кадрів на секунду поверх відео під час відтворення."
   },
+  "rowPlayToEnd": {
+    "en": "Waits for video or audio to finish playing before advancing to the next slide in a slideshow.",
+    "ru": "Ждёт окончания воспроизведения видео или аудио перед переходом к следующему слайду в слайдшоу.",
+    "uk": "Чекає завершення відтворення відео або аудіо перед переходом до наступного слайду в слайдшоу."
+  },
   "rowPreventSleep": {
     "en": "Keeps the device awake while the app is in the foreground, preventing automatic sleep.",
     "ru": "Не даёт устройству уйти в спящий режим, пока приложение активно на переднем плане.",
     "uk": "Не дає пристрою перейти в сплячий режим, поки застосунок активний на передньому плані."
+  },
+  "rowPrimaryMediaPlayer": {
+    "en": "Registers the app as the system media handler, shown in \"Open with\" and for hardware media buttons.",
+    "ru": "Назначает приложение системным обработчиком медиа - для меню «Открыть с помощью» и аппаратных медиакнопок.",
+    "uk": "Призначає застосунок системним обробником медіа - для меню «Відкрити за допомогою» та апаратних медіакнопок."
+  },
+  "rowRecordGnssTrack": {
+    "en": "Writes the satellite positions to a file on this device while the Network Monitor Satellites screen is open. Off after installation; the track never leaves the device and can be shared from that screen.",
+    "ru": "Записывает спутниковые координаты в файл на этом устройстве, пока открыт экран «Спутники» Монитора сети. После установки выключено; трек не покидает устройство, а поделиться им можно с того же экрана.",
+    "uk": "Записує супутникові координати у файл на цьому пристрої, поки відкрито екран «Супутники» Монітора мережі. Після встановлення вимкнено; трек не залишає пристрій, а поділитися ним можна з того самого екрана."
   },
   "rowResourceOpsInOverflowMenu": {
     "en": "Moves resource-level actions (add, edit, remove resource) into the overflow menu.",
@@ -1019,181 +1339,6 @@
     "ru": "Автоматически копирует снятый кадр видео в буфер обмена.",
     "uk": "Автоматично копіює знятий кадр відео до буфера обміну."
   },
-  "row_saved_authorizations": {
-    "en": "Opens the list of saved sign-ins to remote sources so you can review or remove them.",
-    "ru": "Открывает список сохранённых входов в удалённые источники для просмотра или удаления.",
-    "uk": "Відкриває список збережених входів до віддалених джерел для перегляду або видалення."
-  },
-  "spinnerColorTheme": {
-    "en": "Selects the color theme applied across the app interface.",
-    "ru": "Выбирает цветовую тему интерфейса приложения.",
-    "uk": "Вибирає колірну тему інтерфейсу застосунку."
-  },
-  "spinnerSortMode": {
-    "en": "Sets the default order in which files are sorted when a folder opens.",
-    "ru": "Задаёт порядок сортировки файлов по умолчанию при открытии папки.",
-    "uk": "Задає типовий порядок сортування файлів під час відкриття теки."
-  },
-  "spinnerTranslationSourceLanguage": {
-    "en": "Chooses the source language that recognized text is translated from.",
-    "ru": "Выбирает исходный язык, с которого переводится распознанный текст.",
-    "uk": "Вибирає вихідну мову, з якої перекладається розпізнаний текст."
-  },
-  "spinnerTranslationTargetLanguage": {
-    "en": "Chooses the target language that recognized text is translated into.",
-    "ru": "Выбирает язык, на который переводится распознанный текст.",
-    "uk": "Вибирає мову, якою перекладається розпізнаний текст."
-  },
-  "btnEditAppPanel": {
-    "en": "Opens the editor for the customizable app-launch panel shown in edge-gesture zones.",
-    "ru": "Открывает редактор настраиваемой панели приложений, которая показывается в зонах жестов по краю экрана.",
-    "uk": "Відкриває редактор настроюваної панелі застосунків, яка показується в зонах жестів біля краю екрана."
-  },
-  "btnSelectScreenshotDestination": {
-    "en": "Opens a folder picker for where captured screenshots are saved.",
-    "ru": "Открывает выбор папки для сохранения сделанных скриншотов.",
-    "uk": "Відкриває вибір теки для збереження зроблених скриншотів."
-  },
-  "btnSettingsDefaultPlayerAudio": {
-    "en": "Opens Android's default-app chooser to register this app as the default audio player.",
-    "ru": "Открывает системный выбор приложения по умолчанию, чтобы назначить это приложение аудиоплеером по умолчанию.",
-    "uk": "Відкриває системний вибір застосунку за замовчуванням, щоб призначити цей застосунок аудіоплеєром за замовчуванням."
-  },
-  "btnSettingsDefaultPlayerDocs": {
-    "en": "Opens Android's default-app chooser to register this app as the default document viewer.",
-    "ru": "Открывает системный выбор приложения по умолчанию, чтобы назначить это приложение программой просмотра документов по умолчанию.",
-    "uk": "Відкриває системний вибір застосунку за замовчуванням, щоб призначити цей застосунок переглядачем документів за замовчуванням."
-  },
-  "btnSettingsDefaultPlayerImages": {
-    "en": "Opens Android's default-app chooser to register this app as the default image viewer.",
-    "ru": "Открывает системный выбор приложения по умолчанию, чтобы назначить это приложение программой просмотра изображений по умолчанию.",
-    "uk": "Відкриває системний вибір застосунку за замовчуванням, щоб призначити цей застосунок переглядачем зображень за замовчуванням."
-  },
-  "btnSettingsDefaultPlayerVideo": {
-    "en": "Opens Android's default-app chooser to register this app as the default video player.",
-    "ru": "Открывает системный выбор приложения по умолчанию, чтобы назначить это приложение видеоплеером по умолчанию.",
-    "uk": "Відкриває системний вибір застосунку за замовчуванням, щоб призначити цей застосунок відеоплеєром за замовчуванням."
-  },
-  "headerEdgeGestureGeneral": {
-    "en": "Section header for the general edge-gesture settings - screenshot destination, clipboard copy, and the app-launch panel editor.",
-    "ru": "Заголовок раздела общих настроек жестов по краю экрана - папка для скриншотов, копирование в буфер обмена и редактор панели приложений.",
-    "uk": "Заголовок розділу загальних налаштувань жестів біля краю екрана - тека для скриншотів, копіювання в буфер обміну та редактор панелі застосунків."
-  },
-  "rowAcceptSharedFiles": {
-    "en": "Allows the app to receive files shared from other apps.",
-    "ru": "Разрешает приложению получать файлы, переданные через меню «Поделиться» из других приложений.",
-    "uk": "Дозволяє застосунку отримувати файли, надіслані через меню «Поділитися» з інших застосунків."
-  },
-  "rowCopyScreenshotToClipboard": {
-    "en": "Also copies every captured screenshot to the clipboard, ready to paste.",
-    "ru": "Дополнительно копирует каждый сделанный скриншот в буфер обмена, готовый для вставки.",
-    "uk": "Додатково копіює кожен зроблений скриншот у буфер обміну, готовий для вставлення."
-  },
-  "rowGestureLeftBottomDown": {
-    "en": "Assigns the action triggered by swiping down from the left edge's lower gesture zone.",
-    "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у левого края (нижняя полоса).",
-    "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля лівого краю (нижня смуга)."
-  },
-  "rowGestureLeftBottomRight": {
-    "en": "Assigns the action triggered by swiping right from the left edge's lower gesture zone.",
-    "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у левого края (нижняя полоса).",
-    "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля лівого краю (нижня смуга)."
-  },
-  "rowGestureLeftBottomUp": {
-    "en": "Assigns the action triggered by swiping up from the left edge's lower gesture zone.",
-    "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у левого края (нижняя полоса).",
-    "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля лівого краю (нижня смуга)."
-  },
-  "rowGestureLeftTopDown": {
-    "en": "Assigns the action triggered by swiping down from the left edge's upper gesture zone.",
-    "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у левого края (верхняя полоса).",
-    "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля лівого краю (верхня смуга)."
-  },
-  "rowGestureLeftTopRight": {
-    "en": "Assigns the action triggered by swiping right from the left edge's upper gesture zone.",
-    "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у левого края (верхняя полоса).",
-    "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля лівого краю (верхня смуга)."
-  },
-  "rowGestureLeftTopUp": {
-    "en": "Assigns the action triggered by swiping up from the left edge's upper gesture zone.",
-    "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у левого края (верхняя полоса).",
-    "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля лівого краю (верхня смуга)."
-  },
-  "rowGestureRightBottomDown": {
-    "en": "Assigns the action triggered by swiping down from the right edge's lower gesture zone.",
-    "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у правого края (нижняя полоса).",
-    "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля правого краю (нижня смуга)."
-  },
-  "rowGestureRightBottomRight": {
-    "en": "Assigns the action triggered by swiping right from the right edge's lower gesture zone.",
-    "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у правого края (нижняя полоса).",
-    "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля правого краю (нижня смуга)."
-  },
-  "rowGestureRightBottomUp": {
-    "en": "Assigns the action triggered by swiping up from the right edge's lower gesture zone.",
-    "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у правого края (нижняя полоса).",
-    "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля правого краю (нижня смуга)."
-  },
-  "rowGestureRightTopDown": {
-    "en": "Assigns the action triggered by swiping down from the right edge's upper gesture zone.",
-    "ru": "Задаёт действие, которое выполняется свайпом вниз в зоне жеста у правого края (верхняя полоса).",
-    "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля правого краю (верхня смуга)."
-  },
-  "rowGestureRightTopRight": {
-    "en": "Assigns the action triggered by swiping right from the right edge's upper gesture zone.",
-    "ru": "Задаёт действие, которое выполняется свайпом вправо в зоне жеста у правого края (верхняя полоса).",
-    "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля правого краю (верхня смуга)."
-  },
-  "rowGestureRightTopUp": {
-    "en": "Assigns the action triggered by swiping up from the right edge's upper gesture zone.",
-    "ru": "Задаёт действие, которое выполняется свайпом вверх в зоне жеста у правого края (верхняя полоса).",
-    "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля правого краю (верхня смуга)."
-  },
-  "rowLauncherDensity": {
-    "en": "Sets how many icons the launcher desktop grid fits per row and column.",
-    "ru": "Задаёт, сколько значков помещается по строкам и столбцам сетки рабочего стола лаунчера.",
-    "uk": "Задає, скільки піктограм вміщується в рядках і стовпцях сітки робочого столу лаунчера."
-  },
-  "rowLauncherLockDesktop": {
-    "en": "Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable.",
-    "ru": "Блокирует вход в режим редактирования рабочего стола долгим нажатием; вход через меню «Пуск» остаётся доступным.",
-    "uk": "Блокує вхід у режим редагування робочого стола довгим натисканням; вхід через меню «Пуск» лишається доступним."
-  },
-  "rowLauncherOpenHomeSettings": {
-    "en": "Opens Android's default-launcher chooser to switch the system home screen.",
-    "ru": "Открывает системный выбор лаунчера по умолчанию для смены домашнего экрана.",
-    "uk": "Відкриває системний вибір лаунчера за замовчуванням для зміни домашнього екрана."
-  },
-  "rowLauncherReplaceStatusArea": {
-    "en": "Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar.",
-    "ru": "Заменяет системную строку состояния собственной областью часов/статуса лаунчера; выключено - остаётся системная строка состояния.",
-    "uk": "Замінює системний рядок стану власною областю годинника/статусу лаунчера; вимкнено - лишається системний рядок стану."
-  },
-  "rowLauncherShowPinned": {
-    "en": "Shows pinned apps on the launcher desktop.",
-    "ru": "Показывает закреплённые приложения на рабочем столе лаунчера.",
-    "uk": "Показує закріплені застосунки на робочому столі лаунчера."
-  },
-  "rowLauncherShowRecents": {
-    "en": "Shows recently used apps on the launcher desktop.",
-    "ru": "Показывает недавно использованные приложения на рабочем столе лаунчера.",
-    "uk": "Показує нещодавно використані застосунки на робочому столі лаунчера."
-  },
-  "rowLauncherShowTray": {
-    "en": "Shows the clock and status indicators in the launcher's tray area.",
-    "ru": "Показывает часы и индикаторы статуса в области трея лаунчера.",
-    "uk": "Показує годинник та індикатори статусу в області трея лаунчера."
-  },
-  "rowLauncherWallpaper": {
-    "en": "Chooses the launcher desktop's wallpaper.",
-    "ru": "Выбирает заставку рабочего стола лаунчера.",
-    "uk": "Вибирає заставку робочого стола лаунчера."
-  },
-  "rowPrimaryMediaPlayer": {
-    "en": "Registers the app as the system media handler, shown in \"Open with\" and for hardware media buttons.",
-    "ru": "Назначает приложение системным обработчиком медиа - для меню «Открыть с помощью» и аппаратных медиакнопок.",
-    "uk": "Призначає застосунок системним обробником медіа - для меню «Відкрити за допомогою» та апаратних медіакнопок."
-  },
   "rowZoneLeftBottomEnabled": {
     "en": "Enables the edge-gesture zone at the left edge's lower band.",
     "ru": "Включает зону жеста у левого края (нижняя полоса).",
@@ -1234,45 +1379,10 @@
     "ru": "Показывает полупрозрачную направляющую полосу жеста для зоны у правого края (верхняя полоса).",
     "uk": "Показує напівпрозору напрямну смугу жесту для зони біля правого краю (верхня смуга)."
   },
-  "cbOcrOnly": {
-    "en": "Skips the translation step and shows the recognized text as-is.",
-    "ru": "Пропускает этап перевода и показывает распознанный текст как есть.",
-    "uk": "Пропускає етап перекладу і показує розпізнаний текст як є."
-  },
-  "rowCameraAspect": {
-    "en": "Sets the photo aspect ratio used by the camera capture.",
-    "ru": "Задаёт соотношение сторон фото при съёмке камерой.",
-    "uk": "Задає співвідношення сторін фото під час зйомки камерою."
-  },
-  "rowCameraGrid": {
-    "en": "Shows a composition grid overlay in the camera viewfinder.",
-    "ru": "Показывает сетку композиции поверх видоискателя камеры.",
-    "uk": "Показує сітку композиції поверх видошукача камери."
-  },
-  "rowCameraHdr": {
-    "en": "Enables HDR capture for higher dynamic range photos.",
-    "ru": "Включает съёмку в HDR для фото с расширенным динамическим диапазоном.",
-    "uk": "Вмикає зйомку в HDR для фото з розширеним динамічним діапазоном."
-  },
-  "rowCameraManualSensor": {
-    "en": "Enables manual control of ISO and shutter speed instead of automatic exposure.",
-    "ru": "Включает ручное управление ISO и выдержкой вместо автоматической экспозиции.",
-    "uk": "Вмикає ручне керування ISO та витримкою замість автоматичної експозиції."
-  },
-  "rowCameraResolution": {
-    "en": "Sets the photo resolution used by the camera capture.",
-    "ru": "Задаёт разрешение фото при съёмке камерой.",
-    "uk": "Задає роздільну здатність фото під час зйомки камерою."
-  },
-  "rowCameraTimer": {
-    "en": "Sets a countdown delay before the camera captures a photo.",
-    "ru": "Задаёт задержку обратного отсчёта перед съёмкой фото камерой.",
-    "uk": "Задає затримку зворотного відліку перед зйомкою фото камерою."
-  },
-  "rowCameraWhiteBalance": {
-    "en": "Sets the camera's white balance mode.",
-    "ru": "Задаёт режим баланса белого камеры.",
-    "uk": "Задає режим балансу білого камери."
+  "spinnerColorTheme": {
+    "en": "Selects the color theme applied across the app interface.",
+    "ru": "Выбирает цветовую тему интерфейса приложения.",
+    "uk": "Вибирає колірну тему інтерфейсу застосунку."
   },
   "spinnerFontFamily": {
     "en": "Chooses the font family used to render translated text.",
@@ -1283,6 +1393,21 @@
     "en": "Chooses the font size used to render translated text.",
     "ru": "Выбирает размер шрифта для отображения переведённого текста.",
     "uk": "Вибирає розмір шрифту для відображення перекладеного тексту."
+  },
+  "spinnerSortMode": {
+    "en": "Sets the default order in which files are sorted when a folder opens.",
+    "ru": "Задаёт порядок сортировки файлов по умолчанию при открытии папки.",
+    "uk": "Задає типовий порядок сортування файлів під час відкриття теки."
+  },
+  "spinnerTranslationSourceLanguage": {
+    "en": "Chooses the source language that recognized text is translated from.",
+    "ru": "Выбирает исходный язык, с которого переводится распознанный текст.",
+    "uk": "Вибирає вихідну мову, з якої перекладається розпізнаний текст."
+  },
+  "spinnerTranslationTargetLanguage": {
+    "en": "Chooses the target language that recognized text is translated into.",
+    "ru": "Выбирает язык, на который переводится распознанный текст.",
+    "uk": "Вибирає мову, якою перекладається розпізнаний текст."
   },
   "switchLensStyle": {
     "en": "Shows the translation result as opaque blocks over the original text, matching Google Lens style.",

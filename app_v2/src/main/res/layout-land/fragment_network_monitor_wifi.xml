@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1433 Wi-Fi subscreen, landscape. Same blocks and the same ids as portrait; only the arrangement
+     differs. The toggle stays a full-width first row above both columns rather than moving into one of
+     them, because strategic 3.1.2 puts it before all data and a column would place data beside it. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/wifiSectionScroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:padding="@dimen/margin_small">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+            android:text="@string/network_monitor_section_wifi" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.ToggleRow">
+
+                    <TextView
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.ToggleLabel"
+                        android:labelFor="@+id/wifiRadioSwitch"
+                        android:text="@string/network_monitor_radio_wifi" />
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/wifiRadioSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/wifiRadioReason"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:visibility="gone"
+                    tools:text="@string/network_monitor_radio_state_unknown"
+                    tools:visibility="visible" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+                    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                        <TextView
+                            android:id="@+id/wifiAvailability"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                            android:visibility="gone"
+                            tools:text="@string/network_monitor_status_no_permission"
+                            tools:visibility="visible" />
+
+                        <LinearLayout
+                            android:id="@+id/wifiDetailsGroup"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                                <TextView
+                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                                    android:text="@string/network_monitor_wifi_network_label" />
+
+                                <TextView
+                                    android:id="@+id/wifiNetworkValue"
+                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                                    tools:text="Home-5G" />
+                            </LinearLayout>
+
+                            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                                <TextView
+                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                                    android:text="@string/network_monitor_wifi_frequency_label" />
+
+                                <TextView
+                                    android:id="@+id/wifiFrequencyValue"
+                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                                    tools:text="5180 MHz" />
+                            </LinearLayout>
+
+                            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                                <TextView
+                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                                    android:text="@string/network_monitor_wifi_link_speed_label" />
+
+                                <TextView
+                                    android:id="@+id/wifiLinkSpeedValue"
+                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                                    tools:text="433 Mbps" />
+                            </LinearLayout>
+
+                            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                                <TextView
+                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                                    android:text="@string/network_monitor_wifi_standard_label" />
+
+                                <TextView
+                                    android:id="@+id/wifiStandardValue"
+                                    style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                                    tools:text="Wi-Fi 6" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/wifiChart"
+                    layout="@layout/view_network_monitor_signal_chart" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <include
+            android:id="@+id/wifiLinkDetails"
+            layout="@layout/view_network_monitor_link_details" />
+    </LinearLayout>
+</ScrollView>

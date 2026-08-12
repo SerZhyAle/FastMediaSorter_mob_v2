@@ -631,6 +631,16 @@
       "titleUk": "Дозволити переміщення"
     },
     {
+      "key": "rowEnableNetworkMonitor",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Network Monitor",
+      "titleRu": "Сетевой монитор",
+      "titleUk": "Мережевий монітор"
+    },
+    {
       "key": "rowEnableSafeMode",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -1661,6 +1671,16 @@
       "titleUk": "Дія жесту вниз"
     },
     {
+      "key": "rowGestureLeftBottomDownApp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
+    },
+    {
       "key": "rowGestureLeftBottomRight",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
@@ -1669,6 +1689,16 @@
       "titleEn": "Right gesture action",
       "titleRu": "Действие жеста вправо",
       "titleUk": "Дія жесту праворуч"
+    },
+    {
+      "key": "rowGestureLeftBottomRightApp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
     },
     {
       "key": "rowGestureLeftBottomUp",
@@ -1681,6 +1711,16 @@
       "titleUk": "Дія жесту вгору"
     },
     {
+      "key": "rowGestureLeftBottomUpApp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
+    },
+    {
       "key": "rowGestureLeftTopDown",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
@@ -1689,6 +1729,16 @@
       "titleEn": "Down gesture action",
       "titleRu": "Действие жеста вниз",
       "titleUk": "Дія жесту вниз"
+    },
+    {
+      "key": "rowGestureLeftTopDownApp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
     },
     {
       "key": "rowGestureLeftTopRight",
@@ -1701,6 +1751,16 @@
       "titleUk": "Дія жесту праворуч"
     },
     {
+      "key": "rowGestureLeftTopRightApp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
+    },
+    {
       "key": "rowGestureLeftTopUp",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
@@ -1709,6 +1769,16 @@
       "titleEn": "Up gesture action",
       "titleRu": "Действие жеста вверх",
       "titleUk": "Дія жесту вгору"
+    },
+    {
+      "key": "rowGestureLeftTopUpApp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
     },
     {
       "key": "rowGestureRightBottomDown",
@@ -1721,6 +1791,16 @@
       "titleUk": "Дія жесту вниз"
     },
     {
+      "key": "rowGestureRightBottomDownApp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
+    },
+    {
       "key": "rowGestureRightBottomRight",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
@@ -1729,6 +1809,16 @@
       "titleEn": "Right gesture action",
       "titleRu": "Действие жеста вправо",
       "titleUk": "Дія жесту праворуч"
+    },
+    {
+      "key": "rowGestureRightBottomRightApp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
     },
     {
       "key": "rowGestureRightBottomUp",
@@ -1741,6 +1831,16 @@
       "titleUk": "Дія жесту вгору"
     },
     {
+      "key": "rowGestureRightBottomUpApp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
+    },
+    {
       "key": "rowGestureRightTopDown",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
@@ -1749,6 +1849,16 @@
       "titleEn": "Down gesture action",
       "titleRu": "Действие жеста вниз",
       "titleUk": "Дія жесту вниз"
+    },
+    {
+      "key": "rowGestureRightTopDownApp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
     },
     {
       "key": "rowGestureRightTopRight",
@@ -1761,6 +1871,16 @@
       "titleUk": "Дія жесту праворуч"
     },
     {
+      "key": "rowGestureRightTopRightApp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
+    },
+    {
       "key": "rowGestureRightTopUp",
       "sectionId": "gestures",
       "destination": "OPERATIONS",
@@ -1769,6 +1889,16 @@
       "titleEn": "Up gesture action",
       "titleRu": "Действие жеста вверх",
       "titleUk": "Дія жесту вгору"
+    },
+    {
+      "key": "rowGestureRightTopUpApp",
+      "sectionId": "gestures",
+      "destination": "OPERATIONS",
+      "layout": "dialog_edge_gesture_config",
+      "kind": "SELECTION_ROW",
+      "titleEn": "App to launch",
+      "titleRu": "Программа для запуска",
+      "titleUk": "Програма для запуску"
     },
     {
       "key": "rowZoneLeftBottomEnabled",
@@ -1931,6 +2061,46 @@
       "titleUk": "Підтримка статичних зображень"
     },
     {
+      "key": "headerLauncherDesktop",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Desktop",
+      "titleRu": "Рабочий стол",
+      "titleUk": "Робочий стіл"
+    },
+    {
+      "key": "headerLauncherSystem",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SECTION_HEADER",
+      "titleEn": "System",
+      "titleRu": "Система",
+      "titleUk": "Система"
+    },
+    {
+      "key": "headerLauncherTaskbar",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Taskbar",
+      "titleRu": "Панель задач",
+      "titleUk": "Панель задач"
+    },
+    {
+      "key": "headerLauncherTopBar",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Top bar",
+      "titleRu": "Верхняя полоса",
+      "titleUk": "Верхня смуга"
+    },
+    {
       "key": "rowLauncherDensity",
       "sectionId": "launcher",
       "destination": "GENERAL",
@@ -1996,9 +2166,79 @@
       "destination": "GENERAL",
       "layout": "dialog_launcher_settings",
       "kind": "TOGGLE_ROW",
-      "titleEn": "Show clock and status",
-      "titleRu": "Показывать часы и статус",
-      "titleUk": "Показувати годинник і статус"
+      "titleEn": "Show status tray",
+      "titleRu": "Показывать трей статуса",
+      "titleUk": "Показувати трей статусу"
+    },
+    {
+      "key": "rowLauncherTopStatusStrip",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Clock and indicators on the top bar",
+      "titleRu": "Часы и показатели на верхней полосе",
+      "titleUk": "Годинник і показники на верхній смузі"
+    },
+    {
+      "key": "rowLauncherTrayBattery",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Battery",
+      "titleRu": "Батарея",
+      "titleUk": "Батарея"
+    },
+    {
+      "key": "rowLauncherTrayBluetooth",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Bluetooth",
+      "titleRu": "Bluetooth",
+      "titleUk": "Bluetooth"
+    },
+    {
+      "key": "rowLauncherTrayClock",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Clock",
+      "titleRu": "Часы",
+      "titleUk": "Годинник"
+    },
+    {
+      "key": "rowLauncherTrayNetwork",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Network type",
+      "titleRu": "Тип сети",
+      "titleUk": "Тип мережі"
+    },
+    {
+      "key": "rowLauncherTraySim1",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "SIM 1 signal",
+      "titleRu": "Сигнал SIM 1",
+      "titleUk": "Сигнал SIM 1"
+    },
+    {
+      "key": "rowLauncherTraySim2",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "SIM 2 signal",
+      "titleRu": "Сигнал SIM 2",
+      "titleUk": "Сигнал SIM 2"
     },
     {
       "key": "rowLauncherWallpaper",
@@ -2009,6 +2249,16 @@
       "titleEn": "Desktop wallpaper",
       "titleRu": "Заставка рабочего стола",
       "titleUk": "Заставка робочого столу"
+    },
+    {
+      "key": "rowRecordGnssTrack",
+      "sectionId": "networkMonitor",
+      "destination": "OPERATIONS",
+      "layout": "view_network_monitor_gnss_track",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Record the track on this device",
+      "titleRu": "Записывать трек на этом устройстве",
+      "titleUk": "Записувати трек на цьому пристрої"
     },
     {
       "key": "btnTranslationPrewarmRetry",

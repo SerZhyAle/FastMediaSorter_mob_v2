@@ -6,11 +6,17 @@ import android.view.animation.LinearInterpolator
 import android.widget.ImageView
 
 /**
- * Animates the inline-play button in MediaFileAdapter list items.
- * One instance per ListViewHolder - holds the running ObjectAnimator references so they
- * can be cancelled on recycle / state change.
+ * Animates a playback indicator image - the inline-play button in MediaFileAdapter list items, and
+ * the artwork slot of the background-playback bar. One instance per target view: it holds the
+ * running ObjectAnimator references so they can be cancelled on recycle / state change.
+ *
+ * @param noteDurationMs one full turn of the note, in ms. The list keeps the default; the
+ *   background-playback bar turns slower (S1382).
  */
-class InlinePlaybackAnimator(private val target: ImageView) {
+class InlinePlaybackAnimator(
+    private val target: ImageView,
+    private val noteDurationMs: Long = DEFAULT_NOTE_DURATION_MS
+) {
 
     private var noteAnimator: ObjectAnimator? = null
     private var downloadAnimator: ObjectAnimator? = null
@@ -40,11 +46,24 @@ class InlinePlaybackAnimator(private val target: ImageView) {
         if (noteAnimator?.isRunning == true) return
         armDetachGuard()
         noteAnimator = ObjectAnimator.ofFloat(target, "rotation", 0f, 360f).apply {
-            duration = 1200
+            duration = noteDurationMs
             repeatCount = ObjectAnimator.INFINITE
             interpolator = LinearInterpolator()
             start()
         }
+    }
+
+    /**
+     * Freezes the note at its current angle. Unlike [stopNote] the animator stays alive, so
+     * [resumeNote] continues the turn instead of snapping back to zero.
+     */
+    fun pauseNote() {
+        noteAnimator?.pause()
+    }
+
+    /** Continues a note frozen by [pauseNote]. No-op when the animator is absent or already running. */
+    fun resumeNote() {
+        noteAnimator?.resume()
     }
 
     fun stopNote() {
@@ -74,5 +93,9 @@ class InlinePlaybackAnimator(private val target: ImageView) {
         stopNote()
         stopDownload()
         target.rotation = 0f
+    }
+
+    companion object {
+        const val DEFAULT_NOTE_DURATION_MS = 1200L
     }
 }

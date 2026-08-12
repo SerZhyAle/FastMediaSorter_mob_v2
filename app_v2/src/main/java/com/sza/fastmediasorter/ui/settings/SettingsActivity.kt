@@ -15,39 +15,37 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
-import com.sza.fastmediasorter.BuildConfig
-import com.sza.fastmediasorter.core.orientation.isWideLayout
-import androidx.activity.viewModels
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.appcompat.widget.AppCompatTextView
-import androidx.core.view.isVisible
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.utils.collectOnLifecycle
-import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.tabs.TabLayout
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
+import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.ui.BaseActivity
-import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
+import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.max
 import timber.log.Timber
+import javax.inject.Inject
+import kotlin.math.max
 
 @AndroidEntryPoint
 class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
@@ -182,7 +180,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        maybeShowPendingCacheSizeToast()
         // Measure actionBarSize and register insets listener before the first frame
         // to prevent toolbarContainer height from jumping on activity open.
         val tv = TypedValue()
@@ -196,11 +193,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             applyEdgeToEdgeInsets()
         }
-    }
-
-    private fun maybeShowPendingCacheSizeToast() {
-        val cacheSizeMb = LocaleHelper.consumePendingCacheSizeToastMb(this) ?: return
-        Toast.makeText(this, getString(R.string.cache_size_installed_toast, cacheSizeMb), Toast.LENGTH_SHORT).show()
     }
 
     override fun getViewBinding(): ActivitySettingsBinding {

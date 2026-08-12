@@ -7,6 +7,7 @@ import com.jcraft.jsch.Session
 import com.jcraft.jsch.SftpATTRS
 import com.jcraft.jsch.SftpException
 import com.sza.fastmediasorter.core.util.InputStreamExt.copyToWithProgress
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -19,8 +20,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
 import java.io.OutputStream
-import java.util.concurrent.ConcurrentHashMap
 import java.util.Vector
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -411,11 +412,12 @@ class SftpClient @Inject constructor(
                     Result.failure(e)
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "SFTP read bytes range failed: $remotePath offset=$offset length=$length")
                 Result.failure(e)
             }
         }
-        
+
         // Retry with fresh connection if retriable error (skip for thumbnail reads)
         val exception = firstResult.exceptionOrNull()
         val shouldRetry = allowRetry && (exception is IOException ||
@@ -446,6 +448,7 @@ class SftpClient @Inject constructor(
                         }
                     }
                 } catch (e: Exception) {
+                    e.rethrowIfCancellation()
                     Timber.e(e, "SFTP read bytes range failed (retry): $remotePath offset=$offset length=$length")
                     Result.failure(e)
                 }
@@ -508,6 +511,10 @@ class SftpClient @Inject constructor(
                     Timber.w("SFTP [FILE_OPS] IOException attempt $attempt: $remotePath - ${e.message}")
                     Result.failure(e)
                 } catch (e: Exception) {
+                    // copyToWithProgress calls ensureActive per buffer, so leaving the screen mid
+                    // download lands here as a CancellationException; without the rethrow it became
+                    // an E-log plus a non-retriable failure instead of cooperative cancellation.
+                    e.rethrowIfCancellation()
                     Timber.e(e, "SFTP [FILE_OPS] download failed: $remotePath")
                     Result.failure(e)
                 }

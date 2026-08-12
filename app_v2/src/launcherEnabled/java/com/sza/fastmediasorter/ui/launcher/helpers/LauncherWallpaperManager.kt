@@ -45,6 +45,7 @@ class LauncherWallpaperManager(
     fun onStart() {
         when (current) {
             is LauncherWallpaper.Branded -> wavesLayer.startAnimation()
+            is LauncherWallpaper.StaticStripes -> wavesLayer.renderFreshStaticFrame()
             is LauncherWallpaper.Image -> imageAnimatable()?.start()
             is LauncherWallpaper.None -> Unit
         }
@@ -68,6 +69,12 @@ class LauncherWallpaperManager(
                 clearImage()
                 wavesLayer.isVisible = true
                 wavesLayer.startAnimation()
+            }
+
+            is LauncherWallpaper.StaticStripes -> {
+                clearImage()
+                wavesLayer.isVisible = true
+                wavesLayer.renderFreshStaticFrame()
             }
 
             is LauncherWallpaper.Image -> {

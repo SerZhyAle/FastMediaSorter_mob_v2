@@ -9,8 +9,10 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,10 +31,13 @@ class GeneralSettingsCacheHelper(
 ) {
     fun checkAndSuggestOptimalCacheSize() {
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            val settings = viewModel.settings.value
+            // S1535: awaits storage rather than reading viewModel.settings.value, which is still the
+            // AppSettings() seed this early and made every device whose optimum differs from the
+            // default 2048 MB look permanently mis-sized.
+            val settings = viewModel.awaitPersistedSettings()
             if (!settings.isCacheSizeUserModified) {
                 val optimalSizeMb = calculateOptimalCacheSizeUseCase()
-                if (settings.cacheSizeMb != optimalSizeMb) showOptimalCacheSizeSuggestion(optimalSizeMb)
+                if (settings.cacheSizeMb != optimalSizeMb) applyOptimalCacheSize(settings, optimalSizeMb)
             }
         }
     }
@@ -58,7 +63,7 @@ class GeneralSettingsCacheHelper(
                 }
             }
             .setCancelable(false)
-            .show()
+            .showBoundTo(fragment)
     }
 
     fun updateCacheSize() {
@@ -100,7 +105,7 @@ class GeneralSettingsCacheHelper(
                 else Toast.makeText(fragment.requireContext(), R.string.cache_size_already_optimal, Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     fun clearCache() {
@@ -165,35 +170,46 @@ class GeneralSettingsCacheHelper(
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
-    private fun showOptimalCacheSizeSuggestion(optimalSizeMb: Int) {
-        applyCacheSizeAndRestart(
-            newCacheSizeMb = optimalSizeMb,
-            isUserModified = false,
-            showInstalledToastAfterRestart = true,
-        )
+    /**
+     * S1535: the automatic path persists the size and stops there. Glide reads its disk-cache size
+     * when the process initialises, so the new value lands on the next ordinary launch; forcing a
+     * restart for a change the user never asked for is what produced the Settings restart cycle.
+     */
+    private fun applyOptimalCacheSize(current: AppSettings, optimalSizeMb: Int) {
+        persistCacheSize(current, newCacheSizeMb = optimalSizeMb, isUserModified = false)
+        if (!fragment.isAdded) return
+        Toast.makeText(
+            fragment.requireContext(),
+            fragment.getString(R.string.cache_size_installed_toast, optimalSizeMb),
+            Toast.LENGTH_SHORT,
+        ).show()
     }
 
-    private fun applyCacheSizeAndRestart(
-        newCacheSizeMb: Int,
-        isUserModified: Boolean,
-        showInstalledToastAfterRestart: Boolean = false,
-    ) {
+    private fun applyCacheSizeAndRestart(newCacheSizeMb: Int, isUserModified: Boolean) {
         val context = fragment.requireContext()
-        val current = viewModel.settings.value
-        viewModel.updateSettings(current.copy(cacheSizeMb = newCacheSizeMb, isCacheSizeUserModified = isUserModified))
-        context.getSharedPreferences("glide_config", android.content.Context.MODE_PRIVATE)
-            .edit()
-            .putInt("cache_size_mb", newCacheSizeMb)
-            .apply()
-        if (showInstalledToastAfterRestart) {
-            LocaleHelper.markPendingCacheSizeToast(context, newCacheSizeMb)
-        }
+        // Reached from a dialog the user operated, so the screen has rendered and settings.value is loaded.
+        persistCacheSize(viewModel.settings.value, newCacheSizeMb, isUserModified)
+        // The user confirmed a restart, and only a fresh process re-reads the Glide cache size.
+        // saveLanguage() re-applies the current language purely to make LocaleManager kill the process.
         LocaleHelper.saveLanguage(context, LocaleHelper.getLanguage(context))
         LocaleHelper.markReturnToSettings(context)
         LocaleHelper.restartApp(fragment.requireActivity())
+    }
+
+    // S1535: takes the base settings as an argument rather than re-reading viewModel.settings.value.
+    // awaitPersistedSettings() collects the DataStore flow separately from the stateIn() that backs
+    // settings, so the two are not ordered - a re-read here could still hand back the AppSettings()
+    // seed and copy() would then write every other setting back to its default.
+    private fun persistCacheSize(base: AppSettings, newCacheSizeMb: Int, isUserModified: Boolean) {
+        viewModel.updateSettings(base.copy(cacheSizeMb = newCacheSizeMb, isCacheSizeUserModified = isUserModified))
+        fragment.requireContext()
+            .getSharedPreferences("glide_config", android.content.Context.MODE_PRIVATE)
+            .edit()
+            .putInt("cache_size_mb", newCacheSizeMb)
+            .apply()
     }
 
     private fun showAudioCacheSizeWarning() {
@@ -207,7 +223,7 @@ class GeneralSettingsCacheHelper(
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun calculateDirectorySize(directory: java.io.File): Long {

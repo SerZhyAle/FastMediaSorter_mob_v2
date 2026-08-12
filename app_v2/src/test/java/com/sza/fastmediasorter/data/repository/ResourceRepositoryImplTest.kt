@@ -6,7 +6,9 @@ import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.StorageVolumeInfo
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.repository.StorageVolumeRepository
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.testing.createMediaResource
 import io.mockk.coEvery
@@ -34,6 +36,7 @@ class ResourceRepositoryImplTest {
     private lateinit var dao: ResourceDao
     private lateinit var credentialsRepository: NetworkCredentialsRepository
     private lateinit var smbOperations: SmbOperationsUseCase
+    private lateinit var storageVolumeRepository: StorageVolumeRepository
     private lateinit var repo: ResourceRepositoryImpl
 
     @Before
@@ -41,8 +44,12 @@ class ResourceRepositoryImplTest {
         dao = mockk(relaxed = true)
         credentialsRepository = mockk(relaxed = true)
         smbOperations = mockk(relaxed = true)
+        storageVolumeRepository = mockk(relaxed = true)
         coEvery { credentialsRepository.getAllCredentials() } returns flowOf(emptyList())
-        repo = ResourceRepositoryImpl(dao, credentialsRepository, smbOperations)
+        // S1378: these paths bind no resource to a volume, so the availability pass short-circuits
+        // and never reaches the registry - relaxed mock is enough.
+        coEvery { storageVolumeRepository.getVolumes() } returns emptyList()
+        repo = ResourceRepositoryImpl(dao, credentialsRepository, smbOperations, storageVolumeRepository)
     }
 
     private fun entity(
@@ -163,4 +170,69 @@ class ResourceRepositoryImplTest {
 
         assertEquals("NONE", captured.captured.profile)
     }
+
+    @Test
+    fun `getAllResourcesSync marks a resource on an unmounted volume unavailable`() = runTest {
+        coEvery { dao.getAllResourcesSync() } returns listOf(
+            entity().copy(id = 1L, storageVolumeId = "CARD-UUID"),
+            entity().copy(id = 2L, storageVolumeId = null),
+        )
+        coEvery { storageVolumeRepository.getVolumes() } returns listOf(volume("CARD-UUID", mounted = false))
+
+        val all = repo.getAllResourcesSync()
+
+        assertEquals(false, all.single { it.id == 1L }.isAvailable)
+        assertTrue("an unbound resource keeps its stored flag", all.single { it.id == 2L }.isAvailable)
+    }
+
+    @Test
+    fun `getAllResourcesSync leaves a resource on a mounted volume available`() = runTest {
+        coEvery { dao.getAllResourcesSync() } returns listOf(entity().copy(storageVolumeId = "CARD-UUID"))
+        coEvery { storageVolumeRepository.getVolumes() } returns listOf(volume("CARD-UUID", mounted = true))
+
+        assertTrue(repo.getAllResourcesSync().single().isAvailable)
+    }
+
+    /**
+     * S1378 regression: `isAvailable` is derived on load for a volume-bound resource, and every caller
+     * edits an unrelated field on a `copy()` of that loaded object. If the derived false were written
+     * back, ejecting the card once would mark the resource dead forever - reinserting it sets nothing
+     * back. The stored flag must win on the write path.
+     */
+    @Test
+    fun `updateResource never persists the derived unavailability of a volume-bound resource`() = runTest {
+        val stored = entity().copy(storageVolumeId = "CARD-UUID", isAvailable = true)
+        coEvery { dao.getResourceByIdSync(1L) } returns stored
+        val captured = slot<ResourceEntity>()
+        coEvery { dao.update(capture(captured)) } returns Unit
+
+        // What a caller holds after loading while the card is out, then editing an unrelated field.
+        repo.updateResource(
+            createMediaResource(id = 1L, isAvailable = false)
+                .copy(storageVolumeId = "CARD-UUID", name = "renamed")
+        )
+
+        assertEquals("renamed", captured.captured.name)
+        assertTrue("stored availability must survive the write", captured.captured.isAvailable)
+    }
+
+    @Test
+    fun `updateResource still authors availability for an unbound resource`() = runTest {
+        val captured = slot<ResourceEntity>()
+        coEvery { dao.update(capture(captured)) } returns Unit
+
+        repo.updateResource(createMediaResource(id = 1L, isAvailable = false).copy(storageVolumeId = null))
+
+        assertEquals(false, captured.captured.isAvailable)
+    }
+
+    private fun volume(id: String, mounted: Boolean) = StorageVolumeInfo(
+        id = id,
+        displayName = id,
+        isRemovable = true,
+        isMounted = mounted,
+        mountPath = if (mounted) "/storage/$id" else null,
+        totalBytes = if (mounted) 1_000L else 0L,
+        availableBytes = if (mounted) 500L else 0L,
+    )
 }

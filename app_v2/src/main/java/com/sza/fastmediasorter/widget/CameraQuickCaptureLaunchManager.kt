@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -174,7 +175,7 @@ class CameraQuickCaptureLaunchManager(
             }
             .setNegativeButton(R.string.cancel) { _, _ -> tempFile.delete(); finish() }
             .setOnCancelListener { tempFile.delete(); finish() }
-            .show()
+            .showBoundToHost(activity)
     }
 
     private suspend fun save(tempFile: File, name: String, boundTarget: CameraCaptureTarget) {

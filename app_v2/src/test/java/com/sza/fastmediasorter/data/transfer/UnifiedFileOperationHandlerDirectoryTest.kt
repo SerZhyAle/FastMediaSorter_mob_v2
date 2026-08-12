@@ -31,6 +31,12 @@ class UnifiedFileOperationHandlerDirectoryTest {
 
     @Before
     fun setup() {
+        // S1378: the space pre-flight asks the strategy how big the source tree is. Reporting
+        // "cannot measure" keeps it on its proceed branch, so these routing assertions are unchanged.
+        coEvery { localStrategy.getDirectoryInfo(any()) } returns
+            Result.failure(UnsupportedOperationException("not measured in this test"))
+        coEvery { smbStrategy.getDirectoryInfo(any()) } returns
+            Result.failure(UnsupportedOperationException("not measured in this test"))
         handler = UnifiedFileOperationHandler(
             localProvider = localProvider,
             tempFileManager = tempFileManager,
@@ -43,6 +49,11 @@ class UnifiedFileOperationHandlerDirectoryTest {
                 every { anyCloudEnabled() } returns true
             },
             directoryTreeTransferManager = treeTransferManager,
+            // S1378: an unmeasurable destination is the "proceed" branch, so the fit check stays out
+            // of the way of these assertions, which are about routing, not capacity.
+            getDestinationFreeSpace = mockk {
+                coEvery { this@mockk(any()) } returns null
+            },
         )
     }
 

@@ -22,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
  *
  * Extracted from MainActivity to keep the activity below the 1000-line cap.
  */
+@Suppress("LongParameterList") // View-manager: views + per-tab callbacks + the collapse-chip notify (S1443).
 class MainResourceTabsManager(
     private val tabLayout: TabLayout,
     private val collapsedStrip: View,
@@ -32,7 +33,9 @@ class MainResourceTabsManager(
     private val onTabSelected: (ResourceTab) -> Unit,
     private val onFavoritesReselected: () -> Unit,
     private val getActiveTab: () -> ResourceTab,
-    private val getPreviousTab: () -> ResourceTab?
+    private val getPreviousTab: () -> ResourceTab?,
+    // S1443: forwarded to the collapse manager, whose chip may be placed in the command bar.
+    private val onChipVisibilityChanged: () -> Unit = {}
 ) {
 
     /** Drives the expanded(tabs) <-> collapsed(strip) state; mirrors the player copy/move panels. */
@@ -41,7 +44,8 @@ class MainResourceTabsManager(
         collapsedStrip = collapsedStrip,
         isPanelAvailable = { gate.anyRemoteEnabled() },
         settingsRepository = settingsRepository,
-        scope = scope
+        scope = scope,
+        onChipVisibilityChanged = onChipVisibilityChanged
     )
 
     /** Tabs in display order, rebuilt by [createTabs]; the single source of truth for index<->tab. */

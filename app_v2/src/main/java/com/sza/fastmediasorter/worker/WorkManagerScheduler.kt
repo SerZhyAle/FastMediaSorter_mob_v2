@@ -41,11 +41,14 @@ class WorkManagerScheduler @Inject constructor(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    private companion object {
+    companion object {
         // Shared tag carried by EVERY scheduled-operation work request. Bulk cancellation goes
         // through cancelAllWorkByTag, which matches an exact tag - the per-operation unique names
         // (sched_op_<id> / sched_op_run_all) cannot be cancelled as a group, so a single common tag
         // is the only handle that reaches all of them at once.
+        //
+        // S1421: for the same reason it is also the only handle that can *observe* the family, so the
+        // launcher status strip reads it. Visible outside this class since then.
         const val TAG_SCHEDULED_OP = "sched_op"
     }
 

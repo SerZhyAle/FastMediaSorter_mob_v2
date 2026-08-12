@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.transfer.access
 
 import android.content.Context
 import android.net.Uri
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.transfer.FileAccess
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
@@ -23,6 +24,7 @@ class LocalFileAccess @Inject constructor(
                      it.moveToFirst()
                  } ?: false
              } catch (e: Exception) {
+                 e.rethrowIfCancellation()
                  false
              }
         }
@@ -38,6 +40,7 @@ class LocalFileAccess @Inject constructor(
                     context, uri.toString(), "LocalFileAccess.delete"
                 )
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 false
             }
         }

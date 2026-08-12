@@ -17,7 +17,6 @@
     <string name="camera_ocr_save_error">Не удалось сохранить текстовый файл</string>
     <string name="camera_ocr_camera_error">Не удалось запустить камеру или сделать снимок</string>
     <string name="camera_ocr_engine_error">Служба перевода в данный момент недоступна</string>
-    <string name="camera_ocr_crop_title">Выделите область</string>
     <string name="camera_ocr_crop_retry">Переснять</string>
     <string name="camera_ocr_crop_confirm">OK</string>
     <string name="camera_ocr_crop_frame_desc">Рамка выделения области</string>
@@ -53,9 +52,6 @@
     <string name="no_files_selected">Файлы не выбраны</string>
     <string name="msg_last_filter_restored">Восстановлен последний фильтр: %1$s</string>
     <string name="warning_files_may_remain_in_source">Некоторые файлы могли остаться в исходной папке. Проверьте источник и папку назначения. Затронуто: %1$d.</string>
-    <string name="no_supported_files_in_resource">Поддерживаемых типов файлов здесь нет. Мы избирательнее, чем кажемся.</string>
-    <string name="process_started">Процесс запущен..</string>
-    <string name="long_operation_started">Операция выполняется, пожалуйста подождите..</string>
     <string name="please_wait">Пожалуйста, подождите..</string>
     <string name="favorites">Избранное</string>
     <string name="resource">Ресурс</string>
@@ -86,11 +82,8 @@
     <string name="renaming_files">Переименовываем..</string>
     <string name="renaming_n_files_from_folder">Переименовываем %1$d файлов из %2$s..</string>
     <string name="renamed_n_files">Переименовали %1$d файлов.</string>
-    <string name="rename_failed">Не получилось переименовать файлы.</string>
     <string name="rename_failed_generic">Не получилось переименовать файл.</string>
     <string name="rename_file_name_empty">Имя файла не может быть пустым.</string>
-    <string name="error_copy">Не получилось скопировать файлы</string>
-    <string name="error_move">Не получилось переместить файлы</string>
     <string name="error_delete">Не получилось удалить файлы</string>
     <string name="error_all_operations_failed">Ничего не получилось.</string>
     <string name="all_copy_operations_failed">Не получилось скопировать выбранные файлы.\n\n%1$s</string>
@@ -118,7 +111,6 @@
     <string name="downloading_file">Загрузка файла..</string>
     <string name="downloaded_successfully">Успешно загружено</string>
     <string name="download_failed">Ошибка загрузки: %1$s</string>
-    <string name="no_app_to_handle_file">Не найдено приложение для открытия этого файла</string>
     <string name="error_opening_file">Ошибка открытия файла: %1$s</string>
 
     <!-- File Information Dialog -->
@@ -142,10 +134,9 @@
 
     <!-- Open Source Licenses -->
     <string name="open_source_licenses_title">Лицензии открытого ПО</string>
-    <string name="lib_smbj_title">SMBJ - Библиотека SMBv2/v3 для Java</string>
-    <string name="lib_smbj_license">Лицензия: LGPL-2.1</string>
-    <string name="lib_epub4j_title">epub4j - Чтение/запись EPUB файлов</string>
-    <string name="lib_epub4j_license">Лицензия: LGPL-2.1</string>
+    <string name="oss_notices_unavailable">Уведомления о сторонних компонентах недоступны.</string>
+    <string name="oss_notice_license_label">Лицензия: %1$s</string>
+    <string name="oss_notice_vendor_terms_label">Условия поставщика: %1$s</string>
     <string name="view_source">Исходный код</string>
     <string name="view_license">Лицензия</string>
     <string name="doc_char_count_label">Символов: %1$d</string>
@@ -187,15 +178,12 @@
     <string name="virtual_resource_added">Ресурс «%1$s» добавлен</string>
     <string name="rescan_all_virtual_warning_title">Ресканирование всех ресурсов</string>
     <string name="rescan_all_virtual_warning_message">Список включает виртуальные агрегирующие папки (Вся музыка, Все видео, Все изображения, Все документы). Их полное ресканирование может занять значительное время. Продолжить?</string>
-    <string name="no_files_match_criteria">Под фильтры ничего не подошло. Планка оказалась высокой.</string>
     <string name="connection_failed">Сбой подключения</string>
     <string name="loading_indicator">Загрузка..</string>
     <string name="connecting">Подключение к ресурсу..</string>
     <string name="connecting_to_resource">Подключение к %1$s..</string>
     <string name="scan_progress_indicator">Сканирование файлов</string>
     <string name="operation_progress_indicator">Операция в процессе</string>
-    <string name="connection_ok_starting_speed_test">Подключение успешно. Запуск теста скорости..</string>
-    <string name="error_subfolder_does_not_exist">Подпапка \'%1$s\' не существует в общем ресурсе \'%2$s\'</string>
     <string name="retry">Повторить</string>
     <string name="select_resource_type">Выберите тип ресурса</string>
 
@@ -213,7 +201,6 @@
     <string name="error_bdts_format_title">Формат не поддерживается</string>
     <string name="error_bdts_format_message">Blu-ray Transport Stream (.m2ts) не удалось воспроизвести.\n\nЕсли все аудиодорожки используют только TrueHD или DTS-HD MA, выберите другую дорожку или перекодируйте файл в MP4/MKV (HandBrake, ffmpeg).</string>
     <string name="warning_m2ts_audio_unsupported">Аудиодорожки недоступны в этой сборке: %1$s.\nВоспроизведение без звука. Поддерживаются: AC-3, E-AC-3, DTS (core), AAC.</string>
-    <string name="warning_m2ts_audio_unsupported_title">Неподдерживаемые аудиодорожки</string>
 
     <!-- Cloud Connection Error Messages -->
     <string name="error_cloud_auth_expired">Не удаётся получить доступ к \"%1$s\" - аутентификация утрачена или сессия завершена</string>
@@ -223,7 +210,6 @@
     <string name="error_connection_auth">Не удаётся подключиться к \"%1$s\" - ошибка авторизации.\n\nПроверьте имя пользователя и пароль.</string>
     <string name="error_connection_access">Не удаётся подключиться к \"%1$s\" - доступ к ресурсу запрещён.\n\nПроверьте права доступа к папке.</string>
     <string name="error_connection_share_not_found">Не удаётся подключиться к \"%1$s\" - папка не найдена.\n\nПроверьте имя общей папки на сервере.</string>
-    <string name="error_connection_server_generic">Не удаётся подключиться к серверу.\n\n%1$s</string>
 
     <!-- B2: Generic network error messages for NetworkErrorMessageMapper -->
     <string name="error_network_timeout">Соединение истекло. Проверьте сеть и повторите попытку.</string>
@@ -236,7 +222,6 @@
     <string name="error_network_rate_limit">Слишком много запросов. Подождите и попробуйте ещё раз.</string>
     <string name="error_network_server_error">Ошибка сервера. Нет ответа.</string>
     <string name="error_network_unsupported">Операция не поддерживается этим сервером.</string>
-    <string name="error_network_generic">Ошибка сети. Пожалуйста, попробуйте ещё раз.</string>
     <string name="error_sftp_copy_failed_server">Не удалось скопировать файл с %1$s. Проверьте соединение и попробуйте снова.</string>
     <string name="error_ftp_connection_dropped">Соединение с FTP-сервером %1$s прервалось. Попробуйте ещё раз.</string>
     <string name="error_sftp_copy_access_denied">Нет доступа к файлу на SFTP-сервере. Проверьте права доступа.</string>
@@ -250,7 +235,6 @@
     <!-- Standalone player playback error messages -->
     <string name="error_file_not_found">Файл не найден или не может быть открыт.</string>
     <string name="error_network_connection">Ошибка подключения к сети. Проверьте соединение и повторите попытку.</string>
-    <string name="error_codec_unsupported">Этот формат не поддерживается вашим устройством.</string>
     <string name="error_playback_timeout">Время воспроизведения истекло. Проверьте соединение и повторите попытку.</string>
     <string name="error_network_playback">Ошибка удалённого сервера. Воспроизведение невозможно.</string>
     <string name="error_behind_live_window">Пропущена позиция прямой трансляции. Переход к последнему фрагменту.</string>
@@ -287,12 +271,8 @@
     <string name="max_date">Макс. дата</string>
     <string name="min_size_mb">Мин. размер</string>
     <string name="max_size_mb">Макс. размер</string>
-    <string name="filter_active">Фильтр активен: %1$s</string>
 
     <!-- Settings -->
-    <string name="general">Общие</string>
-    <string name="media_files">Медиафайлы</string>
-    <string name="destinations">Быстрая сортировка</string>
     <!-- Settings - General -->
     <string name="language">Language/Язык/Мова</string>
     <string name="color_theme">Цветовая тема</string>
@@ -307,8 +287,6 @@
         <item>Светло-синяя</item>
         <item>Светло-красная</item>
     </string-array>
-    <string name="backup_restore_settings">Резервное копирование</string>
-    <string name="backup_info_description">Резервная копия содержит все настройки и список ресурсов. Учетные данные не резервируются - после восстановления вам потребуется повторно аутентифицировать сетевые и облачные ресурсы.</string>
     <string name="tooltip_backup_info_title">Информация о резервной копии</string>
     <string name="tooltip_backup_info_message">Резервная копия содержит все настройки и список ресурсов. Учетные данные не резервируются - после восстановления вам потребуется повторно аутентифицировать сетевые и облачные ресурсы.</string>
     <string name="restart_required_title">Требуется перезапуск</string>
@@ -325,7 +303,6 @@
     <string name="compact_elements">Компактные элементы (глобально)</string>
     <string name="enable_favorites">Включить избранное</string>
     <string name="favorite">Избранное</string>
-    <string name="favorites_title">Избранное</string>
 
     <!-- Command Panel Overflow Menu -->
     <string name="more_actions">Ещё</string>
@@ -334,7 +311,6 @@
     <string name="google_lens">Google Lens</string>
 
     <!-- Safe Mode (Phase 2.1) -->
-    <string name="safe_mode_section">Безопасный режим</string>
     <string name="enable_safe_mode">Включить безопасный режим</string>
     <string name="confirm_delete_safe_mode">Подтверждать удаление</string>
     <string name="confirm_move_safe_mode">Подтверждать перемещение</string>
@@ -343,15 +319,10 @@
     <string name="confirm_move_title">Переместить файлы?</string>
     <string name="confirm_move_message">Переместить %1$d файл(ов) в %2$s?</string>
 
-    <string name="default_smb_user">SMB пользователь по умолчанию</string>
-    <string name="default_smb_password">SMB пароль по умолчанию</string>
     <string name="user_guide">Руководство пользователя</string>
     <string name="how_to_guides">Пошаговые инструкции</string>
-    <string name="how_to_scenarios_title">Пошаговые сценарии</string>
-    <string name="how_to_scenarios_subtitle">Практические руководства для частых задач</string>
     <string name="open_welcome_tutorial">Вводный экран</string>
     <string name="privacy_policy">Конфиденциальность</string>
-    <string name="manage_permissions">Управление правами</string>
     <string name="title_add_resource">Добавить ресурс</string>
     <string name="title_edit_resource">Редактировать ресурс</string>
     <string name="title_copy_resource">Копировать ресурс</string>
@@ -363,7 +334,7 @@
     <string name="btn_retry">Повторить</string>
     <string name="btn_test_connection">Проверить подключение</string>
     <string name="btn_use_suggested_name">Использовать предложенное имя</string>
-    <string name="btn_use_name_format">Использовать "%1$s"</string>
+    <string name="btn_use_name_format">Использовать \"%1$s\"</string>
     <string name="hint_resource_name">Имя ресурса</string>
     <string name="hint_folder_path">Путь к папке</string>
     <string name="hint_host">Хост / IP-адрес</string>
@@ -384,7 +355,6 @@
     <string name="label_advanced_settings">Расширенные настройки</string>
     <string name="label_additional_options">Дополнительные параметры</string>
     <string name="label_statistics">Статистика</string>
-    <string name="label_expand_collapse">Развернуть/свернуть</string>
     <string name="label_scan_subdirectories">Сканировать подпапки</string>
     <string name="label_all_files">Режим файлового менеджера (показ и управление всеми файлами)</string>
     <string name="label_disable_thumbnails">Отключить миниатюры</string>
@@ -401,7 +371,6 @@
     <string name="label_write_speed">Скорость записи: %1$.1f МБ/с</string>
     <string name="label_never">Никогда</string>
     <string name="connection_success">Подключение успешно</string>
-    <string name="connection_test_failed_detail">Подключение не удалось: %1$s</string>
     <string name="connection_test_not_supported">Проверка подключения не поддерживается для этого типа ресурса</string>
     <string name="error_field_required">Это поле обязательно</string>
     <string name="error_invalid_path">Некорректный путь</string>
@@ -427,46 +396,29 @@
     <string name="resource_editor_validation_failed">Проверка данных не пройдена</string>
     <string name="resource_editor_save_as_copy_edit_only">«Сохранить как копию» доступно только в режиме редактирования</string>
     <string name="resource_editor_nothing_to_retry">Нечего повторять</string>
-    <string name="manage_local_files_permission">Управление доступом к локальным файлам</string>
-    <string name="manage_manage_media_permission">Управление разрешением «Управление медиа»</string>
-    <string name="request_permissions">Запросить разрешения</string>
     <string name="permissions_required_title">Требуются разрешения</string>
-    <string name="permissions_required_for_local_resource">Для создания локального ресурса необходим доступ к медиа-файлам. Предоставьте разрешения для продолжения.</string>
-    <string name="show_logs">Показать логи</string>
-    <string name="support_images">Поддержка изображений</string>
     <string name="support_images_description">Поддержка статичных изображений</string>
     <string name="supported_image_formats">Поддерживается: JPG, PNG, BMP, WEBP</string>
     <string name="max_recipients">Макс. получателей (1-30)</string>
     <string name="max_recipients_error">Значение должно быть от 1 до 30</string>
     <string name="load_full_size_images">Загружать изображения полностью</string>
     <string name="load_full_size_images_hint">Включает жесты масштабирования и поворота в режиме командной панели, но использует больше данных и памяти. По умолчанию выкл. (загружается 1920px).</string>
-    <string name="support_gif">Поддержка GIF</string>
     <string name="support_gif_description">Поддержка GIF анимации</string>
-    <string name="support_video">Поддержка видео</string>
     <string name="support_video_description">Поддержка видео</string>
     <string name="supported_video_formats">Поддерживаются: MP4, MKV, MOV, WEBM</string>
-    <string name="support_audio">Поддержка аудио</string>
     <string name="support_audio_description">Поддержка аудио</string>
     <string name="supported_audio_formats">Поддерживаются: MP3, AAC, FLAC, OGG</string>
-    <string name="support_text">Поддержка текста</string>
-    <string name="support_txt">Поддержка TXT</string>
     <string name="support_text_description">Поддержка текстовых файлов (.txt, .md, .log, .json, .xml)</string>
-    <string name="supported_text_formats">Поддерживаются: TXT, MD, LOG, JSON, XML, CSV</string>
-    <string name="support_pdf">Поддержка PDF</string>
     <string name="support_pdf_description">Поддержка PDF-документов</string>
-    <string name="support_epub">Поддержка EPUB</string>
     <string name="support_epub_description">Поддержка EPUB электронных книг</string>
     <string name="support_office_documents_description">Поддержка Office-документов</string>
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Тёмная</string>
     <string name="theme_sepia">Сепия</string>
-    <string name="google_sign_in_failed">Вход не удался: %1$d</string>
-    <string name="auth_failed">Авторизация не удалась. Попробуйте ещё раз.</string>
 
     <string name="battery_optimization_hint_title">Предупреждение об оптимизации батареи</string>
     <string name="battery_optimization_hint_message">Оптимизация батареи может препятствовать воспроизведению аудио в фоне. Отключите оптимизацию батареи для FastMediaSorter в системных настройках для надёжного фонового аудио.</string>
     <string name="show_pdf_thumbnails">Миниатюры для больших PDF (долго)</string>
-    <string name="show_pdf_thumbnails_description">Скачивать и генерировать миниатюры для больших PDF: до 50 МБ для SMB, до 10 МБ для S/FTP/Облака (может занять значительное время)</string>
     <string name="enable_translation">Включить перевод</string>
     <string name="font_size_auto">Автоматический</string>
     <string name="font_size_minimum">Минимальный</string>
@@ -479,15 +431,12 @@
     <string name="font_family_monospace">Моноширинный</string>
     <string name="enable_google_lens">Разрешить отправку в Google Lens</string>
     <string name="swap_languages">Поменять языки местами</string>
-    <string name="supported_pdf_formats">Поддерживаются: PDF (рендеринг через PdfRenderer)</string>
     <string name="search_audio_covers_online">Искать обложки аудио онлайн</string>
     <string name="search_covers_only_on_wifi">Искать только по Wi-Fi</string>
     <string name="default_sort_mode">Режим сортировки по умолчанию</string>
     <string name="slideshow_interval">Слайдшоу по умолч. (сек.)</string>
     <string name="slideshow_interval_inline">Слайдшоу (с)</string>
-    <string name="slideshow_interval_for_resource">Интервал для слайдшоу (сек.)</string>
     <string name="fullscreen_mode">Полноэкранный режим</string>
-    <string name="seconds">Секунд</string>
     <string name="minutes">Минут</string>
     <string name="stop">Стоп</string>
     <string name="scan_stopped">Сканирование остановлено. Работаем с %d файлами</string>
@@ -503,7 +452,6 @@
     <string name="allow_rename">Разрешить переименование</string>
     <string name="allow_delete">Разрешить удаление</string>
     <string name="confirm_delete">Подтверждать удаление</string>
-    <string name="grid_mode">Режим сетки по умолчанию</string>
     <string name="hide_grid_action_buttons">Не показывать команды на эскизах</string>
     <string name="overflow_menu">Дополнительно</string>
     <string name="hide_system_ui_in_fullscreen">Прятать элементы ОС в полноэкранном режиме</string>
@@ -516,15 +464,12 @@
     <string name="show_hint_now">Показать\nподсказку\nв следующий раз</string>
     <string name="hint_will_be_shown_next_time">Подсказка сенсорных зон будет показана при следующем открытии плеера</string>
     <string name="show_video_thumbnails">Показывать миниатюры видеофайлов</string>
-    <string name="show_video_thumbnails_description">Извлекать и отображать первый кадр видеофайлов (может занять 2+ секунды для сетевых файлов)</string>
     <string name="default_icon_size">Размер иконок для сетки (пиксели)</string>
     <string name="enable_copying">Разрешить копирование</string>
     <string name="go_to_next_after_copy">Переходить к следующему после копирования</string>
     <string name="overwrite_on_copy">Перезаписывать при копировании</string>
     <string name="enable_moving">Разрешить перемещение</string>
     <string name="overwrite_on_move">Перезаписывать при перемещении</string>
-    <string name="destinations_list">Быстрая сортировка (0-9)</string>
-    <string name="destinations_description">До 10 папок быстрой сортировки. Каждая имеет цвет и номер (0-9).</string>
     <string name="add_destination">+ Добавить</string>
     <string name="destinations_list_header">Назначения быстрой сортировки</string>
     <string name="add_resources_first_message">Сначала добавьте папки на главном экране, прежде чем отмечать их для быстрой сортировки.</string>
@@ -551,28 +496,15 @@
     <string name="all_resources_available">Все ресурсы доступны: %1$d для записи, %2$d только для чтения</string>
     <string name="all_resources_unavailable">Все ресурсы недоступны</string>
     <string name="resources_checked">Проверено ресурсов: %1$d доступно (%2$d недоступно)</string>
-    <string name="repeat_mode">Повтор</string>
     <string name="resource_name">Название ресурса</string>
     <string name="resource_name_hint">Если пусто - автогенерация</string>
-    <string name="comment">Комментарий</string>
     <string name="access_pin">ПИН-код доступа</string>
     <string name="pin_incorrect">Неверный ПИН-код</string>
-    <string name="created_date">Дата создания</string>
-    <string name="last_browse_date">Дата последнего просмотра</string>
-    <string name="never_browsed">Никогда не просматривался</string>
-    <string name="loading_files">Загрузка файлов..</string>
-    <string name="supported_media_types">Поддерживаемые типы медиа</string>
     <string name="scan_subdirectories">С подпапками</string>
-    <string name="scan_subdirectories_hint">Включите для поиска медиафайлов во всех вложенных подкаталогах. Отключите для сканирования только корневой папки.</string>
     <string name="show_subfolders_as_items">Показывать подпапки отдельно</string>
     <string name="show_subfolders_as_items_hint">Отображать подпапки как кликабельные элементы. Нажмите для входа в папку.</string>
-    <string name="show_subfolders_as_items_global_hint">Использовать глобальную настройку</string>
-    <string name="current_folder">Текущая папка</string>
-    <string name="folder_up">Вверх</string>
     <string name="disable_thumbnails">Отключить миниатюры</string>
-    <string name="disable_thumbnails_description">Показывать только иконки расширений файлов (без предпросмотра). Автоматически включается для папок с >10000 файлов.</string>
     <string name="read_only_mode">Только чтение</string>
-    <string name="read_only_mode_hint">Запрещает файловые операции (копирование, перемещение, удаление)</string>
     <string name="error_read_only">Этот ресурс доступен только для чтения</string>
 
     <!-- Empty state -->
@@ -583,34 +515,21 @@
     <string name="favorites_empty_title">Нет избранного</string>
     <string name="favorites_empty_hint">Отметьте файлы звёздочкой, чтобы собрать их здесь. Без давления.</string>
 
-    <string name="use_as_destination">Отметить для быстрой сортировки</string>
     <string name="counting">подсчёт..</string>
     <string name="clear_trash">Очистить корзину</string>
-    <string name="clear_trash_confirm_title">Очистить корзину?</string>
-    <string name="clear_trash_confirm_message">Это окончательно удалит %d папок корзины и все файлы внутри них. Отменить действие будет невозможно.</string>
     <string name="trash_cleared">Папок корзины удалено: %d</string>
-    <string name="trash_clear_failed">Не удалось очистить корзину: %s</string>
     <string name="add_to_destinations">Добавить в быструю сортировку</string>
     <string name="back">Назад</string>
     <string name="enter">Внутрь</string>
     <string name="select">Выбор</string>
-    <string name="test">Тест</string>
-    <string name="test_connection">Тест</string>
-    <string name="restore_connection">Восстановить</string>
-    <string name="authentication_successful">Успешно авторизовано как %1$s</string>
-    <string name="authentication_failed">Ошибка авторизации: %1$s</string>
     <string name="go_to_resources">К Ресурсам</string>
     <string name="authentication_required">Требуется авторизация</string>
     <string name="sign_in_now">Войти сейчас</string>
     <string name="copy_error">Копировать ошибку</string>
     <string name="reset">Сбросить</string>
     <string name="save">Сохранить</string>
-    <string name="resource_updated">Ресурс обновлён</string>
-    <string name="test_successful">Тест соединения успешен</string>
-    <string name="test_failed">Тест соединения не удался: %1$s</string>
     <string name="connection_test_success_title">Тест соединения - Успешно</string>
     <string name="connection_test_failed_title">Тест соединения - Ошибка</string>
-    <string name="server_share_required">IP сервера и имя ресурса обязательны</string>
 
     <!-- Language Change -->
     <string name="restart_app_title">Перезапустить приложение</string>
@@ -620,14 +539,11 @@
     <string name="restart">Перезапустить</string>
 
     <!-- Welcome Screen -->
-    <string name="skip">Пропустить</string>
     <string name="previous">Назад</string>
     <string name="next">Далее</string>
     <string name="random_file_description">Случайный переход</string>
     <string name="finish">Готово</string>
     <string name="grant_permissions">Предоставить доступ</string>
-    <string name="permissions_denied_title">Требуется разрешение</string>
-    <string name="permissions_denied_warning">Без доступа к медиафайлам основной функционал приложения будет недоступен.</string>
     <string name="continue_anyway">Продолжить без разрешений</string>
 
     <!-- Welcome Feature Card Labels -->
@@ -637,21 +553,8 @@
     <string name="toast_panel_stereo_single_eye_applied">Стерео-контент обрезан до одного глаза</string>
 
     <!-- Permissions -->
-    <string name="permission_storage_title">Доступ к хранилищу</string>
-    <string name="permission_storage_rationale">FastMediaSorter требуется доступ к хранилищу для сканирования и отображения медиафайлов.</string>
-    <string name="permission_storage_rationale_r">FastMediaSorter требуется разрешение на управление всеми файлами для доступа к локальным папкам и медиафайлам.</string>
-    <string name="permission_internet_title">Сетевой доступ</string>
-    <string name="permission_internet_rationale">FastMediaSorter требуется доступ к сети для подключения к SMB/SFTP и облачным хранилищам.</string>
-    <string name="local_network_permission_rationale_title">Доступ к локальной сети</string>
-    <string name="local_network_permission_rationale_message">FastMediaSorter требует доступ к локальной сети для подключения к серверам SMB, SFTP, FTP и обнаружения устройств Chromecast.</string>
-    <string name="local_network_permission_grant">Разрешить доступ к локальной сети</string>
-    <string name="local_network_permission_granted">Доступ к локальной сети разрешён</string>
-    <string name="local_network_permission_denied">Доступ к локальной сети недоступен</string>
     <string name="local_network_permission_open_settings">Открыть настройки</string>
     <string name="grant_permission">Предоставить</string>
-    <string name="grant_local_files_permission">Доступ к файлам</string>
-    <string name="grant_network_permission">Сетевые разрешения</string>
-    <string name="network_permission_granted">Сетевые разрешения</string>
     <string name="debug_settings_title">Отладочные журналы и тестовые инструменты</string>
     <string name="show_log">Показать лог</string>
     <string name="show_current_session_log">Лог текущей сессии</string>
@@ -672,9 +575,7 @@
     <string name="gms_unavailable">Google Play Services недоступны. Почти всё в приложении работает и без них; недоступными окажутся лишь несколько дополнительных функций.</string>
     <string name="gms_update_action">Обновить</string>
     <string name="gms_settings_link">Можно обновить Google Play Services, чтобы включить пару дополнительных функций. Если они не нужны, обновление можно пропустить.</string>
-    <string name="network_unstable_snackbar">Сеть нестабильна - проверьте Wi-Fi</string>
     <string name="cache_size_limit">Размер кэша</string>
-    <string name="cache_size_limit_mb">%d МБ</string>
     <string name="cache_size_calculating">Вычисление..</string>
     <string name="cache_size_format">Кэш: %s</string>
     <string name="cache_cleared">Кэш успешно очищен</string>
@@ -683,13 +584,8 @@
     <string name="auto_calculate_cache_title">Автоматический расчёт размера кэша</string>
     <string name="auto_calculate_cache_message">Рекомендуемый размер кэша: %1$d МБ\n\nИнформация о хранилище:\n%2$s\n\nПрименить эту настройку?</string>
     <string name="cache_size_already_optimal">Размер кэша уже оптимален</string>
-    <string name="optimize_cache_title">Оптимизировать размер кэша?</string>
-    <string name="optimize_cache_message">На основе хранилища вашего устройства, мы рекомендуем размер кэша: %1$d МБ\n\nИнформация о хранилище:\n%2$s\n\nПрименить эту настройку?</string>
-    <string name="keep_current">Оставить текущий</string>
     <string name="default_user">Пользователь по умолчанию</string>
     <string name="default_password">Пароль по умолчанию</string>
-    <string name="skip_permission">Пропустить</string>
-    <string name="permissions_granted">Разрешения предоставлены. Приложение перезапустится.</string>
 
     <!-- Context Tooltips -->
     <string name="tooltip_slideshow_title">Интервал слайдшоу</string>
@@ -716,38 +612,13 @@
     <string name="big_buttons_mode_summary">Увеличивает кнопки плеера и растягивает управление на всю ширину - удобно для автомагнитол</string>
     <string name="tooltip_big_buttons_mode_title">Режим большие кнопки</string>
     <string name="tooltip_big_buttons_mode_message">Кнопки управления плеером становятся крупнее и занимают всю ширину экрана. На верхней панели помещается от 5 до 9 кнопок в зависимости от доступной ширины; остальные переходят в меню. В горизонтальной ориентации высокая нижняя панель может уменьшить область воспроизведения.</string>
-    <string name="big_btn_short_playback_order">Порядок</string>
-    <string name="big_btn_short_delete">Удалить</string>
-    <string name="big_btn_short_favorite">Избр.</string>
-    <string name="big_btn_short_share">Отпр.</string>
-    <string name="big_btn_short_info">Инфо</string>
-    <string name="big_btn_short_fullscreen">Экран</string>
-    <string name="big_btn_short_slideshow">Слайд</string>
-    <string name="big_btn_short_random">Случ.</string>
-    <string name="big_btn_short_black_screen">Тёмн.</string>
-    <string name="big_btn_short_rename">Переим.</string>
-    <string name="big_btn_short_edit">Ред.</string>
-    <string name="big_btn_short_undo">Отмена</string>
-    <string name="big_btn_short_cast">Cast</string>
-    <string name="big_btn_short_save_frame">Кадр</string>
-    <string name="big_btn_short_lyrics">Текст</string>
-    <string name="big_btn_short_rotation">Пов.</string>
-    <string name="big_btn_short_search">Поиск</string>
-    <string name="big_btn_short_translate">Перев.</string>
-    <string name="big_btn_short_text_settings">Настр.</string>
-    <string name="big_btn_short_ocr">OCR</string>
-    <string name="big_btn_short_copy">Копир.</string>
-    <string name="big_btn_short_lens">Lens</string>
     <string name="tooltip_default_credentials_title">Сетевые учетные данные по умолчанию</string>
     <string name="tooltip_default_credentials_message">Имя пользователя и пароль по умолчанию при подключении к сетевым ресурсам (SMB/SFTP/FTP). Могут быть переопределены для каждого ресурса при настройке.</string>
     <string name="all_files">Все файлы</string>
     <string name="tooltip_all_files_title">Режим файлового менеджера</string>
     <string name="tooltip_all_files_message">Показывать и управлять ВСЕМИ типами файлов в ресурсах (не только медиа). При включении автоматически поддерживаются изображения, видео, аудио, текст, документы, архивы и бинарные файлы.</string>
-    <string name="all_files_global_info">Режим всех файлов включен в Настройках. Все типы медиа поддерживаются автоматически.</string>
-    <string name="all_files_resource_info">Режим файлового менеджера включён для этого ресурса. Все типы файлов поддерживаются.</string>
     <string name="show_hidden_files">Показывать скрытые файлы</string>
     <string name="tooltip_show_hidden_files_title">Показывать скрытые файлы</string>
-    <string name="help_show_hidden_files">Справка: показывать скрытые файлы</string>
     <string name="tooltip_show_hidden_files_message">Отображать скрытые файлы и папки (начинающиеся с точки). Скрытые элементы станут видимыми в доступных местах хранения, но Android всё равно может защищать app-specific папки.</string>
     <string name="tooltip_video_thumbnails_title">Показывать миниатюры видео</string>
     <string name="tooltip_video_thumbnails_message">Извлекает и отображает первый кадр видеофайлов в качестве миниатюр. Может занять более 2 секунд для сетевых файлов из-за загрузки и обработки.</string>
@@ -760,16 +631,12 @@
     <string name="select_music_source">Выбрать источник музыки</string>
     <string name="no_music_source_selected">Источник музыки не выбран</string>
     <string name="resource_not_found">Ресурс не найден</string>
-    <string name="error_resource_unavailable">Ресурс "%1$s" недоступен. Проверьте подключение или настройки ресурса.</string>
+    <string name="error_resource_unavailable">Ресурс \"%1$s\" недоступен. Проверьте подключение или настройки ресурса.</string>
     <string name="error_folder_load_failed">Не получилось открыть папку.</string>
     <string name="error_favorite_status_update_failed">Не получилось обновить статус избранного.</string>
     <string name="error_add_destination_failed">Не получилось добавить эту папку в быструю сортировку.</string>
     <string name="error_cloud_provider_not_configured">Для этой папки не настроен облачный сервис.</string>
-    <string name="error_folder_loading_blocked_by_video_player">Нельзя открыть папку, пока воспроизводится видео.
-
-Сейчас видеоплеер использует сеть в приоритете.
-
-Закройте плеер и попробуйте снова.</string>
+    <string name="error_folder_loading_blocked_by_video_player">Нельзя открыть папку, пока воспроизводится видео.\n\nСейчас видеоплеер использует сеть в приоритете.\n\nЗакройте плеер и попробуйте снова.</string>
     <string name="error_folder_loading_blocked_by_video_player_details">Приоритет сети у видеоплеера помогает избежать перегрузки и рывков воспроизведения.</string>
     <string name="tooltip_slideshow_music_title">Фоновая музыка слайдшоу</string>
     <string name="tooltip_slideshow_music_message">При включении музыкальные файлы из выбранного ресурса будут воспроизводиться в случайном порядке во время слайдшоу изображений/GIF. Выберите ресурс с вашей музыкальной коллекцией.</string>
@@ -788,11 +655,9 @@
     <string name="save_frame_saved_to_resource">Кадр сохранён в: %s</string>
     <string name="save_frame_saved_to_downloads">Кадр сохранён в Downloads</string>
     <string name="save_frame_error">Не удалось сохранить кадр</string>
-    <string name="save_frame_drm_error">Защищённый контент не может быть сохранён</string>
     <string name="save_frame_no_video">Видео не воспроизводится</string>
 
     <!-- Автоскачивание по входящей ссылке (S0003) -->
-    <string name="link_autodownload_section_title">Поведение</string>
     <string name="link_autodownload_master_label">При получении ссылки - скачать</string>
     <string name="link_autodownload_master_summary">Извлекать файл по http(s)-ссылке из «Поделиться» в выбранный ресурс.</string>
     <string name="link_autodownload_resource_label">Ресурс для закачки</string>
@@ -803,11 +668,7 @@
     <string name="link_autodownload_progress_downloading">Скачивание..</string>
     <string name="link_autodownload_progress_bytes">%1$s / %2$s</string>
     <string name="link_autodownload_cancel">Отмена</string>
-    <string name="link_autodownload_done_resource">Сохранено в %s</string>
-    <string name="link_autodownload_done_downloads">Сохранено в Downloads</string>
-    <string name="link_autodownload_fallback_downloads">Ресурс недоступен - сохранено в Downloads</string>
     <string name="link_autodownload_error_no_network">Нет подключения к сети</string>
-    <string name="link_autodownload_error_resource_unavailable">Выбранный ресурс недоступен</string>
     <string name="link_autodownload_error_no_media">По ссылке не найден файл для скачивания</string>
     <string name="link_autodownload_error_youtube_community_post">Посты сообщества YouTube нельзя скачать</string>
     <string name="link_autodownload_error_corrupted">Не удалось скачать пригодный файл - сервер вернул страницу с ошибкой или неполный файл</string>
@@ -857,7 +718,6 @@
 
     <!-- Add Resource -->
     <string name="add_local_folder">Добавить локальную папку</string>
-    <string name="add_network_folder">Добавить сетевую папку (SMB)</string>
     <string name="create_network_resource_smb">Создание сетевого ресурса (SMB)</string>
     <string name="network_folder">Сетевая папка</string>
     <string name="network_folder_description">Добавить SMB сетевые ресурсы</string>
@@ -876,7 +736,6 @@
     <string name="scan_network_button">Сканировать сеть</string>
 
     <!-- Validation Messages -->
-    <string name="share_name_required">Требуется имя общего ресурса</string>
     <string name="ssh_key_required">Требуется SSH приватный ключ</string>
     <string name="ssh_key_loaded">SSH ключ успешно загружен</string>
     <string name="review_smb_details">Проверьте и измените параметры подключения SMB</string>
@@ -893,8 +752,6 @@
     <string name="protocol_ftp">FTP (порт 21)</string>
 
     <!-- Credentials titles -->
-    <string name="ftp_credentials">Учетные данные FTP</string>
-    <string name="credentials">Учетные данные</string>
 
     <!-- SFTP Authentication -->
 
@@ -908,30 +765,22 @@
     <string name="onedrive">OneDrive</string>
     <string name="not_connected">Не подключено</string>
     <string name="connected_as">Подключено как %1$s</string>
-    <string name="coming_soon">Скоро будет</string>
-    <string name="google_drive_sign_in">Войти через Google</string>
     <string name="google_drive_signed_in">Вход выполнен: %1$s</string>
-    <string name="google_drive_sign_out">Выйти</string>
     <string name="google_drive_select_folder">Выбрать папку</string>
     <string name="google_drive_authentication_failed">Ошибка входа в Google Диск</string>
-    <string name="google_drive_connection_test_success">Успешно подключено!</string>
     <string name="google_drive_connection_test_failed">Ошибка подключения: %1$s</string>
 
     <!-- Dropbox strings -->
 
     <!-- OneDrive -->
-    <string name="onedrive_sign_in">Войти через OneDrive</string>
     <string name="onedrive_signed_in">Вход выполнен: %1$s</string>
     <string name="onedrive_sign_out">Выйти</string>
     <string name="onedrive_select_folder">Выбрать папку</string>
     <string name="onedrive_authentication_failed">Ошибка входа в OneDrive</string>
-    <string name="onedrive_connection_test_success">Успешно подключено!</string>
     <string name="onedrive_connection_test_failed">Ошибка подключения: %1$s</string>
 
     <string name="no_folders_found">Папки не найдены. Возможно, они стесняются.</string>
-    <string name="add_folder">Добавить папку</string>
     <string name="add_as_destination">Добавить в получатели</string>
-    <string name="selected_folder">Выбрано: %1$s</string>
     <string name="folder_icon">Значок папки</string>
     <string name="loading">Загрузка..</string>
     <string name="sorting_in_progress">Сортировка..</string>
@@ -987,22 +836,10 @@
     <string name="thumbnail_preload_wifi_only_title">Только по Wi-Fi</string>
     <string name="thumbnail_preload_wifi_only_summary">Предзагрузка миниатюр только при подключении к беспроводной сети</string>
     <string name="sync_interval">Интервал синхронизации (мин)</string>
-    <string name="sync_interval_hint">Введите минуты или выберите из списка</string>
-    <plurals name="sync_interval_hours">
-        <item quantity="one">%d час</item>
-        <item quantity="few">%d часа</item>
-        <item quantity="many">%d часов</item>
-        <item quantity="other">%d часов</item>
-    </plurals>
     <string name="sync_now">Синхронизировать сейчас</string>
-    <string name="sync_status_idle">Готово к синхронизации</string>
     <string name="sync_status_in_progress">Синхронизация..</string>
-    <string name="sync_status_completed">Синхронизировано %d ресурсов</string>
-    <string name="sync_status_failed">Ошибка синхронизации</string>
     <string name="sync_completed_successfully">Успешно синхронизировано %d ресурсов</string>
     <string name="sync_failed">Не получилось завершить синхронизацию. Попробуйте ещё раз.</string>
-    <string name="background_sync_enabled">Фоновая синхронизация включена</string>
-    <string name="background_sync_disabled">Фоновая синхронизация отключена</string>
     <string name="last_sync_time">Последняя синхронизация: %s</string>
     <string name="never_synced">Никогда не синхронизировалось</string>
 
@@ -1052,10 +889,7 @@
     <string name="remove_destination_message">Удалить \'%1$s\' из назначений?</string>
     <string name="remove_action">Удалить</string>
     <string name="destination_removed">Назначение удалено: %1$s</string>
-    <string name="manual_sync_triggered">Синхронизация запущена</string>
     <string name="slide_interval_error">Минимальный интервал 5 минут</string>
-    <string name="log_copied">Лог скопирован в буфер</string>
-    <string name="storage_permissions_granted">Разрешения уже предоставлены</string>
     <string name="storage_permission_granted_continue">Доступ к хранилищу предоставлен. Продолжайте выбирать папку.</string>
 
     <!-- File Operations -->
@@ -1064,15 +898,15 @@
     <string name="msg_copy_success">Скопировали в %1$s.</string>
     <string name="msg_copy_success_count">Скопировали %1$d файлов в %2$s.</string>
     <string name="error_copy_failed">Не получилось скопировать файл.</string>
-    <string name="error_file_exists_copy">Файл "%1$s" уже есть в "%2$s".\n\nЕсли хотите заменить его, включите "Перезапись при копировании" в Настройки -&gt; Копирование и перемещение.</string>
+    <string name="error_file_exists_copy">Файл \"%1$s\" уже есть в \"%2$s\".\n\nЕсли хотите заменить его, включите \"Перезапись при копировании\" в Настройки -&gt; Копирование и перемещение.</string>
     <string name="msg_move_success">Переместили в %1$s.</string>
     <string name="msg_move_success_count">Переместили %1$d файлов в %2$s.</string>
     <string name="error_move_failed">Не получилось переместить файл.</string>
-    <string name="error_queued_operation_move">Не получилось переместить "%1$s". Попробуйте ещё раз.</string>
-    <string name="error_queued_operation_delete">Не получилось удалить "%1$s". Попробуйте ещё раз.</string>
-    <string name="error_queued_operation_rename">Не получилось переименовать "%1$s". Попробуйте ещё раз.</string>
-    <string name="error_queued_move_permission_denied">"%1$s" скопирован в папку назначения, но удалить локальную копию не удалось - разрешение отклонено.</string>
-    <string name="error_file_exists_move">Файл "%1$s" уже есть в "%2$s".\n\nЕсли хотите заменить его, включите "Перезапись при перемещении" в Настройки -&gt; Копирование и перемещение.</string>
+    <string name="error_queued_operation_move">Не получилось переместить \"%1$s\". Попробуйте ещё раз.</string>
+    <string name="error_queued_operation_delete">Не получилось удалить \"%1$s\". Попробуйте ещё раз.</string>
+    <string name="error_queued_operation_rename">Не получилось переименовать \"%1$s\". Попробуйте ещё раз.</string>
+    <string name="error_queued_move_permission_denied">\"%1$s\" скопирован в папку назначения, но удалить локальную копию не удалось - разрешение отклонено.</string>
+    <string name="error_file_exists_move">Файл \"%1$s\" уже есть в \"%2$s\".\n\nЕсли хотите заменить его, включите \"Перезапись при перемещении\" в Настройки -&gt; Копирование и перемещение.</string>
     <string name="msg_delete_success">Удалили.</string>
     <string name="error_delete_failed">Не получилось удалить файл.</string>
     <string name="error_delete_unexpected">Не получилось закончить удаление файла.</string>
@@ -1088,43 +922,23 @@
     <string name="dialog_player_exit_pending_queue_stay">Остаться</string>
 
     <!-- MANAGE_MEDIA Permission -->
-    <string name="manage_media_title">Включить быстрые операции</string>
-    <string name="manage_media_explanation">FastMediaSorter создан для быстрой сортировки файлов. Для удаления и перемещения файлов одним касанием (без диалогов подтверждения) нужно разрешение «Управление медиафайлами».
-
-Без этого разрешения Android будет показывать диалог подтверждения для каждой операции.</string>
-    <string name="manage_media_grant">Разрешить</string>
-    <string name="manage_media_skip">Пропустить (показывать диалоги)</string>
-    <string name="manage_media_dont_ask">Больше не спрашивать</string>
-    <string name="grant_manage_media_permission">Медиа-разрешения</string>
-    <string name="manage_media_permission_granted">Разрешение на управление медиа получено</string>
-    <string name="grant_notifications_permission">Уведомления</string>
     <string name="manage_notifications_permission">Управление уведомлениями</string>
     <string name="notification_permission_required_for_background">Разрешение на уведомления требуется для воспроизведения аудио в фоне. Предоставьте разрешение в системных настройках.</string>
-    <string name="grant_battery_optimization_permission">Оптимизация батареи</string>
-    <string name="manage_battery_optimization_permission">Оптимизация батареи: отключена</string>
-    <string name="battery_optimization_dialog_title">Фоновые операции</string>
-    <string name="battery_optimization_dialog_message">Чтобы запланированные файловые операции выполнялись надёжно в фоне, отключите оптимизацию батареи для FastMediaSorter. Это необязательно, но рекомендуется при использовании планировщика.</string>
-    <string name="battery_optimization_dialog_btn_allow">Отключить оптимизацию</string>
-    <string name="battery_optimization_dialog_btn_skip">Пропустить</string>
     <string name="msg_download_share">Скачивание файла для отправки..</string>
     <string name="error_share_download_failed">Не удалось подготовить файл к отправке.</string>
     <string name="error_share_unexpected">Неожиданная ошибка скачивания</string>
     <string name="error_share_failed">Не удалось отправить файл.</string>
-    <string name="title_share_chooser">Отправить файл</string>
 
     <!-- Add Resource & Network Discovery -->
     <string name="network_discovery_title">Обнаружение сети</string>
     <string name="msg_scanning_subnet">Сканирование локальной подсети..</string>
     <string name="msg_scan_complete">Сканирование завершено</string>
-    <string name="msg_host_selected">Выбрано %1$s (%2$s)</string>
     <string name="msg_scan_again">Сканировать снова</string>
     <string name="msg_no_shares_found">На этом сервере общие папки не найдены. Закройте это сообщение и введите имя папки вручную.</string>
     <string name="msg_share_scan_failed">Не получилось просканировать общие папки. Попробуйте ещё раз.</string>
     <string name="msg_select_share">Папки на %1$s</string>
     <!-- S0064: диалог ручного ввода имени шары -->
-    <string name="label_test_result">Результат теста</string>
     <string name="msg_dropbox_auth_cancelled">Авторизация Dropbox отменена</string>
-    <string name="msg_onedrive_auth_success">Успешная авторизация OneDrive</string>
     <string name="msg_onedrive_auth_cancelled">Авторизация OneDrive отменена</string>
     <string name="msg_already_authenticated">Уже авторизован</string>
     <string name="select_folder_copy_location">Выберите папку для копирования</string>
@@ -1140,7 +954,6 @@
 
     <!-- GIF Editor -->
     <string name="msg_gif_extracting">Извлечение кадров..</string>
-    <string name="msg_gif_extract_started">Извлечение %1$d кадров..</string>
     <string name="msg_gif_extract_success">%1$d кадров сохранено в Загрузки</string>
     <string name="msg_gif_extract_failed">Не получилось извлечь кадры. Попробуйте ещё раз.</string>
     <string name="msg_gif_speed_success">Скорость изменена на %1$.1fx</string>
@@ -1156,14 +969,10 @@
     <string name="msg_gif_network_first_frame_success">Первый кадр сохранён в Загрузки</string>
     <string name="msg_no_file_to_edit">Нечего редактировать</string>
     <string name="msg_no_file_to_delete">Нечего удалять</string>
-    <string name="msg_error_occurred">Произошла ошибка: %1$s</string>
     <string name="slideshow_enabled_message">Слайд-шоу включено с интервалом %1$d секунд</string>
     <string name="slideshow_stopped_connection_lost">Слайд-шоу остановлено. Соединение с %1$s потеряно.</string>
     <string name="slideshow_stopped_resource_unavailable">Слайд-шоу остановлено. Нет доступа к %1$s.</string>
     <string name="volume_level">Громкость: %1$d%%</string>
-    <string name="msg_network_stream_retry">Сеть прервана, повтор.. (%1$d/%2$d)</string>
-    <string name="msg_network_error_max_retries">Ошибка сети после %1$d попыток: %2$s</string>
-    <string name="msg_playback_error">Ошибка воспроизведения: %1$s</string>
     <string name="error_loading_media">Ошибка загрузки файла, пропуск</string>
     <string name="warning_audio_format_unsupported">Аудиоформат не поддерживается - воспроизведение без звука</string>
 
@@ -1176,9 +985,6 @@
 
     <!-- Dialog messages -->
     <string name="clear_cache_confirm_message">Вы уверены, что хотите очистить кэш приложения?</string>
-    <string name="save_credentials_title">Сохранить учётные данные?</string>
-    <string name="save_credentials_message">Проверка соединения успешна!\n\nХотите сохранить эти учётные данные сейчас?\n\n⚠️ Без сохранения ресурс будет использовать старые данные и может не открыться.</string>
-    <string name="save_now">Сохранить сейчас</string>
     <string name="sort_by_title">Сортировать по</string>
     <string name="error_title">Ошибка</string>
     <string name="error_details_title">Детали ошибки</string>
@@ -1212,13 +1018,6 @@
     <string name="office_viewer_fallback_share">Поделиться</string>
     <string name="office_viewer_fallback_cancel">Отмена</string>
     <string name="cannot_read_file">Невозможно прочитать файл: %1$s</string>
-    <string name="access_denied">Доступ запрещён</string>
-    <string name="network_connection_failed">Ошибка сетевого подключения</string>
-    <string name="bad_http_status">Неверный HTTP-статус</string>
-    <string name="read_position_out_of_range">Позиция чтения вне диапазона</string>
-    <string name="io_error_code">Ошибка ввода-вывода (код: %1$d)</string>
-    <string name="source_error">Ошибка источника: %1$s</string>
-    <string name="not_authenticated">Не аутентифицирован</string>
     <string name="no_app_to_handle_format">Нет приложений для воспроизведения этого формата</string>
     <string name="no_app_to_open">Нет приложения для открытия этого файла</string>
     <string name="error_opening_file_simple">Не удалось открыть файл</string>
@@ -1243,11 +1042,6 @@
     <string name="enable_ocr_summary">Извлечение текста из изображений и PDF для копирования</string>
 
     <!-- Media Settings Categories -->
-    <string name="media_category_images">Изображения</string>
-    <string name="media_category_video">Видео</string>
-    <string name="media_category_audio">Аудио</string>
-    <string name="media_category_documents">Документы</string>
-    <string name="media_category_other">Другое</string>
 
     <!-- Toast Messages -->
     <string name="toast_edit_images_only">Редактирование доступно только для изображений</string>
@@ -1261,10 +1055,8 @@
     <string name="toast_copy_cancelled">Копирование отменено</string>
     <string name="toast_delete_cancelled">Удаление отменено</string>
     <string name="toast_unexpected_result">Неожиданный результат</string>
-    <string name="toast_rename_error">Ошибка переименования: %1$s</string>
     <string name="toast_delete_error">Не получилось завершить удаление файлов. Попробуйте ещё раз.</string>
     <string name="error_deletion_failed">Удаление не выполнено</string>
-    <string name="toast_multiple_rename_not_implemented">Массовое переименование пока не реализовано</string>
     <string name="toast_filter_applied">Фильтр применён</string>
     <string name="toast_filter_failed">Не получилось применить этот фильтр. Попробуйте ещё раз.</string>
     <string name="toast_adjustments_applied">Настройки применены</string>
@@ -1282,9 +1074,7 @@
     <string name="progress_flipping_image">Отражение изображения %1$s..</string>
 
     <string name="toast_no_files_to_play">Нет файлов для воспроизведения</string>
-    <string name="toast_file_unavailable">Этот файл сейчас недоступен, выберите ресурс для проигрывания</string>
     <string name="toast_resource_not_loaded">Ресурс не загружен</string>
-    <string name="toast_failed_to_share">Не удалось поделиться: %1$s</string>
     <string name="at_least_one_media_type_required">Необходимо выбрать хотя бы один тип медиафайлов</string>
 
     <!-- EPUB Go to Chapter Dialog -->
@@ -1308,23 +1098,13 @@
     </plurals>
     <string name="resource_deleted">Ресурс удалён</string>
     <string name="msg_loading_timeout">Загрузка заняла слишком много времени</string>
-    <string name="speed">Скорость</string>
-    <string name="network_speed">Скорость сети</string>
-    <string name="read_speed">Чтение</string>
-    <string name="write_speed">Запись</string>
-    <string name="rec_threads">Потоки</string>
-    <string name="analyzing_speed">Анализ скорости..</string>
-    <string name="last_test_date">Посл. тест: %s</string>
-    <string name="never_tested">Не тестировалось</string>
 
     <!-- Speed Test -->
     <string name="speed_test_preparing">Подготовка теста скорости..</string>
     <string name="speed_test_saving">Сохранение результатов..</string>
-    <string name="speed_test_complete">Тест скорости завершён: Чтение: %1$s Мбит/с, Запись: %2$s Мбит/с (Потоки: %3$d)</string>
 
     <!-- Trash System -->
     <string name="no_files_to_restore">Нет удалённых файлов для восстановления</string>
-    <string name="original_path_not_exists">Исходный путь не существует: %1$s</string>
     <string name="failed_to_restore_files">Не удалось восстановить файлы</string>
     <string name="reload_files_failed">Не получилось обновить список файлов.</string>
     <string name="no_operation_to_undo">Нечего отменять.</string>
@@ -1332,18 +1112,12 @@
     <string name="invalid_undo_operation_data">Это действие отмены больше недоступно.</string>
     <string name="undo_failed">Не получилось отменить это действие. Попробуйте ещё раз.</string>
     <string name="undo_rename_cancelled">Переименование отменено.</string>
-    <string name="restore_last_deleted">Восстановить последнее удалённое</string>
-    <string name="confirm_restore">Восстановить %1$s?</string>
-    <string name="confirm_restore_multiple">Восстановить %1$d удалённых файлов?</string>
     <string name="use_trash">Использовать корзину (.trash)</string>
     <string name="use_trash_summary">Перемещать удалённые файлы в .trash вместо окончательного удаления. Позволяет восстановить до закрытия ресурса.</string>
-    <string name="disable_trash_warning">Файлы будут удаляться окончательно без возможности восстановления</string>
     <string name="tooltip_use_trash_title">Удаление в корзину</string>
     <string name="tooltip_use_trash_message">При включённой опции удалённые локальные файлы перемещаются в скрытую папку .trash и могут быть восстановлены через Undo. На Android 12+ для некоторых общих папок нужен доступ MANAGE_MEDIA; без него корзина может перейти на окончательное удаление. При выключённой - файлы удаляются немедленно и место освобождается сразу. Сетевые и облачные файлы всегда удаляются окончательно.</string>
 
     <!-- Folder Selection & Permissions -->
-    <string name="all_files_access_required">Требуется полный доступ к папкам</string>
-    <string name="all_files_access_explanation">⚠️ Без разрешения \"Доступ ко всем файлам\" Android ограничивает выбор папок только стандартными (Документы, Загрузки, Изображения).\n\n✅ С этим разрешением вы сможете:\n• Выбрать ЛЮБУЮ папку на устройстве\n• Получить доступ к папкам Pictures, DCIM, Camera\n• Выбрать собственные папки для организации медиа\n\n🔒 Конфиденциальность: Приложение использует это только для просмотра ваших медиафайлов - никакие данные не собираются и не загружаются.\n\nПредоставьте разрешение на следующем экране для полного доступа к папкам.</string>
     <string name="continue_limited">Продолжить (Ограниченно)</string>
     <string name="folder_selection_limitations">⚠️ Ограниченный доступ к папкам\n\nБез разрешения \"Доступ ко всем файлам\" вы можете выбрать только стандартные папки Android.\n\nЧтобы выбрать любую папку на устройстве, пожалуйста, предоставьте разрешение когда будет предложено.</string>
     <string name="select_folder">Выбрать папку</string>
@@ -1352,7 +1126,6 @@
     <string name="browse_folders">Просмотр папок</string>
     <string name="folder_not_found">Папка не найдена</string>
     <string name="cannot_read_folder">Нет доступа к папке - проверьте разрешения</string>
-    <string name="android_media_requires_permission">⚠️ Папки Android/media требуют разрешения "Доступ ко всем файлам". Предоставьте разрешение для доступа к папкам WhatsApp, Telegram и других приложений.</string>
     <string name="quick_select_common_folders">Быстрый выбор стандартных папок</string>
     <string name="folder_root">📁 Корень (/storage/emulated/0)</string>
     <string name="folder_dcim">DCIM</string>
@@ -1379,8 +1152,6 @@
     <string name="tooltip_photos_during_audio_message">При включении случайные фото из выбранного ресурса будут отображаться во время воспроизведения аудио. Для каждой песни показывается одно случайное фото. Используются только статические изображения (видео игнорируются).</string>
 
     <!-- Audio Empty State Animation -->
-    <string name="enable_photos_during_audio">Фото при аудио</string>
-    <string name="enable_photos_during_audio_summary">Показывать случайные фото из выбранного ресурса вместо обложки альбома</string>
 
 
     <!-- Email Support -->
@@ -1393,119 +1164,28 @@
 
 
     <!-- Auto-generated from layout files -->
-    <string name="activity_browse_rvMediaFiles_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
-    <string name="activity_dropbox_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_edit_resource_tvRecThreads_text">-</string>
-    <string name="activity_google_drive_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
-    <string name="activity_main_emptyStateView_alpha">0.6</string>
-    <string name="activity_main_rvResources_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
-    <string name="activity_main_tabResourceTypes_tabMode">fixed</string>
     <string name="activity_main_tvScanDetail_text">Отсканировано 0 файлов</string>
     <string name="activity_main_tvScanProgress_text">Сканирование ресурсов..</string>
-    <string name="activity_onedrive_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
-    <string name="activity_player_audioFileInfo_lineSpacingMultiplier">1.2</string>
-    <string name="activity_player_audioMetadata_lineSpacingMultiplier">1.2</string>
     <string name="activity_player_btnDelete_text">Удалить</string>
-    <string name="activity_player_btnFavorite_text">☆</string>
-    <string name="activity_player_btnInfo_text">ℹ</string>
-    <string name="activity_player_btnNext_text">▶</string>
     <string name="activity_player_btnPlayPause_text">▶</string>
-    <string name="activity_player_btnPrevious_text">◀</string>
     <string name="activity_player_btnSlideShow_text">Слайдшоу</string>
-    <string name="activity_player_btnVolumeDown_text">−</string>
-    <string name="activity_player_btnVolumeUp_text">+</string>
-    <string name="activity_player_playerView_resize_mode">fit</string>
-    <string name="activity_player_unified_audioFileInfo_lineSpacingMultiplier">1.2</string>
-    <string name="activity_player_unified_audioMetadata_lineSpacingMultiplier">1.2</string>
-    <string name="activity_player_unified_btnDelete_text">Удалить</string>
-    <string name="activity_player_unified_btnNext_text">▶</string>
     <string name="activity_player_unified_btnOcrImage_text">OCR</string>
     <string name="activity_player_unified_btnOcrImageCmd_text">OCR</string>
     <string name="activity_player_unified_btnOcrPdfCmd_text">OCR</string>
-    <string name="activity_player_unified_btnPlayPause_text">▶</string>
     <string name="activity_player_unified_btnPrevious_text">◀</string>
-    <string name="activity_player_unified_btnSlideShow_text">Слайдшоу</string>
     <string name="activity_player_unified_btnVolumeDown_text">−</string>
     <string name="activity_player_unified_btnVolumeUp_text">+</string>
-    <string name="activity_player_unified_playerView_resize_mode">fit</string>
-    <string name="activity_player_unified_touchZone3Gestures_layout_weight">0.60</string>
-    <string name="activity_player_unified_touchZone3Next_layout_weight">0.20</string>
-    <string name="activity_player_unified_touchZone3Previous_layout_weight">0.20</string>
     <string name="activity_player_unified_tvCountdown_text">3..</string>
-    <string name="activity_player_unified_tvEpubChapterIndicator_text">1/1</string>
     <string name="activity_player_unified_tvPdfPageIndicator_text">1/1</string>
     <string name="activity_player_unified_tvSearchCounter_text">0/0</string>
-    <string name="activity_player_unified_tvTextContent_breakStrategy">simple</string>
-    <string name="activity_player_unified_tvTranslatedText_lineSpacingMultiplier">1.2</string>
-    <string name="activity_settings_tabLayout_tabMode">scrollable</string>
-    <string name="bottom_sheet_binary_file_btnCopy_textAlignment">textStart</string>
-    <string name="bottom_sheet_binary_file_btnDelete_textAlignment">textStart</string>
-    <string name="bottom_sheet_binary_file_btnMove_textAlignment">textStart</string>
-    <string name="bottom_sheet_binary_file_btnOpenWith_textAlignment">textStart</string>
-    <string name="bottom_sheet_binary_file_btnRename_textAlignment">textStart</string>
-    <string name="bottom_sheet_binary_file_btnShare_textAlignment">textStart</string>
-    <string name="dialog_access_password_tilPassword_boxBackgroundMode">outline</string>
-    <string name="dialog_access_password_tilPassword_endIconMode">password_toggle</string>
     <string name="dialog_color_picker_tvColorName_text">Зелёный</string>
-    <string name="dialog_file_info_tvAudioBitrate_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvAudioChannels_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvAudioCodec_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvAudioCodecInfo_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvAudioDuration_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocAuthor_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocChapterCount_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocCharCount_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocEncoding_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocLineCount_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocPageCount_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocTitle_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocWordCount_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvExifAperture_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvExifCamera_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvExifDateTime_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvExifExposure_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvExifFocalLength_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvExifGPS_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvExifISO_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvFileDate_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvFileName_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvFilePath_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvFileSize_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvFileType_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvGifFrames_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvGpsLocation_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvImageColorSpace_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvImageFormat_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvImageMegapixels_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvImageResolution_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvPdfCreationDate_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvPdfCreator_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvPdfKeywords_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvPdfModDate_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvPdfProducer_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvPdfSubject_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvPdfVersion_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvVideoBitrate_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvVideoCodec_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvVideoDuration_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvVideoFrameRate_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvVideoResolution_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvVideoRotation_lineSpacingMultiplier">1.2</string>
     <string name="dialog_file_operation_progress_btnCancel_text">Отмена</string>
     <string name="transfer_overall_progress_desc">Общий прогресс передачи</string>
     <string name="transfer_eta_desc">Оставшееся время</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">Копирование файлов..</string>
-    <string name="dialog_filter_btnApplyFilter_boxBackgroundMode">outline</string>
-    <string name="dialog_filter_cbFilterEpub_boxBackgroundMode">outline</string>
-    <string name="dialog_filter_cbFilterEpub_suffixText">МБ</string>
-    <string name="dialog_filter_etFilterName_boxBackgroundMode">outline</string>
-    <string name="dialog_filter_etMinDate_boxBackgroundMode">outline</string>
-    <string name="dialog_filter_etMinSize_boxBackgroundMode">outline</string>
-    <string name="dialog_filter_etMinSize_suffixText">МБ</string>
-    <string name="dialog_filter_resource_chipGroupMediaType_endIconMode">clear_text</string>
     <string name="dialog_folder_browser_tvCurrentPath_text">/storage/emulated/0</string>
     <string name="dialog_folder_selection_etManualPath_text">/storage/emulated/0/</string>
-    <string name="dialog_image_edit_btnNegative_text">-</string>
     <string name="dialog_image_edit_seekSaturation_text">2x</string>    <!-- Speed option: no translation needed -->
     <string name="dialog_integration_test_btnClose_text">Закрыть</string>
     <string name="dialog_integration_test_btnCopyLog_text">Копировать лог</string>
@@ -1536,7 +1216,6 @@
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Пожалуйста, подождите..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Загрузка..</string>
-    <string name="dialog_network_discovery_rvHosts_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>    <!-- Speed option: no translation needed -->
     <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>    <!-- Speed option: no translation needed -->
     <string name="dialog_player_settings_chipSpeed1_text">1x</string>    <!-- Speed option: no translation needed -->
@@ -1544,21 +1223,14 @@
     <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>    <!-- Speed option: no translation needed -->
     <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>    <!-- Speed option: no translation needed -->
     <string name="dialog_player_settings_chipSpeed2_text">2x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_rename_single_unknown_boxBackgroundMode">outline</string>
     <string name="dialog_slideshow_settings_tvIntervalValue_text">5с</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">Макс (МБ)</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">Мин (МБ)</string>
-    <string name="fragment_settings_general_iconHelpDefaultCredentials_layout_constraintVertical_bias">0.5</string>
-    <string name="fragment_settings_general_tilDefaultPassword_endIconMode">password_toggle</string>
     <string name="fragment_settings_images_tilImageSizeMax_hint">Макс (КБ)</string>
     <string name="fragment_settings_images_tilImageSizeMin_hint">Мин (КБ)</string>
-    <string name="fragment_settings_media_etVideoSizeMin_hint">Макс (КБ)</string>
-    <string name="fragment_settings_playback_btnShowHintNow_lineSpacingMultiplier">1.2</string>
     <string name="fragment_settings_video_tilVideoSizeMax_hint">Макс (КБ)</string>
     <string name="fragment_settings_video_tilVideoSizeMin_hint">Мин (КБ)</string>
     <string name="item_folder_tvFolderName_text">Folder Name</string>
-    <string name="item_rename_file_unknown_boxBackgroundMode">outline</string>
-    <string name="item_resource_layoutInlineActions_layout_constraintVertical_bias">0.0</string>
     <string name="item_resource_to_add_btnTypeAudio_text">A</string>
     <string name="item_resource_to_add_btnTypeGif_text">G</string>
     <string name="item_resource_to_add_btnTypeImage_text">I</string>
@@ -1568,9 +1240,6 @@
     <string name="item_resource_to_add_btnTypeVideo_text">V</string>
     <string name="item_resource_tvAvailabilityIndicator_text">N/A</string>
     <string name="item_resource_tvWritableIndicator_text">🔒</string>
-    <string name="page_welcome_permissions_tvDescription_lineSpacingMultiplier">1.3</string>
-    <string name="page_welcome_touch_zones_tvDescription_lineSpacingMultiplier">1.2</string>
-    <string name="page_welcome_tvDescription_lineSpacingMultiplier">1.3</string>
     <string name="reset_general_section">Сбросить раздел Общие</string>
     <string name="reset_media_section">Сбросить раздел Медиа</string>
     <string name="reset_playback_section">Сбросить настройки Плеера</string>
@@ -1592,7 +1261,6 @@
     <string name="remember_file_list_help_message">При включении приложение сохраняет список файлов ресурса в базе данных после сканирования. При следующих открытиях список загружается из кэша мгновенно. Для внешних изменений используйте кнопку «Обновить».</string>
 
     <!-- Missing file -->
-    <string name="refresh_resource">Обновить ресурс</string>
 
     <!-- Sleep Timer -->
     <string name="menu_sleep_timer">Таймер сна</string>
@@ -1600,7 +1268,6 @@
     <string name="sleep_timer_off">Выкл.</string>
     <string name="sleep_timer_minutes">%d мин</string>
     <string name="sleep_timer_hours">%1$d ч %2$d мин</string>
-    <string name="sleep_timer_active">Сон: осталось %s</string>
     <string name="sleep_timer_cancelled">Таймер сна отменён</string>
     <string name="sleep_timer_set">Таймер сна установлен на %s</string>
 
@@ -1617,32 +1284,16 @@
     <!-- Injected missing keys 2026-03-08 -->
     <string name="and_more_files">и ещё %d файлов</string>
     <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
-    <string name="button_icon_alignment_start">start</string>
-    <string name="button_icon_alignment_text_start">textStart</string>
-    <string name="button_text_alignment_center">center</string>
-    <string name="button_text_alignment_start">textStart</string>
     <string name="cursor_position">Ln %1$d, Col %2$d</string>
-    <string name="default_cache_size_limit_mb">2048</string>
     <string name="default_icon_size_value">96</string>
-    <string name="default_network_parallelism">2</string>
-    <string name="default_slideshow_interval">5</string>
     <string name="default_sync_interval_minutes">240</string>
     <string name="default_zero">0</string>
     <string name="office_doc_d">DOC (D)</string>
     <string name="error_reason_unknown">Произошла непредвиденная ошибка. Попробуйте ещё раз.</string>
     <string name="find_counter">%1$d / %2$d</string>
-    <string name="forward_30_seconds">Forward 30 seconds</string>
-    <string name="layout_gravity_bottom">bottom</string>
-    <string name="layout_gravity_bottom_end">bottom|end</string>
-    <string name="layout_gravity_bottom_start">bottom|start</string>
-    <string name="layout_gravity_center">center</string>
-    <string name="layout_gravity_center_vertical">center_vertical</string>
-    <string name="layout_gravity_top_end">top|end</string>
-    <string name="no_resource_selected">No resource selected</string>
     <string name="pip_pause">Pause</string>
     <string name="run_integration_tests">RUN INTEGRATION TESTS</string>
     <string name="search_counter_default">0/0</string>
-    <string name="syntax_highlighting">Syntax Highlighting</string>
 
     <!-- OCR Engine and PaddleOCR Models (S0288) -->
     <string name="paddle_ocr_model">Модель PaddleOCR</string>
@@ -1650,14 +1301,12 @@
     <string name="paddle_ocr_model_eslav">Восточнославянская (PP-OCRv5 Mobile, более точная)</string>
 
     <!-- OCR Best Models Feature -->
-    <string name="add_folders">Добавить %1$d папки</string>
     <string name="and_more_errors">и ещё %d ошибок</string>
     <string name="android_media_folder_added_warning">⚠️ Добавлена папка Android/media. Эти папки могут иметь ограниченный доступ даже при наличии разрешений. Если сканирование не удаётся, система может запрещать доступ к этой папке.</string>
     <string name="animated_badge_gif">GIF</string>
     <string name="background_audio_setting_title">Фоновое воспроизведение</string>
     <string name="show_now_playing_panel_title">Показывать панель плеера</string>
     <string name="show_now_playing_panel_summary">Показывать мини-панель плеера при просмотре изображений и других файлов</string>
-    <string name="background_audio_exit_title">Фоновое воспроизведение</string>
     <string name="background_audio_exit_message">Музыка продолжает играть в фоне. Что сделать?</string>
     <string name="background_audio_exit_stop">Остановить</string>
     <string name="background_audio_exit_continue">Продолжить</string>
@@ -1675,14 +1324,8 @@
     <string name="decrease_font_size">Уменьшить шрифт</string>
     <string name="decrease_translation_font">Уменьшить шрифт перевода</string>
     <string name="destination_path">Назначение</string>
-    <string name="documentation">Портал документации</string>
     <string name="draft_restored">Черновик восстановлен. Нажмите «Сохранить» для применения.</string>
-    <string name="edit_image">Редактировать изображение</string>
-    <string name="empty_folder_with_subfolders">Нет медиафайлов в корневой папке.\nЭтот ресурс содержит %d подпапок. Включите \&quot;Сканировать подпапки\&quot; в настройках для просмотра.</string>
-    <string name="error_invalid_cloud_folder">Неверная папка облака</string>
-    <string name="error_invalid_cloud_provider">Неверный облачный провайдер</string>
-    <string name="error_invalid_host">Неверный адрес хоста</string>
-    <string name="error_no_media_types">Необходимо выбрать хотя бы один тип медиафайлов</string>
+    <string name="empty_folder_with_subfolders">Нет медиафайлов в корневой папке.\nЭтот ресурс содержит %d подпапок. Включите \"Сканировать подпапки\" в настройках для просмотра.</string>
     <string name="error_operation_failed">Не получилось завершить действие</string>
     <string name="error_operation_title_copy">Не получилось скопировать</string>
     <string name="error_operation_title_delete">Не получилось удалить</string>
@@ -1706,21 +1349,13 @@
     <string name="folder">Папка</string>
     <string name="folder_selected_successfully">Папка выбрана: %s</string>
     <string name="forward_10_seconds">Перемотать вперёд на 10 секунд</string>
-    <string name="hint_destination_color">Цвет папки назначения</string>
     <string name="increase_font_size">Увеличить шрифт</string>
     <string name="increase_translation_font">Увеличить шрифт перевода</string>
     <string name="integration_tests_description">Автоматическое тестирование файловых операций по всем типам ресурсов</string>
     <string name="integration_tests_title">Интеграционные тесты</string>
-    <string name="label_content_settings">Настройки контента</string>
-    <string name="label_show_command_panel">Показывать командную панель</string>
-    <string name="label_slideshow_interval">Интервал слайдшоу</string>
-    <string name="local_folder_icon">Иконка локальной папки</string>
-    <string name="media_type_document">Документы</string>
     <string name="more_options">Дополнительные параметры</string>
     <string name="msg_gif_extract_api_unavailable">Извлечение кадров для этого формата требует Android 9+ (API 28+)</string>
     <string name="msg_operation_cancelled">Операция отменена</string>
-    <string name="navigate_into_folder">Перейти в папку</string>
-    <string name="network_folder_icon">Иконка сетевой папки</string>
     <string name="next_chapter">Следующая глава</string>
     <string name="next_file">Следующий файл</string>
     <string name="next_match">Следующее совпадение</string>
@@ -1728,8 +1363,6 @@
     <string name="not_a_folder">Этот путь не является папкой</string>
     <string name="notification_channel_audio_description">Управление фоновым воспроизведением аудио</string>
     <string name="notification_channel_audio_playback">Воспроизведение аудио</string>
-    <string name="open">Открыть</string>
-    <string name="open_documentation">Открыть документацию</string>
     <string name="picture_in_picture">Картинка в картинке</string>
     <string name="pip_play">Воспроизвести</string>
     <string name="play_pause">Воспроизведение / Пауза</string>
@@ -1738,15 +1371,12 @@
     <string name="previous_match">Предыдущее совпадение</string>
     <string name="previous_page">Предыдущая страница</string>
     <string name="read_aloud">Читать вслух</string>
-    <string name="read_aloud_stop">Остановить чтение</string>
     <string name="reader_settings">Настройки читалки</string>
-    <string name="reader_theme">Тема</string>
     <string name="reader_theme_dark">Тёмная</string>
     <string name="reader_theme_light">Светлая</string>
     <string name="reader_theme_sepia">Сепия</string>
     <string name="redo">Повторить</string>
     <string name="reopen_with_encoding">Открыть с кодировкой..</string>
-    <string name="repeat">Повтор</string>
     <string name="replace">Заменить</string>
     <string name="replace_all">Заменить все</string>
     <string name="replace_hint">Заменить на..</string>
@@ -1757,26 +1387,19 @@
     <string name="resource_pin_code_hint">4-6 цифр для защиты этого ресурса</string>
     <string name="resource_type_icon">Иконка типа ресурса</string>
     <string name="cd_resource_icon_quick_slideshow">Запустить слайдшоу</string>
-    <string name="resources_added">Добавлено ресурсов: %1$d</string>
     <string name="rewind_10_seconds">На 10 секунд назад</string>
-    <string name="rewind_30_seconds">На 30 секунд назад</string>
     <string name="scanning_resources">Сканирование ресурсов..</string>
     <string name="search_in_pdf">Поиск в PDF</string>
     <string name="select_audio_track">Выбрать аудиодорожку</string>
     <string name="select_encoding">Выбрать кодировку</string>
-    <string name="select_photo_resource">Выбрать фоторесурс</string>
     <string name="select_subtitle_track">Выбрать субтитры</string>
-    <string name="selected_folders">Выбрано: %1$d папок</string>
     <string name="slideshow_keep_awake">Экран останется включённым во время слайдшоу</string>
     <string name="source_path">Источник</string>
     <string name="subtitle_off">Выкл</string>
     <string name="cd_playback_speed">Скорость воспроизведения</string>
-    <string name="cd_audio_track">Аудиодорожка</string>
-    <string name="cd_subtitle_track">Субтитры</string>
     <string name="subtitle_track">Субтитры</string>
     <string name="volume_50_percent">50%</string>
     <string name="volume_max">MAX</string>
-    <string name="dialog_playback_apply_and_3d">Применить и в 3D</string>
     <string name="success_count">Готово: %d</string>
     <string name="table_of_contents">Содержание</string>
     <string name="technical_details">Технические подробности</string>
@@ -1786,10 +1409,8 @@
     <string name="toggle_markdown">Переключить Markdown</string>
     <string name="tooltip_dynamic_background_message">Эта функция заполняет пустое пространство, динамически расширяя цвета краёв изображения. Создаёт эффект погружения, когда соотношение сторон изображения не совпадает с экраном.</string>
     <string name="tooltip_dynamic_background_title">Динамический фон</string>
-    <string name="track_unknown">Дорожка %d</string>
     <string name="translate_image">Перевести изображение</string>
     <string name="translate_page">Перевести страницу</string>
-    <string name="tts_reading">Читаю вслух..</string>
     <string name="vinyl_indicator_description">Индикатор воспроизведения аудио</string>
     <string name="zoom_in">Увеличить</string>
     <string name="zoom_out">Уменьшить</string>
@@ -1810,15 +1431,12 @@
     <string name="restore_from_google_drive">Восстановить настройки из Google Drive</string>
     <string name="backup_success">Сохранено %1$d ресурсов, %2$d избранных и все настройки в %3$s</string>
     <string name="backup_failed">Не получилось создать резервную копию настроек и ресурсов. Попробуйте ещё раз.</string>
-    <string name="backup_in_progress">Создание резервной копии настроек и ресурсов..</string>
-    <string name="restore_in_progress">Восстановление настроек и ресурсов..</string>
     <string name="restore_confirm_title">Восстановить из резервной копии?</string>
     <string name="restore_confirm_message">Копия от: %1$s\nУстройство: %2$s\nРесурсы: %3$d\nИзбранное: %4$d\n\n• Настройки будут ЗАМЕНЕНЫ\n• Ресурсы будут ДОБАВЛЕНЫ (дубликаты пропущены)\n• Избранное будет ДОБАВЛЕНО (дубликаты пропущены)</string>
     <string name="restore_success">Все настройки восстановлены. Добавлено %1$d ресурсов (%2$d уже существовали). Добавлено %3$d избранных (%4$d уже существовали).</string>
     <string name="restore_needs_auth">Некоторые ресурсы используют сетевые или облачные аккаунты. Потребуется повторная авторизация.</string>
     <string name="restore_no_backup">Резервная копия для этого аккаунта не найдена.</string>
     <string name="restore_failed">Не получилось восстановить настройки и ресурсы. Попробуйте ещё раз.</string>
-    <string name="last_backup_date">Последнее копирование: %s</string>
     <string name="backup_account">Аккаунт: %s</string>
     <string name="no_internet_connection">Нет подключения к интернету. Попробуйте позже.</string>
 
@@ -1847,7 +1465,6 @@
     <!-- Settings descriptions -->
     <string name="save_audio_metadata_locally">Сохранять загруженные медиаданные локально</string>
     <string name="save_audio_metadata_locally_desc">Обложки и метаданные без повторной загрузки из интернет</string>
-    <string name="cb_play_to_end_desc">Ожидает окончания каждого видео или аудио перед переходом в слайдшоу</string>
 
     <!-- Virtual resources -->
     <string name="virtual_camera_photos">Фото с камеры</string>
@@ -1866,7 +1483,6 @@
     <!-- Welcome default player -->
 
     <!-- Permissions -->
-    <string name="storage_permission_denied_toast">Разрешения на хранилище не предоставлены. Предоставьте их в Настройки → Разрешения.</string>
 
     <!-- App Shortcuts (X.19) -->
     <string name="shortcut_favorites_short">Избранное</string>
@@ -1876,7 +1492,6 @@
 
     <!-- Standalone Player File Operations -->
     <string name="confirm_delete_standalone">Удалить «%1$s»?</string>
-    <string name="share_via">Отправить через</string>
     <string name="open_in_fms">Открыть в FastMediaSorter</string>
     <string name="cd_add_to_favorites">Добавить в избранное</string>
     <string name="cd_remove_from_favorites">Убрать из избранного</string>
@@ -1888,9 +1503,6 @@
     <string name="tile_audio_play_music">Воспроизвести музыку</string>
 
     <!-- Scheduled Operations -->
-    <string name="perm_battery_optim_grant">Разрешить работу в фоне</string>
-    <string name="perm_battery_optim_manage">Управление оптимизацией батареи</string>
-    <string name="perm_battery_optim_hint">Требуется для надёжной работы операций по расписанию</string>
     <string name="perm_btn_grant_all">Выдать все</string>
     <string name="perm_btn_open_system_settings">Открыть настройки системы</string>
     <string name="permission_open_settings_for_feature">Чтобы включить «%1$s», откройте настройки приложения.</string>
@@ -1901,42 +1513,32 @@
     <string name="perm_group_microphone">Микрофон</string>
     <string name="perm_group_notification">Уведомления</string>
     <string name="perm_group_system">Система</string>
-    <string name="perm_group_vr">Виртуальная реальность</string>
     <!-- Permission status display -->
-    <string name="perm_current_status">Статус: %s</string>
-    <string name="perm_status_granted">Предоставлено</string>
-    <string name="perm_status_denied">Отклонено</string>
-    <string name="perm_status_permanently_denied">Заблокировано</string>
-    <string name="perm_status_not_applicable">Не требуется</string>
     <!-- Permission row action buttons -->
     <string name="perm_action_grant">Выдать</string>
     <string name="perm_action_manage">Управление</string>
     <string name="perm_action_settings">Настройки</string>
     <!-- Permission registry: per-permission title + description -->
     <string name="perm_title_read_external_storage">Доступ к локальным медиа</string>
-    <string name="perm_desc_read_external_storage">Просмотр, сортировка и воспроизведение фото, видео и аудио на устройстве. Требуется на Android 12 и ниже вместо гранулированных разрешений.</string>
+    <string name="perm_desc_read_external_storage">Медиа на устройстве</string>
     <string name="perm_title_read_media_images">Доступ к фотографиям</string>
-    <string name="perm_desc_read_media_images">Просмотр, сортировка и организация фотографий и изображений на устройстве. Необходимо для отображения миниатюр и доступа к фотобиблиотеке.</string>
+    <string name="perm_desc_read_media_images">Фото на устройстве</string>
     <string name="perm_title_read_media_video">Доступ к видео</string>
-    <string name="perm_desc_read_media_video">Просмотр, сортировка и воспроизведение видеофайлов на устройстве. Необходимо для отображения миниатюр и доступа к видеотеке.</string>
+    <string name="perm_desc_read_media_video">Видео на устройстве</string>
     <string name="perm_title_read_media_audio">Доступ к музыке</string>
-    <string name="perm_desc_read_media_audio">Просмотр, сортировка и воспроизведение музыки и аудиофайлов. Необходимо для доступа к аудиотеке и спискам треков.</string>
+    <string name="perm_desc_read_media_audio">Музыка на устройстве</string>
     <string name="perm_title_manage_external_storage">Полное управление хранилищем</string>
-    <string name="perm_desc_manage_external_storage">Перемещение, переименование, копирование и удаление файлов во всех разделах хранилища, включая SD-карты и общее хранилище.</string>
+    <string name="perm_desc_manage_external_storage">Доступ к любой папке, включая папки приложений</string>
     <string name="perm_title_manage_media">Управление медиафайлами</string>
-    <string name="perm_desc_manage_media">Массовое редактирование, переименование и удаление медиафайлов без запроса подтверждения для каждой операции.</string>
+    <string name="perm_desc_manage_media">Массовые правки медиа</string>
     <string name="perm_title_access_local_network">Доступ к локальной сети</string>
-    <string name="perm_desc_access_local_network">Подключение к общим папкам SMB и медиасерверам DLNA в домашней Wi-Fi-сети для потоковой передачи и удалённого доступа к файлам.</string>
+    <string name="perm_desc_access_local_network">Серверы SMB, SFTP, FTP и DLNA</string>
     <string name="perm_title_record_audio">Микрофон</string>
-    <string name="perm_desc_record_audio">Запись голосовых заметок и прикрепление их к медиафайлам в качестве аннотаций. Необходимо для функции аудиозаметок и голосовых тегов.</string>
+    <string name="perm_desc_record_audio">Голосовые заметки и звук в записях</string>
     <string name="perm_title_post_notifications">Уведомления</string>
-    <string name="perm_desc_post_notifications">Уведомления о ходе фоновых операций с файлами, переносов папок и управление воспроизведением в шторке уведомлений.</string>
+    <string name="perm_desc_post_notifications">Уведомления о прогрессе</string>
     <string name="perm_title_battery_optimization">Оптимизация аккумулятора</string>
-    <string name="perm_desc_battery_optimization">Предотвращает приостановку фонового воспроизведения и передачи файлов при выключении экрана или сворачивании приложения.</string>
-    <string name="perm_title_hand_tracking">Отслеживание рук</string>
-    <string name="perm_desc_hand_tracking">Управление воспроизведением, просмотром файлов и навигацией по меню жестами на гарнитурах Meta Quest без физического контроллера.</string>
-    <string name="perm_title_headset_camera">Камера passthrough</string>
-    <string name="perm_desc_headset_camera">Доступ к камерам сквозного обзора на Meta Quest для отображения реального мира вокруг окна приложения в режиме смешанной реальности.</string>
+    <string name="perm_desc_battery_optimization">Фоновая работа</string>
     <!-- Print -->
     <string name="menu_print">Печать</string>
     <string name="error_print_unavailable">Служба печати не найдена. Поделитесь файлом или установите приложение для печати.</string>
@@ -1969,7 +1571,6 @@
     <string name="now_playing_previous_desc">Предыдущий трек</string>
     <string name="now_playing_next_desc">Следующий трек</string>
     <string name="now_playing_seek_bar_desc">Перемотка</string>
-    <string name="now_playing_mini_bar_desc">Сейчас играет - нажмите, чтобы открыть управление</string>
 
     <!-- Duplicate Detection -->
     <string name="action_find_duplicates">Найти дубликаты</string>
@@ -1989,11 +1590,6 @@
     <string name="duplicate_scan_start">Начать сканирование</string>
     <string name="duplicate_scan_failed">Не получилось завершить поиск дубликатов. Попробуйте ещё раз.</string>
     <string name="duplicate_none_found">Дубликаты не найдены.</string>
-    <string name="scanning_for_duplicates">Поиск дубликатов..</string>
-    <string name="duplicates_found_format">Найдено %1$d групп дубликатов (всего %2$s)</string>
-    <string name="group_title_format">Группа %1$d</string>
-    <string name="select_duplicates">Выбрать дубликаты</string>
-    <string name="cd_delete_file">Удалить файл</string>
     <string name="cd_expand_group">Развернуть группу</string>
     <string name="duplicate_group_count">%1$d файлов</string>
     <string name="cd_collapse_group">Свернуть группу</string>
@@ -2005,27 +1601,19 @@
     <string name="action_create_folder">Создать папку</string>
     <string name="action_create_text_file">Создать заметку</string>
     <string name="action_create_drawing">Создать рисунок</string>
-    <string name="create_text_file_title">Новая заметка</string>
-    <string name="create_text_file_hint">Имя файла</string>
     <string name="error_text_note_create_failed">Не получилось создать заметку здесь. Попробуйте другую папку.</string>
     <string name="error_drawing_create_failed">Не получилось создать рисунок здесь. Попробуйте другую папку.</string>
-    <string name="msg_text_note_created">Заметка создана: %1$s</string>
-    <string name="error_invalid_text_note_name">Используйте буквы, цифры, дефис; без / \\ : * ? \" &lt; &gt; |</string>
     <string name="menu_automate_source">Автоматизация..</string>
     <string name="menu_add_receiver">В список сортировки</string>
     <string name="msg_added_as_receiver">Ресурс добавлен в список сортировки</string>
     <string name="btn_edit_receiver">Настроить</string>
-    <string name="create_folder">Создать папку</string>
     <string name="create_folder_title">Новая папка</string>
     <string name="create_folder_hint">Имя папки</string>
     <string name="error_invalid_folder_name">Недопустимое имя папки</string>
-    <string name="error_folder_already_exists">Папка уже существует</string>
-    <string name="msg_folder_created">Папка "%1$s" создана</string>
+    <string name="msg_folder_created">Папка \"%1$s\" создана</string>
     <string name="msg_folder_renamed">Папка переименована</string>
     <string name="error_folder_create_failed">Не получилось создать папку.</string>
     <string name="error_folder_rename_failed">Не получилось переименовать папку.</string>
-    <string name="error_cross_protocol_dir_not_supported">Копирование/перемещение папок между разными типами хранилищ не поддерживается.</string>
-    <string name="operation_completed">Готово.</string>
     <string name="error_some_operations_failed">%1$d из %2$d операций не выполнено</string>
 
     <!-- Archive selected files (task_1_3) -->
@@ -2044,11 +1632,10 @@
     <string name="archive_create_failed">Не получилось создать архив. Попробуйте ещё раз.</string>
     <string name="archive_error_network_not_supported">Архивация поддерживается только для локальных файлов. Сетевые и облачные источники не поддерживаются.</string>
     <string name="unarchive_dialog_title">Распаковать архив?</string>
-    <string name="unarchive_dialog_message">"%1$s" -> папка "%2$s"</string>
+    <string name="unarchive_dialog_message">\"%1$s\" -> папка \"%2$s\"</string>
     <string name="unarchive_action_extract">Распаковать</string>
     <string name="unarchive_progress_title">Распаковка архива..</string>
     <string name="unarchive_progress_entry">Извлечение: %1$s</string>
-    <string name="unarchive_progress_message">%1$d/%2$d (%3$d%%): %4$s</string>
     <string name="unarchive_success">Архив распакован</string>
     <string name="unarchive_error_zip_bomb">Архив слишком большой или слишком глубокий</string>
     <string name="unarchive_error_no_space">Недостаточно места</string>
@@ -2057,12 +1644,11 @@
     <string name="unarchive_network_not_supported">Распаковка поддерживается только для локальных ресурсов и SD-карты.</string>
     <string name="unarchive_only_zip_supported">Поддерживаются только ZIP-архивы.</string>
     <string name="protected_archive_password_title">Нужен пароль</string>
-    <string name="protected_archive_password_message">"%1$s" защищён паролем.</string>
+    <string name="protected_archive_password_message">\"%1$s\" защищён паролем.</string>
     <string name="protected_archive_password_hint">Пароль</string>
     <string name="protected_archive_password_empty">Введите пароль</string>
     <string name="protected_archive_password_wrong">Пароль не подошёл.</string>
     <string name="protected_file_unsupported">Файл защищён и не может быть открыт в приложении.</string>
-    <string name="protected_file_open_external">Открыть во внешнем приложении</string>
     <string name="action_open">Открыть</string>
     <string name="app_updated_to">Обновлено до %1$s</string>
 
@@ -2099,8 +1685,6 @@
     <string name="permission_denied">Доступ запрещён</string>
     <string name="failed_to_request_permission">Не удалось запросить разрешение</string>
     <string name="permission_error_retry">Ошибка разрешений - повторите попытку</string>
-    <string name="operation_failed">Ошибка операции: %1$s</string>
-    <string name="error_with_message">Ошибка: %1$s</string>
     <string name="error_init_settings">Не получилось открыть эти настройки. Попробуйте ещё раз.</string>
 
     <!-- TTS -->
@@ -2176,16 +1760,11 @@
     <string name="mic_recording_button_content_desc">Запись аудио</string>
     <string name="mic_recording_hold_hint">Удержите для записи</string>
     <string name="mic_recording_filename_title">Сохранить запись</string>
-    <string name="mic_recording_permission_rationale">Для записи аудио необходим доступ к микрофону</string>
-    <string name="mic_recording_permission_denied">Доступ к микрофону отклонён. Разрешите его в системных настройках.</string>
     <string name="mic_recording_saved">Запись сохранена: %s</string>
     <string name="mic_recording_error_save">Не удалось сохранить запись</string>
-    <string name="mic_recording_error_start">Не удалось начать запись</string>
     <string name="mic_recording_cancelled">Запись отменена</string>
 
     <!-- Camera Capture Settings -->
-    <string name="tooltip_camera_capture_title">Съёмка фотоаппаратом</string>
-    <string name="tooltip_camera_capture_message">Кнопка фотоаппарата в браузере файлов открывает встроенную камеру для съёмки фото или записи видео не выходя из приложения, со вспышкой, зумом, переключением камеры и фокусом по тапу. Снятый файл сохраняется в папку текущего ресурса.\n\nЕсли включён «Не спрашивать имя файла», файл автоматически получает имя по времени съёмки; иначе после каждой съёмки появляется диалог переименования.</string>
     <string name="tooltip_saved_authorizations_title">Сохранённые авторизации</string>
     <string name="tooltip_saved_authorizations_message">Экран веб-входа внутри приложения сохраняет cookie и логины, которые используются при автозагрузке файлов с сайтов, требующих входа. Откройте этот экран, чтобы просмотреть сохранённые авторизации и удалить ненужные.</string>
 
@@ -2216,7 +1795,6 @@
 
     <!-- S0050: настройки режима «Чёрный экран» -->
     <string name="black_screen_button_title">Чёрный экран</string>
-    <string name="cmd_black_screen_label">Чёрный экран</string>
 
     <!-- S0034 Phase 06: строки UI выбора иконки -->
     <string name="cd_pick_resource_icon">Выбрать иконку ресурса</string>
@@ -2257,12 +1835,11 @@
     <string name="compress_copy_failed">Не получилось создать сжатую копию. Попробуйте ещё раз.</string>
 
     <!-- S0107: Draw overlay commands -->
-    <string name="menu_draw_overlay">Рисовать</string>
+    <string name="menu_draw_overlay">Рисование</string>
 
     <!-- S0116 §5.1 pillar M: post-download UX toasts -->
     <string name="s0116_toast_saved_to_resource">Сохранено: %1$s</string>
     <string name="s0116_toast_saved_to_downloads">Сохранено в Загрузки: %1$s</string>
-    <string name="s0116_toast_streaming_started">Загружается стрим..</string>
     <string name="s0116_toast_drm_blocked">Защищённый контент, скачивание невозможно</string>
     <string name="s0116_toast_mux_failed">Не удалось собрать MP4 (codec: %1$s)</string>
     <string name="s0116_toast_streaming_disabled">Стримы недоступны в этой сборке</string>
@@ -2271,10 +1848,7 @@
     <!-- S0151: Instagram/Threads social preview-only UX strings -->
     <string name="s0151_toast_content_unavailable">Не удалось получить контент по этой ссылке</string>
     <string name="s0151_dialog_auth_title">Войти в %1$s?</string>
-    <string name="s0151_dialog_reauth_title">Обновить вход в %1$s?</string>
     <string name="s0151_dialog_message">Настоящий контент по этой ссылке требует входа - превью-картинка пропущена.</string>
-    <string name="s0151_dialog_reauth_message">Применили сохранённый вход в %1$s, но страница вернула только превью. Возможно, сессия устарела, либо этот пост требует другого аккаунта. Войти заново?</string>
-    <string name="s0151_dialog_reauth_positive">Войти заново</string>
 
     <!-- S0117: batch progress and summary UX for noLegal site extraction -->
     <string name="s0117_progress_batch_item">Скачивается элемент %1$d из %2$d..</string>
@@ -2283,9 +1857,6 @@
     <string name="s0117_batch_dialog_summary">Сохранено %1$d из %2$d элементов.</string>
     <string name="s0117_batch_dialog_failure_line">%1$s: %2$s</string>
     <string name="s0117_batch_dialog_more_failures">+ ещё %1$d ошибок</string>
-    <string name="s0117_license_lib_title">NewPipe Extractor - движок site extraction</string>
-    <string name="s0117_license_lib_project">Проект: TeamNewPipe</string>
-    <string name="s0117_license_lib_license">Лицензия: GPL-3.0-or-later</string>
 
     <!-- S0116 §5.1 pillars K, L: WebView authentication & saved auth sessions -->
     <string name="auth_sessions_empty">Нет сохранённых авторизаций</string>
@@ -2316,18 +1887,10 @@
     <string name="friendly_copy_error_auth_failed">Авторизация не удалась. Проверьте учётные данные и попробуйте снова.</string>
     <string name="friendly_copy_error_access_denied">Доступ запрещён. Возможно, у вас нет прав на это действие.</string>
     <string name="friendly_copy_error_not_found">Файл или ресурс не найден. Возможно, он был перемещён или удалён.</string>
-    <string name="friendly_copy_empty_state_generic">Здесь пока ничего нет.</string>
-    <string name="friendly_copy_empty_state_invite">Здесь пока ничего нет. Добавьте что-нибудь, чтобы начать.</string>
-    <string name="friendly_copy_progress_generic">Выполняется..</string>
     <string name="friendly_copy_success_generic">Готово.</string>
-    <string name="friendly_copy_next_step_help">Открыть справку</string>
-    <string name="friendly_copy_next_step_report">Сообщить о проблеме</string>
-    <string name="friendly_copy_next_step_feedback">Оставить отзыв</string>
 
     <!-- S0118: technical-details labels for browse error surfaces -->
     <string name="error_details_resource_type">Тип</string>
-    <string name="error_details_error">Ошибка</string>
-    <string name="error_details_stack_trace">Стек вызовов</string>
 
     <!-- S0118: MediaPlayer fallback diagnostics (PlaybackHealthHelper) -->
 
@@ -2335,16 +1898,13 @@
 
     <!-- S0118 Phase 05: feature surface sweep -->
     <string name="duplicates_deleted_short">Выбранные файлы удалены.</string>
-    <string name="duplicates_deleted_count">Удалено %1$d файлов.</string>
     <string name="receive_share_preparing">Подготавливаю общий контент..</string>
     <string name="receive_share_source_name">Общее</string>
     <string name="receive_share_no_content">Не получен контент для импорта</string>
     <string name="receive_share_cache_failed">Не получилось подготовить общий файл. Попробуйте ещё раз.</string>
     <string name="link_download_error_ytmusic_audio_only">Не получилось сохранить аудиодорожку из YouTube Music. Ссылка не вернула воспроизводимый аудиофайл.</string>
-    <string name="receive_share_copied_to_folder">Сохранено в выбранную папку</string>
     <string name="receive_share_copy_to_folder_failed">Не получилось сохранить общий файл в эту папку. Попробуйте ещё раз.</string>
     <string name="favorites_slideshow_open_first">Сначала откройте Избранное, а потом запустите слайд-шоу там.</string>
-    <string name="google_drive_sign_in_unavailable">Сейчас не получается войти в Google Диск. Попробуйте ещё раз позже.</string>
     <string name="google_sign_in_cancelled">Вход через Google отменён</string>
 
     <!-- S0161: link download background queue -->
@@ -2364,11 +1924,6 @@
     <string name="link_download_notif_text_downloading_pct">Скачивание %1$d%%</string>
     <string name="link_download_notif_action_cancel">Отмена</string>
     <string name="auth_sessions_info_text">Здесь хранятся авторизации, сохранённые через встроенный браузер. Каждая запись содержит куки для одного аккаунта на одном сайте. Записи «Вход отклонён» созданы при выборе «Не предлагать» - они отключают диалог авторизации для данного сайта. Чтобы добавить второй аккаунт для того же сайта, используйте «Добавить авторизацию» в меню.</string>
-    <string name="link_download_ytdlp_extracting">Извлечение ссылки на медиа..</string>
-    <string name="link_download_ytdlp_downloading">Загрузка через универсальный экстрактор..</string>
-    <string name="link_download_ytdlp_error_extract">Не удалось извлечь медиа из этой ссылки.</string>
-    <string name="link_download_ytdlp_error_runtime">Универсальный экстрактор недоступен.</string>
-    <string name="rotation_toggle_title">Поворот</string>
     <string name="rotation_toggle_sensor_on_desc">Поворот экрана: разблокирован</string>
     <string name="rotation_toggle_sensor_off_desc">Поворот экрана: заблокирован</string>
     <string name="link_download_notif_text_preview_only_signed_in">Не удалось извлечь содержимое страницы. Вход в аккаунт не требуется.</string>
@@ -2392,8 +1947,6 @@
     <string name="browse_transfer_notif_text_auth_required">Откройте FastMediaSorter, чтобы войти и продолжить</string>
     <string name="browse_transfer_notif_text_permission_required">Откройте FastMediaSorter, чтобы выдать разрешение и повторить</string>
     <string name="browse_transfer_notif_action_cancel">Отмена</string>
-    <string name="share_to_telegram">Отправить в Telegram</string>
-    <string name="share_to_telegram_failed">Не удалось отправить в Telegram. Попробуйте обычное «Поделиться».</string>
     <string name="midi_playback_failed">Не удалось воспроизвести этот MIDI-файл. Попробуйте другую копию или перейдите к следующему треку.</string>
     <string name="tooltip_calculator_title">Калькулятор</string>
     <string name="tooltip_calculator_message">Добавляет обычный калькулятор в основное меню и включает виджет калькулятора. Калькулятор остаётся внутри FastMediaSorter.</string>
@@ -2411,12 +1964,11 @@
     <string name="quick_recorder_notification_channel">Запись голоса</string>
     <string name="quick_recorder_action_stop">Стоп</string>
     <string name="quick_recorder_error">Не удалось записать звук</string>
-    <string name="quick_recorder_permission_needed">Для записи нужен доступ к микрофону</string>
     <string name="quick_recorder_permission_settings">Включите доступ к микрофону в настройках</string>
     <string name="camera_ocr_crop_lang_ocr_desc">Язык распознавания</string>
     <string name="camera_ocr_crop_lang_target_desc">Язык перевода</string>
     <string name="perm_title_camera">Камера</string>
-    <string name="perm_desc_camera">Снимать фото прямо в приложении для OCR-захвата и сохранения на текущий ресурс. Нужно, если вы хотите делать снимки без перехода в системную камеру.</string>
+    <string name="perm_desc_camera">Съёмка, распознавание текста и QR-коды</string>
     <string name="perm_group_camera">Камера</string>
     <string name="camera_permission_required">Чтобы снимать фото в приложении, нужен доступ к камере. Выдайте разрешение и попробуйте ещё раз.</string>
     <string name="setting_camera_to_resource_enabled_title">Включить съёмку фото</string>
@@ -2435,7 +1987,6 @@
     <string name="resource_menu_launch">Запустить</string>
     <string name="resource_menu_move_to_top">Переместить в самый верх</string>
     <string name="resource_menu_move_to_bottom">Переместить в самый низ</string>
-    <string name="delivery_prompt_title">Нужна докачка</string>
     <string name="delivery_offer_message">Для этой функции нужна докачка (около %1$s). Скачать сейчас?</string>
     <string name="delivery_offer_message_unknown_size">Для этой функции нужна небольшая докачка. Скачать сейчас?</string>
     <string name="delivery_state_downloading">Скачиваю..</string>
@@ -2491,7 +2042,6 @@
     <string name="download_runner_notif_channel_name">Загрузка элементов</string>
     <string name="download_runner_notif_title_running">Загрузка: %s</string>
     <string name="download_runner_notif_title_installed">%s успешно установлен</string>
-    <string name="download_runner_notif_title_queued">Загрузка поставлена в очередь</string>
     <string name="download_runner_notif_title_failed">Ошибка загрузки %s</string>
     <string name="screen_capture_saved_to">Сохранено в %1$s: %2$s</string>
     <string name="screen_capture_service_notification_title">Снимок экрана</string>
@@ -2727,7 +2277,7 @@
     <string name="streams_filter">Фильтр</string>
     <string name="streams_sort">Сортировка</string>
     <string name="streams_sort_name">По названию</string>
-    <string name="streams_sort_topic">По теме</string>
+    <string name="streams_sort_topic">По рубрике</string>
     <string name="streams_sort_language">По языку</string>
     <string name="streams_sort_country">По стране</string>
     <string name="streams_sort_recent">Недавно добавленные</string>
@@ -2758,7 +2308,7 @@
     <string name="programs">Программы</string>
     <string name="error_scan_timeout">Папка загружается слишком долго. Проверьте сеть и повторите попытку.</string>
     <string name="cast_stream_unsupported_protocol">Эту трансляцию нельзя транслировать на Chromecast</string>
-    <string name="screenshot_gesture_action_open_app">Открыть основное окно программы</string>
+    <string name="screenshot_gesture_action_open_app">Запустить выбранную программу</string>
     <string name="streams_shortcut_channel_missing">Этой трансляции больше нет в списке</string>
     <string name="streams_add_to_home_screen">На домашний экран</string>
     <string name="streams_shortcut_created">Ярлык добавлен на домашний экран</string>
@@ -2768,7 +2318,6 @@
     <string name="three_zone_layout_explanation">Когда 9-зоновая сетка выключена, плеер использует 3 зоны: предыдущий / зум / следующий. Коснитесь левого края, чтобы открыть командную панель для операций с файлами.</string>
     <string name="edit_app_launch_panel_title">Редактировать панель</string>
     <string name="app_launch_panel_empty_slot">Пусто - нажмите, чтобы добавить</string>
-    <string name="app_launch_panel_add_app">Добавить программу</string>
     <string name="app_launch_panel_action_move">Переместить</string>
     <string name="app_launch_panel_action_replace">Заменить</string>
     <string name="app_launch_panel_action_remove">Удалить</string>
@@ -2900,7 +2449,6 @@
     <string name="screen_recording_disclosure_title">Видеозапись экрана</string>
     <string name="screen_recording_disclosure_message">FastMediaSorter будет записывать всё, что отображается на экране, включая другие приложения, в видеофайл со звуком микрофона, пока вы не остановите запись. Запись продолжается в фоне. В начале каждой записи Android просит выбрать это приложение или весь экран, и этот шаг нельзя пропустить.</string>
     <string name="screen_recording_disclosure_start">Начать запись</string>
-    <string name="screen_recording_permission_denied">Для записи экрана нужны разрешения на микрофон и уведомления.</string>
     <string name="screen_recording_saved">Запись экрана сохранена: %1$s</string>
     <string name="screen_recording_error">Не удалось сохранить запись экрана.</string>
     <string name="streams_panel_disable_action">Отключить</string>
@@ -2912,7 +2460,7 @@
     <string name="streams_country_flag">Флаг страны</string>
     <string name="perm_group_location">Местоположение</string>
     <string name="perm_title_location">Геометка при съёмке</string>
-    <string name="perm_desc_location">Опционально. Добавляет ваше местоположение в фото и видео, снятые в приложении. Откажитесь - и в снимках просто не будет координат.</string>
+    <string name="perm_desc_location">Геометки для съёмки</string>
     <string name="screenshot_gesture_action_launch_camera">Запустить камеру</string>
     <string name="screenshot_gesture_action_start_video_recording">Начать видеозапись</string>
     <string name="screenshot_gesture_action_start_audio_recording">Начать аудиозапись</string>
@@ -2965,7 +2513,6 @@
     <string name="companion_import_password_required">Введите пароль для этого сервера.</string>
     <string name="companion_qr_scan_hint">Наведите камеру на QR-код companion-приложения</string>
     <string name="companion_qr_scan_torch">Фонарик</string>
-    <string name="companion_qr_camera_denied">Для сканирования QR-кода нужен доступ к камере</string>
     <string name="vr_cinema_program_title">VR-кинотеатр</string>
     <string name="setting_gesture_zone_left_top_title">Левый край - верхняя полоса</string>
     <string name="setting_gesture_zone_left_bottom_title">Левый край - нижняя полоса</string>
@@ -2983,8 +2530,6 @@
     <string name="edge_gesture_tab_right_bottom">Справа снизу</string>
     <string name="edge_gesture_general_group_title">Общие настройки жестов</string>
     <string name="edge_gesture_schema_content_description">Карта краевых жестов: коснитесь направления зоны, чтобы назначить действие</string>
-    <string name="edge_gesture_schema_state_assigned">назначено</string>
-    <string name="edge_gesture_schema_state_available">доступно</string>
     <string name="companion_qr_share_title">Отсканируйте, чтобы добавить ресурс</string>
     <string name="companion_qr_share_hint">В FastMediaSorter: Добавить ресурс -&gt; Сканировать QR</string>
     <string name="companion_qr_share_no_password_note">Пароль не включён - получатель введёт его при импорте.</string>
@@ -3006,7 +2551,7 @@
     <string name="gesture_action_explain_send_to_recipients">Делает снимок экрана и отправляет его выбранным получателям.</string>
     <string name="gesture_action_explain_share">Делает снимок экрана и открывает системное меню «Поделиться».</string>
     <string name="gesture_action_explain_crop_and_share">Делает снимок экрана, позволяет обрезать его и делится результатом.</string>
-    <string name="gesture_action_explain_open_app">Открывает главное окно приложения.</string>
+    <string name="gesture_action_explain_open_app">Открывает программу, выбранную для этого жеста. Если программа не выбрана, открывает FastMediaSorter.</string>
     <string name="gesture_action_explain_open_panel">Открывает панель быстрого запуска приложений.</string>
     <string name="gesture_action_explain_launch_camera">Открывает встроенную камеру.</string>
     <string name="gesture_action_explain_take_photo">Снимает фото встроенной камерой и сохраняет его.</string>
@@ -3099,7 +2644,6 @@
     <string name="launcher_tray_network_cellular">Мобильная сеть</string>
     <string name="launcher_tray_network_ethernet">Проводная сеть</string>
     <string name="launcher_tray_network_none">Нет сети</string>
-    <string name="launcher_tray_battery_percent">%1$d%%</string>
     <string name="launcher_tray_battery_level">Батарея %1$d%%</string>
     <string name="launcher_tray_battery_charging">Батарея %1$d%%, заряжается</string>
     <string name="launcher_gadget_clock">Часы</string>
@@ -3120,9 +2664,9 @@
     <string name="launcher_edit_kind_resource">Мой ресурс</string>
     <string name="launcher_edit_kind_stream">Канал</string>
     <string name="launcher_edit_kind_os">Настройка Android</string>
-    <string name="launcher_edit_kind_gadget">Гаджет</string>
+    <string name="launcher_edit_kind_gadget">Виджет</string>
     <string name="launcher_edit_pick_stream_title">Выберите канал</string>
-    <string name="launcher_edit_pick_gadget_title">Выберите гаджет</string>
+    <string name="launcher_edit_pick_gadget_title">Выберите виджет</string>
     <string name="launcher_edit_remove_cell_named">Убрать %1$s с рабочего стола</string>
     <string name="launcher_edit_mode_browse">Просмотр</string>
     <string name="launcher_edit_mode_slideshow">Слайд-шоу</string>
@@ -3131,21 +2675,19 @@
     <string name="launcher_edit_rotation_hint">Вертикальный и горизонтальный рабочие столы настраиваются отдельно - оформите каждый по-своему.</string>
     <string name="launcher_edit_pin_add">Закрепить приложение</string>
     <string name="launcher_edit_unpin_named">Открепить %1$s</string>
-    <string name="launcher_settings_group_title">Системный лаунчер</string>
     <string name="launcher_settings_enable_title">Сделать приложение домашним экраном</string>
     <string name="launcher_settings_enable_desc">Кнопка «Домой» открывает ваш рабочий стол с ярлыками и гаджетами. Выключите в любой момент, чтобы вернуть прежний домашний экран.</string>
     <string name="launcher_settings_enable_help_title">Режим домашнего экрана</string>
     <string name="launcher_settings_enable_help_message">После включения Android спросит, какой домашний экран использовать - выберите это приложение и нажмите «Всегда» (или «Только сейчас», чтобы попробовать). Чтобы вернуться, выключите режим, и Android восстановит прежний домашний экран.</string>
     <string name="launcher_settings_show_recents_title">Показывать недавние приложения</string>
     <string name="launcher_settings_show_pinned_title">Показывать закреплённые приложения</string>
-    <string name="launcher_settings_show_tray_title">Показывать часы и статус</string>
+    <string name="launcher_settings_show_tray_title">Показывать трей статуса</string>
     <string name="launcher_settings_density_title">Плотность сетки</string>
     <string name="launcher_settings_density_sparse">Свободная</string>
     <string name="launcher_settings_density_default">Стандартная</string>
     <string name="launcher_settings_density_dense">Плотная</string>
     <string name="launcher_settings_density_densest">Очень плотная</string>
     <string name="launcher_settings_open_home_chooser_title">Сменить домашний экран</string>
-    <string name="launcher_settings_open_home_chooser_desc">Открыть настройки Android, чтобы выбрать, какое приложение открывается кнопкой «Домой».</string>
     <string name="launcher_welcome_toggle_title">Использовать как домашний экран</string>
     <string name="launcher_settings_dialog_title">Настройки системного лаунчера</string>
     <string name="launcher_menu_launcher_settings">Настройки лаунчера</string>
@@ -3195,7 +2737,6 @@
     <string name="launcher_weather_location_search">Найти</string>
     <string name="launcher_weather_location_empty">Ничего не найдено. Попробуйте другое написание</string>
     <string name="launcher_weather_location_searching">Ищем..</string>
-    <string name="launcher_weather_location_failed">Не удалось связаться с сервисом поиска. Проверьте соединение и повторите</string>
     <string name="launcher_app_shortcut_start_failed">Это действие больше недоступно.</string>
     <string name="launcher_settings_lock_desktop_title">Заблокировать рабочий стол</string>
     <string name="launcher_settings_wallpaper_title">Заставка рабочего стола</string>
@@ -3215,8 +2756,6 @@
     <string name="camera_lens_macro">Макро</string>
     <string name="camera_control_zoom_step">Зум %1$s</string>
     <string name="camera_control_zoom_step_native">Зум %1$s, предел оптики</string>
-    <string name="action_delete_larger_than">Удалить больше чем..</string>
-    <string name="action_delete_smaller_than">Удалить меньше чем..</string>
     <string name="file_not_found_playing_from_start">Файл “%1$s” не найден - воспроизведение с начала</string>
     <string name="no_maps_app_available">Нет приложения для карт</string>
     <string name="translation_downloading_wait">Ожидание результата перевода..</string>
@@ -3248,11 +2787,9 @@
     <string name="launcher_widget_no_room">На рабочем столе лаунчера нет места. Освободите его и попробуйте снова.</string>
     <string name="launcher_contact_no_app">На этом устройстве нечем выполнить это действие с контактом.</string>
     <string name="launcher_contact_cell_unnamed">Контакт</string>
-    <string name="launcher_edit_kind_contact">Контакт</string>
-    <string name="launcher_contact_action_title">Что делает этот ярлык?</string>
-    <string name="launcher_contact_action_profile">Открыть профиль</string>
+    <string name="launcher_contact_action_profile">Карточка контакта</string>
     <string name="launcher_contact_action_dial">Позвонить</string>
-    <string name="launcher_contact_action_message">Написать сообщение</string>
+    <string name="launcher_contact_action_message">Написать в мессенджер</string>
     <string name="launcher_contact_channel_title">Выберите мессенджер</string>
     <string name="launcher_contact_no_number">У этого контакта нет номера телефона.</string>
     <string name="launcher_contact_no_channel">Ни один мессенджер на устройстве не знает этот контакт.</string>
@@ -3270,8 +2807,456 @@
     <string name="camera_profile_sport_notice">Спорт замораживает движение короткой выдержкой - в темноте кадры получаются темнее.</string>
     <string name="perm_group_contacts">Контакты</string>
     <string name="perm_title_read_contacts">Доступ к контактам</string>
-    <string name="perm_desc_read_contacts">Показывать имя и фото контакта, когда вы закрепляете его на рабочем столе, и позволять связываться с ним прямо из закреплённой ячейки.</string>
+    <string name="perm_desc_read_contacts">Имена для ярлыков</string>
     <string name="restart_app_color_theme_message">Для применения новой цветовой темы необходимо перезапустить приложение. Продолжить?</string>
     <string name="settings_debug_log_mirror_title">Зеркалировать лог в открытую папку</string>
     <string name="settings_debug_log_mirror_desc">Копирует отладочный лог в папку, открытую сейчас в просмотрщике. По умолчанию выключено.</string>
+    <string name="error_destination_insufficient_space">Недостаточно места на %1$s - не хватает %2$s. Освободите место или выберите другое назначение.</string>
+    <string name="removable_volumes_section">Съёмные носители</string>
+    <string name="removable_volume_button_label">%1$s - свободно %2$s</string>
+    <string name="removable_volume_button_description">Съёмный носитель %1$s, свободно %2$s. Открывает этот том.</string>
+    <string name="removable_volume_access_request">Чтобы читать %1$s, выберите этот том в системном диалоге - приложение получит доступ только к выбранной папке.</string>
+    <string name="launcher_edit_resize_hint_drag">Потяните за этот угол, чтобы изменить размер виджета.</string>
+    <string name="launcher_edit_kind_action">Действие лаунчера</string>
+    <string name="launcher_settings_reset_title">Сброс настроек лаунчера</string>
+    <string name="launcher_settings_reset_message">Настройки системного лаунчера будут сброшены до значений по умолчанию. Рабочий стол, закреплённые значки и обои вернутся к тому виду, который был сразу после установки. Остальные данные приложения не затрагиваются.</string>
+    <string name="launcher_settings_reset_button_description">Сбросить настройки лаунчера до умолчаний</string>
+    <string name="launcher_settings_reset_success">Настройки лаунчера сброшены до умолчаний</string>
+    <string name="launcher_settings_reset_failed">Не удалось сбросить настройки лаунчера. Ничего не изменилось - попробуйте ещё раз.</string>
+    <string name="launcher_add_cell">Добавить на стол</string>
+    <string name="launcher_contact_action_sms">Отправить SMS</string>
+    <string name="launcher_contact_a11y_sms">Отправить SMS: %1$s</string>
+    <string name="launcher_contact_source_title">Откуда взять номер?</string>
+    <string name="launcher_contact_source_pick">Выбрать из контактов</string>
+    <string name="launcher_contact_source_manual">Ввести номер</string>
+    <string name="launcher_contact_number_hint">Номер телефона</string>
+    <string name="launcher_contact_number_invalid">Это не номер телефона.</string>
+    <string name="perm_state_granted">Доступ выдан</string>
+    <string name="perm_state_missing">Доступ ещё не выдан</string>
+    <string name="perm_state_blocked">Заблокировано в системных настройках</string>
+    <string name="launcher_settings_tray_clock_title">Часы</string>
+    <string name="launcher_settings_tray_bluetooth_title">Bluetooth</string>
+    <string name="launcher_settings_tray_sim1_title">Сигнал SIM 1</string>
+    <string name="launcher_settings_tray_sim2_title">Сигнал SIM 2</string>
+    <string name="launcher_settings_tray_network_title">Тип сети</string>
+    <string name="launcher_settings_tray_battery_title">Батарея</string>
+    <string name="launcher_settings_tray_bluetooth_subtitle">Скрыт, пока Bluetooth выключен или устройство не сообщает его состояние</string>
+    <string name="launcher_settings_tray_sim_subtitle">Нужно разрешение на чтение состояния телефона. Скрыт, если вы откажете или слот SIM пуст</string>
+    <string name="perm_state_asked_each_time">Спрашивается каждый раз</string>
+    <string name="launcher_tray_battery_value">%1$d</string>
+    <string name="launcher_tray_bluetooth_on">Bluetooth включён</string>
+    <string name="launcher_tray_sim_signal">SIM %1$d, сигнал %2$d из 4</string>
+    <string name="launcher_tray_sim_signal_none">SIM %1$d, нет сети</string>
+    <string name="launcher_now_playing_other_apps">Музыка других приложений</string>
+    <string name="launcher_now_playing_access_title">Показывать музыку других приложений</string>
+    <string name="launcher_now_playing_access_message">FastMediaSorter будет читать медиасессию приложения, которое сейчас играет, - название трека, исполнителя и состояние воспроизведения, - чтобы гаджет мог показывать их и управлять воспроизведением. Android называет это разрешение доступом к уведомлениям, но приложение не читает уведомления, только медиасессию. Разрешение выдаётся на экране настроек Android, там же его можно отозвать.</string>
+    <string name="perm_title_notification_listener">Доступ к уведомлениям</string>
+    <string name="perm_desc_notification_listener">Позволяет гаджету «Сейчас играет» на рабочем столе лаунчера показывать то, что играет в других приложениях, и управлять воспроизведением. Приложение читает только медиасессии, но не содержимое уведомлений. Необязательное - выдаётся на экране настроек Android.</string>
+    <string name="perm_title_write_external_storage">Сохранение в память устройства</string>
+    <string name="perm_desc_write_external_storage">Запись файлов на Android 9 и старее</string>
+    <string name="perm_title_system_alert_window">Поверх других приложений</string>
+    <string name="perm_desc_system_alert_window">Полоса жестов поверх других приложений</string>
+    <string name="perm_title_request_install_packages">Установка приложений из файлов</string>
+    <string name="perm_desc_request_install_packages">Открытие APK-файла, найденного на устройстве</string>
+    <string name="perm_title_screen_capture_consent">Захват экрана</string>
+    <string name="perm_desc_screen_capture_consent">Система спрашивает при каждом запуске захвата - разрешить заранее нельзя</string>
+    <string name="perm_title_access_coarse_location">Приблизительное местоположение</string>
+    <string name="perm_desc_access_coarse_location">Грубые координаты для снятого в приложении фото</string>
+    <string name="perm_title_read_phone_state">Состояние телефона</string>
+    <string name="perm_desc_read_phone_state">Уровень сигнала в строке состояния лаунчера</string>
+    <string name="perm_rationale_manage_external_storage">Без этого разрешения Android ограничивает выбор папок стандартными - Документы, Загрузки, Изображения. С ним можно выбрать любую папку, включая DCIM, Camera и папки приложений вроде Android/media, и перемещать или удалять файлы в них. Оно используется только для просмотра и разбора ваших медиафайлов - ничего не собирается и никуда не отправляется.</string>
+    <string name="perm_addendum_manage_external_storage_folder_picking">Выдайте его на следующем экране и вернитесь сюда, чтобы выбрать папку.</string>
+    <string name="perm_rationale_read_external_storage">Приложению нужен доступ к хранилищу, чтобы находить и показывать медиафайлы и перемещать или удалять те, что вы разбираете.</string>
+    <string name="perm_addendum_read_external_storage_local_resource">Это нужно, чтобы создать локальный ресурс из папки на устройстве.</string>
+    <string name="perm_rationale_access_local_network">Приложение подключается к серверам SMB, SFTP, FTP и DLNA в вашей сети и находит их, просматривая устройства в ней. Без этого разрешения такие источники останутся недоступны; за пределы вашей сети приложение не обращается.</string>
+    <string name="perm_addendum_camera_qr_pairing">Для сканирования QR-кода companion-приложения нужна камера.</string>
+    <string name="perm_rationale_record_audio">Микрофон нужен для голосовых заметок и для звука в записи экрана. Без него запись не начнётся.</string>
+    <string name="perm_addendum_record_audio_screen_recording">Звук в записи экрана берётся с микрофона.</string>
+    <string name="perm_addendum_post_notifications_screen_recording">В уведомлении о записи находится кнопка остановки.</string>
+    <string name="perm_rationale_location">Местоположение используется только для записи координат в снимки и видео, снятые в приложении. Никуда ничего не отправляется.</string>
+    <string name="perm_addendum_post_notifications_scheduled_ops">Разрешить уведомления для отложенных операций</string>
+    <string name="perm_rationale_battery_optimization">Android может приостановить приложение в фоне, и тогда отложенная операция запустится с опозданием или вовсе не запустится. Исключение приложения из энергосбережения сохраняет расписание.</string>
+    <string name="launcher_gadget_compass">Компас</string>
+    <string name="launcher_gadget_speed">Скорость</string>
+    <string name="launcher_gadget_compass_cardinal_n">Север</string>
+    <string name="launcher_gadget_compass_cardinal_ne">Северо-восток</string>
+    <string name="launcher_gadget_compass_cardinal_e">Восток</string>
+    <string name="launcher_gadget_compass_cardinal_se">Юго-восток</string>
+    <string name="launcher_gadget_compass_cardinal_s">Юг</string>
+    <string name="launcher_gadget_compass_cardinal_sw">Юго-запад</string>
+    <string name="launcher_gadget_compass_cardinal_w">Запад</string>
+    <string name="launcher_gadget_compass_cardinal_nw">Северо-запад</string>
+    <string name="launcher_gadget_compass_heading">%1$d° %2$s</string>
+    <string name="launcher_gadget_compass_altitude">%1$d м</string>
+    <string name="launcher_gadget_compass_calibrate">Опишите телефоном восьмёрку</string>
+    <string name="launcher_gadget_speed_value">%1$d км/ч</string>
+    <string name="launcher_gadget_sensor_no_fix">Ждём координаты..</string>
+    <string name="launcher_gadget_sensor_no_permission">Геоданные выключены. Разрешите их в правах приложения.</string>
+    <string name="launcher_gadget_compass_description">Компас. Направление %1$s, высота %2$s</string>
+    <string name="launcher_gadget_speed_description">Текущая скорость: %1$s</string>
+    <string name="launcher_gadget_speed_chart">График скорости</string>
+    <string name="launcher_gadget_altitude_chart">График высоты</string>
+    <string name="launcher_gadget_chart_reset">Сброс</string>
+    <string name="launcher_gadget_chart_reset_description">Очищает график и начинает его заново</string>
+    <string name="launcher_gadget_chart_empty">Пока нет данных - график заполнится в движении.</string>
+    <string name="launcher_gadget_chart_distance">%1$s км</string>
+    <string name="launcher_gadget_chart_altitude_current">Сейчас %1$d м</string>
+    <string name="launcher_gadget_speed_chart_description">График скорости. Сейчас %1$s, %2$s с момента сброса</string>
+    <string name="launcher_gadget_altitude_chart_description">График высоты. Сейчас %1$s, %2$s с момента сброса, пройдено %3$s</string>
+    <string name="launcher_gadget_steps">Шаги</string>
+    <string name="launcher_gadget_steps_since_boot">С момента включения телефона</string>
+    <string name="launcher_gadget_steps_description">Шаги: %1$s с момента включения телефона</string>
+    <string name="perm_title_activity_recognition">Физическая активность</string>
+    <string name="perm_desc_activity_recognition">Счётчик шагов на рабочем столе лаунчера</string>
+    <string name="perm_rationale_activity_recognition">Гаджет шагов читает счётчик, который телефон ведёт сам. Ничего не записывается, никуда не отправляется и не хранится после удаления гаджета.</string>
+    <string name="menu_edit_adjust">Коррекция</string>
+    <string name="menu_edit_file_text">Текст файла</string>
+    <string name="menu_autorotate_screen_title">Автоповорот экрана</string>
+    <string name="rotate_content_ccw_title">Повернуть на -90°</string>
+    <string name="menu_edit_submenu_title">Редактирование</string>
+    <string name="rotate_content_ccw_desc">Повернуть изображение на 90 градусов против часовой стрелки</string>
+    <string name="launcher_settings_wallpaper_static_stripes">Обои в стиле полос</string>
+    <string name="launcher_all_apps_search_hint">Поиск приложений</string>
+    <string name="launcher_all_apps_empty">Ни одно приложение не подходит под «%1$s». Очистите поиск, чтобы увидеть весь список.</string>
+    <string name="launcher_all_apps_sort">Порядок списка</string>
+    <string name="launcher_all_apps_sort_label">По названию</string>
+    <string name="launcher_all_apps_sort_install_date">По дате установки</string>
+    <string name="launcher_all_apps_sort_update_date">По дате обновления</string>
+    <string name="launcher_all_apps_sort_frequency">По частоте запуска</string>
+    <string name="launcher_all_apps_sort_category">По категории</string>
+    <string name="launcher_all_apps_sort_reverse">Обратный порядок</string>
+    <string name="perm_title_nearby_wifi_devices">Устройства Wi-Fi рядом</string>
+    <string name="perm_desc_nearby_wifi_devices">Позволяет Сетевому монитору показывать данные подключённой сети Wi-Fi. Ничего не покидает устройство.</string>
+    <string name="perm_title_bluetooth_connect">Bluetooth</string>
+    <string name="perm_desc_bluetooth_connect">Позволяет Сетевому монитору показывать состояние адаптера Bluetooth и имена сопряжённых устройств. Ничего не покидает устройство.</string>
+    <string name="network_monitor_title">Сетевой монитор</string>
+    <string name="settings_enable_network_monitor">Сетевой монитор</string>
+    <string name="settings_enable_network_monitor_summary">Добавляет программу диагностики: подключение, сигнал и параметры сети.</string>
+    <string name="launcher_app_action_launch">Открыть</string>
+    <string name="launcher_app_action_to_desktop">На рабочий стол</string>
+    <string name="launcher_app_action_pin_taskbar">Закрепить на панели задач</string>
+    <string name="launcher_app_action_app_info">Сведения о приложении</string>
+    <string name="launcher_app_action_uninstall">Удалить</string>
+    <string name="launcher_app_action_desktop_full">На рабочем столе нет места. Освободите клетку или поверните экран - у второй раскладки своё место.</string>
+    <string name="launcher_app_action_pinned">Закреплено на панели задач.</string>
+    <string name="streams_rubric_general">Разное</string>
+    <string name="streams_rubric_news">Новости</string>
+    <string name="streams_rubric_pop">Поп</string>
+    <string name="streams_rubric_religious">Религия</string>
+    <string name="streams_rubric_kids">Детям</string>
+    <string name="streams_rubric_oldies">Ретро</string>
+    <string name="streams_rubric_movies_series">Кино и сериалы</string>
+    <string name="streams_rubric_country_folk">Кантри и фолк</string>
+    <string name="streams_rubric_rock">Рок</string>
+    <string name="streams_rubric_sports">Спорт</string>
+    <string name="streams_rubric_world">Музыка мира</string>
+    <string name="streams_rubric_jazz_blues">Джаз и блюз</string>
+    <string name="streams_rubric_chillout">Чилаут</string>
+    <string name="streams_rubric_electronic">Электроника</string>
+    <string name="streams_rubric_hip_hop">Хип-хоп</string>
+    <string name="streams_rubric_talk">Разговорное</string>
+    <string name="streams_rubric_local_radio">Местное радио</string>
+    <string name="streams_rubric_comedy">Юмор</string>
+    <string name="streams_rubric_classical">Классика</string>
+    <string name="streams_rubric_latin">Латина</string>
+    <string name="streams_rubric_documentary">Документальное</string>
+    <string name="streams_rubric_education">Образование</string>
+    <string name="streams_rubric_test">Тестовые</string>
+    <string name="streams_rubric_rnb_soul">Ритм-н-блюз и соул</string>
+    <string name="streams_rubric_metal">Метал</string>
+    <string name="streams_rubric_webcam">Веб-камеры</string>
+    <string name="streams_rubric_reggae">Регги</string>
+    <string name="streams_rubric_shopping">Магазины</string>
+    <string name="streams_rubric_business">Бизнес</string>
+    <string name="streams_rubric_lifestyle">Стиль жизни</string>
+    <string name="streams_rubric_adult">Для взрослых</string>
+    <string name="streams_rubric_traffic_cams">Дорожные камеры</string>
+    <string name="streams_atlas_prompt_title">Обложки каналов</string>
+    <string name="streams_atlas_prompt_size">%1$d МБ</string>
+    <string name="launcher_create_resource_menu_row">Создать ресурс</string>
+    <string name="launcher_create_resource_picker_item">Создать новый..</string>
+    <string name="launcher_home_cell_actions">Показать действия</string>
+    <string name="launcher_home_channel_removed">Канал удалён</string>
+    <string name="launcher_signal_playback">Воспроизведение</string>
+    <string name="launcher_signal_transfer">Передача файлов</string>
+    <string name="launcher_signal_scheduled_ops">Идёт задание по расписанию</string>
+    <string name="launcher_signal_duplicate_scan">Поиск дубликатов</string>
+    <string name="launcher_signal_network_sync">Синхронизация сетевых папок</string>
+    <string name="launcher_signal_overflow_count">+%1$d</string>
+    <string name="launcher_signal_list_title">Активные сигналы</string>
+    <string name="launcher_settings_group_taskbar">Панель задач</string>
+    <string name="launcher_settings_group_top_bar">Верхняя полоса</string>
+    <string name="launcher_settings_group_desktop">Рабочий стол</string>
+    <string name="launcher_settings_group_system">Система</string>
+    <string name="stream_info_menu_title">О канале</string>
+    <string name="stream_info_window_title">О канале</string>
+    <string name="stream_info_group_channel">Канал</string>
+    <string name="stream_info_group_catalog">Запись в списке</string>
+    <string name="stream_info_group_measured">Это подключение</string>
+    <string name="stream_info_label_address">Адрес</string>
+    <string name="stream_info_label_title">Название</string>
+    <string name="stream_info_label_kind">Тип</string>
+    <string name="stream_info_label_origin">Откуда добавлен</string>
+    <string name="stream_info_label_added">Добавлен</string>
+    <string name="stream_info_label_last_played">Последний запуск</string>
+    <string name="stream_info_label_last_outcome">Последняя попытка</string>
+    <string name="stream_info_label_pinned">Закреплён сверху</string>
+    <string name="stream_info_label_access">Доступ</string>
+    <string name="stream_info_label_video_codec">Видеокодек</string>
+    <string name="stream_info_label_picture_size">Размер картинки</string>
+    <string name="stream_info_label_frame_rate">Частота кадров</string>
+    <string name="stream_info_label_video_bitrate">Битрейт видео</string>
+    <string name="stream_info_label_audio_codec">Аудиокодек</string>
+    <string name="stream_info_label_audio_channels">Каналов звука</string>
+    <string name="stream_info_label_sample_rate">Частота дискретизации</string>
+    <string name="stream_info_label_audio_bitrate">Битрейт звука</string>
+    <string name="stream_info_label_observed_rate">Скорость приёма сейчас</string>
+    <string name="stream_info_kind_audio">Звук</string>
+    <string name="stream_info_kind_video">Видео</string>
+    <string name="stream_info_kind_rtsp">RTSP-камера</string>
+    <string name="stream_info_origin_manual">Добавили вы</string>
+    <string name="stream_info_origin_imported">Импортирован из файла</string>
+    <string name="stream_info_origin_catalog">Из встроенного каталога</string>
+    <string name="stream_info_outcome_ok">Играл</string>
+    <string name="stream_info_outcome_fail">Не запустился</string>
+    <string name="stream_info_outcome_never">Ещё не запускали</string>
+    <string name="stream_info_access_geo">Ограничен по региону</string>
+    <string name="stream_info_access_open">Открытый</string>
+    <string name="stream_info_state_measuring">Измеряем..</string>
+    <string name="stream_info_state_unavailable">Не сообщается</string>
+    <string name="stream_info_state_empty">Не задано</string>
+    <string name="stream_info_not_in_catalog">Этого канала нет в вашем списке, поэтому о нём ничего не сохранено. Добавьте его в список, чтобы хранить сведения.</string>
+    <string name="stream_info_copy">Копировать всё</string>
+    <string name="stream_info_copied">Сведения скопированы</string>
+    <string name="stream_info_value_picture_size">%1$d x %2$d</string>
+    <string name="stream_info_value_frame_rate">%1$s кадр/с</string>
+    <string name="stream_info_value_bitrate">%1$s кбит/с</string>
+    <string name="stream_info_value_sample_rate">%1$s Гц</string>
+    <string name="streams_media_filter_audio">Показывать только аудио</string>
+    <string name="streams_media_filter_video">Показывать только видео</string>
+    <string name="streams_media_filter_clear">Показывать все трансляции</string>
+    <string name="launcher_section_app_functions">Функции приложения</string>
+    <string name="launcher_section_everything_else">Всё остальное</string>
+    <string name="launcher_edit_kind_section">Раздел</string>
+    <string name="launcher_gadget_network">Сеть</string>
+    <string name="launcher_gadget_battery">Батарея</string>
+    <string name="launcher_gadget_storage">Память устройства</string>
+    <string name="launcher_gadget_resources">Ресурсы</string>
+    <string name="launcher_gadget_technical_unknown">Неизвестно</string>
+    <string name="launcher_gadget_network_online">%1$s, есть интернет</string>
+    <string name="launcher_gadget_network_offline">%1$s, нет интернета</string>
+    <string name="launcher_gadget_network_description">Сеть: %1$s, %2$s</string>
+    <string name="launcher_gadget_battery_value">%1$d%%</string>
+    <string name="launcher_gadget_battery_remaining_approx">Осталось около %1$s</string>
+    <string name="launcher_gadget_battery_charging">Заряжается</string>
+    <string name="launcher_gadget_battery_description">Батарея: %1$s, %2$s</string>
+    <string name="launcher_gadget_storage_free">%1$s свободно из %2$s</string>
+    <string name="launcher_gadget_storage_card">Карта: %1$s свободно из %2$s</string>
+    <string name="launcher_gadget_storage_description">Память устройства: %1$s, %2$s</string>
+    <string name="launcher_gadget_resources_ram">%1$s ОЗУ свободно</string>
+    <string name="launcher_gadget_resources_uptime">Работает %1$s</string>
+    <string name="launcher_gadget_resources_description">Ресурсы устройства: %1$s, %2$s</string>
+    <string name="launcher_gadget_battery_remaining">Осталось %1$s</string>
+    <string name="perm_rationale_read_contacts">Приложение читает текущие имя и фотографию контакта, чтобы ярлык на столе не отставал от адресной книги. Без разрешения ярлык продолжит показывать то, что было сохранено при закреплении. Ничего не собирается и никуда не отправляется.</string>
+    <string name="perm_addendum_contacts_cell_pinning">Разрешите сейчас - и ярлык будет показывать текущие имя и фотографию контакта.</string>
+    <string name="streams_unavailable_offline_title">Нет связи</string>
+    <string name="streams_unavailable_offline_message">«%1$s» остановился - на устройстве нет сети. Проверьте подключение и попробуйте снова.</string>
+    <string name="launcher_settings_top_status_strip_title">Часы и показатели на верхней полосе</string>
+    <string name="launcher_settings_top_status_strip_summary">Часы с секундами уходят в левый край верхней полосы, показатели устройства - в правый, а панель «Пуск» освобождается под большее число недавних приложений.</string>
+    <string name="launcher_settings_tray_moved_hint">Пока режим включён, показатели живут на верхней полосе. Выключите его, чтобы вернуть их в панель «Пуск».</string>
+    <string name="gesture_slot_app_label">Программа для запуска</string>
+    <string name="gesture_slot_app_none">Не выбрана - нажмите, чтобы выбрать</string>
+    <string name="gesture_slot_app_reset">Очистить выбор</string>
+    <string name="network_monitor_section_wifi">Wi-Fi</string>
+    <string name="network_monitor_section_mobile">Мобильная сеть</string>
+    <string name="network_monitor_section_bluetooth">Bluetooth</string>
+    <string name="network_monitor_section_gnss">Спутники</string>
+    <string name="network_monitor_section_internet">Интернет</string>
+    <string name="network_monitor_section_history">История</string>
+    <string name="network_monitor_status_available">Доступно</string>
+    <string name="network_monitor_status_no_hardware">На этом устройстве нет такого модуля</string>
+    <string name="network_monitor_status_no_permission">Разрешение не выдано</string>
+    <string name="network_monitor_status_no_network">Сейчас ничего не подключено</string>
+    <string name="network_monitor_status_unknown">Откройте, чтобы проверить</string>
+    <string name="network_monitor_active_title">Активное подключение</string>
+    <string name="network_monitor_active_none">Ничего не подключено. Включите Wi-Fi или мобильные данные, чтобы выйти в сеть.</string>
+    <string name="network_monitor_local_ip_label">Локальный IP</string>
+    <string name="network_monitor_value_unknown">Неизвестно</string>
+    <string name="network_monitor_internet_ok">Интернет работает</string>
+    <string name="network_monitor_internet_captive">Эта сеть требует входа</string>
+    <string name="network_monitor_internet_none">Подключено, но без интернета</string>
+    <string name="network_monitor_internet_offline">Нет подключения</string>
+    <string name="network_monitor_transport_ethernet">Ethernet</string>
+    <string name="network_monitor_transport_vpn">VPN</string>
+    <string name="network_monitor_transport_other">Другое подключение</string>
+    <string name="network_monitor_disabled_title">Сетевой монитор выключен</string>
+    <string name="network_monitor_disabled_message">Включите его в «Настройки - Операции», чтобы видеть подключение, сигнал и параметры сети.</string>
+    <string name="network_monitor_unsupported_message">В этой версии приложения нет Сетевого монитора.</string>
+    <string name="network_monitor_open_settings">Открыть настройки</string>
+    <string name="network_monitor_radio_wifi">Радио Wi-Fi</string>
+    <string name="network_monitor_radio_bluetooth">Радио Bluetooth</string>
+    <string name="network_monitor_radio_state_unknown">Состояние неизвестно</string>
+    <string name="network_monitor_radio_unsupported">Это устройство не даёт приложениям переключать это радио. Используйте системные настройки.</string>
+    <string name="network_monitor_wifi_network_label">Сеть</string>
+    <string name="network_monitor_wifi_frequency_label">Частота</string>
+    <string name="network_monitor_wifi_link_speed_label">Скорость канала</string>
+    <string name="network_monitor_wifi_standard_label">Стандарт Wi-Fi</string>
+    <string name="network_monitor_link_heading">Параметры канала</string>
+    <string name="network_monitor_link_interface_label">Интерфейс</string>
+    <string name="network_monitor_link_ipv4_label">IPv4</string>
+    <string name="network_monitor_link_ipv6_label">IPv6</string>
+    <string name="network_monitor_link_dns_label">DNS</string>
+    <string name="network_monitor_link_gateway_label">Шлюз</string>
+    <string name="network_monitor_link_route_label">Маршрут по умолчанию</string>
+    <string name="network_monitor_link_proxy_label">Прокси</string>
+    <string name="network_monitor_link_bandwidth_label">Системная оценка полосы</string>
+    <string name="network_monitor_route_present">Есть</string>
+    <string name="network_monitor_route_absent">Нет</string>
+    <string name="network_monitor_chart_signal_heading">Сигнал</string>
+    <string name="network_monitor_chart_waiting">Идёт сбор данных..</string>
+    <string name="network_monitor_chart_summary">Сейчас %1$s / мин %2$s / макс %3$s / %4$s</string>
+    <string name="network_monitor_trend_rising">растёт</string>
+    <string name="network_monitor_trend_falling">падает</string>
+    <string name="network_monitor_trend_flat">без изменений</string>
+    <string name="network_monitor_trend_unknown">тренд неизвестен</string>
+    <string name="network_monitor_value_dbm">%1$s дБм</string>
+    <string name="network_monitor_value_mbps">%1$d Мбит/с</string>
+    <string name="network_monitor_value_mhz">%1$d МГц</string>
+    <string name="network_monitor_value_kbps">%1$d кбит/с</string>
+    <string name="network_monitor_bandwidth_pair">приём %1$s, передача %2$s</string>
+    <string name="network_monitor_mobile_modems_label">Активных модемов</string>
+    <string name="network_monitor_mobile_sim_label">SIM %1$d</string>
+    <string name="network_monitor_mobile_sim_data_preferred">%1$s - основная для данных</string>
+    <string name="network_monitor_mobile_no_control">Android не даёт приложению переключать мобильные данные или SIM. Это может только система.</string>
+    <string name="network_monitor_mobile_open_system">Открыть системные настройки сети</string>
+    <string name="network_monitor_mobile_sim_signal_heading">Сигнал SIM %1$d</string>
+    <string name="network_monitor_bluetooth_adapter_label">Адаптер</string>
+    <string name="network_monitor_bluetooth_adapter_present">Есть</string>
+    <string name="network_monitor_bluetooth_adapter_absent">Отсутствует на этом устройстве</string>
+    <string name="network_monitor_bluetooth_state_on">Включено</string>
+    <string name="network_monitor_bluetooth_state_off">Выключено</string>
+    <string name="network_monitor_bluetooth_paired_heading">Сопряжённые устройства</string>
+    <string name="network_monitor_bluetooth_paired_empty">С этим устройством ничего не сопряжено.</string>
+    <string name="network_monitor_bluetooth_device_connected">%1$s - подключено</string>
+    <string name="network_monitor_bluetooth_device_idle">%1$s - не подключено</string>
+    <string name="network_monitor_bluetooth_picker_label">График подключённого устройства</string>
+    <string name="network_monitor_bluetooth_picker_none">Не выбрано</string>
+    <string name="network_monitor_bluetooth_picker_empty">Нет подключённых устройств для графика.</string>
+    <string name="network_monitor_bluetooth_signal_heading">Сигнал устройства</string>
+    <string name="network_monitor_gnss_visible_label">Спутников видно</string>
+    <string name="network_monitor_gnss_used_label">Используются для позиции</string>
+    <string name="network_monitor_gnss_acquiring">Ищем спутники..</string>
+    <string name="network_monitor_gnss_satellite_line">%1$s %2$d: %3$s, %4$s</string>
+    <string name="network_monitor_gnss_used_in_fix">учитывается в позиции</string>
+    <string name="network_monitor_gnss_not_in_fix">не учитывается</string>
+    <string name="network_monitor_gnss_position_heading">Позиция</string>
+    <string name="network_monitor_gnss_latitude_label">Широта</string>
+    <string name="network_monitor_gnss_longitude_label">Долгота</string>
+    <string name="network_monitor_gnss_accuracy_label">Точность</string>
+    <string name="network_monitor_gnss_fix_time_label">Время определения</string>
+    <string name="network_monitor_gnss_accuracy_value">±%1$s м</string>
+    <string name="network_monitor_gnss_chart_heading">Уровень сигнала</string>
+    <string name="network_monitor_value_db_hz">%1$s дБ-Гц</string>
+    <string name="network_monitor_gnss_track_heading">Запись трека</string>
+    <string name="network_monitor_gnss_track_title">Записывать трек на этом устройстве</string>
+    <string name="network_monitor_gnss_track_summary">Трек остаётся на этом устройстве и пишется, только пока открыт этот экран. Никуда не отправляется.</string>
+    <string name="network_monitor_gnss_track_points">Записано точек: %1$d</string>
+    <string name="network_monitor_gnss_track_share">Поделиться файлом трека</string>
+    <string name="network_monitor_gnss_track_share_failed">Файл трека недоступен - возможно, его заменила более новая сессия. Включите запись и попробуйте снова.</string>
+    <string name="network_monitor_path_heading">Путь в интернет</string>
+    <string name="network_monitor_path_device">Это устройство</string>
+    <string name="network_monitor_path_gateway">Шлюз</string>
+    <string name="network_monitor_path_dns">DNS</string>
+    <string name="network_monitor_path_internet">Интернет</string>
+    <string name="network_monitor_path_node_description">%1$s: %2$s</string>
+    <string name="network_monitor_traffic_heading">Трафик этого устройства</string>
+    <string name="network_monitor_traffic_down_label">Входящий сейчас</string>
+    <string name="network_monitor_traffic_up_label">Исходящий сейчас</string>
+    <string name="network_monitor_value_per_second">%1$s/с</string>
+    <string name="network_monitor_value_mbps_decimal">%1$s Мбит/с</string>
+    <string name="network_monitor_actions_heading">Проверки</string>
+    <string name="network_monitor_target_label">Что проверять</string>
+    <string name="network_monitor_target_internet">Интернет</string>
+    <string name="network_monitor_range_heading">Диапазон адресов для сканирования - оставьте пустым, чтобы просканировать подсеть этого устройства</string>
+    <string name="network_monitor_range_first_hint">От</string>
+    <string name="network_monitor_range_last_hint">До</string>
+    <string name="network_monitor_action_check_resource">Проверить выбранный ресурс</string>
+    <string name="network_monitor_action_scan_subnet">Просканировать локальную сеть</string>
+    <string name="network_monitor_action_external_ip">Показать внешний адрес</string>
+    <string name="network_monitor_action_speed_test">Измерить скорость</string>
+    <string name="network_monitor_action_cancel">Остановить</string>
+    <string name="network_monitor_action_continue">Продолжить</string>
+    <string name="network_monitor_running_check_resource">Проверяем ресурс..</string>
+    <string name="network_monitor_running_scan_subnet">Сканируем сеть..</string>
+    <string name="network_monitor_running_external_ip">Запрашиваем внешний адрес..</string>
+    <string name="network_monitor_running_speed_test">Измеряем скорость..</string>
+    <string name="network_monitor_warn_speed_test_title">Это израсходует трафик</string>
+    <string name="network_monitor_warn_speed_test_message">Тест скорости скачает и отправит примерно 20 МБ. На мобильном тарифе этот трафик оплачивается. Остановить можно в любой момент.</string>
+    <string name="network_monitor_warn_subnet_title">Это опросит вашу локальную сеть</string>
+    <string name="network_monitor_warn_subnet_message">Сканирование обращается к адресам вашей локальной сети, чтобы увидеть, кто отвечает. За пределы сети ничего не уходит, но в офисных и университетских сетях такое сканирование могут посчитать нежелательным. Остановить можно в любой момент.</string>
+    <string name="network_monitor_warn_external_ip_title">Ваш адрес уйдёт стороннему сервису</string>
+    <string name="network_monitor_warn_external_ip_message">Чтобы узнать ваш внешний адрес, приложение спрашивает публичный сервис в интернете, и этот сервис видит адрес, который сообщает в ответ. Адрес показывается только здесь - в историю измерений он не записывается.</string>
+    <string name="network_monitor_warn_metered_title">Эта сеть тарифицирует трафик</string>
+    <string name="network_monitor_warn_metered_message">Тест скорости передаст примерно 20 МБ по соединению, которое оплачивается оператору. Всё равно запустить?</string>
+    <string name="network_monitor_result_external_ip">Внешний адрес: %1$s (%2$s)</string>
+    <string name="network_monitor_result_external_ip_unavailable">Ни один сервис не ответил, поэтому внешний адрес сейчас неизвестен. Попробуйте ещё раз чуть позже.</string>
+    <string name="network_monitor_cgnat_direct">ваш собственный адрес, его ничто не транслирует</string>
+    <string name="network_monitor_cgnat_likely">похоже, оператор его транслирует</string>
+    <string name="network_monitor_cgnat_unknown">роутер не ответил, поэтому это ничего не доказывает</string>
+    <string name="network_monitor_result_subnet_scan">Ответили: %1$d из %2$d опрошенных адресов.</string>
+    <string name="network_monitor_result_subnet_host">%1$s - открытые порты: %2$s</string>
+    <string name="network_monitor_result_subnet_permission">Для этого сканирования Android требует разрешение на доступ к локальной сети. Выдайте его в системных настройках и попробуйте снова.</string>
+    <string name="network_monitor_result_subnet_unknown">У этого устройства нет локального адреса IPv4, поэтому сканировать нечего. Подключитесь к Wi-Fi и попробуйте снова.</string>
+    <string name="network_monitor_result_subnet_too_large">Этот диапазон больше %1$d адресов. Сузьте его и попробуйте снова.</string>
+    <string name="network_monitor_result_subnet_invalid">Это не пара адресов IPv4. Используйте вид 192.168.1.1 и 192.168.1.254.</string>
+    <string name="network_monitor_result_speed_test">Приём %1$s, передача %2$s.</string>
+    <string name="network_monitor_result_speed_test_failed">Тест скорости не завершился - проверьте соединение и попробуйте снова.</string>
+    <string name="network_monitor_result_speed_test_metered">Не измерено: эта сеть тарифицирует трафик.</string>
+    <string name="network_monitor_result_resource_ok">Ресурс ответил. %1$s</string>
+    <string name="network_monitor_result_resource_failed">Ресурс не ответил - проверьте адрес и учётные данные, затем попробуйте снова.</string>
+    <string name="network_monitor_result_resource_missing">Этого ресурса больше нет. Выберите другой.</string>
+    <string name="network_monitor_history_empty">Измерений пока нет. Запустите проверку на экране «Интернет», и она появится здесь.</string>
+    <string name="network_monitor_history_export">Экспорт</string>
+    <string name="network_monitor_history_export_failed">Файл не удалось подготовить - освободите немного места и попробуйте снова.</string>
+    <string name="network_monitor_history_clear">Очистить</string>
+    <string name="network_monitor_history_clear_title">Очистить историю измерений</string>
+    <string name="network_monitor_history_clear_message">Все сохранённые измерения будут удалены с этого устройства. Если они ещё нужны, сначала выполните экспорт.</string>
+    <string name="network_monitor_history_clear_confirm">Очистить</string>
+    <string name="network_monitor_history_outcome_ok">ответил</string>
+    <string name="network_monitor_history_outcome_failed">без ответа</string>
+    <string name="network_monitor_history_kind_speed_test">Скорость</string>
+    <string name="network_monitor_history_kind_resource_check">Проверка ресурса</string>
+    <string name="network_monitor_history_kind_external_ip">Внешний адрес</string>
+    <string name="network_monitor_history_kind_subnet_scan">Сканирование сети</string>
+    <string name="camera_profile_manual">Ручной</string>
+    <string name="camera_settings_button_manual">Настройки камеры - ручной режим</string>
+    <string name="launcher_share_place_label">Добавить место в лаунчер</string>
+    <string name="launcher_share_place_added_route">Место добавлено в лаунчер.</string>
+    <string name="launcher_share_place_added_place">Место добавлено. Откроется переданное местоположение.</string>
+    <string name="launcher_share_place_not_added">Не удалось добавить место в лаунчер.</string>
+    <string name="background_operation_bar_description">Фоновая операция выполняется</string>
+    <string name="launcher_action_all_apps">Все программы</string>
+    <string name="launcher_action_black_screen">Чёрный экран</string>
+    <string name="launcher_gadget_altitude">Высота</string>
+    <string name="launcher_gadget_altitude_value">%1$d м</string>
+    <string name="launcher_gadget_altitude_description">Высота над уровнем моря: %1$s</string>
+    <string name="launcher_gadget_altitude_unknown">Высота пока неизвестна</string>
+    <string name="launcher_gadget_satellites">Спутники</string>
+    <string name="launcher_gadget_satellites_value">%1$d / %2$d</string>
+    <string name="launcher_gadget_satellites_description">Спутники: %1$d в решении из %2$d видимых</string>
+    <string name="launcher_gadget_search">Поиск</string>
+    <string name="launcher_gadget_search_hint">Поиск в интернете</string>
+    <string name="launcher_gadget_search_description">Поле веб-поиска</string>
+    <string name="launcher_gadget_search_no_browser">Нет браузера, чтобы открыть поиск. Установите браузер и повторите.</string>
+    <string name="launcher_gadget_map">Карта</string>
+    <string name="launcher_gadget_map_actions">Карта текущего положения. Нажмите, чтобы открыть приложение карт</string>
+    <string name="launcher_gadget_map_no_permission">Доступ к геопозиции выключен</string>
+    <string name="launcher_gadget_map_unavailable">Положение сейчас недоступно</string>
+    <string name="launcher_gadget_map_stale">Последнее известное</string>
+    <string name="launcher_gadget_map_actions_at">Карта: %1$s. Нажмите, чтобы открыть приложение карт</string>
+    <string name="browse_empty_filtered_out">%1$d файлов скрыто настройкой максимального размера файла.</string>
+    <string name="browse_empty_filtered_out_hint">Увеличьте максимальный размер файла в настройках, чтобы увидеть их.</string>
+    <string name="network_monitor_ip_addresses_label">IP-адреса</string>
+    <string name="network_monitor_permission_grant">Разрешение не выдано. Нажмите, чтобы выдать его.</string>
+    <string name="network_monitor_permission_open_settings">Разрешение заблокировано. Нажмите, чтобы открыть настройки приложения.</string>
 </resources>

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S1093: bottom-right resize handle shown on a GADGET cell in edit mode. 48dp touch target; dragging
-     it resizes the gadget (width + height together) between its seed size and full screen. -->
+     it resizes the gadget (width + height together) between its seed size and full screen.
+     S1404: the glyph is a diagonal double arrow, not a settings glyph - the handle is dragged, and the
+     picture is the only thing that says so before the user tries it. -->
 <ImageView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/resizeHandle"
     android:layout_width="48dp"
@@ -10,6 +12,6 @@
     android:focusable="true"
     android:padding="12dp"
     android:scaleType="fitCenter"
-    android:src="@drawable/ic_tune"
+    android:src="@drawable/ic_resize_corner"
     app:tint="?attr/colorPrimary"
     xmlns:app="http://schemas.android.com/apk/res-auto" />

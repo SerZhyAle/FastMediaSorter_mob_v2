@@ -8,87 +8,88 @@ import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
 import android.provider.OpenableColumns
-import android.view.View
 import android.view.ActionMode
+import android.view.KeyEvent
+import android.view.MotionEvent
+import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.utils.collectOnLifecycle
+import androidx.media3.common.Player
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.ui.BaseActivity
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
+import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
-import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
-import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
+import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
+import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
+import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
+import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
+import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeAugmentingCallback
 import com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager
-import com.sza.fastmediasorter.ui.player.helpers.StandaloneFileOperationsHandler
 import com.sza.fastmediasorter.ui.player.helpers.PlayerDisplayMode
+import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
 import com.sza.fastmediasorter.ui.player.helpers.PlayerOrientationModeManager
+import com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager
+import com.sza.fastmediasorter.ui.player.helpers.StandaloneFileOperationsHandler
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneFullscreenManager
 import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerLifecycleManager
 import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerSettingsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoTouchDelegate
-import com.sza.fastmediasorter.ui.player.helpers.StandaloneVrCinemaLaunchManager
-import com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
-import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeAugmentingCallback
+import com.sza.fastmediasorter.ui.player.helpers.StandaloneVrCinemaLaunchManager
+import com.sza.fastmediasorter.ui.player.helpers.btnEpubFontSizeDecrease
+import com.sza.fastmediasorter.ui.player.helpers.btnEpubFontSizeIncrease
+import com.sza.fastmediasorter.ui.player.helpers.btnEpubHome
+import com.sza.fastmediasorter.ui.player.helpers.btnEpubNextChapter
+import com.sza.fastmediasorter.ui.player.helpers.btnEpubPrevChapter
+import com.sza.fastmediasorter.ui.player.helpers.btnEpubToc
 import com.sza.fastmediasorter.ui.player.helpers.btnPdfHome
 import com.sza.fastmediasorter.ui.player.helpers.btnPdfNextPage
 import com.sza.fastmediasorter.ui.player.helpers.btnPdfPrevPage
-import com.sza.fastmediasorter.ui.player.helpers.btnEpubPrevChapter
-import com.sza.fastmediasorter.ui.player.helpers.btnEpubHome
-import com.sza.fastmediasorter.ui.player.helpers.btnEpubNextChapter
-import com.sza.fastmediasorter.ui.player.helpers.btnEpubToc
-import com.sza.fastmediasorter.ui.player.helpers.btnEpubFontSizeDecrease
-import com.sza.fastmediasorter.ui.player.helpers.btnEpubFontSizeIncrease
-import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
-import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
-import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
-import com.sza.fastmediasorter.ui.common.input.UiSurface
-import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
-import androidx.appcompat.widget.PopupMenu
+import com.sza.fastmediasorter.ui.player.standalone.applyStandaloneOverflowIcons
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
-import android.view.KeyEvent
-import android.view.MotionEvent
-import androidx.media3.common.Player
 
 /** Standalone Activity for playing/viewing media opened from external sources (Intent.ACTION_VIEW and Intent.ACTION_SEND). Detached from the main resource/database tree - no resource system, no playlists, no history. All viewer routing is delegated to StandaloneViewManager. */
 // StandalonePlayerActivity is intentionally exported and unprotected to work as an "Open With" handler for any app. UnsafeIntentLaunch is suppressed because no intent data is forwarded to startActivity/startService - received URIs are only passed to ExoPlayer/Glide as media.
@@ -796,6 +797,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         binding.btnOverflowMenu.setOnClickListener { anchor ->
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
+            // S1407: icons off by default on PopupMenu - match the embedded player's rendering.
+            popup.applyStandaloneOverflowIcons()
             // S0459: this deprecated host only wires "Open in FMS"; the shared menu also declares
             // image/audio items (e.g. Google Lens) that have no handler here. Hide everything else so
             // no orphaned item renders as a dead tap. (Full host removal tracked under S0393.)
@@ -1061,7 +1064,6 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     override val supportsSlideshow: Boolean = false
     override val supportsPersistentAudio: Boolean = false
     override val supportsCast: Boolean = false
-    override val supportsDeleteUndo: Boolean = true
     override val supportsCommandPanelFolding: Boolean = false
 
     override val currentMediaFile: StateFlow<MediaFile?> by lazy {

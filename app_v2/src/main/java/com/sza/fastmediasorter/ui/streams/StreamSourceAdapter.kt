@@ -18,11 +18,13 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.menu.StreamMenuAction
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.ItemStreamSourceBinding
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.browse.InlinePlaybackAnimator
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
+import com.sza.fastmediasorter.ui.streams.helpers.StreamTopicRubricCatalog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -52,6 +54,8 @@ class StreamSourceAdapter(
     private val onAddShortcut: (StreamSourceEntity) -> Unit,
     private val onEdit: (StreamSourceEntity) -> Unit,
     private val onShareLink: (StreamSourceEntity) -> Unit,
+    // S1474: opens the "about this channel" window; wired by the streams screen through StreamInfoDialogManager.
+    private val onAboutChannel: (StreamSourceEntity) -> Unit = {},
     // S0783: add/remove the channel from the shared Favorites. Independent of pin. The overflow item is
     // shown only when [favoritesEnabled] returns true, and its label flips on [isFavorite]. Both are
     // pulled lazily when the menu opens, so they always reflect current settings/DB without a row rebind.
@@ -68,6 +72,22 @@ class StreamSourceAdapter(
 ) : ListAdapter<StreamSourceEntity, StreamSourceAdapter.VH>(DIFF) {
 
     private var playingId: String? = null
+
+    /**
+     * S1502: play outcome per channel id, pushed in from its own Flow instead of read off the row.
+     * Only the rows whose outcome actually moved are repainted, and only their status bullet.
+     */
+    var playOutcomes: Map<String, String> = emptyMap()
+        set(value) {
+            if (field == value) return
+            val previous = field
+            field = value
+            currentList.forEachIndexed { index, item ->
+                if (previous[item.id] != value[item.id]) {
+                    notifyItemChanged(index, StreamAdapterPayloads.STATUS)
+                }
+            }
+        }
 
     /** Marks (or clears) the row currently playing inline audio, repainting only the affected rows. */
     fun setPlayingId(id: String?) {
@@ -98,7 +118,7 @@ class StreamSourceAdapter(
         val item = getItem(position)
         payloads.forEach { payload ->
             when (payload) {
-                StreamAdapterPayloads.STATUS -> holder.bindStatusOnly(item.lastPlayOutcome)
+                StreamAdapterPayloads.STATUS -> holder.bindStatusOnly(playOutcomes[item.id])
                 StreamAdapterPayloads.PIN -> holder.bindPinOnly(item.pinned)
             }
         }
@@ -133,12 +153,13 @@ class StreamSourceAdapter(
             binding.tvUrl.text = source.url
             binding.ivKind.setImageResource(kindIcon(source.mediaKind))
             bindFavicon(source)
-            bindPlayStatus(source.lastPlayOutcome)
+            bindPlayStatus(playOutcomes[source.id])
             binding.tvNowPlaying.visibility = if (isPlaying) View.VISIBLE else View.GONE
             if (isPlaying) playbackAnimator.startNote() else playbackAnimator.stopNote()
             // S1117: region-restriction badge leads the chip row when the catalog flagged this row "geo".
             bindGeoChip(binding.tvGeo, source.access)
-            bindChip(binding.tvTopic, source.topic)
+            // S1477: the row shows the localized rubric; the catalog id behind it stays English.
+            bindChip(binding.tvTopic, StreamTopicRubricCatalog.label(binding.root.context, source.topic))
             // Country is shown before language as flag+code (e.g. "🇺🇦 UA"); manual rows leave it null.
             bindChip(binding.tvCountry, countryChipText(binding.tvCountry, source.country))
             bindChip(binding.tvLanguage, source.language)
@@ -182,50 +203,10 @@ class StreamSourceAdapter(
          */
         private fun showOverflowMenu(source: StreamSourceEntity, anchor: View) {
             PopupMenu(anchor.context, anchor).apply {
-                // S0938: reorder commands lead the menu for a pinned row when more than one channel
-                // is pinned. Edge commands are disabled at the ends of the pinned block.
-                val pinnedRows = currentList.filter { it.pinned }
-                if (source.pinned && pinnedRows.size > 1) {
-                    val pinnedIndex = pinnedRows.indexOfFirst { it.id == source.id }
-                    menu.add(Menu.NONE, ID_MOVE_UP, Menu.NONE, R.string.streams_move_up)
-                        .isEnabled = pinnedIndex > 0
-                    menu.add(Menu.NONE, ID_MOVE_DOWN, Menu.NONE, R.string.streams_move_down)
-                        .isEnabled = pinnedIndex < pinnedRows.lastIndex
-                    menu.add(Menu.NONE, ID_MOVE_TO_TOP, Menu.NONE, R.string.streams_move_to_top)
-                        .isEnabled = pinnedIndex > 0
-                }
-                // S0783: Favorites toggle leads the menu when the feature is on; label flips on state.
-                if (favoritesEnabled()) {
-                    val favLabel = if (isFavorite(source)) {
-                        R.string.streams_remove_from_favorites
-                    } else {
-                        R.string.streams_add_to_favorites
-                    }
-                    // Order = Menu.NONE on every item, so the menu follows add-order (favorite,
-                    // shortcut, edit, share, remove) without magic order literals.
-                    menu.add(Menu.NONE, ID_TOGGLE_FAVORITE, Menu.NONE, favLabel)
-                }
-                menu.add(Menu.NONE, ID_ADD_SHORTCUT, Menu.NONE, R.string.streams_add_to_home_screen)
-                // Edit is offered only for user-added channels; CATALOG/IMPORTED rows are owned
-                // by their sync and must not be hand-edited (S0660 §6.4).
-                if (source.sourceOrigin == "MANUAL") {
-                    menu.add(Menu.NONE, ID_EDIT, Menu.NONE, R.string.streams_edit)
-                }
-                menu.add(Menu.NONE, ID_SHARE_LINK, Menu.NONE, R.string.streams_send_link)
-                menu.add(Menu.NONE, ID_REMOVE, Menu.NONE, R.string.streams_remove)
-                setOnMenuItemClickListener { item ->
-                    when (item.itemId) {
-                        ID_MOVE_UP -> { onMoveUp(source); true }
-                        ID_MOVE_DOWN -> { onMoveDown(source); true }
-                        ID_MOVE_TO_TOP -> { onMoveToTop(source); true }
-                        ID_TOGGLE_FAVORITE -> { onToggleFavorite(source); true }
-                        ID_ADD_SHORTCUT -> { onAddShortcut(source); true }
-                        ID_EDIT -> { onEdit(source); true }
-                        ID_SHARE_LINK -> { onShareLink(source); true }
-                        ID_REMOVE -> { onRemove(source); true }
-                        else -> false
-                    }
-                }
+                // S1424: which rows exist comes from the shared catalog; pin/unpin is withheld here
+                // because this row renders it as its own button (S1062), not as a menu entry.
+                buildStreamMenu(menu, source) { it != StreamMenuAction.TOGGLE_PIN }
+                setOnMenuItemClickListener { item -> onStreamActionSelected(item.itemId, source) }
                 show()
             }
         }
@@ -361,18 +342,45 @@ class StreamSourceAdapter(
         else -> R.drawable.ic_video
     }
 
+    /**
+     * S1424: composition comes from the shared catalog through [StreamMenuBinder], so this row and
+     * the tile can no longer disagree about what a channel offers (strategic ADR-1).
+     */
+    private fun buildStreamMenu(
+        menu: Menu,
+        source: StreamSourceEntity,
+        canRun: (StreamMenuAction) -> Boolean,
+    ) {
+        val pinnedRows = currentList.filter { it.pinned }
+        val facts = StreamMenuBinder.factsOf(source, pinnedRows, favoritesEnabled(), isFavorite(source))
+        StreamMenuBinder.build(menu, source, pinnedRows, facts, canRun)
+    }
+
+    private fun onStreamActionSelected(itemId: Int, source: StreamSourceEntity): Boolean {
+        val action = StreamMenuAction.byMenuItemId(itemId) ?: return false
+        route(action, source)
+        return true
+    }
+
+    /** Routing stays here rather than in the binder: these callbacks belong to this adapter. */
+    private fun route(action: StreamMenuAction, source: StreamSourceEntity) {
+        when (action) {
+            StreamMenuAction.TOGGLE_PIN -> onPin(source)
+            StreamMenuAction.MOVE_UP -> onMoveUp(source)
+            StreamMenuAction.MOVE_DOWN -> onMoveDown(source)
+            StreamMenuAction.MOVE_TO_TOP -> onMoveToTop(source)
+            StreamMenuAction.TOGGLE_FAVORITE -> onToggleFavorite(source)
+            StreamMenuAction.ADD_SHORTCUT -> onAddShortcut(source)
+            StreamMenuAction.EDIT -> onEdit(source)
+            StreamMenuAction.ABOUT_CHANNEL -> onAboutChannel(source)
+            StreamMenuAction.SHARE_LINK -> onShareLink(source)
+            StreamMenuAction.REMOVE -> onRemove(source)
+        }
+    }
+
     private companion object {
         // S1117: catalog access flag value that turns on the region-restriction badge.
         const val ACCESS_GEO = "geo"
-
-        const val ID_ADD_SHORTCUT = 1
-        const val ID_REMOVE = 2
-        const val ID_EDIT = 3
-        const val ID_SHARE_LINK = 4
-        const val ID_TOGGLE_FAVORITE = 5 // S0783
-        const val ID_MOVE_UP = 6 // S0938
-        const val ID_MOVE_DOWN = 7 // S0938
-        const val ID_MOVE_TO_TOP = 8 // S0938
 
         val DIFF = object : DiffUtil.ItemCallback<StreamSourceEntity>() {
             override fun areItemsTheSame(oldItem: StreamSourceEntity, newItem: StreamSourceEntity) =

@@ -2,10 +2,11 @@ package com.sza.fastmediasorter.data.transfer.strategies
 
 import android.content.Context
 import android.net.Uri
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.NetworkCredentialsResolver
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
-import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.data.transfer.TransferStrategy
+import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -82,6 +83,7 @@ class SftpToLocalStrategy @Inject constructor(
                 downloadResult.isSuccess
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SftpToLocalStrategy.copy: Download failed")
             false
         }

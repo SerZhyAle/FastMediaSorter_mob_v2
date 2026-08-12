@@ -10,7 +10,6 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
-import androidx.recyclerview.widget.GridLayoutManager
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.databinding.DialogSearchableOptionPickerBinding
@@ -111,14 +110,12 @@ class AppPickerDialogFragment : DialogFragment() {
         SearchableOptionPickerWindow.apply(dialog, binding)
         val columns = currentColumnCount()
         Timber.d("S1095: app picker re-flowed to $columns columns on configuration change")
-        (binding.recyclerOptions.layoutManager as? GridLayoutManager)?.spanCount = columns
+        SearchableOptionPickerController.reflowColumns(binding, columns)
     }
 
-    private fun currentColumnCount(): Int {
-        val metrics = resources.displayMetrics
-        val widthDp = SearchableOptionPickerWindow.widthPx(metrics) / metrics.density
-        return (widthDp / APP_PICKER_MIN_CELL_DP).toInt().coerceAtLeast(APP_PICKER_MIN_COLUMNS)
-    }
+    // S1413: the rule itself moved to the shared window object - every grid host needs the same one.
+    private fun currentColumnCount(): Int =
+        SearchableOptionPickerWindow.columnsFor(resources.displayMetrics)
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -144,9 +141,6 @@ class AppPickerDialogFragment : DialogFragment() {
 
         private const val ARG_SLOT = "arg_slot"
         private const val ARG_REQUEST_KEY = "arg_request_key"
-
-        private const val APP_PICKER_MIN_CELL_DP = 160f
-        private const val APP_PICKER_MIN_COLUMNS = 2
 
         fun newInstance(slotIndex: Int): AppPickerDialogFragment =
             AppPickerDialogFragment().apply { arguments = bundleOf(ARG_SLOT to slotIndex) }

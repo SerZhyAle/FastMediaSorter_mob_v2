@@ -1,22 +1,28 @@
 ---
-name: no-ellipsis-edits-in-verbatim-code-spans
-description: never hand-edit "..." -> ".." inside backtick-quoted code/verbatim audit text in specs
+name: never-style-edit-a-spec-file
+description: the house text style never applies to PLAN/*.md - no gate checks it, and editing a spec's punctuation is the mistake, not the fix
 type: feedback
 ---
-Never hand-edit literal `...` -> `..` inside inline single-backtick code spans or verbatim-quoted
-audit text (e.g. §0 raw findings) in a spec file, even when `check-owner-inputs.ps1` (Draft->Approved
-gate) flags the line. Owner stopped me mid-loop over this on 2026-07-02: "stop to change ... to ..
-in places you have not to! stop waste my tokns on it!"
+Never edit a spec file for `..`/`...`, `ё`, or dashes. Not at `Draft`, not before `Approved`, not
+ever. The canon's scope list (`rules/DOCUMENTATION_CONCEPT.md` section 5) is authoritative and reads
+"It does **not** apply to code, **specs**, commands, logs, vendored files, or chat". The style covers
+documentation prose and user-visible UI text only.
 
-**Why:** CLAUDE.md's ellipsis rule is scoped to "documentation prose & user-visible UI text ONLY"
-and explicitly states it "NEVER applies to code, technical/tactical specs, commands, logs, or chat".
-A `...` truncation marker inside a backtick-quoted code snippet (e.g. `` `isPermanent -> ... }` ``)
-is code, not prose - editing it alters verbatim-captured audit evidence for no real gain, and doing
-this across dozens of tickets in a `/spec-next` loop burns owner tokens for zero value.
+**Why:** the owner stopped work over this twice in five weeks. 2026-07-02: "stop to change ... to ..
+in places you have not to! stop waste my tokns on it!" - answered by teaching the gate to skip inline
+backtick spans, which was too narrow. 2026-08-09: the same gate refused S1458's promotion on line 29
+of its §0 verbatim capture, where `"/spec-dev ..."` meant elided arguments; the forced edit changed
+the captured text's meaning. S1543 removed the check outright rather than narrowing it a third time.
 
-**How to apply:** the gate script (`scripts/spec_catalog/check-owner-inputs.ps1`) was fixed
-2026-07-02 to strip inline single-backtick code spans before checking for `...`, so it no longer
-flags these lines. If a future `...` blocker fires on genuine prose (not inside backticks), that is
-a real blocker to fix normally. If it ever fires again on backtick-quoted/verbatim content, that is
-a gate regression - fix the script (CLAUDE.md Rule 13: fix buggy project scripts, do not work around
-them by hand-editing spec content), do not resume the hand-edit workaround.
+**How to apply:**
+- `scripts/spec_catalog/check-owner-inputs.ps1` now judges **§3.3 owner inputs only**. If a style
+  blocker ever fires again on a spec, that is a gate regression - fix the script (Rule 13), never the
+  spec text.
+- `scripts/utils/fix-ellipsis-docs.ps1` defaults to `-Dirs @("docs")`. Passing `-Dirs PLAN` is a
+  deliberate act with no rule behind it - do not.
+- Six process texts used to promise a sweep "at Draft -> Approved" and no longer do: `spec-draft.md`,
+  `spec.md`, `spec-update.md`, `.claude/reference/spec.md`, and the two `.github/prompts/spec*.md`.
+  If a seventh turns up saying it, it is stale - correct it.
+- The inverse gap is real and parked, not fixed: nothing enforces the style where it *does* apply
+  (docs prose, `strings.xml`), and the five `fix-ellipsis*`/`fix-yo*` scripts have zero callers. That
+  is S1544, and adding a gate there needs its own cost ruling - see [[gate-cost-mining]].

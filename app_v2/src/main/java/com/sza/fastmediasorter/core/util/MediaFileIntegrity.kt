@@ -7,7 +7,7 @@ import timber.log.Timber
 
 /**
  * Java-interop scanners can surface platform-typed nulls at runtime, so every
- * MediaFile creation path that crosses SMBJ/SSHJ/Commons-Net should sanitize
+ * MediaFile creation path that crosses SMBJ/JSch/Commons-Net should sanitize
  * mandatory fields before constructing the non-null Kotlin model.
  */
 object MediaFileIntegrity {

@@ -7,6 +7,7 @@ import android.os.Build
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.text.InputType
+import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -17,7 +18,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import android.view.View
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.FileOperationType
@@ -30,10 +30,11 @@ import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.OpenInFmsTarget
 import com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
-import com.sza.fastmediasorter.ui.player.fileops.createNetworkAwareFile
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.ui.player.fileops.createNetworkAwareFile
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -86,7 +87,7 @@ class StandaloneFileOperationsHandler(
                 performDelete((file.contentUri ?: file.path).toUri(), file.name)
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundTo(activity)
     }
 
     private fun performDelete(uri: Uri, fileName: String) {
@@ -501,7 +502,7 @@ class StandaloneFileOperationsHandler(
                 }
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundTo(activity)
     }
 
     private fun performStandaloneRename(uri: Uri, newName: String) {

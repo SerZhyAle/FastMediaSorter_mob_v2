@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1474: "about this channel" - three groups of label/value rows plus a state line for the measured
+     group. Rows are added into the three containers at runtime, so no row layout is inflated per property.
+     One vertically scrolling column, which is why no res/layout-land counterpart exists. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/dialog_padding_large">
+
+    <TextView
+        android:id="@+id/streamInfoTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/stream_info_window_title"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        android:textColor="?attr/colorOnSurface" />
+
+    <ScrollView
+        android:id="@+id/streamInfoScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/margin_large"
+        android:focusable="true"
+        android:nextFocusDown="@+id/streamInfoCopy">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/streamInfoChannelHeading"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/stream_info_group_channel"
+                android:textColor="?attr/colorPrimary" />
+
+            <LinearLayout
+                android:id="@+id/streamInfoChannelRows"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/streamInfoNotInCatalog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:text="@string/stream_info_not_in_catalog"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/streamInfoCatalogHeading"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_large"
+                android:text="@string/stream_info_group_catalog"
+                android:textColor="?attr/colorPrimary" />
+
+            <LinearLayout
+                android:id="@+id/streamInfoCatalogRows"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/streamInfoMeasuredHeading"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_large"
+                android:text="@string/stream_info_group_measured"
+                android:textColor="?attr/colorPrimary" />
+
+            <!-- Waiting and failure are said in words here, never by colour alone. -->
+            <TextView
+                android:id="@+id/streamInfoMeasuredState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/stream_info_state_measuring"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <LinearLayout
+                android:id="@+id/streamInfoMeasuredRows"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_large"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/streamInfoCopy"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:nextFocusRight="@+id/streamInfoClose"
+            android:text="@string/stream_info_copy" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/streamInfoClose"
+            style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
+            android:focusable="true"
+            android:nextFocusLeft="@+id/streamInfoCopy"
+            android:text="@string/close" />
+    </LinearLayout>
+</LinearLayout>

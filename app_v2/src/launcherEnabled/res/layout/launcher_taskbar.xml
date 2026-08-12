@@ -31,12 +31,37 @@
         android:insetRight="0dp"
         android:minHeight="0dp"
         android:nextFocusUp="@id/launcherDesktop"
-        android:nextFocusRight="@id/taskbarRecents"
+        android:nextFocusRight="@id/btnAllApps"
         android:paddingStart="@dimen/launcher_taskbar_item_spacing"
         android:paddingEnd="@dimen/launcher_taskbar_item_spacing"
         android:text="@string/launcher_taskbar_start"
         app:icon="@drawable/ic_launcher_mode"
         app:iconGravity="start" />
+
+    <!-- S1401: opens the full-screen app list. Icon-only (owner, 2026-08-05) and deliberately OUTSIDE
+         the weighted strip block below, so a long recents strip can never squeeze it away. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAllApps"
+        style="@style/Widget.FastMediaSorter.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:contentDescription="@string/launcher_menu_all_apps"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:insetLeft="0dp"
+        android:insetRight="0dp"
+        android:minHeight="0dp"
+        android:nextFocusUp="@id/launcherDesktop"
+        android:nextFocusLeft="@id/btnStart"
+        android:nextFocusRight="@id/taskbarRecents"
+        android:paddingStart="@dimen/launcher_taskbar_item_spacing"
+        android:paddingEnd="@dimen/launcher_taskbar_item_spacing"
+        app:icon="@drawable/ic_view_grid"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp" />
 
     <!-- Both strips live inside one weighted block so they can only ever consume the slack left by the
          Start button and the tray. A wrap_content strip placed directly in the bar is measured against the
@@ -61,7 +86,7 @@
             android:clipToPadding="false"
             android:fadingEdgeLength="@dimen/main_panel_fading_edge"
             android:nextFocusUp="@id/launcherDesktop"
-            android:nextFocusLeft="@id/btnStart"
+            android:nextFocusLeft="@id/btnAllApps"
             android:nextFocusRight="@id/taskbarPinned"
             android:requiresFadingEdge="horizontal"
             tools:listitem="@layout/item_launcher_taskbar_icon" />
@@ -87,40 +112,74 @@
         android:paddingStart="@dimen/launcher_taskbar_item_spacing"
         android:paddingEnd="@dimen/launcher_taskbar_item_spacing">
 
-        <!-- TextClock registers its own time/timezone receivers on attach and drops them on detach,
-             so the tray needs no clock lifecycle wiring and honours the 12/24h system setting. -->
-        <TextClock
+        <!-- S1431: clock and indicators are inflated from the shared definitions rather than declared
+             here, so the top strip draws the same set in the same order. The include ids repeat the
+             included roots' own ids on purpose - an include id replaces the root's id at inflation, and
+             repeating it keeps the inflated view named as it was before this seam existed. -->
+        <include
             android:id="@+id/trayClock"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="14sp"
-            tools:text="12:45" />
+            layout="@layout/launcher_status_clock" />
 
-        <ImageView
-            android:id="@+id/trayNetwork"
-            android:layout_width="@dimen/launcher_tray_icon_size"
-            android:layout_height="@dimen/launcher_tray_icon_size"
-            android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
-            tools:src="@drawable/ic_wifi" />
-
-        <ImageView
-            android:id="@+id/trayBattery"
-            android:layout_width="@dimen/launcher_tray_icon_size"
-            android:layout_height="@dimen/launcher_tray_icon_size"
-            android:importantForAccessibility="no"
-            tools:src="@drawable/ic_battery" />
-
-        <TextView
-            android:id="@+id/trayBatteryPercent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="2dp"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="12sp"
-            tools:text="86%" />
+        <include
+            android:id="@+id/trayIndicators"
+            layout="@layout/launcher_status_indicators" />
 
     </LinearLayout>
+
+    <!-- S1209: the slotless add, chosen by the owner over a Start-menu row and a desktop gesture
+         (strategic §6.5). It sits beside Done and follows the same GONE-at-rest rule, because both are
+         edit-mode chrome for the desktop rather than taskbar content.
+         Labelled, not icon-only (owner, 2026-08-06, after seeing it on a device): the tray beside it can
+         be empty, which puts this "+" flush against the pinned strip's own "+", and edit mode paints a
+         third "+" on every empty square. The word is what separates the three. It costs width only while
+         editing, and the weighted strip block above absorbs it. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/launcherAddCell"
+        style="@style/Widget.FastMediaSorter.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:ellipsize="end"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:insetLeft="0dp"
+        android:insetRight="0dp"
+        android:maxLines="1"
+        android:minHeight="0dp"
+        android:nextFocusUp="@id/launcherDesktop"
+        android:nextFocusLeft="@id/trayContainer"
+        android:nextFocusRight="@id/launcherEditDone"
+        android:paddingStart="@dimen/launcher_taskbar_item_spacing"
+        android:paddingEnd="@dimen/launcher_taskbar_item_spacing"
+        android:text="@string/launcher_add_cell"
+        android:visibility="gone"
+        app:icon="@drawable/ic_add"
+        app:iconGravity="textStart" />
+
+    <!-- S1412: last element of the bar, so it sits bottom-right and below every desktop cell (owner,
+         2026-08-05). It used to float over the grid's top-right corner and covered up to two cells,
+         which were then the only cells edit mode could not reach. GONE at rest, so it costs no width
+         outside editing; the weighted strip block above yields slack before the tray does. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/launcherEditDone"
+        style="@style/Widget.FastMediaSorter.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/focus_button_background"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:insetLeft="0dp"
+        android:insetRight="0dp"
+        android:minHeight="0dp"
+        android:nextFocusUp="@id/launcherDesktop"
+        android:nextFocusLeft="@id/launcherAddCell"
+        android:paddingStart="@dimen/launcher_taskbar_item_spacing"
+        android:paddingEnd="@dimen/launcher_taskbar_item_spacing"
+        android:text="@string/launcher_edit_done"
+        android:visibility="gone" />
 
 </LinearLayout>

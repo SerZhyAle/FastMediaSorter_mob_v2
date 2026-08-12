@@ -3,27 +3,42 @@ package com.sza.fastmediasorter.wear.data.network.sftp
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SftpConnectionTestTest {
 
+    /**
+     * Loopback with nothing listening is refused immediately, so this stays offline and fast while
+     * still exercising the real connect path. The negative assertion is the point: the previous
+     * implementation answered every call with UnsupportedOperationException, and the ViewModel reads
+     * that exact type to show "test not supported" instead of the server's reason.
+     */
     @Test
-    fun `testSftp returns unsupported failure on Wear`() = runTest {
-        val result = SftpConnectionTest().testSftp(makeSource())
+    fun `testSftp reports the real connect failure rather than an unsupported stub`() = runTest {
+        val result = SftpConnectionTest().testSftp(makeSource(port = UNUSED_LOOPBACK_PORT))
 
         assertTrue(result.isFailure)
         val exception = result.exceptionOrNull()
-        assertTrue(exception is UnsupportedOperationException)
-        assertEquals("SFTP connection test is not available on Wear OS", exception?.message)
+        assertNotNull(exception)
+        assertFalse(exception is UnsupportedOperationException)
     }
 
-    private fun makeSource() = NetworkSource(
+    private fun makeSource(
+        server: String = "127.0.0.1",
+        port: Int = UNUSED_LOOPBACK_PORT
+    ) = NetworkSource(
         type = NetworkSourceType.SFTP,
         name = "SFTP",
-        server = "example.com",
+        server = server,
+        port = port,
         username = "user",
         password = "password"
     )
+
+    private companion object {
+        const val UNUSED_LOOPBACK_PORT = 1
+    }
 }

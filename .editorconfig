@@ -1,0 +1,17 @@
+# S1561: pin the Kotlin import layout so the IDE and detekt require the same order.
+# Without this file the order comes from whatever the bundled ktlint ruleset defaults to, which means a
+# detekt version bump can change it silently and Android Studio's own formatter can disagree with the gate
+# while `autoCorrect = false` refuses to reconcile them.
+#
+# `root = true` stops the lookup here. An .editorconfig above the checkout would otherwise be inherited and
+# make the required order depend on where the repository happens to sit - the exact drift this file prevents.
+root = true
+
+[*.{kt,kts}]
+# This is the value detekt-formatting 1.23.8 already applies under `android: true`, written down rather than
+# changed, so pinning it introduces no new ImportOrdering findings. Read as: everything else first, then
+# java.*, then javax.*, then kotlin.*, then aliased imports last.
+#
+# Deliberately the only key in this file. A root .editorconfig also reaches .ps1, .md and .xml, so indentation
+# and newline keys would change tools far outside Kotlin formatting - see S1561 section 6, question 2.
+ij_kotlin_imports_layout = *,java.**,javax.**,kotlin.**,^

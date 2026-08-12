@@ -9,22 +9,17 @@
     DOWN; this umbrella is what `post-change.ps1` calls so any Kotlin/Xml/Mixed
     change is checked in one step.
 
-    Children:
-      - assert-trivial-comments.ps1        (trivial verb-noun comments)
-      - assert-empty-catch.ps1             (swallowing catch blocks)
-      - assert-layout-hardcoded-colors.ps1 (hardcoded hex in layout XML)
-      - assert-unsafe-collect.ps1          (non-lifecycle-aware Flow collects)
-      - assert-globalscope.ps1             (Tier 1: GlobalScope coroutine usage)
-      - assert-nontimber-log.ps1           (Tier 1: Log.*/println/System.out)
-      - assert-stub-todo.ps1               (Tier 1: TODO()/NotImplementedError stubs)
-      - assert-em-dash.ps1                 (em-dash/en-dash in *.kt -> use hyphen)
-      - assert-non-null-assertion.ps1      (S1032: `!!` non-null assertions in *.kt)
+    Rule set: whatever scripts/quality/lib/source-matchers.ps1 defines, applied
+    unfiltered - it is deliberately NOT restated here. Since S1338 this script
+    forwards to assert-source-gates.ps1 with no -Only filter, so the set grew past
+    the nine dimensions S0383 shipped and a list in this header could only go
+    stale. Run the runner with -List to see the live set and its baselines.
 
-    Ratchet contract: baselines only go DOWN via each child's -UpdateBaseline;
-    raising a baseline is forbidden without an offsetting refactor. Cleanup of the
-    catch and layout-color dimensions is still in progress (S0383 Phases 03/04),
-    so their baselines are the current floors, not the final targets - they will
-    ratchet further as those phases complete. This harness is shared in spirit
+    Ratchet contract: baselines only go DOWN via -UpdateBaseline; raising one is
+    forbidden without an offsetting refactor. Every baseline is a current floor,
+    not a final target. S1543 corrected the previous framing here, which described
+    the catch and layout-color cleanup as in progress under "S0383 Phases 03/04" -
+    S0383 has been Archived since 2026-06-09. This harness is shared in spirit
     with S0381 (the sibling neuroslop-hygiene-hardening ticket); extend here
     rather than duplicating a parallel runner.
 

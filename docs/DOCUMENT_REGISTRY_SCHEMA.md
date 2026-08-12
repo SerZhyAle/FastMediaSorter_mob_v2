@@ -31,3 +31,4 @@ Rules:
 - Add a record before adding a maintained document or public page.
 - Use `product_areas` for durable links to code and functionality. Do not bind routine documents to individual implementation files.
 - `update_triggers` names the event, such as `user-feature`, `setting`, `architecture`, `dependency`, `release`, `workflow`, `site`, or `documentation`.
+- Both vocabularies are open: no validator constrains their values, and `scripts/document_registry/query.ps1 -ListVocabulary` derives the current list from the registry itself. Prefer a value already in use over a new synonym - a query for a value nobody wrote is answered with the vocabulary, not with the document.

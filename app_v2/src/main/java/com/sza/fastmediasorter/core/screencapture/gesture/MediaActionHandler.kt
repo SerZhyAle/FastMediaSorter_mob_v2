@@ -17,7 +17,6 @@ class MediaActionHandler @Inject constructor() {
     /** Returns true when [action] is a volume/media action this handler owns (performed or degraded). */
     fun handle(context: Context, action: ScreenshotGestureAction): Boolean {
         if (!isMediaAction(action)) return false
-        Timber.d("S1038: media action %s", action)
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
         if (audioManager == null) {
             Timber.w("MediaActionHandler: AudioManager unavailable, ignoring %s", action)

@@ -7,6 +7,8 @@ import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.cameracapture.model.PhotoProfile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
@@ -111,25 +113,29 @@ class CameraCaptureFlowManager(
     /** Output target for the active [mode]; recomputed on access so it follows an in-screen switch. */
     val outputFile: File? get() = currentOutputFile()
 
-    /** Validates the output target upfront. Returns false (after signalling the host) when it cannot. */
-    fun resolveOutput(): Boolean {
+    /**
+     * Validates the output target upfront. Returns false (after signalling the host) when it cannot.
+     *
+     * S1579: suspend because the scratch-dir probe below is filesystem work that used to run on the
+     * main thread while the capture screen was still being assembled. The host resumes on its own
+     * dispatcher, so the failure path still signals the UI from the main thread.
+     */
+    suspend fun resolveOutput(): Boolean {
         val dir = outputDir
-        if (dir != null && outputBaseName != null) {
+        val ready = if (dir != null && outputBaseName != null) {
             // Switchable mode: the host owns the file, so only the scratch dir must be writable here.
-            val ready = runCatching { File(dir).apply { mkdirs() }.isDirectory }.getOrDefault(false)
-            if (!ready) {
-                host.showError(R.string.camera_capture_error_save_generic)
-                host.finishCancelled()
-                return false
+            withContext(Dispatchers.IO) {
+                runCatching { File(dir).apply { mkdirs() }.isDirectory }.getOrDefault(false)
             }
-            return true
+        } else {
+            // The legacy target comes straight out of the intent - no filesystem access to move off.
+            resolveLegacyOutputFile() != null
         }
-        if (resolveLegacyOutputFile() == null) {
+        if (!ready) {
             host.showError(R.string.camera_capture_error_save_generic)
             host.finishCancelled()
-            return false
         }
-        return true
+        return ready
     }
 
     /**
@@ -291,11 +297,16 @@ class CameraCaptureFlowManager(
         onZoomRatioSelected(target)
     }
 
-    /** Runs tap-to-focus when supported; returns whether the focus ring should be shown. */
+    /**
+     * Runs tap-to-focus when supported; returns whether the focus ring should be shown.
+     *
+     * S1419: the answer now comes from the session rather than being a constant. The capability check
+     * below is one of several reasons a focus request never leaves - the session knows the rest, and
+     * a ring drawn for a request nobody made is what made this look like a broken autofocus.
+     */
     fun onTapToFocus(x: Float, y: Float): Boolean {
         if (!currentCapabilities.supportsTapToFocus) return false
-        session.startFocusAndMetering(x, y)
-        return true
+        return session.startFocusAndMetering(x, y)
     }
 
     /** Toggles the microphone for the next/active recording; returns the resulting state. */

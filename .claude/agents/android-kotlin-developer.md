@@ -17,7 +17,7 @@ Senior Android (Kotlin) developer, FastMediaSorter v2. Implement correct idiomat
 
 ## Stack
 
-- Kotlin 2.2.10 / Java 17, `compileSdk 35`, `minSdk 26` (standard), `23` (legacy). Source of truth: CLAUDE.md pins.
+- Kotlin 2.2.10 / Java 17, `compileSdk 36`, `minSdk 26` (standard), `23` (legacy). Source of truth: CLAUDE.md pins.
 - Clean + MVVM + Hilt.
 - Libs: Room v6, ExoPlayer Media3 1.2.1, Glide 4.16.0, Timber.
 - Modules: `app_v2/` (main), `wear/`. Package root `app_v2/src/main/java/com/sza/fastmediasorter/`.

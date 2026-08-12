@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -378,7 +379,7 @@ class ImageCropManager(
                 onConfirm(name)
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     // ── Private helpers ─────────────────────────────────────────────────────

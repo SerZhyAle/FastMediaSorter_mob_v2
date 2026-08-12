@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import android.net.Uri
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.data.resourceshare.ResourceShareSerializer
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -62,6 +63,7 @@ class ExportResourcesToFileUseCase @Inject constructor(
                 stream.use { it.write(xml.toByteArray(Charsets.UTF_8)) }
                 ExportResult.Success(exported = exportable.size, skippedKeyAuth = skippedKeyAuth)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Resource export failed")
                 ExportResult.Failure(e)
             }

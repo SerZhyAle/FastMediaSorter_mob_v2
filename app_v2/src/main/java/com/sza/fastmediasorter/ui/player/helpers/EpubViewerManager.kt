@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.util.showBoundToHost
 import io.documentnode.epub4j.domain.Book
 import io.documentnode.epub4j.epub.EpubReader
 import kotlinx.coroutines.CompletableDeferred
@@ -549,7 +550,7 @@ class EpubViewerManager(
             .setNegativeButton(R.string.epub_go_to_chapter_cancel) { dialog, _ ->
                 dialog.dismiss()
             }
-            .show()
+            .showBoundToHost(context)
     }
 
     // ── Chapter navigation (public) ──────────────────────────────────────────
@@ -794,7 +795,7 @@ class EpubViewerManager(
 
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(context)
     }
 
     /** Persist reader style settings to AppSettings via repository. */

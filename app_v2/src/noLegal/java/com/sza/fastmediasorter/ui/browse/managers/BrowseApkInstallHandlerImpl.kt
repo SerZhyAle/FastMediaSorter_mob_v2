@@ -17,6 +17,7 @@ import androidx.lifecycle.withStarted
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -125,7 +126,7 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
                     )
                     settingsLauncher?.launch(intent)
                 }
-                .show()
+                .showBoundToHost(act)
         }
     }
 

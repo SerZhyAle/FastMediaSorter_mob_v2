@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.input.CommandGroup
+import com.sza.fastmediasorter.util.showBoundToHost
 
 /**
  * Thin [MaterialAlertDialogBuilder] wrapper for destructive reset confirmations.
@@ -17,7 +18,7 @@ object ResetConfirmationDialog {
             .setMessage(context.getString(R.string.reset_group_body_fmt, groupName))
             .setPositiveButton(R.string.reset_confirm_button) { _, _ -> onConfirm() }
             .setNegativeButton(R.string.reset_cancel_button, null)
-            .show()
+            .showBoundToHost(context)
     }
 
     fun showForAll(context: Context, onConfirm: () -> Unit) {
@@ -26,6 +27,6 @@ object ResetConfirmationDialog {
             .setMessage(context.getString(R.string.reset_all_body))
             .setPositiveButton(R.string.reset_confirm_button) { _, _ -> onConfirm() }
             .setNegativeButton(R.string.reset_cancel_button, null)
-            .show()
+            .showBoundToHost(context)
     }
 }

@@ -50,7 +50,9 @@ class StreamsFilterDialogManager(
 
         fun renderValues() {
             binding.tvCategoryValue.text = category ?: activity.getString(R.string.streams_filter_all)
-            binding.tvTopicValue.text = topic ?: activity.getString(R.string.streams_filter_all)
+            // S1477: the picked rubric is shown localized; `topic` itself stays the catalog id.
+            binding.tvTopicValue.text = StreamTopicRubricCatalog.label(activity, topic)
+                ?: activity.getString(R.string.streams_filter_all)
             binding.tvLanguageValue.text = languageLabel(language)
             binding.tvCountryValue.text = countryLabel(country)
         }
@@ -93,7 +95,7 @@ class StreamsFilterDialogManager(
             openPicker(R.string.streams_filter_category, options, category, KEY_CATEGORY, TAG_CATEGORY)
         }
         binding.rowTopic.setOnClickListener {
-            val options = StreamLanguageOptionMapper.categoryOptions(state.facets.topics)
+            val options = StreamLanguageOptionMapper.rubricOptions(activity, state.facets.topics)
             openPicker(R.string.streams_filter_topic, options, topic, KEY_TOPIC, TAG_TOPIC)
         }
         binding.rowLanguage.setOnClickListener {

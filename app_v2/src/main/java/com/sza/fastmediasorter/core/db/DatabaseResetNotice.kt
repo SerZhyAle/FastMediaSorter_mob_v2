@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import androidx.appcompat.app.AlertDialog
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
 import java.io.File
 
@@ -99,7 +100,7 @@ object DatabaseResetNotice {
                 .setTitle(R.string.database_reset_dialog_title)
                 .setMessage(message)
                 .setPositiveButton(android.R.string.ok, null)
-                .show()
+                .showBoundToHost(activity)
         } catch (e: Exception) {
             Timber.w(e, "DatabaseResetNotice: failed to show dialog")
         }

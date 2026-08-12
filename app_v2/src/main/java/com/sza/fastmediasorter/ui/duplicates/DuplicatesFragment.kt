@@ -15,14 +15,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.chip.Chip
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.databinding.FragmentDuplicatesBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
-import com.sza.fastmediasorter.core.util.formatFileSize
+import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 @AndroidEntryPoint
 class DuplicatesFragment : Fragment() {
@@ -97,7 +98,7 @@ class DuplicatesFragment : Fragment() {
                     .setMessage(getString(R.string.duplicate_delete_message, count))
                     .setPositiveButton(R.string.delete) { _, _ -> viewModel.deleteSelectedFiles() }
                     .setNegativeButton(android.R.string.cancel, null)
-                    .show()
+                    .showBoundTo(this@DuplicatesFragment)
             }
         }
     }
@@ -215,7 +216,7 @@ class DuplicatesFragment : Fragment() {
                     .setMessage(R.string.duplicate_scan_network_warning)
                     .setPositiveButton(android.R.string.ok) { dialog: android.content.DialogInterface, _: Int -> viewModel.startScanConfirmed() }
                     .setNegativeButton(android.R.string.cancel, null)
-                    .show()
+                    .showBoundTo(this@DuplicatesFragment)
             }
             is DuplicatesEvent.ShowError -> Toast.makeText(requireContext(), event.message, Toast.LENGTH_SHORT).show()
             is DuplicatesEvent.FileDeleted -> Toast.makeText(requireContext(), R.string.friendly_copy_success_generic, Toast.LENGTH_SHORT).show()

@@ -49,6 +49,8 @@ class GeneralSettingsObserversHelper(
 
             if (binding.rowEnableFavorites.isChecked != settings.enableFavorites)
                 binding.rowEnableFavorites.setCheckedSilently(settings.enableFavorites)
+            binding.layoutFavoritesImportExport.visibility =
+                if (settings.enableFavorites) View.VISIBLE else View.GONE
             // S0473: opt-in statistics toggle initial/observed state.
             if (binding.rowEnableStatistics.isChecked != settings.enableStatistics)
                 binding.rowEnableStatistics.setCheckedSilently(settings.enableStatistics)

@@ -43,6 +43,7 @@ import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsSink
@@ -58,6 +59,7 @@ import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
+import com.sza.fastmediasorter.ui.main.helpers.MainCollapsedChipsPlacementManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCommandBarTooltipManager
 import com.sza.fastmediasorter.ui.main.helpers.MainExitButtonManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
@@ -74,6 +76,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingManager
 import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainSftpShareManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
+import com.sza.fastmediasorter.ui.main.helpers.MainStorageVolumeWatchManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsPanelManager
 import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
@@ -92,6 +95,7 @@ import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
 import com.sza.fastmediasorter.util.getPackageInfoCompat
+import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
@@ -129,15 +133,27 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var screenRecordingManager: MainScreenRecordingManager
     private lateinit var programsPanelManager: MainProgramsPanelManager
     private lateinit var streamsPanelManager: MainStreamsPanelManager
+    private lateinit var collapsedChipsPlacement: MainCollapsedChipsPlacementManager
+
+    // S1443: last free width the command bar reported; a chip visibility change re-places against it
+    // instead of forcing a fresh measurement pass that the bar has not been asked for.
+    private var controlBarFreeWidthPx = 0
 
     // S0831/S0770: per-item context-menu actions for the programs/streams panels + new-window primitives.
     private lateinit var panelItemActions: MainPanelItemActionsManager
 
     // S0984: builds the "share SFTP access" dialog; lazy since only SFTP resources reach it.
     private val sftpShareManager by lazy { MainSftpShareManager(this) }
+
+    // S1378: connecting or ejecting a medium has to reach the list; all of that logic is the
+    // manager's, this screen only starts and stops it.
+    private val storageVolumeWatchManager by lazy {
+        MainStorageVolumeWatchManager(this) { viewModel.refreshResources() }
+    }
     private var startupFullyDrawnReported = false
     private var startupAprilFoolsPrankChecked = false
     private var isCalculatorEnabled = false
+    private var isNetworkMonitorEnabled = false
     private var isEmbeddedGameEnabled = false
     private var isCameraOcrEnabled = false
     private var isQuickVoiceEnabled = false
@@ -215,6 +231,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     lateinit var capabilityAvailability: CapabilityAvailability
+
+    @Inject
+    lateinit var networkMonitorContract: NetworkMonitorContract
 
     // S0963 (Pillar 2): XR-gated launcher for the resource "Open in VR Cinema" entry (No-Op on non-VR).
     @Inject
@@ -376,10 +395,26 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             storagePermissionLauncher = storagePermissionLauncher
         )
         bannerManager = MainChromeOsBannerManager(this)
+        // S1443: constructed before the chrome manager so it captures each chip's inflated row index
+        // while every chip still sits where the layout put it.
+        collapsedChipsPlacement = MainCollapsedChipsPlacementManager(
+            controlBar = binding.layoutControlButtons,
+            collapsedRow = binding.mainCollapsedPanelsRow,
+            chips = listOf(
+                binding.chipProgramsCollapsed,
+                binding.chipStreamsCollapsed,
+                binding.chipFilterCollapsed
+            ),
+            onPlacementChanged = { layoutChrome.restitchControlBarFocusChain() }
+        )
         layoutChrome = MainLayoutChromeManager(
             activity = this,
             binding = binding,
-            isResourceGridMode = { viewModel.state.value.isResourceGridMode }
+            isResourceGridMode = { viewModel.state.value.isResourceGridMode },
+            onControlBarFreeWidth = { freeWidthPx ->
+                controlBarFreeWidthPx = freeWidthPx
+                collapsedChipsPlacement.apply(freeWidthPx, isWideLayout())
+            }
         )
 
         // Resume playback logic - only for standard launcher start with killed process
@@ -735,6 +770,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         quickCamera = (isQuickPhotoEnabled && mediaCapabilities.supportsImages) ||
             (isQuickVideoEnabled && mediaCapabilities.supportsVideo),
         calculator = isCalculatorEnabled,
+        networkMonitor = isNetworkMonitorEnabled,
         cameraOcr = isCameraOcrEnabled,
         linkDownload = isLinkDownloadEnabled,
         miniGame = isEmbeddedGameEnabled,
@@ -784,6 +820,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Apply edge-to-edge insets: RecyclerView bottom padding for nav bar
         layoutChrome.applyEdgeToEdgeInsets()
 
+        storageVolumeWatchManager.attach()
         miniGameMenuManager = MainMiniGameMenuManager(this)
         streamsMenuManager = MainStreamsMenuManager(this)
         voiceCaptureManager = MainVoiceCaptureManager(
@@ -865,6 +902,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             scope = lifecycleScope,
             // S0809: collapsed chip lives in the shared collapsed-panels row (activity layout).
             collapsedChip = binding.chipProgramsCollapsed,
+            onChipVisibilityChanged = ::reapplyCollapsedChipPlacement,
         )
         // S0807: wire the leading header menu + collapsed-strip tap; load the persisted collapsed state.
         programsPanelManager.install()
@@ -912,6 +950,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             settingsRepository = settingsRepository,
             // S0809: collapsed chip lives in the shared collapsed-panels row (activity layout).
             collapsedChip = binding.chipStreamsCollapsed,
+            onChipVisibilityChanged = ::reapplyCollapsedChipPlacement,
         )
         streamsPanelManager.setup()
         // S0810: long-press a command-bar icon reveals its name via a tooltip (reuses contentDescription).
@@ -975,7 +1014,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     .setMessage(R.string.resource_share_credentials_warning)
                     .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.exportResourceForShare(resource) }
                     .setNegativeButton(android.R.string.cancel, null)
-                    .show()
+                    .showBoundToHost(this@MainActivity)
             },
             onShareSftpAccessClick = { resource ->
                 sftpShareManager.show(resource) { includePassword, method ->
@@ -1195,6 +1234,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         collectOnLifecycle(settingsRepository.getSettings()) { settings ->
             latestSettings = settings // S0770: keep the freshest snapshot for the panel item menus.
             val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
+            val networkMonitorNowEnabled =
+                settings.enableNetworkMonitor && networkMonitorContract.isAvailableInBuild
+            val networkMonitorEnabledChanged = isNetworkMonitorEnabled != networkMonitorNowEnabled
             val embeddedGameEnabledChanged = isEmbeddedGameEnabled != settings.embeddedGameEnabled
             val cameraOcrEnabledChanged = isCameraOcrEnabled != settings.cameraOcrTranslationEnabled
             // S0523: the quick-capture menu entries reuse the existing capture toggles - no separate
@@ -1214,6 +1256,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 settings.screenRecordingEnabled && screenVideoRecordingControllers.isNotEmpty()
             val screenRecordingEnabledChanged = isScreenRecordingEnabled != screenRecordingNowEnabled
             isCalculatorEnabled = settings.enableCalculator
+            isNetworkMonitorEnabled = networkMonitorNowEnabled
             isEmbeddedGameEnabled = settings.embeddedGameEnabled
             isCameraOcrEnabled = settings.cameraOcrTranslationEnabled
             isQuickVoiceEnabled = settings.micRecordingEnabled
@@ -1249,6 +1292,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             // (the programs panel mirrors the menu) and refreshes the three-dots button visibility.
             val panelInputsChanged = listOf(
                 calculatorEnabledChanged, embeddedGameEnabledChanged, cameraOcrEnabledChanged,
+                networkMonitorEnabledChanged,
                 quickVoiceEnabledChanged, quickVideoEnabledChanged, quickPhotoEnabledChanged,
                 linkDownloadEnabledChanged, streamsEnabledChanged, programsPanelChanged, streamsPanelChanged,
                 screenRecordingEnabledChanged,
@@ -1276,18 +1320,25 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // S0755/S0756: re-apply the orientation/width-driven label rule + programs-panel overflow.
         if (::programsPanelManager.isInitialized) programsPanelManager.refresh()
         if (::streamsPanelManager.isInitialized) streamsPanelManager.onConfigurationChanged()
+        // S1443: updateToolbarButtonLabels above re-measures the bar and re-reports its free width,
+        // but that arrives on the next layout pass - re-place now so a rotation into a narrow layout
+        // returns the chips to their row within this frame.
+        reapplyCollapsedChipPlacement()
+    }
+
+    /** S1443: re-place the collapsed chips against the width the command bar last reported. */
+    private fun reapplyCollapsedChipPlacement() {
+        if (!::collapsedChipsPlacement.isInitialized) return
+        Timber.d("S1443: re-place collapsed chips free=$controlBarFreeWidthPx wide=${isWideLayout()}")
+        collapsedChipsPlacement.apply(controlBarFreeWidthPx, isWideLayout())
     }
 
     private fun showDeleteConfirmation(resource: com.sza.fastmediasorter.domain.model.MediaResource) {
-        if (isFinishing || isDestroyed) return
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
-            .setTitle(R.string.delete_resource_title)
-            .setMessage(getString(R.string.delete_resource_message, resource.name))
-            .setPositiveButton(R.string.delete) { _, _ ->
-                viewModel.deleteResource(resource)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        // S1424: the dialog itself moved to a shared object so the launcher desktop asks the same
+        // question instead of a copy of it.
+        com.sza.fastmediasorter.ui.main.helpers.ResourceDeleteConfirmation.show(this, resource.name) {
+            viewModel.deleteResource(resource)
+        }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -1357,7 +1408,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onTabSelected = { tab -> viewModel.setActiveTab(tab) },
             onFavoritesReselected = { viewModel.openFavorites() },
             getActiveTab = { viewModel.state.value.activeResourceTab },
-            getPreviousTab = { viewModel.state.value.previousTab }
+            getPreviousTab = { viewModel.state.value.previousTab },
+            onChipVisibilityChanged = ::reapplyCollapsedChipPlacement
         )
         tabsManager.createTabs()
         tabsManager.setupListener()

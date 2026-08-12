@@ -4,34 +4,39 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import com.sza.fastmediasorter.BuildConfig
-import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
-import com.sza.fastmediasorter.domain.model.AppSettings
-import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.data.repository.settings.AudioSettingsStore
-import com.sza.fastmediasorter.data.repository.settings.RemoteSourceSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.CaptureSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.LinkSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.MediaSizeFilterSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.RemoteSourceSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.ScreenshotSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.SlideshowSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.StereoSettingsStore
-import com.sza.fastmediasorter.data.repository.settings.TextRecognitionSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.StreamsSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.TextRecognitionSettingsStore
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureSettings
+import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
+import com.sza.fastmediasorter.util.getPackageInfoCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
@@ -43,10 +48,9 @@ class SettingsRepositoryImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) : SettingsRepository {
 
-    // S0876: serializes every transform-based updateSettings() call (see interface KDoc) so
-    // concurrent writers (Welcome enable-all's parallel deliverable-install coroutines, and any
-    // other transform() caller) always fold onto the previous writer's committed result instead
-    // of racing on a stale getSettings().first() snapshot.
+    // S1551: serializes whole-snapshot writes while S0876 keeps transform read-modify-write calls
+    // in order. This prevents concurrent UI snapshots from overwriting one another in flight.
+    private val settingsUpdateMutex = Mutex()
     private val transformMutex = Mutex()
 
     companion object {
@@ -56,6 +60,8 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_KEEP_SCREEN_ON_PLAYER = booleanPreferencesKey("keep_screen_on_player")
         private val KEY_SHOW_SMALL_CONTROLS = booleanPreferencesKey("show_small_controls")
         private val KEY_ENABLE_CALCULATOR = booleanPreferencesKey("enable_calculator")
+        private val KEY_ENABLE_NETWORK_MONITOR = booleanPreferencesKey("enable_network_monitor")
+        private val KEY_RECORD_GNSS_TRACK = booleanPreferencesKey("record_gnss_track")
         private val KEY_EMBEDDED_GAME_ENABLED = booleanPreferencesKey("embedded_game_enabled")
 
         // S0755: main-window programs panel toggle (flat boolean alongside the other programs settings).
@@ -212,12 +218,22 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_LAUNCHER_TASKBAR_SHOW_RECENTS = booleanPreferencesKey("launcher_taskbar_show_recents")
         private val KEY_LAUNCHER_TASKBAR_SHOW_PINNED = booleanPreferencesKey("launcher_taskbar_show_pinned")
         private val KEY_LAUNCHER_TASKBAR_SHOW_TRAY = booleanPreferencesKey("launcher_taskbar_show_tray")
+        private val KEY_LAUNCHER_TRAY_SHOW_CLOCK = booleanPreferencesKey("launcher_tray_show_clock")
+        private val KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH = booleanPreferencesKey("launcher_tray_show_bluetooth")
+        private val KEY_LAUNCHER_TRAY_SHOW_SIM1 = booleanPreferencesKey("launcher_tray_show_sim1")
+        private val KEY_LAUNCHER_TRAY_SHOW_SIM2 = booleanPreferencesKey("launcher_tray_show_sim2")
+        private val KEY_LAUNCHER_TRAY_SHOW_NETWORK = booleanPreferencesKey("launcher_tray_show_network")
+        private val KEY_LAUNCHER_TRAY_SHOW_BATTERY = booleanPreferencesKey("launcher_tray_show_battery")
         private val KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA =
             booleanPreferencesKey("launcher_replace_system_status_area")
+        private val KEY_LAUNCHER_TOP_STATUS_STRIP_MODE =
+            booleanPreferencesKey("launcher_top_status_strip_mode")
         private val KEY_LAUNCHER_ROTATION_HINT_SHOWN = booleanPreferencesKey("launcher_rotation_hint_shown")
         private val KEY_LAUNCHER_DESKTOP_LOCKED = booleanPreferencesKey("launcher_desktop_locked")
         private val KEY_LAUNCHER_WALLPAPER_MODE = stringPreferencesKey("launcher_wallpaper_mode")
         private val KEY_LAUNCHER_WALLPAPER_IMAGE_PATH = stringPreferencesKey("launcher_wallpaper_image_path")
+        private val KEY_ALL_APPS_SORT_ORDER = stringPreferencesKey("all_apps_sort_order")
+        private val KEY_ALL_APPS_SORT_DESCENDING = booleanPreferencesKey("all_apps_sort_descending")
 
         // Legacy keys removed by S0241 / S0251 (vr_auto_detect_format, vr_forced_format,
         // vr_forced_plat_format, vr_forced_spherical_format, vr_remember_file_format). Their
@@ -321,6 +337,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     keepScreenOnPlayer = preferences[KEY_KEEP_SCREEN_ON_PLAYER] ?: true,
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
                     enableCalculator = preferences[KEY_ENABLE_CALCULATOR] ?: false,
+                    enableNetworkMonitor = preferences[KEY_ENABLE_NETWORK_MONITOR] ?: false,
+                    recordGnssTrack = preferences[KEY_RECORD_GNSS_TRACK] ?: false,
                     embeddedGameEnabled = preferences[KEY_EMBEDDED_GAME_ENABLED] ?: false,
                     showProgramsPanelInMainWindow = preferences[KEY_SHOW_PROGRAMS_PANEL] ?: false,
                     defaultUser = preferences[KEY_DEFAULT_USER] ?: "",
@@ -460,38 +478,40 @@ class SettingsRepositoryImpl @Inject constructor(
                     screenRecordingDisclosureAccepted = capture.screenRecordingDisclosureAccepted,
                     cameraPhotosDestinationResourceId = capture.cameraPhotosDestinationResourceId,
                     gestureOverlayEnabled = screenshot.gestureOverlayEnabled,
-                    screenshotGestureZoneLeftTopEnabled = screenshot.zoneLeftTopEnabled,
-                    screenshotGestureZoneLeftBottomEnabled = screenshot.zoneLeftBottomEnabled,
-                    screenshotGestureZoneRightTopEnabled = screenshot.zoneRightTopEnabled,
-                    screenshotGestureZoneRightBottomEnabled = screenshot.zoneRightBottomEnabled,
-                    screenshotGestureZoneLeftTopStripVisible = screenshot.zoneLeftTopStripVisible,
-                    screenshotGestureZoneLeftBottomStripVisible = screenshot.zoneLeftBottomStripVisible,
-                    screenshotGestureZoneRightTopStripVisible = screenshot.zoneRightTopStripVisible,
-                    screenshotGestureZoneRightBottomStripVisible = screenshot.zoneRightBottomStripVisible,
-                    screenshotGestureLeftTopDown = screenshot.leftTopDown,
-                    screenshotGestureLeftTopRight = screenshot.leftTopRight,
-                    screenshotGestureLeftTopUp = screenshot.leftTopUp,
-                    screenshotGestureLeftBottomDown = screenshot.leftBottomDown,
-                    screenshotGestureLeftBottomRight = screenshot.leftBottomRight,
-                    screenshotGestureLeftBottomUp = screenshot.leftBottomUp,
-                    screenshotGestureRightTopDown = screenshot.rightTopDown,
-                    screenshotGestureRightTopRight = screenshot.rightTopRight,
-                    screenshotGestureRightTopUp = screenshot.rightTopUp,
-                    screenshotGestureRightBottomDown = screenshot.rightBottomDown,
-                    screenshotGestureRightBottomRight = screenshot.rightBottomRight,
-                    screenshotGestureRightBottomUp = screenshot.rightBottomUp,
-                    screenshotGesturePayloadLeftTopDown = screenshot.payloadLeftTopDown,
-                    screenshotGesturePayloadLeftTopRight = screenshot.payloadLeftTopRight,
-                    screenshotGesturePayloadLeftTopUp = screenshot.payloadLeftTopUp,
-                    screenshotGesturePayloadLeftBottomDown = screenshot.payloadLeftBottomDown,
-                    screenshotGesturePayloadLeftBottomRight = screenshot.payloadLeftBottomRight,
-                    screenshotGesturePayloadLeftBottomUp = screenshot.payloadLeftBottomUp,
-                    screenshotGesturePayloadRightTopDown = screenshot.payloadRightTopDown,
-                    screenshotGesturePayloadRightTopRight = screenshot.payloadRightTopRight,
-                    screenshotGesturePayloadRightTopUp = screenshot.payloadRightTopUp,
-                    screenshotGesturePayloadRightBottomDown = screenshot.payloadRightBottomDown,
-                    screenshotGesturePayloadRightBottomRight = screenshot.payloadRightBottomRight,
-                    screenshotGesturePayloadRightBottomUp = screenshot.payloadRightBottomUp,
+                    screenshotGesture = ScreenshotGestureSettings(
+                        zoneLeftTopEnabled = screenshot.zoneLeftTopEnabled,
+                        zoneLeftBottomEnabled = screenshot.zoneLeftBottomEnabled,
+                        zoneRightTopEnabled = screenshot.zoneRightTopEnabled,
+                        zoneRightBottomEnabled = screenshot.zoneRightBottomEnabled,
+                        zoneLeftTopStripVisible = screenshot.zoneLeftTopStripVisible,
+                        zoneLeftBottomStripVisible = screenshot.zoneLeftBottomStripVisible,
+                        zoneRightTopStripVisible = screenshot.zoneRightTopStripVisible,
+                        zoneRightBottomStripVisible = screenshot.zoneRightBottomStripVisible,
+                        leftTopDown = screenshot.leftTopDown,
+                        leftTopRight = screenshot.leftTopRight,
+                        leftTopUp = screenshot.leftTopUp,
+                        leftBottomDown = screenshot.leftBottomDown,
+                        leftBottomRight = screenshot.leftBottomRight,
+                        leftBottomUp = screenshot.leftBottomUp,
+                        rightTopDown = screenshot.rightTopDown,
+                        rightTopRight = screenshot.rightTopRight,
+                        rightTopUp = screenshot.rightTopUp,
+                        rightBottomDown = screenshot.rightBottomDown,
+                        rightBottomRight = screenshot.rightBottomRight,
+                        rightBottomUp = screenshot.rightBottomUp,
+                        payloadLeftTopDown = screenshot.payloadLeftTopDown,
+                        payloadLeftTopRight = screenshot.payloadLeftTopRight,
+                        payloadLeftTopUp = screenshot.payloadLeftTopUp,
+                        payloadLeftBottomDown = screenshot.payloadLeftBottomDown,
+                        payloadLeftBottomRight = screenshot.payloadLeftBottomRight,
+                        payloadLeftBottomUp = screenshot.payloadLeftBottomUp,
+                        payloadRightTopDown = screenshot.payloadRightTopDown,
+                        payloadRightTopRight = screenshot.payloadRightTopRight,
+                        payloadRightTopUp = screenshot.payloadRightTopUp,
+                        payloadRightBottomDown = screenshot.payloadRightBottomDown,
+                        payloadRightBottomRight = screenshot.payloadRightBottomRight,
+                        payloadRightBottomUp = screenshot.payloadRightBottomUp,
+                    ),
                     screenshotDestinationResourceId = screenshot.screenshotDestinationResourceId,
                     copyScreenshotToClipboard = screenshot.copyScreenshotToClipboard,
                     screenCaptureDisclosureAccepted = screenshot.screenCaptureDisclosureAccepted,
@@ -567,8 +587,16 @@ class SettingsRepositoryImpl @Inject constructor(
                     launcherTaskbarShowRecents = preferences[KEY_LAUNCHER_TASKBAR_SHOW_RECENTS] ?: true,
                     launcherTaskbarShowPinned = preferences[KEY_LAUNCHER_TASKBAR_SHOW_PINNED] ?: true,
                     launcherTaskbarShowTray = preferences[KEY_LAUNCHER_TASKBAR_SHOW_TRAY] ?: true,
+                    launcherTrayShowClock = preferences[KEY_LAUNCHER_TRAY_SHOW_CLOCK] ?: true,
+                    launcherTrayShowBluetooth = preferences[KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH] ?: true,
+                    launcherTrayShowSim1 = preferences[KEY_LAUNCHER_TRAY_SHOW_SIM1] ?: true,
+                    launcherTrayShowSim2 = preferences[KEY_LAUNCHER_TRAY_SHOW_SIM2] ?: true,
+                    launcherTrayShowNetwork = preferences[KEY_LAUNCHER_TRAY_SHOW_NETWORK] ?: true,
+                    launcherTrayShowBattery = preferences[KEY_LAUNCHER_TRAY_SHOW_BATTERY] ?: true,
                     launcherReplaceSystemStatusArea =
                         preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] ?: false,
+                    launcherTopStatusStripMode =
+                        preferences[KEY_LAUNCHER_TOP_STATUS_STRIP_MODE] ?: false,
                     launcherRotationHintShown = preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] ?: false,
                     launcherDesktopLocked = preferences[KEY_LAUNCHER_DESKTOP_LOCKED] ?: false,
                     // S1101: an unknown token (older/newer build, corrupted value) degrades to the branded default.
@@ -576,6 +604,10 @@ class SettingsRepositoryImpl @Inject constructor(
                         ?.takeIf { it in AppSettings.LAUNCHER_WALLPAPER_MODES }
                         ?: AppSettings.LAUNCHER_WALLPAPER_BRANDED,
                     launcherWallpaperImagePath = preferences[KEY_LAUNCHER_WALLPAPER_IMAGE_PATH] ?: "",
+                    // S1401: stored as an enum name; an unknown one degrades to the default order.
+                    allAppsSortOrder = InstalledAppSortOrder
+                        .fromNameOrDefault(preferences[KEY_ALL_APPS_SORT_ORDER]).name,
+                    allAppsSortDescending = preferences[KEY_ALL_APPS_SORT_DESCENDING] ?: false,
 
                     // Adaptive pre-cache strategy (spec §5)
                     prefetchCacheMultiplier = com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
@@ -598,9 +630,15 @@ class SettingsRepositoryImpl @Inject constructor(
                 )
             }
             .distinctUntilChanged()
+            // S1517: without this the whole mapping - including the Keystore round trip behind the
+            // default password - runs in the collector's context, and the collector is BaseActivity,
+            // which every screen in the app extends. The flow is delivered on the main thread either
+            // way; only the work above moves off it.
+            .flowOn(Dispatchers.IO)
     }
 
     override suspend fun updateSettings(settings: AppSettings) {
+        settingsUpdateMutex.withLock {
         Timber.d("SettingsRepo: updateSettings called with allFiles=${settings.allFiles}")
 
         // S0018 idempotency guard: if the incoming AppSettings equals the currently stored
@@ -643,6 +681,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_KEEP_SCREEN_ON_PLAYER] = settings.keepScreenOnPlayer
             preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls
             preferences[KEY_ENABLE_CALCULATOR] = settings.enableCalculator
+            preferences[KEY_ENABLE_NETWORK_MONITOR] = settings.enableNetworkMonitor
+            preferences[KEY_RECORD_GNSS_TRACK] = settings.recordGnssTrack
             preferences[KEY_EMBEDDED_GAME_ENABLED] = settings.embeddedGameEnabled
             preferences[KEY_SHOW_PROGRAMS_PANEL] = settings.showProgramsPanelInMainWindow
             preferences[KEY_DEFAULT_USER] = settings.defaultUser
@@ -784,11 +824,20 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_LAUNCHER_TASKBAR_SHOW_RECENTS] = settings.launcherTaskbarShowRecents
             preferences[KEY_LAUNCHER_TASKBAR_SHOW_PINNED] = settings.launcherTaskbarShowPinned
             preferences[KEY_LAUNCHER_TASKBAR_SHOW_TRAY] = settings.launcherTaskbarShowTray
+            preferences[KEY_LAUNCHER_TRAY_SHOW_CLOCK] = settings.launcherTrayShowClock
+            preferences[KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH] = settings.launcherTrayShowBluetooth
+            preferences[KEY_LAUNCHER_TRAY_SHOW_SIM1] = settings.launcherTrayShowSim1
+            preferences[KEY_LAUNCHER_TRAY_SHOW_SIM2] = settings.launcherTrayShowSim2
+            preferences[KEY_LAUNCHER_TRAY_SHOW_NETWORK] = settings.launcherTrayShowNetwork
+            preferences[KEY_LAUNCHER_TRAY_SHOW_BATTERY] = settings.launcherTrayShowBattery
             preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] = settings.launcherReplaceSystemStatusArea
+            preferences[KEY_LAUNCHER_TOP_STATUS_STRIP_MODE] = settings.launcherTopStatusStripMode
             preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] = settings.launcherRotationHintShown
             preferences[KEY_LAUNCHER_DESKTOP_LOCKED] = settings.launcherDesktopLocked
             preferences[KEY_LAUNCHER_WALLPAPER_MODE] = settings.launcherWallpaperMode
             preferences[KEY_LAUNCHER_WALLPAPER_IMAGE_PATH] = settings.launcherWallpaperImagePath
+            preferences[KEY_ALL_APPS_SORT_ORDER] = settings.allAppsSortOrder
+            preferences[KEY_ALL_APPS_SORT_DESCENDING] = settings.allAppsSortDescending
 
             // Adaptive pre-cache strategy (spec §5)
             preferences[KEY_PREFETCH_CACHE_MULTIPLIER] = settings.prefetchCacheMultiplier.name
@@ -803,6 +852,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_FOLLOW_SYSTEM_ROTATION] = settings.programFollowSystemRotation
             preferences[KEY_PLAYER_FOLLOW_SYSTEM_ROTATION] = settings.playerFollowSystemRotation
             preferences[KEY_PLAYER_ROTATION_SENSOR_ENABLED] = settings.playerRotationSensorEnabled
+        }
         }
     }
 
@@ -885,9 +935,16 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
     
-    /** Decrypts password; handles migration from legacy plaintext passwords. */
-    private suspend fun decryptPassword(encryptedPassword: String?): String {
-        if (encryptedPassword.isNullOrEmpty()) return ""
+    /**
+     * Decrypts password; handles migration from legacy plaintext passwords.
+     *
+     * S1517: the Keystore round trip and the migration write are pinned to IO here, not only at the
+     * flow that happens to call this today. `suspend` alone changes no thread, so a future caller on
+     * the main thread would silently reintroduce the same block.
+     */
+    private suspend fun decryptPassword(encryptedPassword: String?): String = withContext(Dispatchers.IO) {
+        if (encryptedPassword.isNullOrEmpty()) return@withContext ""
+        Timber.d("S1517: decrypting default password on thread=%s", Thread.currentThread().name)
         val isEncrypted = runCatching {
             android.util.Base64.decode(encryptedPassword, android.util.Base64.NO_WRAP)
         }.isSuccess
@@ -898,9 +955,9 @@ class SettingsRepositoryImpl @Inject constructor(
                 dataStore.edit { it[KEY_DEFAULT_PASSWORD] = encrypted }
                 Timber.d("Migrated plaintext password to encrypted format")
             }
-            return encryptedPassword
+            return@withContext encryptedPassword
         }
-        return CryptoHelper.decrypt(encryptedPassword) ?: run {
+        CryptoHelper.decrypt(encryptedPassword) ?: run {
             Timber.e("Failed to decrypt password, returning empty string")
             ""
         }

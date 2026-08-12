@@ -2,7 +2,7 @@
 
 This document lists licenses of third-party assets bundled with FastMediaSorter v2.
 
-Source-code dependencies are managed through Gradle and their licenses are tracked separately by the OSS license aggregator in release-prep tooling. Entries here cover **bundled binary assets** (images, fonts, sample media, audio) where the redistribution requirement is on us, not the build system.
+Source-code dependencies are managed through Gradle and their licenses are tracked separately by `scripts/docs/generate-oss-notices.ps1`, which derives the notice list from `app_v2/build.gradle.kts` and `wear/build.gradle.kts` and renders it into `docs/OPEN_SOURCE.md` and its RU/UK counterparts. Entries here cover **bundled binary assets** (images, fonts, sample media, audio) where the redistribution requirement is on us, not the build system.
 
 ---
 

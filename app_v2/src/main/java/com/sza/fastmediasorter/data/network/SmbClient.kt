@@ -4,6 +4,7 @@ import com.hierynomus.msdtyp.AccessMask
 import com.hierynomus.mssmb2.SMB2CreateDisposition
 import com.hierynomus.mssmb2.SMB2ShareAccess
 import com.hierynomus.smbj.share.File
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.exceptions.HandledNetworkOutcomeLogger
 import com.sza.fastmediasorter.data.network.helpers.SmbDirectoryScanner
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
@@ -11,7 +12,6 @@ import com.sza.fastmediasorter.data.network.model.SmbFileInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.domain.model.MediaExtensions
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import timber.log.Timber
 import java.io.InputStream
@@ -85,9 +85,9 @@ class SmbClient @Inject constructor(
                 }
                 return performTestConnection(connectionInfo, path)
             } catch (e: Exception) {
-                // CancellationException means an outer withTimeout/coroutine cancel fired.
-                // Retrying is pointless (the scope is already cancelled) - always re-throw.
-                if (e is CancellationException) throw e
+                // Retrying a cancelled scope is pointless - the outer withTimeout/coroutine cancel
+                // already tore it down, so let cancellation past the retry loop untouched.
+                e.rethrowIfCancellation()
 
                 lastException = e
 
@@ -179,6 +179,7 @@ class SmbClient @Inject constructor(
                 SmbResult.Success(files)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to list SMB files")
             SmbResult.Error("Failed to list files: ${e.message}", e)
         }
@@ -366,6 +367,7 @@ class SmbClient @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbClient.deleteFile: EXCEPTION - Failed to establish connection or execute delete")
             Timber.e("SmbClient.deleteFile: Exception type: ${e.javaClass.name}")
             Timber.e("SmbClient.deleteFile: Exception message: ${e.message}")
@@ -402,6 +404,7 @@ class SmbClient @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SmbClient.deleteDirectory: EXCEPTION - ${e.message}")
             SmbResult.Error("Failed to delete directory: ${e.message}", e)
         }
@@ -435,6 +438,7 @@ class SmbClient @Inject constructor(
                 SmbResult.Success(Unit)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to create directory on SMB")
             SmbResult.Error("Failed to create directory: ${e.message}", e)
         }
@@ -453,6 +457,7 @@ class SmbClient @Inject constructor(
                 SmbResult.Success(exists)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to check if path exists on SMB")
             SmbResult.Error("Failed to check path: ${e.message}", e)
         }
@@ -500,6 +505,7 @@ class SmbClient @Inject constructor(
                 )
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to get SMB file info for $remotePath")
             SmbResult.Error("Failed to get file info: ${e.message}", e)
         }
@@ -572,6 +578,7 @@ class SmbClient @Inject constructor(
                 SmbResult.Success(canWrite)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error checking write permission")
             SmbResult.Error("Failed to check write permission: ${e.message}", e)
         }
@@ -647,6 +654,7 @@ class SmbClient @Inject constructor(
                 SmbResult.Success(inputStream)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to open SMB input stream")
             SmbResult.Error("Failed to open stream: ${e.message}", e)
         }

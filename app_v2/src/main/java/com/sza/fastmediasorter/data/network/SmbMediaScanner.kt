@@ -7,11 +7,13 @@ import android.util.LruCache
 import androidx.exifinterface.media.ExifInterface
 import com.sza.fastmediasorter.core.util.MediaFileIntegrity
 import com.sza.fastmediasorter.core.util.PermissionHelper
-import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
+import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
+import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
+import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
-import dagger.hilt.android.qualifiers.ApplicationContext
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -19,8 +21,7 @@ import com.sza.fastmediasorter.domain.usecase.MediaFilePage
 import com.sza.fastmediasorter.domain.usecase.MediaScanner
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.utils.SmbPathUtils
-import com.sza.fastmediasorter.data.network.model.SmbResult
-import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -302,6 +303,7 @@ class SmbMediaScanner @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "getFileByPath: Error resolving SMB file: $path")
             null
         }
@@ -489,6 +491,7 @@ class SmbMediaScanner @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error counting SMB files in: $path")
             throw e
         }
@@ -590,6 +593,7 @@ class SmbMediaScanner @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error listing SMB directory contents: $path")
             emptyList()
         }
@@ -607,6 +611,7 @@ class SmbMediaScanner @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error checking SMB write access for: $path")
             false
         }
@@ -640,6 +645,7 @@ class SmbMediaScanner @Inject constructor(
                 remotePath = remotePath
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error parsing SMB path: $path")
             null
         }

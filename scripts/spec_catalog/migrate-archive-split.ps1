@@ -12,6 +12,10 @@ trap {
 
 . (Join-Path $PSScriptRoot '_lib.ps1')
 
+# S1437: the active and archive writes below share one critical section - a concurrent mutator
+# between them would be overwritten by whichever of the two landed last.
+Enter-CatalogLock
+
 # Direct assignment - Read-JsonlFile uses the ,$arr anti-unroll idiom.
 $activeRaw = Read-JsonlFile -Path (Get-CatalogPath)
 $toArchive = @($activeRaw | Where-Object { $_.status -eq 'Archived' })
@@ -28,6 +32,8 @@ $movingIds = @($toArchive | ForEach-Object { $_.id })
 $mergedArchive = @($existingArchive | Where-Object { $movingIds -notcontains $_.id }) + $toArchive
 Write-ArchiveCatalog -Records ([object[]]$mergedArchive)
 Write-Catalog -Records ([object[]]$keepActive)
+
+Exit-CatalogLock
 
 $archiveCount = (Read-JsonlFile -Path (Get-ArchivePath)).Count
 Write-Output ("Migrated {0} Archived record(s). Active now {1}, archive now {2}." -f `

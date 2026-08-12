@@ -112,7 +112,7 @@ internal class CommandPanelAvailabilityUpdater(
         }
 
         if (bigButtonsMode && effectiveShowCommandPanel) {
-            applyBigButtonsLayout(state, canWrite, canRead, isVideo, showSlideshow, showRandomNavigation)
+            applyBigButtonsLayout(state, canWrite, canRead, showSlideshow, showRandomNavigation)
         } else if (showInPortrait) {
             applyPortraitLayout(state, canWrite, canRead, showSlideshow, showRandomNavigation)
         } else if (showInLandscape) {
@@ -172,7 +172,6 @@ internal class CommandPanelAvailabilityUpdater(
         state: PlayerViewModel.PlayerState,
         canWrite: Boolean,
         canRead: Boolean,
-        isVideo: Boolean,
         showSlideshow: Boolean,
         showRandomNavigation: Boolean,
     ) {
@@ -184,7 +183,7 @@ internal class CommandPanelAvailabilityUpdater(
             allowSeparateWindow = getLastKnownAllowSeparateWindow(),
             allowVrLaunch = getAllowVrLaunch(),
         )
-        val editLabel = if (isVideo) R.string.control else R.string.edit
+        val editLabel = CommandPanelLayoutPlanner.PlayerCommand.editTitleResFor(state.currentFile?.type)
         safeViews.btnEditCmd.contentDescription = binding.root.context.getString(editLabel)
         updateBigButtonsTopPanelContentDescriptions(editLabel)
         val totalSlots = resolveBigButtonsTopPanelSlotCount()
@@ -303,7 +302,7 @@ internal class CommandPanelAvailabilityUpdater(
         safeViews.btnEditCmd.isVisible = (isImage && canWrite) || (isVideo && !isAudio) || isPdf
         safeViews.btnSaveFrameCmd.isVisible = currentFile.type == MediaType.VIDEO
         safeViews.btnEditCmd.contentDescription = binding.root.context.getString(
-            if (isVideo) R.string.control else R.string.edit
+            CommandPanelLayoutPlanner.PlayerCommand.editTitleResFor(currentFile.type)
         )
         safeViews.btnGoogleLensPdfCmd.isVisible = isPdf
         safeViews.btnOcrPdfCmd.isVisible = isPdf

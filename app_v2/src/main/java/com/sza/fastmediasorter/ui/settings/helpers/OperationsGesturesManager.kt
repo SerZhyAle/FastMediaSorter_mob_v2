@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 
 /**
  * S1035: after the edge-gesture detail UI moved to EdgeGestureConfigDialogFragment, this manager keeps
@@ -93,6 +94,6 @@ class OperationsGesturesManager(
                 overlayPermissionLauncher.launch(controller.fallbackPermissionSettingsIntent(fragment.requireContext()))
             }
         }
-        builder.show()
+        builder.showBoundTo(fragment)
     }
 }

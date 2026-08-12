@@ -76,11 +76,13 @@ internal class AddResourceVirtualCoordinator(
                 val settings = settingsRepository.getSettings().first()
                 val resource = buildVirtualResource(virtualPath, settings)
                 if (resource != null) {
-                    addResourceUseCase(resource)
+                    // The result was already discarded here before S1423; getOrNull keeps the failure
+                    // path emitting exactly what it emitted then, now with an empty id list.
+                    val createdId = addResourceUseCase(resource).getOrNull()
                     bridge.emit(AddResourceEvent.ShowMessage(
                         context.getString(R.string.virtual_resource_added, resource.name)
                     ))
-                    bridge.emit(AddResourceEvent.ResourcesAdded)
+                    bridge.emit(AddResourceEvent.ResourcesAdded(listOfNotNull(createdId)))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to add virtual resource: $virtualPath")

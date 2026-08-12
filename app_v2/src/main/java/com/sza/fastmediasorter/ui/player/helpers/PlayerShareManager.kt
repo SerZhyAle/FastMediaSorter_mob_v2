@@ -4,13 +4,14 @@ import android.content.ClipData
 import android.content.Intent
 import android.widget.Toast
 import androidx.core.content.FileProvider
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareableContent
-import com.sza.fastmediasorter.ui.player.PlayerActivity
-import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -140,7 +141,7 @@ class PlayerShareManager(
                 shareOfficeDocument(mediaFile)
             }
             .setNegativeButton(R.string.office_viewer_fallback_cancel, null)
-            .show()
+            .showBoundTo(activity)
     }
 
     /**

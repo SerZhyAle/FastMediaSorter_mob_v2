@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -21,7 +22,10 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
 import com.sza.fastmediasorter.ui.dialog.SchedOpPickSide
 import com.sza.fastmediasorter.ui.dialog.ScheduledOperationDialog
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
@@ -29,6 +33,7 @@ import com.sza.fastmediasorter.ui.settings.ScheduledOperationsAdapter
 import com.sza.fastmediasorter.ui.settings.ScheduledOperationsViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -87,6 +92,11 @@ class OperationsScheduledManager(
             }
         )
         binding.rvScheduledOps.layoutManager = LinearLayoutManager(fragment.requireContext())
+        // S1397: no item animator. Deleting the last operation makes reconcileToggleWithList() collapse
+        // containerScheduledContent while DefaultItemAnimator still holds animating views, and the
+        // wrap_content list inside a NestedScrollView can re-measure mid-animation - both leave a
+        // tmpDetached holder without a parent, and RecyclerView throws when the animation ends.
+        binding.rvScheduledOps.itemAnimator = null
         binding.rvScheduledOps.adapter = scheduledAdapter
 
         binding.btnAddScheduledOp.setOnClickListener { showScheduledOperationDialog(null) }
@@ -125,7 +135,7 @@ class OperationsScheduledManager(
                     }
                 }
                 .setNegativeButton(android.R.string.cancel, null)
-                .show()
+                .showBoundTo(fragment)
         }
 
         fragment.collectOnLifecycle(scheduledViewModel.operations) { ops ->
@@ -136,6 +146,11 @@ class OperationsScheduledManager(
 
     /** Applies the master scheduled toggle + dependent visibility from the latest settings. */
     fun render(settings: AppSettings) {
+        Timber.d(
+            "S1397: scheduled container visible=%b animating=%b",
+            settings.enableScheduledOperations,
+            binding.rvScheduledOps.isAnimating,
+        )
         binding.rowEnableScheduledOps.setCheckedSilently(settings.enableScheduledOperations)
         binding.containerScheduledContent.isVisible = settings.enableScheduledOperations
         binding.layoutScheduledActions.isVisible = settings.enableScheduledOperations
@@ -280,7 +295,7 @@ class OperationsScheduledManager(
             .setTitle(R.string.scheduled_ops_confirm_delete)
             .setPositiveButton(R.string.delete) { _, _ -> scheduledViewModel.delete(op.id) }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun updateScheduledNotificationPermissionButton() {
@@ -293,6 +308,12 @@ class OperationsScheduledManager(
             fragment.requireContext(), Manifest.permission.POST_NOTIFICATIONS
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
         btn.isVisible = !hasPermission
+        // S1436: the label used to be a hand-written "Notification permission" that said nothing about
+        // why scheduled operations want it; the sentence now comes from the permission's registry row.
+        btn.text = fragment.requireContext().permissionRationaleShort(
+            Manifest.permission.POST_NOTIFICATIONS,
+            PermissionTask.SCHEDULED_OPERATIONS,
+        )
         btn.setOnClickListener {
             notificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
@@ -308,14 +329,44 @@ class OperationsScheduledManager(
                 return
             }
         }
+        // S1436: the release build strips REQUEST_IGNORE_BATTERY_OPTIMIZATIONS from the manifest, so
+        // asking for it there would send the user to a screen that cannot help them.
+        if (!BuildConfig.DECLARES_BATTERY_OPTIMIZATION) return
         val pm = fragment.requireContext().getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
         if (!pm.isIgnoringBatteryOptimizations(fragment.requireContext().packageName)) {
-            try {
-                val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                    data = Uri.parse("package:${fragment.requireContext().packageName}")
-                }
-                fragment.startActivity(intent)
-            } catch (_: Exception) { }
+            explainThenOpenBatteryOptimizationScreen()
+        }
+    }
+
+    /**
+     * S1436: the exclusion screen used to open with nothing said first. It is the longest jump any
+     * request here makes - out of the app, into a system list - so the registry's paragraph is shown
+     * before it, and the user can decline without leaving the settings screen at all.
+     */
+    private fun explainThenOpenBatteryOptimizationScreen() {
+        Timber.d("S1436: battery optimization explained before the system screen")
+        MaterialAlertDialogBuilder(fragment.requireContext())
+            .setTitle(R.string.perm_title_battery_optimization)
+            .setMessage(
+                fragment.requireContext().permissionRationale(
+                    Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                )
+            )
+            .setPositiveButton(R.string.grant_permission) { _, _ -> openBatteryOptimizationScreen() }
+            .setNegativeButton(android.R.string.cancel, null)
+            .showBoundTo(fragment)
+    }
+
+    private fun openBatteryOptimizationScreen() {
+        try {
+            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                data = Uri.parse("package:${fragment.requireContext().packageName}")
+            }
+            fragment.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            // Some vendor builds ship no handler for this intent; the schedule still runs, it may just
+            // be delayed, so there is nothing to recover and nothing worth interrupting the user with.
+            Timber.w(e, "battery optimization screen unavailable")
         }
     }
 

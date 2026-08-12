@@ -63,7 +63,7 @@ Build questions -> `/build`; run debug builds via PowerShell autonomously. pwsh 
 
 ## Post-Change
 
-Prefer facade `scripts/post-change.ps1 -File <p> -Target <t> -Description <d> -ChangeType <Doc|Script|Config|Kotlin|Xml|Mixed>` (chains dev-log + catalog-sync + gates):
+Prefer facade `scripts/post-change.ps1 -File <p> -Target <t> -Description <d> -ChangeType <Doc|Script|Config|Tooling|Kotlin|Xml|Mixed>` (chains dev-log + catalog-sync + gates; use `Tooling` for build/config-plus-script sets):
 1. Dev log: `./scripts/add_to_dev_log.ps1 "<path>" "<target>" "<desc>"` - one entry per logical change/ticket, not per file (batch via `close-and-log.ps1 -DevLogs`). Never edit `dev/CHANGELOG.md`.
 2. Capability: record shippable capability in `docs/ALL_FEATURES.jsonl` via `scripts/all_features/add.ps1` (EN-only; `-NoLegal` for noLegal). Never edit `docs/FEATURES*.md` per-spec (`/skill-release`-owned).
 3. Strings: `pwsh -NoProfile -File scripts/utils/set-android-string.ps1` (byte-preserving). `-Action set` = one key/locale (`-ExpectedOldValue`, `-CreateIfMissing`); `add` = key across EN/RU/UK (`-En -Ru -Uk`, parity-enforced); `get|remove|rename|list` = lifecycle. Hand-edit only `plurals`/`string-array`/comments/regrouping/bulk.

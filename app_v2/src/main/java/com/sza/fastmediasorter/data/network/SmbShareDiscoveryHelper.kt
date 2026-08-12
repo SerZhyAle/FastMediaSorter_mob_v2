@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.network
 
 import com.hierynomus.smbj.auth.AuthenticationContext
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.domain.model.MediaExtensions
@@ -123,6 +124,7 @@ class SmbShareDiscoveryHelper(private val connectionManager: SmbConnectionManage
             }
             SmbResult.Success(sharesList)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to connect to SMB server for share enumeration")
             SmbResult.Error("Connection failed: ${e.message}. Please verify server address and credentials.", e)
         }

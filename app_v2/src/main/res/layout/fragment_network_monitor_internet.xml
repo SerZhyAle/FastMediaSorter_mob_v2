@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1433 Internet and resources subscreen, portrait. Every action that spends traffic sits under one
+     heading with one progress row and one stop button, so it is always unambiguous what the stop refers
+     to - the ViewModel runs one operation at a time by construction. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/internetSectionScroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:padding="@dimen/margin_small">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+            android:text="@string/network_monitor_section_internet" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/network_monitor_path_heading"
+                    android:textSize="@dimen/text_size_normal" />
+
+                <com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkPathDiagramView
+                    android:id="@+id/internetPathDiagram"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:contentDescription="@string/network_monitor_path_heading" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                    <TextView
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                        android:text="@string/network_monitor_traffic_down_label" />
+
+                    <TextView
+                        android:id="@+id/internetTrafficDownValue"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                        tools:text="1.2 MB/s" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                    <TextView
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                        android:text="@string/network_monitor_traffic_up_label" />
+
+                    <TextView
+                        android:id="@+id/internetTrafficUpValue"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                        tools:text="64 kB/s" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <include
+            android:id="@+id/internetChart"
+            layout="@layout/view_network_monitor_signal_chart" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/network_monitor_actions_heading"
+                    android:textSize="@dimen/text_size_normal" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/internetTargetPickerLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:hint="@string/network_monitor_target_label">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/internetTargetPicker"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="true"
+                        android:inputType="none"
+                        android:nextFocusDown="@+id/internetRangeFirst"
+                        tools:text="@string/network_monitor_target_internet" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:text="@string/network_monitor_range_heading" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="@string/network_monitor_range_first_hint">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/internetRangeFirst"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:imeOptions="actionNext"
+                            android:inputType="text"
+                            android:nextFocusDown="@+id/internetRangeLast"
+                            tools:ignore="TextFields" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/margin_small"
+                        android:layout_weight="1"
+                        android:hint="@string/network_monitor_range_last_hint">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/internetRangeLast"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:focusable="true"
+                            android:imeOptions="actionDone"
+                            android:inputType="text"
+                            android:nextFocusDown="@+id/btnInternetCheckResource"
+                            tools:ignore="TextFields" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnInternetCheckResource"
+                    style="@style/Widget.FastMediaSorter.Button.Filled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:clickable="true"
+                    android:enabled="false"
+                    android:focusable="true"
+                    android:nextFocusDown="@+id/btnInternetScanSubnet"
+                    android:text="@string/network_monitor_action_check_resource" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnInternetScanSubnet"
+                    style="@style/Widget.FastMediaSorter.Button.Filled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:nextFocusDown="@+id/btnInternetExternalIp"
+                    android:text="@string/network_monitor_action_scan_subnet" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnInternetExternalIp"
+                    style="@style/Widget.FastMediaSorter.Button.Filled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:nextFocusDown="@+id/btnInternetSpeedTest"
+                    android:text="@string/network_monitor_action_external_ip" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnInternetSpeedTest"
+                    style="@style/Widget.FastMediaSorter.Button.Filled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:nextFocusDown="@+id/btnInternetCancel"
+                    android:text="@string/network_monitor_action_speed_test" />
+
+                <LinearLayout
+                    android:id="@+id/internetProgressGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <TextView
+                        android:id="@+id/internetProgressLabel"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                        tools:text="@string/network_monitor_running_speed_test" />
+
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/internetProgress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        app:trackCornerRadius="@dimen/card_corner_radius" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnInternetCancel"
+                        style="@style/Widget.FastMediaSorter.Button.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:nextFocusUp="@+id/btnInternetSpeedTest"
+                        android:text="@string/network_monitor_action_cancel" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/internetResult"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:visibility="gone"
+                    tools:text="@string/network_monitor_result_speed_test_metered"
+                    tools:visibility="visible" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,2143 @@
+[
+  {
+    "coordinate": "androidx.activity:activity-compose",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "AndroidX Activity Compose",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.activity:activity-ktx",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Activity KTX",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.appcompat:appcompat",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX AppCompat",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.browser:browser",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Browser",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.camera:camera-camera2",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX CameraX Camera2",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.camera:camera-core",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX CameraX Core",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.camera:camera-extensions",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX CameraX Extensions",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.camera:camera-lifecycle",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX CameraX Lifecycle",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.camera:camera-video",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX CameraX Video",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.camera:camera-view",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX CameraX View",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.compose.material:material-icons-core",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Jetpack Compose Material Icons Core",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.compose.material:material-icons-extended",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Jetpack Compose Material Icons Extended",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.compose.material3:material3",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Jetpack Compose Material 3",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.compose.ui:ui",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Jetpack Compose UI",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.compose.ui:ui-graphics",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Jetpack Compose UI Graphics",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.compose.ui:ui-tooling-preview",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Jetpack Compose UI Tooling Preview",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.constraintlayout:constraintlayout",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX ConstraintLayout",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/constraintlayout",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.core:core-ktx",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Core KTX",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.credentials:credentials",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Credentials",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.credentials:credentials-play-services-auth",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Credentials Play Services Auth",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.datastore:datastore-preferences",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "AndroidX DataStore Preferences",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.documentfile:documentfile",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX DocumentFile",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.exifinterface:exifinterface",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX ExifInterface",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.fragment:fragment-ktx",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Fragment KTX",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.hilt:hilt-work",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Hilt WorkManager",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.lifecycle:lifecycle-livedata-ktx",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Lifecycle LiveData KTX",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.lifecycle:lifecycle-process",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Lifecycle Process",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.lifecycle:lifecycle-runtime-ktx",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "AndroidX Lifecycle Runtime KTX",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.lifecycle:lifecycle-viewmodel-compose",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "AndroidX Lifecycle ViewModel Compose",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.lifecycle:lifecycle-viewmodel-ktx",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Lifecycle ViewModel KTX",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.media3:media3-common",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "AndroidX Media3 Common",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.media3:media3-decoder",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Media3 Decoder",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.media3:media3-effect",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Media3 Effect",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.media3:media3-exoplayer",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "AndroidX Media3 ExoPlayer",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.media3:media3-exoplayer-dash",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Media3 ExoPlayer DASH",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "noLegal",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.media3:media3-exoplayer-hls",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Media3 ExoPlayer HLS",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "noLegal",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.media3:media3-exoplayer-midi",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Media3 ExoPlayer MIDI",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.media3:media3-exoplayer-rtsp",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Media3 ExoPlayer RTSP",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "noLegal",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.media3:media3-session",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Media3 Session",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.media3:media3-transformer",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Media3 Transformer",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.media3:media3-ui",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "AndroidX Media3 UI",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.mediarouter:mediarouter",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX MediaRouter",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.paging:paging-runtime-ktx",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Paging Runtime KTX",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.print:print",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Print",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.profileinstaller:profileinstaller",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX ProfileInstaller",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.recyclerview:recyclerview",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX RecyclerView",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.room:room-ktx",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Room KTX",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.room:room-runtime",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Room Runtime",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.security:security-crypto",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "AndroidX Security Crypto",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.swiperefreshlayout:swiperefreshlayout",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX SwipeRefreshLayout",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.viewpager2:viewpager2",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX ViewPager2",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.work:work-runtime-ktx",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX WorkManager Runtime KTX",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.android.tools:desugar_jdk_libs",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Java 8+ API desugaring support",
+    "spdx": "GPL-2.0-with-classpath-exception",
+    "licenseUrl": "https://github.com/google/desugar_jdk_libs/blob/master/LICENSE",
+    "sourceUrl": "https://github.com/google/desugar_jdk_libs",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": "The Classpath Exception removes the copyleft effect of linking, so using this library does not oblige us to release the application source. The exception must be named alongside the GPL or the entry reads as a stronger obligation than it is."
+  },
+  {
+    "coordinate": "com.dropbox.core:dropbox-core-sdk",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Dropbox Java SDK",
+    "spdx": "MIT",
+    "licenseUrl": "https://raw.githubusercontent.com/dropbox/dropbox-sdk-java/main/License.txt",
+    "sourceUrl": "https://github.com/dropbox/dropbox-sdk-java",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.github.bumptech.glide:glide",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Glide",
+    "spdx": "BSD-2-Clause AND Apache-2.0 AND MIT",
+    "licenseUrl": "https://raw.githubusercontent.com/bumptech/glide/master/LICENSE",
+    "sourceUrl": "https://github.com/bumptech/glide",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": "Compound licence: BSD-2-Clause for Glide itself, Apache-2.0 for third_party/disklrucache, MIT for third_party/gif_decoder, plus two permissive grants in third_party/gif_encoder that have no SPDX identifier."
+  },
+  {
+    "coordinate": "com.github.bumptech.glide:okhttp3-integration",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Glide OkHttp3 Integration",
+    "spdx": "BSD-2-Clause",
+    "licenseUrl": "https://raw.githubusercontent.com/bumptech/glide/master/LICENSE",
+    "sourceUrl": "https://github.com/bumptech/glide",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.github.chrisbanes:PhotoView",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "PhotoView",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://raw.githubusercontent.com/Baseflow/PhotoView/2.3.0/LICENSE",
+    "sourceUrl": "https://github.com/Baseflow/PhotoView",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": "Published on JitPack under the original author coordinate; the canonical repository is Baseflow/PhotoView."
+  },
+  {
+    "coordinate": "com.github.chuckerteam.chucker:library-no-op",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Chucker (no-op)",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://raw.githubusercontent.com/ChuckerTeam/chucker/main/LICENSE.txt",
+    "sourceUrl": "https://github.com/ChuckerTeam/chucker",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.github.mwiede:jsch",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "JSch (mwiede fork)",
+    "spdx": "BSD-3-Clause",
+    "licenseUrl": "https://raw.githubusercontent.com/mwiede/jsch/master/LICENSE.txt",
+    "sourceUrl": "https://github.com/mwiede/jsch",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": "The POM declares three licences: BSD-3-Clause for JSch, BSD-3-Clause for the bundled JZlib, ISC for the bundled jBCrypt."
+  },
+  {
+    "coordinate": "com.google.android.gms:play-services-auth",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Google Play services Auth",
+    "spdx": "Android Software Development Kit License",
+    "licenseUrl": "https://developer.android.com/studio/terms.html",
+    "sourceUrl": "https://developers.google.com/android/guides/setup",
+    "oss": false,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.google.android.gms:play-services-cast-framework",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Google Cast Framework",
+    "spdx": "Android Software Development Kit License",
+    "licenseUrl": "https://developer.android.com/studio/terms.html",
+    "sourceUrl": "https://developers.google.com/cast",
+    "oss": false,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.google.android.gms:play-services-wearable",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Google Play services Wearable",
+    "spdx": "Android Software Development Kit License",
+    "licenseUrl": "https://developer.android.com/studio/terms.html",
+    "sourceUrl": "https://developers.google.com/android/guides/setup",
+    "oss": false,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.google.android.libraries.identity.googleid:googleid",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Google ID for Credential Manager",
+    "spdx": "Android Software Development Kit License",
+    "licenseUrl": "https://developer.android.com/studio/terms.html",
+    "sourceUrl": "https://developer.android.com/identity/sign-in/credential-manager-siwg",
+    "oss": false,
+    "shippedIn": [
+      "legacy",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.google.android.material:material",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Material Components for Android",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/material-components/material-components-android",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.google.android.play:feature-delivery-ktx",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Play Feature Delivery",
+    "spdx": "Play Core Software Development Kit Terms of Service",
+    "licenseUrl": "https://developer.android.com/guide/playcore/license",
+    "sourceUrl": "https://developer.android.com/guide/playcore",
+    "oss": false,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.google.android.play:review-ktx",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Play In-App Review",
+    "spdx": "Play Core Software Development Kit Terms of Service",
+    "licenseUrl": "https://developer.android.com/guide/playcore/license",
+    "sourceUrl": "https://developer.android.com/guide/playcore",
+    "oss": false,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.google.dagger:hilt-android",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Dagger Hilt Android",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/google/dagger",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.google.mlkit:language-id",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "ML Kit Language Identification",
+    "spdx": "ML Kit Terms of Service",
+    "licenseUrl": "https://developers.google.com/ml-kit/terms",
+    "sourceUrl": "https://developers.google.com/ml-kit/language/identification",
+    "oss": false,
+    "shippedIn": [
+      "legacy",
+      "noLegal",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.google.mlkit:translate",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "ML Kit Translation",
+    "spdx": "ML Kit Terms of Service",
+    "licenseUrl": "https://developers.google.com/ml-kit/terms",
+    "sourceUrl": "https://developers.google.com/ml-kit/language/translation",
+    "oss": false,
+    "shippedIn": [
+      "legacy",
+      "noLegal",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.google.zxing:core",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "ZXing Core",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/zxing/zxing",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": "Licence inherited from the zxing-parent POM; the core artifact declares no licences block of its own."
+  },
+  {
+    "coordinate": "com.hierynomus:smbj",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "SMBJ",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/hierynomus/smbj",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": "Apache-2.0 per the repository LICENSE_HEADER and the licences block of the 0.12.1 POM. The LGPL sometimes associated with SMB clients on Android belongs to jcifs-ng, a different library this project does not use."
+  },
+  {
+    "coordinate": "com.jakewharton.timber:timber",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Timber",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/JakeWharton/timber",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.microsoft.identity.client:msal",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Microsoft Authentication Library",
+    "spdx": "MIT",
+    "licenseUrl": "https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/LICENSE",
+    "sourceUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-android",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.squareup.okhttp3:okhttp",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "OkHttp",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/square/okhttp",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.squareup.retrofit2:converter-gson",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Retrofit Gson Converter",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/square/retrofit",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.squareup.retrofit2:retrofit",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Retrofit",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/square/retrofit",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "commons-net:commons-net",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Apache Commons Net",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://raw.githubusercontent.com/apache/commons-net/master/LICENSE.txt",
+    "sourceUrl": "https://github.com/apache/commons-net",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "cz.adaptech:tesseract4android",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Tesseract4Android",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://raw.githubusercontent.com/adaptech-cz/Tesseract4Android/master/LICENSE",
+    "sourceUrl": "https://github.com/adaptech-cz/Tesseract4Android",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "noLegal",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": "Bundles Tesseract OCR (Apache-2.0) and Leptonica (BSD-2-Clause) as native libraries."
+  },
+  {
+    "coordinate": "io.documentnode:epub4j-core",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "epub4j",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://raw.githubusercontent.com/documentnode/epub4j/main/LICENSE",
+    "sourceUrl": "https://github.com/documentnode/epub4j",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": "Apache-2.0 per the repository LICENSE and the 4.2 POM. The upstream epublib project this is forked from declares LGPL in its parent POM, which is why the two are sometimes conflated."
+  },
+  {
+    "coordinate": "io.noties.markwon:core",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Markwon",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://raw.githubusercontent.com/noties/Markwon/master/LICENSE",
+    "sourceUrl": "https://github.com/noties/Markwon",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "local:fms-ffmpeg-dts",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "FFmpeg (custom Media3 decoder build)",
+    "spdx": "LGPL-2.1-or-later",
+    "licenseUrl": "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html",
+    "sourceUrl": "https://github.com/androidx/media/tree/release/libraries/decoder_ffmpeg",
+    "oss": true,
+    "shippedIn": [
+      "standard",
+      "noLegal",
+      "legacy",
+      "vr"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": true,
+    "note": "Built from FFmpeg sources by scripts/builders/build-ffmpeg-dts.sh and shipped as app_v2/libs/fms-ffmpeg-dts.aar. Its configure invocation passes neither --enable-gpl nor --enable-nonfree and disables postproc, the GPL component, so the produced binary is LGPL-2.1-or-later."
+  },
+  {
+    "coordinate": "net.lingala.zip4j:zip4j",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Zip4j",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://raw.githubusercontent.com/srikanth-lingala/zip4j/master/LICENSE",
+    "sourceUrl": "https://github.com/srikanth-lingala/zip4j",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "net.openid:appauth",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AppAuth for Android",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://raw.githubusercontent.com/openid/AppAuth-Android/master/LICENSE",
+    "sourceUrl": "https://github.com/openid/AppAuth-Android",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "org.bouncycastle:bcprov-jdk18on",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Bouncy Castle Provider",
+    "spdx": "MIT",
+    "licenseUrl": "https://www.bouncycastle.org/licence.html",
+    "sourceUrl": "https://github.com/bcgit/bc-java",
+    "oss": true,
+    "shippedIn": [
+      "standard",
+      "noLegal",
+      "lite",
+      "photos",
+      "legacy",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": true,
+    "via": "com.hierynomus:smbj",
+    "bundled": false,
+    "note": "Published as the \"Bouncy Castle Licence\"; the text is verbatim MIT with their copyright, so scanners report NOASSERTION and the identifier is set by hand."
+  },
+  {
+    "coordinate": "org.jetbrains.kotlinx:kotlinx-coroutines-android",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Kotlin Coroutines Android",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/Kotlin/kotlinx.coroutines",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Kotlin Coroutines Core",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/Kotlin/kotlinx.coroutines",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "org.jetbrains.kotlinx:kotlinx-coroutines-play-services",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Kotlin Coroutines Play Services",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/Kotlin/kotlinx.coroutines",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "org.jsoup:jsoup",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "jsoup",
+    "spdx": "MIT",
+    "licenseUrl": "https://raw.githubusercontent.com/jhy/jsoup/master/LICENSE",
+    "sourceUrl": "https://github.com/jhy/jsoup",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "org.nanohttpd:nanohttpd",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "NanoHTTPD",
+    "spdx": "BSD-3-Clause",
+    "licenseUrl": "https://raw.githubusercontent.com/NanoHttpd/nanohttpd/master/LICENSE.md",
+    "sourceUrl": "https://github.com/NanoHttpd/nanohttpd",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": "Licence inherited from the nanohttpd-project POM; the artifact declares no licences block of its own."
+  }
+]

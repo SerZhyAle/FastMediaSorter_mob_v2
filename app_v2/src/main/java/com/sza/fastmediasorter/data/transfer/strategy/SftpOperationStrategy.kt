@@ -1,16 +1,16 @@
 package com.sza.fastmediasorter.data.transfer.strategy
 
 import android.content.Context
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import com.sza.fastmediasorter.data.transfer.FileExistsException
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,6 +19,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
+import javax.inject.Inject
 
 /**
  * Strategy for SFTP (SSH File Transfer Protocol) file operations.
@@ -63,6 +64,7 @@ class SftpOperationStrategy @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy: Copy failed - $source -> $destination")
             Result.failure(e)
         }
@@ -109,6 +111,7 @@ class SftpOperationStrategy @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy: Move failed - $source -> $destination")
             Result.failure(e)
         }
@@ -135,6 +138,7 @@ class SftpOperationStrategy @Inject constructor(
                 sftpClient.deleteFile(connectionInfo, pathInfo.remotePath)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy: Delete failed - $path")
             Result.failure(e)
         }
@@ -149,6 +153,7 @@ class SftpOperationStrategy @Inject constructor(
             
             sftpClient.exists(connectionInfo, pathInfo.remotePath)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy: exists check failed - $path")
             Result.failure(e)
         }
@@ -161,6 +166,7 @@ class SftpOperationStrategy @Inject constructor(
 
             sftpClient.createDirectory(connectionInfo, pathInfo.remotePath)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy: Create directory failed - $path")
             Result.failure(e)
         }
@@ -185,6 +191,7 @@ class SftpOperationStrategy @Inject constructor(
             )
             Result.success(localFile.absolutePath)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy.createTextFile failed - parent=$parentPath name=$fileName")
             Result.failure(e)
         }
@@ -207,6 +214,7 @@ class SftpOperationStrategy @Inject constructor(
             // Return the uploadResult directly to preserve any SftpException and its status code
             uploadResult
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy: Write file failed - $path")
             Result.failure(e)
         }
@@ -232,6 +240,7 @@ class SftpOperationStrategy @Inject constructor(
                  Result.failure(Exception("Download failed: ${downloadResult.exceptionOrNull()?.message}"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy: Read file failed - $path")
             Result.failure(e)
         }
@@ -408,6 +417,7 @@ class SftpOperationStrategy @Inject constructor(
             
             return Result.success(destination)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SFTP to SFTP copy failed: $source -> $destination")
             return Result.failure(e)
         }
@@ -458,6 +468,7 @@ class SftpOperationStrategy @Inject constructor(
                 Result.failure(e)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SFTP to Local download failed: $source -> $destination")
             return Result.failure(e)
         }
@@ -505,6 +516,7 @@ class SftpOperationStrategy @Inject constructor(
             
             return Result.success(destination)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Local to SFTP upload failed: $source -> $destination")
             return Result.failure(e)
         }
@@ -553,6 +565,7 @@ class SftpOperationStrategy @Inject constructor(
             Timber.d("SftpOperationStrategy: Deleted directory $path ($deletedCount items)")
             Result.success(deletedCount)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy: Delete directory failed - $path")
             Result.failure(e)
         }
@@ -603,6 +616,7 @@ class SftpOperationStrategy @Inject constructor(
                 Result.failure(renameResult.exceptionOrNull() ?: Exception("Rename failed"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy: Rename directory failed - $oldPath -> $newPath")
             Result.failure(e)
         }
@@ -658,6 +672,7 @@ class SftpOperationStrategy @Inject constructor(
             Timber.d("SftpOperationStrategy: Copied directory $source -> $destination ($copiedCount files)")
             Result.success(copiedCount)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy: Copy directory failed - $source -> $destination")
             Result.failure(e)
         }
@@ -698,6 +713,7 @@ class SftpOperationStrategy @Inject constructor(
                 Result.failure(attrsResult.exceptionOrNull() ?: Exception("Failed to get attributes"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy: isDirectory check failed - $path")
             Result.failure(e)
         }
@@ -738,6 +754,7 @@ class SftpOperationStrategy @Inject constructor(
                 )
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy: getDirectoryInfo failed - $path")
             Result.failure(e)
         }

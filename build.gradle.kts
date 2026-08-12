@@ -11,9 +11,9 @@ buildscript {
         classpath("com.google.dagger:hilt-android-gradle-plugin:2.59")
     }
     
-    // Check for compatible JDK version (Gradle 8.7+ supports up to Java 21, but 25 is definitely too new)
-    if (JavaVersion.current() > JavaVersion.VERSION_21) {
-        throw GradleException("This build is running on Java ${JavaVersion.current()}. It requires Java 17 or 21.\n" +
+    // Check for compatible JDK version (Gradle 9.4+ supports up to Java 25)
+    if (JavaVersion.current() > JavaVersion.toVersion("25")) {
+        throw GradleException("This build is running on Java ${JavaVersion.current()}. It requires Java 17, 21, or 25.\n" +
             "Please check your Gradle JDK setting in Android Studio:\n" +
             "Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JDK")
     }

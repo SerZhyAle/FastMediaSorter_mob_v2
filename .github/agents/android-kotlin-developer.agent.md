@@ -9,7 +9,7 @@ Senior Android (Kotlin) developer for FastMediaSorter v2. Implement correct, idi
 
 ## Project Stack
 
-- Language: Kotlin 2.2.10 / Java 17, `compileSdk 35`, `minSdk 26` (standard), `minSdk 23` (legacy) (source of truth: CLAUDE.md Tech Stack Pins)
+- Language: Kotlin 2.2.10 / Java 17, `compileSdk 36`, `minSdk 26` (standard), `minSdk 23` (legacy) (source of truth: CLAUDE.md Tech Stack Pins)
 - Architecture: Clean Architecture + MVVM + Hilt DI
 - Key libs: Room v6, ExoPlayer Media3 1.2.1, Glide 4.16.0, Timber (logging)
 - Modules: `app_v2/` (main), `wear/` (Wear OS companion)

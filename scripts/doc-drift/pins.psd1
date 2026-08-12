@@ -372,6 +372,20 @@
             exclude   = @()
         }
 
+        # S1496: BouncyCastle has no coordinate in either build file - SMBJ pulls it transitively.
+        # The pin is the version app_v2/build.gradle.kts asserts at configuration time, so this
+        # record is what keeps that literal and the documentation from drifting apart, which is
+        # exactly what S1489 had to clean up when four README files claimed an unverifiable number.
+        @{
+            name      = 'bouncycastle-expected'
+            gradleKey = 'bouncycastle-expected'
+            docs      = @{
+                'docs/TECH_STACK.md' = @{ required = $true; matcher = 'bcprov-jdk18on:(?<v>[\d\.]+)' }
+            }
+            policy    = 'allMustMatch'
+            exclude   = @()
+        }
+
         @{
             name      = 'lib.commons-net:commons-net'
             gradleKey = 'lib.commons-net:commons-net'

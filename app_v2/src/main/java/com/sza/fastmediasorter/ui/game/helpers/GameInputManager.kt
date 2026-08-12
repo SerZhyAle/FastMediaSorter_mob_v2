@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.ui.game.GameBoardView
 class GameInputManager(
     private val onDirection: (GameDirection) -> Unit,
     private val onPrimaryAction: () -> Unit,
+    private val onRestartLevel: () -> Unit,
     private val onBack: () -> Unit
 ) {
 
@@ -60,6 +61,13 @@ class GameInputManager(
             KeyEvent.KEYCODE_DPAD_CENTER,
             KeyEvent.KEYCODE_SPACE -> {
                 onPrimaryAction()
+                true
+            }
+            // The screen consumes every D-pad direction before the focus system sees it, so the
+            // action-row buttons are unreachable by focus and each command needs its own key.
+            KeyEvent.KEYCODE_R,
+            KeyEvent.KEYCODE_BUTTON_Y -> {
+                onRestartLevel()
                 true
             }
             KeyEvent.KEYCODE_ESCAPE -> {

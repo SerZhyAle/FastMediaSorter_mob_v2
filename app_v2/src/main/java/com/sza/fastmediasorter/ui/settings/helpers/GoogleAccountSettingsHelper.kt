@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
 import com.sza.fastmediasorter.domain.identity.IdentityFailureReason
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
 import com.sza.fastmediasorter.ui.settings.GoogleAccountSettingsViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -183,7 +184,7 @@ class GoogleAccountSettingsHelper(
             .setMessage(R.string.s0200_sign_out_confirm_message)
             .setPositiveButton(R.string.s0200_sign_out_confirm_confirm) { _, _ -> viewModel.signOutPrimary() }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     // S0234: per-reason action click - PlayServicesOutdated routes to Play Store,

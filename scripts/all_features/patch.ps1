@@ -47,58 +47,68 @@ function Split-Csv([string]$s) { return @($s -split '[,\s]+' | Where-Object { $_
 # repo root
 $scriptDir = $PSScriptRoot
 if (-not $scriptDir) { $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path }
-$repoRoot = Split-Path -Parent (Split-Path -Parent $scriptDir)
-if (-not (Test-Path (Join-Path $repoRoot "settings.gradle.kts"))) { $repoRoot = (Get-Location).Path }
+. (Join-Path $scriptDir '_lib.ps1')
+$repoRoot = Resolve-FeatureRepoRoot -ScriptDir $scriptDir
 $fileName = if ($NoLegal) { "ALL_FEATURES_noLegal.jsonl" } else { "ALL_FEATURES.jsonl" }
-$dataFile = Join-Path (Join-Path $repoRoot "docs") $fileName
+$dataFile = Get-FeatureInventoryPath -RepoRoot $repoRoot -NoLegal:$NoLegal
 if (-not (Test-Path $dataFile)) { Fail "Not found: $dataFile" }
 
 $idN = $Id.Trim()
-$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-$lines = @(Get-Content -LiteralPath $dataFile -Encoding UTF8 | Where-Object { $_.Trim().Length -gt 0 })
 
-$found = $false
-$out = New-Object System.Collections.Generic.List[string]
-foreach ($l in $lines) {
-    $o = $null
-    try { $o = $l | ConvertFrom-Json } catch { $o = $null }
-    if (-not $o -or $o.id -ne $idN) { $out.Add($l); continue }
-    $found = $true
+# S1537: the whole read -> patch -> write path is the critical section. Unlike add.ps1 the
+# validation here runs INSIDE it, one record at a time, so every Fail can fire with the lock
+# held - hence the finally.
+Enter-FeatureLock -RepoRoot $repoRoot
+try {
+    $lines = Read-FeatureLines -Path $dataFile
 
-    # current values
-    $area = if ($Area) { $Area.Trim() } else { "$($o.area)" }
-    $name = if ($Name) { $Name.Trim() } else { "$($o.name)" }
-    $desc = if ($Description) { ($Description -replace '\s+', ' ').Trim() } else { "$($o.description)" }
-    # NB: local must not be named $spec - it would alias the [string]-typed $Spec param (case-insensitive) and coerce $null to "".
-    $specVal = if ($PSBoundParameters.ContainsKey('Spec')) {
-        if ($Spec) { $Spec.Trim() } else { $null }
-    } elseif ([string]::IsNullOrEmpty([string]$o.spec)) { $null } else { "$($o.spec)" }
-    $status = if ($Status) { $Status } elseif ($o.PSObject.Properties.Name -contains 'status' -and $o.status) { "$($o.status)" } else { "active" }
-    $flavors = @($o.flavors)
+    $found = $false
+    $out = New-Object System.Collections.Generic.List[string]
+    foreach ($l in $lines) {
+        $o = $null
+        try { $o = $l | ConvertFrom-Json } catch { $o = $null }
+        if (-not $o -or $o.id -ne $idN) { $out.Add($l); continue }
+        $found = $true
 
-    if ($SetFlavors) {
-        $flavors = Split-Csv $SetFlavors
-    } else {
-        if ($AddFlavors) { $flavors = @($flavors + (Split-Csv $AddFlavors)) }
-        if ($RemoveFlavors) { $rm = Split-Csv $RemoveFlavors; $flavors = @($flavors | Where-Object { $rm -notcontains $_ }) }
+        # current values
+        $area = if ($Area) { $Area.Trim() } else { "$($o.area)" }
+        $name = if ($Name) { $Name.Trim() } else { "$($o.name)" }
+        $desc = if ($Description) { ($Description -replace '\s+', ' ').Trim() } else { "$($o.description)" }
+        # NB: local must not be named $spec - it would alias the [string]-typed $Spec param (case-insensitive) and coerce $null to "".
+        $specVal = if ($PSBoundParameters.ContainsKey('Spec')) {
+            if ($Spec) { $Spec.Trim() } else { $null }
+        } elseif ([string]::IsNullOrEmpty([string]$o.spec)) { $null } else { "$($o.spec)" }
+        $status = if ($Status) { $Status } elseif ($o.PSObject.Properties.Name -contains 'status' -and $o.status) { "$($o.status)" } else { "active" }
+        $flavors = @($o.flavors)
+
+        if ($SetFlavors) {
+            $flavors = Split-Csv $SetFlavors
+        } else {
+            if ($AddFlavors) { $flavors = @($flavors + (Split-Csv $AddFlavors)) }
+            if ($RemoveFlavors) { $rm = Split-Csv $RemoveFlavors; $flavors = @($flavors | Where-Object { $rm -notcontains $_ }) }
+        }
+        $flavors = @($flavors | Select-Object -Unique)
+
+        # validate
+        if ($flavors.Count -eq 0) { Fail "Record '$idN' would have empty flavors." }
+        foreach ($f in $flavors) { if ($validFlavors -notcontains $f) { Fail "Invalid flavor '$f'." } }
+        if ((Test-NonAscii $name) -or (Test-NonAscii $desc)) { Fail "EN-only: non-ASCII in name/description." }
+        if ($specVal -and "$specVal" -notmatch '^S\d{4}$') { Fail "Invalid spec '$specVal'." }
+
+        $writeId = if ($NewId) { $NewId.Trim() } else { $idN }
+        if ($writeId -notmatch '^[a-z0-9]+(?:[-_][a-z0-9]+)*\.[a-z0-9]+(?:[-_][a-z0-9]+)*$') { Fail "Invalid new id '$writeId'." }
+
+        $rec = [ordered]@{ id = $writeId; area = $area; name = $name; description = $desc; flavors = $flavors; spec = $specVal; status = $status }
+        $out.Add(($rec | ConvertTo-Json -Compress -Depth 5))
     }
-    $flavors = @($flavors | Select-Object -Unique)
 
-    # validate
-    if ($flavors.Count -eq 0) { Fail "Record '$idN' would have empty flavors." }
-    foreach ($f in $flavors) { if ($validFlavors -notcontains $f) { Fail "Invalid flavor '$f'." } }
-    if ((Test-NonAscii $name) -or (Test-NonAscii $desc)) { Fail "EN-only: non-ASCII in name/description." }
-    if ($specVal -and "$specVal" -notmatch '^S\d{4}$') { Fail "Invalid spec '$specVal'." }
-
-    $writeId = if ($NewId) { $NewId.Trim() } else { $idN }
-    if ($writeId -notmatch '^[a-z0-9]+(?:[-_][a-z0-9]+)*\.[a-z0-9]+(?:[-_][a-z0-9]+)*$') { Fail "Invalid new id '$writeId'." }
-
-    $rec = [ordered]@{ id = $writeId; area = $area; name = $name; description = $desc; flavors = $flavors; spec = $specVal; status = $status }
-    $out.Add(($rec | ConvertTo-Json -Compress -Depth 5))
+    # The not-found exit lives outside the section: reporting it while still holding the lock
+    # would make every caller behind us wait on a call that changes nothing.
+    if ($found) { Write-FeatureLines -Path $dataFile -Lines $out }
 }
+finally { Exit-FeatureLock }
 
 if (-not $found) { Write-Error "Id '$idN' not found in docs/$fileName" -ErrorAction Continue; exit 2 }
 
-[System.IO.File]::WriteAllText($dataFile, (($out -join "`n") + "`n"), $utf8NoBom)
 if (-not $Quiet) { Write-Host "[patch] $idN -> flavors=[$($flavors -join ',')] status=$status (docs/$fileName)" -ForegroundColor Green }
 exit 0

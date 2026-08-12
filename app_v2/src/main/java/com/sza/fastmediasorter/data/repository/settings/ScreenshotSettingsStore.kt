@@ -161,48 +161,66 @@ class ScreenshotSettingsStore private constructor() {
 
         fun write(preferences: MutablePreferences, settings: AppSettings) {
             preferences[KEY_GESTURE_OVERLAY_ENABLED] = settings.gestureOverlayEnabled
-            preferences[KEY_ZONE_LEFT_TOP_ENABLED] = settings.screenshotGestureZoneLeftTopEnabled
-            preferences[KEY_ZONE_LEFT_BOTTOM_ENABLED] = settings.screenshotGestureZoneLeftBottomEnabled
-            preferences[KEY_ZONE_RIGHT_TOP_ENABLED] = settings.screenshotGestureZoneRightTopEnabled
-            preferences[KEY_ZONE_RIGHT_BOTTOM_ENABLED] = settings.screenshotGestureZoneRightBottomEnabled
-            preferences[KEY_ZONE_LEFT_TOP_STRIP_VISIBLE] = settings.screenshotGestureZoneLeftTopStripVisible
-            preferences[KEY_ZONE_LEFT_BOTTOM_STRIP_VISIBLE] = settings.screenshotGestureZoneLeftBottomStripVisible
-            preferences[KEY_ZONE_RIGHT_TOP_STRIP_VISIBLE] = settings.screenshotGestureZoneRightTopStripVisible
-            preferences[KEY_ZONE_RIGHT_BOTTOM_STRIP_VISIBLE] = settings.screenshotGestureZoneRightBottomStripVisible
-            preferences[KEY_LEFT_TOP_DOWN] = settings.screenshotGestureLeftTopDown.name
-            preferences[KEY_LEFT_TOP_RIGHT] = settings.screenshotGestureLeftTopRight.name
-            preferences[KEY_LEFT_TOP_UP] = settings.screenshotGestureLeftTopUp.name
-            preferences[KEY_LEFT_BOTTOM_DOWN] = settings.screenshotGestureLeftBottomDown.name
-            preferences[KEY_LEFT_BOTTOM_RIGHT] = settings.screenshotGestureLeftBottomRight.name
-            preferences[KEY_LEFT_BOTTOM_UP] = settings.screenshotGestureLeftBottomUp.name
-            preferences[KEY_RIGHT_TOP_DOWN] = settings.screenshotGestureRightTopDown.name
-            preferences[KEY_RIGHT_TOP_RIGHT] = settings.screenshotGestureRightTopRight.name
-            preferences[KEY_RIGHT_TOP_UP] = settings.screenshotGestureRightTopUp.name
-            preferences[KEY_RIGHT_BOTTOM_DOWN] = settings.screenshotGestureRightBottomDown.name
-            preferences[KEY_RIGHT_BOTTOM_RIGHT] = settings.screenshotGestureRightBottomRight.name
-            preferences[KEY_RIGHT_BOTTOM_UP] = settings.screenshotGestureRightBottomUp.name
+            preferences[KEY_ZONE_LEFT_TOP_ENABLED] = settings.screenshotGesture.zoneLeftTopEnabled
+            preferences[KEY_ZONE_LEFT_BOTTOM_ENABLED] = settings.screenshotGesture.zoneLeftBottomEnabled
+            preferences[KEY_ZONE_RIGHT_TOP_ENABLED] = settings.screenshotGesture.zoneRightTopEnabled
+            preferences[KEY_ZONE_RIGHT_BOTTOM_ENABLED] = settings.screenshotGesture.zoneRightBottomEnabled
+            preferences[KEY_ZONE_LEFT_TOP_STRIP_VISIBLE] = settings.screenshotGesture.zoneLeftTopStripVisible
+            preferences[KEY_ZONE_LEFT_BOTTOM_STRIP_VISIBLE] = settings.screenshotGesture.zoneLeftBottomStripVisible
+            preferences[KEY_ZONE_RIGHT_TOP_STRIP_VISIBLE] = settings.screenshotGesture.zoneRightTopStripVisible
+            preferences[KEY_ZONE_RIGHT_BOTTOM_STRIP_VISIBLE] = settings.screenshotGesture.zoneRightBottomStripVisible
+            preferences[KEY_LEFT_TOP_DOWN] = settings.screenshotGesture.leftTopDown.name
+            preferences[KEY_LEFT_TOP_RIGHT] = settings.screenshotGesture.leftTopRight.name
+            preferences[KEY_LEFT_TOP_UP] = settings.screenshotGesture.leftTopUp.name
+            preferences[KEY_LEFT_BOTTOM_DOWN] = settings.screenshotGesture.leftBottomDown.name
+            preferences[KEY_LEFT_BOTTOM_RIGHT] = settings.screenshotGesture.leftBottomRight.name
+            preferences[KEY_LEFT_BOTTOM_UP] = settings.screenshotGesture.leftBottomUp.name
+            preferences[KEY_RIGHT_TOP_DOWN] = settings.screenshotGesture.rightTopDown.name
+            preferences[KEY_RIGHT_TOP_RIGHT] = settings.screenshotGesture.rightTopRight.name
+            preferences[KEY_RIGHT_TOP_UP] = settings.screenshotGesture.rightTopUp.name
+            preferences[KEY_RIGHT_BOTTOM_DOWN] = settings.screenshotGesture.rightBottomDown.name
+            preferences[KEY_RIGHT_BOTTOM_RIGHT] = settings.screenshotGesture.rightBottomRight.name
+            preferences[KEY_RIGHT_BOTTOM_UP] = settings.screenshotGesture.rightBottomUp.name
             // S1038: store the payload only when set; an empty value removes the key (default is empty).
-            preferences.setOrRemove(KEY_PAYLOAD_LEFT_TOP_DOWN, settings.screenshotGesturePayloadLeftTopDown.orNull())
-            preferences.setOrRemove(KEY_PAYLOAD_LEFT_TOP_RIGHT, settings.screenshotGesturePayloadLeftTopRight.orNull())
-            preferences.setOrRemove(KEY_PAYLOAD_LEFT_TOP_UP, settings.screenshotGesturePayloadLeftTopUp.orNull())
-            preferences.setOrRemove(KEY_PAYLOAD_LEFT_BOTTOM_DOWN, settings.screenshotGesturePayloadLeftBottomDown.orNull())
+            preferences.setOrRemove(KEY_PAYLOAD_LEFT_TOP_DOWN, settings.screenshotGesture.payloadLeftTopDown.orNull())
+            preferences.setOrRemove(
+                KEY_PAYLOAD_LEFT_TOP_RIGHT,
+                settings.screenshotGesture.payloadLeftTopRight.orNull()
+            )
+            preferences.setOrRemove(KEY_PAYLOAD_LEFT_TOP_UP, settings.screenshotGesture.payloadLeftTopUp.orNull())
+            preferences.setOrRemove(
+                KEY_PAYLOAD_LEFT_BOTTOM_DOWN,
+                settings.screenshotGesture.payloadLeftBottomDown.orNull()
+            )
             preferences.setOrRemove(
                 KEY_PAYLOAD_LEFT_BOTTOM_RIGHT,
-                settings.screenshotGesturePayloadLeftBottomRight.orNull()
+                settings.screenshotGesture.payloadLeftBottomRight.orNull()
             )
-            preferences.setOrRemove(KEY_PAYLOAD_LEFT_BOTTOM_UP, settings.screenshotGesturePayloadLeftBottomUp.orNull())
-            preferences.setOrRemove(KEY_PAYLOAD_RIGHT_TOP_DOWN, settings.screenshotGesturePayloadRightTopDown.orNull())
-            preferences.setOrRemove(KEY_PAYLOAD_RIGHT_TOP_RIGHT, settings.screenshotGesturePayloadRightTopRight.orNull())
-            preferences.setOrRemove(KEY_PAYLOAD_RIGHT_TOP_UP, settings.screenshotGesturePayloadRightTopUp.orNull())
+            preferences.setOrRemove(
+                KEY_PAYLOAD_LEFT_BOTTOM_UP,
+                settings.screenshotGesture.payloadLeftBottomUp.orNull()
+            )
+            preferences.setOrRemove(
+                KEY_PAYLOAD_RIGHT_TOP_DOWN,
+                settings.screenshotGesture.payloadRightTopDown.orNull()
+            )
+            preferences.setOrRemove(
+                KEY_PAYLOAD_RIGHT_TOP_RIGHT,
+                settings.screenshotGesture.payloadRightTopRight.orNull()
+            )
+            preferences.setOrRemove(KEY_PAYLOAD_RIGHT_TOP_UP, settings.screenshotGesture.payloadRightTopUp.orNull())
             preferences.setOrRemove(
                 KEY_PAYLOAD_RIGHT_BOTTOM_DOWN,
-                settings.screenshotGesturePayloadRightBottomDown.orNull()
+                settings.screenshotGesture.payloadRightBottomDown.orNull()
             )
             preferences.setOrRemove(
                 KEY_PAYLOAD_RIGHT_BOTTOM_RIGHT,
-                settings.screenshotGesturePayloadRightBottomRight.orNull()
+                settings.screenshotGesture.payloadRightBottomRight.orNull()
             )
-            preferences.setOrRemove(KEY_PAYLOAD_RIGHT_BOTTOM_UP, settings.screenshotGesturePayloadRightBottomUp.orNull())
+            preferences.setOrRemove(
+                KEY_PAYLOAD_RIGHT_BOTTOM_UP,
+                settings.screenshotGesture.payloadRightBottomUp.orNull()
+            )
             preferences.setOrRemove(
                 KEY_SCREENSHOT_DESTINATION_RESOURCE_ID,
                 settings.screenshotDestinationResourceId

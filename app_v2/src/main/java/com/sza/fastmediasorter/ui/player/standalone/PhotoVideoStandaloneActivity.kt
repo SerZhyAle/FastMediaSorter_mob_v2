@@ -2,48 +2,50 @@ package com.sza.fastmediasorter.ui.player.standalone
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.RectF
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
-import androidx.core.graphics.drawable.toBitmap
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.flow.first
 import androidx.media3.common.Player
 import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.SelfManagedScreenOrientation
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
+import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
-import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityStandalonePhotoVideoBinding
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -51,42 +53,41 @@ import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
 import com.sza.fastmediasorter.ui.player.DefaultPlayerProbe
-import com.sza.fastmediasorter.ui.player.StandalonePlayerViewModel
 import com.sza.fastmediasorter.ui.player.PlaybackControlDialogFragment
+import com.sza.fastmediasorter.ui.player.StandalonePlayerViewModel
 import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
-import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.PlayerActionHost
-import com.sza.fastmediasorter.ui.player.helpers.PlayerCropDelegate
-import com.sza.fastmediasorter.domain.model.MediaResource
-import android.view.ViewGroup
-import android.graphics.RectF
-import android.graphics.Bitmap
-import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.LifecycleCoroutineScope
+import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
-import com.sza.fastmediasorter.ui.player.helpers.StandaloneKeyboardManager
-import com.sza.fastmediasorter.ui.player.helpers.PhotoVideoStandaloneVideoHandle
 import com.sza.fastmediasorter.ui.player.helpers.ImageCropManager
+import com.sza.fastmediasorter.ui.player.helpers.PhotoVideoStandaloneVideoHandle
+import com.sza.fastmediasorter.ui.player.helpers.PlayerCropDelegate
 import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
 import com.sza.fastmediasorter.ui.player.helpers.ScreenRotationManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneFileOperationsHandler
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneFullscreenManager
+import com.sza.fastmediasorter.ui.player.helpers.StandaloneKeyboardManager
 import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerSettingsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoTouchDelegate
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
 import com.sza.fastmediasorter.ui.player.print.PrintDispatchActivity
+import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
-import timber.log.Timber
 import javax.inject.Inject
 
 private const val PRINT_TEMP_PNG_QUALITY = 100
@@ -307,7 +308,7 @@ class PhotoVideoStandaloneActivity :
                         .setPositiveButton(android.R.string.ok) { _, _ -> onConfirm() }
                         .setNegativeButton(android.R.string.cancel) { _, _ -> onCancel() }
                         .setOnCancelListener { onCancel() }
-                        .show()
+                        .showBoundTo(this@PhotoVideoStandaloneActivity)
                 }
             },
         )
@@ -470,7 +471,7 @@ class PhotoVideoStandaloneActivity :
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(this@PhotoVideoStandaloneActivity)
     }
     private var trackSelectionManager: VideoTrackSelectionManager? = null
     private var videoTouchDelegate: StandaloneVideoTouchDelegate? = null
@@ -659,6 +660,8 @@ class PhotoVideoStandaloneActivity :
         binding.btnOverflowMenu.setOnClickListener { anchor ->
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
+            // S1407: icons off by default on PopupMenu - match the embedded player's rendering.
+            popup.applyStandaloneOverflowIcons()
             // S0393: crop/compress/edit/Lens overwrite or share the source file, so they need a
             // resolved local writable image (editableImageFile). OCR/translate/print operate purely on
             // the displayed bitmap, so they only need a rendered image - gate those on the drawable,
@@ -703,6 +706,28 @@ class PhotoVideoStandaloneActivity :
                     rotateItem, getString(R.string.rotate_content_90_desc)
                 )
             }
+            // S1364: the counter-clockwise twin follows the same rule as its forward partner.
+            popup.menu.findItem(R.id.menu_rotate_content_ccw_standalone).let { rotateCcwItem ->
+                rotateCcwItem.isVisible = rotatable
+                androidx.core.view.MenuItemCompat.setContentDescription(
+                    rotateCcwItem,
+                    getString(R.string.rotate_content_ccw_desc)
+                )
+            }
+            // S1364: parity items. Each mirrors the gate of the inline bar button that already
+            // implements it, so the menu entry can never offer what the button would not.
+            popup.menu.findItem(R.id.menu_edit_crop_standalone).isVisible = editable
+            popup.menu.findItem(R.id.menu_rename_standalone).isVisible = binding.btnRenameCmd.isVisible
+            popup.menu.findItem(R.id.menu_autorotate_standalone).let { autoRotateItem ->
+                autoRotateItem.isVisible = hasAccelerometer
+                autoRotateItem.isChecked = viewModel.rotationSensorEnabled.value
+            }
+            // S1364: hide the whole editing section when nothing inside it applies, because Android
+            // does not remove an empty submenu - the same rule the embedded player follows.
+            popup.menu.findItem(R.id.menu_edit_section_standalone).let { section ->
+                val sub = section.subMenu
+                section.isVisible = (0 until (sub?.size() ?: 0)).any { sub?.getItem(it)?.isVisible == true }
+            }
             popup.menu.findItem(R.id.menu_youtube_music).isVisible = false // audio host only
             popup.menu.findItem(R.id.menu_lyrics).isVisible = false // audio host only
             popup.menu.findItem(R.id.menu_playback_speed).isVisible = false // audio host (video uses the control dialog)
@@ -746,6 +771,24 @@ class PhotoVideoStandaloneActivity :
                         val newAngle = viewModel.state.value.sessionRotationAngle
                         Timber.d("S0995: standalone rotate90 tap -> $newAngle")
                         photoVideoHandle.setContentRotationDegrees(newAngle)
+                        true
+                    }
+                    R.id.menu_rotate_content_ccw_standalone -> {
+                        Timber.d("S1364: standalone rotate -90 tap")
+                        viewModel.rotateSessionCounter90()
+                        photoVideoHandle.setContentRotationDegrees(viewModel.state.value.sessionRotationAngle)
+                        true
+                    }
+                    R.id.menu_edit_crop_standalone -> {
+                        cropDelegate.enterCropMode(ImageCropManager.CropMode.CROP)
+                        true
+                    }
+                    R.id.menu_rename_standalone -> {
+                        fileOperations.showStandaloneRenameDialog()
+                        true
+                    }
+                    R.id.menu_autorotate_standalone -> {
+                        viewModel.toggleRotationSensor()
                         true
                     }
                     else -> false
@@ -1219,7 +1262,6 @@ class PhotoVideoStandaloneActivity :
     override val supportsSlideshow: Boolean get() = folderPagingEnabled
     override val supportsPersistentAudio: Boolean = false
     override val supportsCast: Boolean = false
-    override val supportsDeleteUndo: Boolean = true
     override val supportsCommandPanelFolding: Boolean = false
     override val supportsFolderPaging: Boolean get() = folderPagingEnabled
 

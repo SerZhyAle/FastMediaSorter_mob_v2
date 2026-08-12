@@ -19,4 +19,11 @@
     <cache-path
         name="cache"
         path="." />
+
+    <!-- S1433: the GNSS track sessions only. Scoped to that one directory rather than to filesDir as a
+         whole, because filesDir also holds the DataStore preference files - a share of the track must not
+         make the settings store addressable through the provider. -->
+    <files-path
+        name="gnss_tracks"
+        path="gnss-tracks/" />
 </paths>

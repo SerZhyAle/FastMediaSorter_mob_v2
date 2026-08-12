@@ -1,3 +1,4 @@
+import com.android.build.api.variant.BuildConfigField
 import java.io.FileInputStream
 import java.io.File
 import java.util.Properties
@@ -156,8 +157,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val defaultAppVersionCode = 260804153
-val defaultAppVersionName = "2.60.8041.533"
+val defaultAppVersionCode = 260811231
+val defaultAppVersionName = "2.60.8112.319"
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -267,6 +268,13 @@ android {
         buildConfigField("String", "BUILD_TIME", "\"Unknown\"")
         buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "false")
         buildConfigField("boolean", "SUPPORT_LAUNCHER", "false")
+        // S1436: manifest-composition axis the permission registry filters on. Stripped from the
+        // release manifest only (src/release/AndroidManifest.xml), so the default is true and the
+        // release build type is the single override. Resolved at compile time, never by reflection -
+        // see PermissionRegistryRepositoryImpl.resolveBuildGate and the S0970 incident.
+        // The two flavor-and-switch axes are set per variant in androidComponents.onVariants below,
+        // beside the manifest injections they mirror, because their value is not a literal.
+        buildConfigField("boolean", "DECLARES_BATTERY_OPTIMIZATION", "true")
     }
     
     // Product Flavors: Different app versions for different use cases.
@@ -304,6 +312,7 @@ android {
         // ===== STANDARD (Full Featured) =====
         create("standard") {
             dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_standard"
             isDefault = true
             disableNativeBuild()
             // No applicationIdSuffix = keeps current package names
@@ -313,6 +322,7 @@ android {
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_STREAMS", "true")     // S0565: Трансляции entry-point
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
             buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
@@ -328,6 +338,7 @@ android {
             // 16 KB compatible - safe for Google Play.
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "SUPPORT_LAUNCHER", "true")
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "true")  // S1433: Network Monitor program
         }
 
         // ===== NO-LEGAL (Sideload-only full build: standard + VR + GPL extractors) =====
@@ -339,6 +350,7 @@ android {
         //   throws UnsatisfiedLinkError.
         create("noLegal") {
             dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_nolegal"
             // S0232: no applicationIdSuffix - noLegal shares com.sza.fastmediasorter with
             // standard so cloud OAuth/MSAL/Dropbox registrations cover it without per-flavor
             // setup. See policy comment above productFlavors block.
@@ -387,6 +399,7 @@ android {
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_STREAMS", "true")     // S0565: Трансляции entry-point
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
             buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
@@ -402,11 +415,13 @@ android {
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "true")
             buildConfigField("boolean", "SUPPORT_LAUNCHER", "true")
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "true")  // S1433: Network Monitor program
         }
 
         // ===== LITE (Lightweight, Local Files Only) =====
         create("lite") {
             dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_lite"
             applicationIdSuffix = ".lite"
             versionNameSuffix = "-Lite"
             disableNativeBuild()
@@ -416,6 +431,9 @@ android {
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_STREAMS", "false")    // S0575: Streams feature UI hidden in lite (streamingDisabled pipeline unchanged)
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "false") // Excluded per S0100 §6
+            // S1459: lite excludes the voice-note feature but still records video with audio, so it
+            // declares RECORD_AUDIO and must show the row. The two flags disagree only here.
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "false")        // No cloud providers
             buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "false") // S0448: local-files-only, no SMB/SFTP/FTP
@@ -428,11 +446,13 @@ android {
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in lite
             buildConfigField("boolean", "SUPPORT_CAST", "true")
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in lite
         }
 
         // ===== PHOTOS (Images Only, with Cloud Support) =====
         create("photos") {
             dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_photos"
             applicationIdSuffix = ".photos"
             versionNameSuffix = "-Photos"
             disableNativeBuild()
@@ -442,6 +462,8 @@ android {
             buildConfigField("boolean", "SUPPORT_AUDIO", "false")       // No audio player
             buildConfigField("boolean", "SUPPORT_STREAMS", "false")     // S0565: no Трансляции entry-point in photos
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "false") // No audio support
+            // S1442 removes RECORD_AUDIO from the photos manifest - no video mode, so no mic path.
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "false")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")       // Full image support
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")        // Cloud for photo backup
             buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true") // Network photo shares (SMB/SFTP/FTP)
@@ -454,11 +476,13 @@ android {
             buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in photos
             buildConfigField("boolean", "SUPPORT_CAST", "true")
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in photos
         }
 
         // ===== LEGACY (Full Features, Android 6.0+) =====
         create("legacy") {
             dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_legacy"
             // CRITICAL: Do not change - legacy flavor for Android 6/7 devices (API 23-25)
             // Standard flavor covers API 26+ (Android 8+); legacy covers the remaining API 23-25 gap.
             minSdk = 23  // Android 6.0 (Marshmallow)
@@ -471,6 +495,7 @@ android {
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_STREAMS", "true")     // S0565: Трансляции entry-point
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
             buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
@@ -484,11 +509,13 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "true")
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "SUPPORT_CAST", "true")
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in legacy
         }
 
         // ===== VR (Full Features + OpenXR Headset Rendering) =====
         create("vr") {
             dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_vr"
             // S0232: no applicationIdSuffix - vr shares com.sza.fastmediasorter with standard
             // for cloud OAuth identity. Re-add a .vr suffix here if/when this flavor lands on
             // Meta Horizon Store (the Store binds the listing identity to applicationId);
@@ -530,6 +557,7 @@ android {
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_STREAMS", "true")     // S0565: Трансляции entry-point
             buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
             buildConfigField("boolean", "SUPPORT_CLOUD", "true")
             buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
@@ -544,6 +572,7 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // Headset has no paired watch
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "SUPPORT_CAST", "false") // Horizon OS lacks Google Play Services Cast module
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in vr
         }
 
         // S0250: flavor `vrUnlicensed` was archived (2026-05-19). Its role - sideload-only
@@ -566,6 +595,49 @@ android {
         getByName("androidTest") {
             assets.directories.add("schemas")
         }
+        // S1450: the shared src/test set is compiled for EVERY flavor, so a test for a class that
+        // lives in a flavor-scoped set (src/streamingEnabled, src/cloudEnabled) broke unit-test
+        // COMPILATION on the flavors that mount the disabled counterpart - no test could run at all
+        // on lite, PermissionRegistryManifestParityTest included, which is release-blocking per
+        // docs/RELEASE_READINESS_STANDARD.md. These two test sets mirror, one for one, the main
+        // source-set mounts below: a test lands here instead of src/test whenever its subject is
+        // flavor-scoped. AGP picks up src/test<Flavor>/java by convention (see src/testStandard,
+        // src/testNoLegal, src/testVr); only a set shared by SEVERAL flavors needs mounting.
+        // S1455: testDocumentsEnabled is the behavioural sibling. Its subject is
+        // OfficeDocumentFamilyCatalog - one FQCN with six per-flavor copies, empty on lite and photos -
+        // so a test of it compiles everywhere and fails only where the catalog is empty, rather than
+        // breaking compilation the way S1450's cases did. These four flavors are exactly where
+        // SUPPORT_DOCUMENTS is on, which matches SUPPORT_STREAMS one for one.
+        listOf("testStandard", "testNoLegal", "testLegacy", "testVr").forEach { unitTestSet ->
+            getByName(unitTestSet) {
+                kotlin.directories.add("src/testStreamingEnabled/java")
+                kotlin.directories.add("src/testCloudEnabled/java")
+                kotlin.directories.add("src/testDocumentsEnabled/java")
+            }
+        }
+        // photos mounts cloudEnabled but streamingDisabled, so it gets the cloud tests only.
+        getByName("testPhotos") {
+            kotlin.directories.add("src/testCloudEnabled/java")
+        }
+        // S1433: RadioControlContractImpl lives in src/networkMonitor, which only standard and noLegal
+        // mount, so its test cannot live in the shared src/test set - that set compiles for every flavor
+        // and the reference would break unit-test compilation on the other four, which is the S1450 shape
+        // exactly. Mounted one line per flavor rather than through the loop above, because these are the
+        // only two and the pairing is easier to check against the main blocks when it is spelled out.
+        // S1498: src/launcherEnabled is mounted by the same two flavors and had no test set at all,
+        // which is the half of Rule 7 the S1453 gate cannot see - a set that does not exist has no
+        // mount list to drift. Its arithmetic had already been pushed into src/main to stay testable
+        // (LauncherSectionMembership), duplicating a constant to get there.
+        getByName("testStandard") {
+            kotlin.directories.add("src/testNetworkMonitor/java")
+            kotlin.directories.add("src/testLauncherEnabled/java")
+        }
+        getByName("testNoLegal") {
+            kotlin.directories.add("src/testNetworkMonitor/java")
+            kotlin.directories.add("src/testLauncherEnabled/java")
+        }
+        // lite mounts streamingDisabled AND cloudDisabled - it mounts neither test set, which is
+        // exactly what makes its unit tests compilable again.
         getByName("standard") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
@@ -605,6 +677,9 @@ android {
             // without it mount src/launcherDisabled, which binds the no-op capability contract.
             kotlin.directories.add("src/launcherEnabled/java")
             res.directories.add("src/launcherEnabled/res")
+            // S1433: Network Monitor program. Flavors without it mount src/networkMonitorDisabled,
+            // which binds the no-op capability contract.
+            kotlin.directories.add("src/networkMonitor/java")
         }
         getByName("noLegal") {
             // S0156: noLegal = standard + VR + sideload-only capabilities.
@@ -633,6 +708,8 @@ android {
             // S0404: launcher-mode home surface - noLegal is the all-inclusive sideload superset.
             kotlin.directories.add("src/launcherEnabled/java")
             res.directories.add("src/launcherEnabled/res")
+            // S1433: Network Monitor program - part of the sideload superset.
+            kotlin.directories.add("src/networkMonitor/java")
         }
         getByName("legacy") {
             kotlin.directories.add("src/streamingEnabled/java")
@@ -647,12 +724,16 @@ android {
             kotlin.directories.add("src/vrStub/java")
             // S0404: no launcher-mode surface in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/launcherDisabled/java")
+            // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
+            kotlin.directories.add("src/networkMonitorDisabled/java")
         }
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
             kotlin.directories.add("src/cloudEnabled/java")
-            // S0403: Google Cast SDK seam impl (CastMediaManagerImpl); foss mounts castDisabled.
-            kotlin.directories.add("src/castEnabled/java")
+            // S1439: vr declares SUPPORT_CAST=false because Horizon OS has no Play Services Cast
+            // module, so it mounts the no-op seam impl - shipping the real one packaged an SDK the
+            // platform cannot back, behind two safeguards nothing recorded as requirements.
+            kotlin.directories.add("src/castDisabled/java")
             // S0403: vr has no Wear companion -> mount the wearStub no-op (no Play Services Wearable).
             kotlin.directories.add("src/wearStub/java")
             kotlin.directories.add("src/ocrEnabled/java")
@@ -662,6 +743,8 @@ android {
             // S0404: vr has its own OpenXR shell and the headset's system launcher - no Android
             // launcher mode here (strategic ADR-1). Mount the no-op capability contract.
             kotlin.directories.add("src/launcherDisabled/java")
+            // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
+            kotlin.directories.add("src/networkMonitorDisabled/java")
         }
         getByName("photos") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -676,6 +759,8 @@ android {
             // from SPECIAL_USE/SYSTEM_ALERT_WINDOW); not mounted into the photos store flavor.
             // S0404: no launcher-mode surface in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/launcherDisabled/java")
+            // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
+            kotlin.directories.add("src/networkMonitorDisabled/java")
         }
         getByName("lite") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -688,6 +773,8 @@ android {
             kotlin.directories.add("src/vrStub/java")
             // S0404: no launcher-mode surface in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/launcherDisabled/java")
+            // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
+            kotlin.directories.add("src/networkMonitorDisabled/java")
         }
     }
 
@@ -810,6 +897,9 @@ android {
             buildConfigField("boolean", "LOG_LINK_DOWNLOAD", "false")
             buildConfigField("boolean", "ENABLE_SCHEDULED_OPERATIONS", "true")
             buildConfigField("boolean", "ENABLE_BACKGROUND_AUDIO", "true")
+            // S1436: src/release/AndroidManifest.xml removes REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+            // so no registry row and no in-feature prompt for it may appear in a release build.
+            buildConfigField("boolean", "DECLARES_BATTERY_OPTIMIZATION", "false")
             ndk {
                 debugSymbolLevel = "FULL"
                 // ABI selection is flavor-local (see productFlavors block) - AGP merges
@@ -838,6 +928,10 @@ android {
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-STAGING"
             matchingFallbacks += listOf("release")
+            // S1436: initWith copies the release value, but the manifest removal is keyed on the
+            // src/release source set, which this build type does not use - it still declares the
+            // permission, so the axis is restored explicitly.
+            buildConfigField("boolean", "DECLARES_BATTERY_OPTIMIZATION", "true")
         }
         create("benchmark") {
             initWith(getByName("release"))
@@ -846,6 +940,8 @@ android {
             isShrinkResources = true
             versionNameSuffix = "-BENCHMARK"
             matchingFallbacks += listOf("release")
+            // S1436: same as staging - src/release does not apply to this build type.
+            buildConfigField("boolean", "DECLARES_BATTERY_OPTIMIZATION", "true")
             signingConfig = if (hasCustomDebugKeystore) {
                 signingConfigs.getByName("debugCustom")
             } else {
@@ -1041,7 +1137,9 @@ androidComponents {
         // AndroidManifest automatically. Inject the Cast OPTIONS_PROVIDER meta-data overlay for every
         // cast-capable flavor. addStaticManifestFile is additive, so it coexists with noLegal's
         // manifest.srcFile(src/vr) override. foss never mounts castEnabled, so it never registers it.
-        val castFlavors = setOf("standard", "noLegal", "lite", "photos", "legacy", "vr")
+        // S1439: vr is off this list for the same reason - it mounts castDisabled, and registering a
+        // provider for an impl the flavor does not ship is what made the two halves disagree.
+        val castFlavors = setOf("standard", "noLegal", "lite", "photos", "legacy")
         if (flavorName in castFlavors) {
             variant.sources.manifests.addStaticManifestFile("src/castEnabled/AndroidManifest.xml")
         }
@@ -1062,6 +1160,9 @@ androidComponents {
         val launcherFlavors = setOf("standard", "noLegal")
         if (flavorName in launcherFlavors) {
             variant.sources.manifests.addStaticManifestFile("src/launcherEnabled/AndroidManifest.xml")
+            // S1433: same reason - src/networkMonitor is mounted by directory, so its permission
+            // manifest needs its own injection or the Monitor's grants never reach the merge.
+            variant.sources.manifests.addStaticManifestFile("src/networkMonitor/AndroidManifest.xml")
         }
 
         // S0559: the shared confirmable-capture engine manifest (consent activity + mediaProjection
@@ -1084,6 +1185,23 @@ androidComponents {
             // S0672: QS-tile fallback manifest (TileService declaration, no specialUse / SYSTEM_ALERT_WINDOW).
             variant.sources.manifests.addStaticManifestFile("src/standardEdgeTile/AndroidManifest.xml")
         }
+
+        // S1436: the two manifest-composition axes whose value is not a literal. Set here rather
+        // than in productFlavors so each sits beside the injection condition it mirrors and cannot
+        // drift from it: DECLARES_SCREEN_CAPTURE repeats injectSharedCaptureManifest above, and
+        // DECLARES_OVERLAY_PERMISSION covers the SPECIAL_USE overlay host plus noLegal's own
+        // SYSTEM_ALERT_WINDOW declaration. The permission registry reads both to decide whether a
+        // row may appear; a build that does not declare the permission must not offer to grant it.
+        variant.buildConfigFields?.put(
+            "DECLARES_SCREEN_CAPTURE",
+            BuildConfigField("boolean", injectSharedCaptureManifest, "S1436: MediaProjection capture manifest is merged into this variant"),
+        )
+        val declaresOverlayPermission =
+            flavorName == "noLegal" || (flavorName == "standard" && edgeGestureOverlayStandardEnabled)
+        variant.buildConfigFields?.put(
+            "DECLARES_OVERLAY_PERMISSION",
+            BuildConfigField("boolean", declaresOverlayPermission, "S1436: SYSTEM_ALERT_WINDOW is declared in this variant"),
+        )
 
         // S0386: keep native payloads bundled until per-set descriptors and ABI-complete hosting
         // are ready. The delivery UI/runtime remains wired, but stripping these artifacts here
@@ -1193,9 +1311,13 @@ if (isNoLegalBuild) {
                     // Still on nightly - PyPI stable remains 2026.7.4, older than the pinned nightly
                     // date, so it does not supersede. Freshest nightly at ship time; needs an on-device
                     // link-download to verify extraction.
+                    // 2026-08-12 (pre-release refresh): bumped 2026.07.23.234303 → 2026.08.04.234419.
+                    // Still on nightly - PyPI stable remains 2026.7.4, older than the pinned nightly
+                    // date, so it does not supersede. Freshest nightly at ship time; needs an on-device
+                    // link-download to verify extraction.
                     install(
                         "yt-dlp @ https://github.com/yt-dlp/yt-dlp-nightly-builds/" +
-                            "releases/download/2026.07.23.234303/yt-dlp.tar.gz",
+                            "releases/download/2026.08.04.234419/yt-dlp.tar.gz",
                     )
                 }
             }
@@ -1265,6 +1387,9 @@ dependencies {
 
     // Google Play In-App Review (S0135)
     implementation("com.google.android.play:review-ktx:2.0.2")
+    // Google Play language splits (S1190). Brought back for on-demand locale delivery only - the
+    // dynamic-feature module this library once served was deleted with S0423 and stays deleted.
+    implementation("com.google.android.play:feature-delivery-ktx:2.1.0")
 
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
@@ -1298,8 +1423,9 @@ dependencies {
     // Paging 3
     implementation("androidx.paging:paging-runtime-ktx:3.2.1")
     
-    // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    // DataStore - 1.1.x or newer is required: 1.0.0 persists via File.renameTo, which cannot
+    // replace an existing file on Windows, so every write after the first one fails (S1449).
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
     
     // DocumentFile for SAF support
     implementation("androidx.documentfile:documentfile:1.0.1")
@@ -1402,7 +1528,8 @@ dependencies {
         exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
     }
     
-    // Network - SMB (uses BouncyCastle jdk15to18:1.72 via resolutionStrategy)
+    // Network - SMB. Pulls org.bouncycastle:bcprov-jdk18on transitively; the version that arrives
+    // is asserted at configuration time below (S1496), not forced.
     implementation("com.hierynomus:smbj:0.12.1")
     
     // Network - SFTP (JSch for Android - better KEX support than SSHJ)
@@ -1439,28 +1566,26 @@ dependencies {
     implementation("com.microsoft.identity.client:msal:6.0.1")
     
     // Google Cast SDK + MediaRouter (Chromecast output from player) + NanoHTTPD proxy.
-    // S0403: consumed only by src/castEnabled (CastMediaManagerImpl / LocalCastProxyServer), mounted
-    // into every flavor EXCEPT foss (which mounts castDisabled). Scoped per-flavor so the FOSS APK
-    // never packages the proprietary Google Cast SDK. Keep this list in sync with the castEnabled
-    // sourceSets mounts above.
+    // S0403: consumed only by src/castEnabled (CastMediaManagerImpl / LocalCastProxyServer). Scoped
+    // per-flavor so a flavor mounting castDisabled never packages the proprietary Google Cast SDK.
+    // S1439: vr is off all three lists - it mounts castDisabled, and none of the three has any other
+    // consumer in the tree, so leaving them would ship an SDK, a router and an HTTP server for code
+    // that is not in the APK. Keep these lists in sync with the castEnabled sourceSets mounts above.
     "standardImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
     "noLegalImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
     "liteImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
     "photosImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
     "legacyImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
-    "vrImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
     "standardImplementation"("androidx.mediarouter:mediarouter:1.7.0")
     "noLegalImplementation"("androidx.mediarouter:mediarouter:1.7.0")
     "liteImplementation"("androidx.mediarouter:mediarouter:1.7.0")
     "photosImplementation"("androidx.mediarouter:mediarouter:1.7.0")
     "legacyImplementation"("androidx.mediarouter:mediarouter:1.7.0")
-    "vrImplementation"("androidx.mediarouter:mediarouter:1.7.0")
     "standardImplementation"("org.nanohttpd:nanohttpd:2.3.1")
     "noLegalImplementation"("org.nanohttpd:nanohttpd:2.3.1")
     "liteImplementation"("org.nanohttpd:nanohttpd:2.3.1")
     "photosImplementation"("org.nanohttpd:nanohttpd:2.3.1")
     "legacyImplementation"("org.nanohttpd:nanohttpd:2.3.1")
-    "vrImplementation"("org.nanohttpd:nanohttpd:2.3.1")
 
     // Logging
     implementation("com.jakewharton.timber:timber:5.0.1")
@@ -1536,14 +1661,26 @@ dependencies {
     kspAndroidTest("com.google.dagger:hilt-android-compiler:2.59")
 }
 
-// TEMPORARILY DISABLED: BouncyCastle resolutionStrategy (was needed for PDFBox)
-// configurations.all {
-//     resolutionStrategy {
-//         force("org.bouncycastle:bcprov-jdk15to18:1.72")
-//         force("org.bouncycastle:bcpkix-jdk15to18:1.72")
-//         force("org.bouncycastle:bcutil-jdk15to18:1.72")
-//     }
-// }
+// S1496: BouncyCastle is never declared here - it arrives transitively through SMBJ. Assert the
+// version instead of forcing it: a force would silently block the security updates that ride along
+// with an SMBJ bump, while an unasserted transitive edge lets the crypto library move unnoticed.
+// Test configurations are excluded on purpose: Robolectric 4.11.1 requests bcprov-jdk18on:1.76 on
+// the unit-test classpath, and nothing on a test classpath reaches the APK, so asserting there
+// would break the suite over a version that never ships.
+val expectedBouncyCastleVersion = "1.75"
+
+configurations.matching { !it.name.contains("test", ignoreCase = true) }.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.bouncycastle" && requested.version != expectedBouncyCastleVersion) {
+            throw GradleException(
+                "BouncyCastle version drift: ${requested.group}:${requested.name} resolved to " +
+                    "${requested.version}, expected $expectedBouncyCastleVersion. Re-check the " +
+                    "org/bouncycastle/** entries in packagingOptions against the new layout, then " +
+                    "raise expectedBouncyCastleVersion in app_v2/build.gradle.kts."
+            )
+        }
+    }
+}
 
 ksp {
     // Export Room schema JSON into a committed dir so future migrations are validatable (S0731).

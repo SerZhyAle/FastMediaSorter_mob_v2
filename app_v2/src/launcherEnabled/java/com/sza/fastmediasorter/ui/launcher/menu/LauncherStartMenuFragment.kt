@@ -6,11 +6,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResultListener
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -19,18 +18,15 @@ import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.databinding.FragmentLauncherStartMenuBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
-import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.ResourcePickerDialogFragment
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
-import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppShortcutMenuManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceCreateManager
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -41,47 +37,20 @@ import javax.inject.Inject
 class LauncherStartMenuFragment : BottomSheetDialogFragment() {
 
     @Inject
-    lateinit var queryLaunchableApps: QueryLaunchableAppsUseCase
+    lateinit var roleManager: LauncherRoleManager
 
     @Inject
-    lateinit var roleManager: LauncherRoleManager
+    lateinit var resourceCreateManager: LauncherResourceCreateManager
 
     private val viewModel: LauncherHomeViewModel by activityViewModels()
 
     private var _binding: FragmentLauncherStartMenuBinding? = null
     private val binding get() = _binding!!
 
-    // Enumerating every installed package is slow enough for the user to toggle the row again while it
-    // runs; the adapter is still empty at that point, so only an explicit job guard stops a second sweep.
-    private var allAppsJob: Job? = null
-
     // The exit dialog is the feature's escape hatch, so it must not survive its host: an Activity-recreating
     // config change (dark mode, locale, density - none of them in this Activity's configChanges) would leak
     // the window and leave the positive lambda holding a detached fragment (S0892 precedent).
     private var exitDialog: Dialog? = null
-
-    private val appsAdapter = LauncherAppGridAdapter(
-        onAppClick = { app ->
-            viewModel.run(LauncherCellCommand.App(app.id))
-            dismiss()
-        },
-        // The sheet deliberately stays open: the popup anchors inside it, and dismissing the sheet
-        // would take its own anchor away.
-        onAppLongClick = { view, app ->
-            Timber.d("S0427: start-menu shortcuts requested for %s", app.id)
-            shortcutMenuManager.show(view, app.id)
-            true
-        },
-    )
-
-    // AppItem.id is the package name, so the grid needs no extra lookup to reach the app's shortcuts.
-    private val shortcutMenuManager by lazy {
-        LauncherAppShortcutMenuManager(
-            lifecycleScope,
-            { packageName -> viewModel.appShortcutsOf(packageName) },
-            { shortcut, bounds -> viewModel.launchAppShortcut(shortcut, bounds) },
-        )
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -94,15 +63,16 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.rvAllApps.layoutManager = GridLayoutManager(requireContext(), ALL_APPS_COLUMNS)
-        binding.rvAllApps.adapter = appsAdapter
 
         binding.rowOpenApp.setOnClickListener {
             startActivity(Intent(requireContext(), MainActivity::class.java))
             dismiss()
         }
         binding.rowResources.setOnClickListener { openResourcePicker() }
-        binding.rowAllApps.setOnClickListener { toggleAllApps() }
+        binding.rowCreateResource.setOnClickListener {
+            resourceCreateManager.startCreateResource(requireContext())
+            dismiss()
+        }
         binding.rowAndroidSettings.setOnClickListener {
             viewModel.run(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_SETTINGS))
             dismiss()
@@ -130,33 +100,25 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
     override fun onStart() {
         super.onStart()
         dialog?.let { DialogKeyboardDelegate.applyToDialogFragment(it, onConfirm = {}) }
+        expandSheet()
         binding.rowOpenApp.requestFocus()
+    }
+
+    // S1588: left collapsed, the sheet's visible height is Material's auto-peek formula
+    // max(peekHeightMin, parentHeight - parentWidth * 9 / 16), which covers the rows in portrait by
+    // accident and collapses to a single row in landscape. Expanding explicitly drops that dependency
+    // on screen geometry; skipCollapsed keeps a downward swipe from parking at the peek height.
+    private fun expandSheet() {
+        val behavior = (dialog as? BottomSheetDialog)?.behavior ?: return
+        behavior.skipCollapsed = true
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         exitDialog?.dismiss()
         exitDialog = null
-        // Same reason as the exit dialog: the popup is anchored to a view of this sheet and must not
-        // outlive it.
-        shortcutMenuManager.dismiss()
         _binding = null
-    }
-
-    private fun toggleAllApps() {
-        val show = !binding.rvAllApps.isVisible
-        binding.rvAllApps.isVisible = show
-        if (!show || appsAdapter.itemCount > 0 || allAppsJob?.isActive == true) return
-        allAppsJob = viewLifecycleOwner.lifecycleScope.launch {
-            val apps = queryLaunchableApps().map {
-                LauncherAppGridAdapter.AppItem(
-                    id = it.packageName,
-                    label = it.label,
-                    icon = it.icon,
-                )
-            }
-            appsAdapter.submitApps(apps)
-        }
     }
 
     private fun openResourcePicker() {
@@ -189,7 +151,7 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
                 dismiss()
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundTo(this@LauncherStartMenuFragment)
     }
 
     companion object {
@@ -197,6 +159,5 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
 
         private const val RESOURCE_REQUEST_KEY = "launcher_start_menu_resource"
         private const val RESOURCE_PICKER_TAG = "launcher_start_menu_resource_picker"
-        private const val ALL_APPS_COLUMNS = 4
     }
 }

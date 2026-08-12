@@ -199,6 +199,16 @@ class BrowseObserverManager(
             return
         }
 
+        // S1584: the size filter, not an empty folder, produced this list. Saying "we checked twice"
+        // here reads as a promise the folder really holds nothing, so the user stops looking.
+        if (state.filteredOutCount > 0) {
+            binding.tvEmptyStateMessage.text =
+                ctx.getString(R.string.browse_empty_filtered_out, state.filteredOutCount)
+            binding.tvEmptyStateHint.isVisible = true
+            binding.tvEmptyStateHint.text = ctx.getString(R.string.browse_empty_filtered_out_hint)
+            return
+        }
+
         binding.tvEmptyStateMessage.text = ctx.getString(R.string.no_files_found)
         if (resource != null && !resource.scanSubdirectories) {
             binding.tvEmptyStateHint.isVisible = true

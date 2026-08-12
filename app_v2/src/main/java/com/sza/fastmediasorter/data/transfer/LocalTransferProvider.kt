@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.transfer
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.transfer.FileInfo
 import com.sza.fastmediasorter.domain.transfer.FileTransferProvider
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
@@ -85,6 +86,7 @@ class LocalTransferProvider @Inject constructor(
             Result.success(Unit)
             
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to download local file: $sourcePath")
             Result.failure(e)
         }
@@ -136,6 +138,7 @@ class LocalTransferProvider @Inject constructor(
             Result.success(Unit)
             
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to upload to local path: $destinationPath")
             Result.failure(e)
         }
@@ -169,6 +172,7 @@ class LocalTransferProvider @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error deleting local file: $path")
             Result.failure(e)
         }
@@ -224,6 +228,7 @@ class LocalTransferProvider @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error renaming local file: $oldPath -> $newPath")
             Result.failure(e)
         }
@@ -280,6 +285,7 @@ class LocalTransferProvider @Inject constructor(
             Result.success(destinationPath)
             
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error moving local file: $sourcePath -> $destinationPath")
             Result.failure(e)
         }
@@ -294,6 +300,7 @@ class LocalTransferProvider @Inject constructor(
                 Result.success(File(path).exists())
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error checking existence: $path")
             Result.failure(e)
         }
@@ -329,6 +336,7 @@ class LocalTransferProvider @Inject constructor(
                 ))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error getting file info: $path")
             Result.failure(e)
         }
@@ -371,6 +379,7 @@ class LocalTransferProvider @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error creating directory: $path")
             Result.failure(e)
         }
@@ -386,6 +395,7 @@ class LocalTransferProvider @Inject constructor(
                 Result.success(file.exists() && file.isFile)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Result.failure(e)
         }
     }

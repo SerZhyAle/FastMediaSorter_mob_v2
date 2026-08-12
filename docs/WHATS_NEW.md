@@ -6,7 +6,46 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.8042.332** (August 2026)
+**Current release: 2.60.8121.822** (August 2026)
+
+> Changes since version 2.60.8042.332
+
+---
+
+## What's New
+
+- **Home-screen launcher** - shortcuts, contact cells, titled sections, a desktop that scrolls.
+- **Desktop gadgets** - clock, sensors, map, signal strip and Now Playing.
+- **Taskbar status area** - configurable indicators, Wi-Fi and Bluetooth tiles.
+- **All installed apps** - a full-screen list straight from the desktop.
+- **Web search from the desktop** - type once, open in the browser.
+- **Launcher settings** - grouped sections and a one-tap reset.
+- **Channel catalog** - community radio and world webcams, grouped by rubric.
+- **About this channel** - description, artwork and quality at a glance.
+- **Channel pictures update** without waiting for an app release.
+- **Stream shortcuts** start playback in the background.
+- **Thirteen interface languages.**
+- **Themed launcher icon** follows the system palette.
+- **SD cards and external drives** appear in browsing.
+- **Image rotation and editing** in the separate player window.
+- **Network Monitor** - see what the app connects to.
+- **Transfer progress on every screen.**
+- **Document translation** reachable from the Office menu.
+- **Wear OS SFTP connection test.**
+
+## What's Fixed
+
+- Streams report a lost network instead of failing silently.
+- The channel grid stays quiet with no connection.
+- File counts are truthful, and an empty folder explains itself.
+- Dialogs keep their state across rotation.
+- The camera opens without freezing the interface.
+- Permissions read the same wording everywhere.
+- Stream quality steps down instead of stalling repeatedly.
+
+---
+
+## Previous Release: 2.60.8042.332 (August 2026)
 
 > Changes since version 2.60.7270.415
 

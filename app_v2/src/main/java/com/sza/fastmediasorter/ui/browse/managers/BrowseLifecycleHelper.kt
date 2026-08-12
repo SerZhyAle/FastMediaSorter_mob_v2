@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
+import android.Manifest
 import android.app.Activity
 import android.os.Build
 import androidx.recyclerview.widget.GridLayoutManager
@@ -7,9 +8,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
+import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
 
 /**
@@ -93,14 +97,19 @@ class BrowseLifecycleHelper(
             wasStoragePermissionMissing = true
             Timber.w("BrowseActivity: MANAGE_EXTERNAL_STORAGE not granted, showing dialog")
             MaterialAlertDialogBuilder(activity)
-                .setTitle(R.string.all_files_access_required)
-                .setMessage(R.string.all_files_access_explanation)
+                .setTitle(R.string.permissions_required_title)
+                .setMessage(
+                    activity.permissionRationale(
+                        Manifest.permission.MANAGE_EXTERNAL_STORAGE,
+                        PermissionTask.FOLDER_PICKING,
+                    )
+                )
                 .setPositiveButton(R.string.grant_permission) { _, _ ->
                     com.sza.fastmediasorter.core.util.PermissionHelper.requestAllFilesAccessPermission(activity)
                 }
                 .setNegativeButton(android.R.string.cancel, null)
                 .setCancelable(true)
-                .show()
+                .showBoundToHost(activity)
         } else if (!hasPermission) {
             wasStoragePermissionMissing = true
         }

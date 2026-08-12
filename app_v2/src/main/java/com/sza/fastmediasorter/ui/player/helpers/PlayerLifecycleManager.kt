@@ -6,29 +6,30 @@ import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager
 import android.widget.Toast
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
-import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.mutation.Mutation
 import com.sza.fastmediasorter.domain.mutation.MutationJournal
 import com.sza.fastmediasorter.domain.path.PathNormalizer
-import java.util.UUID
 import com.sza.fastmediasorter.domain.playback.PlaybackCompletionDetector
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperation
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.UUID
 
 /**
  * Manages PlayerActivity lifecycle coordination.
@@ -392,7 +393,7 @@ class PlayerLifecycleManager(
      * Called from PlayerActivity.setupViews() after all managers are initialized.
      */
     fun setupBackPressHandler() {
-        activity.onBackPressedDispatcher.addCallback(activity, object : OnBackPressedCallback(true) {
+        val backCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 // S0107: Draw Mode intercepts back before all other handlers
                 if (activity.isDrawOverlayManagerReady &&
@@ -438,14 +439,15 @@ class PlayerLifecycleManager(
                                 activity.exitPlayerWithAudioCheck()
                             }
                             .setNegativeButton(R.string.dialog_player_exit_pending_queue_stay, null)
-                            .show()
+                            .showBoundTo(activity)
                         return
                     }
                 }
 
                 activity.exitPlayerWithAudioCheck()
             }
-        })
+        }
+        activity.onBackPressedDispatcher.addCallback(activity, backCallback)
     }
 
     /**

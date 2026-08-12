@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -24,7 +25,7 @@ class GeneralSettingsResetHelper(
             .setTitle(R.string.remember_file_list_help_title)
             .setMessage(R.string.remember_file_list_help_message)
             .setPositiveButton(android.R.string.ok, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     fun showResetSettingsConfirmation() {
@@ -33,7 +34,7 @@ class GeneralSettingsResetHelper(
             .setMessage(R.string.reset_settings_message)
             .setPositiveButton(android.R.string.ok) { _, _ -> resetSettingsToDefaults() }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     fun showResetGeneralSectionConfirmation() {
@@ -42,7 +43,7 @@ class GeneralSettingsResetHelper(
             .setMessage(R.string.reset_general_section_message)
             .setPositiveButton(android.R.string.ok) { _, _ -> resetGeneralSection() }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     fun resetSmbConnections() {
@@ -72,7 +73,7 @@ class GeneralSettingsResetHelper(
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun resetGeneralSection() {

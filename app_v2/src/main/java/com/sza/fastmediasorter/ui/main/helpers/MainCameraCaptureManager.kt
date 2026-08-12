@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -65,26 +66,31 @@ class MainCameraCaptureManager(
             showSnackbar(R.string.camera_capture_error_no_camera_app)
             return
         }
-        val dir = createScratchDir() ?: run {
-            showSnackbar(R.string.camera_capture_error_temp_file)
-            return
+        // S1579: creating the scratch dir touches the disk, so it no longer runs inline on the main
+        // thread; the launch below resumes on the caller's main dispatcher to dispatch the intent.
+        coroutineScope.launch {
+            val dir = withContext(Dispatchers.IO) { createScratchDir() }
+            if (dir == null) {
+                showSnackbar(R.string.camera_capture_error_temp_file)
+                return@launch
+            }
+            val baseName = "CAP_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+            val initialMode = if (photoAvailable) CameraCaptureMode.PHOTO else CameraCaptureMode.VIDEO
+            val allowSwitch = photoAvailable && videoOk
+            pendingDir = dir
+            pendingBaseName = baseName
+            multiCapture = true
+            dispatch(
+                CameraCaptureContract.createSwitchableIntent(
+                    activity,
+                    dir.absolutePath,
+                    baseName,
+                    initialMode,
+                    allowSwitch,
+                    multiCapture = true,
+                ),
+            )
         }
-        val baseName = "CAP_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val initialMode = if (photoAvailable) CameraCaptureMode.PHOTO else CameraCaptureMode.VIDEO
-        val allowSwitch = photoAvailable && videoOk
-        pendingDir = dir
-        pendingBaseName = baseName
-        multiCapture = true
-        dispatch(
-            CameraCaptureContract.createSwitchableIntent(
-                activity,
-                dir.absolutePath,
-                baseName,
-                initialMode,
-                allowSwitch,
-                multiCapture = true,
-            ),
-        )
     }
 
     private fun dispatch(intent: Intent) {
@@ -158,13 +164,20 @@ class MainCameraCaptureManager(
     private fun clearPending() {
         val dir = pendingDir
         val base = pendingBaseName
-        if (dir != null && base != null) {
-            File(dir, "$base.jpg").delete()
-            File(dir, "$base.mp4").delete()
-        }
+        // S1593: the bookkeeping is dropped synchronously so the paths are snapshotted before any new
+        // session can start, but the two deletions are disk writes and every caller is on the main
+        // thread (result callback / launch catch blocks). NonCancellable because coroutineScope is the
+        // host Activity's lifecycleScope: without it a destroy right after the result would drop the
+        // deletion and leak scratch files, a guarantee the previous inline delete did give.
         pendingDir = null
         pendingBaseName = null
         multiCapture = false
+        if (dir == null || base == null) return
+        Timber.d("S1593: clearPending offloading scratch delete")
+        coroutineScope.launch(Dispatchers.IO + NonCancellable) {
+            File(dir, "$base.jpg").delete()
+            File(dir, "$base.mp4").delete()
+        }
     }
 
     /**

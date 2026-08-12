@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -111,6 +112,7 @@ class PlayerSettingsManager(
             it.removeSuffix("x").toFloatOrNull() == currentSpeed 
         }.coerceAtLeast(3) // Default to 1.0x if not found
         
+        Timber.d("S1456: player playback-speed dialog bound to host")
         AlertDialog.Builder(activity)
             .setTitle(activity.getString(R.string.playback_speed))
             .setSingleChoiceItems(speeds, currentIndex) { dialog, which ->
@@ -119,7 +121,7 @@ class PlayerSettingsManager(
                 dialog.dismiss()
             }
             .setNegativeButton(activity.getString(R.string.cancel), null)
-            .show()
+            .showBoundToHost(activity)
     }
     
     /**

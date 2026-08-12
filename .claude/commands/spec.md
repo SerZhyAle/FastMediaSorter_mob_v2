@@ -154,7 +154,7 @@ Immediately after writing file, advance `Status: Draft` → `Approved` in spec f
 pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id $ticketId -Status Approved
 ```
 
-Those constraints are gate-enforced at this flip and nowhere else - clean the spec against `.claude/reference/spec.md` section "Constraints" before running the two commands above.
+This flip is gated on §3.3 alone (`check-owner-inputs.ps1`); the Spec Writing constraints are an authoring standard with no gate behind them, and the house text style does not reach a spec file at any transition (S1543). Read `.claude/reference/spec.md` section "Constraints" and satisfy it while writing, before running the two commands above.
 
 Then record dev log:
 

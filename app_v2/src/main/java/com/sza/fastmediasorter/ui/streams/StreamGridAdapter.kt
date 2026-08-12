@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.menu.StreamMenuAction
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.ItemStreamGridCellBinding
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
@@ -58,6 +59,8 @@ class StreamGridAdapter(
     private val onAddShortcut: (StreamSourceEntity) -> Unit,
     private val onEdit: (StreamSourceEntity) -> Unit,
     private val onShareLink: (StreamSourceEntity) -> Unit,
+    // S1474: opens the "about this channel" window; wired by the streams screen through StreamInfoDialogManager.
+    private val onAboutChannel: (StreamSourceEntity) -> Unit = {},
     // S0783: mirrors StreamSourceAdapter - add/remove the channel from Favorites (feature-gated). The
     // gate + label state are pulled lazily when the menu opens.
     private val onToggleFavorite: (StreamSourceEntity) -> Unit = {},
@@ -80,6 +83,22 @@ class StreamGridAdapter(
     // active tile renders the track; inactive tiles show the station name (ADR-4).
     private var playingId: String? = null
     private var nowPlayingLine: String? = null
+
+    /**
+     * S1502: play outcome per channel id, pushed in from its own Flow instead of read off the row.
+     * Only the tiles whose outcome actually moved are repainted, and only their status bullet.
+     */
+    var playOutcomes: Map<String, String> = emptyMap()
+        set(value) {
+            if (field == value) return
+            val previous = field
+            field = value
+            currentList.forEachIndexed { index, item ->
+                if (previous[item.id] != value[item.id]) {
+                    notifyItemChanged(index, StreamAdapterPayloads.STATUS)
+                }
+            }
+        }
 
     /**
      * Update the active channel + its now-playing track and repaint only the affected tiles (mirrors
@@ -119,7 +138,7 @@ class StreamGridAdapter(
         payloads.forEach { payload ->
             when (payload) {
                 StreamAdapterPayloads.STATUS -> {
-                    holder.bindStatusOnly(item.lastPlayOutcome)
+                    holder.bindStatusOnly(playOutcomes[item.id])
                 }
                 StreamAdapterPayloads.PIN -> holder.bindPinOnly(item.pinned)
             }
@@ -154,7 +173,7 @@ class StreamGridAdapter(
             val stationTitle = StreamTitleFormatter.display(source.title)
             val activeTrack = nowPlayingLine?.takeIf { source.id == playingId && it.isNotBlank() }
             binding.tvTitle.text = if (activeTrack != null) "$stationTitle - $activeTrack" else stationTitle
-            bindPlayStatus(source.lastPlayOutcome)
+            bindPlayStatus(playOutcomes[source.id])
             // S1062: red top-left indicator for a pinned tile (menu-driven only, not tappable).
             binding.tvPinBadge.isVisible = source.pinned
             binding.root.setOnClickListener { onPlay(source) }
@@ -220,54 +239,10 @@ class StreamGridAdapter(
         private fun bindOverflowMenu(source: StreamSourceEntity) {
             binding.btnGridOverflow.setOnClickListener { anchor ->
                 PopupMenu(anchor.context, anchor).apply {
-                    // S1062: pin/unpin is the topmost menu item; the label reflects the current state and
-                    // reuses the already-injected onPin toggle (unpins if pinned, else pins).
-                    val pinLabel = if (source.pinned) R.string.streams_unpin else R.string.streams_pin
-                    menu.add(Menu.NONE, ID_TOGGLE_PIN, Menu.NONE, pinLabel)
-                    // S0938: reorder commands lead the menu for a pinned tile when more than one channel
-                    // is pinned. Edge commands are disabled at the ends of the pinned block.
-                    val pinnedRows = currentList.filter { it.pinned }
-                    if (source.pinned && pinnedRows.size > 1) {
-                        val pinnedIndex = pinnedRows.indexOfFirst { it.id == source.id }
-                        menu.add(Menu.NONE, ID_MOVE_UP, Menu.NONE, R.string.streams_move_up)
-                            .isEnabled = pinnedIndex > 0
-                        menu.add(Menu.NONE, ID_MOVE_DOWN, Menu.NONE, R.string.streams_move_down)
-                            .isEnabled = pinnedIndex < pinnedRows.lastIndex
-                        menu.add(Menu.NONE, ID_MOVE_TO_TOP, Menu.NONE, R.string.streams_move_to_top)
-                            .isEnabled = pinnedIndex > 0
-                    }
-                    // S0783: Favorites toggle leads the menu when the feature is on; label flips on state.
-                    if (favoritesEnabled()) {
-                        val favLabel = if (isFavorite(source)) {
-                            R.string.streams_remove_from_favorites
-                        } else {
-                            R.string.streams_add_to_favorites
-                        }
-                        // Order = Menu.NONE on every item, so the menu follows add-order (favorite,
-                        // shortcut, edit, share, remove) without magic order literals.
-                        menu.add(Menu.NONE, ID_TOGGLE_FAVORITE, Menu.NONE, favLabel)
-                    }
-                    menu.add(Menu.NONE, ID_ADD_SHORTCUT, Menu.NONE, R.string.streams_add_to_home_screen)
-                    // Edit is offered only for user-added channels (mirrors the list row, S0660 §6.4).
-                    if (source.sourceOrigin == "MANUAL") {
-                        menu.add(Menu.NONE, ID_EDIT, Menu.NONE, R.string.streams_edit)
-                    }
-                    menu.add(Menu.NONE, ID_SHARE_LINK, Menu.NONE, R.string.streams_send_link)
-                    menu.add(Menu.NONE, ID_REMOVE, Menu.NONE, R.string.streams_remove)
-                    setOnMenuItemClickListener { item ->
-                        when (item.itemId) {
-                            ID_TOGGLE_PIN -> { onPin(source); true }
-                            ID_MOVE_UP -> { onMoveUp(source); true }
-                            ID_MOVE_DOWN -> { onMoveDown(source); true }
-                            ID_MOVE_TO_TOP -> { onMoveToTop(source); true }
-                            ID_TOGGLE_FAVORITE -> { onToggleFavorite(source); true }
-                            ID_ADD_SHORTCUT -> { onAddShortcut(source); true }
-                            ID_EDIT -> { onEdit(source); true }
-                            ID_SHARE_LINK -> { onShareLink(source); true }
-                            ID_REMOVE -> { onRemove(source); true }
-                            else -> false
-                        }
-                    }
+                    // S1424: the tile offers every row the catalog has, pin/unpin included - unlike the
+                    // list row, which renders that one as its own button (S1062).
+                    buildStreamMenu(menu, source) { true }
+                    setOnMenuItemClickListener { item -> onStreamActionSelected(item.itemId, source) }
                     show()
                 }
             }
@@ -417,16 +392,43 @@ class StreamGridAdapter(
         source.mediaKind == "VIDEO" &&
             (source.url.startsWith("http://") || source.url.startsWith("https://"))
 
+    /**
+     * S1424: composition comes from the shared catalog through [StreamMenuBinder], so this tile and
+     * the list row can no longer disagree about what a channel offers (strategic ADR-1).
+     */
+    private fun buildStreamMenu(
+        menu: Menu,
+        source: StreamSourceEntity,
+        canRun: (StreamMenuAction) -> Boolean,
+    ) {
+        val pinnedRows = currentList.filter { it.pinned }
+        val facts = StreamMenuBinder.factsOf(source, pinnedRows, favoritesEnabled(), isFavorite(source))
+        StreamMenuBinder.build(menu, source, pinnedRows, facts, canRun)
+    }
+
+    private fun onStreamActionSelected(itemId: Int, source: StreamSourceEntity): Boolean {
+        val action = StreamMenuAction.byMenuItemId(itemId) ?: return false
+        route(action, source)
+        return true
+    }
+
+    /** Routing stays here rather than in the binder: these callbacks belong to this adapter. */
+    private fun route(action: StreamMenuAction, source: StreamSourceEntity) {
+        when (action) {
+            StreamMenuAction.TOGGLE_PIN -> onPin(source)
+            StreamMenuAction.MOVE_UP -> onMoveUp(source)
+            StreamMenuAction.MOVE_DOWN -> onMoveDown(source)
+            StreamMenuAction.MOVE_TO_TOP -> onMoveToTop(source)
+            StreamMenuAction.TOGGLE_FAVORITE -> onToggleFavorite(source)
+            StreamMenuAction.ADD_SHORTCUT -> onAddShortcut(source)
+            StreamMenuAction.EDIT -> onEdit(source)
+            StreamMenuAction.ABOUT_CHANNEL -> onAboutChannel(source)
+            StreamMenuAction.SHARE_LINK -> onShareLink(source)
+            StreamMenuAction.REMOVE -> onRemove(source)
+        }
+    }
+
     private companion object {
-        const val ID_ADD_SHORTCUT = 1
-        const val ID_REMOVE = 2
-        const val ID_EDIT = 3
-        const val ID_SHARE_LINK = 4
-        const val ID_TOGGLE_FAVORITE = 5 // S0783
-        const val ID_MOVE_UP = 6 // S0938
-        const val ID_MOVE_DOWN = 7 // S0938
-        const val ID_MOVE_TO_TOP = 8 // S0938
-        const val ID_TOGGLE_PIN = 9 // S1062
 
         val DIFF = object : DiffUtil.ItemCallback<StreamSourceEntity>() {
             override fun areItemsTheSame(oldItem: StreamSourceEntity, newItem: StreamSourceEntity) =

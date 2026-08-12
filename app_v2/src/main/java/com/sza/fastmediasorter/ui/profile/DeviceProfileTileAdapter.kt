@@ -73,14 +73,13 @@ class DeviceProfileTileAdapter(
             }
 
             val isSelected = type == selected
+            // The stroke means "selected" and nothing else, so exactly one tile ever carries it and
+            // picking another profile clears it off the previous one. The auto-detected profile is
+            // marked by its badge instead - tying the stroke to it too left two framed tiles after
+            // the user picked anything other than the recommendation.
             val density = context.resources.displayMetrics.density
-            // The auto-detected (recommended) tile gets a thicker, brighter frame; the selected tile a
-            // normal one. In Welcome the recommended profile is pre-selected, so it stands out clearly.
-            binding.cardProfileTile.strokeWidth = when {
-                isRecommended -> (3 * density).toInt()
-                isSelected -> (2 * density).toInt()
-                else -> 0
-            }
+            binding.cardProfileTile.strokeWidth =
+                if (isSelected) (SELECTED_STROKE_DP * density).toInt() else 0
             binding.cardProfileTile.isSelected = isSelected
             binding.cardProfileTile.contentDescription = "$title. $description"
 
@@ -101,5 +100,8 @@ class DeviceProfileTileAdapter(
     private companion object {
         /** Matches android:maxLines on tvProfileTileDescription in item_device_profile_tile.xml. */
         const val COLLAPSED_DESCRIPTION_LINES = 2
+
+        /** Stroke width, in dp, of the frame drawn around the selected tile. */
+        const val SELECTED_STROKE_DP = 2
     }
 }

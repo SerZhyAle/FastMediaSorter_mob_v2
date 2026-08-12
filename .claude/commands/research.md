@@ -58,6 +58,10 @@ Writes Markdown dossier to `temp/scratch/` with: recommended first docs · match
 
 Use `/catalog` after dossier for class-level lookup, DI consumers, or post-change catalog maintenance.
 
+Before fixing an approach, open `dev/REFUTED_APPROACHES.md`. When a measurement rejects a
+proposed approach, add the source ticket, measurement, and shipped alternative before
+continuing.
+
 **Step 4 - Drill into implementation files.**
 - Smallest set of follow-up reads answering the question.
 - Use dossier to avoid repeated global greps.

@@ -22,6 +22,7 @@
     { "field": "screenRecordingDisclosureAccepted", "reason": "consent - only the user can give it" },
     { "field": "enableStatistics", "reason": "consent - data collection is opted into by the user, never by a profile" },
     { "field": "cameraGeotagEnabled", "reason": "consent - writing location into photos is the user's decision" },
+    { "field": "recordGnssTrack", "reason": "consent - recording a satellite track changes the Play Data Safety answer, so only the user turns it on (S1433)" },
 
     { "field": "scheduledOperationsPaused", "reason": "session state - reflects a running queue, not a preference" },
     { "field": "isCacheSizeUserModified", "reason": "session state - records that the user overrode the cache budget" },
@@ -31,6 +32,9 @@
     { "field": "showPlayerHintOnFirstRun", "reason": "one-shot hint state - presetting it would hide a hint never shown" },
     { "field": "vrPlayerEntryPromptDismissed", "reason": "one-shot hint state - presetting it would hide a hint never shown" },
     { "field": "launcherRotationHintShown", "reason": "one-shot hint state - presetting it would hide a hint never shown" },
+
+    { "field": "allAppsSortOrder", "reason": "view state - the all-apps screen writes back whatever the user picked in its own order menu" },
+    { "field": "allAppsSortDescending", "reason": "view state - the all-apps screen writes back whatever the user picked in its own order menu" },
 
     { "field": "rendererMigrationEnabled", "reason": "migration flag - owned by the upgrade path, not by a profile" },
 

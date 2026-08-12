@@ -7,7 +7,7 @@ metadata:
 
 Launch every gradle-backed script through the **PowerShell tool**, not the Bash tool.
 
-**Why:** the Bash tool's environment carries a stale `JAVA_HOME` (`/c/Program Files/Java/jdk-21.0.10`) pointing at a directory that does not exist on this machine - only `jdk-21.0.11` and `latest/jdk-21` do. `gradlew.bat` validates `JAVA_HOME` and aborts **before** it ever reads `gradle.properties`, so the user's `org.gradle.java.home=C:/Program Files/Android/Android Studio/jbr` never gets a chance to apply. The failure reads as a hard environment error:
+**Why:** the Bash tool's environment carries a stale `JAVA_HOME` (`/c/Program Files/Java/jdk-21.0.10`) pointing at a directory that does not exist on this machine - only `jdk-21.0.11` and `latest/jdk-21` do. `gradlew.bat` validates `JAVA_HOME` and aborts **before** it ever reads `gradle.properties`, so the user's `org.gradle.java.home` (`C:/Program Files/Java/latest/jdk-21` since S1425, 2026-08-05) never gets a chance to apply. The failure reads as a hard environment error:
 
 ```
 ERROR: JAVA_HOME is set to an invalid directory: C:/Program Files/Java/jdk-21.0.10

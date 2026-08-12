@@ -1274,6 +1274,31 @@ footer p {
     color: var(--color-nolegal);
 }
 
+.gpl-source-notice {
+    max-width: var(--wide);
+    margin: -1.5rem auto 2.5rem;
+    padding: 1.1rem 1.3rem;
+    background: rgba(255, 93, 115, 0.04);
+    border: 1px solid rgba(255, 93, 115, 0.15);
+    border-radius: 12px;
+    font-size: 0.9em;
+    line-height: 1.55;
+    color: var(--text-muted);
+}
+
+.gpl-source-notice strong {
+    color: var(--color-nolegal);
+}
+
+.gpl-source-notice a {
+    color: var(--color-nolegal);
+    text-decoration: underline;
+}
+
+.gpl-source-notice a:hover {
+    text-shadow: 0 0 10px rgba(255, 93, 115, 0.4);
+}
+
 /* ============================================================
    S0387: Four Dashboard Layout Variants Styles
    ============================================================ */

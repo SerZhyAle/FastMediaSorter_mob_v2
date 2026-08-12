@@ -10,6 +10,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -203,7 +204,7 @@ class ImageDrawOverlayManager(
                 saveCallback?.onSaveRequested(overlayBitmap, confirmedFilename)
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     private fun cleanupCanvas() {
@@ -856,7 +857,7 @@ class ImageDrawOverlayManager(
                     noteMutation()
                     invalidate()
                 }
-                .show()
+                .showBoundToHost(activity)
         }
 
         private fun noteMutation() {

@@ -111,5 +111,10 @@ data class ResourceEntity(
 
     // S1009: ad-hoc local-folder resource hidden from visible surfaces; FK still resolves. defaultValue="0" so the exported schema hash matches.
     @ColumnInfo(name = "is_hidden", defaultValue = "0")
-    val isHidden: Boolean = false
+    val isHidden: Boolean = false,
+
+    // S1378: StorageVolumeInfo.id this resource lives on; null = not bound to any volume, which is what
+    // every pre-v45 row keeps. A removable-volume resource stays ResourceType.LOCAL (ADR-1).
+    @ColumnInfo(name = "storage_volume_id", defaultValue = "NULL")
+    val storageVolumeId: String? = null
 )

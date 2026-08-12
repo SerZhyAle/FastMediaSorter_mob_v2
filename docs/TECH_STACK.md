@@ -127,11 +127,11 @@ Engineering effort estimate:
 - This is an inference, not a historical log. The estimate is driven by the size of the production code, `20` application variants across `app_v2` + `wear`, multiple network/cloud/media integrations, and the custom build/release automation around them
 
 ## Dependency Highlights
-- DI and persistence: Hilt `2.59`, Room `2.7.0`, WorkManager `2.9.0`, DataStore `1.0.0`
+- DI and persistence: Hilt `2.59`, Room `2.7.0`, WorkManager `2.9.0`, DataStore `1.1.7`
 - UI: Jetpack Compose BOM `2024.02.00`, Material 3, Activity `1.10.1`, Lifecycle `2.7.0`, ConstraintLayout `2.1.4`
 - Media: Media3 `1.2.1` (`exoplayer`, `ui`, `common`, `session`, `effect`, plus flavor-mounted `hls`, `dash`, `rtsp`, `midi`)
 - Imaging and capture: Glide `4.16.0`, Coil `2.5.0` (Wear), CameraX `1.5.3`, PhotoView `2.3.0`, ExifInterface `1.3.7`
-- Network and auth: SMBJ `0.12.1`, JSch `0.2.26` (app) / `0.2.17` (wear), Commons Net `3.10.0`, OkHttp `4.12.0`, Retrofit `2.9.0`, AppAuth `0.11.1`
+- Network and auth: SMBJ `0.12.1`, JSch `0.2.26` (both modules), Commons Net `3.10.0`, OkHttp `4.12.0`, Retrofit `2.9.0`, AppAuth `0.11.1`
 - Cloud SDKs: Play Services Auth `21.0.0`, Dropbox Core SDK `5.4.5`, MSAL `6.0.1`
 - OCR, translation, docs, archives: ML Kit Translate `17.0.3`, Language ID `17.0.6`, Tesseract4Android `4.8.0`, epub4j-core `4.2`, jsoup `1.17.2`, Markwon `4.6.2`, zip4j `2.11.5`
 - Sideload / XR-only surface: Chaquopy Python `3.12`, `yt-dlp` nightly `2026.07.23.234303`, OpenXR loader `1.1.48`, NewPipeExtractor `v0.26.1`
@@ -145,8 +145,9 @@ Engineering effort estimate:
 
 ## Network Protocol Notes
 - SMB: SMBJ (`com.hierynomus:smbj:0.12.1`)
+- SMB crypto: BouncyCastle `org.bouncycastle:bcprov-jdk18on:1.75`, never declared in either build file - SMBJ pulls it transitively. `app_v2/build.gradle.kts` asserts that version at configuration time rather than forcing it, so a security update riding along with an SMBJ bump is not blocked, but it cannot land unnoticed either
 - FTP: Apache Commons Net (`commons-net:3.10.0`)
-- SFTP: JSch (`com.github.mwiede:jsch`) in both modules, with different pinned versions
+- SFTP: JSch (`com.github.mwiede:jsch:0.2.26`) in both modules, on the same version; equality across `app_v2` and `wear` is enforced by `scripts/check-doc-vs-gradle.ps1`
 - Internet streams: Media3 selects HLS, DASH, RTSP, or progressive playback sources at runtime
 - Cast path: Google Cast SDK `21.4.0` + MediaRouter `1.7.0` + in-process `nanohttpd:2.3.1` proxy
 - Public cleartext `http://` streams remain supported because many radio/stream endpoints are still unencrypted

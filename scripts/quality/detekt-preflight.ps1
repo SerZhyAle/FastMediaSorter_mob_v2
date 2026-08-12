@@ -1,15 +1,32 @@
 #requires -Version 7.0
 <#
-  detekt-preflight.ps1 (S1338 phase 04 step 04.7)
+  detekt-preflight.ps1 (S1338 phase 04 step 04.7; reworked by S1595)
 
-  A purely lexical pre-check for the three detekt rules that dominate this repo's
-  findings - MaxLineLength, ImportOrdering and MagicNumber. Each of them currently
-  costs a ~23 s gradle round-trip to discover, and `assert-detekt` rejects half of
-  the runs it is given. This front-runs the cheap majority in well under a second.
+  Front-runs the expensive detekt gate on the changed files. Since S1595 it does that by
+  running the REAL analyser over just those files (scripts/quality/detekt-scoped.ps1,
+  1.3-2.5 s), and only falls back to the lexical scan below when the analyser cannot be
+  started at all.
 
-  It NEVER replaces the detekt gate: it is lexical, it reads no type information,
-  and it is deliberately conservative - a clean preflight is not a promise that
-  detekt will pass, only that these three rules are unlikely to be why it does not.
+  Why the change: the lexical scan reproduces three rules by hand - MaxLineLength,
+  ImportOrdering and MagicNumber - and measured over the transcript corpus it fired on
+  35.7% of attributable gate failures while fully covering 13.9%, so in 86% of failures
+  the gradle round-trip happened anyway. Hand-listing more rules does not fix that: nine
+  hand-listed rules reach 48.1%, the biggest misses (ReturnCount, ArgumentListWrapping)
+  were not the ones anyone predicted, and the size rules cannot be reproduced lexically
+  at all - the classes detekt flags and the ones it does not overlap by a 240-line band
+  under every line metric tried. See PLAN/S1595_detekt-preflight-coverage-gap/research/.
+
+  It NEVER replaces the detekt gate: the scoped run has no type information and sees a
+  narrowed input, so the gate remains the project-wide verdict.
+
+  Measured cost (S1595, 2026-08-12): 2.1 s for one file and 3.3 s for two directly, and
+  3.1 s as the `[detekt-preflight]` step inside post-change.ps1, which adds one pwsh
+  start. Comfortably inside the foreground budget, and it takes no BUILD.LOCK, so it does
+  not queue behind a sibling session's build - see docs/BUILD_TEST_FAST_PATH.md.
+
+  The lexical scan below is retained deliberately, as the degraded path. It is also the
+  reason the degraded path never blocks: its false positives are exactly what the
+  research measured, and blocking a closure on one would cost an edit for nothing.
 
   Thresholds come from config/detekt/detekt.yml. That file relies on
   buildUponDefaultConfig = true and overrides neither rule, so the documented detekt
@@ -29,9 +46,13 @@
   to see the unfiltered set.
 
   Exit codes:
-    0 - no finding in the checked files (or nothing to check).
-    1 - at least one finding (only under -Gate; without it the findings print and
-        the script still exits 0, so it can front-run without blocking).
+    0 - the analyser found nothing in the checked files, or there was nothing to check,
+        or it could not run and the degraded lexical scan stood in for it. The degraded
+        path ALWAYS exits 0 even when the lexical scan found something: those findings
+        print, but a lexical guess must not abort a closure.
+    1 - the real analyser found at least one new finding (only under -Gate; without it
+        the findings print and the script still exits 0, so it can front-run without
+        blocking).
     2 - cannot verify: the config file is missing, or a named file does not exist.
 #>
 [CmdletBinding()]
@@ -86,6 +107,44 @@ if ($targets.Count -eq 0) {
     Write-Host 'detekt-preflight: no .kt file in the changed set - nothing to check.'
     exit 0
 }
+
+# --- S1595: delegate to the real analyser ------------------------------------
+# A child process rather than a dot-source, because the runner ends in `exit` and dot-sourcing it
+# would take this script's process down with it.
+$degradedReason = $null
+$scopedRunner = Join-Path $PSScriptRoot 'detekt-scoped.ps1'
+if (-not (Test-Path -LiteralPath $scopedRunner)) {
+    $degradedReason = "scoped runner not found at $scopedRunner"
+}
+else {
+    $scopedOutput = @(& pwsh -NoProfile -File $scopedRunner -ChangedFiles ($targets -join ',') 2>&1)
+    switch ($LASTEXITCODE) {
+        0 {
+            $scopedOutput | ForEach-Object { Write-Host $_ }
+            exit 0
+        }
+        1 {
+            $scopedOutput | ForEach-Object { Write-Host $_ }
+            if ($Gate) { exit 1 }
+            exit 0
+        }
+        default {
+            # Exit 2 from the runner means it could not check, which is neither a pass nor a
+            # failure. Keep its own words - they name the missing piece - then fall through to the
+            # lexical scan so the step still says something rather than nothing.
+            $degradedReason = (@($scopedOutput | Where-Object { $_ -match 'CANNOT VERIFY' }) |
+                Select-Object -First 1)
+            if (-not $degradedReason) { $degradedReason = "scoped runner exited $LASTEXITCODE" }
+        }
+    }
+}
+
+Write-Host ''
+Write-Host "detekt-preflight: DEGRADED - the real analyser could not run, falling back to the lexical scan." -ForegroundColor Magenta
+Write-Host "  reason: $degradedReason" -ForegroundColor Magenta
+Write-Host "  The lexical scan checks three rules out of the whole set and cannot see types, so it" -ForegroundColor Magenta
+Write-Host "  never blocks a closure. Anything it prints below is a hint; the detekt gate is the verdict." -ForegroundColor Magenta
+Write-Host ''
 
 # Blank out string literals and comments so a number or a brace inside them is not code.
 function Get-MaskedLines([string[]] $lines) {
@@ -264,11 +323,16 @@ foreach ($path in $targets) {
     }
 
     # --- MagicNumber ---------------------------------------------------------
-    # detekt's bundled config excludes whole test source dirs from MagicNumber. Note it
-    # excludes them by DIRECTORY, so src/test and src/androidTest are out while a flavor
-    # test set such as src/testNoLegal is still judged - the report proves both.
+    # detekt excludes whole test source dirs from MagicNumber by DIRECTORY. This preflight has to
+    # mirror whatever config/detekt/detekt.yml declares, or it reports findings the authoritative
+    # gate does not - and a preflight that disagrees with the gate it previews trains people to
+    # ignore it. S1450 widened the config's pattern to '**/test*/**' because the bundled default
+    # ('**/test/**') matched src/test but missed every flavor unit-test source set - src/testStandard,
+    # src/testNoLegal, src/testStreamingEnabled, src/testCloudEnabled. The 'test[A-Za-z0-9]*'
+    # alternative below tracks that widening; androidTest and the rest stay listed separately
+    # because they do not start with 'test'.
     $relPath = $path.Replace($RepoRoot, '').TrimStart('\', '/').Replace('\', '/')
-    if ($relPath -match '/(test|androidTest|commonTest|jvmTest|jsTest|iosTest|androidUnitTest|androidInstrumentedTest)/') { continue }
+    if ($relPath -match '/(test[A-Za-z0-9]*|androidTest|commonTest|jvmTest|jsTest|iosTest|androidUnitTest|androidInstrumentedTest)/') { continue }
     $companionDepth = -1
     $depth = 0
     $inCompanionProperty = $false
@@ -317,21 +381,23 @@ foreach ($path in $targets) {
 if ($Json) {
     $findings | ConvertTo-Json -Depth 4
 } else {
+    # S1600: same prefix rule as assert-detekt / detekt-scoped - an unprefixed indented line does
+    # not survive the caller's `Select-String`, so the hint is printed and then never read.
     foreach ($f in $findings) {
-        Write-Host ("  {0}:{1} - {2} ({3})" -f $f.file, $f.line, $f.rule, $f.detail) -ForegroundColor Yellow
+        Write-Host ("detekt-preflight:   {0}:{1} - {2} ({3})" -f $f.file, $f.line, $f.rule, $f.detail) -ForegroundColor Yellow
     }
 }
 
 $byRule = $findings | Group-Object rule | ForEach-Object { "$($_.Name) $($_.Count)" }
 if ($findings.Count -eq 0) {
-    Write-Host ("detekt-preflight: PASS - {0} file(s), no MaxLineLength / ImportOrdering / MagicNumber finding (maxLineLength {1})." -f $targets.Count, $maxLineLength) -ForegroundColor Green
+    Write-Host ("detekt-preflight: DEGRADED PASS - {0} file(s), no MaxLineLength / ImportOrdering / MagicNumber finding (maxLineLength {1}). Three rules of the set were checked, not all of them." -f $targets.Count, $maxLineLength) -ForegroundColor Yellow
     exit 0
 }
 
-$summary = "detekt-preflight: {0} finding(s) over {1} file(s) - {2}. Lexical only; the detekt gate remains the verdict." -f $findings.Count, $targets.Count, ($byRule -join ', ')
-if ($Gate) {
-    Write-Error $summary -ErrorAction Continue
-    exit 1
-}
+# Never exit 1 here. Reaching this line means the real analyser did not run, so every finding
+# below came from the lexical scan - and S1595 measured that scan's false-positive rate on the
+# size rules as higher than its true-positive rate. Blocking a closure on a guess costs an edit
+# for nothing, which is the failure mode this whole ticket exists to remove.
+$summary = "detekt-preflight: DEGRADED - {0} lexical hint(s) over {1} file(s) - {2}. Not a verdict and not blocking; the detekt gate decides." -f $findings.Count, $targets.Count, ($byRule -join ', ')
 Write-Host $summary -ForegroundColor Yellow
 exit 0

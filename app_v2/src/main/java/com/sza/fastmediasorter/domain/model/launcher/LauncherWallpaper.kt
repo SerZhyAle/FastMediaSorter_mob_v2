@@ -14,6 +14,9 @@ sealed interface LauncherWallpaper {
     /** Branded procedural waves-and-particles animation, the default. */
     data object Branded : LauncherWallpaper
 
+    /** One fresh, motionless branded frame, replaced only when the launcher returns to the foreground. */
+    data object StaticStripes : LauncherWallpaper
+
     /** User image (still or GIF) copied into app-private storage. */
     data class Image(val absolutePath: String) : LauncherWallpaper
 }

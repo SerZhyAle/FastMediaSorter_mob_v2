@@ -81,7 +81,7 @@ If compact spec touches sensitive scope (UI / flavor / data / API), follow `/spe
 **Out-of-scope dependency:**
 
 - Minor (no new classes, no schema change, <= ~30 min) -> implement inline.
-- Significant -> allocate new `Sxxxx` via `insert.ps1`, write `PLAN/Sxxxx_<dependency-slug>.md` (`Status: Approved`, `<!-- discovered by /spec-all - <date> -->`). If dependency is **Full**-complexity, create full tactical folder too. Continue current pipeline. Set parent's status to `BlockByOtherTask` only if dependency must finish first - otherwise just record under §10.
+- Significant -> allocate new `Sxxxx` via `insert.ps1`, write `PLAN/Sxxxx_<dependency-slug>.md` (`Status: Approved`, `<!-- discovered by /spec-all - <date> -->`). If dependency is **Full**-complexity, create full tactical folder too. Continue current pipeline. Set parent's status to `BlockByOtherTask` only if dependency must finish first, and then record the id as a `Blocker: Sxxxx` token (§10 or the status note) - a bare mention under §10 reads as a relation, not a dependency, and the tooling ignores it (S1482). Dependency need not finish first -> just record it under §10 as prose.
 
 ---
 

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1415: the SIM slot's drawable. SignalStrength.getLevel() returns 0..4, so the tray sets that value
+     straight onto the view with setImageLevel and the right bar count is picked here. -->
+<level-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:maxLevel="0"
+        android:drawable="@drawable/ic_signal_cellular_bar_0" />
+
+    <item
+        android:maxLevel="1"
+        android:drawable="@drawable/ic_signal_cellular_bar_1" />
+
+    <item
+        android:maxLevel="2"
+        android:drawable="@drawable/ic_signal_cellular_bar_2" />
+
+    <item
+        android:maxLevel="3"
+        android:drawable="@drawable/ic_signal_cellular_bar_3" />
+
+    <item
+        android:maxLevel="4"
+        android:drawable="@drawable/ic_signal_cellular_bar_4" />
+
+</level-list>

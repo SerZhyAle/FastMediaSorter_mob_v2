@@ -30,8 +30,11 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
+import com.sza.fastmediasorter.util.showBoundToHost
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -124,64 +127,74 @@ class BrowseCameraCaptureManager(
         }
 
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val tempFile = createTemp(timestamp, ext) ?: run {
-            Timber.w("launch ABORT - createTemp returned null")
-            showSnackbar(R.string.camera_capture_error_temp_file)
-            pendingResource = null
-            return
-        }
-        Timber.i("launch tempFile created path=%s exists=%b", tempFile.absolutePath, tempFile.exists())
-        pendingTempFile = tempFile
+        // S1609: [createTemp] mkdirs the app-private capture directory and creates the file, so it is a
+        // disk write and may not run inline here. The coroutine resumes on the host's main dispatcher,
+        // which preserves the ordering the result callback depends on: pendingTempFile is assigned
+        // before launcher.launch fires, so a result can never arrive without its temp file.
+        coroutineScope.launch {
+            val tempFile = createTemp(timestamp, ext) ?: run {
+                Timber.w("launch ABORT - createTemp returned null")
+                showSnackbar(R.string.camera_capture_error_temp_file)
+                pendingResource = null
+                return@launch
+            }
+            Timber.i("launch tempFile created path=%s exists=%b", tempFile.absolutePath, tempFile.exists())
+            pendingTempFile = tempFile
 
-        val uri = try {
-            FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", tempFile)
-        } catch (e: SecurityException) {
-            Timber.e(e, "FileProvider.getUriForFile denied authority=%s.fileprovider", activity.packageName)
-            showSnackbar(R.string.camera_capture_error_permission_denied)
-            tempFile.delete()
-            pendingTempFile = null
-            pendingResource = null
-            return
-        } catch (t: Throwable) {
-            Timber.e(t, "FileProvider.getUriForFile FAILED authority=%s.fileprovider", activity.packageName)
-            showSnackbar(R.string.camera_capture_error_save_generic)
-            tempFile.delete()
-            pendingTempFile = null
-            pendingResource = null
-            return
-        }
-        Timber.i("launch FileProvider uri=%s", uri)
+            val uri = try {
+                FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", tempFile)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: SecurityException) {
+                Timber.e(e, "FileProvider.getUriForFile denied authority=%s.fileprovider", activity.packageName)
+                showSnackbar(R.string.camera_capture_error_permission_denied)
+                deleteTempAsync(tempFile)
+                pendingTempFile = null
+                pendingResource = null
+                return@launch
+            } catch (t: Throwable) {
+                Timber.e(t, "FileProvider.getUriForFile FAILED authority=%s.fileprovider", activity.packageName)
+                showSnackbar(R.string.camera_capture_error_save_generic)
+                deleteTempAsync(tempFile)
+                pendingTempFile = null
+                pendingResource = null
+                return@launch
+            }
+            Timber.i("launch FileProvider uri=%s", uri)
 
-        // In-app photo capture removes the OEM confirmation step before returning to Browse.
-        val intent = CameraCaptureContract.createIntent(
-            activity,
-            uri,
-            tempFile.absolutePath,
-            CameraCaptureMode.PHOTO,
-            destinationLabel = destinationLabelFor(resource),
-        )
-        try {
-            Timber.i("launch dispatching launcher.launch(intent) action=%s", action)
-            launcher.launch(intent)
-            Timber.i("launch dispatched launcher.launch(intent) - awaiting result")
-        } catch (e: ActivityNotFoundException) {
-            Timber.e(e, "launcher.launch threw ActivityNotFoundException action=%s", action)
-            showSnackbar(R.string.camera_capture_error_no_camera_app)
-            tempFile.delete()
-            pendingTempFile = null
-            pendingResource = null
-        } catch (e: SecurityException) {
-            Timber.e(e, "launcher.launch threw SecurityException action=%s", action)
-            showSnackbar(R.string.camera_capture_error_permission_denied)
-            tempFile.delete()
-            pendingTempFile = null
-            pendingResource = null
-        } catch (t: Throwable) {
-            Timber.e(t, "launcher.launch threw %s action=%s", t.javaClass.simpleName, action)
-            showSnackbar(R.string.camera_capture_error_save_generic)
-            tempFile.delete()
-            pendingTempFile = null
-            pendingResource = null
+            // In-app photo capture removes the OEM confirmation step before returning to Browse.
+            val intent = CameraCaptureContract.createIntent(
+                activity,
+                uri,
+                tempFile.absolutePath,
+                CameraCaptureMode.PHOTO,
+                destinationLabel = destinationLabelFor(resource),
+            )
+            try {
+                Timber.i("launch dispatching launcher.launch(intent) action=%s", action)
+                launcher.launch(intent)
+                Timber.i("launch dispatched launcher.launch(intent) - awaiting result")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: ActivityNotFoundException) {
+                Timber.e(e, "launcher.launch threw ActivityNotFoundException action=%s", action)
+                showSnackbar(R.string.camera_capture_error_no_camera_app)
+                deleteTempAsync(tempFile)
+                pendingTempFile = null
+                pendingResource = null
+            } catch (e: SecurityException) {
+                Timber.e(e, "launcher.launch threw SecurityException action=%s", action)
+                showSnackbar(R.string.camera_capture_error_permission_denied)
+                deleteTempAsync(tempFile)
+                pendingTempFile = null
+                pendingResource = null
+            } catch (t: Throwable) {
+                Timber.e(t, "launcher.launch threw %s action=%s", t.javaClass.simpleName, action)
+                showSnackbar(R.string.camera_capture_error_save_generic)
+                deleteTempAsync(tempFile)
+                pendingTempFile = null
+                pendingResource = null
+            }
         }
     }
 
@@ -214,59 +227,66 @@ class BrowseCameraCaptureManager(
         }
 
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val tempFile = createTemp(timestamp, ".mp4") ?: run {
-            Timber.w("VideoCapture: launchVideo ABORT - createTemp returned null")
-            showSnackbar(R.string.camera_capture_error_temp_file)
-            pendingResource = null
-            pendingIsVideo = false
-            return
-        }
-        pendingTempFile = tempFile
+        // S1609: same off-main hop as the photo path - see the comment in [launch].
+        coroutineScope.launch {
+            val tempFile = createTemp(timestamp, ".mp4") ?: run {
+                Timber.w("VideoCapture: launchVideo ABORT - createTemp returned null")
+                showSnackbar(R.string.camera_capture_error_temp_file)
+                pendingResource = null
+                pendingIsVideo = false
+                return@launch
+            }
+            pendingTempFile = tempFile
 
-        val uri = try {
-            FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", tempFile)
-        } catch (t: Throwable) {
-            Timber.e(t, "VideoCapture: FileProvider.getUriForFile FAILED authority=%s.fileprovider", activity.packageName)
-            showSnackbar(R.string.camera_capture_error_save_generic)
-            tempFile.delete()
-            pendingTempFile = null
-            pendingResource = null
-            pendingIsVideo = false
-            return
-        }
+            val uri = try {
+                FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", tempFile)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (t: Throwable) {
+                Timber.e(t, "VideoCapture: FileProvider.getUriForFile FAILED authority=%s.fileprovider", activity.packageName)
+                showSnackbar(R.string.camera_capture_error_save_generic)
+                deleteTempAsync(tempFile)
+                pendingTempFile = null
+                pendingResource = null
+                pendingIsVideo = false
+                return@launch
+            }
 
-        // S0545: in-app video capture (unified host in VIDEO mode) replaces the external system intent.
-        val intent = CameraCaptureContract.createIntent(
-            activity,
-            uri,
-            tempFile.absolutePath,
-            CameraCaptureMode.VIDEO,
-            destinationLabel = destinationLabelFor(resource),
-        )
-        try {
-            launcher.launch(intent)
-            Timber.i("VideoCapture: launchVideo dispatched launcher.launch(intent) - awaiting result")
-        } catch (e: ActivityNotFoundException) {
-            Timber.e(e, "VideoCapture: launcher.launch threw ActivityNotFoundException")
-            showSnackbar(R.string.camera_capture_error_no_camera_app)
-            tempFile.delete()
-            pendingTempFile = null
-            pendingResource = null
-            pendingIsVideo = false
-        } catch (e: SecurityException) {
-            Timber.e(e, "VideoCapture: launcher.launch threw SecurityException")
-            showSnackbar(R.string.camera_capture_error_permission_denied)
-            tempFile.delete()
-            pendingTempFile = null
-            pendingResource = null
-            pendingIsVideo = false
-        } catch (t: Throwable) {
-            Timber.e(t, "VideoCapture: launcher.launch threw %s", t.javaClass.simpleName)
-            showSnackbar(R.string.camera_capture_error_save_generic)
-            tempFile.delete()
-            pendingTempFile = null
-            pendingResource = null
-            pendingIsVideo = false
+            // S0545: in-app video capture (unified host in VIDEO mode) replaces the external system intent.
+            val intent = CameraCaptureContract.createIntent(
+                activity,
+                uri,
+                tempFile.absolutePath,
+                CameraCaptureMode.VIDEO,
+                destinationLabel = destinationLabelFor(resource),
+            )
+            try {
+                launcher.launch(intent)
+                Timber.i("VideoCapture: launchVideo dispatched launcher.launch(intent) - awaiting result")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: ActivityNotFoundException) {
+                Timber.e(e, "VideoCapture: launcher.launch threw ActivityNotFoundException")
+                showSnackbar(R.string.camera_capture_error_no_camera_app)
+                deleteTempAsync(tempFile)
+                pendingTempFile = null
+                pendingResource = null
+                pendingIsVideo = false
+            } catch (e: SecurityException) {
+                Timber.e(e, "VideoCapture: launcher.launch threw SecurityException")
+                showSnackbar(R.string.camera_capture_error_permission_denied)
+                deleteTempAsync(tempFile)
+                pendingTempFile = null
+                pendingResource = null
+                pendingIsVideo = false
+            } catch (t: Throwable) {
+                Timber.e(t, "VideoCapture: launcher.launch threw %s", t.javaClass.simpleName)
+                showSnackbar(R.string.camera_capture_error_save_generic)
+                deleteTempAsync(tempFile)
+                pendingTempFile = null
+                pendingResource = null
+                pendingIsVideo = false
+            }
         }
     }
 
@@ -299,7 +319,7 @@ class BrowseCameraCaptureManager(
         val resource = if (resourceId != -1L) getResourceById(resourceId) else null
         if (resource == null) {
             Timber.w("restoreState resource not found id=%d - aborting, deleting tempFile", resourceId)
-            file.delete()
+            deleteTempAsync(file)
             showSnackbar(R.string.camera_capture_error_session_expired)
             return
         }
@@ -330,7 +350,7 @@ class BrowseCameraCaptureManager(
         }
         val resource = pendingResource ?: run {
             Timber.w("handleResult ABORT - pendingResource is null (process death?)")
-            tempFile.delete()
+            deleteTempAsync(tempFile)
             pendingTempFile = null
             pendingIsVideo = false
             showSnackbar(R.string.camera_capture_error_session_expired)
@@ -345,7 +365,7 @@ class BrowseCameraCaptureManager(
                 result.resultCode,
                 tempFile.absolutePath,
             )
-            tempFile.delete()
+            deleteTempAsync(tempFile)
             pendingTempFile = null
             pendingIsVideo = false
             return
@@ -384,9 +404,9 @@ class BrowseCameraCaptureManager(
                     save(tempFile, withExt(name, tempFile.extension), resource, openForEditing, isVideo)
                 }
             }
-            .setNegativeButton(R.string.cancel) { _, _ -> tempFile.delete() }
-            .setOnCancelListener { tempFile.delete() }
-            .show()
+            .setNegativeButton(R.string.cancel) { _, _ -> deleteTempAsync(tempFile) }
+            .setOnCancelListener { deleteTempAsync(tempFile) }
+            .showBoundToHost(activity)
     }
 
     // endregion
@@ -541,9 +561,17 @@ class BrowseCameraCaptureManager(
         return localVideoFallbackTarget()
     }
 
-    /** S0522: public Movies folder target used when a network video destination is unreachable. */
-    private fun localVideoFallbackTarget(): CameraCaptureTarget.Resource {
-        val moviesDir = CaptureDestinationPolicy.resolveVideoDestination(null).also { it.mkdirs() }
+    /**
+     * S0522: public Movies folder target used when a network video destination is unreachable.
+     *
+     * S1609: the whole save flow is dispatched from `lifecycleScope.launch`, i.e. Main.immediate, so
+     * the mkdirs here ran on the main thread even though [CameraCaptureSaver.save] does its own IO hop.
+     */
+    private suspend fun localVideoFallbackTarget(): CameraCaptureTarget.Resource {
+        val moviesDir = withContext(Dispatchers.IO) {
+            Timber.d("S1609: localVideoFallbackTarget mkdirs on thread=%s", Thread.currentThread().name)
+            CaptureDestinationPolicy.resolveVideoDestination(null).also { it.mkdirs() }
+        }
         return CameraCaptureTarget.Resource(
             id = -1L,
             name = Environment.DIRECTORY_MOVIES,
@@ -576,14 +604,37 @@ class BrowseCameraCaptureManager(
         Snackbar.make(activity.window.decorView.rootView, message, Snackbar.LENGTH_LONG).show()
     }
 
-    private fun createTemp(timestamp: String, ext: String): File? = try {
-        val dir = activity.getExternalFilesDir(
-            if (ext == ".mp4") Environment.DIRECTORY_MOVIES else Environment.DIRECTORY_PICTURES
-        ) ?: activity.filesDir
-        File(dir, "CAP_$timestamp$ext").also { it.createNewFile() }
-    } catch (e: Exception) {
-        Timber.e(e, "BrowseCameraCaptureManager: createTemp failed")
-        null
+    /**
+     * S1608: deleting the capture temp is a disk write and every abandon path reaches it on the main
+     * thread - the launch/launchVideo catch blocks, the result callback, restoreState and the rename
+     * dialog's cancel callbacks. NonCancellable because [coroutineScope] is the host Activity's
+     * lifecycleScope: without it a destroy right after the result would drop the deletion and leak the
+     * temp file, a guarantee the previous inline delete did give. Callers must clear their pending
+     * bookkeeping themselves, so the file reference is snapshotted before a new capture can start.
+     */
+    private fun deleteTempAsync(file: File) {
+        Timber.d("S1608: deleteTempAsync offloading temp delete")
+        coroutineScope.launch(Dispatchers.IO + NonCancellable) { file.delete() }
+    }
+
+    /**
+     * S1609: suspend rather than plain, so the dispatcher hop cannot be forgotten by a future caller -
+     * [android.content.Context.getExternalFilesDir] creates the directory on first use and
+     * [File.createNewFile] writes an inode, both of which are StrictMode disk writes.
+     */
+    private suspend fun createTemp(timestamp: String, ext: String): File? = withContext(Dispatchers.IO) {
+        Timber.d("S1609: createTemp on thread=%s", Thread.currentThread().name)
+        try {
+            val dir = activity.getExternalFilesDir(
+                if (ext == ".mp4") Environment.DIRECTORY_MOVIES else Environment.DIRECTORY_PICTURES
+            ) ?: activity.filesDir
+            File(dir, "CAP_$timestamp$ext").also { it.createNewFile() }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "BrowseCameraCaptureManager: createTemp failed")
+            null
+        }
     }
 
     private fun withExt(name: String, ext: String): String {

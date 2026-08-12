@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase.companion
 import android.content.Context
 import android.net.Uri
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.companion.CompanionConfigDto
 import com.sza.fastmediasorter.data.companion.CompanionConfigException
 import com.sza.fastmediasorter.data.companion.CompanionConfigParser
@@ -86,6 +87,7 @@ class ImportCompanionConfigUseCase @Inject constructor(
             Timber.w(e, "Companion config rejected: ${e.reason}")
             Result.failure(e)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Companion config import failed")
             Result.failure(e)
         }

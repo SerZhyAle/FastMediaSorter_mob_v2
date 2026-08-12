@@ -120,7 +120,7 @@
     <string name="file_name">Ім\'я файлу</string>
     <string name="file_name_label">Ім\'я: %1$s</string>
     <string name="file_not_found">Файл не знайдено</string>
-    <string name="file_not_found_message">Файл "%1$s" більше не існує. Можливо, його було видалено або переміщено поза застосунком. Оновити ресурс?</string>
+    <string name="file_not_found_message">Файл \"%1$s\" більше не існує. Можливо, його було видалено або переміщено поза застосунком. Оновити ресурс?</string>
     <string name="file_not_found_name">Файл не знайдено: %1$s</string>
     <string name="file_not_found_title">Файл не знайдено</string>
     <string name="file_operation_progress_preparing">Підготовка..</string>
@@ -136,7 +136,6 @@
     <string name="files_scanned_default">Проскановано файлів: 0</string>
     <string name="error_folder_into_itself">Папку не можна скопіювати або перенести всередину неї самої. Виберіть приймач за її межами.</string>
     <string name="error_folder_same_location">Ця папка вже знаходиться у вибраному місці. Виберіть інший приймач.</string>
-    <string name="error_folder_destination_not_supported">Папки не можна переносити в це місце. Виберіть каталог усередині одного з ваших ресурсів.</string>
     <string name="browse_transfer_notif_text_folders_done">Папок перенесено: %1$d</string>
     <string name="browse_transfer_folder_partial_state">Зупинено. Уже записані елементи залишаються у приймача - перевірте папку перед повторним запуском.</string>
     <string name="browse_row_folder_checkbox">Папка %1$s, вибрати</string>

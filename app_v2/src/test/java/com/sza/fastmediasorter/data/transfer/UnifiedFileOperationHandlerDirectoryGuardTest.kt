@@ -33,6 +33,11 @@ class UnifiedFileOperationHandlerDirectoryGuardTest {
 
     @Before
     fun setup() {
+        // S1378: the space pre-flight asks the strategy how big the source tree is. Reporting
+        // "cannot measure" keeps it on its proceed branch, so these guard assertions stay about
+        // routing and nesting rules rather than capacity.
+        coEvery { localStrategy.getDirectoryInfo(any()) } returns
+            Result.failure(UnsupportedOperationException("not measured in this test"))
         handler = UnifiedFileOperationHandler(
             localProvider = localProvider,
             tempFileManager = tempFileManager,
@@ -44,6 +49,11 @@ class UnifiedFileOperationHandlerDirectoryGuardTest {
                 every { anyCloudEnabled() } returns true
             },
             directoryTreeTransferManager = treeTransferManager,
+            // S1378: an unmeasurable destination is the "proceed" branch, so the fit check stays out
+            // of the way of these assertions, which are about routing and guards, not capacity.
+            getDestinationFreeSpace = mockk {
+                coEvery { this@mockk(any()) } returns null
+            },
         )
     }
 
@@ -105,18 +115,23 @@ class UnifiedFileOperationHandlerDirectoryGuardTest {
         coVerify(exactly = 0) { localStrategy.copyDirectory(any(), any(), any()) }
     }
 
+    /**
+     * S1378 replaced the assertion this test used to make. The document-tree refusal existed only
+     * because no implementation addressed such a destination; ADR-3 requires it to be lifted in the
+     * same change that supplies one, so the guard must now let the operation through - and route it
+     * to the cross-protocol transfer, never to the local strategy that cannot address `content:`.
+     */
     @Test
-    fun `document tree destination is refused for copy and move`() = runTest {
-        val copyRefusal = refusalOf(
-            handler.executeCopyDirectory("/storage/Trip", "content://com.android.externalstorage/tree/primary"),
-        )
-        val moveRefusal = refusalOf(
-            handler.executeMoveDirectory("/storage/Trip", "content://com.android.externalstorage/tree/primary"),
-        )
+    fun `document tree destination is no longer refused and routes to the cross-protocol transfer`() = runTest {
+        val destinationParent = "content://com.android.externalstorage/tree/primary"
+        coEvery {
+            treeTransferManager.copyTree("/storage/Trip", "$destinationParent/Trip", any())
+        } returns Result.success(4)
 
-        assertEquals(DirectoryOperationRefusal.Reason.DESTINATION_NOT_SUPPORTED, copyRefusal.reason)
-        assertEquals(DirectoryOperationRefusal.Reason.DESTINATION_NOT_SUPPORTED, moveRefusal.reason)
+        val result = handler.executeCopyDirectory("/storage/Trip", destinationParent)
+
+        assertTrue("the refusal was lifted together with SafOperationStrategy", result.isSuccess)
+        assertEquals(4, result.getOrThrow())
         coVerify(exactly = 0) { localStrategy.copyDirectory(any(), any(), any()) }
-        coVerify(exactly = 0) { localStrategy.moveDirectory(any(), any(), any()) }
     }
 }

@@ -1,7 +1,11 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.os.SystemClock
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import com.sza.fastmediasorter.core.playback.resilience.StreamStallObservation
+import com.sza.fastmediasorter.core.playback.resilience.StreamStallOutcome
+import com.sza.fastmediasorter.core.playback.resilience.StreamStallRule
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import timber.log.Timber
 
@@ -18,76 +22,79 @@ import timber.log.Timber
  * re-prepare within [STREAM_MAX_WATCHDOG_RECOVERIES]; exhaustion surfaces the regular error path.
  *
  * Extension functions on [VideoPlayerManager], mirroring [PlaybackHealthHelper]'s pattern: the
- * shared `retryHandler`, manager-held state fields, no new class instance, no Hilt.
+ * shared `retryHandler`, manager-held state, no Hilt. Since S1513 the decision is no longer here -
+ * this file samples the player and applies the answer, while `StreamStallRule` (a manager field,
+ * beside [StreamStallRecoveryWindow]) counts the polls and owns the buffering deadline. Every entry
+ * into it passes `SystemClock.elapsedRealtime()`, so the whole path is on one monotonic clock.
  */
 
 /** Begin polling position progress once the stream reaches `STATE_READY`. */
 internal fun VideoPlayerManager.startStreamStallWatchdog() {
     cancelStreamStallWatchdog()
-    streamStallLastPosition = exoPlayer?.currentPosition ?: 0L
-    streamStallPolls = 0
+    streamStallRule.start(streamStallObservation())
     streamStallRunnable = Runnable { checkStreamStall() }
-    retryHandler.postDelayed(streamStallRunnable!!, STALL_POLL_INTERVAL_MS)
+    retryHandler.postDelayed(streamStallRunnable!!, StreamStallRule.POLL_INTERVAL_MS)
 }
 
-/** Poll: detect a position frozen while the stream reports `STATE_READY` + `isPlaying`. */
+/** Poll live video by rendered frames, retaining position only for audio-only streams. */
 internal fun VideoPlayerManager.checkStreamStall() {
     val player = exoPlayer ?: return
     if (!player.isPlaying || player.playbackState != Player.STATE_READY) return
 
-    val currentPosition = player.currentPosition
-    val positionDelta = currentPosition - streamStallLastPosition
-    streamStallLastPosition = currentPosition
-
-    if (positionDelta < STALL_MIN_PROGRESS_MS) {
-        streamStallPolls++
-        if (streamStallPolls >= STALL_MAX_POLLS) {
-            streamStallPolls = 0
-            recoverFromStreamStall("position frozen")
-            return
+    val outcome = streamStallRule.onPoll(streamStallObservation(), SystemClock.elapsedRealtime())
+    when (outcome) {
+        is StreamStallOutcome.Stalled -> recoverFromStreamStall(outcome.reason.diagnostic)
+        is StreamStallOutcome.NoEvidence -> {
+            logStreamStallNoEvidence(outcome)
+            rescheduleStreamStallPoll()
         }
-    } else {
-        streamStallPolls = 0
+        StreamStallOutcome.Progressing -> rescheduleStreamStallPoll()
     }
-    retryHandler.postDelayed(streamStallRunnable!!, STALL_POLL_INTERVAL_MS)
 }
 
 /** Cancel whichever watchdog runnable is pending (poll or buffering-timeout) and reset state. */
 internal fun VideoPlayerManager.cancelStreamStallWatchdog() {
     streamStallRunnable?.let { retryHandler.removeCallbacks(it) }
     streamStallRunnable = null
-    streamStallPolls = 0
-    streamBufferingSince = 0L
+    streamStallRule.reset()
 }
 
 /**
- * Arm the buffering-without-ready timeout when the stream enters `STATE_BUFFERING`. Snapshots
- * `totalBufferedDuration` in the scheduled runnable's closure so [checkStreamBufferingTimeout]
- * can tell legitimate slow buffering (still downloading) from a genuine stall.
+ * Arm the buffering-without-ready timeout when the stream enters `STATE_BUFFERING`. Hands the rule
+ * the `totalBufferedDuration` of this moment so [checkStreamBufferingTimeout] can tell legitimate
+ * slow buffering (still downloading) from a genuine stall.
  */
 internal fun VideoPlayerManager.armStreamBufferingTimeout() {
     streamStallRunnable?.let { retryHandler.removeCallbacks(it) }
-    streamBufferingSince = System.currentTimeMillis()
-    val bufferedAtArm = exoPlayer?.totalBufferedDuration ?: 0L
-    val runnable = Runnable { checkStreamBufferingTimeout(bufferedAtArm) }
+    streamStallRule.onBufferingArmed(streamStallObservation(), SystemClock.elapsedRealtime())
+    val runnable = Runnable { checkStreamBufferingTimeout() }
     streamStallRunnable = runnable
-    retryHandler.postDelayed(runnable, BUFFERING_STALL_TIMEOUT_MS)
+    retryHandler.postDelayed(runnable, StreamStallRule.BUFFERING_TIMEOUT_MS)
 }
 
 /**
- * Fires after [BUFFERING_STALL_TIMEOUT_MS] still buffering. A stream still downloading on a weak
- * link (`isLoading` true and the buffer growing) is legitimate - re-arm instead of recovering.
+ * Fires after `StreamStallRule.BUFFERING_TIMEOUT_MS` still buffering. A stream still downloading on
+ * a weak link (`isLoading` true and the buffer growing) is legitimate - re-arm instead of
+ * recovering.
  */
-internal fun VideoPlayerManager.checkStreamBufferingTimeout(bufferedAtArm: Long) {
+internal fun VideoPlayerManager.checkStreamBufferingTimeout() {
     val player = exoPlayer ?: return
-    if (player.playbackState != Player.STATE_BUFFERING || streamBufferingSince == 0L) return
+    if (player.playbackState != Player.STATE_BUFFERING) return
 
-    val stillProgressing = player.isLoading && player.totalBufferedDuration > bufferedAtArm
-    if (stillProgressing) {
-        armStreamBufferingTimeout()
-        return
+    val outcome = streamStallRule.onBufferingDeadline(
+        streamStallObservation(),
+        SystemClock.elapsedRealtime()
+    )
+    when (outcome) {
+        is StreamStallOutcome.Stalled -> recoverFromStreamStall(outcome.reason.diagnostic)
+        // The deadline arrived without the rule ever being armed, so there is no leg to judge and
+        // nothing to re-arm against - staying silent here would look identical to a healthy stream.
+        is StreamStallOutcome.NoEvidence -> Timber.i(
+            "Stream stall - buffering deadline fired unarmed path=%s",
+            currentFilePath
+        )
+        StreamStallOutcome.Progressing -> armStreamBufferingTimeout()
     }
-    recoverFromStreamStall("buffering timeout")
 }
 
 /**
@@ -102,10 +109,11 @@ internal fun VideoPlayerManager.checkStreamBufferingTimeout(bufferedAtArm: Long)
  */
 internal fun VideoPlayerManager.recoverFromStreamStall(reason: String) {
     val stalledPlayer = exoPlayer ?: return
-    if (streamWatchdogRecoveries >= STREAM_MAX_WATCHDOG_RECOVERIES) {
+    val attempt = streamWatchdogRecoveryWindow.tryAcquire(SystemClock.elapsedRealtime())
+    if (attempt == null) {
         Timber.w(
             "Stream stall - watchdog budget exhausted (%d attempts, %s) path=%s",
-            streamWatchdogRecoveries,
+            STREAM_MAX_WATCHDOG_RECOVERIES,
             reason,
             currentFilePath
         )
@@ -122,11 +130,10 @@ internal fun VideoPlayerManager.recoverFromStreamStall(reason: String) {
         )
         return
     }
-    streamWatchdogRecoveries++
     streamWatchdogReconnecting = true
     Timber.w(
         "Stream stall - watchdog re-anchor (attempt %d, %s) path=%s",
-        streamWatchdogRecoveries,
+        attempt,
         reason,
         currentFilePath
     )
@@ -139,8 +146,46 @@ internal fun VideoPlayerManager.recoverFromStreamStall(reason: String) {
     if (!wasLive && resumePosition > 0L) stalledPlayer.seekTo(resumePosition)
 }
 
-private const val STALL_POLL_INTERVAL_MS = 3_000L
-private const val STALL_MIN_PROGRESS_MS = 500L
-private const val STALL_MAX_POLLS = 3
-private const val BUFFERING_STALL_TIMEOUT_MS = 15_000L
+/**
+ * The player values the rule is allowed to see. Read through the nullable player with the same
+ * fallbacks the pre-S1513 code used, because a session can be torn down between a scheduled poll
+ * and its arrival and the watchdog defaulted rather than skipping that poll.
+ */
+private fun VideoPlayerManager.streamStallObservation(): StreamStallObservation {
+    val player = exoPlayer
+    return StreamStallObservation(
+        positionMs = player?.currentPosition ?: 0L,
+        renderedFrames = activeStreamAnalyticsListener?.renderedFrames(),
+        hasVideo = player?.videoFormat != null,
+        bufferedDurationMs = player?.totalBufferedDuration ?: 0L,
+        isLoading = player?.isLoading == true,
+        isLive = player?.isCurrentMediaItemLive == true
+    )
+}
+
+/**
+ * One line per blind episode at INFO, so an archive shows a rule that could not run rather than one
+ * that ran and declined to fire; the repeats drop to DEBUG because a poll every three seconds would
+ * otherwise bury the file log of the very session this evidence is wanted from.
+ */
+private fun VideoPlayerManager.logStreamStallNoEvidence(outcome: StreamStallOutcome.NoEvidence) {
+    if (outcome.blindForMs == 0L) {
+        Timber.i(
+            "Stream stall - no progress evidence (no frame counter) live=%b path=%s",
+            outcome.isLive,
+            currentFilePath
+        )
+    } else {
+        Timber.d(
+            "Stream stall - still no progress evidence blindFor=%dms path=%s",
+            outcome.blindForMs,
+            currentFilePath
+        )
+    }
+}
+
+private fun VideoPlayerManager.rescheduleStreamStallPoll() {
+    streamStallRunnable?.let { retryHandler.postDelayed(it, StreamStallRule.POLL_INTERVAL_MS) }
+}
+
 internal const val STREAM_MAX_WATCHDOG_RECOVERIES = 3

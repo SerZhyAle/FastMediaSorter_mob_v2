@@ -1,0 +1,15 @@
+# assert-unreferenced-strings baseline (S1568) - names measured as unreferenced that are deliberately KEPT.
+# Each line: <key>  # <reason it is kept>. An unexplained entry is how the previous 397 accumulated.
+# Seeded 2026-08-12 from the S1568 cleanup. Regenerate the measurement with:
+passthrough_capture_saved  # VR passthrough capture is contracted but unimplemented - see reason below
+passthrough_capture_unavailable  # same feature
+passthrough_capture_error  # same feature
+passthrough_capture_timeout  # same feature
+passthrough_capture_error_save  # same feature
+passthrough_capture_permission_denied  # same feature
+passthrough_capture_permission_needed  # same feature
+# Reason, once, for the seven above: BrowsePassthroughCaptureProvider is a contract in src/main bound
+# with @BindsOptionalOf and NO implementation in any source set, so the injected Optional is always
+# empty and nothing can reference these user-facing messages yet. That is the signature of scaffolding
+# awaiting wiring, not of a removed feature, and strategic §7 requires such names to be surfaced for a
+# decision rather than deleted silently.

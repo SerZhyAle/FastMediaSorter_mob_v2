@@ -2,18 +2,19 @@ package com.sza.fastmediasorter.core.util
 
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
-import android.os.storage.StorageManager
-import android.os.storage.StorageVolume
 import android.provider.DocumentsContract
+import com.sza.fastmediasorter.data.repository.StorageVolumeSource
+import com.sza.fastmediasorter.di.StorageVolumeEntryPoint
+import dagger.hilt.android.EntryPointAccessors
 import timber.log.Timber
 
 /**
  * Utility for resolving Android document-tree URIs (from ACTION_OPEN_DOCUMENT_TREE)
  * to real filesystem paths understood by java.io.File.
  *
- * Supports primary external storage and SD cards (via StorageManager).
+ * Supports primary external storage and SD cards. S1378: volume lookup is delegated to
+ * [StorageVolumeSource] - this object no longer talks to the platform storage service itself.
  */
 object UriPathResolver {
 
@@ -66,11 +67,8 @@ object UriPathResolver {
             val base = Environment.getExternalStorageDirectory().absolutePath
             if (subPath.isEmpty()) base else "$base/$subPath"
         } else {
-            // SD card / removable storage - look up the mount point from StorageManager
-            val storageManager = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
-            val mountPath = storageManager.storageVolumes
-                .firstOrNull { it.uuid?.equals(volume, ignoreCase = true) == true }
-                ?.let { volumePath(it) }
+            // SD card / removable storage - the registry owns the mount-point lookup.
+            val mountPath = volumeSource(context)?.mountPathFor(volume)
 
             if (mountPath != null) {
                 if (subPath.isEmpty()) mountPath else "$mountPath/$subPath"
@@ -82,25 +80,18 @@ object UriPathResolver {
     }
 
     /**
-     * Retrieve the mount path for a StorageVolume.
-     * Prefers the official StorageVolume.getDirectory() on API 30+; falls back to the
-     * hidden-but-stable StorageVolume.getPath() reflection on lower APIs or when the
-     * official directory is unavailable.
+     * The registry, reached through Hilt because this resolver is an object.
+     *
+     * Returns null when the graph is not up yet - the caller then reports an unresolvable path
+     * instead of crashing, which is the same outcome the old inline lookup produced on failure.
      */
-    private fun volumePath(volume: StorageVolume): String? {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val directoryPath = volume.directory?.absolutePath
-            if (!directoryPath.isNullOrBlank()) {
-                return directoryPath
-            }
-        }
-
-        return try {
-            val method = volume.javaClass.getMethod("getPath")
-            method.invoke(volume) as? String
-        } catch (e: Exception) {
-            Timber.tag(TAG).w(e, "Reflection failed for StorageVolume.getPath()")
+    private fun volumeSource(context: Context): StorageVolumeSource? =
+        try {
+            EntryPointAccessors
+                .fromApplication(context.applicationContext, StorageVolumeEntryPoint::class.java)
+                .storageVolumeSource()
+        } catch (e: IllegalStateException) {
+            Timber.tag(TAG).w(e, "Storage volume registry unavailable")
             null
         }
-    }
 }

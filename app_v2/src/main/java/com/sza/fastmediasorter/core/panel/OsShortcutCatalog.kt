@@ -7,6 +7,7 @@ import android.provider.Settings
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.radio.RadioKind
 import com.sza.fastmediasorter.util.resolveActivityCompat
 
 /**
@@ -17,10 +18,22 @@ import com.sza.fastmediasorter.util.resolveActivityCompat
  */
 object OsShortcutCatalog {
 
+    /**
+     * S1441: [radio] and [fallbackIntent] are declared before [intent] on purpose - [intent] has to stay the
+     * last parameter or the trailing-lambda form every target is written in stops compiling.
+     *
+     * @param radio non-null when tapping the target should first try to switch a radio; null means the target
+     *   can only open a system screen, which is what fifteen of the seventeen do.
+     * @param fallbackIntent preferred surface when the attempt did not take - the system Wi-Fi panel keeps the
+     *   user inside the launcher, where [intent] would leave it. Falls back to [intent] when absent or when it
+     *   does not resolve on this device.
+     */
     data class Target(
         val key: String,
         @StringRes val labelRes: Int,
         @DrawableRes val iconRes: Int,
+        val radio: RadioKind? = null,
+        val fallbackIntent: ((Context) -> Intent)? = null,
         val intent: (Context) -> Intent,
     )
 
@@ -48,13 +61,30 @@ object OsShortcutCatalog {
     // simply never renders. So the suppression is safe here.
     @SuppressLint("InlinedApi")
     private val targets: List<Target> = listOf(
-        Target(KEY_SETTINGS, R.string.app_launch_panel_os_settings, R.drawable.ic_settings) {
+        // S1405: the robot, not a gear. The gear means "this app's own settings" everywhere else in the
+        // product, and on the launcher's Start menu the two rows sit next to each other - identical
+        // glyphs made the pair readable only by its caption.
+        Target(KEY_SETTINGS, R.string.app_launch_panel_os_settings, R.drawable.ic_android) {
             Intent(Settings.ACTION_SETTINGS)
         },
-        Target(KEY_WIFI, R.string.app_launch_panel_os_wifi, R.drawable.ic_wifi) {
+        Target(
+            KEY_WIFI,
+            R.string.app_launch_panel_os_wifi,
+            R.drawable.ic_wifi,
+            radio = RadioKind.WIFI,
+            // The API 29 panel drops a toggle over the launcher instead of replacing it, so a user whose
+            // firmware refused the direct attempt still comes back to where they were.
+            fallbackIntent = { Intent(Settings.Panel.ACTION_WIFI) },
+        ) {
             Intent(Settings.ACTION_WIFI_SETTINGS)
         },
-        Target(KEY_BLUETOOTH, R.string.app_launch_panel_os_bluetooth, R.drawable.ic_bluetooth) {
+        // No panel counterpart exists for Bluetooth, so a refused attempt opens the full settings screen.
+        Target(
+            KEY_BLUETOOTH,
+            R.string.app_launch_panel_os_bluetooth,
+            R.drawable.ic_bluetooth,
+            radio = RadioKind.BLUETOOTH,
+        ) {
             Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
         },
         Target(KEY_DISPLAY, R.string.app_launch_panel_os_display, R.drawable.ic_display) {

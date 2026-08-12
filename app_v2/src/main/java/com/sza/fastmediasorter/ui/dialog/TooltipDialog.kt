@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.Context
 import android.view.WindowManager
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
 
 /**
@@ -32,7 +33,7 @@ object TooltipDialog {
                     dialog.dismiss()
                 }
                 .setCancelable(true)
-                .show()
+                .showBoundToHost(context)
         } catch (e: WindowManager.BadTokenException) {
             Timber.e(e, "TooltipDialog: show failed - bad window token")
         }

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1433 Bluetooth subscreen, portrait. The radio switch is the first row under the heading and above all
+     data (strategic 3.1.2). No scan action exists anywhere on this screen: discovery is a non-goal of the
+     first release, and the picker offers only devices already connected. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bluetoothSectionScroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:padding="@dimen/margin_small">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+            android:text="@string/network_monitor_section_bluetooth" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.ToggleRow">
+
+                    <TextView
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.ToggleLabel"
+                        android:labelFor="@+id/bluetoothRadioSwitch"
+                        android:text="@string/network_monitor_radio_bluetooth" />
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/bluetoothRadioSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:nextFocusDown="@+id/bluetoothDevicePicker"
+                        android:nextFocusForward="@+id/bluetoothDevicePicker" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/bluetoothRadioReason"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:visibility="gone"
+                    tools:text="@string/network_monitor_radio_state_unknown"
+                    tools:visibility="visible" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <include
+            android:id="@+id/bluetoothChart"
+            layout="@layout/view_network_monitor_signal_chart" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+                    <TextView
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                        android:text="@string/network_monitor_bluetooth_adapter_label" />
+
+                    <TextView
+                        android:id="@+id/bluetoothAdapterValue"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                        tools:text="@string/network_monitor_bluetooth_adapter_present" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/bluetoothAdapterAvailability"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:visibility="gone"
+                    tools:text="@string/network_monitor_status_no_permission"
+                    tools:visibility="visible" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/network_monitor_bluetooth_paired_heading"
+                    android:textSize="@dimen/text_size_normal" />
+
+                <TextView
+                    android:id="@+id/bluetoothPairedList"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:visibility="gone"
+                    tools:text="Headset - connected"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/bluetoothPairedEmpty"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:text="@string/network_monitor_bluetooth_paired_empty" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginTop="0dp"
+                    android:labelFor="@+id/bluetoothDevicePicker"
+                    android:text="@string/network_monitor_bluetooth_picker_label"
+                    android:textSize="@dimen/text_size_normal" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/bluetoothDevicePickerLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/bluetoothDevicePicker"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="true"
+                        android:inputType="none"
+                        android:nextFocusUp="@+id/bluetoothRadioSwitch"
+                        tools:text="@string/network_monitor_bluetooth_picker_none" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/bluetoothPickerEmpty"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:text="@string/network_monitor_bluetooth_picker_empty" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+</ScrollView>

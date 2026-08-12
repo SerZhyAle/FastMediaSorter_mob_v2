@@ -233,7 +233,8 @@ data class MediaResource(
     val needsSignIn: Boolean = false, // S0200: Drive resource requires fresh primary sign-in (set by S0200AuthStateWipe; cleared on sign-in)
     val altAccessPaths: List<HostPort> = emptyList(), // S1006: reachable-endpoint fallback candidates (companion LAN + WAN); empty = single-path
     val accessNote: String? = null, // S1014: companion connectivity guidance shown on connection failure; null = none
-    val isHidden: Boolean = false // S1009: resource hidden from visible surfaces (FK-only)
+    val isHidden: Boolean = false, // S1009: resource hidden from visible surfaces (FK-only)
+    val storageVolumeId: String? = null // S1378: StorageVolumeInfo.id this resource lives on; null = unbound
 ) {
     fun isAudioOnly(): Boolean {
         return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.AUDIO)

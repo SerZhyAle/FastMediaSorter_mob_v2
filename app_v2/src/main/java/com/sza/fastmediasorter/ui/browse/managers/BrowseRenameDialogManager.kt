@@ -19,9 +19,10 @@ import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.ui.dialog.RenameDialog
-import java.io.File
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 
 internal class BrowseRenameDialogManager(
     private val activity: AppCompatActivity,
@@ -66,7 +67,7 @@ internal class BrowseRenameDialogManager(
                 }
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     private fun showRenameSingleDialog(mediaFile: MediaFile) {
@@ -189,7 +190,7 @@ internal class BrowseRenameDialogManager(
             }
         }
 
-        dialog.show()
+        dialog.showBoundToHost(activity)
         com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
         dialogBinding.rvFileNames.postDelayed({
             val firstViewHolder = dialogBinding.rvFileNames.findViewHolderForAdapterPosition(0)

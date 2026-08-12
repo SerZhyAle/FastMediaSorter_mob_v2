@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.DrawingTargetPolicy
 import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
+import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.qualifiers.ActivityContext
 import javax.inject.Inject
 
@@ -293,7 +294,7 @@ class ResourceOpsMenuManager @Inject constructor(
                 viewModel.scanBySize(minSizeMb = minSize, maxSizeMb = maxSize)
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     // -------------------------------------------------------------------------
@@ -350,7 +351,7 @@ class ResourceOpsMenuManager @Inject constructor(
             .setPositiveButton(R.string.delete_by_size_confirm_btn) { _, _ ->
                 viewModel.executeBySizeDeleteConfirmed(matchedFiles)
             }
-            .show()
+            .showBoundToHost(activity)
     }
 
     // -------------------------------------------------------------------------
@@ -394,10 +395,10 @@ class ResourceOpsMenuManager @Inject constructor(
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(activity)
 
         // Disable OK button initially and enable live validation
-        val okButton = dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE)
+        val okButton = dialog?.getButton(android.app.AlertDialog.BUTTON_POSITIVE)
         okButton?.isEnabled = false
 
         inputEdit.addTextChangedListener(object : TextWatcher {

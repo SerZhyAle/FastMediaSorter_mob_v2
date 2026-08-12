@@ -102,6 +102,9 @@ foreach ($tacticalDir in $tacticalDirs) {
 
 # Mark Archived in journal, preserve optional fields
 $allRecords = [System.Collections.Generic.List[object]]::new()
+# S1437: read -> mutate -> write is one critical section. Two processes holding the same
+# snapshot lose one change entirely - the later write replaces the whole journal.
+Enter-CatalogLock
 foreach ($r in (Read-Catalog)) { $allRecords.Add($r) }
 
 $idx = -1
@@ -124,7 +127,11 @@ $archived = [pscustomobject]@{
 if ($old.PSObject.Properties.Name -contains 'tier' -and $null -ne $old.tier -and "$($old.tier)" -ne '') {
     $archived | Add-Member -NotePropertyName 'tier' -NotePropertyValue ([int]$old.tier)
 }
-$fixedKeys = @('id','name','status','priority','tier','file','created','updated')
+# 'statusNote' is dropped, not carried over: it describes what a Block* status is waiting for, and
+# Archived waits for nothing. update.ps1 already auto-clears it when leaving Block*, so archiving a
+# BlockQuestions/BlockExternal ticket directly used to be the one path that froze a stale "owner
+# decision needed" note into the archive journal forever (found archiving S1186 from BlockQuestions).
+$fixedKeys = @('id','name','status','priority','tier','file','created','updated','statusNote')
 foreach ($prop in $old.PSObject.Properties) {
     if ($fixedKeys -notcontains $prop.Name -and -not ($archived.PSObject.Properties.Name -contains $prop.Name)) {
         $archived | Add-Member -NotePropertyName $prop.Name -NotePropertyValue $prop.Value
@@ -140,5 +147,7 @@ $remaining = @($allRecords | Where-Object { $_.id -ne $Id })
 Write-Catalog -Records ([object[]]$remaining)
 
 $movedStr = if ($moved.Count -gt 0) { $moved -join ', ' } else { '(no files found)' }
+Exit-CatalogLock
+
 Write-Output ("$Id archived [priority -> 0]. Moved: $movedStr -> temp/done/")
 exit 0

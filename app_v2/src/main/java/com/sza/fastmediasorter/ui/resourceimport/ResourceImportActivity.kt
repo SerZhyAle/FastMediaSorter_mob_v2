@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.settings.helpers.SzaResourcesImporter
+import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -66,7 +67,7 @@ class ResourceImportActivity : AppCompatActivity() {
             .setPositiveButton(R.string.resource_share_import_action) { _, _ -> runImport(uri) }
             .setNegativeButton(android.R.string.cancel) { _, _ -> finish() }
             .setOnCancelListener { finish() }
-            .show()
+            .showBoundToHost(this@ResourceImportActivity)
     }
 
     private fun runImport(uri: Uri) {
@@ -89,6 +90,6 @@ class ResourceImportActivity : AppCompatActivity() {
             .setMessage(message)
             .setPositiveButton(android.R.string.ok) { _, _ -> finish() }
             .setOnCancelListener { finish() }
-            .show()
+            .showBoundToHost(this@ResourceImportActivity)
     }
 }

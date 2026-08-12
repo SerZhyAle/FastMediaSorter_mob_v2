@@ -3,11 +3,12 @@ package com.sza.fastmediasorter.data.delivery
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
+import com.sza.fastmediasorter.domain.delivery.ArtworkManifestSource
 import com.sza.fastmediasorter.domain.delivery.BundledDeliverableSets
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapability
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
-import com.sza.fastmediasorter.domain.delivery.DeliverableInventory
 import com.sza.fastmediasorter.domain.delivery.DeliverableDownloadRunner
+import com.sza.fastmediasorter.domain.delivery.DeliverableInventory
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSetDownloader
 import com.sza.fastmediasorter.domain.delivery.DeliverableSourceDescriptor
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import timber.log.Timber
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -42,6 +44,9 @@ import javax.inject.Singleton
  * show rows that could not install there. OCR rows additionally honour the device-runtime axis: a
  * device that cannot run OCR (DeviceCapabilities) never sees OCR downloads it could not use.
  */
+// Every parameter is a distinct collaborator of the inventory (state, download, capability, catalog,
+// freshness); folding them into a holder would hide the graph without removing a dependency.
+@Suppress("LongParameterList")
 @Singleton
 class DeliverableInventoryImpl @Inject constructor(
     private val runner: DeliverableDownloadRunner,
@@ -52,6 +57,8 @@ class DeliverableInventoryImpl @Inject constructor(
     private val importStreamCatalogUseCase: ImportStreamCatalogUseCase,
     private val bundled: BundledDeliverableSets,
     private val descriptors: Map<DeliverableSet, @JvmSuppressWildcards DeliverableSourceDescriptor>,
+    // S1483: the freshness signal for the unpinned artwork payloads, read from the mirror.
+    private val artworkManifest: ArtworkManifestSource,
     @ApplicationContext private val appContext: Context
 ) : DeliverableInventory {
 
@@ -211,7 +218,10 @@ class DeliverableInventoryImpl @Inject constructor(
                     // S1200: the stamp comes from the descriptor this flavor contributes. A set with no
                     // descriptor here is the Play dynamic-feature path, which has no pinned payload to
                     // identify - an empty stamp records "installed, nothing to compare".
-                    repository.markInstalled(item.set, descriptors[item.set]?.stamp.orEmpty())
+                    // S1483: an artwork set records the manifest's stamp instead, because that is what
+                    // the next staleness check compares against - recording the descriptor's here would
+                    // make the payload read as stale the moment it finished installing.
+                    repository.markInstalled(item.set, expectedStamp(item.set).orEmpty())
                 }
                 emit(progress)
             }
@@ -255,9 +265,23 @@ class DeliverableInventoryImpl @Inject constructor(
 
     /** S1200: true when this flavor pins a payload for [set] and the installed copy is a different one. */
     private suspend fun isStale(set: DeliverableSet): Boolean {
-        val expected = descriptors[set]?.stamp ?: return false
-        return repository.isStale(set, expected)
+        val expected = expectedStamp(set) ?: return false
+        val stale = repository.isStale(set, expected)
+        Timber.d("S1483: staleness for %s -> %b (expected stamp %s)", set, stale, expected.take(STAMP_LOG_CHARS))
+        return stale
     }
+
+    /**
+     * S1483: which identity an installed payload is judged against.
+     *
+     * A pinned set is judged against the descriptor compiled into this build - the mirror is not
+     * allowed to change what a native library is expected to be. The artwork sets carry no pin, so
+     * their identity comes from the published manifest; that is what lets a rebuilt pack be offered
+     * to a copy that was installed before the rebuild. A manifest that cannot be read yields null and
+     * the set is simply not stale, never an error.
+     */
+    private suspend fun expectedStamp(set: DeliverableSet): String? =
+        artworkManifest.stampOf(set) ?: descriptors[set]?.stamp
 
     private fun languageStatusFlow(languageCode: String): Flow<ExtensionStatus> =
         activeDownloads.getOrPut(languageKey(languageCode)) {
@@ -331,6 +355,10 @@ class DeliverableInventoryImpl @Inject constructor(
         private const val STREAM_CATALOG_SIZE = 2_500_000L
         private const val BYTES_PER_KB = 1024.0
         private const val BYTES_PER_MB = 1024.0 * 1024.0
+
+        /** S1483 probe: enough stamp to tell two payloads apart in a log without dumping a full hash. */
+        private const val STAMP_LOG_CHARS = 12
+
         private const val LANG_SIZE_RUS = 15_000_000L
         private const val LANG_SIZE_UKR = 11_600_000L
         private val FALLBACK_SIZE = mapOf(
@@ -338,9 +366,9 @@ class DeliverableInventoryImpl @Inject constructor(
             DeliverableSet.TRANSLATION to 17_380_608L,
             DeliverableSet.AUDIO_VISUALIZATIONS to 6_100_000L,
             DeliverableSet.FFMPEG_DTS to 7_675_704L,
-            DeliverableSet.CHANNEL_PREVIEW_ATLAS to 30_000_000L,
-            // S1201: the 2026-07-26 sheet, 1838 tiles at 8024x4352, plus its sidecar.
-            DeliverableSet.STREAM_LOGO_ATLAS to 6_590_091L
+            // S1445: the tile packs replaced the sprite sheets as the fetched payload - pack + sidecar.
+            DeliverableSet.CHANNEL_PREVIEW_ATLAS to 10_975_853L,
+            DeliverableSet.STREAM_LOGO_ATLAS to 5_925_785L
         )
     }
 }

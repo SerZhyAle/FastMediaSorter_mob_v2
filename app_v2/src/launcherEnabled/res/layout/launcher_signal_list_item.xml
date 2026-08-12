@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1421: one signal in the "+N" list. Focusable and clickable at row level so a D-pad reaches every
+     signal the strip could not fit - that list is the only way to reach an overflowed one at all. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minHeight="48dp"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/margin_medium"
+    android:paddingEnd="@dimen/margin_medium">
+
+    <ImageView
+        android:id="@+id/launcherSignalItemIcon"
+        android:layout_width="@dimen/launcher_tray_icon_size"
+        android:layout_height="@dimen/launcher_tray_icon_size"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter"
+        android:tint="?attr/colorOnSurface" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/margin_medium"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/launcherSignalItemLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurface" />
+
+        <TextView
+            android:id="@+id/launcherSignalItemDetail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</LinearLayout>

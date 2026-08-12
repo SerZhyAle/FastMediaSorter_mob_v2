@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityCompanionQrScanBinding
+import com.sza.fastmediasorter.domain.model.PermissionTask
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
 import timber.log.Timber
 
 /**
@@ -74,7 +76,9 @@ class CompanionQrScanActivity : AppCompatActivity() {
     }
 
     private fun denyAndFinish() {
-        Toast.makeText(this, R.string.companion_qr_camera_denied, Toast.LENGTH_LONG).show()
+        Timber.d("S1436: QR pairing camera denial explained from the registry")
+        val message = permissionRationaleShort(Manifest.permission.CAMERA, PermissionTask.QR_PAIRING)
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         setResult(RESULT_CANCELED)
         finish()
     }

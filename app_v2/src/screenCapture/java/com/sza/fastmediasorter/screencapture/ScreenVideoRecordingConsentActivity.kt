@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -69,7 +70,7 @@ class ScreenVideoRecordingConsentActivity : AppCompatActivity() {
             }
             .setNegativeButton(android.R.string.cancel) { _, _ -> finish() }
             .setOnCancelListener { finish() }
-            .show()
+            .showBoundToHost(this@ScreenVideoRecordingConsentActivity)
     }
 
     private suspend fun acceptDisclosureAndLaunchConsent() {

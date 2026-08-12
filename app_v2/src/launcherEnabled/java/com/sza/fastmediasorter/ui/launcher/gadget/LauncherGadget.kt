@@ -45,6 +45,14 @@ interface LauncherGadget {
     /** True when the gadget is meaningless without a resource picked at add time (Phase 07). */
     val requiresResourceParam: Boolean
 
+    /**
+     * S1179: whether this device has the hardware the gadget needs, and nothing else. A refused
+     * runtime permission is a separate axis and must not be folded in here - a denied grant would
+     * then delete the gadget from the picker instead of leaving it on the desktop in an honest empty
+     * state, which is what strategic §11.5 requires.
+     */
+    fun isAvailable(): Boolean = true
+
     fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View
 }
 

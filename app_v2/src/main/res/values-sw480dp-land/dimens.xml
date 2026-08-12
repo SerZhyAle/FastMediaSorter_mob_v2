@@ -22,4 +22,9 @@
     <dimen name="welcome_title_margin_top">6dp</dimen>
     <dimen name="welcome_title_text_size">20sp</dimen>
     <dimen name="welcome_description_margin_top">4dp</dimen>
+
+    <!-- S1575: same unbounded landscape cap as values-sw320dp-land - see the comment there.
+         The value is deliberately identical in both phone landscape buckets; scaling by
+         device size stays with the tablet buckets, which this fix does not touch. -->
+    <dimen name="welcome_content_max_width">9999dp</dimen>
 </resources>

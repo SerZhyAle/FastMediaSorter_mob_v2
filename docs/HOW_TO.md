@@ -88,6 +88,7 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 33. [Use the In-App Camera](#how-to-use-the-in-app-camera)
 34. [Find and Delete Duplicate Files](#how-to-find-and-delete-duplicate-files)
 35. [View Your Usage Statistics](#how-to-view-your-usage-statistics)
+36. [Use an SD Card or Connected Drive](#how-to-use-an-sd-card-or-connected-drive)
 
 ---
 
@@ -186,13 +187,14 @@ These sections are intentionally more varied than the core reference blocks belo
 **Quick Path**
 
 1. Open the main window dropdown and tap **Streams**, or go to **Settings > Media > Streams** and enable the toggle if it is off.
-2. Tap **+** and paste any radio station URL (http:// or https://, .m3u8, rtsp://).
+2. Tap **⋮** at the end of the toolbar, choose **Add stream**, and paste any radio station URL (http:// or https://, .m3u8, rtsp://).
 3. Tap the station row - audio starts in the sticky bottom mini-control. The list stays scrollable.
 4. For a larger catalog, tap **Import** and enter a remote `.m3u` URL, or download the curated FastMediaSorter catalog from the **Extensions** screen.
 
 **Scenario Walkthrough**
 
 - The curated catalog arrives with topic and language chips; filter by genre or language via the filter button (dot indicator when active). The AND/OR toggle lets you match stations that fit all criteria or any one of them.
+- The two small icons right of the search field split radio from video in one tap: tap the audio or the video glyph to keep only that kind, tap the lit one again to show everything.
 - Pin your favourite stations to the top with the pin icon - order is independent of global Favorites.
 - Switch the toolbar view toggle to **Grid** to see channels as tiles with their last captured frame - handy for browsing video streams at a glance. Your choice of list or grid is remembered next time you open Streams.
 - If a stream is cast-friendly and your phone is on Wi-Fi, tap **Cast** in the player to send it to a Chromecast on the same network. RTSP streams can't be cast.
@@ -432,13 +434,13 @@ These sections are intentionally more varied than the core reference blocks belo
 **Add a single URL:**
 
 1. Open **Streams** from the main window dropdown.
-2. Tap the **+** button.
+2. Tap the **⋮** button at the end of the toolbar, then **Add stream**.
 3. Paste the stream URL (http/https radio, .m3u8, rtsp://). Tap **Save**.
 4. Tap the row to start playback.
 
 **Import a remote .m3u playlist:**
 
-1. In the Streams screen, tap **Import > From URL**.
+1. In the Streams screen, tap **⋮ > Import from URL**.
 2. Enter the remote .m3u address. Tap **Import**.
 3. All stations from the file appear in the list.
 
@@ -1262,6 +1264,26 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 - **Export** shares the same summary through the regular Android share sheet, so you can save or send it anywhere.
 
 **Note:** Everything stays on your device until you choose to send or export it - see the FAQ for the privacy details.
+
+---
+
+## How to Use an SD Card or Connected Drive
+
+A memory card or a USB drive the phone has mounted holds resources exactly like built-in storage.
+
+**Steps:**
+
+1. Open **Add resource** and start adding a local folder. The **Removable media** section appears only while something is connected, and lists every volume with its name and free space.
+2. Tap the volume. If the app cannot reach it by path, it explains why and opens the system folder chooser - pick the same volume there and grant access to the folder you want.
+3. The resource joins the list with a removable-medium icon, so a card resource is recognisable at a glance.
+
+**Moving and copying:** whole folders travel to a card and back with their full subfolder structure, the same way they do between the device and a network resource.
+
+**Not enough room:** a copy or move that does not fit is refused before it starts, and the message names the medium and how much space is missing - free space there or pick another destination.
+
+**When the medium is ejected:** its resources are marked unavailable rather than removed. Connect the card again and they work without being set up a second time.
+
+**On Android 6:** the system does not report mounted volumes to apps, so the removable section stays empty on those devices.
 
 ---
 

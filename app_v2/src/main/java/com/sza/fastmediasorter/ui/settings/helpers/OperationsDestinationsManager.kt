@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
 import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import timber.log.Timber
 
@@ -177,7 +178,7 @@ class OperationsDestinationsManager(
                 ).show()
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     class DestinationsAdapter(

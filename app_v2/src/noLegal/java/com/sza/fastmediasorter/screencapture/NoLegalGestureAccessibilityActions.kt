@@ -14,7 +14,6 @@ import javax.inject.Inject
 class NoLegalGestureAccessibilityActions @Inject constructor() : GestureAccessibilityActions {
 
     override fun perform(action: ScreenshotGestureAction) {
-        Timber.d("S1038: system action %s", action)
         val service = ScreenshotAccessibilityServiceHolder.instance
         if (service == null) {
             Timber.w("NoLegalGestureAccessibilityActions: accessibility service off, %s ignored", action)

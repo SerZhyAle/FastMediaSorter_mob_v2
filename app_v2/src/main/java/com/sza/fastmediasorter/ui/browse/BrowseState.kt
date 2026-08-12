@@ -11,6 +11,9 @@ data class BrowseState(
     val resource: MediaResource? = null,
     val mediaFiles: List<MediaFile> = emptyList(),
     val totalFileCount: Int? = null, // Total count (null if not yet calculated)
+    // S1584: files that exist but the active size filter removed. Lets the empty state say why the
+    // list is empty instead of asserting the folder was checked and holds nothing.
+    val filteredOutCount: Int = 0,
     val selectedFiles: Set<String> = emptySet(),
     val lastSelectedPath: String? = null,
     val sortMode: SortMode = SortMode.NAME_ASC,

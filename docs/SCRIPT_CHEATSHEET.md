@@ -204,19 +204,6 @@ scripts/disable-watchdog-find.ps1
     -Enable         [SwitchParameter]
 ```
 
-### log-ai-request.ps1
-
-```
-scripts/log-ai-request.ps1
-  Params:
-    -Question          (req)  [String]
-    -DateTime                 [String] = (Get-Date -Format "yyyy-MM-ddTHH:mm:ss")
-    -Analyzer                 [String] = "Unknown"
-    -Complexity               [String] = "MEDIUM"  {LOW|MEDIUM|HIGH|CRITICAL}
-    -RecommendedModel         [String] = "Auto"
-    -Reasoning                [String] = "No reasoning provided"
-```
-
 ### post-change.ps1
 
 ```
@@ -226,7 +213,7 @@ scripts/post-change.ps1
     -Files        (req)  [String[]]
     -Target       (req)  [String]
     -Description  (req)  [String]
-    -ChangeType          [String]  {Doc|Script|Config|Kotlin|Xml|Mixed}
+    -ChangeType          [String]  {Doc|Script|Config|Tooling|Kotlin|Xml|Mixed}
     -Module              [String] = "app_v2"
     -KeyPrefix           [String]
     -SkipScan            [SwitchParameter]
@@ -243,77 +230,14 @@ scripts/test-compatibility.ps1
     -ApiLevel         [String] = "all"  {28|29|30|33|35|all}
 ```
 
-## scripts\agent_continuity
-
-### dirty-tree-guard.ps1
-
-```
-scripts/agent_continuity/dirty-tree-guard.ps1
-  Params:
-    -Paths               (req)  [String[]]
-    -ExtraHighRiskPaths         [String[]]
-```
-
-### request-digest.ps1
-
-```
-scripts/agent_continuity/request-digest.ps1
-  Params:
-    -Window                    [Int32] = 30
-    -LogPath                   [String] = ''
-    -FunctionalityPath         [String] = ''
-    -PlanGlob                  [String] = ''
-```
-
-### request-log.ps1
-
-```
-scripts/agent_continuity/request-log.ps1
-  Params:
-    -Request             (req)  [String]
-    -Route                      [String] = ''
-    -Module                     [String] = ''
-    -Flavor                     [String] = ''
-    -Ticket                     [String] = ''
-    -FilesTouched               [String[]]
-    -ValidationKind             [String] = ''
-    -ValidationExit             [Int32] = 0
-    -InterruptionMarker         [String] = ''
-    -Outcome                    [String] = ''  {done|partial|aborted|escalated|}
-```
-
-### session-resume.ps1
-
-```
-scripts/agent_continuity/session-resume.ps1
-  Params:
-    -Agent          [String]
-    -Latest         [SwitchParameter] = $true
-```
-
-### session-snapshot.ps1
-
-```
-scripts/agent_continuity/session-snapshot.ps1
-  Params:
-    -Goal          (req)  [String]
-    -Ticket               [String]
-    -FilesTouched         [String[]]
-    -Decisions            [String]
-    -Blockers             [String]
-    -NextStep             [String]
-    -Agent                [String]
-```
-
-### start-packet.ps1
-
-```
-scripts/agent_continuity/start-packet.ps1
-  Params:
-    -Ticket         [String]
-```
-
 ## scripts\all_features
+
+### _lib.ps1
+
+```
+scripts/all_features/_lib.ps1
+  (no param block)
+```
 
 ### add.ps1
 Upsert one record into the ALL_FEATURES inventory (docs/ALL_FEATURES.jsonl).
@@ -375,6 +299,21 @@ scripts/all_features/patch.ps1
     -Spec                  [String] = ""
     -NoLegal               [SwitchParameter]
     -Quiet                 [SwitchParameter]
+```
+
+### remove.ps1
+Remove one record from the ALL_FEATURES inventory (docs/ALL_FEATURES.jsonl), by id.
+
+```
+scripts/all_features/remove.ps1
+  Remove one record from the ALL_FEATURES inventory (docs/ALL_FEATURES.jsonl), by id.
+  Params:
+    -Id              [String]
+    -Confirm         [SwitchParameter]
+    -NoLegal         [SwitchParameter]
+    -Quiet           [SwitchParameter]
+    -Help            [SwitchParameter]
+  Exit: 0 record removed, or no such id (no-op).; 1 invalid invocation, -Confirm withheld, or the inventory could not be read or written.
 ```
 
 ### scan_surface.ps1
@@ -634,12 +573,15 @@ scripts/builders/check-lint-rules.ps1
 ```
 
 ### check-standard-fast.ps1
+Fast per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults to app_v2; -Module wear checks the Wear OS module, which has no product flavors.
 
 ```
 scripts/builders/check-standard-fast.ps1
+  Fast per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults to app_v2; -Module wear checks the Wear OS module, which has no product flavors.
   Params:
     -Mode           [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|Assemble}
     -Flavor         [String] = "Standard"  {Standard|NoLegal|Lite|Photos|Legacy|Vr}
+    -Module         [String] = "app_v2"  {app_v2|wear}
     -Tests          [String]
     -Quiet          [SwitchParameter]
 ```
@@ -669,6 +611,15 @@ scripts/builders/get-last-build-failure.ps1
     -MaxLines         [Int32] = 200
 ```
 
+### gradle-run-verdict.ps1
+Tells a Gradle run that produced NO verdict apart from one that produced a red verdict.
+
+```
+scripts/builders/gradle-run-verdict.ps1
+  Tells a Gradle run that produced NO verdict apart from one that produced a red verdict.
+  (no param block)
+```
+
 ### install-nolegal-debug-to-device.ps1
 
 ```
@@ -685,6 +636,15 @@ scripts/builders/install-standard-debug-to-device.ps1
     -ApkPath         [String] = $null
 ```
 
+### publish-ffmpeg-dts-aar.ps1
+
+```
+scripts/builders/publish-ffmpeg-dts-aar.ps1
+  Params:
+    -AarPath         [String] = 'app_v2/libs/fms-ffmpeg-dts.aar'
+    -Tag             [String] = 'delivery-so-v1'
+```
+
 ### run-standard-macrobenchmark.ps1
 
 ```
@@ -692,6 +652,16 @@ scripts/builders/run-standard-macrobenchmark.ps1
   Params:
     -DryRun             [SwitchParameter]
     -GradleArgs         [String[]]
+```
+
+## scripts\builders\gradle-run-verdict.tests
+
+### Run-Tests.ps1
+
+```
+scripts/builders/gradle-run-verdict.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
 ## scripts\devtest
@@ -716,8 +686,11 @@ scripts/devtest/adb.ps1
     -Text             [String]
     -Key              [String]
     -Cmd              [String]
+    -Remote           [String]
+    -Local            [String]
+    -Latest           [SwitchParameter]
     -Json             [SwitchParameter]
-  Exit: 0 - OK; 1 - adb not found, or bad arguments; 2 - no online device; 3 - multiple online devices and -DeviceId not supplied (for verbs needing a device); 4 - target package not installed (for app verbs); 7 - the underlying adb command returned non-zero
+    -Yes              [SwitchParameter]
 ```
 
 ### device-ready.ps1
@@ -783,7 +756,7 @@ scripts/devtest/prerelease-measure.ps1
   S0484 pre-release sweep - per-checkpoint performance measurement.
   Params:
     -DeviceId           [String]
-    -Checkpoint  (req)  [String]  {cold-start|list-scroll|player-open|network-listing}
+    -Checkpoint  (req)  [String]  {cold-start|list-scroll|player-open|network-listing|streams-open|streams-search|streams-list-scroll|streams-grid-scroll|streams-peak-memory}
     -ElapsedMs          [Int32] = -1
     -Json               [SwitchParameter]
   Exit: 0 - measured and within threshold (pass); 1 - bad arguments / config unreadable / adb missing; 11 - measured but over threshold (fail)
@@ -815,6 +788,18 @@ scripts/devtest/prerelease-verdict.ps1
     -FromTs                 [String]
     -Json                   [SwitchParameter]
   Exit: 0 - PASS; 1 - content FAIL (log / perf / maestro); 2 - infrastructure abort (LogFile missing / inputs unreadable)
+```
+
+### streams-perf-seed.ps1
+S1502 streams performance sweep - seed a device with the full shipped stream catalog.
+
+```
+scripts/devtest/streams-perf-seed.ps1
+  S1502 streams performance sweep - seed a device with the full shipped stream catalog.
+  Params:
+    -DeviceId         [String]
+    -Json             [SwitchParameter]
+  Exit: 0 - seeded and verified: the table holds the expected row count; 1 - bad arguments / adb or sqlite3 missing / catalog csv missing / package not installed; 2 - no device reachable; 11 - device reachable but the catalog did not reach the expected size
 ```
 
 ## scripts\devtest\adb-log-filter.tests
@@ -1023,6 +1008,33 @@ scripts/docs/generate-flavor-matrix.ps1
   Exit: 0 artifacts written, or -Check found them current; 1 -Check found drift (regenerate without -Check); 2 could not verify: build file missing, productFlavors block not found,
 ```
 
+### generate-oss-notices.ps1
+S1495 - OSS notice generator (single source of truth renderer).
+
+```
+scripts/docs/generate-oss-notices.ps1
+  S1495 - OSS notice generator (single source of truth renderer).
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Manifest         [String]
+    -Check            [SwitchParameter]
+    -Quiet            [SwitchParameter]
+  Exit: 0 artifacts written, or -Check found them current; 1 -Check found drift (regenerate without -Check); 2 could not verify: parser or manifest missing, a shipping coordinate
+```
+
+### OssDependencyParser.ps1
+S1495 - dependency coordinate parser for the OSS notice generator.
+
+```
+scripts/docs/OssDependencyParser.ps1
+  S1495 - dependency coordinate parser for the OSS notice generator.
+  Params:
+    -RepoRoot          [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Census            [SwitchParameter]
+    -CensusOut         [String]
+  Exit: 0 parsed; 2 could not verify: build file missing, dependencies block not found,
+```
+
 ### render-icon-legend.ps1
 S0815 Phase 03 - render the trilingual icon-legend pages.
 
@@ -1076,6 +1088,19 @@ scripts/docs/lib/vectordrawable-svg.ps1
   (no param block)
 ```
 
+## scripts\docs\oss-notices.tests
+
+### Run-Tests.ps1
+S1495 - test suite for the OSS notice parser and generator.
+
+```
+scripts/docs/oss-notices.tests/Run-Tests.ps1
+  S1495 - test suite for the OSS notice parser and generator.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: parser or fixture missing
+```
+
 ## scripts\document_registry
 
 ### generate.ps1
@@ -1096,13 +1121,24 @@ Query the document registry by text, product area, trigger, or publication state
 scripts/document_registry/query.ps1
   Query the document registry by text, product area, trigger, or publication state.
   Params:
-    -Query               [String]
-    -ProductArea         [String]
-    -Trigger             [String]
-    -Publication         [String] = 'any'  {any|public|internal}
-    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-    -Help                [SwitchParameter]
+    -Query                  [String]
+    -ProductArea            [String]
+    -Trigger                [String]
+    -Publication            [String] = 'any'  {any|public|internal}
+    -ListVocabulary         [SwitchParameter]
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Help                   [SwitchParameter]
   Exit: 2 = invalid invocation / registry unreadable.
+```
+
+### suggest_localized_urls.ps1
+Suggest localized_urls for registry entries by scanning source files for permalink front matter.
+
+```
+scripts/document_registry/suggest_localized_urls.ps1
+  Suggest localized_urls for registry entries by scanning source files for permalink front matter.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 ```
 
 ### validate.ps1
@@ -1347,6 +1383,27 @@ scripts/quality/assert-allfeatures-sync.ps1
   Exit: 0 - clean (or audit mode).; 1 - substantive failure: validation error or record-count regression.; 2 - the gate itself cannot run (inventory or validate.ps1 missing). Distinct
 ```
 
+### assert-backup-rules-consistent.ps1
+
+```
+scripts/quality/assert-backup-rules-consistent.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - clean, every pre-31 exclusion is repeated in both API 31+ sections; 1 - at least one exclusion is missing, or a root element is wrong; 2 - cannot verify: a rules file is missing or is not well-formed XML
+```
+
+### assert-ctor-arg-slots.ps1
+
+```
+scripts/quality/assert-ctor-arg-slots.ps1
+  Params:
+    -Gate           [SwitchParameter]
+    -WarnAt         [Int32] = 20
+    -Quiet          [SwitchParameter]
+  Exit: 0 - every parsed constructor is under the ceiling (or over it without -Gate).; 1 - at least one constructor exceeds the ceiling, and -Gate was passed.; 2 - could not verify: no source root was readable, so nothing was measured.
+```
+
 ### assert-deprecated-pm-flags.ps1
 
 ```
@@ -1383,7 +1440,7 @@ scripts/quality/assert-detekt.ps1
     -Gate                   [SwitchParameter]
     -ChangedFiles           [String[]]
     -TimeoutSeconds         [Int32] = 600
-  Exit: 0 PASS - no new findings, or none in -ChangedFiles, or non-gate mode.; 1 FAIL - -Gate and detekt reported a new finding (in -ChangedFiles when diff-scoped).; 2 Cannot verify - gradlew.bat missing, or -ChangedFiles given but a run module's
+    -NoCache                [SwitchParameter]
 ```
 
 ### assert-device-profile-matrix.ps1
@@ -1513,6 +1570,15 @@ scripts/quality/assert-focus-highlight.ps1
     -List                   [SwitchParameter]
 ```
 
+### assert-gate-hints-sync.ps1
+
+```
+scripts/quality/assert-gate-hints-sync.ps1
+  Params:
+    -Gate         [SwitchParameter]
+  Exit: 0 - registry and facade agree (or audit mode).; 1 - substantive failure: at least one label or key is unpaired (-Gate only).; 2 - the gate itself cannot run: the facade or the registry is missing or
+```
+
 ### assert-globalscope.ps1
 
 ```
@@ -1522,6 +1588,17 @@ scripts/quality/assert-globalscope.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+```
+
+### assert-hook-inventory.ps1
+
+```
+scripts/quality/assert-hook-inventory.ps1
+  Params:
+    -Gate                       [SwitchParameter]
+    -RepoRoot                   [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -GlobalSettingsPath         [String] = (Join-Path $HOME '.claude/settings.json')
+  Exit: 0 in sync, or a divergence was reported without -Gate (advisories may print in both); 1 a real divergence between the registered set and the inventory, with -Gate; 2 could not verify - the inventory or .claude/settings.json is missing or unparsable
 ```
 
 ### assert-howto-settings-paths.ps1
@@ -1543,9 +1620,21 @@ S0815 Phase 04 - icon inventory / asset / legend drift gate.
 scripts/quality/assert-icon-inventory-sync.ps1
   S0815 Phase 04 - icon inventory / asset / legend drift gate.
   Params:
-    -Gate                      [SwitchParameter]
-    -IncludeExportTest         [SwitchParameter]
-    -RepoRoot                  [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate                        [SwitchParameter]
+    -IncludeExportTest           [SwitchParameter]
+    -RegenerateInventory         [SwitchParameter]
+    -RepoRoot                    [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - every enforced check passed, or the inventory was regenerated.; 1 - a check failed.; 2 - regeneration could not run (gradle returned non-zero).
+```
+
+### assert-launcher-reset-coverage.ps1
+
+```
+scripts/quality/assert-launcher-reset-coverage.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 PASS - every launcher field is restored or excused.; 1 FAIL - a launcher field is not restored, or a restored name no longer exists.; 2 CANNOT VERIFY - a source file is missing or no launcher field could be parsed at all.
 ```
 
 ### assert-layout-hardcoded-colors.ps1
@@ -1634,12 +1723,35 @@ scripts/quality/assert-nontimber-log.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-notification-small-icon.ps1
+
+```
+scripts/quality/assert-notification-small-icon.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - clean, no drawable literal reaches a small-icon setter; 1 - at least one violation; 2 - cannot verify: no source root found to scan
+```
+
 ### assert-orientation-implied-feature.ps1
 
 ```
 scripts/quality/assert-orientation-implied-feature.ps1
   Params:
     -Gate         [SwitchParameter]
+```
+
+### assert-oss-notices.ps1
+S1495 - OSS notice conformance gate.
+
+```
+scripts/quality/assert-oss-notices.ps1
+  S1495 - OSS notice conformance gate.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate             [SwitchParameter]
+    -Quiet            [SwitchParameter]
+  Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: generator, parser or manifest missing or unreadable
 ```
 
 ### assert-public-mutable-flow.ps1
@@ -1662,6 +1774,28 @@ scripts/quality/assert-qualifier-shadowing.ps1
     -Quiet         [SwitchParameter]
 ```
 
+### assert-retired-dependency-names.ps1
+
+```
+scripts/quality/assert-retired-dependency-names.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - no retired dependency name found (or hits found without -Gate).; 1 - at least one retired name found in maintained text, and -Gate was passed.; 2 - could not verify: no scan root existed, so nothing was examined.
+```
+
+### assert-rtl-layout-attrs.ps1
+
+```
+scripts/quality/assert-rtl-layout-attrs.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+  Exit: 0 - pass (count at or below baseline, or a non-gate mode).; 1 - fail: the count rose above the baseline, or a changed file carries an occurrence.; 2 - cannot verify: the scan root is missing, or a named changed file does not exist.
+```
+
 ### assert-script-cheatsheet-sync.ps1
 Drift gate: docs/SCRIPT_CHEATSHEET.md must equal `help.ps1 -Generate` output.
 
@@ -1673,6 +1807,16 @@ scripts/quality/assert-script-cheatsheet-sync.ps1
     -Quiet            [SwitchParameter]
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
   Exit: 0 in sync.; 1 stale - regenerate with `pwsh -NoProfile -File scripts/utils/help.ps1 -Generate`.; 2 the gate itself cannot run (scripts/utils/help.ps1 missing).
+```
+
+### assert-sdk-pin-claims.ps1
+
+```
+scripts/quality/assert-sdk-pin-claims.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - every scanned claim matches the build files (or mismatches found without -Gate).; 1 - at least one claim contradicts the build files, and -Gate was passed.; 2 - could not verify: the build file or its pin could not be read, so nothing was compared.
 ```
 
 ### assert-sensitive-settings-annotated.ps1
@@ -1709,6 +1853,19 @@ scripts/quality/assert-settings-doc-sync.ps1
   Exit: 0 - every stage passed.; 1 - a stage found real drift (the failing stage is named).; 2 - a stage could not be judged: either the manifest test never ran because the
 ```
 
+### assert-shared-test-flavor-scope.ps1
+
+```
+scripts/quality/assert-shared-test-flavor-scope.ps1
+  Params:
+    -Gate              [SwitchParameter]
+    -Quiet             [SwitchParameter]
+    -RepoRoot          [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Module            [String] = 'app_v2'
+    -DumpIndex         [SwitchParameter]
+  Exit: 0 - no violation (or violations found without -Gate).; 1 - at least one violation, and -Gate was passed.; 2 - could not verify: the build file is unreadable, or its mount map carries a line this gate
+```
+
 ### assert-source-gates.ps1
 
 ```
@@ -1732,6 +1889,28 @@ scripts/quality/assert-string-format.ps1
     -List                   [SwitchParameter]
     -Module                 [String] = 'app_v2'
     -SourceSet              [String] = 'main'
+```
+
+### assert-string-lone-backslash.ps1
+
+```
+scripts/quality/assert-string-lone-backslash.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+```
+
+### assert-string-quote-escaping.ps1
+
+```
+scripts/quality/assert-string-quote-escaping.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
 ```
 
 ### assert-stub-todo.ps1
@@ -1777,6 +1956,17 @@ scripts/quality/assert-test-suite-complete.ps1
     -Module                   [String] = "app_v2"
     -TaskDir                  [String] = "testStandardDebugUnitTest"
     -MinCoverageRatio         [Double] = 0.85
+    -RepoRoot                 [String]
+```
+
+### assert-ticket-acceptance-probes.ps1
+
+```
+scripts/quality/assert-ticket-acceptance-probes.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - clean, or mismatches reported in audit mode.; 1 - `-Gate` found a missing source template or invalid alternative evidence.; 2 - required catalog, helper, or source roots cannot be read.
 ```
 
 ### assert-trivial-comments.ps1
@@ -1790,10 +1980,35 @@ scripts/quality/assert-trivial-comments.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-unreferenced-strings.ps1
+
+```
+scripts/quality/assert-unreferenced-strings.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -Quiet                  [SwitchParameter]
+    -Module                 [String] = 'app_v2'
+    -File                   [String] = 'strings.xml'
+  Exit: 0 - no new unreferenced name (or reporting mode, which never fails).; 1 - under -Gate: at least one unreferenced name is not in the baseline.; 2 - cannot verify: the module, its values directory, or the strings file could not be read.
+```
+
 ### assert-unsafe-collect.ps1
 
 ```
 scripts/quality/assert-unsafe-collect.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+```
+
+### assert-untracked-dialogs.ps1
+
+```
+scripts/quality/assert-untracked-dialogs.ps1
   Params:
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
@@ -1847,7 +2062,20 @@ scripts/quality/detekt-preflight.ps1
     -BaselinePath           [String]
     -IgnoreBaseline         [SwitchParameter]
     -Json                   [SwitchParameter]
-  Exit: 0 - no finding in the checked files (or nothing to check).; 1 - at least one finding (only under -Gate; without it the findings print and; 2 - cannot verify: the config file is missing, or a named file does not exist.
+  Exit: 0 - the analyser found nothing in the checked files, or there was nothing to check,
+```
+
+### detekt-scoped.ps1
+
+```
+scripts/quality/detekt-scoped.ps1
+  Params:
+    -ChangedFiles         [String[]]
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -ConfigPath           [String]
+    -CacheRoot            [String] = (Join-Path $env:USERPROFILE '.gradle/caches/modules-2/files-2.1')
+    -Json                 [SwitchParameter]
+  Exit: 0 - the analyser ran and found nothing new in the named files (or there were none to check).; 1 - the analyser ran and found at least one new finding; each is printed.; 2 - CANNOT VERIFY. java missing, classpath incomplete, config or baseline absent, a named
 ```
 
 ### generate-toolchain-pins.ps1
@@ -1858,6 +2086,18 @@ scripts/quality/generate-toolchain-pins.ps1
     -Write         [SwitchParameter]
     -Check         [SwitchParameter]
   Exit: 0 - clean (pins in sync, or a successful -Write).; 1 - substantive failure: doc-vs-build pin drift under -Check.; 2 - the tool itself cannot run: a build file or target document is missing,
+```
+
+### measure-file-touch-frequency.ps1
+
+```
+scripts/quality/measure-file-touch-frequency.ps1
+  Params:
+    -Paths             [String[]]
+    -SinceDays         [Int32] = 90
+    -RepoRoot          [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Json              [SwitchParameter]
+  Exit: 0 - measured; one row printed per path.; 2 - cannot verify: dev/CHANGELOG.md is missing, or no path was given.
 ```
 
 ### measure-hotspots.ps1
@@ -1895,6 +2135,13 @@ scripts/quality/sector-gate-pilot.ps1
 
 ## scripts\quality.tests
 
+### android-string-liveness.Tests.ps1
+
+```
+scripts/quality.tests/android-string-liveness.Tests.ps1
+  (no param block)
+```
+
 ### check-device-profile-presets.Tests.ps1
 
 ```
@@ -1906,6 +2153,13 @@ scripts/quality.tests/check-device-profile-presets.Tests.ps1
 
 ```
 scripts/quality.tests/Run-Tests.ps1
+  (no param block)
+```
+
+### set-android-string-remove.Tests.ps1
+
+```
+scripts/quality.tests/set-android-string-remove.Tests.ps1
   (no param block)
 ```
 
@@ -1929,6 +2183,26 @@ scripts/quality/assert-exit-contract.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-hook-inventory.tests
+
+### run-tests.ps1
+
+```
+scripts/quality/assert-hook-inventory.tests/run-tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
+## scripts\quality\assert-shared-test-flavor-scope.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-shared-test-flavor-scope.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
 ## scripts\quality\assert-swallowed-cancellation.tests
 
 ### Run-Tests.ps1
@@ -1937,6 +2211,15 @@ scripts/quality/assert-exit-contract.tests/Run-Tests.ps1
 scripts/quality/assert-swallowed-cancellation.tests/Run-Tests.ps1
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not verify - the baseline file is missing.
+```
+
+## scripts\quality\assert-ticket-acceptance-probes.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-ticket-acceptance-probes.tests/Run-Tests.ps1
+  (no param block)
 ```
 
 ## scripts\quality\assert-window-insets.tests
@@ -1949,12 +2232,32 @@ scripts/quality/assert-window-insets.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not acquire CODE.LOCK for the end-to-end case - re-run once the lock is free.
 ```
 
+## scripts\quality\detekt-scoped.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/detekt-scoped.tests/Run-Tests.ps1
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
 ## scripts\quality\lib
 
 ### android-string-format.ps1
 
 ```
 scripts/quality/lib/android-string-format.ps1
+  (no param block)
+```
+
+### android-string-liveness.ps1
+S1568: one definition of "is this string resource name referenced", shared by the audit report, the removal tool and the ratchet gate.
+
+```
+scripts/quality/lib/android-string-liveness.ps1
+  S1568: one definition of "is this string resource name referenced", shared by the audit report, the removal tool and the ratchet gate.
   (no param block)
 ```
 
@@ -1979,6 +2282,13 @@ scripts/quality/lib/detekt-report.ps1
   (no param block)
 ```
 
+### flavor-source-map.ps1
+
+```
+scripts/quality/lib/flavor-source-map.ps1
+  (no param block)
+```
+
 ### source-matchers.ps1
 
 ```
@@ -1990,6 +2300,13 @@ scripts/quality/lib/source-matchers.ps1
 
 ```
 scripts/quality/lib/source-scan.ps1
+  (no param block)
+```
+
+### ticket-acceptance-probes.ps1
+
+```
+scripts/quality/lib/ticket-acceptance-probes.ps1
   (no param block)
 ```
 
@@ -2225,7 +2542,7 @@ scripts/spec_catalog/drift-check.ps1
   Params:
     -Id      (req)  [String]
     -Format         [String] = 'table'  {table|json}
-  Exit: 0 - no drift detected (clean); 1 - drift detected (commits and/or markers found post-spec-creation); 2 - usage / resolution error
+  Exit: 0 - no drift detected (CLEAN or COMMIT_ONLY); 1 - drift detected (inline markers found post-spec-creation); 2 - usage / resolution error
 ```
 
 ### insert.ps1
@@ -2284,6 +2601,22 @@ scripts/spec_catalog/plan-form-metrics.ps1
   Exit: 0 - action done.; 2 - bad arguments, or the data file exists but is unreadable/malformed.; 3 - -Action summary ran with fewer than two tickets measured in both forms.
 ```
 
+### plan-tick.ps1
+
+```
+scripts/spec_catalog/plan-tick.ps1
+  Params:
+    -Id        (req)  [String]
+    -Phase            [String]
+    -Steps     (req)  [String]
+    -Checkbox  (req)  [String]
+    -Target           [String] = 'Phase'  {Phase|Index}
+    -State     (req)  [String]  {NotDone|InProgress|Done|Manual}
+    -Note             [String] = ''
+    -Log              [String] = ''
+    -Json             [SwitchParameter]
+```
+
 ### preview.ps1
 
 ```
@@ -2292,6 +2625,17 @@ scripts/spec_catalog/preview.ps1
     -Id      (req)  [String]
     -Format         [String] = 'json'  {table|json}
   Exit: 0 - preview emitted.; 2 - cannot run: malformed -Id, spec absent from the catalog, or its file missing
+```
+
+### purge-probe-records.ps1
+One-off (idempotent) cleanup: remove preview.tests probe records from the ARCHIVE journal.
+
+```
+scripts/spec_catalog/purge-probe-records.ps1
+  One-off (idempotent) cleanup: remove preview.tests probe records from the ARCHIVE journal.
+  Params:
+    -Help         [SwitchParameter]
+  Exit: 0 - purged, or nothing to purge (idempotent re-run).; 1 - error (archive unreadable, lock timeout, write failure).; 3 - guard tripped: the purge would have changed the next allocatable id. Archive restored.
 ```
 
 ### release-plan.ps1
@@ -2319,6 +2663,22 @@ scripts/spec_catalog/release-queue.ps1
     -Version            [String] = ''
     -DryRun             [SwitchParameter]
   Exit: 0 success (for -Validate: no drift).; 1 error, or -Validate found drift.; 2 cannot verify - PLAN/RELEASE_QUEUE.md is missing (seed it before using the queue).
+```
+
+### run-spec-all-queue.ps1
+Runs /spec-all for release-queue tickets one at a time.
+
+```
+scripts/spec_catalog/run-spec-all-queue.ps1
+  Runs /spec-all for release-queue tickets one at a time.
+  Params:
+    -PollSeconds                  [Int32] = 30  {range 5..300}
+    -MaxTickets                   [Int32] = 0  {range 0..10000}
+    -MaxAttemptsPerTicket         [Int32] = 3  {range 1..20}
+    -HeartbeatMinutes             [Int32] = 5  {range 1..120}
+    -ClaudeCommand                [String] = 'claude'
+    -DryRun                       [SwitchParameter]
+  Exit: 0 Queue exhausted, MaxTickets reached, or DryRun completed.; 1 Invalid environment, a helper script failed, or Claude Code could not be started.; 2 RELEASE_QUEUE.md contains a malformed ticket line.; 3 Ticket stalled: an attempt made no progress, or the attempt budget ran out,
 ```
 
 ### sca-specs.ps1
@@ -2362,6 +2722,21 @@ scripts/spec_catalog/select.ps1
     -Help                    [SwitchParameter]
 ```
 
+### session-bootstrap.ps1
+
+```
+scripts/spec_catalog/session-bootstrap.ps1
+  Params:
+    -Resume             [SwitchParameter]
+    -SkipDevice         [SwitchParameter]
+    -Claim              [SwitchParameter]
+    -Exclude            [String[]] = @()
+    -Threshold          [Int32] = 0
+    -Reason             [String] = 'session-bootstrap'
+    -Format             [String] = 'json'  {json|table}
+  Exit: 0 - every requested block succeeded.; 1 - at least one block failed.; 2 - usage error, or a component script is missing.
+```
+
 ### skip-cache.ps1
 
 ```
@@ -2399,7 +2774,8 @@ scripts/spec_catalog/spec-next-session.ps1
     -Online                 [String]
     -SelectedDevice         [String]
     -Threshold              [Int32] = 300000
-  Exit: 0 - ok.; 1 - error (missing state file where one is required, write failure).; 2 - cannot verify (bad -Id on Record; CheckContext could not determine tokens).; 3 - threshold crossed (CheckContext only).
+    -Force                  [SwitchParameter]
+    -StaleMinutes           [Int32] = 45
 ```
 
 ### stats.ps1
@@ -2408,6 +2784,19 @@ scripts/spec_catalog/spec-next-session.ps1
 scripts/spec_catalog/stats.ps1
   Params:
     -Format         [String] = 'table'  {table|json}
+```
+
+### ticket-lease.ps1
+
+```
+scripts/spec_catalog/ticket-lease.ps1
+  Params:
+    -Verb          (req)  [String]  {Claim|Release|List|Status|Sweep}
+    -Id                   [String]
+    -Reason               [String] = 'spec-picker'
+    -Json                 [SwitchParameter]
+    -StaleMinutes         [Int32] = 0
+  Exit: 0 - done: claimed, released, or reported.; 1 - error: unreadable store, bad argument shape, write failure.; 3 - claim lost: a live foreign session already holds this ticket.; 4 - release refused: a live foreign session owns this lease.
 ```
 
 ### unverified-backlog.ps1
@@ -2456,6 +2845,16 @@ scripts/spec_catalog/close-and-log.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\spec_catalog\plan-tick.tests
+
+### Run-Tests.ps1
+
+```
+scripts/spec_catalog/plan-tick.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the harness itself could not run.
+```
+
 ## scripts\spec_catalog\preview.tests
 
 ### Run-Tests.ps1
@@ -2466,6 +2865,27 @@ scripts/spec_catalog/preview.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\spec_catalog\session-bootstrap.tests
+
+### Run-Tests.ps1
+
+```
+scripts/spec_catalog/session-bootstrap.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the harness itself could not run (missing script, sandbox could not be built).
+```
+
+## scripts\spec_catalog\update.tests
+
+### Run-Tests.ps1
+
+```
+scripts/spec_catalog/update.tests/Run-Tests.ps1
+  Params:
+    -SubjectId         [String] = 'S1504'
+  Exit: 0 all cases pass.; 1 at least one case failed, or the subject id could not be resolved.
+```
+
 ## scripts\streams
 
 ### collect-stream-candidates.ps1
@@ -2473,7 +2893,8 @@ scripts/spec_catalog/preview.tests/Run-Tests.ps1
 ```
 scripts/streams/collect-stream-candidates.ps1
   Params:
-    -Axis                             [String[]] = @('official', 'livetv', 'genres', 'geo', 'webcam')  {official|livetv|genres|geo|webcam}
+    -Axis                             [String[]] = @('official', 'livetv', 'genres', 'geo', 'webcam')  {official|livetv|genres|geo|webcam|iptvcam|tfl|webradiodb|radioparadise|akc|lautfm|xiph}
+    -LautFmImageBudget                [Int32] = 0
     -PerQuery                         [Int32] = 20
     -LivenessTimeoutSec               [Int32] = 12
     -Throttle                         [Int32] = 12
@@ -2493,6 +2914,10 @@ scripts/streams/collect-stream-candidates.ps1
     -FaviconThrottle                  [Int32] = 16
     -LogoCacheDir                     [String] = 'temp/stream-logo-src'
     -RefreshLogoCache                 [SwitchParameter]
+    -DomainFallback                   [SwitchParameter]
+    -WarmArtworkCache                 [SwitchParameter]
+    -ArtworkCacheOnly                 [SwitchParameter]
+    -NormalizeTopics                  [SwitchParameter]
     -WithChannelPreviews              [SwitchParameter]
     -PublishPreviewAtlas              [SwitchParameter]
     -PreviewAtlasPath                 [String] = 'temp/channel-preview-atlas.webp'
@@ -2507,6 +2932,15 @@ scripts/streams/collect-stream-candidates.ps1
     -LogoAtlasPath                    [String] = 'delivery/stream-catalog/stream-logo-atlas.webp'
     -LogoCoordsPath                   [String] = 'delivery/stream-catalog/stream-logo-coords.json'
     -LogoLimit                        [Int32] = 0
+    -WithTilePacks                    [SwitchParameter]
+    -PublishTilePacks                 [SwitchParameter]
+    -TilePackRev                      [String] = 'v4'
+    -SheetRev                         [String] = 'v3'
+    -CoordsRev                        [String] = 'v3'
+    -ArtworkPayload                   [String] = 'both'  {both|preview|logo}
+    -PreviewTilePackPath              [String] = 'temp/channel-preview-tiles.zip'
+    -LogoTilePackPath                 [String] = 'temp/stream-logo-tiles.zip'
+    -TilePackQuality                  [Int32] = 80
     -FfmpegPath                       [String] = ''
     -MaxAtlasBytes                    [Int32] = 31457280
     -DeepSignal                       [SwitchParameter]
@@ -2533,10 +2967,55 @@ scripts/streams/collect-stream-candidates.ps1
 ## scripts\utils
 
 ### agent-lock.ps1
+Cross-agent coordination locks: temp/BUILD.LOCK and temp/CODE.LOCK.
 
 ```
 scripts/utils/agent-lock.ps1
+  Cross-agent coordination locks: temp/BUILD.LOCK and temp/CODE.LOCK.
   (no param block)
+```
+
+### archive-temp.ps1
+Archives stale scratch artifacts out of temp/ into temp/archive/<stamp>/.
+
+```
+scripts/utils/archive-temp.ps1
+  Archives stale scratch artifacts out of temp/ into temp/archive/<stamp>/.
+  Params:
+    -OlderThanDays          [Int32] = 7
+    -IncludeScratch         [SwitchParameter]
+    -DryRun                 [SwitchParameter]
+    -Stamp                  [String]
+  Exit: 0 - completed (or dry run completed); 1 - a move failed; 2 - could not verify: repo root or spec catalog CLI not found
+```
+
+### archive-vscode-cruft.ps1
+Reclaims disk space from VSCode / VSCode Insiders user data and Claude Code transcripts.
+
+```
+scripts/utils/archive-vscode-cruft.ps1
+  Reclaims disk space from VSCode / VSCode Insiders user data and Claude Code transcripts.
+  Params:
+    -Tier                            [Int32] = 1  {range 1..3}
+    -ArchiveRoot                     [String]
+    -ChatOlderThanDays               [Int32] = 30
+    -WebStorageOlderThanDays         [Int32] = 90
+    -HistoryOlderThanDays            [Int32] = 60
+    -ClaudeOlderThanDays             [Int32] = 30
+    -DryRun                          [SwitchParameter]
+    -Force                           [SwitchParameter]
+```
+
+### audit-unreferenced-strings.ps1
+
+```
+scripts/utils/audit-unreferenced-strings.ps1
+  Params:
+    -Module          [String] = 'app_v2'
+    -File            [String] = 'strings.xml'
+    -Format          [String] = 'text'  {text|json}
+    -OutFile         [String]
+  Exit: 0 - the scan completed. Any number of unreferenced names is a valid result, including zero.; 2 - cannot verify: the module, its values directory, or the strings file does not exist.
 ```
 
 ### batch-set-android-string.ps1
@@ -2622,13 +3101,14 @@ scripts/utils/create-run-configs.ps1
 ```
 
 ### enter-code-lock.ps1
-Acquire temp/CODE.LOCK before starting a multi-file source (Kotlin/XML/build-file) edit.
 
 ```
 scripts/utils/enter-code-lock.ps1
-  Acquire temp/CODE.LOCK before starting a multi-file source (Kotlin/XML/build-file) edit.
   Params:
-    -Reason  (req)  [String]
+    -Reason              (req)  [String]
+    -Wait                       [SwitchParameter]
+    -WaitTimeoutSeconds         [Int32] = 1200
+  Exit: 0 - lock acquired, start editing. Also returned when this session ALREADY holds the lock; 4 - queued: another session holds it. Your ticket is in the queue; wait for your turn with
 ```
 
 ### exit-code-lock.ps1
@@ -2654,7 +3134,7 @@ scripts/utils/extract-device-logs.ps1
 ```
 scripts/utils/fix-ellipsis-docs.ps1
   Params:
-    -Dirs           [String[]] = @("docs", "PLAN")
+    -Dirs           [String[]] = @("docs")
     -DryRun         [SwitchParameter]
 ```
 
@@ -2788,6 +3268,7 @@ scripts/utils/lock-status.ps1
     -Name                (req)  [String]  {Build|Code}
     -Json                       [SwitchParameter]
     -StrictExit                 [SwitchParameter]
+    -Queue                      [SwitchParameter]
     -Wait                       [SwitchParameter]
     -WaitTimeoutSeconds         [Int32] = 900
     -PollSeconds                [Int32] = 2
@@ -2807,6 +3288,17 @@ scripts/utils/monitor_git.ps1
 scripts/utils/process-timeout.ps1
   (no param block)
   Exit: 600 s: the observed tail is 5 gate runs over 300 s out of 311, so this never fires
+```
+
+### prune-gradle-tmp.ps1
+Removes stale build-JVM leftovers from the shared temp/gradle-tmp directory.
+
+```
+scripts/utils/prune-gradle-tmp.ps1
+  Removes stale build-JVM leftovers from the shared temp/gradle-tmp directory.
+  Params:
+    -MaxAgeHours         [Int32] = 24
+    -Path                [String]
 ```
 
 ### recover-kapt-stall.ps1
@@ -2880,6 +3372,24 @@ scripts/utils/search-log.ps1
     -OutFile               [String] = ""
 ```
 
+### seed-locale-tranche.ps1
+S1190: seeds one locale's copy of a strings file from a translation map.
+
+```
+scripts/utils/seed-locale-tranche.ps1
+  S1190: seeds one locale's copy of a strings file from a translation map.
+  Params:
+    -Module             [String] = 'app_v2'
+    -SourceSet          [String] = 'main'
+    -SourceFile  (req)  [String]
+    -Locale             [String]
+    -MapPath            [String]
+    -KeyPrefix          [String]
+    -Merge              [SwitchParameter]
+    -DumpSource         [SwitchParameter]
+    -DryRun             [SwitchParameter]
+```
+
 ### set-android-string.ps1
 Surgical editor for Android <string> resources: set / add / get / remove / rename / list.
 
@@ -2899,9 +3409,11 @@ scripts/utils/set-android-string.ps1
     -NewKey                   [String]
     -File                     [String] = 'strings.xml'
     -Prefix                   [String]
+    -KeyList                  [String]
     -ExpectedOldValue         [String]
     -CreateIfMissing          [SwitchParameter]
     -DryRun                   [SwitchParameter]
+    -Force                    [SwitchParameter]
 ```
 
 ### set-android-strings.ps1
@@ -2954,10 +3466,30 @@ scripts/utils/setup-avd-for-tests.ps1
     -SkipPermissions         [SwitchParameter]
 ```
 
+### test-agent-lock-queue.ps1
+
+```
+scripts/utils/test-agent-lock-queue.ps1
+  (no param block)
+  Exit: 0 - every assertion passed; the sandbox is deleted.; 1 - at least one assertion failed; the sandbox is kept for inspection and its path is printed.; 2 - the sandbox could not be prepared, so nothing was checked.
+```
+
 ### update_docs_frontmatter.ps1
 
 ```
 scripts/utils/update_docs_frontmatter.ps1
   (no param block)
+```
+
+### wait-for-lock-turn.ps1
+
+```
+scripts/utils/wait-for-lock-turn.ps1
+  Params:
+    -Name                (req)  [String]  {Build|Code}
+    -Reason              (req)  [String]
+    -WaitTimeoutSeconds         [Int32] = 3600
+    -PollSeconds                [Int32] = 5
+  Exit: 0 - granted: it is this session's turn, ticket left in place for the caller.; 2 - timed out: nothing was acquired, ticket removed.; 3 - evicted: the ticket was dropped while waiting (session judged gone), ticket removed.; 4 - could not enqueue.
 ```
 

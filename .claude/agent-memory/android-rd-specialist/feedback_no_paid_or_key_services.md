@@ -15,6 +15,12 @@ When a feature needs a third-party service, default to a **keyless, free** endpo
 - Put the service behind a one-interface seam so a licence change is a one-class swap, not a refactor; note the fallback candidate in the spec.
 - If a key genuinely cannot be avoided, implement against an empty-key-degrades-gracefully path and hand the ticket over for the key rather than blocking the whole feature.
 
+**Do not frame a keyless service as a cost tradeoff.** On 2026-08-07 (S1440 quiz) I grouped widget candidates into "cheap" and "цена" buckets, meaning traffic/permission cost, and put the external IP in the paid-sounding one. The owner read "цена" as money and pushed back hard - "не буду я платить за внешний IP не гони! - Разумеется он нам нужен и есть масса возможностей получить его бесплатно, ищи!" - costing a round-trip. Say *what* is being spent (a request to a third party, a runtime permission, a dependency on another ticket) in the option text itself; never use a bare cost/price word for something that is free.
+
+**Known keyless wins - already verified, but re-verify liveness before relying on one:**
+
+- **Public/external IP: fully solvable keyless, no registration, no new dependency.** Verified live 2026-08-07: `checkip.amazonaws.com`, `api.ipify.org`, `icanhazip.com`, `ident.me`, `ifconfig.me/ip` all return the address as plain text over HTTPS. A hand-rolled RFC 5389 STUN binding request (~50 lines on a plain `DatagramSocket`) against `stun.l.google.com:19302` / `stun.cloudflare.com:3478` returns the same address and needs no library either. Ship an ordered list of 2-3 independent hosts, not one - that is what survives a free host disappearing. Trap: `api.ipify.org` answers `520` to `HEAD` but `200` to `GET`, so a HEAD-based liveness probe misreports it as dead.
+
 **Known keyless dead ends - do not re-offer these as options:**
 
 - **Address autocomplete / typeahead is impossible keyless.** Nominatim's usage policy explicitly forbids implementing autocomplete client-side against its API, and every provider that does offer suggestions (Stadia Maps, LocationIQ, Google Places) needs a paid key. So "address field with suggestions" is closed permanently, not deferred - a plain field plus one rate-capped lookup on submit is the most that can be delivered. Recorded on S1175 (ADR-6) after quizzing the owner; do not reopen it as a scope question in a later planning pass.

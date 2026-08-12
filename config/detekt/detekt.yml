@@ -8,6 +8,24 @@ formatting:
   android: true
   autoCorrect: false
 
+# S1450: detekt's own defaults already exempt test sources from these two rules, but their default
+# pattern is '**/test/**', which matches src/test and misses every flavor unit-test source set -
+# src/testStandard, src/testNoLegal, src/testVr, and the src/testStreamingEnabled /
+# src/testCloudEnabled sets S1450 added. That gap is why a test file moved from src/test into a
+# flavor set suddenly reports FunctionNaming on backtick test names, and why the pre-existing
+# src/testStandard file carries a hand-written @Suppress("FunctionNaming").
+# The '**/test*/**' pattern below covers src/test itself and every test<Flavor>/test<Capability>
+# set. This restores detekt's intended default to the paths its pattern misses; it is not a
+# threshold relaxation. Listing the rest of the default list is required because a declared
+# 'excludes' replaces the default rather than adding to it.
+naming:
+  FunctionNaming:
+    excludes: ['**/test*/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
+
+style:
+  MagicNumber:
+    excludes: ['**/test*/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.kts']
+
 complexity:
   active: true
   LongMethod:

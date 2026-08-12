@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.ui.cameracapture.helpers
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
-import androidx.camera.core.CameraSelector
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -12,8 +12,10 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraLensEntry
 import timber.log.Timber
 import java.io.File
+import java.util.concurrent.Executors
 
 /**
  * S0790-S0794: headless single-shot photo capture for the edge-gesture "take photo" family.
@@ -46,6 +48,23 @@ class HeadlessPhotoCapturer(
 
     private var cameraProvider: ProcessCameraProvider? = null
 
+    /**
+     * S1478: the same device-angle source the camera screen uses. The icon callback is empty on
+     * purpose - a headless shot draws no overlay, so there is nothing to keep upright.
+     */
+    private val orientationManager = CameraOrientationManager(
+        context = context,
+        onIconRotationChanged = {},
+        onTargetRotationChanged = ::applyTargetRotation,
+    )
+
+    /**
+     * S1478: the use case whose rotation follows the device, from the bind until the shutter. Cleared
+     * before [ImageCapture.takePicture] so a turn during the exposure cannot re-target a frame that is
+     * already being captured.
+     */
+    private var rotatingCapture: ImageCapture? = null
+
     // S1360: CameraX binds to this, not to the host. Nothing outside this class can move it.
     private val captureLifecycle = CaptureLifecycleOwner()
 
@@ -66,32 +85,50 @@ class HeadlessPhotoCapturer(
      * Captures a single photo into [outputFile]. [location] is written into the JPEG EXIF when the
      * caller opted into geotagging and holds a fix; null leaves the photo without GPS. Exactly one of
      * [onSaved] / [onError] is invoked on the main thread.
+     *
+     * S1478: [aspectRatio] is the stored `AspectRatio.RATIO_*` selection. The photo stream is always
+     * 4:3, so 16:9 is realised by cropping the saved file (S1066) - the same way the camera screen
+     * does it.
      */
     @SuppressLint("MissingPermission")
     fun capture(
         outputFile: File,
         location: Location?,
+        aspectRatio: Int,
         onSaved: () -> Unit,
         onError: (Throwable) -> Unit,
     ) {
+        // S1478: enabled before the provider is awaited, so the sensor has the binding latency to
+        // report at least one reading before the use case is built.
+        orientationManager.enable()
         val providerFuture = ProcessCameraProvider.getInstance(context)
         providerFuture.addListener(
             {
                 runCatching {
                     val provider = providerFuture.get()
                     cameraProvider = provider
-                    val selector = resolveSelector(provider)
-                    val imageCapture = ImageCapture.Builder()
-                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                        .build()
+                    val lens = resolveLens(provider)
+                    val bucket = orientationManager.rotationBucket.value
+                    Timber.d("S1478: headless lens=%s rotation=%d aspect=%d", lens.id, bucket, aspectRatio)
+                    val selector = CameraUseCaseFactory.selectorFor(lens)
+                    // S1478: the same factory the camera screen builds its use cases with, so the two
+                    // capture routes share one definition of output geometry instead of two builders.
+                    // S1189: the selector binds the logical camera; a chosen sub-lens travels here.
+                    val imageCapture = CameraUseCaseFactory(
+                        videoMode = false,
+                        selectedAspectRatio = null,
+                        selectedResolution = null,
+                        targetRotation = bucket,
+                        physicalCameraId = lens.physicalCameraId,
+                    ).createPhotoCapture()
+                    rotatingCapture = imageCapture
                     // Bind ONLY ImageCapture (no Preview) so CameraX opens the device without any UI.
                     provider.unbindAll()
                     // S1360: RESUMED before the bind - CameraX only opens the device for an owner
                     // that is at least STARTED, and this registry is the one it will watch.
                     captureLifecycle.resume()
                     provider.bindToLifecycle(captureLifecycle, selector, imageCapture)
-                    Timber.d("S1360: bound to own capture lifecycle, host stop cannot abort the frame")
-                    takePicture(imageCapture, outputFile, location, onSaved, onError)
+                    takePicture(imageCapture, outputFile, location, aspectRatio, onSaved, onError)
                 }.onFailure { error ->
                     Timber.e(error, "HeadlessPhotoCapturer: provider/bind failed")
                     release()
@@ -102,19 +139,29 @@ class HeadlessPhotoCapturer(
         )
     }
 
-    private fun resolveSelector(provider: ProcessCameraProvider): CameraSelector = when {
-        provider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA) -> CameraSelector.DEFAULT_BACK_CAMERA
-        provider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA) -> CameraSelector.DEFAULT_FRONT_CAMERA
-        else -> throw IllegalStateException("No camera available")
+    /**
+     * S1478: the lens the camera screen would open, resolved by the same rule - the enumeration plus
+     * [CameraLensEnumerationManager.initialLensIndex], which deliberately steers the initial choice
+     * off the ultra-wide lens (S1261 defect D1). CameraX's default back-camera constant used to land
+     * the two capture routes on different optics of the same device.
+     */
+    private fun resolveLens(provider: ProcessCameraProvider): CameraLensEntry {
+        val enumeration = CameraLensEnumerationManager()
+        val entries = enumeration.select(enumeration.expand(provider))
+        return entries.getOrNull(enumeration.initialLensIndex(entries))
+            ?: throw IllegalStateException("No camera available")
     }
 
     private fun takePicture(
         imageCapture: ImageCapture,
         outputFile: File,
         location: Location?,
+        aspectRatio: Int,
         onSaved: () -> Unit,
         onError: (Throwable) -> Unit,
     ) {
+        // S1478: the rotation is now fixed for this frame - see [rotatingCapture].
+        rotatingCapture = null
         val optionsBuilder = ImageCapture.OutputFileOptions.Builder(outputFile)
         location?.let {
             optionsBuilder.setMetadata(ImageCapture.Metadata().apply { this.location = it })
@@ -124,8 +171,10 @@ class HeadlessPhotoCapturer(
             ContextCompat.getMainExecutor(context),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                    // Released before the crop so the camera device is not held while a JPEG is
+                    // decoded and re-encoded.
                     release()
-                    onSaved()
+                    cropThenReport(outputFile, aspectRatio, onSaved)
                 }
 
                 override fun onError(exception: ImageCaptureException) {
@@ -137,8 +186,34 @@ class HeadlessPhotoCapturer(
         )
     }
 
+    private fun applyTargetRotation(rotation: Int) {
+        rotatingCapture?.targetRotation = rotation
+    }
+
+    /**
+     * S1478: applies the 16:9 crop off the main thread, then reports success there. A crop failure is
+     * already swallowed inside the cropper: the uncropped photo is saved, and losing it would be worse
+     * than wrong proportions.
+     */
+    private fun cropThenReport(outputFile: File, aspectRatio: Int, onSaved: () -> Unit) {
+        if (aspectRatio != AspectRatio.RATIO_16_9) {
+            onSaved()
+            return
+        }
+        val worker = Executors.newSingleThreadExecutor()
+        worker.execute {
+            CapturedPhotoAspectCropper.cropToSixteenNine(outputFile)
+            ContextCompat.getMainExecutor(context).execute { onSaved() }
+        }
+        // Shut down straight after submitting: an already-queued task still runs, and the worker thread
+        // cannot outlive the shot even if the crop above ever starts throwing.
+        worker.shutdown()
+    }
+
     /** Releases the camera device; safe to call more than once (lifecycle teardown + capture end). */
     fun release() {
+        rotatingCapture = null
+        orientationManager.disable()
         runCatching { lifecycleOwner.lifecycle.removeObserver(hostObserver) }
             .onFailure { Timber.w(it, "HeadlessPhotoCapturer: host observer removal failed") }
         runCatching { cameraProvider?.unbindAll() }

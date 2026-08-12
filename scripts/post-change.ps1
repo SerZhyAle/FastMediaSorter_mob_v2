@@ -9,6 +9,12 @@
 #       -ChangeType Script
 #
 #   pwsh -NoProfile -File scripts/post-change.ps1 `
+#       -Files "wear/build.gradle.kts,scripts/builders/check-standard-fast.ps1" `
+#       -Target "S1553" `
+#       -Description "closed build and repository tooling changes" `
+#       -ChangeType Tooling
+#
+#   pwsh -NoProfile -File scripts/post-change.ps1 `
 #       -File "app_v2/src/main/java/.../Foo.kt" `
 #       -Target "FooClass" `
 #       -Description "added bar feature" `
@@ -34,7 +40,10 @@
 #        "post-change: PASS" or "post-change: PASS WITH ADVISORIES (n)" -
 #        the latter means a gate found something it could not attribute to
 #        this change, and the caller is expected to read the listed names.
-#     1  a gate failed. Something was inspected and judged defective.
+#     1  a gate failed. Something was inspected and judged defective. The run
+#        does NOT stop at that gate (S1598): every remaining gate still runs, and
+#        the tail reads "post-change: FAIL (n gate(s))" followed by the full list,
+#        each with the command that reproduces it alone. Nothing is written.
 #     2  could not verify. Nothing was inspected, or a gate could not run:
 #        an invalid/absent/unexpanded file argument, or missing tooling.
 #
@@ -51,7 +60,7 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = 'Multi')][string[]]$Files,
     [Parameter(Mandatory = $true)][string]$Target,
     [Parameter(Mandatory = $true)][string]$Description,
-    [ValidateSet('Doc', 'Script', 'Config', 'Kotlin', 'Xml', 'Mixed')]
+    [ValidateSet('Doc', 'Script', 'Config', 'Tooling', 'Kotlin', 'Xml', 'Mixed')]
     [string]$ChangeType,
     [string]$Module = "app_v2",
     [string]$KeyPrefix,
@@ -134,6 +143,28 @@ $totalSw = [System.Diagnostics.Stopwatch]::StartNew()
 # verdict can report what it could not attribute instead of swallowing it.
 $script:AdvisoryFindings = @()
 
+# S1598: every FATAL gate failure lands here instead of ending the process on the
+# spot. Fail-fast made one set of defects cost several full runs of the facade:
+# 215 failed runs in the week of 2026-08-05, median 8 turns from a failed run to
+# the next one, because each run could only ever name the first thing wrong.
+$script:FatalFindings = @()
+
+# S1598: label -> @{ Repro = '<command that runs this gate alone>'; Fix = '<what to do>' }.
+# Data, not prose in the facade, so registering a new gate never edits the output
+# logic (owner input). A label with no entry prints without a hint - not an error;
+# assert-gate-hints-sync.ps1 is what keeps the two sets in step.
+$script:GateHints = @{}
+$hintFile = Join-Path $root "scripts/quality/gate-recovery-hints.psd1"
+if (Test-Path $hintFile) {
+    try { $script:GateHints = Import-PowerShellDataFile -LiteralPath $hintFile }
+    catch { Write-Host "  [gate-hints] WARN - unreadable: $($_.Exception.Message)" -ForegroundColor Yellow }
+}
+
+function Get-GateHint([string]$Label) {
+    if ($script:GateHints.ContainsKey($Label)) { return $script:GateHints[$Label] }
+    return $null
+}
+
 function Write-StepResult(
     [string]$Label,
     [ValidateSet('PASS', 'FAIL', 'SKIP')][string]$Status,
@@ -182,6 +213,60 @@ function Invoke-Step([string]$Label, [scriptblock]$Action) {
         Write-StepResult -Label $Label -Status FAIL -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details $reason
         exit $exitCode
     }
+}
+
+# S1598: the gate wrapper. Same verdict surface as Invoke-Step, but a failure is
+# recorded and the run continues, so ONE run names every gate the changed set
+# breaks. Certification is unchanged: Test-FatalFindings barricades the mutating
+# steps and exits 1, so a failed run still writes no changelog row and no catalog
+# index. Invoke-Step stays for those mutating steps, where "cannot go on" is real.
+function Invoke-Gate([string]$Label, [scriptblock]$Action) {
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+
+    try {
+        $global:LASTEXITCODE = 0
+        & $Action
+        $exitCode = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
+        if ($exitCode -ne 0) {
+            throw "exit $exitCode"
+        }
+
+        $sw.Stop()
+        Write-StepResult -Label $Label -Status PASS -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
+    }
+    catch {
+        $sw.Stop()
+        $exitCode = if ($LASTEXITCODE -and [int]$LASTEXITCODE -ne 0) { [int]$LASTEXITCODE } else { 1 }
+        $reason = $_.Exception.Message
+        if ($reason -eq "exit $exitCode") {
+            $reason = "child exit code $exitCode"
+        }
+
+        Write-StepResult -Label $Label -Status FAIL -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details $reason
+        $hint = Get-GateHint $Label
+        if ($hint) {
+            if ($hint.Repro) { Write-Host "      repro: $($hint.Repro)" -ForegroundColor Yellow }
+            if ($hint.Fix) { Write-Host "      fix:   $($hint.Fix)" -ForegroundColor Yellow }
+        }
+        $script:FatalFindings += [pscustomobject]@{ Label = $Label; ExitCode = $exitCode }
+    }
+}
+
+# S1598: the barrier. Called immediately before the first mutating step, so the
+# accumulated failures end the run exactly where fail-fast used to end it - with
+# nothing written. Exit 1 means "found a defect", per the exit contract above.
+function Test-FatalFindings {
+    if ($script:FatalFindings.Count -eq 0) { return }
+
+    Write-Host ''
+    Write-Host "post-change: FAIL ($($script:FatalFindings.Count) gate(s), $resolvedChangeType)" -ForegroundColor Red
+    foreach ($finding in $script:FatalFindings) {
+        Write-Host "  failed: $($finding.Label) (exit $($finding.ExitCode))" -ForegroundColor Red
+        $hint = Get-GateHint $finding.Label
+        if ($hint -and $hint.Repro) { Write-Host "      repro: $($hint.Repro)" -ForegroundColor Yellow }
+    }
+    Write-Host "  Nothing was written: no changelog row, no catalog sync. Fix the above and re-run." -ForegroundColor Red
+    exit 1
 }
 
 function Skip-Step([string]$Label, [string]$Reason) {
@@ -253,26 +338,38 @@ function Get-FirstChangedFileMatch([string]$Pattern) {
     return $null
 }
 
-$runsCatalogSync = $resolvedChangeType -in @('Kotlin', 'Mixed')
-$runsStringsAudit = $resolvedChangeType -in @('Xml', 'Mixed')
-$runsStringFormatGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
-    (Test-AnyChangedFile 'src/[^/]+/res/values[^/]*/strings.*\.xml$'))
-$runsTicketLogAudit = $resolvedChangeType -in @('Kotlin', 'Mixed')
-$runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed')
+$hasJvmSource = Test-AnyChangedFile '(^|/)src/.*\.(kt|java)$'
+$hasXmlResource = Test-AnyChangedFile '(^|/)src/.*\.xml$'
+$hasStringResource = Test-AnyChangedFile 'src/[^/]+/res/values[^/]*/strings.*\.xml$'
+$isCodeChange = ($resolvedChangeType -in @('Kotlin', 'Mixed')) -and $hasJvmSource
+$isResourceChange = ($resolvedChangeType -in @('Xml', 'Mixed')) -and $hasXmlResource
+
+# S1553: ChangeType describes the intended closure family, but the changed set decides whether
+# a source-specific gate has anything to inspect. This keeps Mixed valid for code-plus-strings
+# while making a build/config-plus-script set a cheap, honest closure.
+$runsCatalogSync = $isCodeChange
+$runsStringsAudit = $isResourceChange -and $hasStringResource
+$runsStringFormatGate = $isResourceChange -and $hasStringResource
+$runsTicketLogAudit = $isCodeChange
+$runsAcceptanceProbeGate = Test-AnyChangedFile 'scripts/(quality/(assert-ticket-acceptance-probes|lib/ticket-acceptance-probes)|spec_catalog/update)\.ps1$'
+$runsDetektPreflight = $resolvedChangeType -in @('Kotlin', 'Mixed')
+$runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling')
 # S1075: same trigger as doc-pins-sync - drift enters via a Gradle bump (Config) or a
 # hand edit to dev/TECH_REQUIREMENTS.md (Doc). Checks the doc pins the generator does not own.
-$runsDocPinDrift = $resolvedChangeType -in @('Config', 'Doc', 'Mixed')
-$runsFlavorFlagGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+$runsDocPinDrift = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling')
+$runsFlavorFlagGate = $isCodeChange
 # S0383 neuroslop ratchet gate. Covers Kotlin (trivial comments / swallowing catch /
-# unsafe Flow collects) and Xml (hardcoded layout colors). Baselines only ratchet DOWN.
-$runsNeuroslopGate = $resolvedChangeType -in @('Kotlin', 'Xml', 'Mixed')
+# unsafe Flow collects) and Xml (hardcoded layout colors, build-invisible string-resource
+# quotes). Baselines only ratchet DOWN. The live set is whatever source-matchers.ps1
+# registers - the umbrella forwards unfiltered, so a new rule needs no wiring here.
+$runsNeuroslopGate = $isCodeChange -or $isResourceChange
 # S1031 public-mutable-reactive-state ratchet gate. Bans a public (non-private) val/var of
 # Mutable(StateFlow|LiveData|SharedFlow). Kotlin/Mixed only. Baseline ratchets DOWN.
-$runsPublicMutableFlowGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+$runsPublicMutableFlowGate = $isCodeChange
 # S0720 detekt + ktlint static-analysis gate. Runs :app_v2:detekt :wear:detekt over a
-# committed per-module baseline (only NEW findings fail). Kotlin/Mixed only - it invokes
-# gradle, so it is scoped to changes that actually touch .kt to keep other paths fast.
-$runsDetektGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+# committed per-module baseline (only NEW findings fail). It invokes gradle, so it is scoped to
+# a changed Kotlin/Java source file rather than the caller's label.
+$runsDetektGate = $isCodeChange
 # S1356 detekt-baseline absorption gate. Fires when a committed detekt baseline (or its ID snapshot)
 # is among the changed files. A whole-module `detektBaseline` re-freeze accepts every live finding in
 # that module at once - on 2026-08-02 one absorbed the debt S1198 and S1328 were written about, and
@@ -285,13 +382,13 @@ $runsBaselineAbsorptionGate = @($changedFiles | Where-Object {
 # S0416 FGS-notification gate. Blocks the Android 16 "Bad notification for startForeground"
 # crash class: ?attr-tinted notification small icons (A) and foreground-service paths that
 # build a notification without ensuring their channel (B). Covers Kotlin + Xml (drawables).
-$runsFgsGate = $resolvedChangeType -in @('Kotlin', 'Xml', 'Mixed')
+$runsFgsGate = $isCodeChange -or $isResourceChange
 # S0467 deprecated-PackageManager-flags gate. Keeps src/main at zero raw-int getPackageInfo /
 # getApplicationInfo / queryIntentActivities / resolveActivity overloads (deprecated since API 33).
-$runsPmFlagsGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+$runsPmFlagsGate = $isCodeChange
 # S0507 focus-highlight ratchet gate. Layout-only concern: interactive views without a visible
 # focus indication (Rule 16) must never grow. Covers Xml + Mixed (layout edits). Baseline ratchets DOWN.
-$runsFocusHighlightGate = $resolvedChangeType -in @('Xml', 'Mixed')
+$runsFocusHighlightGate = $isResourceChange
 # S0489 ALL_FEATURES inventory drift gate. Fires only when the touched file is the
 # inventory data, its schema, or the noLegal variant - validates the JSONL and blocks
 # a silent record-count drop below the committed baseline. Narrow trigger by path.
@@ -334,10 +431,14 @@ $runsIconInventoryGate = (
 # S0684 dialog-cancel-style gate. Fires only when a dialog / bottom-sheet layout is touched -
 # a cancel/negative action button in such a pair must use Widget.FastMediaSorter.Button.DialogCancel,
 # never a one-off cancel style. Baseline ratchets DOWN. Narrow trigger keeps it cheap.
-$runsDialogCancelGate = (($resolvedChangeType -in @('Xml', 'Mixed')) -and
+$runsDialogCancelGate = ($isResourceChange -and
     (Test-AnyChangedFile 'res/layout.*/(dialog_|bottom_sheet_).*\.xml$'))
+# S1190 RTL gate. An absolute Left/Right attribute reads correctly in English and wrong in Arabic
+# or Urdu, which no English-language check can see - so a touched layout is judged directly.
+$runsRtlLayoutGate = ($isResourceChange -and
+    (Test-AnyChangedFile 'res/layout.*/.*\.xml$'))
 # S0721 listener symmetry gate. Runs on Kotlin or Mixed change types.
-$runsListenerSymmetryGate = $resolvedChangeType -in @('Kotlin', 'Mixed')
+$runsListenerSymmetryGate = $isCodeChange
 # S0918 orientation-implied-feature gate. Fires only when a manifest is touched - an
 # activity that pins screenOrientation implies a required screen.* hardware feature,
 # which shrinks Google Play device reach unless src/main declares it not-required.
@@ -364,13 +465,33 @@ $runsFlavorMatrixDocGate = (
     (Test-AnyChangedFile 'docs/HOW_TO[A-Z_]*\.md$') -or
     (Test-AnyChangedFile 'scripts/(quality/flavor-matrix-docs\.psd1|quality/assert-flavor-matrix-docs\.ps1|docs/generate-flavor-matrix\.ps1)$')
 )
+# S1495 OSS-notice conformance gate. Fires when the dependency set moves (either build file),
+# when the licence manifest or the rendering pipeline is touched, or when a rendered notice page
+# or its snapshot is edited. Two findings: a shipping coordinate with no licence entry, and a
+# published page that no longer matches what the generator produces. Before S1495 nothing tied
+# the two together, which is how the published page came to name 2 libraries out of 97 and to
+# state a wrong licence for two of them. Pure text plus one JSON, no gradle daemon.
+$runsOssNoticesGate = (
+    (Test-AnyChangedFile 'app_v2/build\.gradle\.kts$') -or
+    (Test-AnyChangedFile 'wear/build\.gradle\.kts$') -or
+    (Test-AnyChangedFile 'docs/OPEN_SOURCE[a-z.]*\.md$') -or
+    (Test-AnyChangedFile 'docs/legal/oss-notices\.json$') -or
+    (Test-AnyChangedFile 'scripts/(docs/oss-licenses\.psd1|docs/generate-oss-notices\.ps1|docs/OssDependencyParser\.ps1|quality/assert-oss-notices\.ps1)$')
+)
 
 Write-Host "post-change: $resolvedChangeType | $File -> $Target" -ForegroundColor Yellow
 
 # S1372: keyed on the whole set - a resource file is rarely the first path a caller names, and
 # resolving the source set from $File alone judges the wrong flavor in a mixed close.
+# S1209: among resource files, a changed strings file wins. Both consumers below are strings gates, and
+# a flavor source set almost never carries its own values/ dir - a close that names a layout under
+# src/<flavor>/res and its keys under src/main/res used to audit the flavor and fail on locale dirs that
+# do not exist, reporting a defect in the caller's change that was really a resolution bug here.
 $resourceSourceSet = $null
-$resourceSourceSetFile = Get-FirstChangedFileMatch '^[^/]+/src/([^/]+)/res/'
+$resourceSourceSetFile = Get-FirstChangedFileMatch '^[^/]+/src/([^/]+)/res/values[^/]*/strings[^/]*\.xml$'
+if (-not $resourceSourceSetFile) {
+    $resourceSourceSetFile = Get-FirstChangedFileMatch '^[^/]+/src/([^/]+)/res/'
+}
 if ($resourceSourceSetFile -and $resourceSourceSetFile -match '^[^/]+/src/([^/]+)/res/') {
     $resourceSourceSet = $Matches[1]
 }
@@ -387,7 +508,7 @@ if ($runsStringsAudit) {
     # A strings edit under src/<flavor>/res must be audited against that flavor's locale dirs. Auditing
     # main instead would report a clean pass over files the change never touched.
     $auditSourceSet = if ($resourceSourceSet) { $resourceSourceSet } else { 'main' }
-    Invoke-Step "strings-audit" {
+    Invoke-Gate "strings-audit" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/check_strings_localized.ps1") `
             -Module $Module -SourceSet $auditSourceSet -KeyPrefix $auditPrefix
     }
@@ -397,7 +518,7 @@ else {
 }
 
 if ($runsStringFormatGate) {
-    Invoke-Step "string-format-gate" {
+    Invoke-Gate "string-format-gate" {
         $a = @(
             '-NoProfile',
             '-File',
@@ -417,7 +538,7 @@ else {
 }
 
 if ($runsTicketLogAudit) {
-    Invoke-Step "ticket-log-audit" {
+    Invoke-Gate "ticket-log-audit" {
         # S1338: -Quiet suppressed exactly the File:Line list needed to fix a violation,
         # so a FAIL here reported that something was wrong and nothing about where.
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-no-ticket-logs.ps1") -Gate
@@ -427,8 +548,17 @@ else {
     Skip-Step "ticket-log-audit" "not applicable for ChangeType $resolvedChangeType"
 }
 
+if ($runsAcceptanceProbeGate) {
+    Invoke-Gate "acceptance-probe-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-ticket-acceptance-probes.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "acceptance-probe-gate" "not applicable - no acceptance-probe or catalog mutation script changed"
+}
+
 if ($runsDocPinsSync) {
-    Invoke-Step "doc-pins-sync" {
+    Invoke-Gate "doc-pins-sync" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/generate-toolchain-pins.ps1") -Check
     }
 }
@@ -437,7 +567,7 @@ else {
 }
 
 if ($runsDocPinDrift) {
-    Invoke-Step "doc-pin-drift" {
+    Invoke-Gate "doc-pin-drift" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-doc-pin-drift.ps1") -Gate -Quiet
     }
 }
@@ -448,7 +578,7 @@ else {
 # S1356: fatal, never advisory. The whole defect was that absorbing another ticket's debt produced
 # no signal at all - a warning here would reproduce it politely. Pure text, no gradle.
 if ($runsBaselineAbsorptionGate) {
-    Invoke-Step "detekt-baseline-absorption" {
+    Invoke-Gate "detekt-baseline-absorption" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-detekt-baseline-absorption.ps1") -Gate
     }
 }
@@ -459,7 +589,10 @@ else {
 # S0826: a project-wide gate without per-file delta support runs advisory (warn, non-fatal)
 # under -ScopeToFile; fatal otherwise. Since S0850 only icon-inventory-sync still uses this -
 # the count-ratchet gates all judge FATAL per-file deltas.
-$ratchetRunner = if ($ScopeToFile) { 'Invoke-AdvisoryStep' } else { 'Invoke-Step' }
+# S1598: the fatal branch dispatches to Invoke-Gate, not Invoke-Step - these are gates, and
+# Invoke-Step is now reserved for the two mutating steps, where ending the run on the spot is
+# the intended behaviour. Naming it here by string is why the rename had to be made by hand.
+$ratchetRunner = if ($ScopeToFile) { 'Invoke-AdvisoryStep' } else { 'Invoke-Gate' }
 
 # S0848 Phase 02: start the gradle-backed detekt gate as a background thread job BEFORE the
 # fast lexical/ratchet gates, then join it after them. detekt does not depend on the lexical
@@ -467,19 +600,33 @@ $ratchetRunner = if ($ScopeToFile) { 'Invoke-AdvisoryStep' } else { 'Invoke-Step
 # Verdict and exit code stay identical to the serial run. The try/finally below guarantees the
 # job is stopped even when a lexical gate fails and Invoke-Step calls exit (verified: a finally
 # runs before exit propagates), so no orphan detekt/gradle launcher survives a fail-fast close.
-# S1338 phase 04 step 04.7: the lexical preflight runs BEFORE the gradle detekt gate is even
-# started, so the three rules that make up most of this repo's detekt findings are reported in
-# well under a second instead of after a ~23 s round-trip. Advisory by construction: it is
-# lexical, it cannot see types, and assert-detekt below remains the verdict.
-if ($runsDetektGate -and $changedFiles.Count -gt 0) {
-    Invoke-AdvisoryStep "detekt-preflight" {
+# S1338 phase 04 step 04.7: the preflight runs BEFORE the gradle detekt gate is even started.
+# S1595 made it FATAL, and that is the change that actually recovers the round-trip. It used to be
+# advisory, so a finding it caught was still paid for in full: the gradle job started anyway and
+# failed on the same finding ~87 s later. Invoke-Step exits on a non-zero child, so the job below
+# is never started - and since S1595 the preflight's exit 1 comes from the REAL analyser run over
+# the changed files (detekt-scoped.ps1), whose verdict was measured finding-for-finding identical
+# to the whole-module gate's on the same set.
+#
+# Only exit 1 is fatal, and the preflight only returns it when the analyser actually ran. If the
+# analyser could not start, the preflight degrades to its lexical scan and exits 0 whatever that
+# scan found - a lexical guess must never abort a closure, and the gate below still judges.
+if ($runsDetektPreflight -and $changedFiles.Count -gt 0) {
+    Invoke-Gate "detekt-preflight" {
         & $pwsh '-NoProfile' '-File' (Join-Path $root "scripts/quality/detekt-preflight.ps1") `
             '-ChangedFiles' ($changedFiles -join ',') '-Gate'
-    } -AdvisoryDetails 'advisory (lexical, judged on YOUR changed files - fix the lines above; the detekt gate is the verdict)'
+    }
 }
 
+# S1598: collecting failures instead of exiting on the first one would have restored the
+# ~87 s the preflight exists to save - the job below would start even though the preflight
+# already ran the real analyser over the same files and already named the same findings.
+# The preflight's verdict therefore still suppresses the job, and the gate below reports
+# SKIP naming it, so the run stays honest about what was and was not judged.
+$detektPreflightFailed = @($script:FatalFindings | Where-Object { $_.Label -eq 'detekt-preflight' }).Count -gt 0
+
 $detektJob = $null
-if ($runsDetektGate) {
+if ($runsDetektGate -and -not $detektPreflightFailed) {
     $detektArgs = @(
         '-NoProfile'
         '-File'
@@ -511,7 +658,7 @@ if ($runsFlavorFlagGate) {
     # S0848 Phase 04: under -ScopeToFile this gate now judges a real delta on the changed file
     # (growth vs HEAD) rather than an advisory full scan, so it stays FATAL - a NEW flavor flag in
     # this change fails, while other tickets' pre-existing reads no longer trip it.
-    Invoke-Step "flavor-flag-gate" {
+    Invoke-Gate "flavor-flag-gate" {
         $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-flavor-flags-not-growing.ps1"), '-Gate')
         if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
         & $pwsh @a
@@ -525,7 +672,7 @@ if ($runsNeuroslopGate) {
     # S0850: under -ScopeToFile every child judges a real delta on the changed file (growth vs
     # HEAD) and the gate stays FATAL - a NEW violation in this change fails, while other
     # tickets' pre-existing findings no longer trip it (mirrors flavor-flags/deprecated-pm).
-    Invoke-Step "neuroslop-gate" {
+    Invoke-Gate "neuroslop-gate" {
         $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-neuroslop.ps1"), '-Gate')
         if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
         & $pwsh @a
@@ -539,7 +686,7 @@ if ($runsPublicMutableFlowGate) {
     # S1031: under -ScopeToFile the gate judges a real delta on the changed file (growth vs HEAD)
     # and stays FATAL - a NEW public mutable reactive-state declaration in this change fails,
     # while other tickets' pre-existing findings no longer trip it (mirrors neuroslop).
-    Invoke-Step "public-mutable-flow-gate" {
+    Invoke-Gate "public-mutable-flow-gate" {
         $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-public-mutable-flow.ps1"), '-Gate')
         if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
         & $pwsh @a
@@ -550,7 +697,7 @@ else {
 }
 
 if ($runsOrientationFeatureGate) {
-    Invoke-Step "orientation-implied-feature-gate" {
+    Invoke-Gate "orientation-implied-feature-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-orientation-implied-feature.ps1") -Gate
     }
 }
@@ -559,7 +706,7 @@ else {
 }
 
 if ($runsFgsGate) {
-    Invoke-Step "fgs-notification-gate" {
+    Invoke-Gate "fgs-notification-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-fgs-notifications.ps1") -Gate
     }
 }
@@ -571,7 +718,7 @@ if ($runsPmFlagsGate) {
     # S0848 Phase 04: real delta on the changed file under -ScopeToFile (growth vs HEAD), so this
     # gate stays FATAL - a NEW raw-int PackageManager overload in this change fails, unrelated
     # pre-existing ones in other files do not.
-    Invoke-Step "deprecated-pm-flags-gate" {
+    Invoke-Gate "deprecated-pm-flags-gate" {
         $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-deprecated-pm-flags.ps1"), '-Gate')
         if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
         & $pwsh @a
@@ -582,7 +729,7 @@ else {
 }
 
 if ($runsFocusHighlightGate) {
-    Invoke-Step "focus-highlight-gate" {
+    Invoke-Gate "focus-highlight-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-focus-highlight.ps1") -Gate
     }
 }
@@ -591,7 +738,7 @@ else {
 }
 
 if ($runsDialogCancelGate) {
-    Invoke-Step "dialog-cancel-style-gate" {
+    Invoke-Gate "dialog-cancel-style-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-dialog-cancel-style.ps1") -Gate
     }
 }
@@ -599,11 +746,24 @@ else {
     Skip-Step "dialog-cancel-style-gate" "not applicable - no changed file is a dialog/bottom-sheet layout"
 }
 
+if ($runsRtlLayoutGate) {
+    # Scoped to the changed layouts under -ScopeToFile: the project-wide baseline says how many
+    # absolute attributes may exist at all, and a file being edited is not the one to raise it.
+    Invoke-Gate "rtl-layout-attrs-gate" {
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-rtl-layout-attrs.ps1"), '-Gate')
+        if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
+        & $pwsh @a
+    }
+}
+else {
+    Skip-Step "rtl-layout-attrs-gate" "not applicable - no changed file is a layout"
+}
+
 if ($runsListenerSymmetryGate) {
     # S0850: under -ScopeToFile the gate judges per-file imbalance growth vs HEAD and stays
     # FATAL - an edit that degrades symmetry in this change fails, unrelated pre-existing
     # imbalance elsewhere does not.
-    Invoke-Step "listener-symmetry-gate" {
+    Invoke-Gate "listener-symmetry-gate" {
         $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-listener-symmetry.ps1"), '-Gate')
         if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
         & $pwsh @a
@@ -614,7 +774,7 @@ else {
 }
 
 if ($runsAllFeaturesGate) {
-    Invoke-Step "all-features-gate" {
+    Invoke-Gate "all-features-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-allfeatures-sync.ps1") -Gate -Quiet
     }
 }
@@ -623,7 +783,7 @@ else {
 }
 
 if ($runsSettingsDocGate) {
-    Invoke-Step "settings-doc-sync-gate" {
+    Invoke-Gate "settings-doc-sync-gate" {
         # S1338 step 04.7: under -ScopeToFile hand it the changed set so its ~28 s gradle stage
         # runs only when a manifest input actually moved. Same rule as the detekt branch above -
         # an unscoped run (release, CI) keeps the strict project-wide judgement.
@@ -637,7 +797,7 @@ else {
 }
 
 if ($runsHowToPathGate) {
-    Invoke-Step "howto-settings-paths-gate" {
+    Invoke-Gate "howto-settings-paths-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-howto-settings-paths.ps1") -Gate
     }
 }
@@ -673,12 +833,23 @@ if ($runsFlavorMatrixDocGate) {
     # Strict even under -ScopeToFile: the gate judges each declared table against the generated
     # snapshot, so its verdict is attributable to the tables named in this change and never to
     # another ticket's in-flight drift. Nothing about it is a project-wide count ratchet.
-    Invoke-Step "flavor-matrix-doc-gate" {
+    Invoke-Gate "flavor-matrix-doc-gate" {
         & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-flavor-matrix-docs.ps1") -Gate -Quiet
     }
 }
 else {
     Skip-Step "flavor-matrix-doc-gate" "not applicable - no changed file is the flavor grid, the generated matrix, or a doc carrying a checked flavor table"
+}
+
+if ($runsOssNoticesGate) {
+    # Strict even under -ScopeToFile: both findings are attributable to the change that fired
+    # them - a coordinate this change declared, or a page this change edited. Not a count ratchet.
+    Invoke-Gate "oss-notices-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-oss-notices.ps1") -Gate -Quiet
+    }
+}
+else {
+    Skip-Step "oss-notices-gate" "not applicable - no changed file is a build file, the licence manifest, the notice pipeline, or a rendered notice page"
 }
 
 # S1338 phase 05: the document-registry trigger. Reads docs/DOCUMENT_REGISTRY.jsonl and reports
@@ -740,7 +911,7 @@ if (Test-Path -LiteralPath $registryPath) {
             }
         }
         if ($unacked.Count -eq 0) {
-            Invoke-Step "document-registry" {
+            Invoke-Gate "document-registry" {
                 Write-Host ("  acknowledged: {0}" -f (($matchedRecords | ForEach-Object { $_.Id }) -join ', '))
                 $global:LASTEXITCODE = 0
             }
@@ -768,11 +939,22 @@ else {
     & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-device-profile-matrix.ps1") -Gate -Quiet
 }
 
+# S1540: the fourth edit adding a launcher setting needs - the line in the launcher reset - had no gate,
+# so a forgotten one reached the user as a reset that leaves that setting alone. Stays FATAL under
+# -ScopeToFile, unlike the matrix gate above: it reads exactly two files and judges one rule between
+# them, so another ticket's WIP cannot make it fail unless that WIP is itself the defect.
+Invoke-Gate "launcher-reset-coverage-gate" {
+    & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-launcher-reset-coverage.ps1") -Gate -Quiet
+}
+
 # S0848 Phase 02: join the detekt job started before the lexical gates. Preserves the old
 # inline verdict surface (failing rule lines printed, fatal on FAIL). Nulling $detektJob right
 # after the drain keeps the finally cleanup a no-op once the job has already been received.
-if ($runsDetektGate) {
-    Invoke-Step "detekt-gate" {
+if ($runsDetektGate -and $detektPreflightFailed) {
+    Skip-Step "detekt-gate" "detekt-preflight already failed on the same files - fix those findings first"
+}
+elseif ($runsDetektGate) {
+    Invoke-Gate "detekt-gate" {
         $r = Receive-Job -Job $detektJob -Wait -AutoRemoveJob
         $script:detektJob = $null
         if ($r -and -not [string]::IsNullOrWhiteSpace($r.Output)) {
@@ -787,7 +969,7 @@ else {
 
 }
 finally {
-    # Guarantee no orphan detekt/gradle launcher survives a fail-fast exit from a lexical gate.
+    # Guarantee no orphan detekt/gradle launcher survives an early exit from the gate block.
     if ($detektJob) {
         try { Stop-Job -Job $detektJob -ErrorAction SilentlyContinue } catch { }
         try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
@@ -804,6 +986,12 @@ finally {
         Write-Host "  [code-lock-release] WARN - could not release CODE.LOCK: $($_.Exception.Message)" -ForegroundColor Yellow
     }
 }
+
+# S1598: the barrier. Sits after the finally so CODE.LOCK is released on a failed run
+# too, and before the first mutating step so "a gate failed" still means nothing was
+# written. Exits 1 with the full list of failed gates - the whole point of collecting
+# them rather than ending the run at the first one.
+Test-FatalFindings
 
 # S1338: the two mutating steps run only after every gate has passed. Before this
 # they ran first, so 430 failed closures still paid for catalog-sync and still
@@ -827,7 +1015,21 @@ else {
 # second. Last position makes "there is a row" equivalent to "the closure passed", and the
 # catalog index it follows is a gitignored artifact that is safe to rebuild on a re-run.
 Invoke-Step "dev-log" {
-    & $pwsh -NoProfile -File (Join-Path $root "scripts/add_to_dev_log.ps1") $File $Target $Description
+    # S1338 follow-up (2026-08-08): a -Files close ran every gate over the whole set but wrote a
+    # row naming only the primary, so the changelog understated its own change and the set could
+    # not be recovered from it. That silently punished batching - the cheap way to close - and
+    # pushed callers back to one post-change run per file, which is what re-ran the detekt gate
+    # on an unchanged tree 530 times in three weeks. Still ONE row per logical change (Rule 12
+    # journalling granularity): the extra files go in the description, not in extra rows.
+    $logDescription = $Description
+    if ($changedFiles.Count -gt 1) {
+        $others = @($changedFiles | Where-Object { $_ -ne $File })
+        # Cap the list: a 20-file close would otherwise write a row longer than the table it sits in.
+        $shown = @($others | Select-Object -First 6)
+        $suffix = if ($others.Count -gt $shown.Count) { ", +$($others.Count - $shown.Count) more" } else { '' }
+        $logDescription = "$Description [set of $($changedFiles.Count): $($shown -join ', ')$suffix]"
+    }
+    & $pwsh -NoProfile -File (Join-Path $root "scripts/add_to_dev_log.ps1") $File $Target $logDescription
 }
 
 Skip-Step "feature-docs" "skill-owned; evaluate only for new public capability"

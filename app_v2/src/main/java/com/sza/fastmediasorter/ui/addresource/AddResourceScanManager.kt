@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.addresource
 
+import android.Manifest
 import android.app.AlertDialog
 import android.app.Dialog
 import android.net.Uri
@@ -11,11 +12,17 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
-import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
+import com.sza.fastmediasorter.domain.model.PermissionTask
+import com.sza.fastmediasorter.domain.model.StorageVolumeInfo
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -148,8 +155,75 @@ internal class AddResourceScanManager(
         }
 
         setupCollapsibleFolderSections(dialogView)
+        populateRemovableVolumes(dialogView, dialog, useSafOnly)
 
-        dialog.show()
+        dialog.showBoundToHost(activity)
+    }
+
+    /**
+     * S1378: one button per connected removable volume, or nothing at all.
+     *
+     * The whole section - header included - stays gone while the registry reports no removable
+     * volume, per the owner's §3.4 decision that an empty block is worse than no block.
+     */
+    private fun populateRemovableVolumes(dialogView: android.view.View, dialog: Dialog, useSafOnly: Boolean) {
+        val header = dialogView.findViewById<CollapsibleSectionHeader>(R.id.headerRemovableVolumes) ?: return
+        val container = dialogView.findViewById<android.widget.LinearLayout>(R.id.containerRemovableVolumes) ?: return
+        activity.lifecycleScope.launch {
+            Timber.d("S1378: building the removable-media section")
+            val volumes = viewModel.getRemovableVolumes()
+            if (volumes.isEmpty()) return@launch
+            volumes.forEach { container.addView(removableVolumeButton(it, dialog, useSafOnly)) }
+            header.isVisible = true
+            container.isVisible = true
+        }
+    }
+
+    private fun removableVolumeButton(
+        volume: StorageVolumeInfo,
+        dialog: Dialog,
+        useSafOnly: Boolean,
+    ): com.google.android.material.button.MaterialButton {
+        val freeSpace = formatFileSize(volume.availableBytes)
+        // Styled through a ContextThemeWrapper rather than the plain Material attribute: these
+        // buttons sit next to the quick-folder ones and have to carry the project's own outlined
+        // style, which only a themed context applies to a view built in code.
+        val styled = android.view.ContextThemeWrapper(activity, R.style.Widget_FastMediaSorter_Button_Outlined)
+        return com.google.android.material.button.MaterialButton(styled, null, 0).apply {
+            text = activity.getString(R.string.removable_volume_button_label, volume.displayName, freeSpace)
+            contentDescription = activity.getString(
+                R.string.removable_volume_button_description,
+                volume.displayName,
+                freeSpace
+            )
+            icon = androidx.core.content.ContextCompat.getDrawable(activity, R.drawable.ic_resource_removable)
+            // Same input contract as the quick-folder buttons next to it: reachable by keyboard and
+            // D-pad, not only by touch.
+            isFocusable = true
+            isClickable = true
+            setOnClickListener { onRemovableVolumeSelected(volume, dialog, useSafOnly) }
+        }
+    }
+
+    /**
+     * A volume the app can read directly is opened as a path; anything else goes through the system
+     * folder request, and strategic §3.1 requires the user to be told why before that dialog appears.
+     */
+    private fun onRemovableVolumeSelected(volume: StorageVolumeInfo, dialog: Dialog, useSafOnly: Boolean) {
+        val mountPath = volume.mountPath
+        val readable = !useSafOnly && mountPath != null && java.io.File(mountPath).canRead()
+        if (readable) {
+            selectFolderByPath(mountPath, dialog)
+            return
+        }
+        MaterialAlertDialogBuilder(activity)
+            .setMessage(activity.getString(R.string.removable_volume_access_request, volume.displayName))
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                dialog.dismiss()
+                folderPickerLauncher.launch(null)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .showBoundToHost(activity)
     }
 
     /**
@@ -160,6 +234,7 @@ internal class AddResourceScanManager(
         val sections = listOf(
             Triple(R.id.headerSpecialFolders, R.id.containerSpecialFolders, "folder_selection__special"),
             Triple(R.id.headerQuickFolders, R.id.containerQuickFolders, "folder_selection__quick"),
+            Triple(R.id.headerRemovableVolumes, R.id.containerRemovableVolumes, "folder_selection__removable"),
         )
         sections.forEach { (headerId, containerId, key) ->
             val header = dialogView.findViewById<CollapsibleSectionHeader>(headerId) ?: return@forEach
@@ -190,7 +265,10 @@ internal class AddResourceScanManager(
             }
             !dir.exists() && isAndroidMedia && !hasAllFilesAccess -> {
                 Timber.e("FOLDER_PICKER: Android/media path requires MANAGE_EXTERNAL_STORAGE: $path")
-                Toast.makeText(activity, activity.getString(R.string.android_media_requires_permission), Toast.LENGTH_LONG).show()
+                // S1436: the toast keeps the one short line policy allows it; the dialog that follows
+                // carries the paragraph, and both now come from the same registry row.
+                val short = activity.permissionRationaleShort(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+                Toast.makeText(activity, short, Toast.LENGTH_LONG).show()
                 showAllFilesAccessPermissionDialog()
             }
             !dir.exists() && isAndroidMedia && hasAllFilesAccess -> {
@@ -271,7 +349,7 @@ internal class AddResourceScanManager(
         btnSelectCurrent?.setOnClickListener { selectFolderByPath(currentPath, dialog) }
         btnCancel?.setOnClickListener { dialog.dismiss() }
 
-        dialog.show()
+        dialog.showBoundToHost(activity)
     }
 
     private fun loadFolders(path: String, folders: MutableList<String>, adapter: androidx.recyclerview.widget.RecyclerView.Adapter<*>) {
@@ -293,9 +371,16 @@ internal class AddResourceScanManager(
     // ========== Permission Dialog ==========
 
     fun showAllFilesAccessPermissionDialog() {
+        // S1436: the shell is unchanged - the wording is the registry's, with the folder-picking
+        // addendum appended, and this file no longer keeps a copy of either.
         MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.all_files_access_required)
-            .setMessage(R.string.all_files_access_explanation)
+            .setTitle(R.string.permissions_required_title)
+            .setMessage(
+                activity.permissionRationale(
+                    Manifest.permission.MANAGE_EXTERNAL_STORAGE,
+                    PermissionTask.FOLDER_PICKING,
+                )
+            )
             .setPositiveButton(R.string.grant_permission) { _, _ ->
                 PermissionHelper.requestAllFilesAccessPermission(activity)
             }
@@ -305,6 +390,6 @@ internal class AddResourceScanManager(
             }
             .setNegativeButton(android.R.string.cancel, null)
             .setCancelable(true)
-            .show()
+            .showBoundToHost(activity)
     }
 }

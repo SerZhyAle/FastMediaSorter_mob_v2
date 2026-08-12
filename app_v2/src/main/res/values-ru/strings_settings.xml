@@ -54,14 +54,10 @@
     <string name="settings_general_network_sync">Сетевая синхронизация</string>
     <string name="settings_general_permissions">Разрешения</string>
     <string name="settings_general_system">Network and System</string>
-    <string name="settings_log_current_session_body">Лог текущей сессии (%1$d строк):
-
-%2$s</string>
+    <string name="settings_log_current_session_body">Лог текущей сессии (%1$d строк):\n\n%2$s</string>
     <string name="settings_log_empty">Записей в логе не найдено.</string>
     <string name="settings_log_empty_session">Для текущей сессии записи в логе не найдены.</string>
-    <string name="settings_log_last_lines">Последние %1$d строк лога:
-
-%2$s</string>
+    <string name="settings_log_last_lines">Последние %1$d строк лога:\n\n%2$s</string>
     <string name="settings_log_save_destination_title">Сохранить лог в ресурс</string>
     <string name="settings_log_save_failed">Не получилось сохранить лог.</string>
     <string name="settings_log_saved_to_resource">Лог сохранён в: %1$s</string>
@@ -255,4 +251,5 @@
     <string name="settings_group_screen_recording">Запись видео с экрана</string>
     <string name="settings_open_default_apps_dialog">Задать по-умолчанию</string>
     <string name="default_apps_dialog_title">Приложение по умолчанию</string>
+    <string name="language_download_failed">Не удалось загрузить этот язык. Проверьте подключение к интернету и попробуйте снова - приложение останется на текущем языке.</string>
 </resources>

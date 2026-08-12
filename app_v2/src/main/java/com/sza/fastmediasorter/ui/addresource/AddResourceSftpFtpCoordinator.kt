@@ -238,7 +238,7 @@ internal class AddResourceSftpFtpCoordinator(
                     hostKeyFingerprint = if (protocolType == ResourceType.SFTP) canonicalFingerprint else null
                 )
 
-                addResourceUseCase.addMultiple(listOf(resource)).onSuccess { _ ->
+                addResourceUseCase.addMultiple(listOf(resource)).onSuccess { addResult ->
                     Timber.d("Added $protocolName resource to DB")
 
                     val scanSuccessful = finalizer.scanInsertedResource(
@@ -251,7 +251,7 @@ internal class AddResourceSftpFtpCoordinator(
                     } else {
                         bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_resource_unavailable_after_add)))
                     }
-                    bridge.emit(AddResourceEvent.ResourcesAdded)
+                    bridge.emit(AddResourceEvent.ResourcesAdded(addResult.createdResourceIds))
                 }.onFailure { e ->
                     Timber.e(e, "Failed to add $protocolName resource")
                     bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_add_failed)))
@@ -303,7 +303,7 @@ internal class AddResourceSftpFtpCoordinator(
                     supportedMediaTypes = supportedTypes
                 )
 
-                addResourceUseCase.addMultiple(listOf(resource)).onSuccess { _ ->
+                addResourceUseCase.addMultiple(listOf(resource)).onSuccess { addResult ->
                     Timber.d("Added SFTP resource")
 
                     val scanSuccessful = finalizer.scanInsertedResource(
@@ -316,7 +316,7 @@ internal class AddResourceSftpFtpCoordinator(
                     } else {
                         bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_resource_unavailable_after_add)))
                     }
-                    bridge.emit(AddResourceEvent.ResourcesAdded)
+                    bridge.emit(AddResourceEvent.ResourcesAdded(addResult.createdResourceIds))
                 }.onFailure { e ->
                     Timber.e(e, "Failed to add SFTP resource")
                     bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_add_failed)))

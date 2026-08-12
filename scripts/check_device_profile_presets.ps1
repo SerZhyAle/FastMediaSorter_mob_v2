@@ -79,8 +79,27 @@ foreach ($p in @($appSettingsPath, $deviceProfilePath, $applierPath, $csvPath, $
 function Write-Info([string]$Text) { if (-not $Quiet) { Write-Output $Text } }
 
 # --- AppSettings field names (data class `val name: Type`) ---
-$appFields = Select-String -Path $appSettingsPath -Pattern '^\s*val\s+(\w+)\s*:' |
-    ForEach-Object { $_.Matches[0].Groups[1].Value }
+# S1470: a field whose type is a nested *Settings group is expanded into the flat names the CSV and
+# the applier still use. The convention that makes this mechanical rather than a lookup table: the
+# group property is named after the flat prefix it replaced, so `screenshotGesture: ScreenshotGesture
+# Settings { leftTopDown }` is the CSV's `screenshotGestureLeftTopDown`. Keep it when folding the
+# next group, or this check goes back to reporting every folded field as missing.
+$modelDir = Split-Path -Parent $appSettingsPath
+$appFields = @()
+foreach ($m in Select-String -Path $appSettingsPath -Pattern '^\s*val\s+(\w+)\s*:\s*([A-Za-z0-9_]+)') {
+    $fieldName = $m.Matches[0].Groups[1].Value
+    $fieldType = $m.Matches[0].Groups[2].Value
+    $groupFile = Join-Path $modelDir "$fieldType.kt"
+    if ($fieldType -like '*Settings' -and (Test-Path -LiteralPath $groupFile)) {
+        $nested = Select-String -Path $groupFile -Pattern '^\s*val\s+(\w+)\s*:' |
+            ForEach-Object { $_.Matches[0].Groups[1].Value }
+        foreach ($n in $nested) {
+            $appFields += ($fieldName + $n.Substring(0, 1).ToUpperInvariant() + $n.Substring(1))
+        }
+        continue
+    }
+    $appFields += $fieldName
+}
 
 # --- DeviceProfileType enum values ---
 $dpText = Get-Content $deviceProfilePath -Raw

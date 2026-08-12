@@ -23,10 +23,12 @@ Regenerate with `pwsh -NoProfile -File scripts/docs/generate-flavor-matrix.ps1`.
 |:-----|:----:|:----:|:----:|:----:|:----:|:----:|
 | `IS_NO_LEGAL_FLAVOR` | [-]* | [+] | [-]* | [-]* | [-]* | [-]* |
 | `SUPPORT_LAUNCHER` | [+] | [+] | [-]* | [-]* | [-]* | [-]* |
+| `DECLARES_BATTERY_OPTIMIZATION` | [+]* | [+]* | [+]* | [+]* | [+]* | [+]* |
 | `SUPPORT_VIDEO` | [+] | [+] | [+] | [-] | [+] | [+] |
 | `SUPPORT_AUDIO` | [+] | [+] | [+] | [-] | [+] | [+] |
 | `SUPPORT_STREAMS` | [+] | [+] | [-] | [-] | [+] | [+] |
 | `SUPPORT_MIC_RECORDING` | [+] | [+] | [-] | [-] | [+] | [+] |
+| `DECLARES_MIC_RECORDING` | [+] | [+] | [+] | [-] | [+] | [+] |
 | `SUPPORT_IMAGES` | [+] | [+] | [+] | [+] | [+] | [+] |
 | `SUPPORT_CLOUD` | [+] | [+] | [-] | [+] | [+] | [+] |
 | `SUPPORT_LOCAL_NETWORK` | [+] | [+] | [-] | [+] | [+] | [+] |
@@ -39,6 +41,7 @@ Regenerate with `pwsh -NoProfile -File scripts/docs/generate-flavor-matrix.ps1`.
 | `SUPPORT_VR_PLAYER` | [-] | [+] | [-] | [-] | [-] | [-] |
 | `SUPPORT_WEAR_COMPANION` | [+] | [+] | [-] | [-] | [+] | [-] |
 | `SUPPORT_CAST` | [+] | [+] | [+] | [+] | [+] | [-] |
+| `SUPPORT_NETWORK_MONITOR` | [+] | [+] | [-] | [-] | [-] | [-] |
 | `VR_UI_COMPOSITION_LAYER_ENABLED` | n/a | [+] | n/a | n/a | n/a | [-] |
 | `minSdk` | 26 | 26 | 26 | 26 | 23 | 26 |
 

@@ -8,6 +8,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
 
 /**
@@ -70,7 +71,7 @@ object TextNoteSaveDialog {
             .setOnCancelListener { onCancel() }
             .create()
 
-        dialog.show()
+        dialog.showBoundToHost(context)
 
         // Disable OK button on invalid input; enable when valid
         val positiveButton = dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE)

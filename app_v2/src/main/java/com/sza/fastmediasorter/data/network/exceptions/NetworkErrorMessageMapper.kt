@@ -17,7 +17,9 @@ object NetworkErrorMessageMapper {
 
     @StringRes
     fun toMessageRes(exception: NetworkException): Int = when (exception) {
-        is LocalNetworkPermissionDeniedException -> R.string.local_network_permission_rationale_message
+        // S1436: the same sentence the permission's own row and its rationale dialog use - an error
+        // about a missing permission and the request for it must not word it differently.
+        is LocalNetworkPermissionDeniedException -> R.string.perm_rationale_access_local_network
         is NetworkRateLimitException -> R.string.error_network_rate_limit
         is NetworkServerErrorException -> R.string.error_network_server_error
         is NetworkTimeoutException -> R.string.error_network_timeout

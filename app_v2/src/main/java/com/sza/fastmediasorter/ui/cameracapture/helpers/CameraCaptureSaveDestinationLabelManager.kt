@@ -71,10 +71,14 @@ class CameraCaptureSaveDestinationLabelManager(
         val configuredName = configuredId?.toLongOrNull()?.let { id ->
             withContext(Dispatchers.IO) { resourceRepository.getResourceById(id)?.name }
         }
-        return configuredName?.takeUnless { it.isBlank() } ?: if (flowManager.isVideoMode) {
-            CaptureDestinationPolicy.resolveVideoDestination(null).name
-        } else {
-            CaptureDestinationPolicy.resolveCameraDestination(null).name
+        // S1579: the public-folder fallback stats and creates directories, so it stays off the main
+        // thread; the policy itself is a pure helper shared with flows that are not on this path.
+        return configuredName?.takeUnless { it.isBlank() } ?: withContext(Dispatchers.IO) {
+            if (flowManager.isVideoMode) {
+                CaptureDestinationPolicy.resolveVideoDestination(null).name
+            } else {
+                CaptureDestinationPolicy.resolveCameraDestination(null).name
+            }
         }
     }
 }

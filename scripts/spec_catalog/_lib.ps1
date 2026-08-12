@@ -12,6 +12,30 @@ $script:CatalogPath = Join-Path $repoRoot 'PLAN\spec-catalog.jsonl'
 # Archived records live in a separate journal so the hot read path scans only
 # active tickets. See PLAN/S0454_spec-catalog-journal-compaction.md.
 $script:ArchivePath = Join-Path $repoRoot 'PLAN\spec-catalog-archive.jsonl'
+# S1534: ids that were allocated and then removed from both journals. An id lands here only via
+# purge-probe-records.ps1, and only ever gains rows. It exists because deleting a record is the one
+# way an id can silently return to circulation: New-CatalogId is max+1 over what the journals hold,
+# so removing the highest record would hand its id to the next ticket, and two different tickets
+# would answer to one id in the dev log, the changelog and every commit message already written.
+# Reading it here also lets validate.ps1 tell a deliberate hole from a lost record.
+$script:BurnedIdsPath = Join-Path $repoRoot 'PLAN\spec-catalog-burned-ids.jsonl'
+# S1534: redirect BOTH journals to an alternate directory. SCHEMA.md already named
+# "alternate-catalog runs" a supported mode via $env:FMS_SKIP_RELEASE_QUEUE, but the paths
+# themselves were hardcoded, so a test harness spawning CLI children had no way to write
+# anywhere but production - which is how throwaway probes burned 21 real spec ids and raced a
+# genuine insert into "Duplicate id". $script:RepoRoot is deliberately NOT redirected: spec .md
+# files still resolve from the real PLAN/, so a sandboxed run reads live spec bodies.
+# Fails loudly on a missing directory - silently creating a second production journal would
+# split the catalog in two and neither half would know.
+if ($env:FMS_SPEC_CATALOG_DIR) {
+    $altDir = $env:FMS_SPEC_CATALOG_DIR
+    if (-not (Test-Path -LiteralPath $altDir -PathType Container)) {
+        throw "FMS_SPEC_CATALOG_DIR points at '$altDir', which is not an existing directory."
+    }
+    $script:CatalogPath = Join-Path $altDir 'spec-catalog.jsonl'
+    $script:ArchivePath = Join-Path $altDir 'spec-catalog-archive.jsonl'
+    $script:BurnedIdsPath = Join-Path $altDir 'spec-catalog-burned-ids.jsonl'
+}
 # Owner-facing release queue: which release package each open ticket belongs to, in the
 # owner's hand-kept order. The catalog stays the source of truth for STATUS; the queue owns
 # ORDER and RELEASE ASSIGNMENT, which no script may reshuffle. See PLAN/RELEASE_QUEUE.md.
@@ -103,6 +127,13 @@ function Assert-Record {
     if ($Record.id -notmatch $script:IdPattern) {
         throw "Invalid id '$($Record.id)' - must match $script:IdPattern."
     }
+    # S1504: a ticket name is a slug or a short title - a quote, a backslash or a control character
+    # can only arrive from a mis-bound argument fragment, which is how S1474 was silently renamed
+    # by a fragment of its own status note. Every one of the 1504 records at the time of writing
+    # passes, so this rejects corruption without rejecting any legitimate name.
+    if ([string]$Record.name -match '["\\\x00-\x1f]') {
+        throw ("Invalid name '{0}' for {1} - a name must not contain a quote, a backslash or a control character (a mis-bound argument fragment is the usual source)." -f $Record.name, $Record.id)
+    }
     if ($script:StatusEnum -notcontains $Record.status) {
         throw "Invalid status '$($Record.status)'. Allowed: $($script:StatusEnum -join ', ')."
     }
@@ -163,6 +194,84 @@ function Write-JsonlFile {
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($tmp, $payload, $utf8NoBom)
     Move-Item -LiteralPath $tmp -Destination $Path -Force
+}
+
+# ── Cross-process serialization (S1437) ──────────────────────────────────────────────────────
+#
+# Write-JsonlFile above is atomic against a TORN read - temp file plus rename - and that was
+# never the failure. The failure is a lost update: two processes call Read-Catalog, both hold the
+# same snapshot, and the second Write-Catalog replaces the whole file with its own stale base
+# plus its own change. The first change vanishes with no error. So the critical section has to
+# span read -> mutate -> write, which is why this is a caller-level lock and not something
+# Write-Catalog could do on its own.
+#
+# A system mutex, not a lock file: a journal rewrite is milliseconds, while the BUILD/CODE lock
+# family is sized for edits and builds (3-60 min windows, queue directories, reservations) and
+# would be absurd here. The mutex also dies with its process, so a crashed holder cannot wedge
+# the catalog - that is what the AbandonedMutexException branch is for.
+
+$script:CatalogMutex = $null
+
+function Get-CatalogMutexName {
+    # Per-checkout, so two clones on one machine do not serialize against each other. Mutex names
+    # cannot contain '\' beyond the Global\ prefix, hence the hash rather than the path.
+    $hash = [System.BitConverter]::ToString(
+        [System.Security.Cryptography.MD5]::HashData([System.Text.Encoding]::UTF8.GetBytes($script:RepoRoot.ToLowerInvariant()))
+    ).Replace('-', '')
+    return "Global\FMS-SpecCatalog-$hash"
+}
+
+function Enter-CatalogLock {
+    <#
+    .SYNOPSIS
+        Take the catalog write lock. Pair with Exit-CatalogLock in a finally.
+    #>
+    param([int]$TimeoutSeconds = 30)
+
+    if ($script:CatalogMutex) { return }   # re-entrant within one process
+    $mutex = New-Object System.Threading.Mutex($false, (Get-CatalogMutexName))
+    $acquired = $false
+    try {
+        $acquired = $mutex.WaitOne([TimeSpan]::FromSeconds($TimeoutSeconds))
+    }
+    catch [System.Threading.AbandonedMutexException] {
+        # The previous holder died mid-write. The mutex is ours; the journal itself is intact
+        # because every write lands by rename. Proceeding is correct - refusing would wedge the
+        # catalog until a reboot.
+        $acquired = $true
+    }
+    if (-not $acquired) {
+        $mutex.Dispose()
+        throw "Catalog is locked by another process (waited ${TimeoutSeconds}s). Journal: $script:CatalogPath"
+    }
+    $script:CatalogMutex = $mutex
+}
+
+function Exit-CatalogLock {
+    # Safe to call unconditionally from a finally, including when the lock was never taken.
+    if (-not $script:CatalogMutex) { return }
+    try { $script:CatalogMutex.ReleaseMutex() } catch { }
+    $script:CatalogMutex.Dispose()
+    $script:CatalogMutex = $null
+}
+
+function Invoke-CatalogTransaction {
+    <#
+    .SYNOPSIS
+        Run a scriptblock holding the catalog write lock.
+    .DESCRIPTION
+        Convenience wrapper for callers whose whole mutation fits one scriptblock. A caller that
+        needs its variables in its OWN scope - most of the mutators do, because they exit or
+        print after writing - should use Enter-CatalogLock / Exit-CatalogLock with try/finally
+        instead, since a scriptblock runs in a child scope and its assignments do not escape.
+    #>
+    param(
+        [Parameter(Mandatory)][scriptblock]$Body,
+        [int]$TimeoutSeconds = 30
+    )
+    Enter-CatalogLock -TimeoutSeconds $TimeoutSeconds
+    try { & $Body }
+    finally { Exit-CatalogLock }
 }
 
 function Write-Catalog {
@@ -416,12 +525,54 @@ function Add-ArchiveRecord {
     Write-ArchiveCatalog -Records ([object[]]$kept)
 }
 
+function Get-BurnedIdsPath {
+    return $script:BurnedIdsPath
+}
+
+function Read-BurnedIds {
+    # Ids allocated and later removed from both journals. Missing file -> empty, never an error:
+    # a repo that has never purged anything is the normal case.
+    # Direct assignment (not @()) - Read-JsonlFile uses the ,$arr anti-unroll idiom, which @() would
+    # re-nest into a single element, and the caller would then read .id off a bare array.
+    $rows = Read-JsonlFile -Path $script:BurnedIdsPath
+    return ,$rows
+}
+
+function Add-BurnedIds {
+    # Append-only, deduplicated by id. Never removes: an id that returns to circulation is exactly
+    # the failure this registry exists to prevent.
+    param(
+        [Parameter(Mandatory)][string[]] $Ids,
+        [Parameter(Mandatory)][string] $Reason
+    )
+    $existing = Read-JsonlFile -Path $script:BurnedIdsPath
+    $known = @{}
+    foreach ($e in $existing) { $known[$e.id] = $true }
+    $rows = New-Object System.Collections.Generic.List[string]
+    foreach ($e in $existing) { $rows.Add(($e | ConvertTo-Json -Compress)) }
+    $added = 0
+    foreach ($id in ($Ids | Sort-Object -Unique)) {
+        if ($known.ContainsKey($id)) { continue }
+        $rows.Add(([pscustomobject]@{ id = $id; reason = $Reason; burned = (Get-Today) } | ConvertTo-Json -Compress))
+        $added++
+    }
+    Write-JsonlFile -Path $script:BurnedIdsPath -Lines ([string[]]$rows)
+    return $added
+}
+
 function New-CatalogId {
-    # Must scan archive too - an archived id must never be reissued.
+    # Must scan archive too - an archived id must never be reissued - and the burned registry, whose
+    # ids are gone from both journals yet just as spent (S1534).
     $records = Read-Catalog -IncludeArchived
     $max = 0
     foreach ($r in $records) {
         if ($r.id -match '^S(\d{4})$') {
+            $n = [int]$Matches[1]
+            if ($n -gt $max) { $max = $n }
+        }
+    }
+    foreach ($b in (Read-BurnedIds)) {
+        if ($b.id -match '^S(\d{4})$') {
             $n = [int]$Matches[1]
             if ($n -gt $max) { $max = $n }
         }

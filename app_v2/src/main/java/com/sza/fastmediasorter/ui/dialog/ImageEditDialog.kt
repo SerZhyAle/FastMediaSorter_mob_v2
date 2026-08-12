@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.dialog
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
+import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.Toast
 import com.sza.fastmediasorter.R
@@ -49,6 +50,11 @@ class ImageEditDialog(
         super.onCreate(savedInstanceState)
         binding = DialogImageEditBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        val screenWidth = context.resources.displayMetrics.widthPixels
+        val dialogWidth = (screenWidth * WIDTH_FRACTION_OF_SCREEN).toInt()
+        window?.setLayout(dialogWidth, ViewGroup.LayoutParams.WRAP_CONTENT)
+        Timber.d("S1366: ImageEditDialog width=${dialogWidth}px of screen ${screenWidth}px")
 
         setupUI()
     }
@@ -292,5 +298,11 @@ class ImageEditDialog(
         super.onDetachedFromWindow()
         dialogJob.cancel() // Cancel all running coroutines
         hideProgress()
+    }
+
+    private companion object {
+        // A plain Dialog with no explicit window width falls back to the narrow platform dialog width,
+        // which clipped the button labels. 0.9 matches the sibling PlayerSettingsDialog in this package.
+        const val WIDTH_FRACTION_OF_SCREEN = 0.9
     }
 }

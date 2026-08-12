@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityEditAppLaunchPanelBinding
 import com.sza.fastmediasorter.domain.model.APP_LAUNCH_PANEL_SLOT_COUNT
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileUi
+import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -113,7 +114,7 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
                 dialog.dismiss()
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(this@EditAppLaunchPanelActivity)
     }
 
     private fun openAppPicker(slot: Int) {
@@ -157,7 +158,7 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
                 dialog.dismiss()
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(this@EditAppLaunchPanelActivity)
     }
 
     /** Confirms before restoring the panel to its install-time default set (S0663). */
@@ -170,7 +171,7 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
                 dialog.dismiss()
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(this@EditAppLaunchPanelActivity)
     }
 
     private fun showMoveTargetPicker(fromSlot: Int) {
@@ -184,7 +185,7 @@ class EditAppLaunchPanelActivity : BaseActivity<ActivityEditAppLaunchPanelBindin
                 dialog.dismiss()
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(this@EditAppLaunchPanelActivity)
     }
 
     private companion object {

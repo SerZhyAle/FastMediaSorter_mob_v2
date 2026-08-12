@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.panel
 
 import android.content.Context
 import androidx.core.content.ContextCompat
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
@@ -10,14 +11,18 @@ import com.sza.fastmediasorter.domain.model.AppLaunchPanelTile
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileType
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileUi
 import com.sza.fastmediasorter.domain.model.panel.AppLaunchPanelRouteTarget
+import com.sza.fastmediasorter.domain.radio.RadioControlContract
+import com.sza.fastmediasorter.domain.radio.RadioKind
 import com.sza.fastmediasorter.domain.repository.AppLaunchPanelRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.util.getApplicationInfoCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -29,6 +34,7 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
     private val repository: AppLaunchPanelRepository,
     private val resourceRepository: ResourceRepository,
     private val resolveRouteAvailability: ResolvePanelRouteAvailabilityUseCase,
+    private val radioControl: RadioControlContract,
     @ApplicationContext private val context: Context,
 ) {
     operator fun invoke(): Flow<List<AppLaunchPanelTileUi>> =
@@ -88,15 +94,20 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
             is AppLaunchPanelRouteTarget.Feature -> {
                 val route = InternalRouteCatalog.byKey(target.routeKey) ?: return null
                 // Degrade a feature that is not compiled into this build.
-                if (!resolveRouteAvailability(target.routeKey).availableInBuild) return null
+                if (!isRouteVisible(target.routeKey)) return null
                 // Feature glyphs are monochrome (ic_calculator, ic_cast, ..) - tint to stay legible.
+                tileUi(tile, context.getString(route.labelRes), route.iconRes, tintable = true)
+            }
+            is AppLaunchPanelRouteTarget.FeatureSection -> {
+                val route = InternalRouteCatalog.byKey(target.routeKey) ?: return null
+                if (!isRouteVisible(target.routeKey)) return null
                 tileUi(tile, context.getString(route.labelRes), route.iconRes, tintable = true)
             }
             is AppLaunchPanelRouteTarget.OsShortcut -> {
                 val osTarget = OsShortcutCatalog.byKey(target.targetKey) ?: return null
                 if (!OsShortcutCatalog.isResolvable(context, target.targetKey)) return null
                 // OS-shortcut glyphs are monochrome (ic_settings, ic_wifi, ..) - tint to stay legible.
-                tileUi(tile, context.getString(osTarget.labelRes), osTarget.iconRes, tintable = true)
+                tileUi(tile, context.getString(osTarget.labelRes), osIconRes(osTarget), tintable = true)
             }
             is AppLaunchPanelRouteTarget.Resource -> {
                 val resource = resourceRepository.getResourceById(target.resourceId) ?: return null
@@ -105,6 +116,37 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
                 tileUi(tile, resource.name, iconRes, tintable = ResourceTypeIconMap.isMonochrome(resource.type))
             }
             null -> null
+        }
+    }
+
+    /**
+     * S1433 is intentionally stricter than the historic panel behaviour for disabled features: its
+     * Monitor shortcut disappears instead of leading to Settings. Other feature shortcuts retain that
+     * established Settings hand-off when their runtime toggle is off.
+     */
+    private suspend fun isRouteVisible(routeKey: String): Boolean {
+        val availability = resolveRouteAvailability(routeKey)
+        return availability.availableInBuild && (
+            routeKey != InternalRouteCatalog.KEY_NETWORK_MONITOR || availability.enabledAtRuntime
+            )
+    }
+
+    /**
+     * S1441: the same off-state rule the launcher desktop applies, read once here instead of combined into
+     * the flow - the panel resolves its tiles when it opens and closes on the first tap, so there is no
+     * window in which an outside change would have to reach an already-drawn tile.
+     *
+     * A build without the network monitor answers `null`, which keeps the catalog glyph and costs this
+     * class no flavor branch of its own.
+     */
+    private suspend fun osIconRes(target: OsShortcutCatalog.Target): Int {
+        val radio = target.radio ?: return target.iconRes
+        val isOn = radioControl.state(radio).first()
+        Timber.d("S1441: panel tile %s resolved with state=%s", target.key, isOn)
+        return when {
+            isOn != false -> target.iconRes
+            radio == RadioKind.WIFI -> R.drawable.ic_wifi_off
+            else -> R.drawable.ic_bluetooth_off
         }
     }
 

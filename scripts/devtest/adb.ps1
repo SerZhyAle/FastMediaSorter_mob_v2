@@ -19,10 +19,17 @@
     launch               start the app (debug build: explicit MainActivity, bypasses the
                          LeakCanary launcher trap)
     stop                 force-stop the app
-    clear                pm clear (reset app data)
+    logcat-clear         empty the device logcat buffer (alias: log-clear). Touches no app state
+    wipe-data            DESTRUCTIVE: pm clear (app data, runtime grants and onboarding gone).
+                         Requires -Yes
+    clear                REMOVED - refuses and names its two replacements. It used to mean wipe-data
+                         and was twice mistaken for "clear the log" (S1167, S1572)
     install              install -r -d an APK (-Apk <path>, or newest debug APK for -Flavor)
-    uninstall            uninstall the resolved package
-    shot                 screenshot to temp/scratch/<device>_<TS>.png (screencap on device, then pull)
+    uninstall            DESTRUCTIVE: uninstall the resolved package. Requires -Yes
+    shot                 screenshot to temp/scratch/<device>_<TS>.png (screencap on device, then
+                         pull). Warns when the focused window carries FLAG_SECURE, because such a
+                         capture is black by design and reads as a rendering bug (-Json:
+                         secureWindow)
     log                  the app's own log lines: every line whose pid belongs to an app
                          process, plus every line whose text names the package. -Tail N
                          (default 200), -Grep <regex>; full capture also to temp/scratch/
@@ -30,7 +37,16 @@
     text                 input text -Text "<string>" (spaces handled)
     key                  input keyevent -Key <name-or-code> (e.g. BACK, 4, KEYCODE_HOME)
     prefs                pull app_settings.xml via run-as to temp/scratch/ (debuggable build only)
+    pull                 fetch a file off the device: -Remote <path> [-Local <path>] [-Latest].
+                         Without -Local the file lands in temp/scratch/ under its own name.
+                         -Latest treats -Remote as a directory or glob and takes the newest match
+    push                 send a local file to the device: -Local <path> -Remote <path>
     shell                arbitrary passthrough: -Cmd "<adb shell command>"
+
+  Why pull/push live here rather than in a bare `adb` call (S1578): the wrapper keeps the adb
+  discovery, the device selection and the exit contract, and - the reason it was worth a ticket -
+  the remote path never passes through bash, where MSYS silently rewrites `/sdcard/x` into a path
+  inside the Git installation and adb then reports a missing remote object.
 
   Package resolution (verbs that act on the app): default debug id
   com.sza.fastmediasorter.debug; -Release switches to com.sza.fastmediasorter; -Package
@@ -54,6 +70,10 @@
     2 - no online device
     3 - multiple online devices and -DeviceId not supplied (for verbs needing a device)
     4 - target package not installed (for app verbs)
+    5 - a destructive verb was refused: `clear` (removed), or `wipe-data`/`uninstall` without -Yes.
+        Nothing was executed on the device
+    6 - `pull`: the remote path does not exist on the device. Distinct from 7 because "the file was
+        never written" and "the transfer failed" call for different next moves
     7 - the underlying adb command returned non-zero
 
   Human output: one verdict line per verb (plus the data the verb produces).
@@ -74,6 +94,22 @@
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/adb.ps1 launch -Release
   Launch the release build (com.sza.fastmediasorter) unambiguously.
+
+.EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 logcat-clear
+  Empty the logcat buffer. This is what "clear the log" means - it never touches app data.
+
+.EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 wipe-data -Yes
+  Reset the app to a first-run state. One-way: settings, runtime grants and onboarding are gone.
+
+.EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 pull -Remote "/sdcard/DCIM/Camera/*.jpg" -Latest
+  Grab the newest camera frame into temp/scratch/ - the usual "shoot, then look at the file" step.
+
+.EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 push -Local temp/scratch/fixture.mp4 -Remote /sdcard/Movies/
+  Place a fixture on the device before a scenario runs.
 #>
 [CmdletBinding()]
 param(
@@ -92,7 +128,15 @@ param(
     [string]$Text,
     [string]$Key,
     [string]$Cmd,
-    [switch]$Json
+    [string]$Remote,
+    [string]$Local,
+    # pull: read -Remote as a directory or glob and take its newest entry.
+    [switch]$Latest,
+    [switch]$Json,
+    # Confirmation for the one-way verbs (wipe-data, uninstall). This script is called by agents and by
+    # other scripts, so an interactive prompt is not available - a required flag is the only gate that can
+    # actually fire. It waives the confirmation only: device selection and package resolution still run.
+    [switch]$Yes
 )
 
 $ErrorActionPreference = 'Stop'
@@ -189,6 +233,35 @@ function Invoke-Adb {
     return $out
 }
 
+# S1506: a capture taken from a FLAG_SECURE window comes back black (or zero-byte) by design.
+# That artifact was twice read as a rendering failure and cost a P90 ticket, so `shot` reports the
+# flag next to the file instead of leaving the reader to guess. Every probe is best-effort: a
+# screenshot must never fail on account of its own diagnostics.
+function Test-SecureFocusedWindow {
+    param([string]$Id)
+    # `dumpsys window`, not `dumpsys window windows`: on Android 15 only the former prints the
+    # mCurrentFocus line, and it carries the per-window "Window #N .." blocks as well, so one call
+    # answers both halves.
+    $raw = (Invoke-Adb $Id @('shell', 'dumpsys', 'window') -AllowFail) -join "`n"
+    $focus = [regex]::Match($raw, 'mCurrentFocus=Window\{(\w+)')
+    if (-not $focus.Success) { return $false }
+    $focusHash = $focus.Groups[1].Value
+    # mCurrentFocus only names the window; its flags live in that window's own block.
+    foreach ($block in ($raw -split '(?m)^\s*Window #\d+ ')) {
+        if ($block -notlike "Window{$focusHash*") { continue }
+        # S1580: One UI prints the flags as a raw hex mask on its own line (`fl=81812180`) while AOSP
+        # prints flag names, so matching the word SECURE answered "not protected" for every window on
+        # a Samsung device - the exact false negative this probe exists to prevent. Read the number
+        # when there is one (FLAG_SECURE is 0x2000) and keep the name match for the name-printing builds.
+        $flags = [regex]::Match($block, '(?m)^\s*fl=#?([0-9a-fA-F]{1,16})\s*$')
+        if ($flags.Success) {
+            return [bool]([Convert]::ToUInt64($flags.Groups[1].Value, 16) -band 0x2000)
+        }
+        return [bool]($block -match '(?m)^\s*fl=[^\r\n]*\bSECURE\b')
+    }
+    return $false
+}
+
 # Resolve which app package id to act on: explicit -Package wins; else default debug
 # (or release with -Release); fall back to the other variant if the chosen one is absent.
 function Resolve-Package {
@@ -224,7 +297,7 @@ function Get-Stamp { (Get-Date).ToString('yyyyMMdd_HHmmss') }
 switch ($Verb.ToLowerInvariant()) {
 
     'help' {
-        if ($Json) { Emit-Ok @{ verbs = 'help,devices,props,current,launch,stop,clear,install,uninstall,shot,log,tap,text,key,prefs,shell' } }
+        if ($Json) { Emit-Ok @{ verbs = 'help,devices,props,current,launch,stop,logcat-clear,wipe-data,install,uninstall,shot,log,tap,text,key,prefs,pull,push,shell' } }
         Write-Host "adb.ps1 - ad-hoc device swiss-army" -ForegroundColor Cyan
         Write-Host "Usage: pwsh -NoProfile -File scripts/devtest/adb.ps1 <verb> [options]" -ForegroundColor Gray
         Write-Host ""
@@ -233,15 +306,18 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "  current    focused activity / package" -ForegroundColor White
         Write-Host "  launch     start app (debug: explicit MainActivity)" -ForegroundColor White
         Write-Host "  stop       force-stop app" -ForegroundColor White
-        Write-Host "  clear      pm clear (reset app data)" -ForegroundColor White
+        Write-Host "  logcat-clear  empty the logcat buffer (alias log-clear) - no app state touched" -ForegroundColor White
+        Write-Host "  wipe-data  DESTRUCTIVE pm clear - needs -Yes (data, grants, onboarding gone)" -ForegroundColor Yellow
         Write-Host "  install    install -r -d (-Apk <path> | -Flavor <std|lite|photos|legacy|noLegal>)" -ForegroundColor White
-        Write-Host "  uninstall  uninstall resolved package" -ForegroundColor White
+        Write-Host "  uninstall  DESTRUCTIVE uninstall resolved package - needs -Yes" -ForegroundColor Yellow
         Write-Host "  shot       screenshot to temp/scratch/" -ForegroundColor White
         Write-Host "  log        logcat -d app tail (-Tail N, -Grep regex)" -ForegroundColor White
         Write-Host "  tap        input tap -X <x> -Y <y>" -ForegroundColor White
         Write-Host "  text       input text -Text <string>" -ForegroundColor White
         Write-Host "  key        input keyevent -Key <name-or-code>" -ForegroundColor White
         Write-Host "  prefs      pull app_settings.xml to temp/scratch/ (run-as)" -ForegroundColor White
+        Write-Host "  pull       fetch a file: -Remote <path> [-Local <path>] [-Latest] -> temp/scratch/" -ForegroundColor White
+        Write-Host "  push       send a file: -Local <path> -Remote <path>" -ForegroundColor White
         Write-Host "  shell      passthrough -Cmd <adb shell command>" -ForegroundColor White
         Write-Host ""
         Write-Host "Common options: -DeviceId <id> -Release -Package <id> -Json" -ForegroundColor Gray
@@ -323,15 +399,36 @@ switch ($Verb.ToLowerInvariant()) {
         exit 0
     }
 
-    'clear' {
+    { $_ -in 'logcat-clear', 'log-clear' } {
+        $id = Select-Device
+        $script:result.device = $id
+        Invoke-Adb $id @('logcat', '-c') | Out-Null
+        if ($Json) { Emit-Ok @{ id = $id } }
+        Write-Host "LOGCAT BUFFER CLEARED on $id" -ForegroundColor Green
+        exit 0
+    }
+
+    # Was named 'clear'. Renamed because the old name sat two lines from 'log' in the verb list and was
+    # twice read as "clear the log": S1167 (2026-07-26, a granted accessibility service revoked) and S1569
+    # (2026-08-11, the owner's working phone wiped). See S1572.
+    'wipe-data' {
         $id  = Select-Device
         $pkg = Resolve-Package $id
         $script:result.device = $id; $script:result.package = $pkg
+        if (-not $Yes) {
+            Fail 5 "wipe-data refused: this erases $pkg data, runtime grants and onboarding on $id, and cannot be undone. Re-run with -Yes if that is what you want, or use logcat-clear to empty the log buffer."
+        }
         $out = Invoke-Adb $id @('shell', 'pm', 'clear', $pkg) -AllowFail
         if (($out -join '') -notmatch 'Success') { Fail 7 "pm clear did not report Success: $($out -join ' ')" }
         if ($Json) { Emit-Ok @{ id = $id; package = $pkg } }
-        Write-Host "CLEARED data for $pkg on $id" -ForegroundColor Green
+        Write-Host "WIPED data for $pkg on $id" -ForegroundColor Green
         exit 0
+    }
+
+    # Refuses rather than forwards: forwarding to wipe-data would keep the misreading alive, and naming
+    # both replacements is what turns the mistake into a corrected instruction.
+    'clear' {
+        Fail 5 "the 'clear' verb was removed because it was ambiguous. Did you mean 'logcat-clear' (empty the log buffer, touches nothing) or 'wipe-data -Yes' (erase app data, one-way)? Nothing was executed."
     }
 
     'install' {
@@ -369,6 +466,9 @@ switch ($Verb.ToLowerInvariant()) {
         $id  = Select-Device
         $pkg = Resolve-Package $id
         $script:result.device = $id; $script:result.package = $pkg
+        if (-not $Yes) {
+            Fail 5 "uninstall refused: this removes $pkg and everything it stored on $id, and cannot be undone. Re-run with -Yes if that is what you want."
+        }
         Invoke-Adb $id @('uninstall', $pkg) | Out-Null
         if ($Json) { Emit-Ok @{ id = $id; package = $pkg } }
         Write-Host "UNINSTALLED $pkg from $id" -ForegroundColor Green
@@ -398,8 +498,18 @@ switch ($Verb.ToLowerInvariant()) {
         Invoke-Adb $id @('pull', $remote, $local) | Out-Null
         Invoke-Adb $id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
         if (-not (Test-Path -Path $local -PathType Leaf)) { Fail 7 "screenshot pull produced no file" }
-        if ($Json) { Emit-Ok @{ id = $id; file = $local } }
+        $secureWindow = Test-SecureFocusedWindow $id
+        if ($Json) { Emit-Ok @{ id = $id; file = $local; secureWindow = $secureWindow } }
         Write-Host "SHOT $local" -ForegroundColor Green
+        if ($secureWindow) {
+            Write-Host "NOTE the focused window carries FLAG_SECURE - this capture is expected to be" -ForegroundColor Yellow
+            Write-Host "     black (or zero-byte). That is the flag working, not a rendering failure." -ForegroundColor Yellow
+            Write-Host "     BaseActivity.applySecureFlagIfEnabled sets it on sensitive screens (Settings," -ForegroundColor Yellow
+            Write-Host "     Add Resource, Resource Editor) while the 'secureSensitiveScreens' setting is on." -ForegroundColor Yellow
+            Write-Host "     Read the layout from 'uiautomator dump' instead - a healthy node tree next to a" -ForegroundColor Yellow
+            Write-Host "     black frame confirms this, it does not contradict it. To capture the screen for" -ForegroundColor Yellow
+            Write-Host "     real, turn that setting off first. See docs/TEST_SCENARIOS.md." -ForegroundColor Yellow
+        }
         exit 0
     }
 
@@ -500,6 +610,60 @@ switch ($Verb.ToLowerInvariant()) {
         ($out -join "`n") | Out-File -FilePath $local -Encoding UTF8
         if ($Json) { Emit-Ok @{ id = $id; package = $pkg; file = $local } }
         Write-Host "PREFS $local" -ForegroundColor Green
+        exit 0
+    }
+
+    'pull' {
+        $id = Select-Device
+        $script:result.device = $id
+        if (-not $Remote) { Fail 1 "pull needs -Remote <device path> (add -Latest to take the newest match of a directory or glob)" }
+        $remotePath = $Remote
+        if ($Latest) {
+            # -1t sorts newest first and the device shell expands the glob, so the mask never
+            # reaches PowerShell, which would try to resolve it against the local filesystem.
+            # -p marks directories with a trailing slash, which is how they are dropped here: "the
+            # newest thing in this folder" means the newest file, never a subfolder.
+            # @() guards the single-match case: one string indexed with [0] yields a char, not a line.
+            $listing = @((Invoke-Adb $id @('shell', "ls -1pt $Remote") -AllowFail) -split "`r?`n" |
+                Where-Object { $_ -and $_ -notmatch 'No such file|Permission denied' -and $_ -notmatch '/\s*$' })
+            if ($listing.Count -eq 0) { Fail 6 "no file on $id matches '$Remote'" }
+            $remotePath = $listing[0].Trim()
+            # A listing prints bare names, not paths. The directory they belong to is -Remote itself when
+            # it names a directory, and -Remote's parent when it carries a glob - getting this backwards
+            # rebuilds a sibling of the real file and reports it as missing.
+            if ($remotePath -notmatch '^/') {
+                $parent = if ($Remote -match '[*?\[]') { $Remote -replace '/[^/]*$', '' } else { $Remote.TrimEnd('/') }
+                $remotePath = "$parent/$remotePath"
+            }
+        }
+        # %F alongside %s: a directory has a size too, so size alone cannot say what was pulled, and
+        # `adb pull` of a directory lands a directory - which a file-only existence check reads as failure.
+        # adb joins the shell arguments back into one command line for the device shell, so a path with
+        # spaces or parentheses - `Download/App (1).apk`, exactly what -Latest tends to find - has to be
+        # quoted here or the device shell splits it and the file reads as missing.
+        $quotedRemote = "'" + ($remotePath -replace "'", "'\''") + "'"
+        $statRaw = ((Invoke-Adb $id @('shell', "stat -c '%F|%s' $quotedRemote") -AllowFail) -join '').Trim()
+        if ($statRaw -notmatch '^(?<kind>[^|]+)\|(?<size>\d+)$') { Fail 6 "'$remotePath' does not exist on $id" }
+        $isDirectory = $Matches['kind'] -like '*directory*'
+        $localPath = if ($Local) { $Local } else { Join-Path (Get-TempDir) (Split-Path -Path $remotePath -Leaf) }
+        Invoke-Adb $id @('pull', $remotePath, $localPath) | Out-Null
+        if (-not (Test-Path -Path $localPath)) { Fail 7 "pull of '$remotePath' produced no local file" }
+        $bytes = if ($isDirectory) { 0 } else { (Get-Item -Path $localPath).Length }
+        if ($Json) { Emit-Ok @{ id = $id; remote = $remotePath; file = $localPath; size = $bytes } }
+        Write-Host "PULLED $localPath ($bytes bytes) from $remotePath" -ForegroundColor Green
+        exit 0
+    }
+
+    'push' {
+        $id = Select-Device
+        $script:result.device = $id
+        if (-not $Local -or -not $Remote) { Fail 1 "push needs -Local <local path> -Remote <device path>" }
+        # Refused here rather than on the device: adb's own error for a missing source reads like a
+        # device-side problem and sends the reader looking in the wrong place.
+        if (-not (Test-Path -Path $Local -PathType Leaf)) { Fail 1 "local file '$Local' does not exist" }
+        Invoke-Adb $id @('push', $Local, $Remote) | Out-Null
+        if ($Json) { Emit-Ok @{ id = $id; local = $Local; remote = $Remote } }
+        Write-Host "PUSHED $Local -> $Remote on $id" -ForegroundColor Green
         exit 0
     }
 

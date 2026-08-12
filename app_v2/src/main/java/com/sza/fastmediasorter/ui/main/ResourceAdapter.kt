@@ -8,6 +8,7 @@ import android.text.format.DateUtils
 import android.text.style.ForegroundColorSpan
 import android.text.style.ImageSpan
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -16,6 +17,9 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.menu.MenuActionSurface
+import com.sza.fastmediasorter.core.menu.ResourceActionCatalog
+import com.sza.fastmediasorter.core.menu.ResourceMenuAction
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.databinding.ItemResourceBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -64,6 +68,61 @@ class ResourceAdapter(
     private val onOpenInVrCinemaClick: ((MediaResource) -> Unit)? = null,
     private var isOpenInVrCinemaVisible: Boolean = false
 ) : ListAdapter<MediaResource, RecyclerView.ViewHolder>(ResourceDiffCallback()) {
+
+    /**
+     * S1424: one pass over [ResourceActionCatalog] decides which rows an inflated resource menu
+     * shows. Both view holders call this - each used to carry its own copy of these six rules, and a
+     * copy is what lets the main window and the launcher desktop drift apart about what a resource
+     * offers (strategic ADR-1).
+     */
+    private fun applyActionVisibility(menu: Menu, resource: MediaResource) {
+        val facts = ResourceActionCatalog.Facts(
+            isPredefinedVirtual = resource.path in VirtualPathUtils.ALL_VIRTUAL_PATHS,
+            isSftp = resource.type == ResourceType.SFTP,
+            isQuickSlideshowEligible = isQuickSlideshowEligible(resource),
+            // The callback being null is as good a reason to hide the row as the capability being
+            // absent: without it the row would have nothing to call.
+            isNewWindowAvailable = isOpenInNewWindowVisible && onOpenInNewWindowClick != null,
+            isVrCinemaAvailable = isOpenInVrCinemaVisible && onOpenInVrCinemaClick != null,
+        )
+        val visible = ResourceActionCatalog.actionsFor(MenuActionSurface.MAIN_WINDOW, facts).toSet()
+        ResourceMenuAction.entries.forEach { action ->
+            menu.findItem(action.menuItemId)?.isVisible = action in visible
+        }
+    }
+
+    /**
+     * S1424: one routing table for both view holders, replacing two hand-kept `when` blocks.
+     *
+     * The grid copy was missing "Add to home screen" outright, so in tile mode that row drew, took
+     * the tap and did nothing (strategic 7). One table cannot be missing an entry for a row it also
+     * decides the visibility of.
+     */
+    private fun onActionSelected(itemId: Int, resource: MediaResource): Boolean {
+        val action = ResourceMenuAction.byMenuItemId(itemId) ?: return false
+        perform(action, resource)
+        return true
+    }
+
+    private fun perform(action: ResourceMenuAction, resource: MediaResource) {
+        when (action) {
+            ResourceMenuAction.OPEN -> onItemClick(resource)
+            ResourceMenuAction.LAUNCH_PLAYER -> onIconClick(resource)
+            ResourceMenuAction.OPEN_IN_VR_CINEMA -> onOpenInVrCinemaClick?.invoke(resource)
+            ResourceMenuAction.ADD_TO_HOME_SCREEN -> onAddToHomeScreenClick(resource)
+            ResourceMenuAction.EDIT -> onEditClick(resource)
+            ResourceMenuAction.COPY -> onCopyFromClick(resource)
+            ResourceMenuAction.EXPORT -> onExportClick(resource)
+            ResourceMenuAction.SHARE_SFTP_ACCESS -> onShareSftpAccessClick(resource)
+            ResourceMenuAction.SCAN -> onScanClick(resource)
+            ResourceMenuAction.MOVE_UP -> onMoveUpClick(resource)
+            ResourceMenuAction.MOVE_DOWN -> onMoveDownClick(resource)
+            ResourceMenuAction.MOVE_TO_TOP -> onMoveToTopClick(resource)
+            ResourceMenuAction.MOVE_TO_BOTTOM -> onMoveToBottomClick(resource)
+            ResourceMenuAction.DELETE -> onDeleteClick(resource)
+            ResourceMenuAction.OPEN_IN_SEPARATE_WINDOW -> onOpenInNewWindowClick?.invoke(resource)
+        }
+    }
 
     companion object {
         const val VIEW_TYPE_LIST = 0
@@ -453,49 +512,16 @@ class ResourceAdapter(
                 if (resource.id == -100L) {
                     btnMoreActions.visibility = android.view.View.GONE
                 } else if (overflowModeEnabled) {
-                    val isPredefinedVirtualResource = resource.path in VirtualPathUtils.ALL_VIRTUAL_PATHS
                     btnMoreActions.visibility = android.view.View.VISIBLE
                     // S0977: per-card E2E handle so a specific resource's overflow is uniquely targetable
                     btnMoreActions.contentDescription = "more_options:${resource.name}"
                     btnMoreActions.setOnClickListener { view ->
                         val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
-                        popup.menu.findItem(R.id.action_copy)?.isVisible = !isPredefinedVirtualResource
-                        popup.menu.findItem(R.id.action_export_resource)?.isVisible = !isPredefinedVirtualResource
-                        popup.menu.findItem(R.id.action_share_sftp_access)?.isVisible =
-                            resource.type == ResourceType.SFTP
-                        // S0293 Phase 08: per-resource multi-window entry on main list
-                        popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
-                            isOpenInNewWindowVisible && onOpenInNewWindowClick != null
-                        popup.menu.findItem(R.id.action_open_in_vr_cinema)?.isVisible =
-                            isOpenInVrCinemaVisible && onOpenInVrCinemaClick != null
-                        popup.menu.findItem(R.id.action_launch_player)?.isVisible =
-                            isQuickSlideshowEligible(resource)
+                        applyActionVisibility(popup.menu, resource)
                         popup.setForceShowIcon(true)
                         tintPopupMenuIcons(view.context, popup.menu)
-                        popup.setOnMenuItemClickListener { item ->
-                            when (item.itemId) {
-                                R.id.action_open_resource -> { onItemClick(resource); true }
-                                R.id.action_launch_player -> { onIconClick(resource); true }
-                                R.id.action_edit -> { onEditClick(resource); true }
-                                R.id.action_copy -> { onCopyFromClick(resource); true }
-                                R.id.action_export_resource -> { onExportClick(resource); true }
-                                R.id.action_share_sftp_access -> { onShareSftpAccessClick(resource); true }
-                                R.id.action_scan -> { onScanClick(resource); true }
-                                R.id.action_move_up -> { onMoveUpClick(resource); true }
-                                R.id.action_move_down -> { onMoveDownClick(resource); true }
-                                R.id.action_move_to_top -> { onMoveToTopClick(resource); true }
-                                R.id.action_move_to_bottom -> { onMoveToBottomClick(resource); true }
-                                R.id.action_delete -> { onDeleteClick(resource); true }
-                                R.id.action_open_in_separate_window -> {
-                                    onOpenInNewWindowClick?.invoke(resource); true
-                                }
-                                R.id.action_open_in_vr_cinema -> {
-                                    onOpenInVrCinemaClick?.invoke(resource); true
-                                }
-                                else -> false
-                            }
-                        }
+                        popup.setOnMenuItemClickListener { item -> onActionSelected(item.itemId, resource) }
                         popup.show()
                     }
                 } else {
@@ -827,84 +853,11 @@ class ResourceAdapter(
                         btnMoreActions.setOnClickListenerDebounced { view ->
                             val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                             popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
-                            popup.menu.findItem(R.id.action_copy)?.isVisible = !isPredefinedVirtualResource
-                        popup.menu.findItem(R.id.action_export_resource)?.isVisible = !isPredefinedVirtualResource
-                            popup.menu.findItem(R.id.action_share_sftp_access)?.isVisible =
-                                resource.type == ResourceType.SFTP
-                            // S0293 Phase 08: per-resource multi-window entry on main list
-                            popup.menu.findItem(R.id.action_open_in_separate_window)?.isVisible =
-                                isOpenInNewWindowVisible && onOpenInNewWindowClick != null
-                            popup.menu.findItem(R.id.action_open_in_vr_cinema)?.isVisible =
-                                isOpenInVrCinemaVisible && onOpenInVrCinemaClick != null
-                            popup.menu.findItem(R.id.action_launch_player)?.isVisible =
-                                isQuickSlideshowEligible(resource)
+                            applyActionVisibility(popup.menu, resource)
                             popup.setForceShowIcon(true)
                             tintPopupMenuIcons(view.context, popup.menu)
-
                             popup.setOnMenuItemClickListener { item ->
-                                when (item.itemId) {
-                                    R.id.action_open_resource -> {
-                                        onItemClick(resource)
-                                        true
-                                    }
-                                    R.id.action_launch_player -> {
-                                        onIconClick(resource)
-                                        true
-                                    }
-                                    R.id.action_add_to_home_screen -> {
-                                        onAddToHomeScreenClick(resource)
-                                        true
-                                    }
-                                    R.id.action_edit -> {
-                                        onEditClick(resource)
-                                        true
-                                    }
-                                    R.id.action_copy -> {
-                                        onCopyFromClick(resource)
-                                        true
-                                    }
-                                    R.id.action_export_resource -> {
-                                        onExportClick(resource)
-                                        true
-                                    }
-                                    R.id.action_share_sftp_access -> {
-                                        onShareSftpAccessClick(resource)
-                                        true
-                                    }
-                                    R.id.action_scan -> {
-                                        onScanClick(resource)
-                                        true
-                                    }
-                                    R.id.action_move_up -> {
-                                        onMoveUpClick(resource)
-                                        true
-                                    }
-                                    R.id.action_move_down -> {
-                                        onMoveDownClick(resource)
-                                        true
-                                    }
-                                    R.id.action_move_to_top -> {
-                                        onMoveToTopClick(resource)
-                                        true
-                                    }
-                                    R.id.action_move_to_bottom -> {
-                                        onMoveToBottomClick(resource)
-                                        true
-                                    }
-                                    R.id.action_open_in_separate_window -> {
-                                        onOpenInNewWindowClick?.invoke(resource)
-                                        true
-                                    }
-                                    R.id.action_open_in_vr_cinema -> {
-                                        onOpenInVrCinemaClick?.invoke(resource)
-                                        true
-                                    }
-                                    R.id.action_delete -> {
-                                        onDeleteClick(resource)
-                                        true
-                                    }
-                                    else -> false
-                                }
+                                onActionSelected(item.itemId, resource)
                             }
                             popup.show()
                         }

@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
 import com.sza.fastmediasorter.ui.launcher.gadget.di.HomeWidgetGadgets
+import com.sza.fastmediasorter.ui.launcher.gadget.di.SensorGadgets
+import com.sza.fastmediasorter.ui.launcher.gadget.di.TechnicalGadgets
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,6 +20,9 @@ class LauncherGadgetRegistry @Inject constructor(
     playlist: PlaylistGadget,
     streams: StreamsGadget,
     folderPreview: FolderPreviewGadget,
+    // S1566: the ninth parameter of ten. The next gadget joins a qualified list module instead of the
+    // constructor - one more direct parameter here trips detekt's constructorThreshold.
+    search: SearchGadget,
     // S1170: the home-widget counterparts arrive as one qualified collection, not one parameter each -
     // fourteen more constructor arguments would put this class at nineteen, past detekt's threshold of
     // 10 and past the point where the list says anything.
@@ -28,13 +33,26 @@ class LauncherGadgetRegistry @Inject constructor(
     // hiltJavaCompile, long after `a.ps1 fk` has reported the Kotlin as clean. Same reason
     // ResolvePanelRouteAvailabilityUseCase writes Set<@JvmSuppressWildcards ScreenVideoRecordingController>.
     @HomeWidgetGadgets homeWidgets: List<@JvmSuppressWildcards LauncherGadget>,
+    // S1179: the sensor tiles arrive the same way and for the same two reasons - the constructor
+    // threshold, and the @JvmSuppressWildcards erasure trap documented above.
+    @SensorGadgets sensors: List<@JvmSuppressWildcards LauncherGadget>,
+    // S1178: the four technical status tiles, for the same two reasons again - the constructor threshold
+    // and the @JvmSuppressWildcards erasure trap documented above.
+    @TechnicalGadgets technical: List<@JvmSuppressWildcards LauncherGadget>,
 ) {
 
     private val gadgets: List<LauncherGadget> =
-        listOf(clock, weather, playlist, streams, folderPreview) + homeWidgets
+        listOf(clock, weather, playlist, streams, folderPreview, search) + homeWidgets + sensors + technical
 
     /** Picker order (Phase 07): cheapest and most universal first. */
     fun all(): List<LauncherGadget> = gadgets
+
+    /**
+     * S1179: what the picker offers - everything this device can actually show. Deliberately not the
+     * same list as [all]: a cell already on the desktop still resolves through [byKey] even if its
+     * sensor stops answering, so an existing desktop never loses a tile on upgrade.
+     */
+    fun available(): List<LauncherGadget> = gadgets.filter { it.isAvailable() }
 
     fun byKey(key: String): LauncherGadget? = gadgets.firstOrNull { it.key == key }
 
@@ -65,6 +83,30 @@ class LauncherGadgetRegistry @Inject constructor(
         const val KEY_PLAYLIST = "playlist"
         const val KEY_STREAMS = "streams"
         const val KEY_FOLDER_PREVIEW = "folder_preview"
+        const val KEY_AUDIO_NOW_PLAYING = "audio_now_playing"
+
+        // S1179: a key is a storage format written into a cell's `target` column - never renamed.
+        const val KEY_COMPASS = "compass"
+        const val KEY_SPEED = "speed"
+        const val KEY_SPEED_CHART = "speed_chart"
+        const val KEY_ALTITUDE_CHART = "altitude_chart"
+        const val KEY_STEPS = "steps"
+
+        // S1560: same contract again - a key is the stored `target`, so it is never renamed.
+        const val KEY_ALTITUDE = "altitude"
+        const val KEY_SATELLITES = "satellites"
+
+        // S1175: same contract - the key is what a cell's `target` column stores, so it is never renamed.
+        const val KEY_MAP = "map"
+
+        // S1178: same contract - the key is what a cell's `target` column stores, so it is never renamed.
+        const val KEY_NETWORK = "network"
+        const val KEY_BATTERY = "battery"
+        const val KEY_STORAGE = "storage"
+        const val KEY_RESOURCES = "resources"
+
+        // S1566: same contract - the key is what a cell's `target` column stores, so it is never renamed.
+        const val KEY_SEARCH = "search"
 
         private const val SEPARATOR = ':'
     }

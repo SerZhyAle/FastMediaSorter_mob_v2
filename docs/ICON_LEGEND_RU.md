@@ -38,14 +38,15 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Избранное |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Мини-игра |
 | <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Загрузить по ссылке |
+| <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Сетевой монитор |
 | <img src="icons/svg/ic_nfc.svg" alt="ic_nfc" width="24" height="24"> | NFC |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Фото-OCR-перевод |
-| <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Камера |
+| <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Быстрая съёмка |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Запись с диктофона |
 | <img src="icons/svg/ic_widget_random_music.svg" alt="ic_widget_random_music" width="24" height="24"> | Случайная музыка |
 | <img src="icons/svg/ic_widget_scheduled_tasks.svg" alt="ic_widget_scheduled_tasks" width="24" height="24"> | Задачи по расписанию |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Видеозапись экрана |
-| <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Настройки |
+| <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Настройки |
 | <img src="icons/svg/ic_volume_up.svg" alt="ic_volume_up" width="24" height="24"> | Звук |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Начать видеозапись |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Хранилище |
@@ -96,6 +97,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Мини-игра |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Калькулятор |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Включить избранное |
+| <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Сетевой монитор |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Разрешить распознавание текста |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Фоновое воспроизведение |
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Включить картинку в картинке |
@@ -126,9 +128,9 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_crop.svg" alt="ic_crop" width="24" height="24"> | Вырезать |
 | <img src="icons/svg/ic_crop_to_file.svg" alt="ic_crop_to_file" width="24" height="24"> | Вырезать в файл |
 | <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | Удалить |
-| <img src="icons/svg/ic_draw_overlay.svg" alt="ic_draw_overlay" width="24" height="24"> | Рисовать |
-| (системный значок) | Редактировать |
-| (системный значок) | Редактировать |
+| <img src="icons/svg/ic_draw_overlay.svg" alt="ic_draw_overlay" width="24" height="24"> | Рисование |
+| (системный значок) | Коррекция |
+| (системный значок) | Текст файла |
 | <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Настройки чтения |
 | (системный значок) | Поиск по всем главам |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Настройки текста |
@@ -143,6 +145,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Извлечь текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Извлечь текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Извлечь текст |
+| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Настройки текста |
 | <img src="icons/svg/ic_open_in_browse.svg" alt="ic_open_in_browse" width="24" height="24"> | Открыть в новом окне |
 | <img src="icons/svg/ic_night_mode.svg" alt="ic_night_mode" width="24" height="24"> | Ночной режим |
 | <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Режим прокрутки |
@@ -155,7 +158,8 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Переименовать |
 | (системный значок) | Открыть с кодировкой.. |
 | <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Повернуть на 90° |
-| <img src="icons/svg/ic_rotation_unlocked.svg" alt="ic_rotation_unlocked" width="24" height="24"> | Поворот |
+| <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Повернуть на -90° |
+| <img src="icons/svg/ic_rotation_unlocked.svg" alt="ic_rotation_unlocked" width="24" height="24"> | Автоповорот экрана |
 | <img src="icons/svg/ic_save_frame.svg" alt="ic_save_frame" width="24" height="24"> | Сохранить кадр |
 | (системный значок) | Поиск |
 | (системный значок) | Поиск |
@@ -165,6 +169,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Поделиться |
 | <img src="icons/svg/ic_sleep_timer.svg" alt="ic_sleep_timer" width="24" height="24"> | Таймер сна |
 | <img src="icons/svg/ic_play.svg" alt="ic_play" width="24" height="24"> | Слайдшоу |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | О канале |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Настройки текста |
 | (системный значок) | Переключить Markdown |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Перевести |

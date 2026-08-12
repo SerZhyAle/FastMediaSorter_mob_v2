@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.stats.CaptureKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
 import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import kotlinx.coroutines.CoroutineScope
@@ -78,7 +79,11 @@ class MainVoiceCaptureManager(
 
     /** Host RECORD_AUDIO launcher callback: start on grant, surface denial otherwise. */
     fun onRecordAudioResult(granted: Boolean) {
-        if (granted) actuallyStart() else showSnackbar(R.string.mic_recording_permission_denied)
+        if (granted) {
+            actuallyStart()
+        } else {
+            showSnackbar(activity.permissionRationale(Manifest.permission.RECORD_AUDIO))
+        }
     }
 
     private fun actuallyStart() {

@@ -1,11 +1,14 @@
 package com.sza.fastmediasorter.ui.cameracapture.helpers
 
 import android.content.Context
+import android.hardware.display.DisplayManager
+import android.view.Display
 import android.view.OrientationEventListener
 import android.view.Surface
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import timber.log.Timber
 
 /**
  * Buckets the physical device angle for the portrait-locked camera host (S0754) and exposes two
@@ -20,7 +23,12 @@ class CameraOrientationManager(
     private val onTargetRotationChanged: (Int) -> Unit,
 ) {
 
-    private var currentRotation = Surface.ROTATION_0
+    private val appContext = context.applicationContext
+
+    // S1457: seeded from the display rather than a ROTATION_0 literal. The listener corrects this on
+    // its first reading, but on a device that has no orientation sensor it never fires at all, and
+    // the literal made every capture there claim the device stood in its natural orientation.
+    private var currentRotation = displayRotation()
 
     // S0924: single source of truth for the device rotation bucket, seeded with the initial value.
     private val rotationBucketState = MutableStateFlow(currentRotation)
@@ -28,7 +36,7 @@ class CameraOrientationManager(
     /** Current `Surface.ROTATION_*` bucket as observable state for late subscribers (S0924). */
     val rotationBucket: StateFlow<Int> = rotationBucketState.asStateFlow()
 
-    private val listener = object : OrientationEventListener(context.applicationContext) {
+    private val listener = object : OrientationEventListener(appContext) {
         override fun onOrientationChanged(orientation: Int) {
             if (orientation == ORIENTATION_UNKNOWN) return
             val nextRotation = when (orientation) {
@@ -44,9 +52,23 @@ class CameraOrientationManager(
     }
 
     fun enable() {
-        if (listener.canDetectOrientation()) listener.enable()
+        if (listener.canDetectOrientation()) {
+            listener.enable()
+        } else {
+            // S1457: a device with no orientation sensor - a car head unit, a TV box, part of the
+            // emulator fleet - never gets onOrientationChanged, so the display is the only rotation
+            // signal left. Re-read on every enable: the screen can have turned since construction.
+            currentRotation = displayRotation()
+        }
         dispatch()
     }
+
+    /** Current `Surface.ROTATION_*` of the default display; the only signal when no sensor reports. */
+    private fun displayRotation(): Int = runCatching {
+        val displays = appContext.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+        displays.getDisplay(Display.DEFAULT_DISPLAY)?.rotation ?: Surface.ROTATION_0
+    }.onFailure { Timber.w(it, "CameraOrientationManager: display rotation unavailable") }
+        .getOrDefault(Surface.ROTATION_0)
 
     fun disable() {
         listener.disable()

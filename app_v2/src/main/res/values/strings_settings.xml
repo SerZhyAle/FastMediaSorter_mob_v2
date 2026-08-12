@@ -54,14 +54,10 @@
     <string name="settings_general_network_sync">Network Sync</string>
     <string name="settings_general_permissions">Permissions</string>
     <string name="settings_general_system">Network and System</string>
-    <string name="settings_log_current_session_body">Current session log (%1$d lines):
-
-%2$s</string>
+    <string name="settings_log_current_session_body">Current session log (%1$d lines):\n\n%2$s</string>
     <string name="settings_log_empty">No log entries found.</string>
     <string name="settings_log_empty_session">No log entries found for the current session.</string>
-    <string name="settings_log_last_lines">Last %1$d log lines:
-
-%2$s</string>
+    <string name="settings_log_last_lines">Last %1$d log lines:\n\n%2$s</string>
     <string name="settings_log_save_destination_title">Save log to destination</string>
     <string name="settings_log_save_failed">Couldn\'t save the log.</string>
     <string name="settings_log_saved_to_resource">Log saved to: %1$s</string>
@@ -166,7 +162,7 @@
     <string name="setting_photos_during_audio_desc">Random images during playback (select a list of audio - watch images)</string>
     <string name="setting_play_to_end_desc">Play media to end instead of using slideshow interval</string>
     <string name="setting_prevent_sleep_desc">Keep screen on while using the app</string>
-    <string name="setting_primary_media_player_desc">Show FastMediaSorter in "Open with" and handle media buttons</string>
+    <string name="setting_primary_media_player_desc">Show FastMediaSorter in \"Open with\" and handle media buttons</string>
     <string name="setting_resume_on_next_launch">Resume playback on next launch</string>
     <string name="setting_resume_on_next_launch_desc">On app start, automatically reopen the last played file from where you left off</string>
     <string name="setting_safe_mode_desc">Confirm before destructive operations (delete, move)</string>
@@ -202,7 +198,7 @@
     <string name="pref_panel_stereo_single_eye_summary">When ON, side-by-side and over-under stereo videos and full-screen photos are cropped to one eye and stretched to the full screen - comfortable to watch without 3D glasses. Default: ON. Immersive VR rendering overrides this setting and shows the full stereo frame.</string>
     <string name="pref_panel_stereo_single_eye_title">Show 3D content from one eye</string>
     <string name="pref_prefetch_cache_auto">Auto</string>
-    <string name="pref_prefetch_cache_help_message">Controls how much of a streamed video is buffered ahead of the playhead.\n\n• Less (0.5×) - minimal buffering. The pre-cache progress indicator and the "save cached video" offer are hidden. Saves disk space and bandwidth; on a slow network playback may stutter.\n• Auto - default size chosen by the player based on device and current network.\n• More (2×) - larger buffer for smoother playback over unstable networks. Uses more disk space.</string>
+    <string name="pref_prefetch_cache_help_message">Controls how much of a streamed video is buffered ahead of the playhead.\n\n• Less (0.5×) - minimal buffering. The pre-cache progress indicator and the \"save cached video\" offer are hidden. Saves disk space and bandwidth; on a slow network playback may stutter.\n• Auto - default size chosen by the player based on device and current network.\n• More (2×) - larger buffer for smoother playback over unstable networks. Uses more disk space.</string>
     <string name="pref_prefetch_cache_help_title">Video pre-cache size</string>
     <string name="pref_prefetch_cache_less">Less (0.5×)</string>
     <string name="pref_prefetch_cache_more">More (2×)</string>
@@ -253,4 +249,5 @@
     <string name="settings_group_screen_recording">Screen recording</string>
     <string name="settings_open_default_apps_dialog">Set as default</string>
     <string name="default_apps_dialog_title">Default app</string>
+    <string name="language_download_failed">Could not download this language. Check your internet connection and try again - the app keeps the language it is using now.</string>
 </resources>

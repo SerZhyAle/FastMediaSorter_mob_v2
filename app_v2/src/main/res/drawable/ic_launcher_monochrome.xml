@@ -1,0 +1,20 @@
+<!--
+    S1507: the themed-icon (Android 13+) layer of the launcher icon.
+
+    Not a second drawing of the logo: it insets the silhouette S1399 already introduced for the status
+    bar, so the two can never drift apart. Drawing a monochrome logo here instead was what the ticket
+    was explicitly told not to do.
+
+    The inset is the whole reason a wrapper exists. An adaptive-icon layer is a 108dp canvas whose
+    outer ring the launcher mask cuts away, leaving a 72dp safe zone; the wrapped vector is authored at
+    24dp and fills its own viewport edge to edge, so dropped in directly it would be clipped by every
+    mask. 25% per side leaves the glyph at 54dp - comfortably inside the safe zone at any mask shape.
+
+    Referenced only from mipmap-anydpi-v33, so it is never inflated below API 33.
+-->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_notification_app_logo"
+    android:insetLeft="25%"
+    android:insetTop="25%"
+    android:insetRight="25%"
+    android:insetBottom="25%" />

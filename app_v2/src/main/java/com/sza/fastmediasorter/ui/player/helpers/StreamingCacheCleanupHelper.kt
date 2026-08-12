@@ -5,6 +5,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.StreamingCacheEntry
 import com.sza.fastmediasorter.domain.model.CleanupPromptRequest
+import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
 
 /**
@@ -54,6 +55,6 @@ object StreamingCacheCleanupHelper {
                 onKeep(entry)
             }
             .setCancelable(false)
-            .show()
+            .showBoundToHost(context)
     }
 }

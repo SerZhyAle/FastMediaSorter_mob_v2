@@ -12,23 +12,32 @@ import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import timber.log.Timber
+import kotlin.math.roundToInt
 
 /**
- * S0404: owns the desktop's edit mode - the drag-to-move gesture, the Done affordance, and the one-shot
- * orientation hint. Keeps the activity thin (Rule 3): no placement logic lives here, only the mapping
- * from a gesture to an intent. The placement itself - overlap rejection and the equal-footprint trade -
- * is the repository's, reached through [LauncherHomeViewModel.moveCell].
+ * S0404: owns the desktop's edit mode - the drag-to-move gesture, the edit-mode affordances on the
+ * taskbar, and the one-shot orientation hint. Keeps the activity thin (Rule 3): no placement logic lives
+ * here, only the mapping from a gesture to an intent. The placement itself - overlap rejection and the
+ * equal-footprint trade - is the repository's, reached through [LauncherHomeViewModel.moveCell].
  *
  * NOT `ItemTouchHelper`: that is RecyclerView-only, and the desktop is a 2D `ViewGroup` (ADR-9). Drag is
  * a plain [View.OnDragListener] on the container plus [View.startDragAndDrop] on a cell; the drop target
  * is arithmetic via [LauncherDesktopLayout.cellAt], not adapter bookkeeping.
+ *
+ * @param addCellButton the slotless-add affordance (S1209). Owned here rather than by the activity's own
+ *   edit-mode collector so that both taskbar buttons appear and disappear from one place and cannot
+ *   drift apart.
+ * @param onAddCellClick opening the content picker is the activity's job - this manager holds no
+ *   `FragmentManager` and must not grow one.
  */
 class LauncherEditModeManager(
     private val lifecycleOwner: LifecycleOwner,
     private val desktop: LauncherDesktopLayout,
     private val doneButton: View,
+    private val addCellButton: View,
     private val snackbarAnchor: View,
     private val viewModel: LauncherHomeViewModel,
+    private val onAddCellClick: () -> Unit,
 ) {
 
     fun attach() {
@@ -43,9 +52,14 @@ class LauncherEditModeManager(
             true
         }
         doneButton.setOnClickListener { viewModel.setEditMode(false) }
-        // The Done affordance exists only while editing; the desktop stays clean otherwise.
+        addCellButton.setOnClickListener {
+            Timber.d("S1209: taskbar add-cell tapped")
+            onAddCellClick()
+        }
+        // Both affordances exist only while editing; the desktop stays clean otherwise.
         lifecycleOwner.collectOnLifecycle(viewModel.editMode) { editing ->
             doneButton.isVisible = editing
+            addCellButton.isVisible = editing
         }
     }
 
@@ -71,10 +85,23 @@ class LauncherEditModeManager(
 
     private val dragListener = View.OnDragListener { _, event ->
         when (event.action) {
+            // S1209: only DROP used to be handled, so nothing moved the desktop during a gesture and a
+            // row past the bottom edge stayed unreachable for the whole drag (strategic §1).
+            DragEvent.ACTION_DRAG_LOCATION -> {
+                updateAutoScroll(event.y)
+                true
+            }
             DragEvent.ACTION_DROP -> {
+                stopAutoScroll()
                 val id = event.localState as? Long ?: return@OnDragListener false
                 val target = desktop.cellAt(event.x, event.y)
                 viewModel.moveCell(id, target.row, target.col)
+                true
+            }
+            // ENDED fires even when the drag was cancelled or released outside the container, so it is
+            // the one edge guaranteed to arrive - without it a scroll could outlive the gesture.
+            DragEvent.ACTION_DRAG_ENDED -> {
+                stopAutoScroll()
                 true
             }
             // Every other drag event must be accepted, or the framework stops routing DROP to us.
@@ -82,7 +109,78 @@ class LauncherEditModeManager(
         }
     }
 
+    /**
+     * S1209: signed pixels the viewport travels per frame while the drag point sits in an edge band,
+     * 0 when it does not. Negative pulls the desktop up. Main thread only - both the drag callback that
+     * writes it and the frame callback that reads it run there.
+     */
+    private var autoScrollStepPx = 0
+
+    private val autoScroller = object : Runnable {
+        override fun run() {
+            val viewport = desktop.parent as? View
+            val step = autoScrollStepPx
+            // The detached case is the leak guard: ACTION_DRAG_ENDED tears this loop down for every drag
+            // that started, but a window destroyed before that event reaches us would leave a callback
+            // re-posting itself on the main-thread choreographer, holding this manager and the whole
+            // view tree behind it. Refusing to re-post is enough - there is no later drag on a dead view.
+            // Written as one guard rather than three early returns: they would cross detekt's ReturnCount
+            // limit, the same way they did in LauncherHomeViewModel.run.
+            if (viewport == null || step == 0 || !desktop.isAttachedToWindow) return
+            val before = viewport.scrollY
+            viewport.scrollBy(0, step)
+            // The scroll container clamps inside scrollTo, so a step past either end lands on the end
+            // rather than overscrolling. An unchanged offset therefore means nothing is left that way,
+            // and the loop stops instead of burning a frame callback for the rest of the gesture.
+            if (viewport.scrollY == before) stopAutoScroll() else desktop.postOnAnimation(this)
+        }
+    }
+
+    /**
+     * [desktopY] is relative to the desktop, which is taller than the viewport, so the band is measured
+     * against the viewport-relative position instead. The step grows with how deep the point sits inside
+     * the band - a shallow hover creeps, a deep one moves - because a constant speed makes the target
+     * row impossible to stop on (strategic §7).
+     */
+    private fun updateAutoScroll(desktopY: Float) {
+        val viewport = desktop.parent as? View
+        val band = desktop.resources.getDimensionPixelSize(R.dimen.launcher_drag_autoscroll_band)
+        if (viewport == null || viewport.height <= 0 || band <= 0) {
+            stopAutoScroll()
+            return
+        }
+        val viewportY = desktopY - viewport.scrollY
+        val depthPx = when {
+            viewportY < band -> viewportY - band
+            viewportY > viewport.height - band -> viewportY - (viewport.height - band)
+            else -> 0f
+        }
+        val step = (depthPx * AUTOSCROLL_DEPTH_FACTOR).roundToInt()
+        if (step == 0) {
+            stopAutoScroll()
+            return
+        }
+        val wasIdle = autoScrollStepPx == 0
+        autoScrollStepPx = step
+        if (wasIdle) {
+            Timber.d("S1209: drag edge auto-scroll started, step=%d", step)
+            desktop.postOnAnimation(autoScroller)
+        }
+    }
+
+    private fun stopAutoScroll() {
+        autoScrollStepPx = 0
+        desktop.removeCallbacks(autoScroller)
+    }
+
     private companion object {
         const val DRAG_LABEL = "launcher_cell"
+
+        /**
+         * Share of the depth inside the band covered per frame. At the deep edge of a 48dp band that is
+         * roughly three cells a second at xxhdpi: enough to cross a screen while a finger is held still,
+         * slow enough that the row under the shadow can still be read.
+         */
+        const val AUTOSCROLL_DEPTH_FACTOR = 0.12f
     }
 }

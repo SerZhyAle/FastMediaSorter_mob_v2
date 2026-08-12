@@ -18,6 +18,9 @@ trap {
 if ($Id -notmatch '^S\d{4}$') { throw "Invalid -Id '$Id' (must match S####)." }
 
 $records = [System.Collections.Generic.List[object]]::new()
+# S1437: read -> mutate -> write is one critical section. Two processes holding the same
+# snapshot lose one change entirely - the later write replaces the whole journal.
+Enter-CatalogLock
 foreach ($r in (Read-Catalog)) { $records.Add($r) }
 
 $idx = -1
@@ -80,6 +83,8 @@ if ($oldStatus -ne $Status) {
         Write-Host ("  header synced -> {0}" -f $Status) -ForegroundColor DarkGray
     }
 }
+
+Exit-CatalogLock
 
 Write-Output ("{0} {1} -> {2} [closed {3}]" -f $Id, $oldStatus, $Status, $today)
 exit 0

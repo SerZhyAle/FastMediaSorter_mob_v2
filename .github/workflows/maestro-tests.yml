@@ -54,6 +54,11 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Fetch prebuilt FFmpeg DTS AAR
+        run: bash ./scripts/ci/fetch-prebuilt-libs.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Build standard debug APK
         run: ./gradlew assembleStandardDebug --stacktrace
         env:

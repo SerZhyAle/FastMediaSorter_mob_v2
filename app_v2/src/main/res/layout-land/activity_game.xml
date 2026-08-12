@@ -108,6 +108,21 @@
             android:layout_gravity="end"
             android:text="@string/game_mode_classic" />
 
+        <!-- S1359: shown only while a level is running - in GAME_OVER btnGameReset already carries
+             this very label, and two identical captions would read as a defect. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGameRestartLevel"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/button_height_small"
+            android:layout_gravity="end"
+            android:focusable="true"
+            android:nextFocusUp="@id/btnGameMode"
+            android:nextFocusRight="@id/btnGameMode"
+            android:nextFocusDown="@id/btnGameUp"
+            android:text="@string/game_restart_level"
+            android:visibility="gone" />
+
         <Space
             android:layout_width="match_parent"
             android:layout_height="0dp"

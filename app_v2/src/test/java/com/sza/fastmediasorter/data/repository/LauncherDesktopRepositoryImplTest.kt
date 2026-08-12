@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.data.repository
 
+import com.sza.fastmediasorter.data.local.db.LauncherCellEntity
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import com.sza.fastmediasorter.testing.InMemoryRoomRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -58,6 +60,35 @@ class LauncherDesktopRepositoryImplTest {
         target = target,
         labelOverride = null,
         addedAt = 0L,
+    )
+
+    private fun section(row: Int, col: Int = 0) =
+        cell(row = row, col = col, target = "sec:app_functions").copy(kind = LauncherCellKind.SECTION)
+
+    private fun gadget(row: Int, col: Int = 0, spanH: Int = 2) =
+        cell(row = row, col = col, spanH = spanH).copy(kind = LauncherCellKind.GADGET)
+
+    /**
+     * A header stored narrower than the grid it is drawn on, written straight through the DAO because no
+     * repository path produces it any more - every header is now stored at the widest grid there is.
+     *
+     * It is still the state raising `LauncherGridGeometry.MAX_COLUMNS` would leave every already-stored
+     * header in, and the only one where `findOverlapping` cannot see the squares a header covers. So it is
+     * the state that tells the S1428 straddle rule apart from plain rectangle intersection.
+     */
+    private suspend fun insertNarrowHeader(row: Int) = dbRule.db.launcherCellDao().upsert(
+        LauncherCellEntity(
+            id = 0,
+            orientation = LauncherOrientation.PORTRAIT.name,
+            rowIndex = row,
+            colIndex = 0,
+            spanW = 1,
+            spanH = 1,
+            kind = LauncherCellKind.SECTION.name,
+            target = "sec:app_functions",
+            labelOverride = null,
+            addedAt = 0L,
+        )
     )
 
     private suspend fun storedCell(id: Long) = dbRule.db.launcherCellDao().getById(id)
@@ -248,5 +279,79 @@ class LauncherDesktopRepositoryImplTest {
         assertTrue(repository.resizeCell(id, spanW = 2, spanH = 2))
         assertEquals(2, storedCell(id)?.spanW)
         assertEquals(2, storedCell(id)?.spanH)
+    }
+
+    // ── S1428: section headers ──────────────────────────────────────────────
+
+    @Test
+    fun `a header is stored at column zero across the widest grid`() = runTest {
+        val id = repository.addCell(section(row = 2, col = 3))!!
+        val stored = storedCell(id)
+        assertEquals("a header is drawn across the whole row wherever it was stored", 0, stored?.colIndex)
+        assertEquals(LauncherSectionMembership.HEADER_STORED_SPAN_W, stored?.spanW)
+    }
+
+    @Test
+    fun `a header reserves its whole row against a later cell`() = runTest {
+        repository.addCell(section(row = 0))
+        assertNull("the stored rectangle has to cover every square drawn", repository.addCell(cell(0, 3)))
+    }
+
+    @Test
+    fun `a header restored on a narrower grid keeps its full span`() = runTest {
+        // The stored span is wider than this grid, so a scan bounded by it would find no column at all and
+        // silently place nothing - which is how a header deleted in edit mode would fail to come back.
+        val id = repository.addCellInFirstFreeSlot(section(row = 0), columns = 4)
+        assertNotNull("a header must be placeable on a grid narrower than its stored span", id)
+        val stored = storedCell(id!!)
+        assertEquals(0, stored?.colIndex)
+        assertEquals(LauncherSectionMembership.HEADER_STORED_SPAN_W, stored?.spanW)
+    }
+
+    @Test
+    fun `a moved header stays anchored at column zero`() = runTest {
+        val id = repository.addCell(section(row = 0))!!
+        assertTrue(repository.moveCell(id, rowIndex = 4, colIndex = 2))
+        assertEquals(4, storedCell(id)?.rowIndex)
+        assertEquals("moveCell writes a column without going through normalized()", 0, storedCell(id)?.colIndex)
+    }
+
+    @Test
+    fun `the free-slot scan skips a row a gadget would straddle`() = runTest {
+        repository.addCell(section(row = 1))
+        val id = repository.addCellInFirstFreeSlot(gadget(row = 0), columns = 4)!!
+        // Refusing outright would make a tall gadget unplaceable whenever the first free anchor sits
+        // just above a header; the scan is expected to move past that row and keep looking.
+        assertEquals("row 0 would cover the header on row 1", 2, storedCell(id)?.rowIndex)
+    }
+
+    @Test
+    fun `a gadget may not be added over a header row the overlap check cannot see`() = runTest {
+        insertNarrowHeader(row = 2)
+        assertNull(repository.addCell(gadget(row = 1, col = 3)))
+    }
+
+    @Test
+    fun `a one-row cell past such a header is still allowed`() = runTest {
+        // The rule is scoped to gadgets, and only a cell taller than one row can start in one section and
+        // end in the next - so a shortcut pays nothing for it.
+        insertNarrowHeader(row = 2)
+        assertNotNull(repository.addCell(cell(row = 2, col = 3)))
+    }
+
+    @Test
+    fun `moving a gadget onto such a header row is refused`() = runTest {
+        insertNarrowHeader(row = 4)
+        val moving = repository.addCell(gadget(row = 0, col = 3))!!
+        assertFalse(repository.moveCell(moving, rowIndex = 3, colIndex = 3))
+        assertEquals("the refused move must leave the cell where it was", 0, storedCell(moving)?.rowIndex)
+    }
+
+    @Test
+    fun `growing a gadget down onto such a header row is refused`() = runTest {
+        insertNarrowHeader(row = 3)
+        val growing = repository.addCell(gadget(row = 1, col = 3))!!
+        assertFalse(repository.resizeCell(growing, spanW = 1, spanH = 3))
+        assertEquals("the refused resize must keep the last valid size", 2, storedCell(growing)?.spanH)
     }
 }

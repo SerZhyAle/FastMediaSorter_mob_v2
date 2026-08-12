@@ -7,11 +7,17 @@
     <dimen name="launcher_taskbar_item_spacing">6dp</dimen>
     <dimen name="launcher_tray_icon_size">18dp</dimen>
 
-    <!-- S0404: the Start menu's all-apps grid is bounded on purpose. A wrap_content RecyclerView inside
-         a NestedScrollView is measured UNSPECIFIED, which makes the grid lay out every installed app in
-         one main-thread pass and recycle nothing. A fixed height restores recycling; the grid scrolls
-         itself. -->
-    <dimen name="launcher_start_menu_apps_height">300dp</dimen>
+    <!-- S1421: the freed system status band. Constant by owner ruling - the strip neither collapses nor
+         resizes when its content changes, so its height cannot come from the content. Matched to the
+         status bar it replaces (24dp) plus room for a chip's touch feedback. -->
+    <dimen name="launcher_status_strip_height">28dp</dimen>
+
+    <!-- S1421: one signal chip in that band. Below the 48dp touch-target minimum knowingly, for the same
+         reason the gadget action buttons are: the band is 28dp tall by the ruling above, and a 48dp control
+         cannot live inside it at all. The chip is the largest square the band holds with breathing room. -->
+    <dimen name="launcher_signal_chip_size">24dp</dimen>
+    <dimen name="launcher_signal_chip_padding">3dp</dimen>
+    <dimen name="launcher_signal_chip_spacing">4dp</dimen>
 
     <!-- S0404: folder-preview thumbnail decode size. Glide decodes at display size, not source size -
          four full-resolution photos on the home screen would be a needless multi-MB decode. -->
@@ -31,6 +37,10 @@
          that narrow would ellipsize every action label to two words. -->
     <dimen name="launcher_shortcut_popup_width">220dp</dimen>
 
+    <!-- S1401: smallest comfortable all-apps cell. The screen divides its measured width by this, so
+         one layout serves both orientations and a wide screen simply gets more columns. -->
+    <dimen name="launcher_all_apps_cell_min_width">88dp</dimen>
+
     <!-- S1173: contour width for a shortcut cell's icon and caption, overriding the shared 2dp default.
          That default is sized for large camera overlay labels; on a 12sp caption it thickens the glyph
          into a blob. -->
@@ -39,4 +49,30 @@
     <!-- S1173: lift restored on a shortcut cell while the desktop is being edited. Matches the gadget
          card's own elevation, so both kinds read as the same surface while arranging. -->
     <dimen name="launcher_cell_edit_elevation">2dp</dimen>
+
+    <!-- S1209: band at the top and bottom of the scroll viewport inside which a drag auto-scrolls the
+         desktop. One finger wide, the platform's minimum touch target, and deliberately under the
+         smallest cell (~63dp at the highest density factor) so the band never swallows a whole row -
+         a drag hovering over the last visible row must still be able to sit still. -->
+    <dimen name="launcher_drag_autoscroll_band">48dp</dimen>
+
+    <!-- S1414: shortcut caption size. The smallest the app uses for a cell caption (the stream grid
+         cell already runs at this size); a cell can be ~63dp across, so every point of size costs
+         characters before the ellipsis - and the caption is the only thing telling two cells with the
+         same icon apart. -->
+    <dimen name="launcher_cell_label_text_size">10sp</dimen>
+
+    <!-- S1587: the caption plate. The radius is deliberately far under the cell's own 16dp - the plate
+         hugs two lines of 10sp text, and a cell-sized radius on a strip that short reads as a pill. The
+         paddings are the smallest that keep a glyph from touching the plate's edge. -->
+    <!-- S1587: the vertical breathing room a shortcut cell can afford. A 96dp cell holds a 44dp icon
+         plus two 10sp caption lines, and the old 10dp top and bottom pushed the second line past the
+         cell's bottom edge, where the grid clips it - a chopped glyph reads worse than the ellipsis the
+         second line exists to remove. -->
+    <dimen name="launcher_cell_content_padding_vertical">4dp</dimen>
+    <dimen name="launcher_cell_label_margin_top">3dp</dimen>
+
+    <dimen name="launcher_cell_label_plate_radius">6dp</dimen>
+    <dimen name="launcher_cell_label_plate_padding_horizontal">4dp</dimen>
+    <dimen name="launcher_cell_label_plate_padding_vertical">1dp</dimen>
 </resources>

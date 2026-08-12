@@ -1,2 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources />
+<!--
+    Data Extraction Rules for FastMediaSorter - API 31+ (Android 12 and newer).
+
+    From API 31 this file supersedes backup_rules.xml for BOTH cloud backup and
+    device-to-device transfer. Keep the two in step: every path excluded there must
+    be excluded in both sections here, or the exclusion silently stops applying on
+    every modern device. Enforced by scripts/quality/assert-backup-rules-consistent.ps1.
+
+    S1552: this file used to carry the generic value-resource root instead of the one
+    below. That is a valid resource file which the build and lint both accept, but it
+    declares no rule at all - so on API 31+ the settings DataStore and the encrypted
+    credentials database were backed up and restored despite backup_rules.xml
+    forbidding it.
+
+    Why device-transfer excludes the same paths as cloud-backup: both stores are
+    encrypted against the hardware-backed Android Keystore, and Keystore keys do not
+    migrate to another device in either direction. Transferred rows arrive
+    undecryptable, so transferring them buys nothing and moves credential material.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- Encrypted credentials - Keystore key cannot be restored -->
+        <exclude domain="database" path="network_credentials.db" />
+        <exclude domain="database" path="network_credentials.db-shm" />
+        <exclude domain="database" path="network_credentials.db-wal" />
+
+        <!-- DataStore preferences - device-specific settings and encrypted default password -->
+        <exclude domain="file" path="datastore/" />
+    </cloud-backup>
+
+    <device-transfer>
+        <!-- Encrypted credentials - Keystore key cannot be restored -->
+        <exclude domain="database" path="network_credentials.db" />
+        <exclude domain="database" path="network_credentials.db-shm" />
+        <exclude domain="database" path="network_credentials.db-wal" />
+
+        <!-- DataStore preferences - device-specific settings and encrypted default password -->
+        <exclude domain="file" path="datastore/" />
+    </device-transfer>
+</data-extraction-rules>

@@ -86,7 +86,6 @@ class BrowseStateSyncManager(
             // change. It has to cover every setting that reshapes the list, not just the first two.
             val showAsItemsChanged =
                 currentResource.showSubfoldersAsItems != updatedResource.showSubfoldersAsItems
-            Timber.d("S1315: resume diff types=$typesChanged scan=$subfoldersChanged show=$showAsItemsChanged")
 
             if (typesChanged || subfoldersChanged || showAsItemsChanged) {
                 Timber.d("BrowseStateSyncManager.checkAndReloadIfResourceChanged: settings changed, reloading")

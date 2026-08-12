@@ -2,9 +2,11 @@ package com.sza.fastmediasorter.data.repository
 
 import androidx.room.withTransaction
 import com.sza.fastmediasorter.data.local.db.AppDatabase
+import com.sza.fastmediasorter.data.local.db.StreamPlayOutcomeDao
 import com.sza.fastmediasorter.data.local.db.StreamSourceDao
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,10 +17,21 @@ import javax.inject.Singleton
 @Singleton
 class StreamSourceRepository @Inject constructor(
     private val db: AppDatabase,
-    private val dao: StreamSourceDao
+    private val dao: StreamSourceDao,
+    private val streamPlayOutcomeDao: StreamPlayOutcomeDao
 ) {
 
     fun observeSources(): Flow<List<StreamSourceEntity>> = dao.observeAll()
+
+    /**
+     * S1502: play outcomes as a side channel keyed by channel id. Observed separately from
+     * [observeSources] so recording one channel's outcome repaints one row instead of re-emitting the
+     * whole catalog - Room invalidates per table, which is why the value no longer lives on the row.
+     */
+    fun observePlayOutcomes(): Flow<Map<String, String>> =
+        streamPlayOutcomeDao.observeAll().map { outcomes ->
+            outcomes.associate { it.streamId to it.outcome }
+        }
 
     /** S0756: pinned channels only, in pin order, for the main-window streams panel. */
     fun observePinnedSources(): Flow<List<StreamSourceEntity>> = dao.observePinned()
@@ -56,7 +69,12 @@ class StreamSourceRepository @Inject constructor(
             orderedIds.forEachIndexed { index, id -> dao.setSortIndex(id, index) }
         }
 
-    suspend fun remove(source: StreamSourceEntity) = dao.delete(source)
+    /** S1502: the outcome now lives in its own table, so removing a channel must take its row too. */
+    suspend fun remove(source: StreamSourceEntity) =
+        db.withTransaction {
+            dao.delete(source)
+            streamPlayOutcomeDao.deleteByStreamId(source.id)
+        }
 
     /** S0770: unpin a channel so it leaves the main-window streams panel; the catalog row is kept. */
     suspend fun unpin(id: String) = dao.unpin(id)
@@ -75,10 +93,13 @@ class StreamSourceRepository @Inject constructor(
 
     /** S0593: persist the last local play outcome ("OK"/"FAIL") for the streams-list status bullet. */
     suspend fun recordPlayOutcome(id: String, outcome: String) =
-        dao.markPlayOutcome(id, outcome, System.currentTimeMillis())
+        streamPlayOutcomeDao.markPlayOutcome(id, outcome, System.currentTimeMillis())
+
+    /** S1502: one-shot outcome read for a single channel, for surfaces that render once (info window). */
+    suspend fun playOutcome(id: String): String? = streamPlayOutcomeDao.outcomeFor(id)
 
     /** S0659: clear all OK/FAIL status bullets without removing any channel. */
-    suspend fun clearPlayOutcomes() = dao.clearAllPlayOutcomes()
+    suspend fun clearPlayOutcomes() = streamPlayOutcomeDao.clearAllPlayOutcomes()
 
     /** S0654: stored media kind (RTSP/VIDEO/AUDIO) behind a source id, for the stream-played metric. */
     suspend fun getMediaKind(id: String): String? = dao.getMediaKindById(id)

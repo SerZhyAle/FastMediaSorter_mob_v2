@@ -4,18 +4,19 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.player.ImageLoadingManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.SlideshowController
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
+import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import com.sza.fastmediasorter.ui.player.helpers.LoadingSource
 import com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
-import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
-import com.sza.fastmediasorter.domain.model.StereoMode
-import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
+import com.sza.fastmediasorter.util.showBoundTo
 import timber.log.Timber
 
 /**
@@ -189,7 +190,7 @@ class PlayerPlaybackCallbackImpl(
             .setTitle(activity.getString(R.string.error_bdts_format_title))
             .setMessage(activity.getString(R.string.error_bdts_format_message))
             .setPositiveButton(android.R.string.ok, null)
-            .show()
+            .showBoundTo(activity)
     }
 
     override fun onNetworkContainerRouteError(
@@ -202,7 +203,7 @@ class PlayerPlaybackCallbackImpl(
             .setTitle(activity.getString(R.string.error_vob_route_title))
             .setMessage(activity.getString(R.string.error_vob_route_message))
             .setPositiveButton(android.R.string.ok, null)
-            .show()
+            .showBoundTo(activity)
     }
 
     override fun onBeforeVideoLoad(path: String) {

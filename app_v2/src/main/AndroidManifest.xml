@@ -216,6 +216,8 @@
 
     <application android:name=".FastMediaSorterApp" android:allowBackup="true" android:dataExtractionRules="@xml/data_extraction_rules" android:fullBackupContent="@xml/backup_rules" android:banner="@drawable/tv_banner" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:largeHeap="true" android:roundIcon="@mipmap/ic_launcher_round" android:supportsRtl="true" android:theme="@style/Theme.FastMediaSorter" android:networkSecurityConfig="@xml/network_security_config" android:localeConfig="@xml/locales_config" android:enableOnBackInvokedCallback="true" tools:targetApi="34">
 
+        <meta-data android:name="com.sza.fastmediasorter.OSS_NOTICES_PAYLOAD" android:resource="${ossNoticesPayload}" />
+
         <!-- Disable automatic WorkManager initialization -->
         <provider android:name="androidx.startup.InitializationProvider" android:authorities="${applicationId}.androidx-startup" android:exported="false" tools:node="merge">
             <meta-data android:name="androidx.work.WorkManagerInitializer" android:value="androidx.startup" tools:node="remove" />
@@ -256,6 +258,10 @@
         <activity android:name=".ui.settings.SettingsActivity" android:exported="true" android:label="@string/settings" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:windowSoftInputMode="adjustPan" />
 
         <activity android:name=".ui.calculator.CalculatorActivity" android:exported="false" android:label="@string/calculator_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
+        <!-- S1433: no orientation|screenSize in configChanges on purpose - the Summary screen has a
+             layout-land variant, and an Activity that absorbs the configuration change never re-inflates it. -->
+        <activity android:name=".ui.networkmonitor.NetworkMonitorActivity" android:exported="false" android:label="@string/network_monitor_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <activity android:name=".ui.cameraocr.CameraOcrTranslateActivity" android:exported="false" android:label="@string/setting_camera_ocr_translation_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:theme="@style/Theme.FastMediaSorter" />
         <!-- S0754: portrait-locked host; overlay controls rotate by sensor while the layout stays fixed. -->
@@ -444,6 +450,21 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_continue_reading_info" />
         </receiver>
 
+        <!-- S1401: keeps the installed-app cache in step with installs, removals and locale changes.
+             Exported because the sender is the system; the package broadcasts are exempt from the
+             implicit-broadcast restrictions, so a manifest receiver still fires with the app stopped. -->
+        <receiver android:name=".core.apps.InstalledAppsChangeReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <data android:scheme="package" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
         <!-- Camera Photos Widget (S0134) -->
         <receiver android:name=".widget.CameraPhotosWidgetProvider" android:exported="true" android:label="@string/widget_camera_photos_label" android:icon="@drawable/ic_widget_camera_photos">
             <intent-filter>
@@ -526,13 +547,18 @@
              own lifecycle, then saves/routes the photo. No android:noHistory here (unlike the sibling
              trampolines): the shot is taken in-process, so the activity must survive the first-use CAMERA
              permission dialog - noHistory destroyed it mid-capture and the photo was lost. -->
-        <activity android:name=".widget.PhotoCaptureLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" />
+        <activity android:name=".widget.PhotoCaptureLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:configChanges="orientation|screenSize" />
 
         <!-- Screen-recording edge-gesture trampoline (S0797): hosts the MediaProjection consent + permission launchers -->
         <activity android:name=".widget.ScreenRecordingLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
 
         <!-- Link-download panel trampoline (S0912): hosts the clipboard-prefilled confirm dialog for the app-launch panel -->
         <activity android:name=".widget.LinkDownloadLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
+        <!-- Stream shortcut trampoline (S1471): decides background playback vs the Streams screen with no UI.
+             android:noHistory is safe here, unlike the S1174 capture trampolines above: this one awaits no
+             activity result, so nothing can be delivered to it after it is finished. -->
+        <activity android:name=".widget.StreamPlayLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
 
         <!-- Quick Camera Capture: per-widget target configuration activity (S0369) -->
         <activity android:name=".widget.CameraQuickCaptureConfigActivity" android:exported="true">

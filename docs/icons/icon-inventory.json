@@ -66,7 +66,7 @@
   {
     "surface": "player-command",
     "key": "EDIT",
-    "feature": "edit",
+    "feature": "menu_edit_adjust",
     "drawable": "ic_menu_edit",
     "assetFormat": "framework",
     "public": true
@@ -74,7 +74,7 @@
   {
     "surface": "player-command",
     "key": "EDIT_TEXT",
-    "feature": "edit",
+    "feature": "menu_edit_file_text",
     "drawable": "ic_menu_edit",
     "assetFormat": "framework",
     "public": true
@@ -193,6 +193,14 @@
   },
   {
     "surface": "player-command",
+    "key": "OFFICE_TEXT_SETTINGS",
+    "feature": "translation_settings",
+    "drawable": "ic_book",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
     "key": "OPEN_IN_SEPARATE_WINDOW",
     "feature": "action_open_in_separate_window",
     "drawable": "ic_open_in_browse",
@@ -297,8 +305,16 @@
   },
   {
     "surface": "player-command",
+    "key": "ROTATE_CONTENT_CCW",
+    "feature": "rotate_content_ccw_title",
+    "drawable": "ic_rotate_90",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
     "key": "ROTATION_TOGGLE",
-    "feature": "rotation_toggle_title",
+    "feature": "menu_autorotate_screen_title",
     "drawable": "ic_rotation_unlocked",
     "assetFormat": "vector",
     "public": true
@@ -372,6 +388,14 @@
     "key": "SLIDESHOW",
     "feature": "slideshow",
     "drawable": "ic_play",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "STREAM_INFO",
+    "feature": "stream_info_menu_title",
+    "drawable": "ic_info",
     "assetFormat": "vector",
     "public": true
   },
@@ -641,6 +665,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "network_monitor",
+    "feature": "network_monitor_title",
+    "drawable": "ic_network_monitor",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "nfc",
     "feature": "app_launch_panel_os_nfc",
     "drawable": "ic_nfc",
@@ -658,7 +690,7 @@
   {
     "surface": "program-nav",
     "key": "quick_camera",
-    "feature": "quick_camera_menu_label",
+    "feature": "widget_camera_quick_capture_label",
     "drawable": "ic_camera_capture",
     "assetFormat": "vector",
     "public": true
@@ -699,7 +731,7 @@
     "surface": "program-nav",
     "key": "settings",
     "feature": "app_launch_panel_os_settings",
-    "drawable": "ic_settings",
+    "drawable": "ic_android",
     "assetFormat": "vector",
     "public": true
   },
@@ -1132,6 +1164,14 @@
     "key": "rowEnableFavorites",
     "feature": "enable_favorites",
     "drawable": "ic_resource_favorites",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnableNetworkMonitor",
+    "feature": "settings_enable_network_monitor",
+    "drawable": "ic_network_monitor",
     "assetFormat": "vector",
     "public": true
   },

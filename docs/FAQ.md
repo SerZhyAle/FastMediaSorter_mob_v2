@@ -292,10 +292,10 @@ Yes. The **Streams** screen plays http/https audio streams (mp3/aac), Icecast/Sh
 Tap **Streams** in the main window dropdown (visible when Streams is enabled). You can also reach it via **Settings > Media > Streams** where the master toggle lives.
 
 ### How do I add a radio station?
-In the Streams screen, tap **+** and paste the station URL. Tap Save. The station appears in the list immediately.
+In the Streams screen, tap **⋮** at the end of the toolbar, choose **Add stream** and paste the station URL. Tap Save. The station appears in the list immediately.
 
 ### Can I import a playlist?
-Yes - tap **Import > From URL** and enter a remote `.m3u` address. A curated FastMediaSorter catalog (with topic and language chips) is available for download from **Settings > Extensions** or the Welcome onboarding screen.
+Yes - tap **⋮ > Import from URL** and enter a remote `.m3u` address. The same menu holds **Update FastMediaSorter catalog** for the curated list (with topic and language chips), which is also available from **Settings > Extensions** or the Welcome onboarding screen.
 
 ### A stream is not playing - what do I do?
 If a stream fails, a dialog appears with **Retry**, **Remove**, and **Cancel** options. Cross-protocol 301 redirects are handled automatically. If the host is dead or very slow, the catalog import times out quickly rather than hanging.

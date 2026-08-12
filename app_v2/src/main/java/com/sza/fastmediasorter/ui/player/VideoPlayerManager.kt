@@ -334,13 +334,18 @@ class VideoPlayerManager(
     // Stream stall watchdog (S0936): detects a silent freeze the stream-listener's error-driven
     // recovery cannot see (no PlaybackException thrown) and heals it with a bounded re-prepare.
     internal var streamStallRunnable: Runnable? = null
-    internal var streamStallLastPosition = 0L
-    internal var streamStallPolls = 0
-    internal var streamBufferingSince = 0L
+
+    // S1513: the poll counters and the buffering deadline the watchdog used to keep as manager
+    // fields. Held here for the same reason as the recovery window below - the watchdog is a set of
+    // extension functions with no instance of its own, and this state belongs to one player session.
+    internal val streamStallRule =
+        com.sza.fastmediasorter.core.playback.resilience.StreamStallRule()
 
     // Watchdog recovery budget - separate from the error-driven behindLiveRecoveries/transientRetries
-    // in streamPlaybackListener, so a stall storm and an error storm cannot mask each other's exhaustion.
-    internal var streamWatchdogRecoveries = 0
+    // in streamPlaybackListener, so a stall storm and an error storm cannot mask each other's
+    // exhaustion. Attempts expire as a group after stable playback rather than being refilled by READY.
+    internal val streamWatchdogRecoveryWindow =
+        com.sza.fastmediasorter.ui.player.helpers.StreamStallRecoveryWindow()
 
     // True while a watchdog-triggered re-prepare is in flight, so the listener labels the resulting
     // BUFFERING as RECONNECTING (owner-ratified: same label as error-driven recovery).
@@ -359,8 +364,13 @@ class VideoPlayerManager(
 
     // S1127: the stream player's AnalyticsListener (dropped frames / decoder / TTFF / stall metrics) and
     // its aggregator, tracked so both teardown paths remove the listener symmetrically and log the summary.
-    internal var activeStreamAnalyticsListener: androidx.media3.exoplayer.analytics.AnalyticsListener? = null
+    internal var activeStreamAnalyticsListener:
+        com.sza.fastmediasorter.ui.player.helpers.StreamDiagnosticsAnalyticsListener? = null
     internal var activeStreamDiagnostics: com.sza.fastmediasorter.ui.player.helpers.StreamPlaybackDiagnostics? = null
+
+    // S1510: the periodic counterpart of the listener above. Held here for the same reason: it captures
+    // the session's player and bandwidth meter, so teardown needs a reference to stop it on both paths.
+    internal var activeStreamStatsSampler: com.sza.fastmediasorter.ui.player.helpers.StreamStatsSampler? = null
 
     // S1128: the http(s) stream player's explicit track selector and the quality step-down policy, held so
     // the stream listener can cap the video ceiling on repeated stalls and teardown can null both. RTSP

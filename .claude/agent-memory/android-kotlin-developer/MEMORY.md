@@ -2,7 +2,6 @@
 
 - [Never remove Timber.d tags while spec is BlockNeedUserTest](feedback_timber_tags_before_test.md) - tag lifecycle is bound to the status; deletion is a side effect of leaving it, never speculative
 - [noLegal features go to FEATURES_noLegal.md only](feedback_features_nolegal.md) - public FEATURES*.md is for standard/VR builds; noLegal docs live in the gitignored mirror
-- [Timestamp every chat message](feedback_timestamp_in_chat.md) - read injected `Current time:` from context, never spawn `date`/`Get-Date` to fetch it
 - [Flavor isolation: strict source-set discipline](feedback_flavor_isolation_strict.md) - VR/noLegal/lite/photos/legacy code in src/<flavor>/java/; new BuildConfig flavor guards in src/main are forbidden (Rule 14)
 - [Build gotchas](project_build_gotchas.md) - daemon-stop is a retry, not a failure; dev/CATALOG/*.jsonl+.md are gitignored; chaquopy.enabled gates all non-noLegal variants
 - [detekt baseline not a tracked input](project_detekt_baseline_not_tracked_input.md) - after editing baseline-app_v2.xml, force :app_v2:detekt --rerun-tasks or the scoped gate reads a stale detekt.xml
@@ -24,6 +23,7 @@
 - [Never call scaffolding "done"](feedback_no_scaffolding_as_done.md) - if the headline button doesn't do its job, the phase stays open; don't invite device tests for a no-op
 - [Check generated binding field types before injecting compat views](feedback_check_generated_binding_types.md) - Button vs MaterialButton crashes silently after .bind(root); read FooBinding.java first
 - [pwsh-bash dollar-escape trap](feedback_pwsh_bash_dollar_escape_trap.md) - inside bash -Command "...", `\$LASTEXITCODE` collapses to empty; use newline-separated -Command or single-quoted bash
-- [minSdk per flavor](project_minsdk_flavors.md) - standard/lite/photos = 26; legacy = 23; wear = 28; compileSdk = 35 everywhere
+- [minSdk per flavor](project_minsdk_flavors.md) - standard/lite/photos = 26; legacy = 23; wear = 28; compileSdk = 36 everywhere
 - [Author style: .. and Ё](user_author_style.md) - use `..` not `...`; always use `ё`/`Ё` in Russian where grammatically correct
 - [pwsh 7 path](feedback_pwsh_path.md) - PS7 is at /c/Program Files/PowerShell/7/pwsh.exe and is NOT on Bash PATH; use the full quoted path
+- [Bash Windows-backslash + $VAR trap](feedback_bash_windows_backslash_dollar_trap.md) - `\${TS}` in a Windows-style path eats the backslash and skips expansion, silently, exit 0; use forward slashes

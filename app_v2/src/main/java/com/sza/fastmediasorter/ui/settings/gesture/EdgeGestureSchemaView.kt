@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.settings.gesture
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PointF
@@ -32,8 +33,15 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : View(context, attrs, defStyleAttr) {
 
-    /** Live snapshot the view renders; per zone: master enable + the set of directions with an action. */
-    data class SchemaState(val zones: Map<ScreenshotGestureZone, ZoneState>) {
+    /**
+     * Live snapshot the view renders; per zone: master enable + the set of directions with an action.
+     * S1408: [selectedZone] rides the same object rather than a second setter - settings and selection
+     * change in the same frame, and two inputs into one view drift apart exactly there.
+     */
+    data class SchemaState(
+        val zones: Map<ScreenshotGestureZone, ZoneState>,
+        val selectedZone: ScreenshotGestureZone? = null,
+    ) {
         data class ZoneState(val enabled: Boolean, val assigned: Set<ScreenshotGestureDirection>)
 
         companion object {
@@ -62,9 +70,18 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
 
     private val redColor = ContextCompat.getColor(context, R.color.error_red)
     private val greyColor = resolveThemeColor(com.google.android.material.R.attr.colorOutline)
+    private val accentColor = resolveThemeColor(androidx.appcompat.R.attr.colorPrimary)
 
     private val phonePaint = strokePaint(dp(STROKE_PHONE_DP))
     private val bandPaint = strokePaint(dp(STROKE_BAND_DP))
+
+    // S1408: dashed, so the marker differs from the red indication by pattern as well as hue, and from
+    // the solid accent D-pad focus frame that arrives on the whole view.
+    private val selectionPaint = strokePaint(dp(STROKE_SELECTION_DP)).apply {
+        color = accentColor
+        pathEffect = DashPathEffect(floatArrayOf(dp(DASH_ON_DP), dp(DASH_OFF_DP)), 0f)
+    }
+    private val selectionRect = RectF()
     private val arrowPaint = strokePaint(dp(STROKE_ARROW_DP)).apply {
         strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
@@ -92,6 +109,9 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
     }
 
     fun setState(state: SchemaState) {
+        // S1408: the host pushes a fresh state on every settings emission, so an unconditional
+        // invalidate would repaint the diagram for edits it does not show.
+        if (this.state == state) return
         this.state = state
         invalidate()
     }
@@ -178,6 +198,24 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
         phonePaint.color = greyColor
         canvas.drawRoundRect(phoneRect, phoneCornerPx, phoneCornerPx, phonePaint)
         ScreenshotGestureZone.entries.forEach { zone -> drawZone(canvas, zone) }
+        state.selectedZone?.let { zone -> drawSelection(canvas, zone) }
+    }
+
+    /**
+     * S1408: the marker for the zone the open tab edits. Its rectangle is taken from the live geometry
+     * of the band and its three direction cells, so a change of axis carries it along with them instead
+     * of needing a second rule keyed on the zone's name.
+     */
+    private fun drawSelection(canvas: Canvas, zone: ScreenshotGestureZone) {
+        val band = bandRects[zone] ?: return
+        selectionRect.set(band)
+        directionOrder.forEach { direction ->
+            directionRects[zone to direction]?.let { cell -> selectionRect.union(cell) }
+        }
+        val padding = dp(SELECTION_PADDING_DP)
+        selectionRect.inset(-padding, -padding)
+        val corner = dp(SELECTION_CORNER_DP)
+        canvas.drawRoundRect(selectionRect, corner, corner, selectionPaint)
     }
 
     private fun drawZone(canvas: Canvas, zone: ScreenshotGestureZone) {
@@ -305,6 +343,11 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
         const val STROKE_PHONE_DP = 2f
         const val STROKE_BAND_DP = 3f
         const val STROKE_ARROW_DP = 2.5f
+        const val STROKE_SELECTION_DP = 1.5f
+        const val DASH_ON_DP = 4f
+        const val DASH_OFF_DP = 3f
+        const val SELECTION_PADDING_DP = 6f
+        const val SELECTION_CORNER_DP = 8f
         const val DIRECTION_COUNT = 3
         const val HALF = 0.5f
     }

@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,7 +45,7 @@ class CrashReportPromptManager(private val activity: Activity) {
             .setMessage(R.string.crash_prompt_message)
             .setPositiveButton(R.string.crash_prompt_send) { _, _ -> sendReport(crashFile) }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     private fun sendReport(crashFile: File) {

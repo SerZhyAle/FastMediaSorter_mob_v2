@@ -69,6 +69,12 @@ import javax.inject.Inject
 private const val ROTATION_STEP_DEGREES = 90
 private const val FULL_ROTATION_DEGREES = 360
 
+// Pre-existing large state holder - the constructor was already 25 dependencies over the threshold of
+// 10 and carried by the detekt baseline. S1502 adds one more, and a baseline entry keyed on the full
+// signature stops matching the moment that signature changes, so the finding resurfaces. Suppressed in
+// place rather than re-baselined, mirroring StreamsViewModel: each dependency is a distinct use case,
+// and collapsing them into a config object would add indirection without removing a single one.
+@Suppress("LongParameterList")
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -97,6 +103,9 @@ class PlayerViewModel @Inject constructor(
     // a friendly "stream unavailable" dialog with a remove-from-list action.
     private val getStreamSourceByUrlUseCase: com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase,
     private val removeStreamSourceUseCase: com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase,
+    // S1502: the play outcome left the catalog row for its own table, so the "about this channel"
+    // window has to ask for it separately instead of reading it off the resolved entity.
+    private val getStreamPlayOutcomeUseCase: com.sza.fastmediasorter.domain.usecase.streams.GetStreamPlayOutcomeUseCase,
     // S0593: record a list stream's play outcome (OK on READY, FAIL on error) for the row status bullet.
     private val recordStreamPlayOutcomeUseCase: com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase,
     // S0640: snapshot the saved stream catalog so top-panel prev/next move between channels.
@@ -104,6 +113,9 @@ class PlayerViewModel @Inject constructor(
     // S0189/S1195: persists an edited text note; the Activity used to inject this and hand it to the
     // text-viewer save flow itself.
     private val saveTextNoteUseCase: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase,
+    // S1509: tells a channel that is really dead apart from a device that simply lost its link, so a
+    // stream failing during an outage is not answered with an offer to delete the channel.
+    private val networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer,
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     /** S0189: persist [content] as [name] beside [localFile], renaming on conflict. */
@@ -195,8 +207,11 @@ class PlayerViewModel @Inject constructor(
         data class ShowVrInstallCta(val stereoMode: StereoMode) : PlayerEvent()
         object StopPlayback : PlayerEvent()
         // S0581: a list stream failed to play; the Activity shows a retry / remove-from-list dialog.
+        // S1509: [offline] means the device had no network when it failed, so the dialog explains that
+        // instead of offering to remove a channel that was never asked anything.
         data class ShowStreamUnavailable(
-            val source: com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+            val source: com.sza.fastmediasorter.data.local.db.StreamSourceEntity,
+            val offline: Boolean,
         ) : PlayerEvent()
         // S0162: fired when the player-level rotation sensor toggle is changed
         data class RotationSensorToggled(val sensorEnabled: Boolean) : PlayerEvent()
@@ -279,14 +294,29 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val source = getStreamSourceByUrlUseCase(url)
             if (source != null) {
-                // S0593: a saved stream that failed to play here -> record the red status.
-                recordStreamPlayOutcomeUseCase(source.id, ok = false)
-                sendEvent(PlayerEvent.ShowStreamUnavailable(source))
+                // S1509: one connectivity sample feeds both the recorded outcome and the dialog, so the
+                // row bullet and the buttons cannot disagree about what just failed.
+                val hasNetwork = networkContextAnalyzer.hasAnyNetwork()
+                // S0593/S1509: red when the channel is to blame, amber when the device had no link.
+                recordStreamPlayOutcomeUseCase.recordPlayFailure(source.id, hasNetwork)
+                sendEvent(PlayerEvent.ShowStreamUnavailable(source, offline = !hasNetwork))
             } else {
                 sendEvent(PlayerEvent.ShowError(appContext.getString(R.string.error_playback_failed)))
             }
         }
     }
+
+    /**
+     * S1474: the stored channel behind a playing url, or null when it is not in the list.
+     *
+     * A read with no side effect, unlike the two callers above it - the "about this channel" window shows
+     * what is stored and records nothing.
+     */
+    suspend fun streamSourceByUrl(url: String): com.sza.fastmediasorter.data.local.db.StreamSourceEntity? =
+        getStreamSourceByUrlUseCase(url)
+
+    /** S1502: the last recorded outcome of a stored channel, for the same window. Also side-effect free. */
+    suspend fun streamPlayOutcome(id: String): String? = getStreamPlayOutcomeUseCase(id)
 
     /** S0581: remove a dead stream from the local list after the user confirms in the dialog. */
     fun removeStreamSource(source: com.sza.fastmediasorter.data.local.db.StreamSourceEntity) {
@@ -297,7 +327,7 @@ class PlayerViewModel @Inject constructor(
     fun recordStreamPlayOk(url: String) {
         viewModelScope.launch {
             val source = getStreamSourceByUrlUseCase(url) ?: return@launch
-            recordStreamPlayOutcomeUseCase(source.id, ok = true)
+            recordStreamPlayOutcomeUseCase.recordPlaySuccess(source.id)
         }
     }
 
@@ -756,9 +786,17 @@ class PlayerViewModel @Inject constructor(
      * State-only; the host reads [PlayerState.sessionRotationAngle] and applies it to the live surface
      * (video effect + image view). Not persisted; the screen sensor and file bytes are untouched.
      */
-    fun rotateSession90() {
+    fun rotateSession90() = rotateSessionBy(ROTATION_STEP_DEGREES)
+
+    /** S1364: the counter-clockwise twin of [rotateSession90] (0->270->180->90->0). */
+    fun rotateSessionCounter90() = rotateSessionBy(-ROTATION_STEP_DEGREES)
+
+    // Kotlin's % keeps the dividend's sign, so a negative step would store a negative angle and the
+    // host applies sessionRotationAngle absolutely. The second modulo folds it back into 0..359.
+    private fun rotateSessionBy(stepDegrees: Int) {
         updateState {
-            it.copy(sessionRotationAngle = (it.sessionRotationAngle + ROTATION_STEP_DEGREES) % FULL_ROTATION_DEGREES)
+            val next = (it.sessionRotationAngle + stepDegrees) % FULL_ROTATION_DEGREES
+            it.copy(sessionRotationAngle = (next + FULL_ROTATION_DEGREES) % FULL_ROTATION_DEGREES)
         }
     }
 

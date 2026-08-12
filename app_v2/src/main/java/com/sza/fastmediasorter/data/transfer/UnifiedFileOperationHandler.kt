@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.transfer
 
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.capability.RemoteSourceId
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.transfer.FileOperationErrorHandler
@@ -9,6 +10,7 @@ import com.sza.fastmediasorter.domain.transfer.FileTransferProvider
 import com.sza.fastmediasorter.domain.transfer.ProgressTracker
 import com.sza.fastmediasorter.domain.transfer.TempFileManager
 import com.sza.fastmediasorter.domain.transfer.generateOperationId
+import com.sza.fastmediasorter.domain.usecase.GetDestinationFreeSpaceUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -36,6 +38,8 @@ class UnifiedFileOperationHandler @Inject constructor(
     private val remoteSourceGate: RemoteSourceAvailabilityGate,
     // S1325: whole-tree transfer for the source/destination pair no single strategy can serve.
     private val directoryTreeTransferManager: DirectoryTreeTransferManager,
+    // S1378: free space of the volume that receives the data, not of built-in storage.
+    private val getDestinationFreeSpace: GetDestinationFreeSpaceUseCase,
 ) {
     
     // Providers map (will be populated as providers are created)
@@ -76,7 +80,14 @@ class UnifiedFileOperationHandler @Inject constructor(
             if (cancelFlag()) {
                 return@withContext Result.failure(Exception("Operation cancelled"))
             }
-            
+
+            // S1378: single-file pre-flight. executeMove copies through here before it deletes the
+            // source, so this covers the move too - the copy coexists with the original until then.
+            refuseWhenCannotFit(destResource.path, sourceFile.size)?.let {
+                Timber.w("executeCopy refused: ${it.reason}")
+                return@withContext Result.failure(it)
+            }
+
             val sourceProvider = getProvider(sourceFile.path)
             val destProvider = getProvider(destResource.path)
             
@@ -111,14 +122,17 @@ class UnifiedFileOperationHandler @Inject constructor(
                 )
             }
             
-            progressTracker.clearOperation(operationId)
             result
-            
+
         } catch (e: Exception) {
-            progressTracker.clearOperation(operationId)
+            e.rethrowIfCancellation()
             val errorMsg = errorHandler.handleError(e, "copy", sourceFile.path, destResource.path)
             Timber.e(e, "Copy failed: $errorMsg")
             Result.failure(Exception(errorMsg, e))
+        } finally {
+            // Cleanup moved out of the two exit paths so a cancelled copy also drops its progress
+            // entry - re-throwing cancellation above would otherwise skip the catch-side cleanup.
+            progressTracker.clearOperation(operationId)
         }
     }
     
@@ -194,6 +208,7 @@ class UnifiedFileOperationHandler @Inject constructor(
             )
             
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             val errorMsg = errorHandler.handleError(e, "move", sourceFile.path, destResource.path)
             Timber.e(e, "Move failed: $errorMsg")
             Result.failure(Exception(errorMsg, e))
@@ -219,6 +234,7 @@ class UnifiedFileOperationHandler @Inject constructor(
             return@withContext provider.renameFile(filePath, newPath)
             
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             val errorMsg = errorHandler.handleError(e, "rename", filePath, newName)
             Timber.e(e, "Rename failed: $errorMsg")
             return@withContext Result.failure(Exception(errorMsg, e))
@@ -235,6 +251,7 @@ class UnifiedFileOperationHandler @Inject constructor(
         try {
             executeSoftDelete(filePath, resource)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             val errorMsg = errorHandler.handleError(e, "delete", filePath)
             Timber.e(e, "Delete failed: $errorMsg")
             Result.failure(Exception(errorMsg, e))
@@ -254,6 +271,7 @@ class UnifiedFileOperationHandler @Inject constructor(
             val provider = getProvider(path)
             provider.createDirectory(path)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             val errorMsg = errorHandler.handleError(e, "create_directory", path)
             Timber.e(e, "Create directory failed: $errorMsg")
             Result.failure(Exception(errorMsg, e))
@@ -279,6 +297,7 @@ class UnifiedFileOperationHandler @Inject constructor(
             val strategy = getStrategy(parentPath)
             strategy.createTextFile(parentPath, fileName, content, resourceId)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             val errorMsg = errorHandler.handleError(e, "create_text_file", parentPath)
             Timber.e(e, "Create text file failed: $errorMsg")
             Result.failure(Exception(errorMsg, e))
@@ -464,6 +483,7 @@ class UnifiedFileOperationHandler @Inject constructor(
             val strategy = getStrategy(dirPath)
             strategy.deleteDirectory(dirPath, progressCallback)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             val msg = errorHandler.handleError(e, "delete_directory", dirPath)
             Timber.e(e, "Delete directory failed: $msg")
             Result.failure(Exception(msg, e))
@@ -485,6 +505,7 @@ class UnifiedFileOperationHandler @Inject constructor(
             val newPath = "$parentDir/$newName"
             strategy.renameDirectory(oldPath, newPath)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             val msg = errorHandler.handleError(e, "rename_directory", oldPath, newName)
             Timber.e(e, "Rename directory failed: $msg")
             Result.failure(Exception(msg, e))
@@ -511,7 +532,8 @@ class UnifiedFileOperationHandler @Inject constructor(
             val sourceProtocol = getProtocolKey(sourcePath)
             val destProtocol = getProtocolKey(destParentPath)
             val dirName = sourcePath.trimEnd('/').substringAfterLast('/')
-            val destination = if (destParentPath.endsWith('/')) "$destParentPath$dirName" else "$destParentPath/$dirName"
+            val destination =
+                if (destParentPath.endsWith('/')) "$destParentPath$dirName" else "$destParentPath/$dirName"
             if (sourceProtocol != destProtocol) {
                 requireSourceEnabled(sourcePath)
                 directoryTreeTransferManager.copyTree(sourcePath, destination, progressCallback)
@@ -522,6 +544,7 @@ class UnifiedFileOperationHandler @Inject constructor(
             Timber.w(e, "executeCopyDirectory: unsupported operation")
             Result.failure(e)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             val msg = errorHandler.handleError(e, "copy_directory", sourcePath, destParentPath)
             Timber.e(e, "Copy directory failed: $msg")
             Result.failure(Exception(msg, e))
@@ -548,7 +571,8 @@ class UnifiedFileOperationHandler @Inject constructor(
             val sourceProtocol = getProtocolKey(sourcePath)
             val destProtocol = getProtocolKey(destParentPath)
             val dirName = sourcePath.trimEnd('/').substringAfterLast('/')
-            val destination = if (destParentPath.endsWith('/')) "$destParentPath$dirName" else "$destParentPath/$dirName"
+            val destination =
+                if (destParentPath.endsWith('/')) "$destParentPath$dirName" else "$destParentPath/$dirName"
             if (sourceProtocol != destProtocol) {
                 requireSourceEnabled(sourcePath)
                 directoryTreeTransferManager.moveTree(sourcePath, destination, progressCallback)
@@ -559,6 +583,7 @@ class UnifiedFileOperationHandler @Inject constructor(
             Timber.w(e, "executeMoveDirectory: unsupported operation")
             Result.failure(e)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             val msg = errorHandler.handleError(e, "move_directory", sourcePath, destParentPath)
             Timber.e(e, "Move directory failed: $msg")
             Result.failure(Exception(msg, e))
@@ -570,15 +595,11 @@ class UnifiedFileOperationHandler @Inject constructor(
      * so a refused operation never creates a partial structure at the destination and the caller
      * gets a reason it can turn into a specific message instead of a generic failure toast.
      */
-    private fun refuseUnsafeDirectoryOperation(
+    private suspend fun refuseUnsafeDirectoryOperation(
         sourcePath: String,
         destParentPath: String,
         isMove: Boolean,
     ): DirectoryOperationRefusal? = when {
-        isDocumentTreeDestination(destParentPath) -> DirectoryOperationRefusal(
-            DirectoryOperationRefusal.Reason.DESTINATION_NOT_SUPPORTED,
-            "Directory operations cannot address a document-tree destination: $destParentPath",
-        )
         isDestinationInsideSource(sourcePath, destParentPath) -> DirectoryOperationRefusal(
             DirectoryOperationRefusal.Reason.DESTINATION_INSIDE_SOURCE,
             "Destination $destParentPath is the source directory $sourcePath or lives inside it",
@@ -590,12 +611,48 @@ class UnifiedFileOperationHandler @Inject constructor(
             DirectoryOperationRefusal.Reason.SAME_LOCATION,
             "Target $destParentPath already holds the source directory $sourcePath (move=$isMove)",
         )
-        else -> null
+        else -> refuseWhenCannotFit(destParentPath, sourceTreeSize(sourcePath))
     }
 
-    /** A document-tree URI has no filesystem path, and the local strategy addresses paths only. */
-    private fun isDocumentTreeDestination(destParentPath: String): Boolean =
-        destParentPath.startsWith("content:")
+    /**
+     * S1378: refusal when [requiredBytes] does not fit at [destPath]. Null on every uncertainty -
+     * unknown size, unmeasurable destination - because an operation the check cannot judge must
+     * still run; only a measured shortfall may stop it.
+     */
+    private suspend fun refuseWhenCannotFit(
+        destPath: String,
+        requiredBytes: Long?,
+    ): DirectoryOperationRefusal? {
+        Timber.d("S1378: destination space pre-flight for %s", destPath)
+        val needed = requiredBytes?.takeIf { it > 0 }
+        val freeBytes = needed?.let { getDestinationFreeSpace(destPath) }
+        return if (needed == null || freeBytes == null || needed <= freeBytes) {
+            null
+        } else {
+            DirectoryOperationRefusal(
+                DirectoryOperationRefusal.Reason.INSUFFICIENT_SPACE,
+                "Destination $destPath holds $freeBytes free bytes, the operation needs $needed",
+                // Second lookup, but only on the refusal path: naming the medium is worth one more
+                // registry read when the operation is already stopping.
+                destinationLabel = getDestinationFreeSpace.volumeFor(destPath)?.displayName,
+                missingBytes = needed - freeBytes,
+            )
+        }
+    }
+
+    /**
+     * Bytes the source tree occupies, or null when its protocol cannot report them.
+     *
+     * Goes through the strategy rather than walking the filesystem here, so a tree on a document
+     * provider is measured too - a copy *off* a card would otherwise never be fit-checked. The map
+     * is read directly instead of through [getStrategy]: the pre-flight must not trip the
+     * source-availability gate, which belongs to the operation and not to this measurement.
+     */
+    private suspend fun sourceTreeSize(sourcePath: String): Long? =
+        operationStrategies[getProtocolKey(sourcePath)]
+            ?.getDirectoryInfo(sourcePath)
+            ?.getOrNull()
+            ?.totalSize
 
     private fun isDestinationInsideSource(sourcePath: String, destParentPath: String): Boolean =
         asDirectoryPrefix(destParentPath).startsWith(asDirectoryPrefix(sourcePath))
@@ -619,13 +676,7 @@ class UnifiedFileOperationHandler @Inject constructor(
             ?: throw IllegalStateException("No FileOperationStrategy registered for protocol: $key")
     }
 
-    private fun getProtocolKey(path: String): String = when {
-        path.startsWith("smb://") -> "smb"
-        path.startsWith("sftp://") -> "sftp"
-        path.startsWith("ftp://") -> "ftp"
-        path.startsWith("cloud://") -> "cloud"
-        else -> "local"
-    }
+    private fun getProtocolKey(path: String): String = transferProtocolKeyFor(path)
 }
 
 /**
@@ -635,11 +686,15 @@ class UnifiedFileOperationHandler @Inject constructor(
 class DirectoryOperationRefusal(
     val reason: Reason,
     message: String,
+    // S1378: what the user needs to be told - which medium refused and by how much. Optional
+    // because only the space refusal measures anything; the other reasons name no quantity.
+    val destinationLabel: String? = null,
+    val missingBytes: Long? = null,
 ) : Exception(message) {
     enum class Reason {
         DESTINATION_INSIDE_SOURCE,
         SAME_LOCATION,
-        DESTINATION_NOT_SUPPORTED,
+        INSUFFICIENT_SPACE,
     }
 }
 

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase
 import android.content.Context
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -69,6 +70,7 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
                 )
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to get backup info")
             Result.failure(e)
         }
@@ -110,6 +112,7 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
             Timber.e(e, "Backup file is corrupted")
             Result.failure(Exception("Backup file is damaged. Cannot restore."))
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Restore from Google Drive failed")
             Result.failure(e)
         }

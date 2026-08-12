@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.ui.common.support.SupportDestination
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.dialog.DestinationPickerDialog
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
+import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -124,7 +125,7 @@ class GeneralSettingsLogHelper(
                 Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     fun shareLogs() {
@@ -223,7 +224,7 @@ class GeneralSettingsLogHelper(
             .setMessage(R.string.save_logs_not_supported)
             .setPositiveButton(R.string.share) { _, _ -> shareLogs() }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundTo(fragment)
     }
 
     private fun buildDeviceSummary(): String {

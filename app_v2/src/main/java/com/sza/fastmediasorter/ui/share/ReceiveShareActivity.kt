@@ -41,6 +41,7 @@ import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import com.sza.fastmediasorter.ui.share.helpers.AccountSelectionManager
+import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.worker.LinkDownloadProgressCodec
 import com.sza.fastmediasorter.worker.LinkDownloadWorker
 import dagger.hilt.android.AndroidEntryPoint
@@ -378,7 +379,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                         processLinkAutoDownload(url, accountId = null, isAuthRetry = true)
                     }
                 }
-                .show()
+                .showBoundToHost(this@ReceiveShareActivity)
         }
     }
 
@@ -765,10 +766,12 @@ class ReceiveShareActivity : AppCompatActivity() {
     // ── Lifecycle helpers ────────────────────────────────────────────────────
 
     private fun showLoadingDialog(): AlertDialog {
-        return AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setMessage(R.string.receive_share_preparing)
             .setCancelable(false)
-            .show()
+            .create()
+        dialog.showBoundToHost(this@ReceiveShareActivity)
+        return dialog
     }
 
     private fun cleanupAndFinish() {
@@ -837,6 +840,6 @@ class ReceiveShareActivity : AppCompatActivity() {
                 if (cctChecker.isAvailable()) onRetry() else showCctUnavailableDialog(onRetry)
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(this@ReceiveShareActivity)
     }
 }

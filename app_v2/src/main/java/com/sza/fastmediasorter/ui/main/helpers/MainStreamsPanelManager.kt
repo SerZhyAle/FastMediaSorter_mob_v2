@@ -46,6 +46,9 @@ class MainStreamsPanelManager(
     private val settingsRepository: SettingsRepository,
     // S0809: collapsed representation is a chip in the shared collapsed-panels row, not an in-panel strip.
     private val collapsedChip: View,
+    // S1443: the chip may live in the command bar rather than the collapsed row, so whoever places it
+    // has to learn that this panel's chip appeared or vanished.
+    private val onChipVisibilityChanged: () -> Unit = {},
 ) {
 
     // S0808: availability (owned by MainActivity) + collapsed (owned here) drive the content<->strip swap.
@@ -125,6 +128,7 @@ class MainStreamsPanelManager(
         val (channelsVisible, hintVisible) = resolveContentSlot(contentVisible, pinnedEmpty)
         panel.rvStreamChannels.isVisible = channelsVisible
         panel.tvStreamsPanelEmptyHint.isVisible = hintVisible
+        onChipVisibilityChanged()
     }
 
     /** S0808: entry menu "Collapse panel" (true) and strip tap (false); persists + re-applies visibility. */

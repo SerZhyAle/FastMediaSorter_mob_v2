@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1175: the map gadget. Sized by the desktop grid like every gadget, so nothing here sets a fixed
+     height. No layout-land counterpart, for the same reason as gadget_launcher_weather.xml: a gadget
+     cell is measured by the desktop grid, not by the orientation. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <ImageView
+        android:id="@+id/gadgetMapImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        tools:src="@drawable/ic_map" />
+
+    <!-- The marker is drawn by us, not baked into the tile: the tile is a plain square of map and
+         carries no indication of which point inside it the user is standing on. -->
+    <ImageView
+        android:id="@+id/gadgetMapMarker"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_pin"
+        android:tint="?attr/colorPrimary"
+        android:visibility="gone"
+        tools:ignore="UseAppTint"
+        tools:visibility="visible" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="?attr/colorSurface"
+        android:orientation="vertical"
+        android:padding="@dimen/margin_small">
+
+        <TextView
+            android:id="@+id/gadgetMapLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="12sp"
+            tools:text="49.8397, 24.0297" />
+
+        <!-- Never colour alone: the offline and no-permission states must read as words for anyone
+             who cannot tell a dimmed tile from a fresh one. -->
+        <TextView
+            android:id="@+id/gadgetMapMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="11sp"
+            android:visibility="gone"
+            tools:text="Location permission is off"
+            tools:visibility="visible" />
+
+        <!-- The tile licence obliges us to name the source; it is part of the gadget, not a debug label. -->
+        <TextView
+            android:id="@+id/gadgetMapAttribution"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="9sp"
+            tools:text="© OpenStreetMap contributors" />
+
+    </LinearLayout>
+</merge>

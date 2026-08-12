@@ -74,6 +74,16 @@ object SettingsDocScopeCatalog {
             "translation",
             SettingsSearchDestination.MEDIA,
             ""
+        ),
+        // S1433: the GNSS track opt-in lives inside the Network Monitor's Satellites section, not on a
+        // settings screen, so hostKey stays empty. It is registered as its own one-row layout rather than
+        // as the whole GNSS fragment: this scan also indexes MaterialButtons, and the fragment's share
+        // button is an action, not a setting.
+        DocScopeSurface(
+            R.layout.view_network_monitor_gnss_track,
+            "networkMonitor",
+            SettingsSearchDestination.OPERATIONS,
+            ""
         )
     )
 

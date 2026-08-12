@@ -19,9 +19,11 @@ import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.StereoDetector
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -209,8 +211,8 @@ class BrowseEventHandler(
 
     private fun showLocalNetworkPermissionRationale() {
         MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.local_network_permission_rationale_title)
-            .setMessage(R.string.local_network_permission_rationale_message)
+            .setTitle(R.string.permissions_required_title)
+            .setMessage(activity.permissionRationale(PermissionHelper.LOCAL_NETWORK_PERMISSION))
             .setPositiveButton(R.string.local_network_permission_open_settings) { _, _ ->
                 if (PermissionHelper.isLocalNetworkRuntimePermissionExpected()) {
                     PermissionHelper.requestLocalNetworkPermission(activity)
@@ -219,7 +221,7 @@ class BrowseEventHandler(
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     private fun launchPermissionRequest(pendingIntent: PendingIntent) {

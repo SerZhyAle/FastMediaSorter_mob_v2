@@ -5,7 +5,7 @@
 
 ## Module Structure
 - `root/`
-  - `app_v2/`: Kotlin, View System + Material3, `compileSdk 35`.
+  - `app_v2/`: Kotlin, View System + Material3, `compileSdk 36`.
   - `wear/`: Wear OS, Compose.
   - `dev/`: Scripts, specs.
   - `dev/archive/`: READ-ONLY archive.
@@ -210,6 +210,16 @@ Payloads carry Bundle primitives. Where a value is a domain object, put its fiel
 
 One accepted limitation: when the opening host is a plain `AlertDialog` rather than a `DialogFragment`, the host itself does not survive recreation, so a pick made after recreation is delivered the next time that picker is opened rather than immediately. Making such a host a `DialogFragment` is a separate change per surface.
 
+## Dialog Lifecycle Binding (MANDATORY)
+
+A dialog raised from a helper, manager or any other non-`DialogFragment` holder is shown with `AlertDialog.Builder.showBoundTo(fragment)` (`util/LifecycleDialogExt.kt`), never with a bare `.show()`. The extension registers a lifecycle observer that dismisses the dialog on `ON_DESTROY`, so the window cannot outlive the host. A site that needs the dialog before showing it calls `create()` and then the same `showBoundTo(owner)` on the created `AlertDialog`.
+
+The rule has a ratchet gate behind it: `scripts/quality/assert-untracked-dialogs.ps1` counts builder chains ending in a bare `.show()` across every shipped source set and fails when the count grows. It runs inside `post-change.ps1` through the source-gate runner, so a new untracked dialog fails closure rather than waiting to be noticed in review (S1456).
+
+A bare `.show()` discards the returned `AlertDialog`, which leaves nothing able to close it: a dialog still on screen during a configuration change keeps the destroyed Fragment and Activity alive. The predecessor fix (S1197) tracked the dialog by hand - a field in the helper, a dismiss method, a call from the host `onDestroy` - and that shape needs three coordinated edits per dialog, which is why it was never applied beyond the one helper it was written for while 34 untracked dialogs accumulated in the settings helpers alone (S1447).
+
+Exempt: a `DialogFragment`, whose `FragmentManager` already dismisses it, and OS/system dialogs we do not own.
+
 ## Standalone Player Toolbar Order (MANDATORY)
 
 The four standalone hosts (`PhotoVideoStandaloneActivity`, `TextStandaloneActivity`, `DocumentStandaloneActivity`, `AudioStandaloneActivity`) share ONE top-toolbar button order so a file feels the same whichever host opened it (S0920). Each host declares its own `activity_standalone_*.xml` (portrait + `layout-land/`), so there is no single shared layout to enforce this - a new host or an edit must follow the order by hand.
@@ -243,6 +253,7 @@ Dedicated screen for internet audio/video/RTSP sources. Architectural boundaries
 - **Video/RTSP**: delegates to the existing fullscreen player. `VideoPlayerManager` routes `HTTP_STREAM`/`RTSP_STREAM` to `playStreamVideo` (`StreamPlaybackHelper`), which builds the ExoPlayer media source through `StreamDataSourceFactoryProvider` with a per-session `BandwidthAdaptiveLoadControl` (HLS/DASH/progressive; RTSP where the build's media stack supports it, logged when not). `NetworkAwareMediaSourceFactory` is the audio-service factory (`AudioPlaybackService`/`AudioServiceController`), not the fullscreen-video path.
 - **Stream thumbnails**: both the grid snapshot engine and the fullscreen player's one-shot `TextureView` capture pass decoded frames to `StreamFrameIngestor`. The shared owner rejects empty/recycled or nearly-black frames, then updates `StreamFrameCache` and `StreamFramePersistentStore`. A successful fullscreen adoption returns the stream URL through the Activity Result API so `StreamsActivity` repaints only the matching grid tile; persistence keeps that frame available after restart.
 - **Data flow**: `StreamsViewModel` -> `ImportStreamCatalogUseCase` (with `StreamCatalogCsvParser`, `StreamMediaKindClassifier`, `FaviconAtlasStore`) -> `StreamSourceRepository` -> `StreamSourceDao` / `StreamSourceEntity` (Room). The catalog ships as a mutable GitHub Release asset (`delivery/stream-catalog/`), fetched over HTTP, parsed, and merged de-duplicated by URL.
+- **Play-outcome side channel (S1502)**: the green/red/amber row status is NOT part of the list state. It lives in its own table, `stream_play_outcome`, reached through `StreamPlayOutcomeDao` -> `StreamSourceRepository.observePlayOutcomes()` -> `ObserveStreamPlayOutcomesUseCase` -> a `StreamsViewModel.playOutcomes` StateFlow the Activity pushes into all four adapters, which repaint only the affected rows. The split exists because Room invalidates per table, not per column: while the outcome sat on the catalog row, every finished reachability probe re-emitted all ~20k rows and forced a full filter, sort and diff pass. The one-shot read for the channel-info window goes through `GetStreamPlayOutcomeUseCase` instead, since that surface renders once and observes nothing.
 - **Catalog import**: `ImportStreamCatalogUseCase` enforces a connect+read timeout; fails fast on dead/slow-trickle host instead of blocking indefinitely.
 - **Flavor scope**: standard/legacy/noLegal/vr - HLS, DASH VOD, RTSP, progressive HTTP/ICY (`SUPPORT_STREAMS=true`); lite/photos - feature absent, no entry point (`SUPPORT_STREAMS=false`, lite hidden by S0575).
 - **Public cleartext**: `android:usesCleartextTraffic` allowed for internet radio (most streams are http://).
@@ -275,6 +286,26 @@ Immersive VR is a flavor-scoped subsystem: code lives in `app_v2/src/vr/` (packa
 **Re-entry.** The `XrInstance` is reused across immersive entry/exit. On re-entry `xrCreateSession` runs before Meta Horizon OS re-registers the volumetric window, so the render thread awaits window focus before `startSession`; otherwise the runtime defers readiness and never fires the native ready callback.
 
 Related specs: S0249 (render thread), S0290 / S0964 (HUD quad), S0156 (native library-availability ADR), S0986 (immersive subtitles). VR classes are indexed in the class catalog under `ui/xr` and `core/xr`.
+
+## Launcher Mode
+
+Launcher Mode turns the app into an Android home screen: a cell desktop, a bottom taskbar with a status tray, and placeable gadgets. It is the most restricted subsystem here - more than VR, not less - because it needs **two** independent conditions, a flavor that compiles it and a role only the user can grant.
+
+**Entry and gating.** `LauncherHomeActivity` carries the HOME intent filter and ships `android:enabled="false"`. `LauncherRoleManager` owns the role protocol: it flips that component with `PackageManager.setComponentEnabledSetting`, then asks for the role through `RoleManager.createRequestRoleIntent` on API 29+, or sends the user to `Settings.ACTION_HOME_SETTINGS` below it. Android never hands the HOME role over programmatically - enabling the component only makes the app a *candidate*, and the user chooses. Anything that reasons about "is the launcher active" must ask the role manager, not a build flag. One secondary entry point ships enabled regardless: `LauncherPinRequestActivity`, the `CONFIRM_PIN_SHORTCUT` target other apps use to pin a shortcut into our desktop.
+
+**Flavor seam.** `SUPPORT_LAUNCHER` is true in `standard` and `noLegal` only. Those two flavors mount `src/launcherEnabled` (the entire `ui/launcher/**` tree, its `res`, and an explicitly injected manifest); the rest mount `src/launcherDisabled`, which holds nothing but a no-op `LauncherModeContract` implementation and its Hilt module. The domain and data layers stay in `src/main` and therefore compile into every flavor, self-hiding at runtime through `LauncherModeContract.isAvailableInBuild` - the same shape as Desktop Companion Config above. Per Rule 14 there is no `BuildConfig.SUPPORT_LAUNCHER` branch in `src/main`; the single production read of that flag is the permission registry, which uses it to gate rationale rows.
+
+**Desktop model.** Cells live in one Room table, with `kind` and `orientation` stored as enum names and the command encoded into a single prefixed TEXT column, so a new command variant never forces a migration. Portrait and landscape are **two fully independent layouts**, not one layout re-flowed: every repository call is scoped to a `LauncherOrientation`, and the resolved column count is stored per orientation too. A cell is an anchor plus a span, so gaps between cells are meaningful and a gadget claims a rectangle.
+
+**First-run starter set.** An empty desktop is seeded once from `LauncherStarterSets`, the single profile table for what a detected device profile receives. Third-party app cells are conditional on the matching package being installed, so a first seed never leaves a dead app icon; existing desktops are not rewritten when the profile changes. The set is packed **per section, not across the whole grid**: a section header raises a packing floor to its own row, and nothing seeded after it may anchor above that row. The floor is a correctness rule before it is an aesthetic one, because section membership is positional - a cell that backfilled the gap a shorter group left behind would belong to the section above it and collapse with it. Content leads the set and the launcher's own actions close it, so the first screen of a phone carries the media resources rather than five service shortcuts; the actions stay reachable from the Start menu, which is what makes that order safe.
+
+**Grid.** The desktop is a hand-written `ViewGroup`, deliberately not a `RecyclerView` (ADR-9): the persisted model is a canvas with 2D positions, spans and meaningful gaps, which no stock `LayoutManager` expresses - and a desktop is dozens of cells, not a feed, so recycling buys nothing while costing the model. Column count resolves from available width and a user density factor within a fixed range; height is the scroll axis. All footprint arithmetic funnels through one geometry helper precisely so layout, hit-testing and the free-slot sweep cannot disagree. Drag-to-move uses a container-level `OnDragListener` with `startDragAndDrop` rather than `ItemTouchHelper`, which is RecyclerView-only for the same ADR-9 reason.
+
+**Gadgets.** A gadget is an interactive block the user places on the desktop, and it is always **our own view - never a third-party `AppWidget`** (ADR-5): hosting foreign widgets means foreign layout outside our control and breaks the D-pad contract, so instead the pre-existing home-screen widget catalog is *bridged* into gadgets rather than duplicated. The registry is an open extension point fed by qualified Hilt list multibindings; treat the set of gadgets as growing, and read the current membership from the registry rather than from any document. Gadget lifecycle is enforced in one place: the view starts its work in `onActive` under `repeatOnLifecycle(STARTED)` and cancels on detach, because the grid is not a `RecyclerView` and there is no `onViewRecycled` to lean on.
+
+**Taskbar and command funnel.** The taskbar is bottom-anchored in both orientations, hosting the Start button, the recents and pinned strips, and the status tray. Each tray indicator subscribes to its source *only* while that indicator is switched on and the launcher owns the status area, and going false cancels the collector rather than merely hiding the view; an indicator whose state cannot be read is absent rather than drawn as "off". Every tap on every surface - desktop cell, either taskbar strip, Start menu row, gadget-issued command - funnels through a single guarded execution path on the launcher's ViewModel, so there is exactly one launch guard and one failure message, and a gadget never builds a parallel one.
+
+Related specs: S0404 (the founding ADR set, archived), S1103 (cell actions), S1170 (widget-to-gadget bridge), S1415 (tray composition), S1461 (this section), S1587 (per-section seeding floor and content-first order). Launcher classes are indexed in the class catalog under the `launcher` sector.
 
 ## Performance & Resource Optimization
 

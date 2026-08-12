@@ -4,6 +4,8 @@ import android.content.Context
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
+import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
+import com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
@@ -14,10 +16,9 @@ import com.sza.fastmediasorter.data.transfer.local.MediaStoreLocalDestinationWri
 import com.sza.fastmediasorter.data.transfer.strategy.CloudOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.FtpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
+import com.sza.fastmediasorter.data.transfer.strategy.SafOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
-import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
-import com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import dagger.Module
 import dagger.Provides
@@ -47,6 +48,16 @@ object DirectoryStrategyModule {
         @ApplicationContext context: Context,
         stagingRegistry: LocalStagingRegistry,
     ): FileOperationStrategy = LocalOperationStrategy(context, stagingRegistry)
+
+    // S1378: document-tree addresses. Keyed "saf" so a content:// path stops being dispatched to the
+    // local strategy, which declares it does not support content:/ in the first place.
+    @Provides
+    @Singleton
+    @IntoMap
+    @StringKey("saf")
+    fun provideSafDirectoryStrategy(
+        @ApplicationContext context: Context,
+    ): FileOperationStrategy = SafOperationStrategy(context)
 
     @Provides
     @Singleton

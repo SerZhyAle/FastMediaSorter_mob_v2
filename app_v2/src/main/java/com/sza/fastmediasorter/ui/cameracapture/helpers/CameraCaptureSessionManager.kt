@@ -30,11 +30,16 @@ import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraLensEntry
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -77,6 +82,14 @@ class CameraCaptureSessionManager(
     private val probe = CameraCapabilityProbe()
 
     private var extensionsManager: ExtensionsManager? = null
+
+    /**
+     * S1579: extension availability per "lens id + video mode". CameraX reads the vendor extension
+     * config from disk on every `isExtensionAvailable`, and every rebind - settings apply, mode
+     * switch, lens switch - asked again for an answer that cannot change between binds. Concurrent
+     * because the host warms it off the main thread while binds read it on the main thread.
+     */
+    private val offeredExtensionsCache = ConcurrentHashMap<String, CameraExtensionSelector.Intents>()
 
     /** True when the active lens exposes the CameraX NIGHT extension; drives the extension vs fallback path. */
     private var nightExtensionAvailable = false
@@ -126,6 +139,18 @@ class CameraCaptureSessionManager(
 
     /** S0753: digital (crop) zoom factor on top of the optical/CameraX max; 1 = no digital crop. */
     private var digitalZoomFactor = 1f
+
+    /**
+     * S1457: lens id of the last successful bind. A rebind on the SAME lens must keep the zoom the
+     * user dialled in; a lens switch must not, because the new optics own their zoom range.
+     */
+    private var lastBoundLensId: String? = null
+
+    // S1457: the optical ratio the user last asked for on the bound lens. A rebind cannot read this back
+    // from the session: in video mode this handset answers zoomState with 1.0 while its own preview is
+    // genuinely zoomed, so carrying zoomState across photo -> video -> photo returned the user to 1x.
+    // Cleared on a lens change, where starting at the new lens default is the wanted behaviour.
+    private var requestedZoomRatio: Float? = null
 
     /**
      * Off-main thread for the digital-zoom JPEG crop so capture never blocks the UI. Created lazily on
@@ -185,12 +210,19 @@ class CameraCaptureSessionManager(
                     extFuture.addListener(
                         {
                             extensionsManager = runCatching { extFuture.get() }.getOrNull()
-                            runCatching {
-                                bindToLifecycle(provider, previewView)
-                                onReady()
-                            }.onFailure { error ->
-                                Timber.e(error, "CameraCaptureSessionManager: bind failed")
-                                onError(error)
+                            // S1579: the first bind asked the vendor extension config from disk on the
+                            // main thread, and a warm-up started from onReady can never overtake it.
+                            // Only the pair this bind will ask for is warmed here - warming every pair
+                            // would hold the first preview frame for the cost of all of them.
+                            lifecycleOwner.lifecycleScope.launch {
+                                withContext(Dispatchers.IO) { warmOfferedExtensions(onlyActiveLens = true) }
+                                runCatching {
+                                    bindToLifecycle(provider, previewView)
+                                    onReady()
+                                }.onFailure { error ->
+                                    Timber.e(error, "CameraCaptureSessionManager: bind failed")
+                                    onError(error)
+                                }
                             }
                         },
                         ContextCompat.getMainExecutor(context),
@@ -257,8 +289,11 @@ class CameraCaptureSessionManager(
      */
     @SuppressLint("MissingPermission")
     private fun bindLens(provider: ProcessCameraProvider, preview: PreviewView, targetIndex: Int) {
-        if (targetIndex == activeCameraIndex) return
-        activeCameraIndex = targetIndex
+        // S1479: resolved here as well as in the bind itself, so cycling onto a sub-lens the video
+        // pipeline cannot carry is a no-op instead of a rebind that drops every per-lens intent.
+        val resolvedIndex = availableLenses.bindableIndex(targetIndex, videoMode)
+        if (resolvedIndex == activeCameraIndex) return
+        activeCameraIndex = resolvedIndex
         nightMode = false
         hdrEnabled = false
         macroEnabled = false
@@ -476,6 +511,7 @@ class CameraCaptureSessionManager(
 
     fun setZoomRatio(ratio: Float) {
         val opticalRatio = ratio.coerceAtMost(capabilities.maxZoomRatio)
+        requestedZoomRatio = opticalRatio
         camera?.cameraControl?.setZoomRatio(opticalRatio)
         // S0753: beyond the optical/CameraX max, keep zooming by scaling (cropping) the preview.
         digitalZoomFactor = if (opticalRatio > 0f) (ratio / opticalRatio).coerceAtLeast(1f) else 1f
@@ -485,6 +521,10 @@ class CameraCaptureSessionManager(
     /** S0753: linear (0..1) zoom for the perceptually-linear slider; stays within the optical range. */
     fun setLinearZoom(linear: Float) {
         camera?.cameraControl?.setLinearZoom(linear)
+        // The slider states its intent in linear terms, and the optical ratio it lands on is only known
+        // from the session afterwards, so the tracked ratio is dropped and the carry falls back to
+        // zoomState - which is accurate on the photo path this control belongs to.
+        requestedZoomRatio = null
         resetDigitalZoom()
     }
 
@@ -518,21 +558,38 @@ class CameraCaptureSessionManager(
         if (capabilities.hasFlashUnit) camera?.cameraControl?.enableTorch(enabled)
     }
 
-    /** Tap-to-focus at the given preview coordinates; ignored when the active lens cannot focus. */
-    fun startFocusAndMetering(x: Float, y: Float) {
+    /**
+     * Tap-to-focus at the given preview coordinates; ignored when the active lens cannot focus.
+     *
+     * S1419: returns whether a focus request was actually submitted, because the caller draws the
+     * focus ring from this answer. Every early return below is a case where nothing was requested,
+     * and returning Unit made all of them look identical to a real focus - the user saw the ring and
+     * the lens never moved.
+     */
+    fun startFocusAndMetering(x: Float, y: Float): Boolean {
         val control = camera?.cameraControl
         val preview = previewView
-        if (control == null || preview == null || !capabilities.supportsTapToFocus) return
         // S1189: while macro holds the lens at a fixed focus distance, an autofocus request silently
         // undoes it with no visible cue - so the tap is ignored rather than half-applied. The
         // lens-switch macro path keeps tap-to-focus (lensBeforeMacro is set only there).
-        if (macroEnabled && lensBeforeMacro == null && capabilities.macroFocusDistance > 0f) return
+        val macroHoldsFocus = macroEnabled && lensBeforeMacro == null && capabilities.macroFocusDistance > 0f
+        val focusRefused = !capabilities.supportsTapToFocus || macroHoldsFocus
+        // One branch rather than an early exit per reason: this class fails detekt at three returns
+        // and again at four conditions, so the reasons are named above instead of inlined here.
+        if (control == null || preview == null || focusRefused) {
+            return false
+        }
         val point = preview.meteringPointFactory.createPoint(x, y)
         val action = FocusMeteringAction.Builder(point)
             .setAutoCancelDuration(FOCUS_AUTO_CANCEL_SECONDS, TimeUnit.SECONDS)
             .build()
-        runCatching { control.startFocusAndMetering(action) }
-            .onFailure { Timber.w(it, "CameraCaptureSessionManager: focus failed") }
+        return runCatching {
+            control.startFocusAndMetering(action)
+            true
+        }.getOrElse {
+            Timber.w(it, "CameraCaptureSessionManager: focus failed")
+            false
+        }
     }
 
     fun capture(
@@ -549,6 +606,12 @@ class CameraCaptureSessionManager(
         }
 
         capture.targetRotation = targetRotation
+        // S1457: the crops below must match the frame the viewfinder showed at THIS shutter press.
+        // onImageSaved lands hundreds of ms later with the zoom slider and pinch still live, so
+        // reading the session fields there cropped the finished photo by whatever the user had moved
+        // to since. Sampled once, here, and the callback reads nothing else.
+        val zoomFactorAtShutter = digitalZoomFactor
+        val aspectCropAtShutter = !videoMode && selectedAspectRatio == AspectRatio.RATIO_16_9
         val builder = ImageCapture.OutputFileOptions.Builder(outputFile)
         // S0766: opt-in geotag. CameraX writes GPS into the JPEG EXIF before any digital-zoom crop,
         // and the crop path preserves the GPS tags (PRESERVED_EXIF_TAGS, S0765), so a cropped shot
@@ -567,14 +630,12 @@ class CameraCaptureSessionManager(
                     // S1066: and, in photo mode, crop the full 4:3 sensor frame down to the selected
                     // 16:9 result frame so the file equals the on-screen frame. Both run on the crop
                     // worker so capture never blocks the UI; 4:3 needs neither.
-                    val factor = digitalZoomFactor
-                    val needsAspectCrop = !videoMode && selectedAspectRatio == AspectRatio.RATIO_16_9
-                    if (factor > 1f || needsAspectCrop) {
+                    if (zoomFactorAtShutter > 1f || aspectCropAtShutter) {
                         val executor = cropExecutor
                             ?: Executors.newSingleThreadExecutor().also { cropExecutor = it }
                         executor.execute {
-                            if (factor > 1f) cropCenter(outputFile, factor)
-                            if (needsAspectCrop) cropToSixteenNine(outputFile)
+                            if (zoomFactorAtShutter > 1f) cropCenter(outputFile, zoomFactorAtShutter)
+                            if (aspectCropAtShutter) CapturedPhotoAspectCropper.cropToSixteenNine(outputFile)
                             ContextCompat.getMainExecutor(previewView.context).execute { onSaved() }
                         }
                     } else {
@@ -615,43 +676,6 @@ class CameraCaptureSessionManager(
             scaled.recycle()
             originalExif?.let { restoreExif(it, file) }
         }.onFailure { Timber.w(it, "CameraCaptureSessionManager: digital-zoom crop failed") }
-    }
-
-    /**
-     * S1066: centre-crops a captured JPEG to the 16:9 result frame inside the full 4:3 sensor frame the
-     * ViewPort delivered, so the saved file equals the on-screen result frame. The sensor JPEG is
-     * stored landscape, so 16:9 (wider than 4:3) keeps the full long edge and trims the short edge;
-     * the pixels stay in their stored orientation, so TAG_ORIENTATION and the other tags remain valid
-     * and are re-applied via [restoreExif] (S0765). A frame already at or below 16:9 is left untouched.
-     */
-    private fun cropToSixteenNine(file: File) {
-        runCatching {
-            val originalExif = runCatching { ExifInterface(file.absolutePath) }.getOrNull()
-
-            @Suppress("DEPRECATION")
-            val decoder = BitmapRegionDecoder.newInstance(file.absolutePath, false) ?: return
-            val w = decoder.width
-            val h = decoder.height
-            val longEdge = maxOf(w, h)
-            val shortEdge = minOf(w, h)
-            val targetShort = (longEdge.toLong() * SIXTEEN_NINE_SHORT / SIXTEEN_NINE_LONG).toInt()
-            if (targetShort >= shortEdge) {
-                decoder.recycle()
-                return
-            }
-            val rect = if (w >= h) {
-                val top = (h - targetShort) / 2
-                Rect(0, top, w, top + targetShort)
-            } else {
-                val left = (w - targetShort) / 2
-                Rect(left, 0, left + targetShort, h)
-            }
-            val cropped = decoder.decodeRegion(rect, null)
-            decoder.recycle()
-            FileOutputStream(file).use { cropped.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, it) }
-            cropped.recycle()
-            originalExif?.let { restoreExif(it, file) }
-        }.onFailure { Timber.w(it, "CameraCaptureSessionManager: aspect crop failed") }
     }
 
     fun unbind() {
@@ -734,10 +758,16 @@ class CameraCaptureSessionManager(
     }
 
     private fun bindToLifecycle(provider: ProcessCameraProvider, previewView: PreviewView) {
+        activeCameraIndex = availableLenses.bindableIndex(activeCameraIndex, videoMode)
         val activeLens = availableLenses.getOrNull(activeCameraIndex) ?: run {
             Timber.e("CameraCaptureSessionManager: no lens at index $activeCameraIndex")
             return
         }
+        // S1457: every settings apply - aspect, resolution, mode switch, HDR/night/bokeh/macro,
+        // profiles - rebuilds the Camera object, and a fresh one always starts at the lens default.
+        // Sampled before the unbind below, while the old camera can still report its zoom.
+        if (lastBoundLensId != activeLens.id) requestedZoomRatio = null
+        val carriedZoomRatio = if (lastBoundLensId == activeLens.id) requestedZoomRatio ?: currentZoomRatio() else null
         val useCases = CameraUseCaseFactory(
             videoMode = videoMode,
             selectedAspectRatio = selectedAspectRatio,
@@ -753,21 +783,17 @@ class CameraCaptureSessionManager(
         imageCapture = useCases.imageCapture
         videoCapture = useCases.videoCapture
         val baseSelector = CameraUseCaseFactory.selectorFor(activeLens)
-        // S0753: NIGHT is photo-only and per-device; fall back to exposure compensation when unavailable.
-        nightExtensionAvailable = !videoMode &&
-            extensionsManager?.isExtensionAvailable(baseSelector, ExtensionMode.NIGHT) == true
-        hdrExtensionAvailable = !videoMode &&
-            extensionsManager?.isExtensionAvailable(baseSelector, ExtensionMode.HDR) == true
-        // S1262: BOKEH is photo-only and per-device like NIGHT, and is what makes portrait offerable.
-        bokehExtensionAvailable = !videoMode &&
-            extensionsManager?.isExtensionAvailable(baseSelector, ExtensionMode.BOKEH) == true
+        // S0753: NIGHT falls back to exposure compensation when the lens does not offer it.
         // S1262: exactly one extension binds; the ranking lives in CameraExtensionSelector.
+        // S1579: keyed by lens + mode (format shared with warmOfferedExtensions), so a switched lens
+        // misses the map rather than being served a neighbour's answer.
+        val offered = offeredExtensionsCache.getOrPut("${activeLens.id}|$videoMode") {
+            extensionsManager.offeredExtensions(baseSelector, videoMode)
+        }
+        nightExtensionAvailable = offered.night
+        hdrExtensionAvailable = offered.hdr
+        bokehExtensionAvailable = offered.bokeh
         val wanted = CameraExtensionSelector.Intents(hdrEnabled, nightMode, bokehEnabled)
-        val offered = CameraExtensionSelector.Intents(
-            hdrExtensionAvailable,
-            nightExtensionAvailable,
-            bokehExtensionAvailable,
-        )
         val selector = CameraExtensionSelector.resolve(extensionsManager, baseSelector, wanted, offered)
         provider.unbindAll()
         val boundCamera = runCatching {
@@ -791,7 +817,11 @@ class CameraCaptureSessionManager(
         }
 
         camera = boundCamera
+        lastBoundLensId = activeLens.id
         resetDigitalZoom()
+        // S1457: restored before probing, so the capability snapshot the UI mirrors reports the ratio
+        // the optics actually hold rather than the lens default.
+        carriedZoomRatio?.let { boundCamera.restoreZoomRatio(it) }
         val probed = probe.probe(
             boundCamera,
             activeLens,
@@ -806,7 +836,9 @@ class CameraCaptureSessionManager(
             minEquivalentZoomRatio = probe.minEquivalentZoom(availableLenses),
             macroLensAvailable = probe.macroLensFor(availableLenses, activeLens.lensFacing) != null,
             activeLensIsWidest = isWidestOfFacing(activeLens, availableLenses),
-            activeLensIsMacro = probe.macroLensFor(availableLenses, activeLens.lensFacing)?.id == activeLens.id,
+            // S1581: the label needs dedicated macro optics, not merely the closest-focusing lens -
+            // otherwise a device without a macro lens calls its own main camera one.
+            activeLensIsMacro = probe.isDedicatedMacroLens(availableLenses, activeLens),
         )
         if (!capabilities.supportsManualSensor) {
             manualIso = null
@@ -821,6 +853,33 @@ class CameraCaptureSessionManager(
             setExposureCompensation(exposureCompensationIndex)
         }
         applyCamera2Options()
+    }
+
+    /**
+     * S1579: fills [offeredExtensionsCache] so a bind is served from the map instead of reading the
+     * vendor extension config from disk on the main thread. [bind] warms the pair of the imminent
+     * first bind ([onlyActiveLens]) off the main thread before binding; the host calls this again
+     * with the default once the session is ready, covering the pairs a later mode or lens switch will
+     * ask for. A lens list that changed since the caller started only costs an unwarmed entry, which
+     * the next bind fills the same way it does today.
+     */
+    fun warmOfferedExtensions(onlyActiveLens: Boolean = false) {
+        val manager = extensionsManager ?: return
+        val active = availableLenses.getOrNull(availableLenses.bindableIndex(activeCameraIndex, videoMode))
+        val lenses = if (onlyActiveLens) listOfNotNull(active) else availableLenses
+        val modes = if (onlyActiveLens) listOf(videoMode) else listOf(false, true)
+        lenses.forEach { lens ->
+            val selector = CameraUseCaseFactory.selectorFor(lens)
+            modes.forEach { mode ->
+                // A vendor extension library that refuses an off-main query must cost the warm-up,
+                // not the screen: the entry stays absent and the next bind fills it as it does today.
+                runCatching {
+                    offeredExtensionsCache.getOrPut("${lens.id}|$mode") {
+                        manager.offeredExtensions(selector, mode)
+                    }
+                }.onFailure { Timber.w(it, "CameraCaptureSessionManager: extension warm-up failed for ${lens.id}") }
+            }
+        }
     }
 
     /**
@@ -879,10 +938,6 @@ class CameraCaptureSessionManager(
 
     companion object {
         private const val FOCUS_AUTO_CANCEL_SECONDS = 3L
-        private const val JPEG_QUALITY = 95
-
-        private const val SIXTEEN_NINE_LONG = 16
-        private const val SIXTEEN_NINE_SHORT = 9
 
         /** S1189: macro needs no lens change - apply it (or clear it) on the active lens instead. */
         private const val NO_LENS_CHANGE = -1
@@ -919,6 +974,23 @@ private fun lensReaching(lenses: List<CameraLensEntry>, equivalent: Float): Came
         )
 
 /**
+ * S1479: the index the session can actually bind in the current mode. The video pipeline is built
+ * through `VideoCapture.withOutput`, which carries no physical camera id, so a sub-lens selection
+ * silently binds its logical parent's optics - the lens label and the zoom multiplier must describe
+ * that parent instead of the sub-lens the user picked in photo mode. Identity in photo mode, for a
+ * logical entry, and when the parent is absent from [this] (it never is - the enumeration keeps
+ * every logical camera - but an unchanged index degrades to today's behaviour rather than crashing).
+ * Lives outside the session class because it is a pure question about a list, and the class sits on
+ * detekt's LargeClass and TooManyFunctions ceilings.
+ */
+internal fun List<CameraLensEntry>.bindableIndex(index: Int, videoMode: Boolean): Int {
+    val subLens = getOrNull(index)?.takeIf { videoMode && it.isPhysicalSubLens } ?: return index
+    val parent = indexOfFirst { it.logicalCameraId == subLens.logicalCameraId && !it.isPhysicalSubLens }
+    Timber.d("S1479: video mode resolves ${subLens.id} -> ${getOrNull(parent)?.id ?: subLens.id}")
+    return if (parent >= 0) parent else index
+}
+
+/**
  * S1189: true when [lens] is the widest of several lenses facing the same way. A device with a
  * single lens on that side gets false, so its only camera keeps reading as the plain wide lens
  * instead of being relabelled "ultra-wide" by having nothing to compare against.
@@ -927,53 +999,6 @@ private fun isWidestOfFacing(lens: CameraLensEntry, lenses: List<CameraLensEntry
     val sameFacing = lenses.filter { it.lensFacing == lens.lensFacing && it.focalLengthMm > 0f }
     if (sameFacing.size < 2 || lens.focalLengthMm <= 0f) return false
     return sameFacing.none { it.focalLengthMm < lens.focalLengthMm }
-}
-
-/**
- * S0765: EXIF tags carried across the digital-zoom re-encode so a cropped shot keeps the same
- * rotation, capture time and place as the original full-frame JPEG CameraX produced.
- */
-private val PRESERVED_EXIF_TAGS = listOf(
-    ExifInterface.TAG_ORIENTATION,
-    ExifInterface.TAG_DATETIME,
-    ExifInterface.TAG_DATETIME_ORIGINAL,
-    ExifInterface.TAG_DATETIME_DIGITIZED,
-    ExifInterface.TAG_SUBSEC_TIME,
-    ExifInterface.TAG_OFFSET_TIME,
-    ExifInterface.TAG_OFFSET_TIME_ORIGINAL,
-    ExifInterface.TAG_MAKE,
-    ExifInterface.TAG_MODEL,
-    ExifInterface.TAG_SOFTWARE,
-    ExifInterface.TAG_F_NUMBER,
-    ExifInterface.TAG_EXPOSURE_TIME,
-    ExifInterface.TAG_FOCAL_LENGTH,
-    ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY,
-    ExifInterface.TAG_WHITE_BALANCE,
-    ExifInterface.TAG_FLASH,
-    ExifInterface.TAG_GPS_LATITUDE,
-    ExifInterface.TAG_GPS_LATITUDE_REF,
-    ExifInterface.TAG_GPS_LONGITUDE,
-    ExifInterface.TAG_GPS_LONGITUDE_REF,
-    ExifInterface.TAG_GPS_ALTITUDE,
-    ExifInterface.TAG_GPS_ALTITUDE_REF,
-    ExifInterface.TAG_GPS_TIMESTAMP,
-    ExifInterface.TAG_GPS_DATESTAMP,
-)
-
-/**
- * S0765: re-applies the [source] EXIF tags onto [target] after a re-encode that drops metadata.
- * Orientation is copied unchanged (the crop did not physically rotate pixels), so a viewer rotates
- * the cropped shot exactly like the original full-frame capture. Lives outside the session class
- * because it reads no session state - a pure tag copy between two files (S1185 decomposition).
- */
-private fun restoreExif(source: ExifInterface, target: File) {
-    runCatching {
-        val dest = ExifInterface(target.absolutePath)
-        PRESERVED_EXIF_TAGS.forEach { tag ->
-            source.getAttribute(tag)?.let { value -> dest.setAttribute(tag, value) }
-        }
-        dest.saveAttributes()
-    }.onFailure { Timber.w(it, "CameraCaptureSessionManager: EXIF restore after crop failed") }
 }
 
 /**
@@ -1002,4 +1027,35 @@ private fun handleFinalizeError(outputFile: File, error: Int) {
     if (outputFile.exists() && !outputFile.delete()) {
         Timber.w("CameraCaptureSessionManager: could not delete unusable recording ${outputFile.name}")
     }
+}
+
+/**
+ * S1457: returns a freshly bound camera to [ratio], which a rebind rebuilt at the lens default.
+ *
+ * Clamped rather than dropped, because a rebind can narrow the zoom range - an extension session
+ * does - and the nearest reachable ratio stays closer to what the viewfinder showed than 1x would.
+ * Lives outside the session class for the reason [restoreExif] does: it reads no session state.
+ */
+private fun Camera.restoreZoomRatio(ratio: Float) {
+    val state = cameraInfo.zoomState.value
+    val clamped = state?.let { ratio.coerceIn(it.minZoomRatio, it.maxZoomRatio) } ?: ratio
+    runCatching { cameraControl.setZoomRatio(clamped) }
+        .onFailure { Timber.w(it, "CameraCaptureSessionManager: zoom restore failed") }
+}
+
+/**
+ * S1262: which of the three extension-backed intents the lens behind [baseSelector] actually offers.
+ * All three are photo-only, so video mode offers none of them.
+ *
+ * Lives outside the session class for the reason [restoreExif] does: it reads no session state.
+ */
+private fun ExtensionsManager?.offeredExtensions(
+    baseSelector: CameraSelector,
+    videoMode: Boolean,
+): CameraExtensionSelector.Intents {
+    return CameraExtensionSelector.Intents(
+        hdr = !videoMode && this?.isExtensionAvailable(baseSelector, ExtensionMode.HDR) == true,
+        night = !videoMode && this?.isExtensionAvailable(baseSelector, ExtensionMode.NIGHT) == true,
+        bokeh = !videoMode && this?.isExtensionAvailable(baseSelector, ExtensionMode.BOKEH) == true,
+    )
 }

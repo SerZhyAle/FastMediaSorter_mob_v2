@@ -54,8 +54,12 @@ class AudioServiceController(
     /**
      * Connect to AudioPlaybackService asynchronously.
      * @param onConnected Callback invoked when connection is established, with the MediaController as Player.
+     * @param onFailed S1471: invoked instead of [onConnected] when the connection cannot be established.
+     *   Optional because every pre-existing caller lives on a screen that stays up regardless; a caller
+     *   whose whole existence is this one connection (the stream shortcut trampoline) would otherwise
+     *   wait forever for a callback that is never coming. [connectForStatus] already answers null here.
      */
-    fun connect(onConnected: (Player) -> Unit) {
+    fun connect(onFailed: (() -> Unit)? = null, onConnected: (Player) -> Unit) {
         val connectionRequest = getOrCreateControllerFuture("connect")
         when (connectionRequest) {
             is ControllerConnectionRequest.Connected -> {
@@ -72,6 +76,7 @@ class AudioServiceController(
                 when (storeResolvedController(future, controller)) {
                     ControllerStoreResult.Stale -> {
                         controller.release()
+                        onFailed?.invoke()
                         return@addListener
                     }
                     ControllerStoreResult.StoredNew -> {
@@ -86,6 +91,7 @@ class AudioServiceController(
             } catch (e: Exception) {
                 clearFutureOnFailure(future)
                 Timber.e(e, "AudioServiceController: failed to connect")
+                onFailed?.invoke()
             }
         }, MoreExecutors.directExecutor())
     }
@@ -179,8 +185,12 @@ class AudioServiceController(
     ) {
         connect { player ->
             Timber.d("AudioServiceController: playAudioWithMetadata uri=$uri title=$title artist=$artist")
+            // S1382: MediaItem.toBundle() drops localConfiguration, so a client MediaController never
+            // sees the played URI. requestMetadata is bundled, and it is how the mini bar tells an
+            // audio stream from a local file and finds the channel favicon for it.
             val mediaItemBuilder = MediaItem.Builder()
                 .setUri(uri)
+                .setRequestMetadata(MediaItem.RequestMetadata.Builder().setMediaUri(uri).build())
             if (mimeType != null) {
                 mediaItemBuilder.setMimeType(mimeType)
             }

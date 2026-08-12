@@ -16,6 +16,7 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
@@ -169,7 +170,7 @@ class LinkDownloadWorker @AssistedInject constructor(
     private fun updateNotification(state: LinkAutoDownloadCoordinator.ProgressState) {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_cloud_download)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentTitle(context.getString(R.string.link_download_notif_title_downloading))
             .setOngoing(true)
             .addAction(buildCancelAction())
@@ -215,7 +216,7 @@ class LinkDownloadWorker @AssistedInject constructor(
         ensureChannel(nm)
 
         val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_cloud_download)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setTimeoutAfter(RESULT_NOTIFICATION_TIMEOUT_MS)
@@ -409,8 +410,9 @@ class LinkDownloadWorker @AssistedInject constructor(
         // foreground notification posted to a missing channel with
         // CannotPostForegroundServiceNotificationException. ensureChannel is idempotent.
         ensureChannel(context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+        Timber.d("S1399: link-download foreground notification built with the branded status-bar icon")
         val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_cloud_download)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentTitle(context.getString(R.string.link_download_notif_title_downloading))
             .setContentText(text)
             .setOngoing(true)

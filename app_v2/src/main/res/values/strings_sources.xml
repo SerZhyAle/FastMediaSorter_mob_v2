@@ -51,7 +51,7 @@
     <string name="sftp_test_connection">Test Connection</string>
     <string name="sftp_username">Username</string>
     <string name="cloud_auth_copy_error">Cloud authentication required.\n\nPlease go to Resources and sign in to this Cloud resource.</string>
-    <string name="cloud_auth_dialog_message">To access \&quot;%1$s\&quot;, you need to sign in with your %2$s account.</string>
+    <string name="cloud_auth_dialog_message">To access \"%1$s\", you need to sign in with your %2$s account.</string>
     <string name="cloud_auth_required">%1$s requires re-authentication. Please sign in again.</string>
     <string name="cloud_check_failed">Couldn\'t check the file in the cloud. Try again.</string>
     <string name="cloud_create_folder_failed">Couldn\'t create the folder in the cloud. Try again.</string>
@@ -60,7 +60,7 @@
     <string name="cloud_list_files_failed">Couldn\'t load files from the cloud. Try again.</string>
     <string name="cloud_list_folders_failed">Couldn\'t load folders from the cloud. Try again.</string>
     <string name="cloud_metadata_failed">Couldn\'t load file details from the cloud. Try again.</string>
-    <string name="cloud_restore_instructions">Google Drive connection needs to be restored.\n\nPlease:\n1. Go to Main Menu\n2. Open \'Resources\'\n3. Tap on \&quot;%1$s\&quot;\n4. Sign in with your Google account</string>
+    <string name="cloud_restore_instructions">Google Drive connection needs to be restored.\n\nPlease:\n1. Go to Main Menu\n2. Open \'Resources\'\n3. Tap on \"%1$s\"\n4. Sign in with your Google account</string>
     <string name="cloud_search_failed">Couldn\'t search the cloud storage. Try again.</string>
     <string name="cloud_sign_out_failed">Couldn\'t sign out of the cloud account. Try again.</string>
     <string name="cloud_storage">Cloud Storage</string>

@@ -1,9 +1,7 @@
 package com.sza.fastmediasorter.data.transfer.strategy
 
 import android.content.Context
-import android.net.Uri
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.CloudStorageClient
@@ -15,12 +13,14 @@ import com.sza.fastmediasorter.data.transfer.adaptCloudProgress
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import javax.inject.Inject
 
 /**
  * Strategy for cloud:// operations (google_drive, dropbox, onedrive).
@@ -54,6 +54,7 @@ class CloudOperationStrategy @Inject constructor(
                 else -> Result.failure(IllegalArgumentException("At least one path must be cloud://"))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "CloudOperationStrategy: Copy failed - $source -> $destination")
             Result.failure(e)
         }
@@ -105,6 +106,7 @@ class CloudOperationStrategy @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "CloudOperationStrategy: Move failed - $source -> $destination")
             Result.failure(e)
         }
@@ -126,6 +128,7 @@ class CloudOperationStrategy @Inject constructor(
                 is CloudResult.Error -> Result.failure(Exception(result.message, result.cause))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "CloudOperationStrategy: Delete failed - $path")
             Result.failure(e)
         }
@@ -156,6 +159,7 @@ class CloudOperationStrategy @Inject constructor(
                 is CloudResult.Error -> Result.success(false)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "CloudOperationStrategy: Exists check failed - $path")
             Result.failure(e)
         }
@@ -178,6 +182,7 @@ class CloudOperationStrategy @Inject constructor(
                 is CloudResult.Error -> Result.failure(Exception(result.message, result.cause))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "CloudOperationStrategy: Create directory failed - $path")
             Result.failure(e)
         }
@@ -202,6 +207,7 @@ class CloudOperationStrategy @Inject constructor(
             )
             Result.success(localFile.absolutePath)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "CloudOperationStrategy.createTextFile failed - parent=$parentPath name=$fileName")
             Result.failure(e)
         }
@@ -213,6 +219,7 @@ class CloudOperationStrategy @Inject constructor(
              tempFile.writeText(content)
              uploadLocalToCloud(tempFile.absolutePath, path, overwrite = true, progressCallback = null).map { }
         } catch (e: Exception) {
+             e.rethrowIfCancellation()
              Result.failure(e)
         } finally {
              tempFile.delete()
@@ -229,6 +236,7 @@ class CloudOperationStrategy @Inject constructor(
                  Result.failure(Exception("Download failed: ${result.exceptionOrNull()?.message}"))
              }
         } catch (e: Exception) {
+             e.rethrowIfCancellation()
              Result.failure(e)
         } finally {
              tempFile.delete()
@@ -268,6 +276,7 @@ class CloudOperationStrategy @Inject constructor(
             
             Result.success(allFiles)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "CloudOperationStrategy: listFiles failed - $path")
             Result.failure(e)
         }
@@ -369,6 +378,7 @@ class CloudOperationStrategy @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Result.failure(e)
         }
     }
@@ -437,78 +447,6 @@ class CloudOperationStrategy @Inject constructor(
         return if (restored) client else null
     }
 
-    private data class CloudUriInfo(
-        val provider: CloudProvider,
-        val idOrPath: String,
-        val segments: List<String>
-    ) {
-        val fileIdForDownload: String
-            get() = segments.lastOrNull() ?: idOrPath
-    }
-
-    private fun parseCloudUri(rawPath: String): CloudUriInfo? {
-        return try {
-            val normalized = if (rawPath.startsWith("cloud:/") && !rawPath.startsWith("cloud://")) {
-                rawPath.replaceFirst("cloud:/", "cloud://")
-            } else {
-                rawPath
-            }
-
-            if (!normalized.startsWith("cloud://")) return null
-
-            val uri = Uri.parse(normalized)
-            val host = uri.host?.lowercase() ?: return null
-            val provider = when (host) {
-                "google_drive", "googledrive", "google" -> CloudProvider.GOOGLE_DRIVE
-                "dropbox" -> CloudProvider.DROPBOX
-                "onedrive" -> CloudProvider.ONEDRIVE
-                else -> return null
-            }
-
-            val idOrPath = uri.path?.removePrefix("/") ?: ""
-            if (idOrPath.isBlank()) return null
-
-            return CloudUriInfo(provider, idOrPath, uri.pathSegments)
-        } catch (e: Exception) {
-            Timber.e(e, "CloudOperationStrategy: Failed to parse cloud uri: $rawPath")
-            null
-        }
-    }
-
-    private fun splitParentAndName(info: CloudUriInfo): Pair<String, String?> {
-        if (info.segments.isEmpty()) return "" to null
-        if (info.segments.size == 1) {
-            // Ambiguous (could be folderId or fileId). Treat as "no parent".
-            return "" to null
-        }
-
-        val name = info.segments.last()
-        val parentSegments = info.segments.dropLast(1)
-
-        val parentIdOrPath = when (info.provider) {
-            CloudProvider.DROPBOX -> "/" + parentSegments.joinToString("/")
-            else -> parentSegments.joinToString("/")
-        }
-
-        return parentIdOrPath to name
-    }
-
-    private fun guessMimeType(fileName: String): String {
-        val extension = fileName.substringAfterLast('.', "").lowercase()
-        return when (extension) {
-            "jpg", "jpeg" -> "image/jpeg"
-            "png" -> "image/png"
-            "gif" -> "image/gif"
-            "webp" -> "image/webp"
-            "mp4" -> "video/mp4"
-            "webm" -> "video/webm"
-            "mkv" -> "video/x-matroska"
-            "mp3" -> "audio/mpeg"
-            "wav" -> "audio/wav"
-            else -> "application/octet-stream"
-        }
-    }
-
     override suspend fun deleteDirectory(
         path: String,
         progressCallback: ((Int, Int, String) -> Unit)?
@@ -541,6 +479,7 @@ class CloudOperationStrategy @Inject constructor(
             Timber.d("CloudOperationStrategy: Deleted directory $path ($deletedCount items)")
             Result.success(deletedCount)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "CloudOperationStrategy: Delete directory failed - $path")
             Result.failure(e)
         }
@@ -595,6 +534,7 @@ class CloudOperationStrategy @Inject constructor(
                 is CloudResult.Error -> Result.failure(Exception(result.message, result.cause))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "CloudOperationStrategy: Rename directory failed - $oldPath -> $newPath")
             Result.failure(e)
         }
@@ -638,6 +578,7 @@ class CloudOperationStrategy @Inject constructor(
             Timber.d("CloudOperationStrategy: Copied directory $source -> $destination ($copiedCount files)")
             Result.success(copiedCount)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "CloudOperationStrategy: Copy directory failed - $source -> $destination")
             Result.failure(e)
         }
@@ -681,6 +622,7 @@ class CloudOperationStrategy @Inject constructor(
                 is CloudResult.Error -> Result.failure(Exception(result.message, result.cause))
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "CloudOperationStrategy: isDirectory check failed - $path")
             Result.failure(e)
         }
@@ -719,6 +661,7 @@ class CloudOperationStrategy @Inject constructor(
                 )
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "CloudOperationStrategy: getDirectoryInfo failed - $path")
             Result.failure(e)
         }

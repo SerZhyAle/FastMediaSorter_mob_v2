@@ -46,15 +46,19 @@ interface LauncherDesktopRepository {
     suspend fun removeCell(id: Long)
 
     /**
-     * Moves a cell's anchor, but only onto free space: the whole `spanW x spanH` footprint must be
-     * clear. Returns whether it moved.
+     * Moves a cell's anchor. Returns whether it moved. Three outcomes, in this order:
      *
-     * Deliberately does NOT swap with the occupant, which is what an earlier draft of this plan asked
-     * for. Swapping is well-defined only between equal-sized cells - a 2x2 gadget cannot take a 1x1
-     * shortcut's place without landing on that shortcut's neighbours, so "swap" would trade one overlap
-     * for another. Windows does not swap desktop icons either. The invariant this buys is worth more
-     * than the gesture: **cells never overlap**, at any point, so no rendering or hit-test has to cope
-     * with two cells claiming one square.
+     * 1. The whole `spanW x spanH` footprint is free - the cell takes it.
+     * 2. Exactly one cell blocks it and has the **same** footprint - the two trade anchors, each landing
+     *    on the rectangle the other already held (owner decision 2026-07-17).
+     * 3. Anything else - the move is refused.
+     *
+     * Case 3 is the interesting one, and it is why swapping is restricted to equal footprints: a 2x2
+     * gadget cannot take a 1x1 shortcut's place without landing on that shortcut's neighbours, so a
+     * general "swap" would trade one overlap for another. An equal-footprint trade cannot, because both
+     * rectangles were already free of every other cell by the standing invariant. That invariant is what
+     * all of this protects: **cells never overlap**, at any point, so no rendering or hit-test has to
+     * cope with two cells claiming one square.
      */
     suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int): Boolean
 
@@ -78,6 +82,14 @@ interface LauncherDesktopRepository {
      * Returns whether it seeded, so a profile change can never overwrite a desktop the user owns.
      */
     suspend fun seedIfEmpty(orientation: LauncherOrientation, cells: List<LauncherCell>): Boolean
+
+    /**
+     * Drops every cell of BOTH orientations together with the desktop-wide state row, so the seeded
+     * flags and the stored column widths go with it. A later [seedIfEmpty] therefore seeds again -
+     * that is what makes the one-time starter set repeatable for a reset. Read [state] before calling
+     * this: the column widths are gone afterwards.
+     */
+    suspend fun clearAll()
 
     suspend fun state(): LauncherDesktopState
 

@@ -41,10 +41,17 @@ class PermissionRegistryRepositoryImplTest {
     }
 
     @Test
-    fun `getGroups returns only groups that have applicable entries`() {
+    fun `getGroups covers every group that has applicable entries`() {
         val groups = repo.getGroups().map { it.group }.toSet()
         val entryGroups = repo.getEntries().map { it.group }.toSet()
-        assertTrue(groups == entryGroups)
+        // S1454: containment, not equality. getGroups() deliberately keeps the header of a group whose
+        // only entry is flavor-gated-out, so the welcome set can render an entry marked
+        // shownInWelcomeDespiteGates; BuildPermissionRowsUseCase drops a header that resolves to no
+        // entries. Equality only held on flavors where every group happens to keep a gate-passing entry.
+        assertTrue(
+            "a group with applicable entries must have a header: ${entryGroups - groups}",
+            groups.containsAll(entryGroups),
+        )
         // STORAGE always has entries on API 33.
         assertTrue(PermissionGroup.STORAGE in groups)
     }
@@ -70,6 +77,14 @@ class PermissionRegistryRepositoryImplTest {
     @Test
     fun `S1335 registers the read-contacts permission in registry, onboarding and groups`() {
         val contacts = repo.getEntries().firstOrNull { it.id == "read_contacts" }
+        // S1454: the row is gated on SUPPORT_LAUNCHER, and a build without the launcher does not compile
+        // in the only seam onto ContactsContract - so on those flavors its absence is the correct state,
+        // and lite additionally strips the manifest declaration. Assert that direction rather than skip
+        // it, so the gate stays covered from both sides.
+        if (!BuildConfig.SUPPORT_LAUNCHER) {
+            assertTrue("read_contacts must not be offered where the launcher is absent", contacts == null)
+            return
+        }
         assertNotNull("read_contacts must be registered", contacts)
         assertEquals(PermissionGroup.CONTACTS, contacts!!.group)
         assertTrue("read_contacts must be optional", contacts.optional)
@@ -78,14 +93,35 @@ class PermissionRegistryRepositoryImplTest {
     }
 
     @Test
-    fun `every declared flavor-gate names an existing boolean BuildConfig field`() {
-        // Guards against a typo'd / removed flavorGates string silently dropping a permission:
+    fun `S1436 onboarding is a superset of settings and differs only on welcome-only entries`() {
+        val settings = repo.getEntries().map { it.id }.toSet()
+        val welcome = repo.getWelcomeEntries()
+        val welcomeIds = welcome.map { it.id }.toSet()
+        assertTrue("onboarding must never hide a permission Settings shows", settings.all { it in welcomeIds })
+        // Anything onboarding adds must say so in the registry - the difference is declared, not coded.
+        val extra = welcome.filter { it.id !in settings }
+        val undeclared = extra.filterNot { it.shownInWelcomeDespiteGates }.map { it.id }
+        assertTrue("onboarding-only entries without the flag: $undeclared", undeclared.isEmpty())
+    }
+
+    @Test
+    fun `every declared build-gate names an existing boolean BuildConfig field`() {
+        // Guards against a typo'd / removed buildGates string silently dropping a permission:
         // such a name resolves on no variant, so this standardDebug run fails fast on it.
         val byName = BuildConfig::class.java.fields.associateBy { it.name }
-        repo.declaredFlavorGateFields.forEach { fieldName ->
+        repo.declaredBuildGateFields.forEach { fieldName ->
             val field = byName[fieldName]
-            assertNotNull("Permission flavor-gate references unknown BuildConfig field: $fieldName", field)
-            assertEquals("Flavor-gate field $fieldName must be boolean type", java.lang.Boolean.TYPE, field!!.type)
+            assertNotNull("Permission build-gate references unknown BuildConfig field: $fieldName", field)
+            assertEquals("Build-gate field $fieldName must be boolean type", java.lang.Boolean.TYPE, field!!.type)
         }
+    }
+
+    @Test
+    fun `every declared build-gate resolves through a mapped value, not the fallback`() {
+        // The BuildConfig-field check above cannot catch a name that exists but has no value in the
+        // resolver: such a gate falls through to false on every variant and silently hides its
+        // permission. Assert the resolver is total over the declared set instead.
+        val unmapped = repo.declaredBuildGateFields - repo.mappedBuildGateFields
+        assertTrue("Build-gates with no value in the resolver: $unmapped", unmapped.isEmpty())
     }
 }

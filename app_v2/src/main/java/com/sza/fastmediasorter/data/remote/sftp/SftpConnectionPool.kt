@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.remote.sftp
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Session
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -131,6 +132,10 @@ class SftpConnectionPool {
                     try {
                         pc.mutex.withLock { block(pc.channel) }
                     } catch (e: Exception) {
+                        // Cancellation must never reach the reconnect branches below: a torn-down
+                        // channel/session looks exactly like a dead transport, so a cancelled block
+                        // would be silently re-run on a freshly opened session.
+                        e.rethrowIfCancellation()
                         if (!pc.channel.isConnected) {
                             Timber.w("SFTP [FILE_OPS] channel lost: ${e.message}")
                             removeChannel(pooled, pc.channel)
@@ -572,6 +577,7 @@ class SftpConnectionPool {
                 cleanupIdleConnections()
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SFTP openInputStream failed: $remotePath")
             Result.failure(e)
         }

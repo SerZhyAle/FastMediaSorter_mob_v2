@@ -63,6 +63,7 @@ import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.Lazy
@@ -368,7 +369,7 @@ class BrowseManagerInitializer(
                             .setTitle(message)
                             .setMessage(details)
                             .setPositiveButton(R.string.ok, null)
-                            .show()
+                            .showBoundToHost(activity)
                     } else {
                         Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
                     }

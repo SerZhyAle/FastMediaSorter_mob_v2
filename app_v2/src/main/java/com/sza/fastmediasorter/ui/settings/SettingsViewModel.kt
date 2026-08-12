@@ -39,6 +39,7 @@ import com.sza.fastmediasorter.widget.GameLaunchWidgetProvider
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -49,6 +50,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -170,9 +172,16 @@ class SettingsViewModel @Inject constructor(
     // Without this, rapid consecutive switch toggles read a stale .value and overwrite
     // each other's changes (e.g. Black Screen toggle turns off on next switch press).
     private val _settingsOverride = MutableStateFlow<AppSettings?>(null)
+    private val persistedSettingsLoaded = CompletableDeferred<Unit>()
+    private val persistedSettings = settingsRepository.getSettings()
+        .onEach { persistedSettingsLoaded.complete(Unit) }
 
+    // S1535: seeded with AppSettings(), so `.value` read during fragment setup can still be the
+    // constructor defaults rather than anything stored. Fine for rendering (the real value arrives
+    // and re-renders); never sound for a decision that compares against a stored value - use
+    // [awaitPersistedSettings] there.
     val settings: StateFlow<AppSettings> = combine(
-        settingsRepository.getSettings(),
+        persistedSettings,
         _settingsOverride
     ) { persisted, override -> override ?: persisted }
         .stateIn(
@@ -180,6 +189,15 @@ class SettingsViewModel @Inject constructor(
             started = SharingStarted.Eagerly,
             initialValue = AppSettings()
         )
+
+    /**
+     * Settings as actually stored, suspending until storage has answered at least once.
+     *
+     * S1535: a pending optimistic override wins, exactly as in [settings]; otherwise this waits for
+     * the first DataStore emission instead of returning the `AppSettings()` seed.
+     */
+    suspend fun awaitPersistedSettings(): AppSettings =
+        _settingsOverride.value ?: persistedSettings.first()
 
     val destinations: StateFlow<List<MediaResource>> = getDestinationsUseCase()
         .stateIn(
@@ -196,26 +214,73 @@ class SettingsViewModel @Inject constructor(
         )
 
     fun updateSettings(settings: AppSettings) {
+        // Settings fragments bind their controls before the first DataStore emission. Their
+        // listeners can pass a copy of the AppSettings() StateFlow seed, which is not a user edit.
+        // Dropping that pre-load callback prevents the seed from replacing stored preferences.
+        if (!persistedSettingsLoaded.isCompleted) return
+
         val prev = this.settings.value
         _settingsOverride.value = settings  // Optimistic update: makes settings.value current immediately
         viewModelScope.launch {
             try {
                 settingsRepository.updateSettings(settings)
-                // Reschedule background sync when relevant settings change
-                if (settings.enableBackgroundSync != prev.enableBackgroundSync ||
-                    settings.backgroundSyncIntervalHours != prev.backgroundSyncIntervalHours) {
-                    applyBackgroundSyncSchedule(
-                        enabled = settings.enableBackgroundSync,
-                        intervalHours = settings.backgroundSyncIntervalHours.toLong()
-                    )
+                if (_settingsOverride.value == settings) {
+                    _settingsOverride.value = null
                 }
-                if (settings.enableScheduledOperations != prev.enableScheduledOperations) {
-                    applyScheduledOperationsToggle(settings.enableScheduledOperations)
-                }
+                applySettingsSideEffects(prev, settings)
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
+                if (_settingsOverride.value == settings) {
+                    _settingsOverride.value = null
+                }
                 Timber.e(e, "Error updating settings")
             }
+        }
+    }
+
+    /**
+     * Updates one logical slice from the repository's latest persisted snapshot.
+     *
+     * Callers that do not have a complete, persisted [AppSettings] snapshot must use this overload
+     * instead of reading [settings].value and writing that whole object back.
+     */
+    fun updateSettings(transform: (AppSettings) -> AppSettings) {
+        viewModelScope.launch {
+            try {
+                var previous: AppSettings? = null
+                var updated: AppSettings? = null
+                settingsRepository.updateSettings { current ->
+                    previous = current
+                    transform(current).also {
+                        updated = it
+                        _settingsOverride.value = it
+                    }
+                }
+                val oldSettings = previous ?: return@launch
+                val newSettings = updated ?: return@launch
+                if (_settingsOverride.value == newSettings) {
+                    _settingsOverride.value = null
+                }
+                applySettingsSideEffects(oldSettings, newSettings)
+            } catch (e: Exception) {
+                e.rethrowIfCancellation()
+                _settingsOverride.value = null
+                Timber.e(e, "Error updating settings")
+            }
+        }
+    }
+
+    private fun applySettingsSideEffects(previous: AppSettings, settings: AppSettings) {
+        if (settings.enableBackgroundSync != previous.enableBackgroundSync ||
+            settings.backgroundSyncIntervalHours != previous.backgroundSyncIntervalHours
+        ) {
+            applyBackgroundSyncSchedule(
+                enabled = settings.enableBackgroundSync,
+                intervalHours = settings.backgroundSyncIntervalHours.toLong()
+            )
+        }
+        if (settings.enableScheduledOperations != previous.enableScheduledOperations) {
+            applyScheduledOperationsToggle(settings.enableScheduledOperations)
         }
     }
 
@@ -286,6 +351,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 settingsRepository.resetToDefaults()
+                _settingsOverride.value = null
                 // Settings reset
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
@@ -305,12 +371,20 @@ class SettingsViewModel @Inject constructor(
      * stable until the DataStore write re-emits, matching [updateSettings].
      */
     fun setStatisticsCollectionEnabled(enabled: Boolean) {
-        _settingsOverride.value = settings.value.copy(enableStatistics = enabled)
+        if (!persistedSettingsLoaded.isCompleted) return
+        val optimisticSettings = settings.value.copy(enableStatistics = enabled)
+        _settingsOverride.value = optimisticSettings
         viewModelScope.launch {
             try {
                 setStatisticsCollectionEnabledUseCase(enabled)
+                if (_settingsOverride.value == optimisticSettings) {
+                    _settingsOverride.value = null
+                }
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
+                if (_settingsOverride.value == optimisticSettings) {
+                    _settingsOverride.value = null
+                }
                 Timber.e(e, "Error updating statistics collection flag")
             }
         }
@@ -500,30 +574,34 @@ class SettingsViewModel @Inject constructor(
                 // ScreenGestures group (moved from Player tab)
                 gestureOverlayEnabled = defaults.gestureOverlayEnabled,
                 // S0847: reset the four edge bands (toggles + 12 slots). S1008: + per-zone strip visibility.
-                screenshotGestureZoneLeftTopEnabled = defaults.screenshotGestureZoneLeftTopEnabled,
-                screenshotGestureZoneLeftBottomEnabled = defaults.screenshotGestureZoneLeftBottomEnabled,
-                screenshotGestureZoneRightTopEnabled = defaults.screenshotGestureZoneRightTopEnabled,
-                screenshotGestureZoneRightBottomEnabled = defaults.screenshotGestureZoneRightBottomEnabled,
-                screenshotGestureZoneLeftTopStripVisible = defaults.screenshotGestureZoneLeftTopStripVisible,
-                screenshotGestureZoneLeftBottomStripVisible = defaults.screenshotGestureZoneLeftBottomStripVisible,
-                screenshotGestureZoneRightTopStripVisible = defaults.screenshotGestureZoneRightTopStripVisible,
-                screenshotGestureZoneRightBottomStripVisible = defaults.screenshotGestureZoneRightBottomStripVisible,
-                screenshotGestureLeftTopDown = defaults.screenshotGestureLeftTopDown,
-                screenshotGestureLeftTopRight = defaults.screenshotGestureLeftTopRight,
-                screenshotGestureLeftTopUp = defaults.screenshotGestureLeftTopUp,
-                screenshotGestureLeftBottomDown = defaults.screenshotGestureLeftBottomDown,
-                screenshotGestureLeftBottomRight = defaults.screenshotGestureLeftBottomRight,
-                screenshotGestureLeftBottomUp = defaults.screenshotGestureLeftBottomUp,
-                screenshotGestureRightTopDown = defaults.screenshotGestureRightTopDown,
-                screenshotGestureRightTopRight = defaults.screenshotGestureRightTopRight,
-                screenshotGestureRightTopUp = defaults.screenshotGestureRightTopUp,
-                screenshotGestureRightBottomDown = defaults.screenshotGestureRightBottomDown,
-                screenshotGestureRightBottomRight = defaults.screenshotGestureRightBottomRight,
-                screenshotGestureRightBottomUp = defaults.screenshotGestureRightBottomUp
+                // S1470: payload slots are deliberately left untouched here, same as before the nesting -
+                // only the zone/action fields below were ever part of this reset.
+                screenshotGesture = current.screenshotGesture.copy(
+                    zoneLeftTopEnabled = defaults.screenshotGesture.zoneLeftTopEnabled,
+                    zoneLeftBottomEnabled = defaults.screenshotGesture.zoneLeftBottomEnabled,
+                    zoneRightTopEnabled = defaults.screenshotGesture.zoneRightTopEnabled,
+                    zoneRightBottomEnabled = defaults.screenshotGesture.zoneRightBottomEnabled,
+                    zoneLeftTopStripVisible = defaults.screenshotGesture.zoneLeftTopStripVisible,
+                    zoneLeftBottomStripVisible = defaults.screenshotGesture.zoneLeftBottomStripVisible,
+                    zoneRightTopStripVisible = defaults.screenshotGesture.zoneRightTopStripVisible,
+                    zoneRightBottomStripVisible = defaults.screenshotGesture.zoneRightBottomStripVisible,
+                    leftTopDown = defaults.screenshotGesture.leftTopDown,
+                    leftTopRight = defaults.screenshotGesture.leftTopRight,
+                    leftTopUp = defaults.screenshotGesture.leftTopUp,
+                    leftBottomDown = defaults.screenshotGesture.leftBottomDown,
+                    leftBottomRight = defaults.screenshotGesture.leftBottomRight,
+                    leftBottomUp = defaults.screenshotGesture.leftBottomUp,
+                    rightTopDown = defaults.screenshotGesture.rightTopDown,
+                    rightTopRight = defaults.screenshotGesture.rightTopRight,
+                    rightTopUp = defaults.screenshotGesture.rightTopUp,
+                    rightBottomDown = defaults.screenshotGesture.rightBottomDown,
+                    rightBottomRight = defaults.screenshotGesture.rightBottomRight,
+                    rightBottomUp = defaults.screenshotGesture.rightBottomUp
+                )
             )
         )
     }
-    
+
     fun resetPlayerFirstRun() {
         viewModelScope.launch {
             try {

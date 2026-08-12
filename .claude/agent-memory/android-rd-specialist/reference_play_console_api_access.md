@@ -17,6 +17,8 @@ I CAN query live Play Console state read-only via the Google Play Developer API 
 - Returns per-track release name/versionCode/status (production/beta/alpha/internal) and the App Bundle Explorer versionCode list.
 - Deleting the edit (not committing) guarantees zero mutation.
 
+**Store-listing images read (S1266, 2026-08-05):** `scripts/release/publish-play-listing.ps1` is WRITE-only - its modes are `validate` and `commit` (not `publish`, which the phase file wrongly named), and neither reads live state: `validate` re-pushes the LOCAL tree into a throwaway edit, so it proves nothing about what the store actually carries. To prove a listing publish landed, read it: open an edit, `edits().images().list(packageName, editId, language, imageType)` per locale and type, then `edits().delete()`. Reusable probe at `temp/S1266/read_live_listing_images.py`. Note the language codes differ from the folder names - `play/listing/uk-UA` publishes as plain `uk`. Confirmed behaviour: the uploader SKIPS an image type it has no local folder for rather than wiping it (en-US kept its 6 `sevenInchScreenshots` across a commit that carried none).
+
 **What the API CANNOT see** (web console UI only - ask the owner for a screenshot):
 - App content declarations incl. Foreground service permissions form, `Need attention` / `Actioned` tabs.
 - Policy review verdicts / rejection reasons / approval state.

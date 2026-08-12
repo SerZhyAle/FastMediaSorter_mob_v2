@@ -22,7 +22,7 @@ The core problem: apps in this space either do file management well (Solid Explo
 FastMediaSorter combines:
 
 - Native SMB via SMBJ (connection pooling, up to 24 parallel transfer threads, file list caching in Room DB)
-- SFTP via SSHJ, FTP via Apache Commons Net
+- SFTP via JSch, FTP via Apache Commons Net
 - Google Drive, Dropbox, OneDrive (direct API, no intermediate download for playback)
 - ExoPlayer-based video/audio player - streams directly from any source
 - PDF and EPUB readers that open files from NAS or cloud without downloading first

@@ -30,6 +30,11 @@ $script:RxSourceCompat  = 'sourceCompatibility\s*=\s*JavaVersion\.VERSION_(?<v>\
 $script:RxDefaultMinSdk = 'minSdk\s*=\s*(?<v>\d+)'
 $script:RxRoomSchemaVersion = '@Database\s*\([\s\S]*?\bversion\s*=\s*(?<v>\d+)'
 
+# S1496: BouncyCastle is never declared as a coordinate - it arrives transitively through SMBJ, so
+# RxMavenCoord cannot see it. app_v2/build.gradle.kts names the version it asserts at configuration
+# time on a single line, and that literal is what the documentation must agree with.
+$script:RxBouncyCastleExpected = 'expectedBouncyCastleVersion\s*=\s*"(?<v>[\d\.]+)"'
+
 # Per-flavor minSdk override lives inside create("<flavor>") { ... minSdk = N ... }
 # We approximate by scanning create("<flavor>") blocks for an in-scope minSdk; absence
 # falls back to defaultConfig.minSdk.
@@ -163,6 +168,7 @@ function Get-GradlePins {
     $pins['jvm-target']   = Find-FirstCapture -Text $appText -Pattern $script:RxJvmTarget
     $pins['source-compat']= Find-FirstCapture -Text $appText -Pattern $script:RxSourceCompat
     $pins['room-schema-version'] = Find-FirstCapture -Text $databaseText -Pattern $script:RxRoomSchemaVersion
+    $pins['bouncycastle-expected'] = Find-FirstCapture -Text $appText -Pattern $script:RxBouncyCastleExpected
 
     # defaultConfig.minSdk: take first match of minSdk = N (defaultConfig appears before any flavor block)
     $defaultMin = Find-FirstCapture -Text $appText -Pattern $script:RxDefaultMinSdk
@@ -172,7 +178,18 @@ function Get-GradlePins {
     }
 
     # --- Class-3 library coordinates ----------------------------------------
+    # S1496: a coordinate declared in BOTH modules must carry the same version. The divergence
+    # mechanism already existed for the class-2 SDK pins through Get-SharedModulePin; class-3 pins
+    # were simply never routed through it, so wear could - and did - drift nine minor versions
+    # behind app_v2 on jsch without any check noticing. A coordinate declared in only one module
+    # has nothing to compare against and is not an error.
     $libs = Get-LibraryCoords -Text $appText
+    $wearLibs = Get-LibraryCoords -Text $wearText
+    foreach ($k in $libs.Keys) {
+        if ($wearLibs.Contains($k) -and $wearLibs[$k] -ne $libs[$k]) {
+            throw "GradleParser: $k differs between app_v2 ($($libs[$k])) and wear ($($wearLibs[$k]))"
+        }
+    }
     foreach ($k in ($libs.Keys | Sort-Object)) {
         $pins[$k] = $libs[$k]
     }

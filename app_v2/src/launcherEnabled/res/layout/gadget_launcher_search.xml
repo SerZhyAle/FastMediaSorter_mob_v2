@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1566: our own search field (ADR-1 - a gadget is never a third-party AppWidget). Nothing here sets a
+     fixed height: the desktop grid measures the cell. The message line sits below the field rather than
+     replacing it, so a refusal is readable without taking away what the user typed into. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="@dimen/margin_small">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_launcher_search_field"
+            android:gravity="center_vertical"
+            android:minHeight="48dp"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/margin_small"
+            android:paddingEnd="@dimen/margin_small">
+
+            <ImageView
+                android:layout_width="@dimen/settings_icon_size"
+                android:layout_height="@dimen/settings_icon_size"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_search"
+                app:tint="?attr/colorOnSurfaceVariant" />
+
+            <EditText
+                android:id="@+id/gadgetSearchInput"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@null"
+                android:contentDescription="@string/launcher_gadget_search_description"
+                android:focusable="true"
+                android:hint="@string/launcher_gadget_search_hint"
+                android:imeOptions="actionSearch|flagNoExtractUi"
+                android:importantForAutofill="no"
+                android:inputType="text"
+                android:maxLines="1"
+                android:paddingStart="@dimen/margin_small"
+                android:paddingEnd="0dp"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?attr/colorOnSurfaceVariant"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/gadgetSearchMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:paddingTop="@dimen/margin_tiny"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="11sp"
+            android:visibility="gone"
+            tools:text="No browser to open the search. Install a browser and try again."
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+</merge>

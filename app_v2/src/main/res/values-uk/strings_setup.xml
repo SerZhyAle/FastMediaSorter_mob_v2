@@ -5,8 +5,7 @@
     <string name="welcome_default_player_btn_images">Зображення</string>
     <string name="welcome_default_player_btn_video">Відео</string>
     <string name="welcome_default_player_description">Призначити FastMediaSorter медіапрогравачем за замовчуванням</string>
-    <string name="welcome_default_player_hint">Натисніть кнопку нижче - з\'явиться системний діалог. Виберіть FastMediaSorter і натисніть <b>Завжди</b>.
-    </string>
+    <string name="welcome_default_player_hint">Натисніть кнопку нижче - з\'явиться системний діалог. Виберіть FastMediaSorter і натисніть <b>Завжди</b>.</string>
     <string name="welcome_default_player_title">Програвач за замовчуванням</string>
     <string name="welcome_description_1">Ваш універсальний медіаорганайзер.\nПереглядайте, сортуйте та керуйте файлами на локальних, мережевих та хмарних сховищах - все за допомогою інтуїтивних жестів.</string>
     <string name="welcome_description_1_details">FastMediaSorter збирає всі види медіа в одному місці. Відкривайте фото, відео, GIF і музику з пристрою, з мережевої папки або з хмари - і розкладайте їх швидкими дотиками замість довгих меню.\n\nУсе, що ви налаштуєте тут, потім можна змінити в налаштуваннях, тож неправильного вибору на цьому екрані немає - просто натисніть «Далі».</string>
@@ -143,7 +142,7 @@
     <string name="welcome_func_download_failed">Не вдалося завантажити - натисніть для повтору</string>
     <string name="welcome_func_download_done">Готово</string>
     <!-- S0402 permissions page -->
-    <string name="welcome_permissions_title">&quot;Кілька&quot; дозволів</string>
+    <string name="welcome_permissions_title">\"Кілька\" дозволів</string>
     <string name="welcome_permissions_subtitle">Надайте доступ, щоб застосунок показував ваші медіа.</string>
     <string name="welcome_func_streams">Трансляції</string>
     <string name="welcome_streams_catalog_done">Каталог завантажено</string>

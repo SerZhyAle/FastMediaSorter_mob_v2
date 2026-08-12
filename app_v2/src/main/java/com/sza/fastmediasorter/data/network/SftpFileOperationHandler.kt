@@ -1,6 +1,14 @@
 package com.sza.fastmediasorter.data.network
 
 import android.content.Context
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.network.SmbClient
+import com.sza.fastmediasorter.data.remote.ftp.FtpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpDownloadExhaustedException
+import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
+import com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure
 import com.sza.fastmediasorter.data.transfer.AtomicFileOperationStrategy
 import com.sza.fastmediasorter.data.transfer.BaseFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
@@ -11,13 +19,6 @@ import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.data.network.SmbClient
-import com.sza.fastmediasorter.data.remote.sftp.SftpClient
-import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
-import com.sza.fastmediasorter.data.remote.sftp.SftpDownloadExhaustedException
-import com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure
-import com.sza.fastmediasorter.data.remote.ftp.FtpClient
-import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.transfer.FileOperationError
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.domain.usecase.FileOperation
@@ -226,6 +227,7 @@ class SftpFileOperationHandler @Inject constructor(
                         errors.add(error)
                     }
                 } catch (e: Exception) {
+                    e.rethrowIfCancellation()
                     val error = "Exception during bridged move of $fileName: ${e.message}"
                     Timber.e(e, "SFTP executeMove: $error")
                     errors.add(error)
@@ -313,6 +315,7 @@ class SftpFileOperationHandler @Inject constructor(
                          tempFile.delete()
                      }
                  } catch (e: Exception) {
+                     e.rethrowIfCancellation()
                      Result.failure(e)
                  }
             }
@@ -397,6 +400,7 @@ class SftpFileOperationHandler @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             val error = "${operation.file.name}\n  New name: ${operation.newName}\n  Error: ${FileOperationError.extractErrorMessage(e)}"
             Timber.e(e, "SFTP executeRename: EXCEPTION - $error")
             FileOperationResult.Failure(error)
@@ -457,6 +461,7 @@ class SftpFileOperationHandler @Inject constructor(
                 remotePath = remotePath
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "parseSftpPath: Exception parsing path: $path")
             null
         }

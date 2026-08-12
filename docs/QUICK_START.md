@@ -204,7 +204,7 @@ Tap **"+"** → **Cloud Storage**
 ### Internet Streams (Radio & IPTV)
 
 - Open **Streams** from the main window dropdown (or **Settings > Media > Streams** when it first appears).
-- Tap **+** to add a radio URL (http/https mp3/aac, HLS .m3u8, RTSP), or **Import** to load a `.m3u` playlist.
+- Tap **⋮** at the end of the toolbar: **Add stream** for a radio URL (http/https mp3/aac, HLS .m3u8, RTSP), or **Import from URL** for a `.m3u` playlist.
 - Download the curated FastMediaSorter station catalog from the **Extensions** screen for a searchable, filterable library with topic and language chips.
 - Radio plays inline via the sticky bottom bar - the station list stays visible. Video/RTSP streams open in the fullscreen player; Back returns to the list.
 - **Available in Standard, Legacy, noLegal and VR. The Streams screen is absent from Lite and Photos - no protocol works there, because there is no entry point.**

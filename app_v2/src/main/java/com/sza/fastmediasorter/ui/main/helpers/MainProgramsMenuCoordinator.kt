@@ -7,7 +7,9 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
+import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
+import timber.log.Timber
 
 /**
  * S0774: single home for the main-window programs menu - item registration, count, click dispatch,
@@ -50,6 +52,7 @@ class MainProgramsMenuCoordinator(
         val quickVoice: Boolean,
         val quickCamera: Boolean,
         val calculator: Boolean,
+        val networkMonitor: Boolean,
         val cameraOcr: Boolean,
         val linkDownload: Boolean,
         val miniGame: Boolean,
@@ -60,6 +63,7 @@ class MainProgramsMenuCoordinator(
     // the three-dots menu button stays visible even when every other program is disabled.
     fun itemCount(gate: ProgramsMenuGate): Int =
         1 + (if (gate.vrCinema) 1 else 0) + (if (gate.calculator) 1 else 0) +
+            (if (gate.networkMonitor) 1 else 0) +
             (if (gate.cameraOcr) 1 else 0) +
             miniGameMenuManager.itemCount(gate.miniGame) +
             quickCaptureMenuManager.itemCount(gate.quickVoice, gate.quickCamera) +
@@ -72,9 +76,9 @@ class MainProgramsMenuCoordinator(
         popup.menu.clear()
         // S0758: each item's explicit order = its canonical position in the owner's programs menu order.
         // Sorted display order after S0962: Streams, VR Cinema [S0962], quick-launch panel [S0757],
-        // quick-capture, calculator, camera-OCR, screen recording [S0913 - right after camera-OCR],
-        // link download, mini-game. The panel mirrors this menu (single source of truth), so the order
-        // carries there too.
+        // quick-capture, calculator, Network Monitor, camera-OCR, screen recording [S0913 - right after
+        // camera-OCR], link download, mini-game. The panel mirrors this menu (single source of truth),
+        // so the order carries there too.
         streamsMenuManager.populate(popup, !excludeStreams && gate.streams, MENU_ORDER_STREAMS)
         // S0962 (VR Cinema, Pillar 1): immersive-cinema program - shown only when XR is available and the
         // VR-3D master toggle is on (gate.vrCinema). Master-gated with no per-item toggle and not a window,
@@ -105,6 +109,15 @@ class MainProgramsMenuCoordinator(
             popup.menu.add(0, MENU_ITEM_CALCULATOR, MENU_ORDER_CALCULATOR, R.string.calculator_title)
                 .setIcon(R.drawable.ic_calculator)
         }
+        if (gate.networkMonitor) {
+            popup.menu.add(
+                0,
+                MENU_ITEM_NETWORK_MONITOR,
+                MENU_ORDER_NETWORK_MONITOR,
+                R.string.network_monitor_title,
+            )
+                .setIcon(R.drawable.ic_network_monitor)
+        }
         if (gate.cameraOcr) {
             popup.menu.add(
                 0,
@@ -129,6 +142,11 @@ class MainProgramsMenuCoordinator(
         return when (itemId) {
             MENU_ITEM_CALCULATOR -> {
                 activity.startActivity(CalculatorActivity.createIntent(activity))
+                true
+            }
+            MENU_ITEM_NETWORK_MONITOR -> {
+                Timber.d("S1433: launch Network Monitor from Programs menu")
+                activity.startActivity(NetworkMonitorActivity.createIntent(activity))
                 true
             }
             MENU_ITEM_CAMERA_OCR -> {
@@ -159,6 +177,7 @@ class MainProgramsMenuCoordinator(
             MainStreamsMenuManager.MENU_ITEM_STREAMS -> Intent(activity, StreamsActivity::class.java)
             MENU_ITEM_APP_LAUNCH_PANEL -> Intent(activity, AppLaunchPanelActivity::class.java)
             MENU_ITEM_CALCULATOR -> CalculatorActivity.createIntent(activity)
+            MENU_ITEM_NETWORK_MONITOR -> NetworkMonitorActivity.createIntent(activity)
             MENU_ITEM_CAMERA_OCR ->
                 com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(activity)
             MainMiniGameMenuManager.MENU_ITEM_GAME ->
@@ -175,6 +194,8 @@ class MainProgramsMenuCoordinator(
     fun removeActionFor(itemId: Int): (() -> Unit)? = when (itemId) {
         MENU_ITEM_CALCULATOR ->
             removeProgramAction(R.string.calculator_title) { it.copy(enableCalculator = false) }
+        MENU_ITEM_NETWORK_MONITOR ->
+            removeProgramAction(R.string.network_monitor_title) { it.copy(enableNetworkMonitor = false) }
         MENU_ITEM_CAMERA_OCR ->
             removeProgramAction(R.string.setting_camera_ocr_translation_title) {
                 it.copy(cameraOcrTranslationEnabled = false)
@@ -202,6 +223,7 @@ class MainProgramsMenuCoordinator(
 
     companion object {
         const val MENU_ITEM_CALCULATOR = 1
+        const val MENU_ITEM_NETWORK_MONITOR = 18
         const val MENU_ITEM_CAMERA_OCR = 9
         const val MENU_ITEM_APP_LAUNCH_PANEL = 15
         const val MENU_ITEM_VR_CINEMA = 17
@@ -211,9 +233,10 @@ class MainProgramsMenuCoordinator(
         private const val MENU_ORDER_APP_LAUNCH_PANEL = 3
         private const val MENU_ORDER_QUICK_CAPTURE = 4
         private const val MENU_ORDER_CALCULATOR = 5
-        private const val MENU_ORDER_CAMERA_OCR = 6
-        private const val MENU_ORDER_SCREEN_RECORDING = 7
-        private const val MENU_ORDER_LINK_DOWNLOAD = 8
-        private const val MENU_ORDER_MINI_GAME = 9
+        private const val MENU_ORDER_NETWORK_MONITOR = 6
+        private const val MENU_ORDER_CAMERA_OCR = 7
+        private const val MENU_ORDER_SCREEN_RECORDING = 8
+        private const val MENU_ORDER_LINK_DOWNLOAD = 9
+        private const val MENU_ORDER_MINI_GAME = 10
     }
 }

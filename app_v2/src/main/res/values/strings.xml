@@ -13,12 +13,11 @@
     <string name="action_retry">Retry</string>
     <string name="rename">Rename</string>
     <string name="edit">Edit</string>
-    <string name="open">Open</string>
     <string name="select">Select</string>
-    <string name="error_queued_operation_move">Couldn\'t move "%1$s". Try again.</string>
-    <string name="error_queued_operation_delete">Couldn\'t delete "%1$s". Try again.</string>
-    <string name="error_queued_operation_rename">Couldn\'t rename "%1$s". Try again.</string>
-    <string name="error_queued_move_permission_denied">"%1$s" was copied to the destination, but the local copy couldn\'t be deleted - permission was denied.</string>
+    <string name="error_queued_operation_move">Couldn\'t move \"%1$s\". Try again.</string>
+    <string name="error_queued_operation_delete">Couldn\'t delete \"%1$s\". Try again.</string>
+    <string name="error_queued_operation_rename">Couldn\'t rename \"%1$s\". Try again.</string>
+    <string name="error_queued_move_permission_denied">\"%1$s\" was copied to the destination, but the local copy couldn\'t be deleted - permission was denied.</string>
     <string name="control">Control</string>
     <string name="save">Save</string>
     <string name="undo">Undo</string>
@@ -32,11 +31,9 @@
     </plurals>
     <string name="dialog_player_exit_pending_queue_leave">Leave anyway</string>
     <string name="dialog_player_exit_pending_queue_stay">Stay</string>
-    <string name="create_folder">Create Folder</string>
     <string name="create_folder_title">New Folder</string>
     <string name="create_folder_hint">Folder name</string>
     <string name="error_invalid_folder_name">Invalid folder name</string>
-    <string name="error_folder_already_exists">Folder already exists</string>
     <string name="help">Help</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
@@ -45,7 +42,6 @@
     <string name="share">Share</string>
     <string name="number_format" translatable="false">%1$d</string>
     <string name="string_format" translatable="false">%1$s</string>
-    <string name="string_format_two_args" translatable="false">%1$s %2$s</string>
     <string name="search">Search</string>
     <string name="search_hint">Search..</string>
     <string name="language_capability_translation">Translation</string>
@@ -56,9 +52,6 @@
     <string name="no_files_selected">No files selected</string>
     <string name="msg_last_filter_restored">Restored last filter: %1$s</string>
     <string name="warning_files_may_remain_in_source">Some files may still be in the source folder. Please check both source and destination. Affected: %1$d.</string>
-    <string name="no_supported_files_in_resource">No supported file types here. More selective than we look.</string>
-    <string name="process_started">Process started..</string>
-    <string name="long_operation_started">Operation in progress, please wait..</string>
     <string name="please_wait">Please wait..</string>
     <string name="favorites">Favorites</string>
     <string name="resource">Resource</string>
@@ -68,7 +61,6 @@
 
     <!-- General Settings -->
 
-    <string name="documentation">Documentation Portal</string>
 
     <!-- S0320: Camera OCR & Translation -->
     <string name="camera_ocr_result_header">OCR Translation Result</string>
@@ -83,7 +75,6 @@
     <string name="camera_ocr_save_error">Failed to save text file</string>
     <string name="camera_ocr_camera_error">Camera failed to launch or capture photo</string>
     <string name="camera_ocr_engine_error">Translation engine is currently unavailable</string>
-    <string name="camera_ocr_crop_title">Select area</string>
     <string name="camera_ocr_crop_retry">Retry</string>
     <string name="camera_ocr_crop_confirm">OK</string>
     <string name="camera_ocr_crop_frame_desc">Crop selection frame</string>
@@ -110,11 +101,8 @@
     <string name="renaming_files">Renaming..</string>
     <string name="renaming_n_files_from_folder">Renaming %1$d files from %2$s..</string>
     <string name="renamed_n_files">Renamed %1$d files.</string>
-    <string name="rename_failed">Could not rename the files.</string>
     <string name="rename_failed_generic">Could not rename that file.</string>
     <string name="rename_file_name_empty">File name cannot be empty.</string>
-    <string name="error_copy">Could not copy the files</string>
-    <string name="error_move">Could not move the files</string>
     <string name="error_delete">Could not delete the files</string>
     <string name="error_all_operations_failed">Nothing completed.</string>
     <string name="all_copy_operations_failed">Could not copy the selected files.\n\n%1$s</string>
@@ -171,13 +159,10 @@
     <string name="virtual_comment_all_docs">Local documents (PDF, EPUB, text, Office)</string>
     <string name="special_virtual_folders">Special Folders</string>
     <string name="virtual_resource_already_added">Already added</string>
-    <string name="virtual_resource_added">Resource "%1$s" added</string>
+    <string name="virtual_resource_added">Resource \"%1$s\" added</string>
     <string name="rescan_all_virtual_warning_title">Rescan All Resources</string>
     <string name="rescan_all_virtual_warning_message">The list includes virtual aggregate folders (All Music, All Videos, All Images, All Documents). Full rescan may take significant time. Continue?</string>
-    <string name="no_files_match_criteria">No files match your filters. The bar was set high.</string>
     <string name="connection_failed">Connection failed</string>
-    <string name="connection_ok_starting_speed_test">Connection OK. Starting Speed Test..</string>
-    <string name="error_subfolder_does_not_exist">Subfolder \'%1$s\' does not exist on share \'%2$s\'</string>
     <string name="retry">Retry</string>
     <string name="select_resource_type">Select Resource Type</string>
 
@@ -195,7 +180,6 @@
     <string name="error_bdts_format_title">Format Not Supported</string>
     <string name="error_bdts_format_message">Blu-ray Transport Stream (.m2ts) could not be played.\n\nIf all audio tracks use TrueHD or DTS-HD MA, select a different track or transcode the file to MP4/MKV (HandBrake, ffmpeg).</string>
     <string name="warning_m2ts_audio_unsupported">Audio tracks not decodable in this build: %1$s.\nPlaying without sound. Supported: AC-3, E-AC-3, DTS (core), AAC.</string>
-    <string name="warning_m2ts_audio_unsupported_title">Unsupported Audio Tracks</string>
 
     <!-- Cloud Connection Error Messages -->
     <string name="error_cloud_auth_expired">Cannot access \"%1$s\" - authentication expired or session timed out</string>
@@ -236,12 +220,8 @@
     <string name="max_date">Max date</string>
     <string name="min_size_mb">Min size</string>
     <string name="max_size_mb">Max size</string>
-    <string name="filter_active">Filter active: %1$s</string>
 
     <!-- Settings -->
-    <string name="general">General</string>
-    <string name="media_files">Media Files</string>
-    <string name="destinations">Quick Sort</string>
     <!-- Settings - General -->
     <string name="language">Language/Язык/Мова</string>
     <string name="color_theme">Color theme</string>
@@ -256,27 +236,20 @@
         <item>Light Blue</item>
         <item>Light Red</item>
     </string-array>
-    <string name="backup_restore_settings">Backup &amp; Restore</string>
     <string name="backup_to_google_drive">Backup settings to Google Drive</string>
     <string name="restore_from_google_drive">Restore settings from Google Drive</string>
-    <string name="backup_info_description">Backup includes all settings and resource list. Credentials are not backed up - you\'ll need to re-authenticate network/cloud resources after restore.</string>
     <string name="tooltip_backup_info_title">Backup Information</string>
     <string name="tooltip_backup_info_message">Backup includes all settings and resource list. Credentials are not backed up - you\'ll need to re-authenticate network/cloud resources after restore.</string>
     <string name="backup_success">Backed up %1$d resources, %2$d favorites and all settings to %3$s</string>
     <string name="backup_failed">Couldn\'t back up your settings and resources. Try again.</string>
-    <string name="backup_in_progress">Backing up settings and resources..</string>
-    <string name="restore_in_progress">Restoring settings and resources..</string>
     <string name="restore_confirm_title">Restore from Backup?</string>
     <string name="restore_confirm_message">Backup from: %1$s\nDevice: %2$s\nResources: %3$d\nFavorites: %4$d\n\n• Settings will be REPLACED\n• Resources will be APPENDED (duplicates skipped)\n• Favorites will be APPENDED (duplicates skipped)</string>
     <string name="restore_success">Restored all settings. Added %1$d resources (%2$d existed). Added %3$d favorites (%4$d existed).</string>
     <string name="restore_needs_auth">Some resources use network or cloud accounts. You\'ll need to re-authenticate them.</string>
     <string name="restore_no_backup">No backup found for this account.</string>
     <string name="restore_failed">Couldn\'t restore your settings and resources. Try again.</string>
-    <string name="last_backup_date">Last backup: %s</string>
     <string name="backup_account">Account: %s</string>
-    <string name="google_sign_in_failed">Google sign-in failed: %1$d</string>
     <string name="google_sign_in_cancelled">Google sign-in was cancelled</string>
-    <string name="auth_failed">Authentication failed. Try again.</string>
     <string name="battery_optimization_hint_title">Battery Optimization Warning</string>
     <string name="battery_optimization_hint_message">Battery optimization may prevent background audio playback. Disable battery optimization for FastMediaSorter in system settings for reliable background audio.</string>
     <string name="no_internet_connection">No internet connection. Try again later.</string>
@@ -295,7 +268,6 @@
     <string name="compact_elements">Compact elements</string>
     <string name="enable_favorites">Enable Favorites</string>
     <string name="favorite">Favorite</string>
-    <string name="favorites_title">Favorites</string>
 
     <!-- Command Panel Overflow Menu -->
     <string name="more_actions">More actions</string>
@@ -305,7 +277,6 @@
     <string name="google_lens">Google Lens</string>
 
     <!-- Safe Mode (Phase 2.1) -->
-    <string name="safe_mode_section">Safe Mode</string>
     <string name="enable_safe_mode">Enable Safe Mode</string>
     <string name="confirm_delete_safe_mode">Confirm before delete</string>
     <string name="confirm_move_safe_mode">Confirm before move</string>
@@ -314,23 +285,11 @@
     <string name="confirm_move_title">Move Files?</string>
     <string name="confirm_move_message">Move %1$d file(s) to %2$s?</string>
 
-    <string name="default_smb_user">Default SMB user</string>
-    <string name="default_smb_password">Default SMB password</string>
     <string name="user_guide">User Guide</string>
     <string name="how_to_guides">How-To Guides</string>
-    <string name="how_to_scenarios_title">Step-by-Step Guides</string>
-    <string name="how_to_scenarios_subtitle">Real-world walkthroughs for common tasks</string>
     <string name="open_welcome_tutorial">Welcome Tutorial</string>
     <string name="privacy_policy">Privacy</string>
-    <string name="manage_permissions">Manage permissions</string>
-    <string name="manage_local_files_permission">Manage local files access</string>
-    <string name="manage_manage_media_permission">Manage media management permission</string>
-    <string name="request_permissions">Request permissions</string>
     <string name="permissions_required_title">Permissions required</string>
-    <string name="permissions_required_for_local_resource">To create a local resource, media file access is required. Grant permissions to continue.</string>
-    <string name="show_logs">Show logs</string>
-    <string name="open_documentation">Open Documentation</string>
-    <string name="support_images">Support Images</string>
     <string name="support_images_description">Support static images</string>
     <string name="supported_image_formats">Supported: JPG, PNG, BMP, WEBP</string>
     <string name="max_recipients">Max recipients (1-30)</string>
@@ -341,12 +300,9 @@
     <string name="tooltip_dynamic_background_message">This feature fills the empty space (letterboxing/pillarboxing) by dynamically extending the colors from the image edges. It creates an immersive look when an image doesn\'t match the screen aspect ratio. For solid backgrounds, it uses a uniform fill; for complex backgrounds, it uses a perspective extension (streaks).</string>
     <string name="tooltip_crop_images_fullscreen_title">Image Crop Behavior</string>
     <string name="tooltip_crop_images_fullscreen_message">When enabled: In fullscreen or slideshow mode, if the image and device have matching orientations (both landscape or both portrait), the image will be cropped to fill the entire screen. When disabled: All images will fit within the screen boundaries without cropping.</string>
-    <string name="support_gif">Support GIF</string>
     <string name="support_gif_description">Support GIF animation</string>
-    <string name="support_video">Support Video</string>
     <string name="support_video_description">Support video</string>
     <string name="supported_video_formats">Supported: MP4, MKV, MOV, WEBM</string>
-    <string name="support_audio">Support Audio</string>
     <string name="support_audio_description">Support audio</string>
     <string name="supported_audio_formats">Supported: MP3, AAC, FLAC, OGG</string>
     <string name="search_audio_covers_online">Search audio covers online</string>
@@ -357,30 +313,21 @@
     <string name="select_photos_source">Select Photos Source</string>
     <string name="no_photos_source_selected">No resource selected</string>
     <string name="resource_not_found">Resource not found</string>
-    <string name="error_resource_unavailable">Resource "%1$s" is unavailable. Check the connection or resource settings.</string>
+    <string name="error_resource_unavailable">Resource \"%1$s\" is unavailable. Check the connection or resource settings.</string>
     <string name="error_folder_load_failed">Could not open the folder.</string>
     <string name="error_favorite_status_update_failed">Could not update favorite status.</string>
     <string name="error_add_destination_failed">Could not add this folder to Quick Sort.</string>
     <string name="error_cloud_provider_not_configured">Cloud service is not set up for this folder.</string>
-    <string name="error_folder_loading_blocked_by_video_player">Cannot load this folder while a video is playing.
-
-The video player is using the network connection right now.
-
-Close the player and try again.</string>
+    <string name="error_folder_loading_blocked_by_video_player">Cannot load this folder while a video is playing.\n\nThe video player is using the network connection right now.\n\nClose the player and try again.</string>
     <string name="error_folder_loading_blocked_by_video_player_details">Video playback keeps priority to avoid network congestion and playback stutter.</string>
     <string name="tooltip_photos_during_audio_title">Photos During Audio</string>
     <string name="tooltip_photos_during_audio_message">When enabled, random photos from the selected resource will be displayed during audio playback. Each song displays one random photo. Only static images are used (videos are ignored).</string>
 
     <!-- Audio Empty State Animation -->
 
-    <string name="support_text">Support Text</string>
-    <string name="support_txt">Support TXT</string>
     <string name="support_text_description">Support text files (.txt, .md, .log, .json, .xml)</string>
     <string name="show_text_line_numbers">Number lines</string>
-    <string name="supported_text_formats">Supported: TXT, MD, LOG, JSON, XML, CSV</string>
-    <string name="support_pdf">Support PDF</string>
     <string name="support_pdf_description">Support PDF documents</string>
-    <string name="support_epub">Support EPUB</string>
     <string name="support_epub_description">Support EPUB e-books</string>
     <string name="support_office_documents_description">Support Office documents</string>
     <string name="theme_light">Light</string>
@@ -388,7 +335,6 @@ Close the player and try again.</string>
     <string name="theme_sepia">Sepia</string>
     <string name="exit_fullscreen">Exit fullscreen</string>
     <string name="show_pdf_thumbnails">Large PDF Thumbnails (slow)</string>
-    <string name="show_pdf_thumbnails_description">Download and generate thumbnails for large PDF files: up to 50 MB for SMB, up to 10 MB for S/FTP/Cloud (may take significant time)</string>
     <string name="enable_translation">Enable Translation</string>
     <string name="font_size_auto">Automatic</string>
     <string name="font_size_minimum">Minimum</string>
@@ -401,14 +347,11 @@ Close the player and try again.</string>
     <string name="font_family_monospace">Monospace</string>
     <string name="enable_google_lens">Allow sending to Google Lens</string>
     <string name="swap_languages">Swap Languages</string>
-    <string name="supported_pdf_formats">Supported: PDF (rendering via Android PdfRenderer)</string>
     <string name="default_sort_mode">Default sort mode</string>
     <string name="slideshow_interval">Default slideshow (sec.)</string>
     <!-- Compact label for the inline slideshow field sharing a row with the sort-mode dropdown (S0647). -->
     <string name="slideshow_interval_inline">Slideshow (s)</string>
-    <string name="slideshow_interval_for_resource">Slideshow interval (sec.)</string>
     <string name="fullscreen_mode">Fullscreen mode</string>
-    <string name="seconds">Seconds</string>
     <string name="minutes">Minutes</string>
     <string name="stop">Stop</string>
     <string name="scan_stopped">Scan stopped. Working with %d files</string>
@@ -417,7 +360,6 @@ Close the player and try again.</string>
     <string name="allow_rename">Allow rename</string>
     <string name="allow_delete">Allow delete</string>
     <string name="confirm_delete">Confirm delete</string>
-    <string name="grid_mode">Grid mode by default</string>
     <string name="hide_grid_action_buttons">Hide quick action buttons on thumbnails</string>
     <string name="overflow_menu">More actions</string>
     <string name="hide_system_ui_in_fullscreen">Hide OS UI in fullscreen</string>
@@ -430,15 +372,12 @@ Close the player and try again.</string>
     <string name="show_hint_now">Show Hint Next Time</string>
     <string name="hint_will_be_shown_next_time">Touch zones hint will be shown next time you open media player</string>
     <string name="show_video_thumbnails">Show video thumbnails</string>
-    <string name="show_video_thumbnails_description">Extract and display first frame for video files (may take 2+ seconds for network files)</string>
     <string name="default_icon_size">Icon size for grid (pixels)</string>
     <string name="enable_copying">Allow copying</string>
     <string name="go_to_next_after_copy">Go to next file after copying</string>
     <string name="overwrite_on_copy">Overwrite existing file when copying</string>
     <string name="enable_moving">Allow moving</string>
     <string name="overwrite_on_move">Overwrite existing file when moving</string>
-    <string name="destinations_list">Quick Sort (0-9)</string>
-    <string name="destinations_description">Up to 30 quick sort folders. Each has a color and number.</string>
     <string name="add_destination">+ Add</string>
     <string name="destinations_list_header">Quick Sort destinations</string>
     <string name="add_resources_first_message">Add the folders first at the main screen, before mark any for quick sort.</string>
@@ -461,39 +400,22 @@ Close the player and try again.</string>
     <string name="subtitle_track">Subtitles</string>
     <string name="volume_50_percent">50%</string>
     <string name="volume_max">MAX</string>
-    <string name="dialog_playback_apply_and_3d">Apply and 3D</string>
     <string name="select_audio_track">Select Audio Track</string>
     <string name="select_subtitle_track">Select Subtitles</string>
     <string name="subtitle_off">Off</string>
     <string name="cd_playback_speed">Playback speed</string>
-    <string name="cd_audio_track">Audio track</string>
-    <string name="cd_subtitle_track">Subtitles</string>
-    <string name="track_unknown">Track %d</string>
-    <string name="repeat_mode">Repeat</string>
     <string name="resource_name">Resource Name</string>
     <string name="resource_name_hint">If empty - auto-generated</string>
     <string name="resource_comment">Comment</string>
     <string name="resource_pin_code">PIN Code (Optional)</string>
     <string name="resource_pin_code_hint">4-6 digits to protect this resource</string>
-    <string name="comment">Comment</string>
     <string name="access_pin">Access PIN</string>
     <string name="pin_incorrect">Incorrect PIN</string>
-    <string name="created_date">Created Date</string>
-    <string name="last_browse_date">Last Browse Date</string>
-    <string name="never_browsed">Never browsed</string>
-    <string name="loading_files">Loading files..</string>
-    <string name="supported_media_types">Supported Media Types</string>
     <string name="scan_subdirectories">Scan subdirectories</string>
-    <string name="scan_subdirectories_hint">Enable to search for media files in all nested subdirectories. Disable to scan only the root folder.</string>
     <string name="show_subfolders_as_items">Show subfolders separately</string>
     <string name="show_subfolders_as_items_hint">Display subfolders as clickable items. Click to navigate inside.</string>
-    <string name="show_subfolders_as_items_global_hint">Use global setting</string>
-    <string name="current_folder">Current folder</string>
-    <string name="folder_up">Parent folder</string>
     <string name="disable_thumbnails">Disable thumbnails</string>
-    <string name="disable_thumbnails_description">Show only file extension icons (no image/video preview). Auto-enabled for folders with &gt;10000 files.</string>
     <string name="read_only_mode">Read-only mode</string>
-    <string name="read_only_mode_hint">Prevents file operations (copy, move, delete)</string>
     <string name="error_read_only">This resource is read-only</string>
 
     <!-- Checkbox subtitle descriptions (Add Resource) -->
@@ -521,7 +443,6 @@ Close the player and try again.</string>
     <string name="network_delete_warning">Files will be permanently deleted from the network location</string>
     <string name="save_audio_metadata_locally">Save downloaded media data locally</string>
     <string name="save_audio_metadata_locally_desc">Covers and metadata without re-downloading from the internet</string>
-    <string name="cb_play_to_end_desc">Waits for the end of each video or audio before moving in the slideshow</string>
 
     <!-- Network delete dialog -->
     <string name="and_n_more_files_network">..and %d more files</string>
@@ -542,33 +463,20 @@ Close the player and try again.</string>
     <string name="favorites_empty_title">No Favorites Yet</string>
     <string name="favorites_empty_hint">Star a few files to gather them here. No pressure.</string>
 
-    <string name="use_as_destination">Mark for Quick Sort</string>
     <string name="counting">counting..</string>
     <string name="clear_trash">Clear Trash</string>
-    <string name="clear_trash_confirm_title">Clear Trash Folders?</string>
-    <string name="clear_trash_confirm_message">This will permanently delete %d trash folder(s) and all files inside them. This action cannot be undone.</string>
     <string name="trash_cleared">Trash folders removed: %d</string>
-    <string name="trash_clear_failed">Failed to clear trash: %s</string>
     <string name="add_to_destinations">Add to Quick Sort</string>
     <string name="back">Back</string>
     <string name="enter">Enter</string>
-    <string name="test">Test</string>
-    <string name="test_connection">Test</string>
-    <string name="restore_connection">Restore</string>
-    <string name="authentication_successful">Successfully signed in as %1$s</string>
-    <string name="authentication_failed">Authentication failed: %1$s</string>
     <string name="go_to_resources">Go to Resources</string>
     <string name="authentication_required">Authentication Required</string>
     <string name="sign_in_now">Sign In Now</string>
     <string name="copy_error">Copy Error</string>
     <string name="remove_resource">Remove Resource</string>
     <string name="reset">Reset</string>
-    <string name="resource_updated">Resource updated</string>
-    <string name="test_successful">Connection test successful</string>
-    <string name="test_failed">Connection test failed: %1$s</string>
     <string name="connection_test_success_title">Connection Test - Success</string>
     <string name="connection_test_failed_title">Connection Test - Failed</string>
-    <string name="server_share_required">Server and Share Name are required</string>
 
     <!-- Language Change -->
     <string name="restart_app_title">Restart Application</string>
@@ -614,7 +522,6 @@ Close the player and try again.</string>
     <string name="error_connection_auth">Cannot connect to \"%1$s\" - authentication failed.\n\nCheck username and password.</string>
     <string name="error_connection_access">Cannot connect to \"%1$s\" - access denied.\n\nCheck share permissions.</string>
     <string name="error_connection_share_not_found">Cannot connect to \"%1$s\" - share not found.\n\nVerify share name on server.</string>
-    <string name="error_connection_server_generic">Cannot connect to server.\n\n%1$s</string>
 
     <!-- B2: Generic network error messages for NetworkErrorMessageMapper -->
     <string name="error_network_timeout">Connection timed out. Check your network and try again.</string>
@@ -627,7 +534,6 @@ Close the player and try again.</string>
     <string name="error_network_rate_limit">Too many requests. Please wait and try again.</string>
     <string name="error_network_server_error">Server error. No response.</string>
     <string name="error_network_unsupported">Operation not supported by this server.</string>
-    <string name="error_network_generic">Network error. Please try again.</string>
     <string name="error_sftp_copy_failed_server">Could not copy file from %1$s. Check connection and try again.</string>
     <string name="error_ftp_connection_dropped">FTP connection to %1$s was interrupted. Try again.</string>
     <string name="error_sftp_copy_access_denied">No access to file on SFTP server. Check permissions.</string>
@@ -641,7 +547,6 @@ Close the player and try again.</string>
     <!-- Standalone player playback error messages -->
     <string name="error_file_not_found">File not found or cannot be opened.</string>
     <string name="error_network_connection">Network connection failed. Check your connection and try again.</string>
-    <string name="error_codec_unsupported">This format is not supported on your device.</string>
     <string name="error_playback_timeout">Playback timed out. Check your connection and try again.</string>
     <string name="error_network_playback">Remote server error. Playback failed.</string>
     <string name="error_behind_live_window">Missed live position. Seeking to live edge.</string>
@@ -649,14 +554,11 @@ Close the player and try again.</string>
     <string name="error_playback_failed">Playback failed. The file may be corrupted or unsupported.</string>
 
     <!-- Welcome Screen -->
-    <string name="skip">Skip</string>
     <string name="previous">Previous</string>
     <string name="next">Next</string>
     <string name="random_file_description">Random Jump</string>
     <string name="finish">Finish</string>
     <string name="grant_permissions">Grant Access</string>
-    <string name="permissions_denied_title">Permission Required</string>
-    <string name="permissions_denied_warning">Without media access, core app features will be unavailable.</string>
     <string name="continue_anyway">Continue anyway</string>
 
     <!-- Welcome Feature Card Labels -->
@@ -666,25 +568,12 @@ Close the player and try again.</string>
     <!-- S0028: multi-window -->
     <string name="action_open_in_separate_window">Open in new window</string>
     <string name="tooltip_allow_separate_window_title">Allow new windows</string>
-    <string name="tooltip_allow_separate_window_message">When enabled, the Browse and Player screens add an "Open in new window" action that launches the picked folder or file in a separate Android window. Useful on devices that support multi-window mode (tablets, foldables, ChromeOS, large displays). When disabled, the action is hidden and everything opens in the current window.</string>
+    <string name="tooltip_allow_separate_window_message">When enabled, the Browse and Player screens add an \"Open in new window\" action that launches the picked folder or file in a separate Android window. Useful on devices that support multi-window mode (tablets, foldables, ChromeOS, large displays). When disabled, the action is hidden and everything opens in the current window.</string>
     <string name="toast_panel_stereo_single_eye_applied">Stereo content cropped to one eye</string>
 
     <!-- Permissions -->
-    <string name="permission_storage_title">Storage Access</string>
-    <string name="permission_storage_rationale">FastMediaSorter needs access to your device storage to scan and display media files.</string>
-    <string name="permission_storage_rationale_r">FastMediaSorter needs permission to manage all files on your device to access local folders and media files.</string>
-    <string name="permission_internet_title">Network Access</string>
-    <string name="permission_internet_rationale">FastMediaSorter needs network access to connect to SMB/SFTP shares and cloud storage.</string>
-    <string name="local_network_permission_rationale_title">Local Network Access</string>
-    <string name="local_network_permission_rationale_message">FastMediaSorter needs local network access to connect to SMB, SFTP, and FTP servers, and to discover Chromecast devices on your network.</string>
-    <string name="local_network_permission_grant">Grant local network access</string>
-    <string name="local_network_permission_granted">Local network access granted</string>
-    <string name="local_network_permission_denied">Local network access unavailable</string>
     <string name="local_network_permission_open_settings">Open settings</string>
     <string name="grant_permission">Grant Permission</string>
-    <string name="grant_local_files_permission">Local files access</string>
-    <string name="grant_network_permission">Network permission</string>
-    <string name="network_permission_granted">Network permission</string>
     <string name="debug_settings_title">Debug logs and test tools</string>
     <string name="show_log">Show Log</string>
     <string name="show_current_session_log">Current Session Log</string>
@@ -697,7 +586,6 @@ Close the player and try again.</string>
     <!-- System info dialog: Network section (S0337) -->
     <!-- System info dialog: Benchmark section (S0337) -->
     <string name="cache_size_limit">Cache Size Limit</string>
-    <string name="cache_size_limit_mb">%d MB</string>
     <string name="clear_cache">Clear Cache</string>
     <string name="reset_smb_connections">Reset SMB</string>
     <string name="reset_smb_connections_title">Reset SMB Connections</string>
@@ -707,7 +595,6 @@ Close the player and try again.</string>
     <string name="gms_unavailable">Google Play Services aren\'t available. Most of the app works without them; only a few optional features will be unavailable.</string>
     <string name="gms_update_action">Update</string>
     <string name="gms_settings_link">You can update Google Play Services to enable a few optional features. If you don\'t need them, skip it.</string>
-    <string name="network_unstable_snackbar">Network unstable - check Wi-Fi</string>
     <string name="cache_size_calculating">Calculating..</string>
     <string name="cache_size_format">Cache: %s</string>
     <string name="cache_cleared">Cache cleared successfully</string>
@@ -716,14 +603,8 @@ Close the player and try again.</string>
     <string name="auto_calculate_cache_title">Auto-Calculate Cache Size</string>
     <string name="auto_calculate_cache_message">Recommended cache size: %1$d MB\n\nStorage info:\n%2$s\n\nApply this setting?</string>
     <string name="cache_size_already_optimal">Cache size is already optimal</string>
-    <string name="optimize_cache_title">Optimize Cache Size?</string>
-    <string name="optimize_cache_message">Based on your device storage, we recommend cache size: %1$d MB\n\nStorage info:\n%2$s\n\nWould you like to apply this setting?</string>
-    <string name="keep_current">Keep Current</string>
     <string name="default_user">Default User</string>
     <string name="default_password">Default Password</string>
-    <string name="skip_permission">Skip</string>
-    <string name="permissions_granted">Permissions granted. App will restart.</string>
-    <string name="storage_permission_denied_toast">Storage permissions not granted. Grant them in Settings → Permissions.</string>
 
     <!-- Network Input Validation -->
     <string name="invalid_server_address">Invalid server address</string>
@@ -756,38 +637,13 @@ Close the player and try again.</string>
     <string name="big_buttons_mode_summary">Enlarges player buttons and expands controls to full width - ideal for car head units</string>
     <string name="tooltip_big_buttons_mode_title">Big Buttons Mode</string>
     <string name="tooltip_big_buttons_mode_message">Player controls become larger and stretch across the full width. The top toolbar shows 5 to 9 buttons depending on available width; the rest move to the overflow menu. In landscape, the tall bottom panel may reduce the playback area.</string>
-    <string name="big_btn_short_playback_order">Order</string>
-    <string name="big_btn_short_delete">Delete</string>
-    <string name="big_btn_short_favorite">Fav</string>
-    <string name="big_btn_short_share">Share</string>
-    <string name="big_btn_short_info">Info</string>
-    <string name="big_btn_short_fullscreen">Full</string>
-    <string name="big_btn_short_slideshow">Slide</string>
-    <string name="big_btn_short_random">Random</string>
-    <string name="big_btn_short_black_screen">Dark</string>
-    <string name="big_btn_short_rename">Rename</string>
-    <string name="big_btn_short_edit">Edit</string>
-    <string name="big_btn_short_undo">Undo</string>
-    <string name="big_btn_short_cast">Cast</string>
-    <string name="big_btn_short_save_frame">Frame</string>
-    <string name="big_btn_short_lyrics">Lyrics</string>
-    <string name="big_btn_short_rotation">Rotate</string>
-    <string name="big_btn_short_search">Search</string>
-    <string name="big_btn_short_translate">Transl.</string>
-    <string name="big_btn_short_text_settings">Config</string>
-    <string name="big_btn_short_ocr">OCR</string>
-    <string name="big_btn_short_copy">Copy</string>
-    <string name="big_btn_short_lens">Lens</string>
     <string name="tooltip_default_credentials_title">Default Network Credentials</string>
     <string name="tooltip_default_credentials_message">Default username and password used when connecting to network resources (SMB/SFTP/FTP). Can be overridden per-resource during configuration.</string>
     <string name="all_files">All Files</string>
     <string name="tooltip_all_files_title">File Manager Mode</string>
     <string name="tooltip_all_files_message">Show and manage ALL file types in resources (not just media). When enabled, automatically supports images, video, audio, text, documents, archives, and binaries.</string>
-    <string name="all_files_global_info">All Files mode is enabled in Settings. All media types are automatically supported.</string>
-    <string name="all_files_resource_info">File Manager Mode is enabled for this resource. All file types are supported.</string>
     <string name="show_hidden_files">Show hidden files</string>
     <string name="tooltip_show_hidden_files_title">Show Hidden Files</string>
-    <string name="help_show_hidden_files">Help: Show hidden files</string>
     <string name="tooltip_show_hidden_files_message">Display hidden files and folders (those starting with a dot). Hidden entries become visible inside accessible storage locations, but Android can still protect app-specific folders.</string>
     <string name="tooltip_video_thumbnails_title">Show Video Thumbnails</string>
     <string name="tooltip_video_thumbnails_message">Extracts and displays the first frame of video files as thumbnails. May take 2+ seconds for network files due to download and processing time.</string>
@@ -816,7 +672,6 @@ Close the player and try again.</string>
     <string name="save_frame_saved_to_resource">Frame saved to: %s</string>
     <string name="save_frame_saved_to_downloads">Frame saved to Downloads</string>
     <string name="save_frame_error">Failed to save frame</string>
-    <string name="save_frame_drm_error">Protected content cannot be saved</string>
     <string name="save_frame_no_video">No video playing</string>
 
     <!-- S0106: Image crop commands -->
@@ -832,10 +687,9 @@ Close the player and try again.</string>
     <string name="compress_copy_failed">Couldn\'t create the compressed copy. Try again.</string>
 
     <!-- S0107: Draw overlay commands -->
-    <string name="menu_draw_overlay">Draw</string>
+    <string name="menu_draw_overlay">Drawing</string>
 
     <!-- Link auto-download (S0003) -->
-    <string name="link_autodownload_section_title">Behaviour</string>
     <string name="link_autodownload_master_label">Auto-download incoming links</string>
     <string name="link_autodownload_master_summary">Fetch the linked file from a shared http(s) URL into the chosen resource.</string>
     <string name="link_autodownload_resource_label">Download destination resource</string>
@@ -846,11 +700,7 @@ Close the player and try again.</string>
     <string name="link_autodownload_progress_downloading">Downloading..</string>
     <string name="link_autodownload_progress_bytes">%1$s / %2$s</string>
     <string name="link_autodownload_cancel">Cancel</string>
-    <string name="link_autodownload_done_resource">Saved to %s</string>
-    <string name="link_autodownload_done_downloads">Saved to Downloads</string>
-    <string name="link_autodownload_fallback_downloads">Destination unavailable - saved to Downloads</string>
     <string name="link_autodownload_error_no_network">No network connection</string>
-    <string name="link_autodownload_error_resource_unavailable">Selected resource is unavailable</string>
     <string name="link_autodownload_error_no_media">No downloadable media at this link</string>
     <string name="link_autodownload_error_youtube_community_post">YouTube community posts can\'t be downloaded</string>
     <string name="link_autodownload_error_corrupted">Couldn\'t download a usable file - the server returned an error page or an incomplete file</string>
@@ -894,13 +744,11 @@ Close the player and try again.</string>
     <string name="resources_to_add">Resources to add:</string>
     <string name="add_to_resources_button">Add to Resources</string>
     <string name="scan_network_button">Scan Network</string>
-    <string name="add_network_folder">Add Network Folder (SMB)</string>
     <string name="create_network_resource_smb">Create Network Resource (SMB)</string>
     <string name="network_folder">Network Folder</string>
     <string name="network_folder_description">Add SMB network shares</string>
 
     <!-- Validation Messages -->
-    <string name="share_name_required">Share name is required</string>
     <string name="ssh_key_required">SSH private key is required</string>
     <string name="ssh_key_loaded">SSH key loaded successfully</string>
     <string name="review_smb_details">Review and modify SMB connection details</string>
@@ -921,8 +769,6 @@ Close the player and try again.</string>
     <string name="path_format" translatable="false">/%1$s</string>
 
     <!-- Credentials titles -->
-    <string name="ftp_credentials">FTP Credentials</string>
-    <string name="credentials">Credentials</string>
 
     <!-- SFTP Authentication -->
 
@@ -960,10 +806,9 @@ Close the player and try again.</string>
 
     <!-- Open Source Licenses -->
     <string name="open_source_licenses_title">Open Source Licenses</string>
-    <string name="lib_smbj_title">SMBJ - SMBv2/v3 Library for Java</string>
-    <string name="lib_smbj_license">License: LGPL-2.1</string>
-    <string name="lib_epub4j_title">epub4j - Read/Write EPUB files</string>
-    <string name="lib_epub4j_license">License: LGPL-2.1</string>
+    <string name="oss_notices_unavailable">Third-party notices are unavailable.</string>
+    <string name="oss_notice_license_label">License: %1$s</string>
+    <string name="oss_notice_vendor_terms_label">Vendor terms: %1$s</string>
     <string name="view_source">View Source</string>
     <string name="view_license">View License</string>
     <string name="doc_char_count_label">Characters: %1$d</string>
@@ -974,7 +819,6 @@ Close the player and try again.</string>
     <string name="downloading_file">Downloading file..</string>
     <string name="downloaded_successfully">Downloaded successfully</string>
     <string name="download_failed">Download failed: %1$s</string>
-    <string name="no_app_to_handle_file">No app found to open this file</string>
     <string name="no_maps_app_available">No maps app available</string>
     <string name="error_opening_file">Error opening file: %1$s</string>
 
@@ -993,39 +837,26 @@ Close the player and try again.</string>
     <string name="onedrive">OneDrive</string>
     <string name="not_connected">Not connected</string>
     <string name="connected_as">Connected as %1$s</string>
-    <string name="coming_soon">Coming soon</string>
-    <string name="google_drive_sign_in">Sign in with Google</string>
     <string name="google_drive_signed_in">Signed in: %1$s</string>
-    <string name="google_drive_sign_out">Sign out</string>
     <string name="google_drive_select_folder">Select Folder</string>
     <string name="google_drive_authentication_failed">Google Drive authentication failed</string>
-    <string name="google_drive_connection_test_success">Connected successfully!</string>
     <string name="google_drive_connection_test_failed">Connection failed: %1$s</string>
 
     <!-- Dropbox strings -->
     <string name="dropbox_app_key" translatable="false">dpy64e70kqobr6x</string>
 
     <!-- OneDrive -->
-    <string name="onedrive_sign_in">Sign in to OneDrive</string>
     <string name="onedrive_signed_in">Signed in: %1$s</string>
     <string name="onedrive_sign_out">Sign out</string>
     <string name="onedrive_select_folder">Select Folder</string>
     <string name="onedrive_authentication_failed">OneDrive authentication failed</string>
-    <string name="onedrive_connection_test_success">Connected successfully!</string>
     <string name="onedrive_connection_test_failed">Connection failed: %1$s</string>
 
     <string name="no_folders_found">No folders found. They might be shy.</string>
-    <string name="add_folder">Add Folder</string>
-    <string name="add_folders">Add %1$d Folders</string>
     <string name="add_as_destination">Add as destination</string>
     <string name="resource_added">Resource added</string>
-    <string name="resources_added">%1$d resources added</string>
-    <string name="selected_folder">Selected: %1$s</string>
-    <string name="selected_folders">Selected: %1$d folders</string>
     <string name="folder_icon">Folder icon</string>
-    <string name="navigate_into_folder">Navigate into folder</string>
     <string name="loading">Loading..</string>
-    <string name="loading_with_progress" translatable="false">%1$s (%2$d)</string>
     <string name="sorting_in_progress">Sorting..</string>
 
     <!-- Sort modes -->
@@ -1079,20 +910,10 @@ Close the player and try again.</string>
     <string name="thumbnail_preload_wifi_only_title">Wi-Fi only preload</string>
     <string name="thumbnail_preload_wifi_only_summary">Only preload thumbnails when connected to an unmetered (Wi-Fi) network</string>
     <string name="sync_interval">Sync interval (min)</string>
-    <string name="sync_interval_hint">Enter minutes or select from list</string>
-    <plurals name="sync_interval_hours">
-        <item quantity="one">%d hour</item>
-        <item quantity="other">%d hours</item>
-    </plurals>
     <string name="sync_now">Sync Now</string>
-    <string name="sync_status_idle">Ready to sync</string>
     <string name="sync_status_in_progress">Syncing..</string>
-    <string name="sync_status_completed">Synced %d resources</string>
-    <string name="sync_status_failed">Sync failed</string>
     <string name="sync_completed_successfully">Synced %d resources successfully</string>
     <string name="sync_failed">Couldn\'t finish the sync. Try again.</string>
-    <string name="background_sync_enabled">Background sync enabled</string>
-    <string name="background_sync_disabled">Background sync disabled</string>
     <string name="last_sync_time">Last sync: %s</string>
     <string name="never_synced">Never synced</string>
 
@@ -1110,9 +931,7 @@ Close the player and try again.</string>
 
     <!-- Player Controls -->
     <string name="rewind_10_seconds">Rewind 10 seconds</string>
-    <string name="rewind_30_seconds">Rewind 30 seconds</string>
     <string name="forward_10_seconds">Forward 10 seconds</string>
-    <string name="forward_30_seconds">Forward 30 seconds</string>
 
     <!-- Language Options -->
     <string name="language_default">Default</string>
@@ -1153,10 +972,7 @@ Close the player and try again.</string>
     <string name="remove_destination_message">Remove \'%1$s\' from destinations?</string>
     <string name="remove_action">Remove</string>
     <string name="destination_removed">Destination removed: %1$s</string>
-    <string name="manual_sync_triggered">Manual sync triggered</string>
     <string name="slide_interval_error">Minimum interval is 5 minutes</string>
-    <string name="log_copied">Log copied to clipboard</string>
-    <string name="storage_permissions_granted">Storage permissions already granted</string>
     <string name="storage_permission_granted_continue">Storage access granted. Continue selecting a folder.</string>
 
     <!-- File Operations -->
@@ -1165,28 +981,21 @@ Close the player and try again.</string>
     <string name="msg_copy_success">Copied to %1$s.</string>
     <string name="msg_copy_success_count">Copied %1$d files to %2$s.</string>
     <string name="error_copy_failed">Could not copy the file.</string>
-    <string name="error_file_exists_copy">File "%1$s" is already in "%2$s".\n\nTurn on "Overwrite on copy" in Settings -&gt; Copy &amp; Move if you want to replace it.</string>
+    <string name="error_file_exists_copy">File \"%1$s\" is already in \"%2$s\".\n\nTurn on \"Overwrite on copy\" in Settings -&gt; Copy &amp; Move if you want to replace it.</string>
     <string name="msg_move_success">Moved to %1$s.</string>
     <string name="msg_move_success_count">Moved %1$d files to %2$s.</string>
     <string name="error_move_failed">Could not move the file.</string>
-    <string name="error_file_exists_move">File "%1$s" is already in "%2$s".\n\nTurn on "Overwrite on move" in Settings -&gt; Copy &amp; Move if you want to replace it.</string>
+    <string name="error_file_exists_move">File \"%1$s\" is already in \"%2$s\".\n\nTurn on \"Overwrite on move\" in Settings -&gt; Copy &amp; Move if you want to replace it.</string>
     <string name="msg_delete_success">Deleted.</string>
     <string name="error_delete_failed">Could not delete the file.</string>
     <string name="error_delete_unexpected">Could not finish deleting the file.</string>
     <string name="error_delete_permission_required">Android needs your permission to delete this file. Confirm the next prompt.</string>
 
     <!-- MANAGE_MEDIA Permission -->
-    <string name="manage_media_title">Enable Quick File Operations</string>
-    <string name="manage_media_explanation">FastMediaSorter is designed for fast media sorting. To delete and move files with one tap (without confirmation dialogs), the app needs \"Media Management\" permission.\n\nWithout this permission, Android will show a confirmation dialog for each file operation.</string>
 
     <!-- All Files Access Permission -->
-    <string name="all_files_access_required">Full Folder Access Required</string>
-    <string name="all_files_access_explanation">⚠️ Without \"All files access\" permission, Android restricts folder selection to only standard folders (Documents, Downloads, Pictures).\n\n✅ With this permission, you can:\n• Choose ANY folder on your device\n• Access Pictures, DCIM, Camera folders\n• Select custom folders for organizing media\n\n🔒 Privacy: The app only uses this for browsing your media - no data is collected or uploaded.\n\nGrant permission in the next screen to unlock full folder access.</string>
     <string name="folder_selection_limitations">⚠️ Limited Folder Access\n\nWithout \"All files access\" permission, you can only select from standard Android folders.\n\nTo choose any folder on your device, please grant the permission when prompted.</string>
     <string name="continue_limited">Continue (Limited)</string>
-    <string name="manage_media_grant">Grant Permission</string>
-    <string name="manage_media_skip">Skip (show dialogs)</string>
-    <string name="manage_media_dont_ask">Don\'t ask again</string>
 
     <!-- Folder Selection Dialog -->
     <string name="select_folder">Select Folder</string>
@@ -1214,38 +1023,24 @@ Close the player and try again.</string>
     <string name="not_a_folder">This path is not a folder</string>
     <string name="cannot_read_folder">Cannot read folder - check permissions</string>
     <string name="folder_selected_successfully">Folder selected: %s</string>
-    <string name="android_media_requires_permission">⚠️ Android/media folders require "All Files Access" permission. Grant permission to access WhatsApp, Telegram and other app data folders.</string>
     <string name="android_media_folder_added_warning">⚠️ Android/media folder added. Note: These folders may have restricted access even with permissions. If scanning fails, the app may not be allowed to access this specific folder by the system.</string>
-    <string name="grant_manage_media_permission">Media permission</string>
-    <string name="manage_media_permission_granted">Media Management permission granted</string>
-    <string name="grant_notifications_permission">Notification permission</string>
     <string name="manage_notifications_permission">Manage Notification Permission</string>
     <string name="notification_permission_required_for_background">Notification permission is required for background audio playback. Grant permission in system settings.</string>
-    <string name="grant_battery_optimization_permission">Battery optimization</string>
-    <string name="manage_battery_optimization_permission">Battery Optimization: Disabled</string>
-    <string name="battery_optimization_dialog_title">Background Operations</string>
-    <string name="battery_optimization_dialog_message">To allow scheduled file operations to run reliably in the background, disable battery optimization for FastMediaSorter. This is optional but recommended if you use scheduled operations.</string>
-    <string name="battery_optimization_dialog_btn_allow">Disable Optimization</string>
-    <string name="battery_optimization_dialog_btn_skip">Skip</string>
     <string name="msg_download_share">Downloading file for sharing..</string>
     <string name="error_share_download_failed">Could not prepare the file for sharing.</string>
     <string name="error_share_unexpected">Unexpected download result</string>
     <string name="error_share_failed">Could not share the file.</string>
-    <string name="title_share_chooser">Share file</string>
 
     <!-- Add Resource & Network Discovery -->
     <string name="network_discovery_title">Network Discovery</string>
     <string name="msg_scanning_subnet">Scanning local subnet..</string>
     <string name="msg_scan_complete">Scan complete</string>
-    <string name="msg_host_selected">Selected %1$s (%2$s)</string>
     <string name="msg_scan_again">Scan Again</string>
     <string name="msg_no_shares_found">No shares found on this server. Close this message and enter the share name manually.</string>
     <string name="msg_share_scan_failed">Couldn\'t scan the shares. Try again.</string>
     <string name="msg_select_share">Shares on %1$s</string>
     <!-- S0064: manual share name entry dialog -->
-    <string name="label_test_result">Test Result</string>
     <string name="msg_dropbox_auth_cancelled">Dropbox authentication cancelled</string>
-    <string name="msg_onedrive_auth_success">OneDrive authenticated successfully</string>
     <string name="msg_onedrive_auth_cancelled">OneDrive authentication cancelled</string>
     <string name="msg_already_authenticated">Already authenticated</string>
     <string name="select_folder_copy_location">Select folder location for the copy</string>
@@ -1261,7 +1056,6 @@ Close the player and try again.</string>
 
     <!-- GIF Editor -->
     <string name="msg_gif_extracting">Extracting frames..</string>
-    <string name="msg_gif_extract_started">Extracting %1$d frames..</string>
     <string name="msg_gif_extract_success">%1$d frames saved to Downloads</string>
     <string name="msg_gif_extract_failed">Couldn\'t extract the frames. Try again.</string>
     <string name="msg_gif_extract_api_unavailable">Frame extraction for this format requires Android 9+ (API 28+)</string>
@@ -1279,14 +1073,10 @@ Close the player and try again.</string>
     <string name="msg_no_file_to_edit">No file to edit</string>
     <string name="msg_operation_cancelled">Operation cancelled</string>
     <string name="msg_no_file_to_delete">No file to delete</string>
-    <string name="msg_error_occurred">Error occurred: %1$s</string>
     <string name="slideshow_enabled_message">Slideshow enabled with %1$d seconds interval</string>
     <string name="slideshow_stopped_connection_lost">Slideshow stopped. Connection to %1$s was lost.</string>
     <string name="slideshow_stopped_resource_unavailable">Slideshow stopped. No access to %1$s.</string>
     <string name="volume_level">Volume: %1$d%%</string>
-    <string name="msg_network_stream_retry">Network stream interrupted, retrying.. (%1$d/%2$d)</string>
-    <string name="msg_network_error_max_retries">Network stream error after %1$d retries: %2$s</string>
-    <string name="msg_playback_error">Playback error: %1$s</string>
     <string name="error_loading_media">Error loading file, skipping</string>
     <string name="warning_audio_format_unsupported">Audio format not supported - playing without sound</string>
 
@@ -1299,9 +1089,6 @@ Close the player and try again.</string>
 
     <!-- Dialog messages -->
     <string name="clear_cache_confirm_message">Are you sure you want to clear the app cache?</string>
-    <string name="save_credentials_title">Save Credentials?</string>
-    <string name="save_credentials_message">Connection test successful!\n\nDo you want to save these credentials now?\n\n⚠️ Without saving, the resource will use old credentials and may fail to open.</string>
-    <string name="save_now">Save Now</string>
     <string name="sort_by_title">Sort by</string>
     <string name="error_title">Error</string>
     <string name="error_details_title">Error Details</string>
@@ -1335,13 +1122,6 @@ Close the player and try again.</string>
     <string name="office_viewer_fallback_share">Share</string>
     <string name="office_viewer_fallback_cancel">Cancel</string>
     <string name="cannot_read_file">Cannot read file: %1$s</string>
-    <string name="access_denied">Access denied</string>
-    <string name="network_connection_failed">Network connection failed</string>
-    <string name="bad_http_status">Bad HTTP status</string>
-    <string name="read_position_out_of_range">Read position out of range</string>
-    <string name="io_error_code">I/O error (code: %1$d)</string>
-    <string name="source_error">Source error: %1$s</string>
-    <string name="not_authenticated">Not authenticated</string>
     <string name="no_app_to_handle_format">No app available to play this format</string>
     <string name="no_app_to_open">No app available to open this file</string>
     <string name="error_opening_file_simple">Failed to open file</string>
@@ -1405,11 +1185,6 @@ Close the player and try again.</string>
     <!-- OCR Best Models Feature -->
 
     <!-- Media Settings Categories -->
-    <string name="media_category_images">Images</string>
-    <string name="media_category_video">Video</string>
-    <string name="media_category_audio">Audio</string>
-    <string name="media_category_documents">Documents</string>
-    <string name="media_category_other">Other</string>
 
     <!-- Toast Messages -->
     <string name="toast_edit_images_only">Edit is only available for images</string>
@@ -1423,10 +1198,8 @@ Close the player and try again.</string>
     <string name="toast_copy_cancelled">Copy operation cancelled</string>
     <string name="toast_delete_cancelled">Delete operation cancelled</string>
     <string name="toast_unexpected_result">Unexpected result</string>
-    <string name="toast_rename_error">Rename error: %1$s</string>
     <string name="toast_delete_error">Couldn\'t finish deleting the files. Try again.</string>
     <string name="error_deletion_failed">Deletion failed</string>
-    <string name="toast_multiple_rename_not_implemented">Multiple file rename not yet implemented</string>
     <string name="toast_filter_applied">Filter applied successfully</string>
     <string name="toast_filter_failed">Couldn\'t apply that filter. Try again.</string>
     <string name="toast_adjustments_applied">Adjustments applied successfully</string>
@@ -1444,9 +1217,7 @@ Close the player and try again.</string>
     <string name="progress_flipping_image">Flipping image %1$s..</string>
 
     <string name="toast_no_files_to_play">No files to play</string>
-    <string name="toast_file_unavailable">This file is currently unavailable, please select a resource to play</string>
     <string name="toast_resource_not_loaded">Resource not loaded</string>
-    <string name="toast_failed_to_share">Failed to share: %1$s</string>
     <string name="at_least_one_media_type_required">At least one media type must be selected</string>
 
 
@@ -1456,15 +1227,11 @@ Close the player and try again.</string>
 
     <!-- Text reader settings -->
     <string name="reader_settings">Reader Settings</string>
-    <string name="reader_theme">Theme</string>
     <string name="reader_theme_light">Light</string>
     <string name="reader_theme_dark">Dark</string>
     <string name="reader_theme_sepia">Sepia</string>
     <string name="toggle_markdown">Toggle Markdown</string>
     <string name="read_aloud">Read Aloud</string>
-    <string name="read_aloud_stop">Stop Reading</string>
-    <string name="tts_reading">Reading aloud..</string>
-    <string name="syntax_highlighting">Syntax Highlighting</string>
 
     <!-- H.3: Editor enhancements -->
     <string name="redo">Redo</string>
@@ -1495,23 +1262,13 @@ Close the player and try again.</string>
     </plurals>
     <string name="resource_deleted">Resource deleted</string>
     <string name="msg_loading_timeout">Loading took too long</string>
-    <string name="speed">Speed</string>
-    <string name="network_speed">Network Speed</string>
-    <string name="read_speed">Read</string>
-    <string name="write_speed">Write</string>
-    <string name="rec_threads">Threads</string>
-    <string name="analyzing_speed">Analyzing speed..</string>
-    <string name="last_test_date">Last test: %s</string>
-    <string name="never_tested">Never tested</string>
 
     <!-- Speed Test -->
     <string name="speed_test_preparing">Preparing speed test..</string>
     <string name="speed_test_saving">Saving results..</string>
-    <string name="speed_test_complete">Speed Test Complete: Read: %1$s Mbps, Write: %2$s Mbps (Threads: %3$d)</string>
 
     <!-- Trash System -->
     <string name="no_files_to_restore">No deleted files to restore</string>
-    <string name="original_path_not_exists">Original path does not exist: %1$s</string>
     <string name="failed_to_restore_files">Failed to restore files</string>
     <string name="reload_files_failed">Could not refresh the file list.</string>
     <string name="no_operation_to_undo">Nothing to undo.</string>
@@ -1519,12 +1276,8 @@ Close the player and try again.</string>
     <string name="invalid_undo_operation_data">This undo action is no longer available.</string>
     <string name="undo_failed">Couldn\'t undo that action. Try again.</string>
     <string name="undo_rename_cancelled">Rename cancelled.</string>
-    <string name="restore_last_deleted">Restore Last Deleted</string>
-    <string name="confirm_restore">Restore %1$s?</string>
-    <string name="confirm_restore_multiple">Restore %1$d deleted files?</string>
     <string name="use_trash">Use trash folder (.trash)</string>
     <string name="use_trash_summary">Move deleted files to .trash instead of permanent deletion. Allows recovery before closing resource.</string>
-    <string name="disable_trash_warning">Files will be permanently deleted without recovery option</string>
     <string name="tooltip_use_trash_title">Move to trash</string>
     <string name="tooltip_use_trash_message">When enabled, deleted local files are moved to a hidden .trash folder and can be recovered via Undo. On Android 12+, some shared folders need MANAGE_MEDIA; without it, Trash may fall back to permanent deletion. When disabled, files are permanently deleted immediately and disk space is freed at once. Network and cloud files are always deleted permanently.</string>
     <!-- Media Settings Categories -->
@@ -1532,10 +1285,6 @@ Close the player and try again.</string>
     <!-- General Settings Categories -->
 
     <!-- Audio Background Photos -->
-    <string name="enable_photos_during_audio">Photos during audio</string>
-    <string name="enable_photos_during_audio_summary">Show random photos from selected resource instead of album art</string>
-    <string name="select_photo_resource">Select Photo Resource</string>
-    <string name="no_resource_selected">No resource selected</string>
 
     <!-- Email Support -->
     <string name="send_email">Send email</string>
@@ -1547,123 +1296,31 @@ Close the player and try again.</string>
     <string name="receive_share_no_content">No content received to import</string>
     <string name="receive_share_cache_failed">Couldn\'t prepare the shared file. Try again.</string>
     <string name="link_download_error_ytmusic_audio_only">Couldn\'t save the audio track from YouTube Music. The link did not return a playable audio file.</string>
-    <string name="receive_share_copied_to_folder">Saved to selected folder</string>
     <string name="receive_share_copy_to_folder_failed">Couldn\'t save the shared file to that folder. Try again.</string>
 
     <!-- Auto-generated from layout files -->
-    <string name="activity_browse_rvMediaFiles_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
-    <string name="activity_dropbox_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_edit_resource_tvRecThreads_text">-</string>
-    <string name="activity_google_drive_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
-    <string name="activity_main_emptyStateView_alpha">0.6</string>
-    <string name="activity_main_rvResources_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
-    <string name="activity_main_tabResourceTypes_tabMode">fixed</string>
     <string name="activity_main_tvScanDetail_text">0 files scanned</string>
     <string name="activity_main_tvScanProgress_text">Scanning resources..</string>
-    <string name="activity_onedrive_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
-    <string name="activity_player_audioFileInfo_lineSpacingMultiplier">1.2</string>
-    <string name="activity_player_audioMetadata_lineSpacingMultiplier">1.2</string>
     <string name="activity_player_btnDelete_text">Delete</string>
-    <string name="activity_player_btnFavorite_text">☆</string>
-    <string name="activity_player_btnInfo_text">ℹ</string>
-    <string name="activity_player_btnNext_text">▶</string>
     <string name="activity_player_btnPlayPause_text">▶</string>
-    <string name="activity_player_btnPrevious_text">◀</string>
     <string name="activity_player_btnSlideShow_text">SlideShow</string>
-    <string name="activity_player_btnVolumeDown_text">−</string>
-    <string name="activity_player_btnVolumeUp_text">+</string>
-    <string name="activity_player_playerView_resize_mode">fit</string>
-    <string name="activity_player_unified_audioFileInfo_lineSpacingMultiplier">1.2</string>
-    <string name="activity_player_unified_audioMetadata_lineSpacingMultiplier">1.2</string>
-    <string name="activity_player_unified_btnDelete_text">Delete</string>
-    <string name="activity_player_unified_btnNext_text">▶</string>
     <string name="activity_player_unified_btnOcrImage_text">OCR</string>
     <string name="activity_player_unified_btnOcrImageCmd_text">OCR</string>
     <string name="activity_player_unified_btnOcrPdfCmd_text">OCR</string>
-    <string name="activity_player_unified_btnPlayPause_text">▶</string>
     <string name="activity_player_unified_btnPrevious_text">◀</string>
-    <string name="activity_player_unified_btnSlideShow_text">SlideShow</string>
     <string name="activity_player_unified_btnVolumeDown_text">−</string>
     <string name="activity_player_unified_btnVolumeUp_text">+</string>
-    <string name="activity_player_unified_playerView_resize_mode">fit</string>
-    <string name="activity_player_unified_touchZone3Gestures_layout_weight">0.60</string>
-    <string name="activity_player_unified_touchZone3Next_layout_weight">0.20</string>
-    <string name="activity_player_unified_touchZone3Previous_layout_weight">0.20</string>
     <string name="activity_player_unified_tvCountdown_text">3..</string>
-    <string name="activity_player_unified_tvEpubChapterIndicator_text">1/1</string>
     <string name="activity_player_unified_tvPdfPageIndicator_text">1/1</string>
     <string name="activity_player_unified_tvSearchCounter_text">0/0</string>
-    <string name="activity_player_unified_tvTextContent_breakStrategy">simple</string>
-    <string name="activity_player_unified_tvTranslatedText_lineSpacingMultiplier">1.2</string>
-    <string name="activity_settings_tabLayout_tabMode">scrollable</string>
-    <string name="bottom_sheet_binary_file_btnCopy_textAlignment">textStart</string>
-    <string name="bottom_sheet_binary_file_btnDelete_textAlignment">textStart</string>
-    <string name="bottom_sheet_binary_file_btnMove_textAlignment">textStart</string>
-    <string name="bottom_sheet_binary_file_btnOpenWith_textAlignment">textStart</string>
-    <string name="bottom_sheet_binary_file_btnRename_textAlignment">textStart</string>
-    <string name="bottom_sheet_binary_file_btnShare_textAlignment">textStart</string>
-    <string name="dialog_access_password_tilPassword_boxBackgroundMode">outline</string>
-    <string name="dialog_access_password_tilPassword_endIconMode">password_toggle</string>
     <string name="dialog_color_picker_tvColorName_text">Green</string>
-    <string name="dialog_file_info_tvAudioBitrate_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvAudioChannels_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvAudioCodec_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvAudioCodecInfo_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvAudioDuration_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocAuthor_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocChapterCount_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocCharCount_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocEncoding_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocLineCount_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocPageCount_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocTitle_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvDocWordCount_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvExifAperture_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvExifCamera_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvExifDateTime_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvExifExposure_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvExifFocalLength_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvExifGPS_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvExifISO_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvFileDate_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvFileName_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvFilePath_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvFileSize_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvFileType_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvGifFrames_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvGpsLocation_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvImageColorSpace_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvImageFormat_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvImageMegapixels_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvImageResolution_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvPdfCreationDate_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvPdfCreator_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvPdfKeywords_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvPdfModDate_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvPdfProducer_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvPdfSubject_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvPdfVersion_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvVideoBitrate_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvVideoCodec_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvVideoDuration_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvVideoFrameRate_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvVideoResolution_lineSpacingMultiplier">1.2</string>
-    <string name="dialog_file_info_tvVideoRotation_lineSpacingMultiplier">1.2</string>
     <string name="dialog_file_operation_progress_btnCancel_text">Cancel</string>
     <string name="transfer_overall_progress_desc">Overall transfer progress</string>
     <string name="transfer_eta_desc">Estimated time remaining</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">Copying files..</string>
-    <string name="dialog_filter_btnApplyFilter_boxBackgroundMode">outline</string>
-    <string name="dialog_filter_cbFilterEpub_boxBackgroundMode">outline</string>
-    <string name="dialog_filter_cbFilterEpub_suffixText">MB</string>
-    <string name="dialog_filter_etFilterName_boxBackgroundMode">outline</string>
-    <string name="dialog_filter_etMinDate_boxBackgroundMode">outline</string>
-    <string name="dialog_filter_etMinSize_boxBackgroundMode">outline</string>
-    <string name="dialog_filter_etMinSize_suffixText">MB</string>
-    <string name="dialog_filter_resource_chipGroupMediaType_endIconMode">clear_text</string>
     <string name="dialog_folder_browser_tvCurrentPath_text">/storage/emulated/0</string>
     <string name="dialog_folder_selection_etManualPath_text">/storage/emulated/0/</string>
-    <string name="dialog_image_edit_btnNegative_text">-</string>
     <string name="dialog_image_edit_seekSaturation_text">2x</string>
     <string name="dialog_integration_test_btnClose_text">Close</string>
     <string name="dialog_integration_test_btnCopyLog_text">Copy Log</string>
@@ -1694,7 +1351,6 @@ Close the player and try again.</string>
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Please wait..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Loading..</string>
-    <string name="dialog_network_discovery_rvHosts_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>
     <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>
     <string name="dialog_player_settings_chipSpeed1_text">1x</string>
@@ -1702,21 +1358,14 @@ Close the player and try again.</string>
     <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>
     <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>
     <string name="dialog_player_settings_chipSpeed2_text">2x</string>
-    <string name="dialog_rename_single_unknown_boxBackgroundMode">outline</string>
     <string name="dialog_slideshow_settings_tvIntervalValue_text">5s</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">Max (MB)</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">Min (MB)</string>
-    <string name="fragment_settings_general_iconHelpDefaultCredentials_layout_constraintVertical_bias">0.5</string>
-    <string name="fragment_settings_general_tilDefaultPassword_endIconMode">password_toggle</string>
     <string name="fragment_settings_images_tilImageSizeMax_hint">Max (KB)</string>
     <string name="fragment_settings_images_tilImageSizeMin_hint">Min (KB)</string>
-    <string name="fragment_settings_media_etVideoSizeMin_hint">Max (KB)</string>
-    <string name="fragment_settings_playback_btnShowHintNow_lineSpacingMultiplier">1.2</string>
     <string name="fragment_settings_video_tilVideoSizeMax_hint">Max (KB)</string>
     <string name="fragment_settings_video_tilVideoSizeMin_hint">Min (KB)</string>
     <string name="item_folder_tvFolderName_text">Folder Name</string>
-    <string name="item_rename_file_unknown_boxBackgroundMode">outline</string>
-    <string name="item_resource_layoutInlineActions_layout_constraintVertical_bias">0.0</string>
     <string name="item_resource_to_add_btnTypeAudio_text">A</string>
     <string name="item_resource_to_add_btnTypeGif_text">G</string>
     <string name="item_resource_to_add_btnTypeImage_text">I</string>
@@ -1726,35 +1375,19 @@ Close the player and try again.</string>
     <string name="item_resource_to_add_btnTypeVideo_text">V</string>
     <string name="item_resource_tvAvailabilityIndicator_text">N/A</string>
     <string name="item_resource_tvWritableIndicator_text">🔒</string>
-    <string name="page_welcome_permissions_tvDescription_lineSpacingMultiplier">1.3</string>
-    <string name="page_welcome_touch_zones_tvDescription_lineSpacingMultiplier">1.2</string>
-    <string name="page_welcome_tvDescription_lineSpacingMultiplier">1.3</string>
 
     <!-- Semantic alignment and style values for unified UI control -->
 
     <!-- Button icon alignment -->
-    <string name="button_icon_alignment_start">start</string>
-    <string name="button_icon_alignment_text_start">textStart</string>
 
     <!-- Button text alignment -->
-    <string name="button_text_alignment_start">textStart</string>
-    <string name="button_text_alignment_center">center</string>
 
     <!-- Text style -->
 
     <!-- Layout gravity patterns -->
-    <string name="layout_gravity_bottom">bottom</string>
-    <string name="layout_gravity_center">center</string>
-    <string name="layout_gravity_center_vertical">center_vertical</string>
-    <string name="layout_gravity_bottom_end">bottom|end</string>
-    <string name="layout_gravity_bottom_start">bottom|start</string>
-    <string name="layout_gravity_top_end">top|end</string>
 
-    <string name="default_slideshow_interval">5</string>
     <string name="default_icon_size_value">96</string>
-    <string name="default_network_parallelism">2</string>
     <string name="default_sync_interval_minutes">240</string>
-    <string name="default_cache_size_limit_mb">2048</string>
     <string name="integration_tests_title">Integration Tests</string>
     <string name="integration_tests_description">Automated testing of file operations across all resource types</string>
     <string name="default_zero">0</string>
@@ -1782,8 +1415,6 @@ Close the player and try again.</string>
     <string name="table_of_contents">Table of contents</string>
     <string name="decrease_font_size">Decrease font size</string>
     <string name="increase_font_size">Increase font size</string>
-    <string name="edit_image">Edit image</string>
-    <string name="repeat">Repeat</string>
     <string name="previous_file">Previous file</string>
     <string name="play_pause">Play/Pause</string>
     <string name="next_file">Next file</string>
@@ -1800,8 +1431,6 @@ Close the player and try again.</string>
     <string name="reset_playback_section_title">Reset Player settings</string>
     <string name="reset_playback_section_message">Reset only Player settings to default values?</string>
     <string name="reset_playback_section_success">Player settings reset completed</string>
-    <string name="local_folder_icon">Local folder icon</string>
-    <string name="network_folder_icon">Network folder icon</string>
 
     <!-- Resource Editor -->
     <string name="title_add_resource">Add Resource</string>
@@ -1819,19 +1448,15 @@ Close the player and try again.</string>
     <string name="hint_server_path">Server Path (optional)</string>
     <string name="hint_cloud_folder_id">Cloud Folder ID</string>
     <string name="hint_slideshow_interval">Slideshow Interval (seconds)</string>
-    <string name="hint_destination_color">Destination Color</string>
     <string name="hint_access_pin">PIN Code (4–6 digits)</string>
     <string name="hint_comment">Comment (optional)</string>
 
     <string name="label_media_types">Media Types</string>
-    <string name="label_slideshow_interval">Slideshow Interval</string>
-    <string name="label_show_command_panel">Show Command Panel</string>
     <string name="label_destination_settings">Destination Settings</string>
     <string name="label_advanced_settings">Advanced Settings</string>
     <string name="label_additional_options">Additional Options</string>
     <string name="label_scanning_settings">Content Scanning Conditions</string>
     <string name="label_connection_settings">Connection Settings</string>
-    <string name="label_content_settings">Content Settings</string>
     <string name="label_is_destination">Use as destination folder</string>
     <string name="label_is_read_only">Read-only mode</string>
     <string name="label_scan_subdirectories">Scan subdirectories</string>
@@ -1848,8 +1473,6 @@ Close the player and try again.</string>
     <string name="label_read_speed">Read speed: %1$.1f MB/s</string>
     <string name="label_write_speed">Write speed: %1$.1f MB/s</string>
     <string name="label_never">Never</string>
-    <string name="label_expand_collapse">Expand/Collapse</string>
-    <string name="media_type_document">Documents</string>
 
     <string name="btn_test_connection">Test Connection</string>
     <string name="btn_add_resource">Add Resource</string>
@@ -1860,17 +1483,12 @@ Close the player and try again.</string>
     <string name="btn_retry">Retry</string>
 
     <string name="connection_success">Connection successful</string>
-    <string name="connection_test_failed_detail">Connection failed: %1$s</string>
     <string name="connection_test_not_supported">Connection test not supported for this resource type</string>
 
     <string name="error_field_required">This field is required</string>
     <string name="error_invalid_path">Invalid path</string>
-    <string name="error_invalid_host">Invalid host address</string>
     <string name="error_invalid_port">Invalid port number</string>
     <string name="error_invalid_username">Invalid username</string>
-    <string name="error_no_media_types">At least one media type must be selected</string>
-    <string name="error_invalid_cloud_provider">Invalid cloud provider</string>
-    <string name="error_invalid_cloud_folder">Invalid cloud folder</string>
     <string name="error_connection_failed">Connection test failed</string>
     <string name="error_save_failed">Failed to save resource</string>
     <string name="error_unknown">An unknown error occurred</string>
@@ -1889,7 +1507,7 @@ Close the player and try again.</string>
     <string name="error_resource_name_exists">Resource name already exists</string>
     <string name="name_suggestions">Suggestions: %1$s</string>
     <string name="btn_use_suggested_name">Use suggested name</string>
-    <string name="btn_use_name_format">Use "%1$s"</string>
+    <string name="btn_use_name_format">Use \"%1$s\"</string>
     <string name="copy_credentials_title">Copy credentials</string>
     <string name="copy_credentials_message">Choose credentials behavior for the duplicate resource.</string>
     <string name="keep_credentials">Keep credentials</string>
@@ -1900,7 +1518,6 @@ Close the player and try again.</string>
     <string name="notification_channel_audio_description">Controls for background audio playback</string>
     <string name="background_audio_setting_title">Background Playback</string>
     <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
-    <string name="background_audio_exit_title">Background Audio</string>
     <string name="background_audio_exit_message">Music is playing in the background. What would you like to do?</string>
     <string name="background_audio_exit_stop">Stop</string>
     <string name="background_audio_exit_continue">Keep Playing</string>
@@ -1924,7 +1541,6 @@ Close the player and try again.</string>
     <string name="sleep_timer_off">Off</string>
     <string name="sleep_timer_minutes">%d min</string>
     <string name="sleep_timer_hours">%1$d h %2$d min</string>
-    <string name="sleep_timer_active">Sleep: %s remaining</string>
     <string name="sleep_timer_cancelled">Sleep timer cancelled</string>
     <string name="sleep_timer_set">Sleep timer set for %s</string>
 
@@ -1936,7 +1552,6 @@ Close the player and try again.</string>
 
     <!-- Missing file -->
     <string name="file_not_found_playing_from_start">File \u201c%1$s\u201d not found - playing from start</string>
-    <string name="refresh_resource">Refresh Resource</string>
 
     <!-- Picture-in-Picture -->
     <string name="picture_in_picture">Picture in Picture</string>
@@ -1964,8 +1579,7 @@ Close the player and try again.</string>
     <string name="shortcut_slideshow_long">Start Slideshow</string>
 
     <!-- Standalone Player File Operations -->
-    <string name="confirm_delete_standalone">Delete "%1$s"?</string>
-    <string name="share_via">Share via</string>
+    <string name="confirm_delete_standalone">Delete \"%1$s\"?</string>
     <string name="open_in_fms">Open in FastMediaSorter</string>
     <string name="cd_add_to_favorites">Add to favorites</string>
     <string name="cd_remove_from_favorites">Remove from favorites</string>
@@ -1977,9 +1591,6 @@ Close the player and try again.</string>
     <string name="tile_audio_play_music">Play Music</string>
 
     <!-- Scheduled Operations -->
-    <string name="perm_battery_optim_grant">Allow background activity</string>
-    <string name="perm_battery_optim_manage">Manage battery optimization</string>
-    <string name="perm_battery_optim_hint">Required for reliable scheduled operations</string>
     <string name="perm_btn_grant_all">Grant All</string>
     <string name="perm_btn_open_system_settings">Open App Settings</string>
     <string name="permission_open_settings_for_feature">To enable %1$s, open App Settings.</string>
@@ -1990,42 +1601,32 @@ Close the player and try again.</string>
     <string name="perm_group_microphone">Microphone</string>
     <string name="perm_group_notification">Notifications</string>
     <string name="perm_group_system">System</string>
-    <string name="perm_group_vr">Virtual Reality</string>
     <!-- Permission status display -->
-    <string name="perm_current_status">Status: %s</string>
-    <string name="perm_status_granted">Granted</string>
-    <string name="perm_status_denied">Denied</string>
-    <string name="perm_status_permanently_denied">Blocked</string>
-    <string name="perm_status_not_applicable">Not required</string>
     <!-- Permission row action buttons -->
     <string name="perm_action_grant">Grant</string>
     <string name="perm_action_manage">Manage</string>
     <string name="perm_action_settings">Settings</string>
     <!-- Permission registry: per-permission title + description -->
     <string name="perm_title_read_external_storage">Local media access</string>
-    <string name="perm_desc_read_external_storage">Browse, sort and play photos, videos and audio stored on your device. Required on Android 12 and earlier before granular media permissions were available.</string>
+    <string name="perm_desc_read_external_storage">Media on this device</string>
     <string name="perm_title_read_media_images">Photos access</string>
-    <string name="perm_desc_read_media_images">Browse, sort and organise photos and images stored on your device. Required to display photo thumbnails and access your photo library.</string>
+    <string name="perm_desc_read_media_images">Photos on this device</string>
     <string name="perm_title_read_media_video">Video access</string>
-    <string name="perm_desc_read_media_video">Browse, sort and play video files stored on your device. Required to display video thumbnails and access your video library.</string>
+    <string name="perm_desc_read_media_video">Videos on this device</string>
     <string name="perm_title_read_media_audio">Music access</string>
-    <string name="perm_desc_read_media_audio">Browse, sort and play music and audio files stored on your device. Required to access your audio library and track listings.</string>
+    <string name="perm_desc_read_media_audio">Music on this device</string>
     <string name="perm_title_manage_external_storage">Full storage management</string>
-    <string name="perm_desc_manage_external_storage">Move, rename, copy and delete files across all storage locations including SD cards and shared storage volumes.</string>
+    <string name="perm_desc_manage_external_storage">Access to any folder, including app folders</string>
     <string name="perm_title_manage_media">Media management</string>
-    <string name="perm_desc_manage_media">Edit, rename and delete media files in bulk without requesting individual confirmation for each file operation.</string>
+    <string name="perm_desc_manage_media">Bulk media edits</string>
     <string name="perm_title_access_local_network">Local network access</string>
-    <string name="perm_desc_access_local_network">Connect to SMB file shares and DLNA media servers on your local Wi-Fi network for streaming and remote file access.</string>
+    <string name="perm_desc_access_local_network">SMB, SFTP, FTP and DLNA servers</string>
     <string name="perm_title_record_audio">Microphone</string>
-    <string name="perm_desc_record_audio">Record voice memos and attach them as annotations to media files. Required for the audio notes and voice tagging features.</string>
+    <string name="perm_desc_record_audio">Voice notes and sound in recordings</string>
     <string name="perm_title_post_notifications">Notifications</string>
-    <string name="perm_desc_post_notifications">Show progress notifications for background file operations, folder transfers and media playback controls in the notification bar.</string>
+    <string name="perm_desc_post_notifications">Progress notifications</string>
     <string name="perm_title_battery_optimization">Battery optimization</string>
-    <string name="perm_desc_battery_optimization">Prevent the system from pausing background playback and file transfers when the screen turns off or the app is minimised.</string>
-    <string name="perm_title_hand_tracking">Hand tracking</string>
-    <string name="perm_desc_hand_tracking">Use hand gestures to control playback, browse files and navigate menus on Meta Quest headsets without a physical controller.</string>
-    <string name="perm_title_headset_camera">Passthrough camera</string>
-    <string name="perm_desc_headset_camera">Access the passthrough cameras on Meta Quest to display the real world around the app window in mixed reality mode.</string>
+    <string name="perm_desc_battery_optimization">Background work allowed</string>
 
     <!-- Now Playing UI (III.13) -->
     <string name="now_playing_label">Now Playing</string>
@@ -2039,13 +1640,10 @@ Close the player and try again.</string>
     <string name="now_playing_previous_desc">Previous track</string>
     <string name="now_playing_next_desc">Next track</string>
     <string name="now_playing_seek_bar_desc">Seek bar</string>
-    <string name="now_playing_mini_bar_desc">Now Playing - tap to open player controls</string>
 
     <!-- Duplicate Detection -->
     <string name="action_find_duplicates">Find Duplicates</string>
     <string name="action_delete_duplicates">Find and Delete Duplicates</string>
-    <string name="action_delete_smaller_than">Delete Smaller Than..</string>
-    <string name="action_delete_larger_than">Delete Larger Than..</string>
     <string name="action_delete_by_size">Delete by Size..</string>
     <string name="cd_resource_ops_menu">Resource Operations Menu</string>
     <string name="cmd_camera_capture">Capture with camera</string>
@@ -2061,11 +1659,6 @@ Close the player and try again.</string>
     <string name="duplicate_scan_start">Start Scan</string>
     <string name="duplicate_scan_failed">Couldn\'t finish the duplicate scan. Try again.</string>
     <string name="duplicate_none_found">No duplicates found.</string>
-    <string name="scanning_for_duplicates">Scanning for duplicates..</string>
-    <string name="duplicates_found_format">Found %1$d duplicate groups (%2$s total)</string>
-    <string name="group_title_format">Group %1$d</string>
-    <string name="select_duplicates">Select Duplicates</string>
-    <string name="cd_delete_file">Delete file</string>
     <string name="cd_expand_group">Expand group</string>
     <string name="duplicate_group_count">%1$d files</string>
     <string name="cd_collapse_group">Collapse group</string>
@@ -2077,18 +1670,12 @@ Close the player and try again.</string>
     <string name="action_create_folder">Create Folder</string>
     <string name="action_create_text_file">Create text note</string>
     <string name="action_create_drawing">Create drawing</string>
-    <string name="create_text_file_title">New text note</string>
-    <string name="create_text_file_hint">File name</string>
     <string name="error_text_note_create_failed">Couldn\'t create the note here. Please try a different folder.</string>
     <string name="error_drawing_create_failed">Couldn\'t create the drawing here. Please try a different folder.</string>
-    <string name="msg_text_note_created">Note created: %1$s</string>
-    <string name="error_invalid_text_note_name">Use letters, digits, dashes; avoid / \\ : * ? \" &lt; &gt; |</string>
-    <string name="msg_folder_created">Folder "%1$s" created</string>
+    <string name="msg_folder_created">Folder \"%1$s\" created</string>
     <string name="msg_folder_renamed">Folder renamed</string>
     <string name="error_folder_create_failed">Could not create the folder.</string>
     <string name="error_folder_rename_failed">Could not rename the folder.</string>
-    <string name="error_cross_protocol_dir_not_supported">Folder copy/move between different storage types is not supported.</string>
-    <string name="operation_completed">Done.</string>
     <string name="error_some_operations_failed">%1$d of %2$d operations failed</string>
     <string name="menu_automate_source">Automation..</string>
     <string name="menu_add_receiver">Add to Sort List</string>
@@ -2111,11 +1698,10 @@ Close the player and try again.</string>
     <string name="archive_create_failed">Couldn\'t create the archive. Try again.</string>
     <string name="archive_error_network_not_supported">Archiving is only supported for local files. Network and cloud sources are not supported.</string>
     <string name="unarchive_dialog_title">Extract archive?</string>
-    <string name="unarchive_dialog_message">"%1$s" -> folder "%2$s"</string>
+    <string name="unarchive_dialog_message">\"%1$s\" -> folder \"%2$s\"</string>
     <string name="unarchive_action_extract">Extract</string>
     <string name="unarchive_progress_title">Extracting archive..</string>
     <string name="unarchive_progress_entry">Extracting: %1$s</string>
-    <string name="unarchive_progress_message">%1$d/%2$d (%3$d%%): %4$s</string>
     <string name="unarchive_success">Archive extracted</string>
     <string name="unarchive_error_zip_bomb">Archive too large or too deep</string>
     <string name="unarchive_error_no_space">Not enough storage space</string>
@@ -2124,12 +1710,11 @@ Close the player and try again.</string>
     <string name="unarchive_network_not_supported">Extraction is only supported for local and SD-card resources.</string>
     <string name="unarchive_only_zip_supported">Only ZIP archives are supported.</string>
     <string name="protected_archive_password_title">Password required</string>
-    <string name="protected_archive_password_message">"%1$s" is password-protected.</string>
+    <string name="protected_archive_password_message">\"%1$s\" is password-protected.</string>
     <string name="protected_archive_password_hint">Password</string>
     <string name="protected_archive_password_empty">Enter password</string>
     <string name="protected_archive_password_wrong">Password did not work.</string>
     <string name="protected_file_unsupported">This file is protected and cannot be opened inside the app.</string>
-    <string name="protected_file_open_external">Open externally</string>
     <string name="action_open">Open</string>
     <string name="app_updated_to">Updated to %1$s</string>
 
@@ -2166,8 +1751,6 @@ Close the player and try again.</string>
     <string name="permission_denied">Permission denied</string>
     <string name="failed_to_request_permission">Failed to request permission</string>
     <string name="permission_error_retry">Permission error - please try again</string>
-    <string name="operation_failed">Operation failed: %1$s</string>
-    <string name="error_with_message">Error: %1$s</string>
     <string name="error_init_settings">Couldn\'t open these settings. Try again.</string>
 
     <!-- TTS -->
@@ -2243,16 +1826,11 @@ Close the player and try again.</string>
     <string name="mic_recording_button_content_desc">Record audio</string>
     <string name="mic_recording_hold_hint">Hold to record</string>
     <string name="mic_recording_filename_title">Save Recording</string>
-    <string name="mic_recording_permission_rationale">Microphone access is required to record audio</string>
-    <string name="mic_recording_permission_denied">Microphone permission denied. Grant it in system settings.</string>
     <string name="mic_recording_saved">Recording saved: %s</string>
     <string name="mic_recording_error_save">Failed to save recording</string>
-    <string name="mic_recording_error_start">Failed to start recording</string>
     <string name="mic_recording_cancelled">Recording cancelled</string>
 
     <!-- Camera Capture Settings -->
-    <string name="tooltip_camera_capture_title">Camera capture</string>
-    <string name="tooltip_camera_capture_message">The camera button in the file browser opens the in-app camera to take a photo or record video without leaving the app, with flash, zoom, lens switch and tap-to-focus. The captured file is saved to the current resource folder.\n\nIf \"Don\'t ask for filename for captured photo and video\" is on, the file gets a timestamp name automatically; otherwise a rename dialog appears after each capture.</string>
     <string name="tooltip_saved_authorizations_title">Saved authorizations</string>
     <string name="tooltip_saved_authorizations_message">The in-app web sign-in screen saves the cookies and logins used when auto-downloading files from sites that require you to be signed in. Open this screen to review those saved authorizations and remove the ones you no longer need.</string>
 
@@ -2283,7 +1861,6 @@ Close the player and try again.</string>
 
     <!-- S0050: Black Screen mode settings -->
     <string name="black_screen_button_title">Black screen</string>
-    <string name="cmd_black_screen_label">Black Screen</string>
 
     <!-- S0034 Phase 06: icon picker UI strings -->
     <string name="cd_pick_resource_icon">Pick resource icon</string>
@@ -2311,7 +1888,6 @@ Close the player and try again.</string>
     <!-- S0116 §5.1 pillar M: post-download UX toasts (used when linkAutoDownloadOpenInPlayer == false) -->
     <string name="s0116_toast_saved_to_resource">Saved: %1$s</string>
     <string name="s0116_toast_saved_to_downloads">Saved to Downloads: %1$s</string>
-    <string name="s0116_toast_streaming_started">Downloading stream..</string>
     <string name="s0116_toast_drm_blocked">Protected content - download not possible</string>
     <string name="s0116_toast_mux_failed">Could not assemble MP4 (codec: %1$s)</string>
     <string name="s0116_toast_streaming_disabled">Streams not available in this build</string>
@@ -2320,10 +1896,7 @@ Close the player and try again.</string>
     <!-- S0151: Instagram/Threads social preview-only UX strings -->
     <string name="s0151_toast_content_unavailable">Couldn\'t get the content at this link</string>
     <string name="s0151_dialog_auth_title">Sign in to %1$s?</string>
-    <string name="s0151_dialog_reauth_title">Refresh sign-in for %1$s?</string>
     <string name="s0151_dialog_message">The real content from this link needs a sign-in - the preview image was skipped.</string>
-    <string name="s0151_dialog_reauth_message">We applied your saved sign-in for %1$s, but the page returned only a preview. The session may have expired, or this post needs a different account. Sign in again?</string>
-    <string name="s0151_dialog_reauth_positive">Sign in again</string>
 
     <!-- S0117: batch progress and summary UX for noLegal site extraction -->
     <string name="s0117_progress_batch_item">Downloading item %1$d of %2$d..</string>
@@ -2332,9 +1905,6 @@ Close the player and try again.</string>
     <string name="s0117_batch_dialog_summary">Saved %1$d of %2$d items.</string>
     <string name="s0117_batch_dialog_failure_line">%1$s: %2$s</string>
     <string name="s0117_batch_dialog_more_failures">+ %1$d more failures</string>
-    <string name="s0117_license_lib_title">NewPipe Extractor - site extraction engine</string>
-    <string name="s0117_license_lib_project">Project: TeamNewPipe</string>
-    <string name="s0117_license_lib_license">License: GPL-3.0-or-later</string>
 
     <!-- S0116 §5.1 pillars K, L: WebView authentication & saved auth sessions -->
     <string name="auth_sessions_empty">No saved authorizations</string>
@@ -2363,18 +1933,10 @@ Close the player and try again.</string>
     <string name="friendly_copy_error_auth_failed">Authentication failed. Check the credentials and try again.</string>
     <string name="friendly_copy_error_access_denied">Access denied. You may not have permission to do that.</string>
     <string name="friendly_copy_error_not_found">Couldn\'t find what you were looking for. It may have been moved or deleted.</string>
-    <string name="friendly_copy_empty_state_generic">Nothing here yet.</string>
-    <string name="friendly_copy_empty_state_invite">Nothing here yet. Add something to get started.</string>
-    <string name="friendly_copy_progress_generic">Working on it..</string>
     <string name="friendly_copy_success_generic">Done.</string>
-    <string name="friendly_copy_next_step_help">Open help</string>
-    <string name="friendly_copy_next_step_report">Report a problem</string>
-    <string name="friendly_copy_next_step_feedback">Leave feedback</string>
 
     <!-- S0118: technical-details labels for browse error surfaces -->
     <string name="error_details_resource_type">Type</string>
-    <string name="error_details_error">Error</string>
-    <string name="error_details_stack_trace">Stack trace</string>
 
     <!-- S0118: MediaPlayer fallback diagnostics (PlaybackHealthHelper) -->
 
@@ -2382,9 +1944,7 @@ Close the player and try again.</string>
 
     <!-- S0118 Phase 05: feature surface sweep -->
     <string name="duplicates_deleted_short">Selected files are gone.</string>
-    <string name="duplicates_deleted_count">Removed %1$d files.</string>
     <string name="favorites_slideshow_open_first">Open Favorites first, then start the slideshow there.</string>
-    <string name="google_drive_sign_in_unavailable">Google Drive sign-in isn\'t available right now. Try again later.</string>
 
     <!-- S0161: link download background queue - notification channel and messages -->
     <string name="link_download_notif_channel_name">Link downloads</string>
@@ -2402,12 +1962,7 @@ Close the player and try again.</string>
     <string name="link_download_notif_text_analyzing">Analyzing page..</string>
     <string name="link_download_notif_text_downloading_pct">Downloading %1$d%%</string>
     <string name="link_download_notif_action_cancel">Cancel</string>
-    <string name="auth_sessions_info_text">This screen shows authorizations captured via the in-app sign-in browser. Each entry stores cookies for one account on one site. Entries marked \&quot;Sign-in declined\&quot; were created when you chose \&quot;Do not ask\&quot; - they prevent the sign-in prompt from appearing again for that site. To add a second account for the same site, use \&quot;Add authorization\&quot; in the top menu.</string>
-    <string name="link_download_ytdlp_extracting">Extracting media link..</string>
-    <string name="link_download_ytdlp_downloading">Downloading via universal extractor..</string>
-    <string name="link_download_ytdlp_error_extract">Could not extract media from this link.</string>
-    <string name="link_download_ytdlp_error_runtime">Universal extractor is not available.</string>
-    <string name="rotation_toggle_title">Rotation</string>
+    <string name="auth_sessions_info_text">This screen shows authorizations captured via the in-app sign-in browser. Each entry stores cookies for one account on one site. Entries marked \"Sign-in declined\" were created when you chose \"Do not ask\" - they prevent the sign-in prompt from appearing again for that site. To add a second account for the same site, use \"Add authorization\" in the top menu.</string>
     <string name="rotation_toggle_sensor_on_desc">Screen rotation: unlocked</string>
     <string name="rotation_toggle_sensor_off_desc">Screen rotation: locked</string>
     <string name="link_download_notif_text_preview_only_signed_in">Couldn\'t extract page content. No sign-in needed.</string>
@@ -2431,8 +1986,6 @@ Close the player and try again.</string>
     <string name="browse_transfer_notif_text_auth_required">Open FastMediaSorter to sign in and continue</string>
     <string name="browse_transfer_notif_text_permission_required">Open FastMediaSorter to grant permission and retry</string>
     <string name="browse_transfer_notif_action_cancel">Cancel</string>
-    <string name="share_to_telegram">Send to Telegram</string>
-    <string name="share_to_telegram_failed">Unable to send to Telegram. Try the standard share instead.</string>
     <string name="midi_playback_failed">Couldn\'t play this MIDI file. Try another copy or skip to the next track.</string>
     <string name="tooltip_calculator_title">Calculator</string>
     <string name="tooltip_calculator_message">Adds a basic calculator to the main menu and enables the calculator widget. The calculator stays inside FastMediaSorter.</string>
@@ -2450,12 +2003,11 @@ Close the player and try again.</string>
     <string name="quick_recorder_notification_channel">Voice recording</string>
     <string name="quick_recorder_action_stop">Stop</string>
     <string name="quick_recorder_error">Could not record audio</string>
-    <string name="quick_recorder_permission_needed">Microphone access is needed to record</string>
     <string name="quick_recorder_permission_settings">Enable microphone access in Settings</string>
     <string name="camera_ocr_crop_lang_ocr_desc">OCR language</string>
     <string name="camera_ocr_crop_lang_target_desc">Translation language</string>
     <string name="perm_title_camera">Camera</string>
-    <string name="perm_desc_camera">Take photos inside the app for OCR capture and saving to the current resource. Needed when you want to shoot without leaving the app.</string>
+    <string name="perm_desc_camera">Shooting, text recognition and QR codes</string>
     <string name="perm_group_camera">Camera</string>
     <string name="camera_permission_required">Camera access is needed to take photos in the app. Grant the permission and try again.</string>
     <string name="setting_camera_to_resource_enabled_title">Enable photo capture</string>
@@ -2474,7 +2026,6 @@ Close the player and try again.</string>
     <string name="resource_menu_launch">Launch</string>
     <string name="resource_menu_move_to_top">Move to very top</string>
     <string name="resource_menu_move_to_bottom">Move to very bottom</string>
-    <string name="delivery_prompt_title">Extra download needed</string>
     <string name="delivery_offer_message">This feature needs an extra download (about %1$s). Get it now?</string>
     <string name="delivery_offer_message_unknown_size">This feature needs a small extra download. Get it now?</string>
     <string name="delivery_state_downloading">Downloading..</string>
@@ -2530,7 +2081,6 @@ Close the player and try again.</string>
     <string name="download_runner_notif_channel_name">Element Downloads</string>
     <string name="download_runner_notif_title_running">Downloading %s</string>
     <string name="download_runner_notif_title_installed">%s successfully installed</string>
-    <string name="download_runner_notif_title_queued">Download queued</string>
     <string name="download_runner_notif_title_failed">Failed to download %s</string>
     <string name="screen_capture_saved_to">Saved to %1$s: %2$s</string>
     <string name="screen_capture_service_notification_title">Screen capture</string>
@@ -2542,7 +2092,7 @@ Close the player and try again.</string>
     <string name="setting_gesture_strip_visible_title">Show the gesture strip</string>
     <string name="setting_gesture_strip_visible_summary">Show a semi-transparent grey guide on the first 4 px; the rest stays transparent</string>
     <string name="setting_gesture_overlay_help_title">Gesture overlay</string>
-    <string name="setting_gesture_overlay_help_message">Up to four invisible strips sit at the screen edges: two on the left and two on the right, each covering the 10-40 percent or 60-90 percent band of the screen height. From a strip you swipe in one of three directions - up, down, or inward - and every swipe runs the action assigned to it: a screenshot, the camera, device control (flashlight, volume, brightness), opening an app, and more. Which zones are on, whether their guides are visible, and the action per direction are all set in &quot;Configure gestures&quot;. Requires the &quot;Display over other apps&quot; permission.</string>
+    <string name="setting_gesture_overlay_help_message">Up to four invisible strips sit at the screen edges: two on the left and two on the right, each covering the 10-40 percent or 60-90 percent band of the screen height. From a strip you swipe in one of three directions - up, down, or inward - and every swipe runs the action assigned to it: a screenshot, the camera, device control (flashlight, volume, brightness), opening an app, and more. Which zones are on, whether their guides are visible, and the action per direction are all set in \"Configure gestures\". Requires the \"Display over other apps\" permission.</string>
     <string name="setting_screenshot_destination_title">Save screenshots to..</string>
     <string name="setting_screenshot_destination_default">Device screenshots folder (or Downloads)</string>
     <string name="screenshot_overlay_permission_rationale">Allow drawing over other apps to show the gesture strip</string>
@@ -2550,7 +2100,7 @@ Close the player and try again.</string>
     <string name="welcome_enable_all">Enable all</string>
     <string name="welcome_enable_all_content_description">Enable everything and finish setup</string>
     <string name="default_player_choose_in_settings">In system settings, choose FastMediaSorter as the default app for this type.</string>
-    <string name="s0413_audio_track_skipped">Skipped &quot;%1$s&quot; - this file cannot be played.</string>
+    <string name="s0413_audio_track_skipped">Skipped \"%1$s\" - this file cannot be played.</string>
     <string name="s0413_audio_queue_unplayable">Nothing here could be played.</string>
     <string name="settings_remote_sources_title">Remote resources (SMB/(S)FTP/Cloud)</string>
     <string name="settings_remote_source_smb_title">Local network (Ethernet) SMB</string>
@@ -2780,7 +2330,7 @@ Close the player and try again.</string>
     <string name="settings_streams_toggle">Enable Streams</string>
     <string name="settings_take_screenshot_now">Screenshot test</string>
     <string name="streams_unavailable_title">Stream unavailable</string>
-    <string name="streams_unavailable_message">&quot;%1$s&quot; is not responding. Remove it from your list?</string>
+    <string name="streams_unavailable_message">\"%1$s\" is not responding. Remove it from your list?</string>
     <string name="background_audio_group_title">Background audio playback</string>
     <string name="streams_filter_category">Category</string>
     <string name="streams_filter_language">Language</string>
@@ -2799,7 +2349,7 @@ Close the player and try again.</string>
     <string name="programs">Programs</string>
     <string name="error_scan_timeout">The folder is taking too long to load. Check your network and try again.</string>
     <string name="cast_stream_unsupported_protocol">This stream can\'t be cast to Chromecast</string>
-    <string name="screenshot_gesture_action_open_app">Open the main app window</string>
+    <string name="screenshot_gesture_action_open_app">Launch a chosen app</string>
     <string name="streams_shortcut_channel_missing">This stream is no longer in your list</string>
     <string name="streams_add_to_home_screen">Add to home screen</string>
     <string name="streams_shortcut_created">Shortcut added to home screen</string>
@@ -2809,7 +2359,6 @@ Close the player and try again.</string>
     <string name="three_zone_layout_explanation">With the 9-zone grid off, the player uses 3 zones: previous / zoom / next. Tap the left edge to open the command panel for file actions.</string>
     <string name="edit_app_launch_panel_title">Edit panel</string>
     <string name="app_launch_panel_empty_slot">Empty - tap to add</string>
-    <string name="app_launch_panel_add_app">Add app</string>
     <string name="app_launch_panel_action_move">Move</string>
     <string name="app_launch_panel_action_replace">Replace</string>
     <string name="app_launch_panel_action_remove">Remove</string>
@@ -2941,7 +2490,6 @@ Close the player and try again.</string>
     <string name="screen_recording_disclosure_title">Screen video recording</string>
     <string name="screen_recording_disclosure_message">FastMediaSorter will record everything shown on your screen, including other apps, to a video file with microphone audio until you stop it. Recording continues in the background. Android asks you to choose this app or the entire screen at the start of every recording, and this step cannot be skipped.</string>
     <string name="screen_recording_disclosure_start">Start recording</string>
-    <string name="screen_recording_permission_denied">Microphone and notification permissions are required to record the screen.</string>
     <string name="screen_recording_saved">Screen recording saved: %1$s</string>
     <string name="screen_recording_error">Could not save the screen recording.</string>
     <string name="streams_panel_disable_action">Disable</string>
@@ -2953,7 +2501,7 @@ Close the player and try again.</string>
     <string name="streams_country_flag">Country flag</string>
     <string name="perm_group_location">Location</string>
     <string name="perm_title_location">Location for capture geotag</string>
-    <string name="perm_desc_location">Optional. Adds your location to photos and videos you capture in the app. Decline and your captures simply carry no coordinates.</string>
+    <string name="perm_desc_location">Geotag your captures</string>
     <string name="screenshot_gesture_action_launch_camera">Launch camera</string>
     <string name="screenshot_gesture_action_start_video_recording">Start video recording</string>
     <string name="screenshot_gesture_action_start_audio_recording">Start audio recording</string>
@@ -2998,14 +2546,13 @@ Close the player and try again.</string>
     <string name="sftp_share_export_failed">Could not create the access file.</string>
     <string name="sftp_share_export_action">Share</string>
     <string name="companion_import_title">Import access</string>
-    <string name="companion_import_confirm_message">Add the SFTP resource &quot;%1$s&quot; on %2$s with %3$d folder(s)?</string>
+    <string name="companion_import_confirm_message">Add the SFTP resource \"%1$s\" on %2$s with %3$d folder(s)?</string>
     <string name="companion_import_no_fingerprint_warning">This server has not been verified - connect only if you trust the sender.</string>
     <string name="companion_import_password_label">Password for this server</string>
     <string name="companion_import_action">Import</string>
     <string name="companion_import_password_required">Enter the password for this server.</string>
     <string name="companion_qr_scan_hint">Point the camera at the companion QR code</string>
     <string name="companion_qr_scan_torch">Torch</string>
-    <string name="companion_qr_camera_denied">Camera access is needed to scan the QR code</string>
     <string name="vr_cinema_program_title">VR Cinema</string>
     <string name="setting_gesture_zone_left_top_title">Left edge - upper band</string>
     <string name="setting_gesture_zone_left_bottom_title">Left edge - lower band</string>
@@ -3023,8 +2570,6 @@ Close the player and try again.</string>
     <string name="edge_gesture_tab_right_bottom">Right bottom</string>
     <string name="edge_gesture_general_group_title">General gesture settings</string>
     <string name="edge_gesture_schema_content_description">Edge gesture map: tap a zone direction to assign an action</string>
-    <string name="edge_gesture_schema_state_assigned">assigned</string>
-    <string name="edge_gesture_schema_state_available">available</string>
     <string name="companion_qr_share_title">Scan to add the resource</string>
     <string name="companion_qr_share_hint">In FastMediaSorter: Add resource -&gt; Scan QR</string>
     <string name="companion_qr_share_no_password_note">No password included - the recipient enters it when importing.</string>
@@ -3046,7 +2591,7 @@ Close the player and try again.</string>
     <string name="gesture_action_explain_send_to_recipients">Captures the screen and sends it to your chosen recipients.</string>
     <string name="gesture_action_explain_share">Captures the screen and opens the system share sheet.</string>
     <string name="gesture_action_explain_crop_and_share">Captures the screen, lets you crop it, then shares the result.</string>
-    <string name="gesture_action_explain_open_app">Opens the main app window.</string>
+    <string name="gesture_action_explain_open_app">Opens the app you pick for this gesture. With no app picked, opens FastMediaSorter.</string>
     <string name="gesture_action_explain_open_panel">Opens the quick app-launch panel.</string>
     <string name="gesture_action_explain_launch_camera">Opens the in-app camera.</string>
     <string name="gesture_action_explain_take_photo">Takes a photo with the in-app camera and saves it.</string>
@@ -3139,7 +2684,6 @@ Close the player and try again.</string>
     <string name="launcher_tray_network_cellular">Mobile network</string>
     <string name="launcher_tray_network_ethernet">Wired network</string>
     <string name="launcher_tray_network_none">No network</string>
-    <string name="launcher_tray_battery_percent">%1$d%%</string>
     <string name="launcher_tray_battery_level">Battery %1$d%%</string>
     <string name="launcher_tray_battery_charging">Battery %1$d%%, charging</string>
     <string name="launcher_gadget_clock">Clock</string>
@@ -3160,9 +2704,9 @@ Close the player and try again.</string>
     <string name="launcher_edit_kind_resource">My resource</string>
     <string name="launcher_edit_kind_stream">Channel</string>
     <string name="launcher_edit_kind_os">Android setting</string>
-    <string name="launcher_edit_kind_gadget">Gadget</string>
+    <string name="launcher_edit_kind_gadget">Widget</string>
     <string name="launcher_edit_pick_stream_title">Choose a channel</string>
-    <string name="launcher_edit_pick_gadget_title">Choose a gadget</string>
+    <string name="launcher_edit_pick_gadget_title">Choose a widget</string>
     <string name="launcher_edit_remove_cell_named">Remove %1$s from desktop</string>
     <string name="launcher_edit_mode_browse">Browse</string>
     <string name="launcher_edit_mode_slideshow">Slideshow</string>
@@ -3171,21 +2715,19 @@ Close the player and try again.</string>
     <string name="launcher_edit_rotation_hint">The upright and sideways desktops are arranged separately - set each up the way you like.</string>
     <string name="launcher_edit_pin_add">Pin an app</string>
     <string name="launcher_edit_unpin_named">Unpin %1$s</string>
-    <string name="launcher_settings_group_title">System launcher</string>
     <string name="launcher_settings_enable_title">Make this app the home screen</string>
     <string name="launcher_settings_enable_desc">The Home button opens your own desktop with shortcuts and gadgets. Turn this off any time to bring back your previous home screen.</string>
     <string name="launcher_settings_enable_help_title">Home screen mode</string>
     <string name="launcher_settings_enable_help_message">When you turn this on, Android asks which home screen to use - pick this app and tap Always (or Just once to try it). To go back, turn this off and Android restores your previous home screen.</string>
     <string name="launcher_settings_show_recents_title">Show recent apps</string>
     <string name="launcher_settings_show_pinned_title">Show pinned apps</string>
-    <string name="launcher_settings_show_tray_title">Show clock and status</string>
+    <string name="launcher_settings_show_tray_title">Show status tray</string>
     <string name="launcher_settings_density_title">Grid density</string>
     <string name="launcher_settings_density_sparse">Sparse</string>
     <string name="launcher_settings_density_default">Standard</string>
     <string name="launcher_settings_density_dense">Dense</string>
     <string name="launcher_settings_density_densest">Very dense</string>
     <string name="launcher_settings_open_home_chooser_title">Change home screen</string>
-    <string name="launcher_settings_open_home_chooser_desc">Open Android settings to choose which app opens with the Home button.</string>
     <string name="launcher_welcome_toggle_title">Use as home screen</string>
     <string name="launcher_settings_dialog_title">System launcher settings</string>
     <string name="launcher_menu_launcher_settings">Launcher settings</string>
@@ -3235,7 +2777,6 @@ Close the player and try again.</string>
     <string name="launcher_weather_location_search">Search</string>
     <string name="launcher_weather_location_empty">Nothing found. Try another spelling</string>
     <string name="launcher_weather_location_searching">Searching..</string>
-    <string name="launcher_weather_location_failed">Could not reach the search service. Check the connection and try again</string>
     <string name="launcher_app_shortcut_start_failed">This action isn\'t available any more.</string>
     <string name="launcher_settings_lock_desktop_title">Lock desktop</string>
     <string name="launcher_settings_wallpaper_title">Desktop wallpaper</string>
@@ -3282,11 +2823,9 @@ Close the player and try again.</string>
     <string name="launcher_widget_no_room">No room on the launcher desktop. Free a spot and try again.</string>
     <string name="launcher_contact_no_app">Nothing on this device can open that contact action.</string>
     <string name="launcher_contact_cell_unnamed">Contact</string>
-    <string name="launcher_edit_kind_contact">Contact</string>
-    <string name="launcher_contact_action_title">What should this shortcut do?</string>
-    <string name="launcher_contact_action_profile">Open profile</string>
+    <string name="launcher_contact_action_profile">Contact card</string>
     <string name="launcher_contact_action_dial">Call</string>
-    <string name="launcher_contact_action_message">Send a message</string>
+    <string name="launcher_contact_action_message">Message in an app</string>
     <string name="launcher_contact_channel_title">Choose a messenger</string>
     <string name="launcher_contact_no_number">That contact has no phone number.</string>
     <string name="launcher_contact_no_channel">No messenger on this device has a channel for that contact.</string>
@@ -3304,8 +2843,456 @@ Close the player and try again.</string>
     <string name="camera_profile_sport_notice">Sport freezes motion with a short exposure - frames get darker in low light.</string>
     <string name="perm_group_contacts">Contacts</string>
     <string name="perm_title_read_contacts">Contacts access</string>
-    <string name="perm_desc_read_contacts">Show a contact\'s name and photo when you pin them to your launcher, and let you reach them directly from the pinned cell.</string>
+    <string name="perm_desc_read_contacts">Names for pinned cells</string>
     <string name="restart_app_color_theme_message">To apply the new color theme, the application needs to restart. Continue?</string>
     <string name="settings_debug_log_mirror_title">Mirror log to opened folder</string>
     <string name="settings_debug_log_mirror_desc">Copies the debug log into the folder currently open in the viewer. Off by default.</string>
+    <string name="error_destination_insufficient_space">Not enough space on %1$s - %2$s more is needed. Free up room there or pick another destination.</string>
+    <string name="removable_volumes_section">Removable media</string>
+    <string name="removable_volume_button_label">%1$s - %2$s free</string>
+    <string name="removable_volume_button_description">Removable medium %1$s, %2$s free. Opens this volume.</string>
+    <string name="removable_volume_access_request">To read %1$s, pick this volume in the system dialog that opens next - the app gets access only to the folder you choose.</string>
+    <string name="launcher_edit_resize_hint_drag">Drag this corner to resize the widget.</string>
+    <string name="launcher_edit_kind_action">Launcher action</string>
+    <string name="launcher_settings_reset_title">Reset launcher settings</string>
+    <string name="launcher_settings_reset_message">System launcher settings will be reset to their defaults. The desktop layout, the pinned icons and the wallpaper return to the state they had right after installation. Nothing outside the launcher is affected.</string>
+    <string name="launcher_settings_reset_button_description">Reset launcher settings to defaults</string>
+    <string name="launcher_settings_reset_success">Launcher settings reset to defaults</string>
+    <string name="launcher_settings_reset_failed">Could not reset the launcher settings. Nothing was changed - try again.</string>
+    <string name="launcher_add_cell">Add to desktop</string>
+    <string name="launcher_contact_action_sms">Send SMS</string>
+    <string name="launcher_contact_a11y_sms">Send SMS: %1$s</string>
+    <string name="launcher_contact_source_title">Where does the number come from?</string>
+    <string name="launcher_contact_source_pick">Pick from contacts</string>
+    <string name="launcher_contact_source_manual">Enter a number</string>
+    <string name="launcher_contact_number_hint">Phone number</string>
+    <string name="launcher_contact_number_invalid">That is not a phone number.</string>
+    <string name="perm_state_granted">Access granted</string>
+    <string name="perm_state_missing">Access not granted yet</string>
+    <string name="perm_state_blocked">Blocked in system settings</string>
+    <string name="launcher_settings_tray_clock_title">Clock</string>
+    <string name="launcher_settings_tray_bluetooth_title">Bluetooth</string>
+    <string name="launcher_settings_tray_sim1_title">SIM 1 signal</string>
+    <string name="launcher_settings_tray_sim2_title">SIM 2 signal</string>
+    <string name="launcher_settings_tray_network_title">Network type</string>
+    <string name="launcher_settings_tray_battery_title">Battery</string>
+    <string name="launcher_settings_tray_bluetooth_subtitle">Hidden while Bluetooth is off, or when the device does not report its state</string>
+    <string name="launcher_settings_tray_sim_subtitle">Needs permission to read the phone state. Hidden if you decline it or the SIM slot is empty</string>
+    <string name="perm_state_asked_each_time">Asked each time</string>
+    <string name="launcher_tray_battery_value">%1$d</string>
+    <string name="launcher_tray_bluetooth_on">Bluetooth on</string>
+    <string name="launcher_tray_sim_signal">SIM %1$d, signal %2$d of 4</string>
+    <string name="launcher_tray_sim_signal_none">SIM %1$d, no service</string>
+    <string name="launcher_now_playing_other_apps">Show other apps\' music</string>
+    <string name="launcher_now_playing_access_title">Show music from other apps</string>
+    <string name="launcher_now_playing_access_message">FastMediaSorter reads the media session of whatever app is playing - the track title, the artist and the play state - so this gadget can show it and control playback. Android calls this permission notification access, but the app reads no notifications, only the media session. You grant it on an Android settings screen and can withdraw it there at any time.</string>
+    <string name="perm_title_notification_listener">Notification access</string>
+    <string name="perm_desc_notification_listener">Lets the Now Playing gadget on the launcher desktop show and control what other apps are playing. The app reads media sessions only, never the content of notifications. Optional - granted on an Android settings screen.</string>
+    <string name="perm_title_write_external_storage">Saving to device storage</string>
+    <string name="perm_desc_write_external_storage">Writing files on Android 9 and older</string>
+    <string name="perm_title_system_alert_window">Display over other apps</string>
+    <string name="perm_desc_system_alert_window">Gesture strip on top of other apps</string>
+    <string name="perm_title_request_install_packages">Install apps from files</string>
+    <string name="perm_desc_request_install_packages">Opening an APK file found on this device</string>
+    <string name="perm_title_screen_capture_consent">Screen capture</string>
+    <string name="perm_desc_screen_capture_consent">The system asks every time a capture starts - it cannot be allowed in advance</string>
+    <string name="perm_title_access_coarse_location">Approximate location</string>
+    <string name="perm_desc_access_coarse_location">Coarse coordinates for a photo taken in the app</string>
+    <string name="perm_title_read_phone_state">Phone status</string>
+    <string name="perm_desc_read_phone_state">Signal strength on the launcher status strip</string>
+    <string name="perm_rationale_manage_external_storage">Without this permission Android limits folder choice to Documents, Downloads and Pictures. With it you can pick any folder - including DCIM, Camera and app folders such as Android/media - and move or delete files there. It is used only to browse and organize your media; nothing is collected or sent anywhere.</string>
+    <string name="perm_addendum_manage_external_storage_folder_picking">Grant it on the next screen, then come back here to pick the folder.</string>
+    <string name="perm_rationale_read_external_storage">The app needs access to your device storage to find and show media files, and to move or delete the ones you sort.</string>
+    <string name="perm_addendum_read_external_storage_local_resource">This is needed to create a local resource from a folder on the device.</string>
+    <string name="perm_rationale_access_local_network">The app connects to SMB, SFTP, FTP and DLNA servers on your network, and finds them by looking for devices on it. Without this permission those sources stay unreachable; nothing outside your network is contacted.</string>
+    <string name="perm_addendum_camera_qr_pairing">Scanning a companion QR code needs the camera.</string>
+    <string name="perm_rationale_record_audio">The microphone records voice notes and the sound in a screen recording. Without it recording cannot start.</string>
+    <string name="perm_addendum_record_audio_screen_recording">A screen recording takes its sound from the microphone.</string>
+    <string name="perm_addendum_post_notifications_screen_recording">The recording notification carries the stop control.</string>
+    <string name="perm_rationale_location">Location is used only to write coordinates into the photos and videos you shoot in the app. Nothing is sent anywhere.</string>
+    <string name="perm_addendum_post_notifications_scheduled_ops">Allow notifications for scheduled operations</string>
+    <string name="perm_rationale_battery_optimization">Android may pause the app in the background, and a scheduled operation then runs late or not at all. Excluding the app from battery optimization keeps the schedule on time.</string>
+    <string name="launcher_gadget_compass">Compass</string>
+    <string name="launcher_gadget_speed">Speed</string>
+    <string name="launcher_gadget_compass_cardinal_n">North</string>
+    <string name="launcher_gadget_compass_cardinal_ne">Northeast</string>
+    <string name="launcher_gadget_compass_cardinal_e">East</string>
+    <string name="launcher_gadget_compass_cardinal_se">Southeast</string>
+    <string name="launcher_gadget_compass_cardinal_s">South</string>
+    <string name="launcher_gadget_compass_cardinal_sw">Southwest</string>
+    <string name="launcher_gadget_compass_cardinal_w">West</string>
+    <string name="launcher_gadget_compass_cardinal_nw">Northwest</string>
+    <string name="launcher_gadget_compass_heading">%1$d° %2$s</string>
+    <string name="launcher_gadget_compass_altitude">%1$d m</string>
+    <string name="launcher_gadget_compass_calibrate">Wave the phone in a figure eight</string>
+    <string name="launcher_gadget_speed_value">%1$d km/h</string>
+    <string name="launcher_gadget_sensor_no_fix">Waiting for a position..</string>
+    <string name="launcher_gadget_sensor_no_permission">Location is off. Allow it in app permissions.</string>
+    <string name="launcher_gadget_compass_description">Compass. Heading %1$s, altitude %2$s</string>
+    <string name="launcher_gadget_speed_description">Current speed: %1$s</string>
+    <string name="launcher_gadget_speed_chart">Speed chart</string>
+    <string name="launcher_gadget_altitude_chart">Altitude chart</string>
+    <string name="launcher_gadget_chart_reset">Reset</string>
+    <string name="launcher_gadget_chart_reset_description">Clears the chart and starts it again from now</string>
+    <string name="launcher_gadget_chart_empty">No readings yet - the chart fills as you move.</string>
+    <string name="launcher_gadget_chart_distance">%1$s km</string>
+    <string name="launcher_gadget_chart_altitude_current">Now %1$d m</string>
+    <string name="launcher_gadget_speed_chart_description">Speed chart. Now %1$s, %2$s since the reset</string>
+    <string name="launcher_gadget_altitude_chart_description">Altitude chart. Now %1$s, %2$s since the reset, %3$s travelled</string>
+    <string name="launcher_gadget_steps">Steps</string>
+    <string name="launcher_gadget_steps_since_boot">Since the phone started</string>
+    <string name="launcher_gadget_steps_description">Steps: %1$s since the phone started</string>
+    <string name="perm_title_activity_recognition">Physical activity</string>
+    <string name="perm_desc_activity_recognition">Step count on the launcher desktop</string>
+    <string name="perm_rationale_activity_recognition">The steps gadget reads the counter your phone already keeps. Nothing is recorded, sent anywhere, or kept after you remove the gadget.</string>
+    <string name="menu_edit_adjust">Adjust</string>
+    <string name="menu_edit_file_text">File text</string>
+    <string name="menu_autorotate_screen_title">Screen autorotate</string>
+    <string name="rotate_content_ccw_title">Rotate -90°</string>
+    <string name="menu_edit_submenu_title">Editing</string>
+    <string name="rotate_content_ccw_desc">Rotate the image 90 degrees counter-clockwise</string>
+    <string name="launcher_settings_wallpaper_static_stripes">Striped wallpaper</string>
+    <string name="launcher_all_apps_search_hint">Search apps</string>
+    <string name="launcher_all_apps_empty">No app matches \"%1$s\". Clear the search to see the whole list.</string>
+    <string name="launcher_all_apps_sort">Sort order</string>
+    <string name="launcher_all_apps_sort_label">By name</string>
+    <string name="launcher_all_apps_sort_install_date">By install date</string>
+    <string name="launcher_all_apps_sort_update_date">By update date</string>
+    <string name="launcher_all_apps_sort_frequency">By how often you open it</string>
+    <string name="launcher_all_apps_sort_category">By category</string>
+    <string name="launcher_all_apps_sort_reverse">Reverse order</string>
+    <string name="perm_title_nearby_wifi_devices">Nearby Wi-Fi devices</string>
+    <string name="perm_desc_nearby_wifi_devices">Lets Network Monitor show details of the Wi-Fi network you are connected to. Nothing leaves the device.</string>
+    <string name="perm_title_bluetooth_connect">Bluetooth</string>
+    <string name="perm_desc_bluetooth_connect">Lets Network Monitor show the Bluetooth adapter state and the names of paired devices. Nothing leaves the device.</string>
+    <string name="network_monitor_title">Network Monitor</string>
+    <string name="settings_enable_network_monitor">Network Monitor</string>
+    <string name="settings_enable_network_monitor_summary">Adds a diagnostic program showing the connection, the signal and the network details.</string>
+    <string name="launcher_app_action_launch">Open</string>
+    <string name="launcher_app_action_to_desktop">Put on desktop</string>
+    <string name="launcher_app_action_pin_taskbar">Pin to taskbar</string>
+    <string name="launcher_app_action_app_info">App info</string>
+    <string name="launcher_app_action_uninstall">Uninstall</string>
+    <string name="launcher_app_action_desktop_full">The desktop is full. Free a square, or rotate the screen to use the other layout.</string>
+    <string name="launcher_app_action_pinned">Pinned to the taskbar.</string>
+    <string name="streams_rubric_general">General</string>
+    <string name="streams_rubric_news">News</string>
+    <string name="streams_rubric_pop">Pop</string>
+    <string name="streams_rubric_religious">Religious</string>
+    <string name="streams_rubric_kids">Kids</string>
+    <string name="streams_rubric_oldies">Oldies</string>
+    <string name="streams_rubric_movies_series">Movies &amp; Series</string>
+    <string name="streams_rubric_country_folk">Country &amp; Folk</string>
+    <string name="streams_rubric_rock">Rock</string>
+    <string name="streams_rubric_sports">Sports</string>
+    <string name="streams_rubric_world">World</string>
+    <string name="streams_rubric_jazz_blues">Jazz &amp; Blues</string>
+    <string name="streams_rubric_chillout">Chillout</string>
+    <string name="streams_rubric_electronic">Electronic</string>
+    <string name="streams_rubric_hip_hop">Hip-hop</string>
+    <string name="streams_rubric_talk">Talk</string>
+    <string name="streams_rubric_local_radio">Local radio</string>
+    <string name="streams_rubric_comedy">Comedy</string>
+    <string name="streams_rubric_classical">Classical</string>
+    <string name="streams_rubric_latin">Latin</string>
+    <string name="streams_rubric_documentary">Documentary</string>
+    <string name="streams_rubric_education">Education</string>
+    <string name="streams_rubric_test">Test</string>
+    <string name="streams_rubric_rnb_soul">R&amp;B &amp; Soul</string>
+    <string name="streams_rubric_metal">Metal</string>
+    <string name="streams_rubric_webcam">Webcam</string>
+    <string name="streams_rubric_reggae">Reggae</string>
+    <string name="streams_rubric_shopping">Shopping</string>
+    <string name="streams_rubric_business">Business</string>
+    <string name="streams_rubric_lifestyle">Lifestyle</string>
+    <string name="streams_rubric_adult">Adult</string>
+    <string name="streams_rubric_traffic_cams">Traffic cams</string>
+    <string name="streams_atlas_prompt_title">Channel pictures</string>
+    <string name="streams_atlas_prompt_size">%1$d MB</string>
+    <string name="launcher_create_resource_menu_row">Create resource</string>
+    <string name="launcher_create_resource_picker_item">Create new..</string>
+    <string name="launcher_home_cell_actions">Show actions</string>
+    <string name="launcher_home_channel_removed">Channel removed</string>
+    <string name="launcher_signal_playback">Playing</string>
+    <string name="launcher_signal_transfer">Transferring files</string>
+    <string name="launcher_signal_scheduled_ops">Scheduled task running</string>
+    <string name="launcher_signal_duplicate_scan">Looking for duplicates</string>
+    <string name="launcher_signal_network_sync">Syncing network folders</string>
+    <string name="launcher_signal_overflow_count">+%1$d</string>
+    <string name="launcher_signal_list_title">Active signals</string>
+    <string name="launcher_settings_group_taskbar">Taskbar</string>
+    <string name="launcher_settings_group_top_bar">Top bar</string>
+    <string name="launcher_settings_group_desktop">Desktop</string>
+    <string name="launcher_settings_group_system">System</string>
+    <string name="stream_info_menu_title">About this channel</string>
+    <string name="stream_info_window_title">About this channel</string>
+    <string name="stream_info_group_channel">Channel</string>
+    <string name="stream_info_group_catalog">Catalog record</string>
+    <string name="stream_info_group_measured">This connection</string>
+    <string name="stream_info_label_address">Address</string>
+    <string name="stream_info_label_title">Name</string>
+    <string name="stream_info_label_kind">Type</string>
+    <string name="stream_info_label_origin">Where it came from</string>
+    <string name="stream_info_label_added">Added</string>
+    <string name="stream_info_label_last_played">Last played</string>
+    <string name="stream_info_label_last_outcome">Last attempt</string>
+    <string name="stream_info_label_pinned">Pinned to top</string>
+    <string name="stream_info_label_access">Access</string>
+    <string name="stream_info_label_video_codec">Video codec</string>
+    <string name="stream_info_label_picture_size">Picture size</string>
+    <string name="stream_info_label_frame_rate">Frame rate</string>
+    <string name="stream_info_label_video_bitrate">Video bitrate</string>
+    <string name="stream_info_label_audio_codec">Audio codec</string>
+    <string name="stream_info_label_audio_channels">Audio channels</string>
+    <string name="stream_info_label_sample_rate">Sample rate</string>
+    <string name="stream_info_label_audio_bitrate">Audio bitrate</string>
+    <string name="stream_info_label_observed_rate">Incoming rate right now</string>
+    <string name="stream_info_kind_audio">Audio</string>
+    <string name="stream_info_kind_video">Video</string>
+    <string name="stream_info_kind_rtsp">RTSP camera</string>
+    <string name="stream_info_origin_manual">You added it</string>
+    <string name="stream_info_origin_imported">Imported from a file</string>
+    <string name="stream_info_origin_catalog">From the built-in catalog</string>
+    <string name="stream_info_outcome_ok">Played</string>
+    <string name="stream_info_outcome_fail">Did not start</string>
+    <string name="stream_info_outcome_never">Never tried</string>
+    <string name="stream_info_access_geo">Region-restricted</string>
+    <string name="stream_info_access_open">Open</string>
+    <string name="stream_info_state_measuring">Measuring..</string>
+    <string name="stream_info_state_unavailable">Not reported</string>
+    <string name="stream_info_state_empty">Not set</string>
+    <string name="stream_info_not_in_catalog">This channel is not in your list, so there is nothing stored about it. Add it to the list to keep its details.</string>
+    <string name="stream_info_copy">Copy all</string>
+    <string name="stream_info_copied">Details copied</string>
+    <string name="stream_info_value_picture_size">%1$d x %2$d</string>
+    <string name="stream_info_value_frame_rate">%1$s fps</string>
+    <string name="stream_info_value_bitrate">%1$s kbit/s</string>
+    <string name="stream_info_value_sample_rate">%1$s Hz</string>
+    <string name="streams_media_filter_audio">Show audio streams only</string>
+    <string name="streams_media_filter_video">Show video streams only</string>
+    <string name="streams_media_filter_clear">Show all streams</string>
+    <string name="launcher_section_app_functions">App functions</string>
+    <string name="launcher_section_everything_else">Everything else</string>
+    <string name="launcher_edit_kind_section">Section</string>
+    <string name="launcher_gadget_network">Network</string>
+    <string name="launcher_gadget_battery">Battery</string>
+    <string name="launcher_gadget_storage">Storage</string>
+    <string name="launcher_gadget_resources">Resources</string>
+    <string name="launcher_gadget_technical_unknown">Unknown</string>
+    <string name="launcher_gadget_network_online">%1$s, connected</string>
+    <string name="launcher_gadget_network_offline">%1$s, no internet</string>
+    <string name="launcher_gadget_network_description">Network: %1$s, %2$s</string>
+    <string name="launcher_gadget_battery_value">%1$d%%</string>
+    <string name="launcher_gadget_battery_remaining_approx">About %1$s left</string>
+    <string name="launcher_gadget_battery_charging">Charging</string>
+    <string name="launcher_gadget_battery_description">Battery: %1$s, %2$s</string>
+    <string name="launcher_gadget_storage_free">%1$s free of %2$s</string>
+    <string name="launcher_gadget_storage_card">Card: %1$s free of %2$s</string>
+    <string name="launcher_gadget_storage_description">Device storage: %1$s, %2$s</string>
+    <string name="launcher_gadget_resources_ram">%1$s RAM free</string>
+    <string name="launcher_gadget_resources_uptime">Running for %1$s</string>
+    <string name="launcher_gadget_resources_description">Device resources: %1$s, %2$s</string>
+    <string name="launcher_gadget_battery_remaining">%1$s left</string>
+    <string name="perm_rationale_read_contacts">The app reads the contact\'s current name and photo so a pinned shortcut keeps up when the person is renamed or changes their picture. Without it the shortcut keeps the name saved when it was pinned. Nothing is collected or sent anywhere.</string>
+    <string name="perm_addendum_contacts_cell_pinning">Allow it now and this shortcut will show the person\'s current name and photo.</string>
+    <string name="streams_unavailable_offline_title">No connection</string>
+    <string name="streams_unavailable_offline_message">\"%1$s\" stopped - your device is offline. Check your connection and try again.</string>
+    <string name="launcher_settings_top_status_strip_title">Clock and indicators on the top bar</string>
+    <string name="launcher_settings_top_status_strip_summary">The clock with seconds moves to the left of the top bar and the device indicators to the right, freeing the Start panel for more recent apps.</string>
+    <string name="launcher_settings_tray_moved_hint">The indicators are on the top bar while that mode is on. Turn it off to bring them back to the Start panel.</string>
+    <string name="gesture_slot_app_label">App to launch</string>
+    <string name="gesture_slot_app_none">Not chosen - tap to pick an app</string>
+    <string name="gesture_slot_app_reset">Clear choice</string>
+    <string name="network_monitor_section_wifi">Wi-Fi</string>
+    <string name="network_monitor_section_mobile">Mobile</string>
+    <string name="network_monitor_section_bluetooth">Bluetooth</string>
+    <string name="network_monitor_section_gnss">Satellites</string>
+    <string name="network_monitor_section_internet">Internet</string>
+    <string name="network_monitor_section_history">History</string>
+    <string name="network_monitor_status_available">Available</string>
+    <string name="network_monitor_status_no_hardware">No such hardware on this device</string>
+    <string name="network_monitor_status_no_permission">Permission not granted</string>
+    <string name="network_monitor_status_no_network">Nothing connected right now</string>
+    <string name="network_monitor_status_unknown">Open to check</string>
+    <string name="network_monitor_active_title">Active connection</string>
+    <string name="network_monitor_active_none">Nothing is connected. Turn on Wi-Fi or mobile data to get online.</string>
+    <string name="network_monitor_local_ip_label">Local IP</string>
+    <string name="network_monitor_value_unknown">Unknown</string>
+    <string name="network_monitor_internet_ok">Internet works</string>
+    <string name="network_monitor_internet_captive">This network wants you to sign in</string>
+    <string name="network_monitor_internet_none">Connected, but no internet</string>
+    <string name="network_monitor_internet_offline">Offline</string>
+    <string name="network_monitor_transport_ethernet">Ethernet</string>
+    <string name="network_monitor_transport_vpn">VPN</string>
+    <string name="network_monitor_transport_other">Other connection</string>
+    <string name="network_monitor_disabled_title">Network Monitor is off</string>
+    <string name="network_monitor_disabled_message">Turn it on in Settings - Operations to see your connection, signal and network details.</string>
+    <string name="network_monitor_unsupported_message">This app version does not include Network Monitor.</string>
+    <string name="network_monitor_open_settings">Open settings</string>
+    <string name="network_monitor_radio_wifi">Wi-Fi radio</string>
+    <string name="network_monitor_radio_bluetooth">Bluetooth radio</string>
+    <string name="network_monitor_radio_state_unknown">State unknown</string>
+    <string name="network_monitor_radio_unsupported">This device does not let apps switch this radio. Use the system settings instead.</string>
+    <string name="network_monitor_wifi_network_label">Network</string>
+    <string name="network_monitor_wifi_frequency_label">Frequency</string>
+    <string name="network_monitor_wifi_link_speed_label">Link speed</string>
+    <string name="network_monitor_wifi_standard_label">Wi-Fi standard</string>
+    <string name="network_monitor_link_heading">Link details</string>
+    <string name="network_monitor_link_interface_label">Interface</string>
+    <string name="network_monitor_link_ipv4_label">IPv4</string>
+    <string name="network_monitor_link_ipv6_label">IPv6</string>
+    <string name="network_monitor_link_dns_label">DNS</string>
+    <string name="network_monitor_link_gateway_label">Gateway</string>
+    <string name="network_monitor_link_route_label">Default route</string>
+    <string name="network_monitor_link_proxy_label">Proxy</string>
+    <string name="network_monitor_link_bandwidth_label">System bandwidth estimate</string>
+    <string name="network_monitor_route_present">Present</string>
+    <string name="network_monitor_route_absent">None</string>
+    <string name="network_monitor_chart_signal_heading">Signal</string>
+    <string name="network_monitor_chart_waiting">Collecting readings..</string>
+    <string name="network_monitor_chart_summary">Now %1$s / min %2$s / max %3$s / %4$s</string>
+    <string name="network_monitor_trend_rising">rising</string>
+    <string name="network_monitor_trend_falling">falling</string>
+    <string name="network_monitor_trend_flat">steady</string>
+    <string name="network_monitor_trend_unknown">trend unknown</string>
+    <string name="network_monitor_value_dbm">%1$s dBm</string>
+    <string name="network_monitor_value_mbps">%1$d Mbps</string>
+    <string name="network_monitor_value_mhz">%1$d MHz</string>
+    <string name="network_monitor_value_kbps">%1$d kbit/s</string>
+    <string name="network_monitor_bandwidth_pair">down %1$s, up %2$s</string>
+    <string name="network_monitor_mobile_modems_label">Active modems</string>
+    <string name="network_monitor_mobile_sim_label">SIM %1$d</string>
+    <string name="network_monitor_mobile_sim_data_preferred">%1$s - preferred for data</string>
+    <string name="network_monitor_mobile_no_control">Android does not let an app switch mobile data or a SIM. Only the system settings can.</string>
+    <string name="network_monitor_mobile_open_system">Open system network settings</string>
+    <string name="network_monitor_mobile_sim_signal_heading">SIM %1$d signal</string>
+    <string name="network_monitor_bluetooth_adapter_label">Adapter</string>
+    <string name="network_monitor_bluetooth_adapter_present">Present</string>
+    <string name="network_monitor_bluetooth_adapter_absent">Not on this device</string>
+    <string name="network_monitor_bluetooth_state_on">On</string>
+    <string name="network_monitor_bluetooth_state_off">Off</string>
+    <string name="network_monitor_bluetooth_paired_heading">Paired devices</string>
+    <string name="network_monitor_bluetooth_paired_empty">Nothing is paired with this device.</string>
+    <string name="network_monitor_bluetooth_device_connected">%1$s - connected</string>
+    <string name="network_monitor_bluetooth_device_idle">%1$s - not connected</string>
+    <string name="network_monitor_bluetooth_picker_label">Chart a connected device</string>
+    <string name="network_monitor_bluetooth_picker_none">Not selected</string>
+    <string name="network_monitor_bluetooth_picker_empty">No connected device to chart.</string>
+    <string name="network_monitor_bluetooth_signal_heading">Device signal</string>
+    <string name="network_monitor_gnss_visible_label">Satellites in view</string>
+    <string name="network_monitor_gnss_used_label">Used for position</string>
+    <string name="network_monitor_gnss_acquiring">Searching for satellites..</string>
+    <string name="network_monitor_gnss_satellite_line">%1$s %2$d: %3$s, %4$s</string>
+    <string name="network_monitor_gnss_used_in_fix">counted in position</string>
+    <string name="network_monitor_gnss_not_in_fix">not counted</string>
+    <string name="network_monitor_gnss_position_heading">Position</string>
+    <string name="network_monitor_gnss_latitude_label">Latitude</string>
+    <string name="network_monitor_gnss_longitude_label">Longitude</string>
+    <string name="network_monitor_gnss_accuracy_label">Accuracy</string>
+    <string name="network_monitor_gnss_fix_time_label">Fix time</string>
+    <string name="network_monitor_gnss_accuracy_value">±%1$s m</string>
+    <string name="network_monitor_gnss_chart_heading">Signal strength</string>
+    <string name="network_monitor_value_db_hz">%1$s dB-Hz</string>
+    <string name="network_monitor_gnss_track_heading">Track recording</string>
+    <string name="network_monitor_gnss_track_title">Record the track on this device</string>
+    <string name="network_monitor_gnss_track_summary">The track stays on this device and is written only while this screen is open. Nothing is sent anywhere.</string>
+    <string name="network_monitor_gnss_track_points">Recorded points: %1$d</string>
+    <string name="network_monitor_gnss_track_share">Share the track file</string>
+    <string name="network_monitor_gnss_track_share_failed">The track file is not available - a newer session may have replaced it. Turn recording on and try again.</string>
+    <string name="network_monitor_path_heading">Path to the internet</string>
+    <string name="network_monitor_path_device">This device</string>
+    <string name="network_monitor_path_gateway">Gateway</string>
+    <string name="network_monitor_path_dns">DNS</string>
+    <string name="network_monitor_path_internet">Internet</string>
+    <string name="network_monitor_path_node_description">%1$s: %2$s</string>
+    <string name="network_monitor_traffic_heading">Traffic on this device</string>
+    <string name="network_monitor_traffic_down_label">Incoming now</string>
+    <string name="network_monitor_traffic_up_label">Outgoing now</string>
+    <string name="network_monitor_value_per_second">%1$s/s</string>
+    <string name="network_monitor_value_mbps_decimal">%1$s Mbps</string>
+    <string name="network_monitor_actions_heading">Checks</string>
+    <string name="network_monitor_target_label">What to check</string>
+    <string name="network_monitor_target_internet">The internet</string>
+    <string name="network_monitor_range_heading">Address range to scan - leave empty to scan this device subnet</string>
+    <string name="network_monitor_range_first_hint">From</string>
+    <string name="network_monitor_range_last_hint">To</string>
+    <string name="network_monitor_action_check_resource">Check the selected resource</string>
+    <string name="network_monitor_action_scan_subnet">Scan the local network</string>
+    <string name="network_monitor_action_external_ip">Show the external address</string>
+    <string name="network_monitor_action_speed_test">Measure the speed</string>
+    <string name="network_monitor_action_cancel">Stop</string>
+    <string name="network_monitor_action_continue">Continue</string>
+    <string name="network_monitor_running_check_resource">Checking the resource..</string>
+    <string name="network_monitor_running_scan_subnet">Scanning the network..</string>
+    <string name="network_monitor_running_external_ip">Asking for the external address..</string>
+    <string name="network_monitor_running_speed_test">Measuring the speed..</string>
+    <string name="network_monitor_warn_speed_test_title">This will use traffic</string>
+    <string name="network_monitor_warn_speed_test_message">The speed test downloads and uploads about 20 MB in total. On a mobile plan that traffic is billed. You can stop it at any time.</string>
+    <string name="network_monitor_warn_subnet_title">This will probe your local network</string>
+    <string name="network_monitor_warn_subnet_message">The scan contacts addresses on your local network to see which ones answer. Nothing leaves the network, but some office and campus networks treat such a scan as unwanted. You can stop it at any time.</string>
+    <string name="network_monitor_warn_external_ip_title">Your address goes to another service</string>
+    <string name="network_monitor_warn_external_ip_message">To learn your external address the app asks a public service on the internet, and that service sees the address it answers with. The address is shown here only - it is never written to the measurement history.</string>
+    <string name="network_monitor_warn_metered_title">This network charges for traffic</string>
+    <string name="network_monitor_warn_metered_message">The speed test moves about 20 MB over a connection your operator bills. Run it anyway?</string>
+    <string name="network_monitor_result_external_ip">External address: %1$s (%2$s)</string>
+    <string name="network_monitor_result_external_ip_unavailable">No service answered, so the external address is unknown right now. Try again in a moment.</string>
+    <string name="network_monitor_cgnat_direct">your own address, nothing translates it</string>
+    <string name="network_monitor_cgnat_likely">looks like the operator translates it</string>
+    <string name="network_monitor_cgnat_unknown">the router did not answer, so this says nothing either way</string>
+    <string name="network_monitor_result_subnet_scan">Answered: %1$d of %2$d probed addresses.</string>
+    <string name="network_monitor_result_subnet_host">%1$s - open ports: %2$s</string>
+    <string name="network_monitor_result_subnet_permission">Android needs the local-network permission for this scan. Grant it in the system settings and try again.</string>
+    <string name="network_monitor_result_subnet_unknown">This device has no local IPv4 address, so there is no subnet to scan. Connect to Wi-Fi and try again.</string>
+    <string name="network_monitor_result_subnet_too_large">That range is larger than %1$d addresses. Narrow it and try again.</string>
+    <string name="network_monitor_result_subnet_invalid">That is not a pair of IPv4 addresses. Use a form like 192.168.1.1 and 192.168.1.254.</string>
+    <string name="network_monitor_result_speed_test">Download %1$s, upload %2$s.</string>
+    <string name="network_monitor_result_speed_test_failed">The speed test could not finish - check the connection and try again.</string>
+    <string name="network_monitor_result_speed_test_metered">Not measured: this network charges for traffic.</string>
+    <string name="network_monitor_result_resource_ok">The resource answered. %1$s</string>
+    <string name="network_monitor_result_resource_failed">The resource did not answer - check its address and credentials, then try again.</string>
+    <string name="network_monitor_result_resource_missing">That resource no longer exists. Pick another one.</string>
+    <string name="network_monitor_history_empty">No measurements yet. Run a check on the Internet screen and it will appear here.</string>
+    <string name="network_monitor_history_export">Export</string>
+    <string name="network_monitor_history_export_failed">The file could not be prepared - free up some space and try again.</string>
+    <string name="network_monitor_history_clear">Clear</string>
+    <string name="network_monitor_history_clear_title">Clear the measurement history</string>
+    <string name="network_monitor_history_clear_message">This removes every stored measurement from this device. Export first if you still need them.</string>
+    <string name="network_monitor_history_clear_confirm">Clear</string>
+    <string name="network_monitor_history_outcome_ok">answered</string>
+    <string name="network_monitor_history_outcome_failed">no answer</string>
+    <string name="network_monitor_history_kind_speed_test">Speed</string>
+    <string name="network_monitor_history_kind_resource_check">Resource check</string>
+    <string name="network_monitor_history_kind_external_ip">External address</string>
+    <string name="network_monitor_history_kind_subnet_scan">Network scan</string>
+    <string name="camera_profile_manual">Manual</string>
+    <string name="camera_settings_button_manual">Camera settings - manual mode</string>
+    <string name="launcher_share_place_label">Add place to launcher</string>
+    <string name="launcher_share_place_added_route">Place added to the launcher.</string>
+    <string name="launcher_share_place_added_place">Place added. It will open the shared location.</string>
+    <string name="launcher_share_place_not_added">Could not add the place to the launcher.</string>
+    <string name="background_operation_bar_description">Background operation in progress</string>
+    <string name="launcher_action_all_apps">All apps</string>
+    <string name="launcher_action_black_screen">Black screen</string>
+    <string name="launcher_gadget_altitude">Altitude</string>
+    <string name="launcher_gadget_altitude_value">%1$d m</string>
+    <string name="launcher_gadget_altitude_description">Altitude above sea level: %1$s</string>
+    <string name="launcher_gadget_altitude_unknown">No altitude yet</string>
+    <string name="launcher_gadget_satellites">Satellites</string>
+    <string name="launcher_gadget_satellites_value">%1$d / %2$d</string>
+    <string name="launcher_gadget_satellites_description">Satellites: %1$d in fix out of %2$d visible</string>
+    <string name="launcher_gadget_search">Search</string>
+    <string name="launcher_gadget_search_hint">Search the web</string>
+    <string name="launcher_gadget_search_description">Web search field</string>
+    <string name="launcher_gadget_search_no_browser">No browser to open the search. Install a browser and try again.</string>
+    <string name="launcher_gadget_map">Map</string>
+    <string name="launcher_gadget_map_actions">Map of your current position. Tap to open the map application</string>
+    <string name="launcher_gadget_map_no_permission">Location permission is off</string>
+    <string name="launcher_gadget_map_unavailable">Position is unavailable right now</string>
+    <string name="launcher_gadget_map_stale">Last known</string>
+    <string name="launcher_gadget_map_actions_at">Map of %1$s. Tap to open the map application</string>
+    <string name="browse_empty_filtered_out">%1$d files are hidden by the maximum file size setting.</string>
+    <string name="browse_empty_filtered_out_hint">Raise the maximum file size in Settings to see them.</string>
+    <string name="network_monitor_ip_addresses_label">IP addresses</string>
+    <string name="network_monitor_permission_grant">Permission not granted. Tap to grant it.</string>
+    <string name="network_monitor_permission_open_settings">Permission is blocked. Tap to open app settings.</string>
 </resources>

@@ -295,6 +295,7 @@ class CommandPanelLayoutPlannerTest {
             CommandPanelLayoutPlanner.PlayerCommand.SAVE_FRAME,
             CommandPanelLayoutPlanner.PlayerCommand.ROTATION_TOGGLE,
             CommandPanelLayoutPlanner.PlayerCommand.INFO,
+            CommandPanelLayoutPlanner.PlayerCommand.STREAM_INFO,
         )
         assertEquals("Stream profile must expose exactly the owner-approved set in priority order", expected, result)
         // Inapplicable file/navigation commands must never appear for a live video stream.
@@ -321,6 +322,7 @@ class CommandPanelLayoutPlannerTest {
             CommandPanelLayoutPlanner.PlayerCommand.EDIT,
             CommandPanelLayoutPlanner.PlayerCommand.SAVE_FRAME,
             CommandPanelLayoutPlanner.PlayerCommand.INFO,
+            CommandPanelLayoutPlanner.PlayerCommand.STREAM_INFO,
         )
         assertEquals("CAST drops without Wi-Fi, ROTATION_TOGGLE drops when the toggle is off", expected, result)
     }
@@ -341,5 +343,11 @@ class CommandPanelLayoutPlannerTest {
         assertTrue("Ordinary video keeps FAVORITE", result.contains(CommandPanelLayoutPlanner.PlayerCommand.FAVORITE))
         assertTrue("Ordinary video keeps SLEEP_TIMER", result.contains(CommandPanelLayoutPlanner.PlayerCommand.SLEEP_TIMER))
         assertTrue("Ordinary video keeps SEND_TO", result.contains(CommandPanelLayoutPlanner.PlayerCommand.SEND_TO))
+        // S1474: the stream allowlist is hand-maintained with no compiler check, so the one thing that
+        // can regress silently - the channel window offered over a local file - is pinned here.
+        assertFalse(
+            "STREAM_INFO must never appear for an ordinary file",
+            result.contains(CommandPanelLayoutPlanner.PlayerCommand.STREAM_INFO),
+        )
     }
 }

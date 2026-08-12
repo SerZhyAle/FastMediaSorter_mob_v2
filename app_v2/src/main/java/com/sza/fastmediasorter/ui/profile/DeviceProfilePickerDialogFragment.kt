@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.DialogDeviceProfilePickerBinding
 import com.sza.fastmediasorter.domain.usecase.CountProfilePresetOverridesUseCase
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -130,7 +131,7 @@ class DeviceProfilePickerDialogFragment : DialogFragment() {
                 )
                 .setPositiveButton(R.string.profile_picker_select) { _, _ -> confirmSelection(type) }
                 .setNegativeButton(android.R.string.cancel, null)
-                .show()
+                .showBoundTo(this@DeviceProfilePickerDialogFragment)
         }
     }
 

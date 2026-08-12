@@ -122,9 +122,9 @@
 | `room-runtime`                  | 2.7.0      | SQLite ORM                         |
 | `room-ktx`                     | 2.7.0      | Room coroutines support            |
 | `room-compiler`                | 2.7.0      | Room annotation processor          |
-| `datastore-preferences`        | 1.0.0      | Key-value preferences store        |
+| `datastore-preferences`        | 1.1.7      | Key-value preferences store        |
 | `paging-runtime-ktx`           | 3.2.1      | Paging 3 library                   |
-| Room DB version                  | 44         | Current schema version (see AppDatabase.kt) |
+| Room DB version                  | 49         | Current schema version (see AppDatabase.kt) |
 
 ### 4.7 Media Playback
 
@@ -271,7 +271,7 @@
 
 | Constraint                              | Details                                                    |
 |:----------------------------------------|:-----------------------------------------------------------|
-| JDK version                             | 17 or 21 only. JDK 25+ is **incompatible** with the current Gradle 9.4.1 / AGP 9.2.1 toolchain |
+| JDK version                             | 17, 21, or 25. JDK 26+ is **incompatible** with the current Gradle 9.4.1 / AGP 9.2.1 toolchain |
 | Kotlin ↔ Compose compiler match         | Kotlin 1.9.24 requires Compose Compiler 1.5.14 exactly     |
 | 16 KB page alignment                    | Mandatory for Google Play since Nov 1, 2025 (Android 15+)  |
 | `Log.d()` prohibited                    | Use `Timber` exclusively                                   |
@@ -289,7 +289,7 @@
 | Glide memory cache                      | `heap × 10%` with 64 MB cap                               |
 | Memory tier                             | Heap-aware: downgrades tier on small heap devices          |
 | FTP active mode                         | Fallback to active mode if passive fails                   |
-| SFTP coroutine check                    | Must check `Job.isActive` in SSHJ callbacks                |
+| SFTP coroutine check                    | Must check `Job.isActive` in JSch callbacks                |
 | SMB connection pooling                  | Managed by `SmbConnectionManager`                          |
 | Cloud path prefix                       | `cloud://` for cloud resources, `smb://`/`sftp://`/`ftp://` for network |
 | Secret masking                          | Tokens/passwords auto-replaced with `***` in logs          |
@@ -436,9 +436,9 @@ Detailed live complexity snapshot is maintained in `dev/PRODUCT_COMPLEXITY_ASSES
 
 | Aspect                  | Value                 | Notes                                           |
 |:------------------------|:----------------------|:------------------------------------------------|
-| Room DB version        | 42                    | Current schema in `AppDatabase`                |
-| Number of entities     | 21                    | Current `@Database(entities = ..)` set         |
-| Migrations             | 41 migrations         | Registered in DatabaseModule; through v42      |
+| Room DB version        | 49                    | Current schema in `AppDatabase`                |
+| Number of entities     | 26                    | Current `@Database(entities = ..)` set         |
+| Migrations             | 48 migrations         | Registered in DatabaseModule; through v49      |
 
 ---
 

@@ -8,9 +8,10 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
+import com.sza.fastmediasorter.domain.model.PermissionTask
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -34,11 +35,15 @@ class ScreenRecordingLaunchActivity : AppCompatActivity() {
 
     private val recordAudioLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted -> if (granted) startOrLaunch() else denyAndFinish() }
+    ) { granted ->
+        if (granted) startOrLaunch() else denyAndFinish(Manifest.permission.RECORD_AUDIO)
+    }
 
     private val postNotificationsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted -> if (granted) startOrLaunch() else denyAndFinish() }
+    ) { granted ->
+        if (granted) startOrLaunch() else denyAndFinish(Manifest.permission.POST_NOTIFICATIONS)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,8 +84,10 @@ class ScreenRecordingLaunchActivity : AppCompatActivity() {
     private fun hasPermission(permission: String): Boolean =
         ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 
-    private fun denyAndFinish() {
-        Toast.makeText(this, R.string.screen_recording_permission_denied, Toast.LENGTH_LONG).show()
+    // S1436: which of the two permissions was refused is now what the message says, in the registry's words.
+    private fun denyAndFinish(permission: String) {
+        val message = permissionRationaleShort(permission, PermissionTask.SCREEN_RECORDING)
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         finish()
     }
 }

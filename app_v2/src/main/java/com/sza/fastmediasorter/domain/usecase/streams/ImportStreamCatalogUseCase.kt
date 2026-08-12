@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.streams
 
+import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamCatalogCsvParser
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
@@ -25,10 +27,18 @@ class ImportStreamCatalogUseCase @Inject constructor(
     private val classifier: StreamMediaKindClassifier,
     private val repository: StreamSourceRepository,
     // S0668: persists the favicon sprite-atlas + url->index sidecar extracted from the same zip.
-    private val faviconAtlasStore: FaviconAtlasStore
+    private val faviconAtlasStore: FaviconAtlasStore,
+    // S1469: connectivity gate. Sits in the use case rather than in its callers so all four entry
+    // points are covered at once; without it a dead network is only reported once OkHttp has timed out.
+    private val networkContextAnalyzer: NetworkContextAnalyzer
 ) {
     suspend operator fun invoke(): CatalogImportResult = withContext(Dispatchers.IO) {
         Timber.i("Stream catalog import: starting")
+        if (!networkContextAnalyzer.hasAnyNetwork()) {
+            Timber.d("S1469: catalog import gated before download - no network")
+            Timber.w("Stream catalog import failed: %s", "no network")
+            return@withContext CatalogImportResult.Failure("no network")
+        }
         val payload = try {
             downloadCatalog()
         } catch (e: Exception) {
@@ -68,6 +78,7 @@ class ImportStreamCatalogUseCase @Inject constructor(
                 entries.size
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.w(e, "Stream catalog import: favicon sidecar write failed (rows still merge)")
         }
 
@@ -95,6 +106,7 @@ class ImportStreamCatalogUseCase @Inject constructor(
         val merge = try {
             repository.mergeCatalog(sources)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.w(e, "Stream catalog import failed: %s", "merge")
             return@withContext CatalogImportResult.Failure(e.message ?: "merge error")
         }

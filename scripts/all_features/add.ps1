@@ -50,12 +50,10 @@ function Test-NonAscii([string]$s) {
 # Resolve repo root
 $scriptDir = $PSScriptRoot
 if (-not $scriptDir) { $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path }
-$repoRoot = Split-Path -Parent (Split-Path -Parent $scriptDir)
-if (-not $repoRoot -or -not (Test-Path (Join-Path $repoRoot "settings.gradle.kts"))) {
-    $repoRoot = (Get-Location).Path
-}
+. (Join-Path $scriptDir '_lib.ps1')
+$repoRoot = Resolve-FeatureRepoRoot -ScriptDir $scriptDir
 $fileName = if ($NoLegal) { "ALL_FEATURES_noLegal.jsonl" } else { "ALL_FEATURES.jsonl" }
-$dataFile = Join-Path (Join-Path $repoRoot "docs") $fileName
+$dataFile = Get-FeatureInventoryPath -RepoRoot $repoRoot -NoLegal:$NoLegal
 
 # -ListAreas: print the distinct areas already in the inventory and exit. Lets a
 # caller pick an existing area name without a separate exploratory ConvertFrom-Json pass.
@@ -115,29 +113,29 @@ $record = [ordered]@{
 }
 $line = ($record | ConvertTo-Json -Compress -Depth 5)
 
-$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+# S1537: read -> upsert -> write is one critical section. Serializing only the write would
+# still lose this record - the other writer's snapshot was taken before it existed. Every
+# Fail path above runs before the lock is taken, so no early exit can leave it held.
+Enter-FeatureLock -RepoRoot $repoRoot
+try {
+    $existing = Read-FeatureLines -Path $dataFile
 
-# Read existing records (skip blank lines)
-$existing = @()
-if (Test-Path $dataFile) {
-    $existing = @(Get-Content -LiteralPath $dataFile -Encoding UTF8 | Where-Object { $_.Trim().Length -gt 0 })
-}
-
-# Upsert by id
-$found = $false
-$out = New-Object System.Collections.Generic.List[string]
-foreach ($l in $existing) {
-    try { $obj = $l | ConvertFrom-Json } catch { $obj = $null }
-    if ($obj -and $obj.id -eq $idN) {
-        $out.Add($line); $found = $true
-    } else {
-        $out.Add($l)
+    # Upsert by id
+    $found = $false
+    $out = New-Object System.Collections.Generic.List[string]
+    foreach ($l in $existing) {
+        try { $obj = $l | ConvertFrom-Json } catch { $obj = $null }
+        if ($obj -and $obj.id -eq $idN) {
+            $out.Add($line); $found = $true
+        } else {
+            $out.Add($l)
+        }
     }
-}
-if (-not $found) { $out.Add($line) }
+    if (-not $found) { $out.Add($line) }
 
-$text = ($out -join "`n") + "`n"
-[System.IO.File]::WriteAllText($dataFile, $text, $utf8NoBom)
+    Write-FeatureLines -Path $dataFile -Lines $out
+}
+finally { Exit-FeatureLock }
 
 if (-not $Quiet) {
     $verb = if ($found) { "updated" } else { "added" }

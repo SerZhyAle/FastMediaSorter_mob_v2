@@ -18,8 +18,9 @@ import javax.inject.Inject
  * point, which has no grid on screen to point at; using it here would move the new cell somewhere the
  * user did not tap.
  *
- * The three actions differ only in how much is still unknown after the pick: a profile and a dial
- * target are complete, while a message may have several channels and needs one more choice.
+ * The four actions differ only in how much is still unknown after the pick: a profile and either
+ * number-based target are complete, while a message may have several channels and needs one more
+ * choice.
  */
 class PickContactShortcutUseCase @Inject constructor(
     private val contacts: ContactSnapshotDataSource,
@@ -46,7 +47,10 @@ class PickContactShortcutUseCase @Inject constructor(
 
     suspend operator fun invoke(action: LauncherContactAction, picked: Uri): Outcome = when (action) {
         LauncherContactAction.PROFILE -> contacts.readProfile(picked).asOutcome()
-        LauncherContactAction.DIAL -> contacts.readDialTarget(picked).asOutcome()
+
+        LauncherContactAction.DIAL, LauncherContactAction.SMS ->
+            contacts.readPhoneTarget(picked, action).asOutcome()
+
         LauncherContactAction.MESSAGE -> channelOutcome(contacts.readMessageChannels(picked))
     }
 

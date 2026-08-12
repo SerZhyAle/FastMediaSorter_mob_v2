@@ -65,6 +65,10 @@ object ResourceIconComposer {
         val customRes = ResourceIconRegistry.resolveDrawable(resource.iconId)
         if (customRes != null) return customRes
 
+        // S1378: a resource bound to a removable volume carries its own source glyph, which beats
+        // every default below but never a user-assigned icon - the check above already returned.
+        if (resource.storageVolumeId != null) return R.drawable.ic_resource_removable
+
         // S0034 set-first-icon fallback - uses registry before falling through to pre-S0034 legacy drawables
         val setFirstId = ResourceIconRegistry.firstIdFor(
             ResourceIconDefaults.setForResource(resource.profile, resource.type)

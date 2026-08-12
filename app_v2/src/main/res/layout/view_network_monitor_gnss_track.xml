@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1433: the GNSS track opt-in, in a layout of its own so SettingsDocScopeCatalog can register exactly
+     this row. Registering the whole GNSS fragment instead would publish its share button as a setting too -
+     LayoutSettingsSearchSource indexes every MaterialButton in a scanned layout. Included by both the
+     portrait and the landscape GNSS layout, so the wording and the id cannot drift between orientations. -->
+<com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rowRecordGnssTrack"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    android:nextFocusDown="@id/btnGnssShareTrack"
+    app:str_subtitle="@string/network_monitor_gnss_track_summary"
+    app:str_title="@string/network_monitor_gnss_track_title" />

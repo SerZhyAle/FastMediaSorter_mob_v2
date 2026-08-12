@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1433: the active network's link facts, identical on every subscreen that shows them. Included rather
+     than repeated - it holds no focusable view, so the attribute an <include> would drop is not in play. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+    <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+        <TextView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="0dp"
+            android:text="@string/network_monitor_link_heading"
+            android:textSize="@dimen/text_size_normal" />
+
+        <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+            <TextView
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                android:text="@string/network_monitor_link_interface_label" />
+
+            <TextView
+                android:id="@+id/linkInterfaceValue"
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                tools:text="wlan0" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+            <TextView
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                android:text="@string/network_monitor_link_ipv4_label" />
+
+            <TextView
+                android:id="@+id/linkIpv4Value"
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                tools:text="192.168.1.24" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+            <TextView
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                android:text="@string/network_monitor_link_ipv6_label" />
+
+            <TextView
+                android:id="@+id/linkIpv6Value"
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                tools:text="fe80::1" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+            <TextView
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                android:text="@string/network_monitor_link_dns_label" />
+
+            <TextView
+                android:id="@+id/linkDnsValue"
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                tools:text="1.1.1.1" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+            <TextView
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                android:text="@string/network_monitor_link_gateway_label" />
+
+            <TextView
+                android:id="@+id/linkGatewayValue"
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                tools:text="192.168.1.1" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+            <TextView
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                android:text="@string/network_monitor_link_route_label" />
+
+            <TextView
+                android:id="@+id/linkRouteValue"
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                tools:text="@string/network_monitor_route_present" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+            <TextView
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                android:text="@string/network_monitor_link_proxy_label" />
+
+            <TextView
+                android:id="@+id/linkProxyValue"
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                tools:text="@string/network_monitor_value_unknown" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.Row">
+
+            <TextView
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                android:text="@string/network_monitor_link_bandwidth_label" />
+
+            <TextView
+                android:id="@+id/linkBandwidthValue"
+                style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                tools:text="down 100000 kbit/s, up 20000 kbit/s" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

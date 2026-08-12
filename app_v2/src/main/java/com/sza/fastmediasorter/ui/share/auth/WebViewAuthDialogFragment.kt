@@ -6,11 +6,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
-import android.view.WindowManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AlertDialog
@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
 import com.sza.fastmediasorter.data.link.auth.AccountNameHintExtractor
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -301,7 +302,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
             .setOnCancelListener {
                 emitResultAndDismiss(saved = false)
             }
-            .show()
+            .showBoundTo(this@WebViewAuthDialogFragment)
     }
 
     private fun scrubWebViewState() {

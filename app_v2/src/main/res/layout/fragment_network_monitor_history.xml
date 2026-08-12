@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1433 History subscreen, portrait. Not a ScrollView: the list is a RecyclerView and needs a bounded
+     height to recycle at all, so the actions sit under it as a fixed row. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/margin_small">
+
+    <TextView
+        style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+        android:text="@string/network_monitor_section_history" />
+
+    <TextView
+        android:id="@+id/historyEmpty"
+        style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+        android:text="@string/network_monitor_history_empty"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/historyList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/margin_small"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:focusable="true"
+        tools:itemCount="4"
+        tools:listitem="@layout/item_network_measurement" />
+
+    <TextView
+        android:id="@+id/historyNote"
+        style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+        android:visibility="gone"
+        tools:text="@string/network_monitor_history_export_failed"
+        tools:visibility="visible" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnHistoryExport"
+            style="@style/Widget.FastMediaSorter.Button.Filled"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusRight="@+id/btnHistoryClear"
+            android:text="@string/network_monitor_history_export"
+            app:icon="@drawable/ic_share" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnHistoryClear"
+            style="@style/Widget.FastMediaSorter.Button.Outlined"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusLeft="@+id/btnHistoryExport"
+            android:text="@string/network_monitor_history_clear"
+            app:icon="@drawable/ic_delete_sweep" />
+    </LinearLayout>
+</LinearLayout>

@@ -25,16 +25,32 @@ than a round number. Above it a command must be backgrounded, because a foregrou
 force-migrated to the background anyway and lose its clean output capture. Below it backgrounding
 is forbidden: wait for the command and read its verdict in the same turn.
 
+**The forbidden half is enforced (2026-08-08, CLAUDE.md Rule 26).** It had been prose since S1338,
+and prose is the 1-8% tier - the same reason the small-task rung nudge became a hook. The global
+`PreToolUse` guard `~/.claude/hooks/guard-fire-and-forget.ps1` blocks a `run_in_background` call
+whose command is a gate, a closure facade or a catalog mutator, and waves through everything else,
+including a long job chained with a gate on the same line. It is deny-list by literal command shape
+rather than by heuristic, because a guard that over-blocks gets switched off and then nothing is
+enforced. Canon home: `rules/AI_USAGE.md` section 1; smoke-tested from both sides in the canon's
+`hooks/tests/smoke-hooks.ps1`.
+
 Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 
 | Target | Wall clock | Verdict |
 | --- | ---: | --- |
 | `a.ps1 fg` (fast static gates) | 18.9 s | foreground |
 | `assert-detekt.ps1 -Module app_v2` | 20.3 s | foreground |
+| `detekt-scoped.ps1 -ChangedFiles <1 file>` | 2.1 s | foreground |
+| `detekt-scoped.ps1 -ChangedFiles <2 files>` | 3.3 s | foreground |
+| `detekt-preflight` step inside `post-change.ps1` | 3.1 s | foreground |
 | `a.ps1 fk` | 14.1 s | foreground |
 | `a.ps1 fc` | 18.6 s | foreground |
 | `a.ps1 dq` | 18.4 s | foreground |
 | `a.ps1 d` / `dav` / `r` / `fu` | not measured | background |
+
+The three `detekt-scoped` rows were measured on 2026-08-12 (S1595). They are the only detekt rows here that do NOT take `BUILD.LOCK`: the scoped runner drives detekt's CLI directly rather than through gradle, so it never queues behind a sibling session's build - which is why its number stays honest under contention while the `assert-detekt` row above does not.
+
+Since that measurement `fg` gained one gate: `assert-shared-test-flavor-scope` (S1453) at 1.4-1.9 s, which puts the batch around 20 s and still an order of magnitude below the 120 s threshold. The row above is left at its 2026-08-01 value rather than restated, because the only re-run available on 2026-08-09 read 46.1 s wall with two sibling sessions holding `BUILD.LOCK` for gradle - a measurement of contention, not of the batch.
 
 Two caveats, recorded rather than smoothed over:
 

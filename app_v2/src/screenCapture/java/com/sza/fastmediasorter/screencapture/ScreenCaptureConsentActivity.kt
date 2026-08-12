@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -73,7 +74,7 @@ class ScreenCaptureConsentActivity : AppCompatActivity() {
             }
             .setNegativeButton(android.R.string.cancel) { _, _ -> finish() }
             .setOnCancelListener { finish() }
-            .show()
+            .showBoundToHost(this@ScreenCaptureConsentActivity)
     }
 
     private suspend fun acceptDisclosureAndLaunchConsent() {

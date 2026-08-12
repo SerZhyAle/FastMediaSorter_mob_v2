@@ -1,10 +1,8 @@
 package com.sza.fastmediasorter.ui.welcome.helpers
 
-import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
@@ -14,15 +12,17 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.permissions.PermissionGrantIntentFactory
 import com.sza.fastmediasorter.databinding.PageWelcomePermissionsBinding
 import com.sza.fastmediasorter.domain.model.PermissionEntry
-import com.sza.fastmediasorter.domain.model.PermissionGroupHeader
 import com.sza.fastmediasorter.domain.model.PermissionStatus
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
+import com.sza.fastmediasorter.domain.repository.PermissionRequestMarkerRepository
+import com.sza.fastmediasorter.domain.usecase.BuildPermissionRowsUseCase
 import com.sza.fastmediasorter.domain.usecase.CheckPermissionStatusUseCase
+import com.sza.fastmediasorter.domain.usecase.PermissionAction
+import com.sza.fastmediasorter.domain.usecase.ResolvePermissionActionUseCase
 import com.sza.fastmediasorter.ui.common.permissions.PermissionDenialHandler
-import com.sza.fastmediasorter.ui.settings.fragments.PermissionRow
 import com.sza.fastmediasorter.ui.settings.fragments.PermissionRowAdapter
 import timber.log.Timber
 import javax.inject.Inject
@@ -40,15 +40,11 @@ import javax.inject.Inject
 class WelcomePermissionsManager @Inject constructor(
     private val registry: PermissionRegistryRepository,
     private val checkStatus: CheckPermissionStatusUseCase,
+    private val resolveAction: ResolvePermissionActionUseCase,
+    private val buildRows: BuildPermissionRowsUseCase,
+    private val requestMarker: PermissionRequestMarkerRepository,
+    private val grantIntentFactory: PermissionGrantIntentFactory,
 ) {
-
-    // These permissions cannot be granted via requestPermission() - each requires a dedicated system
-    // settings screen and is silently ignored when passed to requestMultiplePermissions().
-    private val specialGrantPermissions = setOf(
-        Manifest.permission.MANAGE_EXTERNAL_STORAGE,
-        Manifest.permission.MANAGE_MEDIA,
-        Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-    )
 
     private var activity: FragmentActivity? = null
     private var binding: PageWelcomePermissionsBinding? = null
@@ -127,6 +123,7 @@ class WelcomePermissionsManager @Inject constructor(
 
     /** Render the adaptive permission rows + grant-all affordance into the page. */
     fun bind(binding: PageWelcomePermissionsBinding) {
+        Timber.d("S1436: onboarding permissions page bound")
         this.binding = binding
         binding.rvPermissions.apply {
             layoutManager = LinearLayoutManager(binding.root.context)
@@ -153,13 +150,22 @@ class WelcomePermissionsManager @Inject constructor(
 
     private fun onRowAction(entry: PermissionEntry, status: PermissionStatus) {
         val act = activity ?: return
-        when (status) {
-            PermissionStatus.DENIED ->
-                if (entry.manifestName in specialGrantPermissions) launchSpecialGrantSettings(entry)
-                else requestSingle?.launch(entry.manifestName)
-            PermissionStatus.PERMANENTLY_DENIED -> PermissionDenialHandler.handle(act, entry)
-            PermissionStatus.GRANTED -> openAppSettings()
-            PermissionStatus.NOT_APPLICABLE -> Unit
+        when (resolveAction(entry, status)) {
+            PermissionAction.RequestFromSystem -> {
+                requestMarker.markRequested(entry.id)
+                requestSingle?.launch(entry.manifestName)
+            }
+            PermissionAction.OpenSpecialGrantScreen -> launchSpecialGrantSettings(entry)
+            // Both a permanent denial and an already granted permission end on the app settings page;
+            // the denial is explained by a snackbar first, so the user learns why the system dialog
+            // will not come back.
+            PermissionAction.OpenAppSettings ->
+                if (status == PermissionStatus.PERMANENTLY_DENIED) {
+                    PermissionDenialHandler.handle(act, entry, status)
+                } else {
+                    openAppSettings()
+                }
+            PermissionAction.None -> Unit
         }
     }
 
@@ -186,23 +192,14 @@ class WelcomePermissionsManager @Inject constructor(
         // permission via its own system screen, one at a time.
         grantAllInProgress = true
         shownSpecialInRun.clear()
-        // Request every not-yet-granted regular permission. PERMANENTLY_DENIED is included on purpose:
-        // a never-requested runtime permission reports shouldShowRequestPermissionRationale==false and is
-        // classified PERMANENTLY_DENIED (indistinguishable from a real permanent denial without caller
-        // tracking), yet requestMultiplePermissions() still shows the first-time system dialog for it.
-        // A genuinely permanent denial is silently no-op'd by the system, so including it is harmless.
         // Special permissions are excluded - they need dedicated system screens (walked afterwards).
         val requestable = welcomeEntries
-            .filter { it.manifestName !in specialGrantPermissions }
-            .filter {
-                val status = checkStatus(act, it)
-                status == PermissionStatus.DENIED || status == PermissionStatus.PERMANENTLY_DENIED
-            }
-            .map { it.manifestName }
-            .toTypedArray()
+            .filterNot { resolveAction.isSpecialGrant(it) }
+            .filter { isRequestable(checkStatus(act, it)) }
         if (requestable.isNotEmpty()) {
+            requestable.forEach { requestMarker.markRequested(it.id) }
             // launchNextSpecialPermission() runs in the requestMultiple callback.
-            requestMultiple?.launch(requestable)
+            requestMultiple?.launch(requestable.map { it.manifestName }.toTypedArray())
         } else {
             // No regular permissions left - open the first pending special permission directly.
             launchNextSpecialPermission()
@@ -216,7 +213,7 @@ class WelcomePermissionsManager @Inject constructor(
     private fun launchNextSpecialPermission() {
         val act = activity ?: return
         val entry = welcomeEntries
-            .filter { it.manifestName in specialGrantPermissions }
+            .filter { resolveAction.isSpecialGrant(it) }
             .filter { it.manifestName !in shownSpecialInRun }
             .firstOrNull { checkStatus(act, it) == PermissionStatus.DENIED }
         if (entry != null) {
@@ -232,45 +229,14 @@ class WelcomePermissionsManager @Inject constructor(
     }
 
     private fun launchSpecialGrantSettings(entry: PermissionEntry) {
-        val act = activity ?: return
         val launcher = specialSettingsLauncher ?: return
-        val pkg = act.packageName
-        val intent = when (entry.manifestName) {
-            Manifest.permission.MANAGE_EXTERNAL_STORAGE -> when {
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> try {
-                    Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
-                        data = Uri.parse("package:$pkg")
-                    }
-                } catch (e: Exception) {
-                    Timber.i(e, "All-files-access app intent unavailable, using global manage-all-files screen")
-                    Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                }
-                else -> null
-            }
-            Manifest.permission.MANAGE_MEDIA -> when {
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
-                    Intent(Settings.ACTION_REQUEST_MANAGE_MEDIA).apply {
-                        data = Uri.parse("package:$pkg")
-                    }
-                else -> null
-            }
-            Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS ->
-                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                    data = Uri.parse("package:$pkg")
-                }
-            else -> null
-        }
-        val target = intent ?: Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = Uri.fromParts("package", pkg, null)
-        }
+        val target = grantIntentFactory.grantIntent(entry)
         try {
             launcher.launch(target)
         } catch (e: ActivityNotFoundException) {
             // Some ROMs / emulators do not provide an activity for this intent action.
             Timber.w(e, "No activity for ${target.action}, falling back to app settings")
-            launcher.launch(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", pkg, null)
-            })
+            launcher.launch(grantIntentFactory.appDetailsIntent())
         }
     }
 
@@ -284,43 +250,18 @@ class WelcomePermissionsManager @Inject constructor(
     /** Rebuild the rows from the cached adaptive set and update the grant-all CTA visibility. */
     private fun refreshRows() {
         val act = activity ?: return
-        adapter.refresh(buildRows(act))
-        // Offer grant-all while anything is still ungranted. PERMANENTLY_DENIED is included: on first run
-        // a never-requested permission is classified PERMANENTLY_DENIED, yet grant-all can still prompt
-        // for it (see startGrantAllRun), so hiding the CTA on that status would strand the user.
-        val hasPending = welcomeEntries.any {
-            val status = checkStatus(act, it)
-            status != PermissionStatus.GRANTED && status != PermissionStatus.NOT_APPLICABLE
-        }
+        adapter.refresh(buildRows(welcomeEntries, act))
+        val hasPending = welcomeEntries.any { isRequestable(checkStatus(act, it)) }
         binding?.btnGrantAll?.visibility = if (hasPending) View.VISIBLE else View.GONE
     }
 
-    private fun buildRows(act: FragmentActivity): List<PermissionRow> {
-        val groups = registry.getGroups()
-        val rows = mutableListOf<PermissionRow>()
-        val required = welcomeEntries.filterNot { it.optional }
-        groups.forEach { header ->
-            val groupEntries = required.filter { it.group == header.group }
-            if (groupEntries.isEmpty()) return@forEach
-            rows += PermissionRow.Header(header)
-            groupEntries.forEach { entry ->
-                rows += PermissionRow.Entry(entry, checkStatus(act, entry))
-            }
-        }
-        val optional = welcomeEntries.filter { it.optional }
-        if (optional.isNotEmpty()) {
-            rows += PermissionRow.Header(
-                PermissionGroupHeader(
-                    group = optional.first().group,
-                    titleRes = R.string.perm_group_optional,
-                )
-            )
-            optional.forEach { entry ->
-                rows += PermissionRow.Entry(entry, checkStatus(act, entry))
-            }
-        }
-        return rows
-    }
+    /**
+     * A grant-all run can still change something only while the system would show a request. The same
+     * predicate drives the batch contents and the CTA's visibility, so the button never promises a run
+     * that would do nothing.
+     */
+    private fun isRequestable(status: PermissionStatus): Boolean =
+        status == PermissionStatus.NOT_YET_REQUESTED || status == PermissionStatus.DENIED
 
     companion object {
         private const val STATE_GRANT_ALL_IN_PROGRESS = "welcome_perm_grant_all_in_progress"

@@ -49,7 +49,7 @@ Each line in `§0` must be marked `Provided by user`, `Delegated by user`, or `M
 
 The current `/spec` invocation counts as a request to author the draft, not as approval to proceed. A free-form or empty request still stays `Draft` unless the owner explicitly asks to approve/proceed. Promotion to `Approved` requires either an explicit follow-up approval from the user or an explicit human-triggered `/spec-tech <Sxxxx>` on a draft whose `§0` gate is complete.
 
-Style hygiene is part of the approval gate, not the draft-writing gate. When creating or extending a `Draft`, do not run a separate cleanup pass or block the ticket solely for ellipsis / `ё` / wording sanitation. Before promotion to `Approved`, clean and enforce the Author Style.
+Style hygiene is not part of any gate on a spec file. The Ellipsis / Dash / Ё rules cover documentation prose and user-visible UI text only and never reach a specification, so do not run a cleanup pass and do not block a ticket for ellipsis / `ё` / wording sanitation - at `Draft` or at any later status. The `Draft` -> `Approved` gate checks §3.3 Owner inputs and nothing else (S1543).
 
 ---
 

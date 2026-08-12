@@ -16,4 +16,11 @@
         <item name="android:foreground">@drawable/focus_button_background</item>
     </style>
 
+    <!-- S1401: the all-apps list opens over the whole desktop, taskbar included, so it is a dialog
+         theme rather than a floating one - a floating dialog would leave the bar it replaces on screen. -->
+    <style name="Theme.FastMediaSorter.Launcher.AllApps" parent="Theme.FastMediaSorter.FullScreen">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">?attr/colorSurface</item>
+    </style>
+
 </resources>

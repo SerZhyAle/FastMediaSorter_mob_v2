@@ -40,6 +40,11 @@ class UnifiedFileOperationHandlerTest {
 
     @Before
     fun setUp() {
+        // S1378: a relaxed mock cannot stand in for a Result-returning call - it hands back a chained
+        // mock where a value class is expected. Stubbing it explicitly also keeps the space pre-flight
+        // on its "cannot measure, proceed" branch, leaving these protocol-routing assertions intact.
+        coEvery { localStrategy.getDirectoryInfo(any()) } returns
+            Result.failure(UnsupportedOperationException("not measured in this test"))
         every { errorHandler.handleError(any(), any(), any(), any()) } returns "translated-error"
         every { localProvider.protocolName } returns "Local"
         handler = UnifiedFileOperationHandler(
@@ -54,6 +59,11 @@ class UnifiedFileOperationHandlerTest {
                 every { anyCloudEnabled() } returns true
             },
             directoryTreeTransferManager = treeTransferManager,
+            // S1378: an unmeasurable destination is the "proceed" branch, so the fit check stays out
+            // of the way of these assertions, which are about protocol routing, not capacity.
+            getDestinationFreeSpace = mockk {
+                coEvery { this@mockk(any()) } returns null
+            },
         )
     }
 

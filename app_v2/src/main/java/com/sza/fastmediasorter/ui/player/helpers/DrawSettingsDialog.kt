@@ -7,6 +7,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.util.showBoundToHost
 import timber.log.Timber
 
 /**
@@ -91,6 +92,6 @@ class DrawSettingsDialog(
 
                 onApply()
             }
-            .show()
+            .showBoundToHost(activity)
     }
 }

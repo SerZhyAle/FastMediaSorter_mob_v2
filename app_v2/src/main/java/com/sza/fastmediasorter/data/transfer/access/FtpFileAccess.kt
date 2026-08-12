@@ -1,9 +1,10 @@
 package com.sza.fastmediasorter.data.transfer.access
 
 import android.net.Uri
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.cloud.NetworkCredentialsResolver
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.transfer.FileAccess
-import com.sza.fastmediasorter.data.cloud.NetworkCredentialsResolver
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -47,6 +48,7 @@ class FtpFileAccess @Inject constructor(
             val result = ftpClient.listFilesWithMetadata(parentPath, recursive = false)
             result.getOrNull()?.any { it.name == fileName } == true
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FtpFileAccess.exists: Check failed for $remotePath")
             false
         } finally {

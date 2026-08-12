@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.ui.main.MainViewModel
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.util.AppErrorNotifier
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -106,7 +107,7 @@ internal class MainEventHandler(
                     .setMessage(R.string.rescan_all_virtual_warning_message)
                     .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.forceRescanAllResources() }
                     .setNegativeButton(android.R.string.cancel, null)
-                    .show()
+                    .showBoundToHost(activity)
             }
             is MainEvent.ShareResourceFile -> shareResourceFile(event.filePath)
             is MainEvent.ShareCompanionConfigFile -> shareCompanionConfigFile(event.filePath)
@@ -159,38 +160,26 @@ internal class MainEventHandler(
 
     /** S0422: share an exported resource file via the system share sheet with the vendor MIME type. */
     private fun shareResourceFile(filePath: String) {
-        try {
-            val file = java.io.File(filePath)
-            val uri = androidx.core.content.FileProvider.getUriForFile(
-                activity, "${activity.packageName}.fileprovider", file
-            )
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = com.sza.fastmediasorter.domain.model.ResourceShareFormat.MIME_TYPE
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.resource_share_export_title)))
-        } catch (e: Exception) {
-            timber.log.Timber.e(e, "Failed to share resource file")
+        val shared = ResourceShareIntents.share(
+            activity,
+            filePath,
+            com.sza.fastmediasorter.domain.model.ResourceShareFormat.MIME_TYPE,
+            R.string.resource_share_export_title,
+        )
+        if (!shared) {
             Toast.makeText(activity, R.string.resource_share_export_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
     /** S0984: share an exported `.fmscfg` access file with the vendor MIME for a reliable app-to-app SEND. */
     private fun shareCompanionConfigFile(filePath: String) {
-        try {
-            val file = java.io.File(filePath)
-            val uri = androidx.core.content.FileProvider.getUriForFile(
-                activity, "${activity.packageName}.fileprovider", file
-            )
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = COMPANION_CONFIG_MIME
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.sftp_share_export_title)))
-        } catch (e: Exception) {
-            timber.log.Timber.e(e, "Failed to share companion config file")
+        val shared = ResourceShareIntents.share(
+            activity,
+            filePath,
+            ResourceShareIntents.COMPANION_CONFIG_MIME,
+            R.string.sftp_share_export_title,
+        )
+        if (!shared) {
             Toast.makeText(activity, R.string.sftp_share_export_failed, Toast.LENGTH_SHORT).show()
         }
     }
@@ -199,10 +188,5 @@ internal class MainEventHandler(
         activity.startActivity(intent)
         @Suppress("DEPRECATION")
         activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-    }
-
-    private companion object {
-        // Must stay in sync with the CompanionConfigImportActivity SEND intent-filter in the manifest.
-        const val COMPANION_CONFIG_MIME = "application/vnd.fms.companion-config+json"
     }
 }

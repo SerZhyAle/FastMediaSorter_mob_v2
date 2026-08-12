@@ -62,12 +62,17 @@ class PhotoCaptureLaunchManager(
     // S0766: geotag is opt-in; resolved once from settings in start() and read on the capture path.
     private var geotagEnabled = false
 
+    // S1478: the stored photo aspect ratio, resolved with the geotag flag and handed to the capture so
+    // a headless shot ends up with the same proportions the camera screen would have produced.
+    private var aspectRatio = 0
+
     /** Entry point from the trampoline's onCreate. */
     fun start() {
         coroutineScope.launch {
             val settings = settingsRepository.getSettings().first()
             val photoAvailable = !settings.disableCameraCapture && mediaCapabilities.supportsImages
             geotagEnabled = settings.cameraGeotagEnabled
+            aspectRatio = settings.cameraAspectRatio
             withContext(Dispatchers.Main) {
                 // S0766: warm the location source early (opt-in + permission held) so a cached fix is
                 // ready by the shutter; a headless shot never blocks waiting for a fresh fix.
@@ -112,6 +117,7 @@ class PhotoCaptureLaunchManager(
         capturer.capture(
             outputFile = captured,
             location = location,
+            aspectRatio = aspectRatio,
             onSaved = { onCaptured(captured) },
             onError = { error ->
                 Timber.e(error, "PhotoCaptureLaunchManager: headless capture failed")

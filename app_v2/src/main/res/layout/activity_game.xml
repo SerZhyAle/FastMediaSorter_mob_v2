@@ -125,6 +125,23 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/btnGameHelp" />
 
+        <!-- S1359: shown only while a level is running - in GAME_OVER btnGameReset already carries
+             this very label, and two identical captions would read as a defect. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGameRestartLevel"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/button_height_small"
+            android:focusable="true"
+            android:minWidth="@dimen/button_height"
+            android:nextFocusUp="@id/btnGameReset"
+            android:nextFocusRight="@id/btnGameMode"
+            android:nextFocusDown="@id/btnGameUp"
+            android:text="@string/game_restart_level"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btnGameMode" />
+
         <GridLayout
             android:id="@+id/layoutGameControls"
             android:layout_width="wrap_content"

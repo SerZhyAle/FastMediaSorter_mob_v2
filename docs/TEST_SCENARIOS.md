@@ -253,6 +253,8 @@ adb -s <device> shell "dumpsys window windows | grep -A 6 '<ActivityName>'"
 
 `SECURE` in the `fl=` line settles it. To capture such a screen for a report, turn the `secureSensitiveScreens` setting off first, then back on.
 
+You no longer have to remember any of this while looking at a black PNG: `scripts/devtest/adb.ps1 shot` checks the focused window itself and prints the explanation next to the file it just wrote (`-Json` carries it as `secureWindow`). The check was added by S1506, after this section had already been written and two device-test sessions on the same day still read a secure capture as a broken screen and filed a P90 ticket for it.
+
 ---
 
 ## Log Analysis Keywords

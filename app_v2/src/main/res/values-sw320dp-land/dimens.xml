@@ -17,4 +17,11 @@
     <dimen name="welcome_icon_margin_top">4dp</dimen>
     <dimen name="welcome_title_text_size">20sp</dimen>
     <dimen name="welcome_description_margin_top">4dp</dimen>
+
+    <!-- S1575: the cap is declared only in smallestWidth buckets, which cannot react to
+         rotation, so the 400dp phone value meant for the 384dp portrait window also boxed
+         the 853dp landscape window into a centred column. Owner's decision is no cap in
+         phone landscape; layout_constraintWidth_max takes a dimension only, so a value that
+         can never bind expresses "unbounded". -->
+    <dimen name="welcome_content_max_width">9999dp</dimen>
 </resources>

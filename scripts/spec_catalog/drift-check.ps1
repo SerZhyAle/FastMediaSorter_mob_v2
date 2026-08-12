@@ -19,9 +19,15 @@
 # Output (json):
 #   {"id":"S0235","verdict":"DRIFT","commits":[...],"code_markers":[...]}
 #
+# Verdicts (S1429):
+#   CLEAN       - no commit carries the id and no inline marker does.
+#   COMMIT_ONLY - a commit carries the id, no inline marker does. Expected of any ticket that has
+#                 been worked on; nothing unaccounted sits in the tree, so it does not park it.
+#   DRIFT       - inline `// Sxxxx:` markers exist: work is in the tree that nothing accounts for.
+#
 # Exit codes:
-#   0 - no drift detected (clean)
-#   1 - drift detected (commits and/or markers found post-spec-creation)
+#   0 - no drift detected (CLEAN or COMMIT_ONLY)
+#   1 - drift detected (inline markers found post-spec-creation)
 #   2 - usage / resolution error
 
 [CmdletBinding()]
@@ -133,7 +139,15 @@ try {
     }
 
     # 3. Verdict
-    $verdict = if ($commits.Count -gt 0 -or $markers.Count -gt 0) { 'DRIFT' } else { 'CLEAN' }
+    # S1429: markers and commits are different facts and used to share one verdict. An inline
+    # `// Sxxxx:` marker is work sitting in the tree that nothing has accounted for - the risk this
+    # check exists for. A commit carrying the id is expected of any ticket that has been worked on
+    # at all, and on its own says nothing about the tree, so it gets its own verdict instead of
+    # parking the ticket. Six of the skip-cache entries standing on 2026-08-09 are that shape, each
+    # explaining in its own words that the finding was false.
+    $verdict = if ($markers.Count -gt 0) { 'DRIFT' }
+    elseif ($commits.Count -gt 0) { 'COMMIT_ONLY' }
+    else { 'CLEAN' }
 
     if ($Format -eq 'json') {
         $result = [PSCustomObject]@{
@@ -175,10 +189,13 @@ try {
                 Write-Host "    .. ($($markers.Count - 3) more)" -ForegroundColor DarkGray
             }
         }
-        $vColor = if ($verdict -eq 'DRIFT') { 'Yellow' } else { 'Green' }
+        $vColor = if ($verdict -eq 'DRIFT') { 'Yellow' } elseif ($verdict -eq 'COMMIT_ONLY') { 'DarkCyan' } else { 'Green' }
         Write-Host "  verdict: $verdict" -ForegroundColor $vColor
         if ($verdict -eq 'DRIFT') {
             Write-Host "  -> /spec-all may be partly/fully redundant; consider review-only audit + BlockNeedUserTest." -ForegroundColor DarkYellow
+        }
+        elseif ($verdict -eq 'COMMIT_ONLY') {
+            Write-Host "  -> a commit carries the id but no inline marker does; nothing unaccounted sits in the tree." -ForegroundColor DarkGray
         }
     }
 

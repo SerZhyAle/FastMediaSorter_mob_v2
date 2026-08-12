@@ -296,6 +296,39 @@ class GameRulesEngineTest {
         assertEquals(900, result.stats.highScore)
     }
 
+    @Test
+    fun voluntaryRestartCostsTheSameAsDying() {
+        val live = testState(
+            player = GamePosition(3, 2),
+            kryvavitsa = GamePosition(1, 1)
+        ).copy(
+            status = GameStatus.PLAYING,
+            stats = GameStats(score = 900, highScore = 900)
+        )
+        val lost = live.copy(status = GameStatus.GAME_OVER)
+        val restarted = testState(player = GamePosition(3, 1), kryvavitsa = GamePosition(1, 1))
+
+        val voluntary = engine.restartLevelVoluntarily(live, restarted)
+        val afterDeath = engine.restartLevel(lost, restarted)
+
+        assertEquals(GameStatus.PLAYING, voluntary.status)
+        assertEquals(400, voluntary.stats.score)
+        assertEquals(afterDeath.stats.score, voluntary.stats.score)
+        assertEquals(afterDeath.stats.highScore, voluntary.stats.highScore)
+        assertEquals(afterDeath.stats.survivalStreak, voluntary.stats.survivalStreak)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun voluntaryRestartRejectsALostLevel() {
+        val lost = testState(
+            player = GamePosition(3, 2),
+            kryvavitsa = GamePosition(1, 1)
+        ).copy(status = GameStatus.GAME_OVER)
+        val restarted = testState(player = GamePosition(3, 1), kryvavitsa = GamePosition(1, 1))
+
+        engine.restartLevelVoluntarily(lost, restarted)
+    }
+
     private fun testState(
         board: GameBoard = GameBoard.fromRows(
             "#####",

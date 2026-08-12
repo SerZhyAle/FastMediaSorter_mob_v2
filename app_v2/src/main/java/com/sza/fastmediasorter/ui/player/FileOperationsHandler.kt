@@ -11,13 +11,14 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperation
+import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperation
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
 import com.sza.fastmediasorter.ui.player.fileops.createNetworkAwareFile
 import com.sza.fastmediasorter.ui.player.helpers.FileCopyProgressDialog
+import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.SafHelper
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -355,7 +356,7 @@ class FileOperationsHandler(
                     .setMessage(context.getString(com.sza.fastmediasorter.R.string.confirm_delete_message, 1))
                     .setPositiveButton(com.sza.fastmediasorter.R.string.delete) { _, _ -> performDelete() }
                     .setNegativeButton(com.sza.fastmediasorter.R.string.cancel, null)
-                    .show()
+                    .showBoundToHost(context)
             } else {
                 performDelete()
             }

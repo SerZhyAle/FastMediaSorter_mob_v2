@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
+import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -41,7 +42,7 @@ class StandalonePlayerSettingsManager(
                 dialog.dismiss()
             }
             .setNegativeButton(activity.getString(R.string.cancel), null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     fun showAudioTrackDialog() {
@@ -60,7 +61,7 @@ class StandalonePlayerSettingsManager(
                 dialog.dismiss()
             }
             .setNegativeButton(activity.getString(R.string.cancel), null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     fun showSubtitleTrackDialog() {
@@ -87,7 +88,7 @@ class StandalonePlayerSettingsManager(
                 dialog.dismiss()
             }
             .setNegativeButton(activity.getString(R.string.cancel), null)
-            .show()
+            .showBoundToHost(activity)
     }
 
     private fun applySubtitleStyling() {

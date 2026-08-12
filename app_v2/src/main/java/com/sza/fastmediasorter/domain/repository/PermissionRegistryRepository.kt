@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.domain.repository
 
 import com.sza.fastmediasorter.domain.model.PermissionEntry
 import com.sza.fastmediasorter.domain.model.PermissionGroupHeader
+import com.sza.fastmediasorter.domain.model.PermissionRationale
+import com.sza.fastmediasorter.domain.model.PermissionTask
 
 interface PermissionRegistryRepository {
     fun getEntries(): List<PermissionEntry>
@@ -16,4 +18,13 @@ interface PermissionRegistryRepository {
      * (welcome-only relaxation).
      */
     fun getWelcomeEntries(): List<PermissionEntry>
+
+    /**
+     * S1436: the explanation to show while asking for [manifestName] during [task] - the registry's own
+     * title and description, plus the task addendum when the entry declares one.
+     *
+     * Null when no entry matches. That is deliberate: a call site explaining a permission the registry
+     * does not know about is a defect worth seeing, not a dialog to fill with a blank string.
+     */
+    fun getRationale(manifestName: String, task: PermissionTask? = null): PermissionRationale?
 }

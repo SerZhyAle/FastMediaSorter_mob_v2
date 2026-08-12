@@ -1,9 +1,9 @@
 package com.sza.fastmediasorter.di
 
-import com.sza.fastmediasorter.data.permissions.ContextualRationaleRepositoryImpl
 import com.sza.fastmediasorter.data.permissions.PermissionRegistryRepositoryImpl
-import com.sza.fastmediasorter.domain.repository.ContextualRationaleRepository
+import com.sza.fastmediasorter.data.permissions.PermissionRequestMarkerRepositoryImpl
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
+import com.sza.fastmediasorter.domain.repository.PermissionRequestMarkerRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,5 +20,7 @@ object PermissionModule {
 
     @Provides
     @Singleton
-    fun provideContextualRationaleRepository(impl: ContextualRationaleRepositoryImpl): ContextualRationaleRepository = impl
+    fun providePermissionRequestMarkerRepository(
+        impl: PermissionRequestMarkerRepositoryImpl,
+    ): PermissionRequestMarkerRepository = impl
 }

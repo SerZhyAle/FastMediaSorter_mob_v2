@@ -92,10 +92,11 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
     /**
      * Runs actions that need no screen capture and tells the caller whether to stop. Returns true when
      * [action] was fully handled here, so the caller skips consent/capture entirely:
-     * [ScreenshotGestureAction.DO_NOT_USE] is a silent no-op; [ScreenshotGestureAction.OPEN_APP] brings
-     * the app to the foreground (existing task reordered to front, preserving its state, or cold start).
+     * [ScreenshotGestureAction.DO_NOT_USE] is a silent no-op; [ScreenshotGestureAction.OPEN_APP] launches
+     * the app chosen for this slot, or brings FastMediaSorter to the foreground when none is chosen.
      * Returns false for capture-backed actions, which proceed through the normal capture path.
      * S1038: [zone] + [direction] identify the slot so OPEN_URL can resolve its per-slot payload address.
+     * S1036: OPEN_APP reads the same per-slot payload, holding a package name instead of an address.
      */
     suspend fun handlePreCaptureAction(
         context: Context,
@@ -105,7 +106,7 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
     ): Boolean = when (action) {
         ScreenshotGestureAction.DO_NOT_USE -> true
         ScreenshotGestureAction.OPEN_APP -> {
-            launchApp(context)
+            launchSelectedApp(context, payloadFor(zone, direction))
             true
         }
         ScreenshotGestureAction.OPEN_PANEL -> {
@@ -190,11 +191,37 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
         else -> false
     }
 
-    // S1038: resolves the per-slot payload (the target URL for OPEN_URL) from the persisted settings.
+    // S1038: resolves the per-slot payload from the persisted settings. The value is deliberately
+    // untyped: OPEN_URL reads it as a target address, S1036's OPEN_APP reads it as a package name.
     private suspend fun payloadFor(
         zone: ScreenshotGestureZone,
         direction: ScreenshotGestureDirection,
     ): String = settingsRepository.get().getSettings().first().screenshotGesturePayload(zone, direction)
+
+    /**
+     * S1036: launches the package chosen for the triggering slot. A blank payload means the user chose
+     * no app, and an unresolvable one means the chosen app was removed or disabled since; both degrade
+     * to [launchApp] so the gesture keeps doing something visible instead of silently failing.
+     */
+    private fun launchSelectedApp(context: Context, packageName: String) {
+        Timber.d("S1036: gesture OPEN_APP fired, stored package='%s'", packageName)
+        if (packageName.isBlank()) {
+            launchApp(context)
+            return
+        }
+        val intent = context.packageManager.getLaunchIntentForPackage(packageName)
+        if (intent == null) {
+            Timber.i("ScreenshotGestureActionDispatcher: no launch intent for %s, opening own app", packageName)
+            launchApp(context)
+            return
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+            .onFailure {
+                Timber.w(it, "ScreenshotGestureActionDispatcher: failed to launch %s", packageName)
+                launchApp(context)
+            }
+    }
 
     private fun launchApp(context: Context) {
         val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)

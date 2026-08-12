@@ -1,6 +1,6 @@
 # FastMediaSorter v2 🚀
 
-![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-purple?style=flat-square&logo=kotlin)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple?style=flat-square&logo=kotlin)
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
@@ -58,13 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.8042.332 (August 2026)
+## What's New in v2.60.8121.822 (August 2026)
 
 **New:**
-In-headset controls, launcher desktop, PDF swipe and text selection, browse path button, background transfers, folder transfers, shooting scenarios, local write destination, device profiles, welcome walkthrough, calculator preview, accessible settings lists.
+Home-screen launcher, desktop gadgets, taskbar status area, all-apps list, web search from the desktop, channel catalog with radio and webcams, about this channel, background stream shortcuts, thirteen interface languages, themed launcher icon, SD cards and external drives, image rotation and editing, Network Monitor, transfer progress everywhere, document translation, Wear OS SFTP test.
 
 **Fixed:**
-Widescreen films no longer detected as 3D, PDF zoom survives the page turn, channel grid no longer closes the app, camera settings survive a theme change, edge-gesture dialog keeps its layout after rotation.
+Streams report a lost network instead of failing silently, the channel grid stays quiet with no connection, file counts are truthful, dialogs keep their state across rotation, the camera opens without freezing the interface, stream quality steps down instead of stalling.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
@@ -475,10 +475,10 @@ Tests run automatically on every push via GitHub Actions. See [`.github/workflow
 - **Database**: Room (version 6 with cloud provider support)
 - **Navigation**: AndroidX Navigation Component
 - **Media**: ExoPlayer (Media3 1.2.1)
-- **Image Loading**: Glide 4.15.1 with custom NetworkFileModelLoader
+- **Image Loading**: Glide 4.16.0 with custom NetworkFileModelLoader
 - **Network Protocols**:
-  - SMB: SMBJ 0.12.1 with BouncyCastle 1.78.1
-  - SFTP: SSHJ 0.37.0 with EdDSA 0.3.0
+  - SMB: SMBJ 0.12.1 with BouncyCastle (transitive)
+  - SFTP: JSch 0.2.26 (com.github.mwiede fork, Ed25519 built in)
   - FTP: Apache Commons Net 3.10.0
 - **Cloud**: Google Drive API, OneDrive (MSAL), Dropbox API with OAuth 2.0
 - **OCR & Translation**:

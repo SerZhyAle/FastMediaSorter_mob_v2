@@ -10,6 +10,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
+import com.sza.fastmediasorter.util.showBoundToHost
 
 /**
  * S0003 §05.3: dedicated non-modal progress dialog for the link auto-download channel.
@@ -54,7 +55,7 @@ class LinkAutoDownloadProgressDialog(
                     onCancel()
                 }
             }
-            .show()
+            .showBoundToHost(activity)
     }
 
     fun update(state: LinkAutoDownloadCoordinator.ProgressState) {

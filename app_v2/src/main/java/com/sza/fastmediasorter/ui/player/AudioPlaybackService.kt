@@ -38,13 +38,19 @@ import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.playback.NowPlayingMetadata
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
+import com.sza.fastmediasorter.core.playback.resilience.StreamAudioFailure
+import com.sza.fastmediasorter.core.playback.resilience.StreamFailureClass
+import com.sza.fastmediasorter.core.playback.resilience.StreamServiceRetryDecision
+import com.sza.fastmediasorter.core.playback.resilience.StreamServiceRetryPolicy
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.stats.ViewKind
+import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.NetworkAwareMediaSourceFactory
@@ -93,6 +99,11 @@ class AudioPlaybackService : MediaSessionService() {
     @Inject
     lateinit var streamSourceRepository: StreamSourceRepository
 
+    // S1536: the single writer of the StreamPlayed statistic, so the background path counts a radio
+    // play exactly like the inline player does.
+    @Inject
+    lateinit var recordStreamPlayOutcome: RecordStreamPlayOutcomeUseCase
+
     private var mediaSession: MediaSession? = null
     private var player: ExoPlayer? = null
 
@@ -113,13 +124,18 @@ class AudioPlaybackService : MediaSessionService() {
     // reaches STATE_READY. Bounds the skip loop under REPEAT_MODE_ALL (see S0413 research/03).
     private var consecutiveSkipCount = 0
     private var lastSkipToastElapsedMs = 0L
-    private var streamConnectionStartedAtMs = 0L
-    private var streamHasSuccessfulPlayback = false
-    private var streamRetryAttempt = 0
 
-    // Elapsed-time stamp of the first retry since the last successful READY; 0 = not retrying.
-    // Bounds the reconnect loop for a stream that already played once (S1291).
-    private var streamRetryStartedAtMs = 0L
+    // S1513: the whole reconnect decision - both life-stage windows, the attempt counter and the
+    // S1291 bound on a stream that already played - now lives in pure code. This class keeps the
+    // Handler that schedules it and the give-up effect, which here is dropping a foreground service.
+    private val streamRetryPolicy = StreamServiceRetryPolicy()
+
+    // S1536: the stream url whose play is already counted in this listening session, cleared on every
+    // media-item transition. Deliberately not the policy's played flag: that one is seeded from
+    // lastPlayedAt, so it is already true for any station played before, and answers a different
+    // question - whether reconnecting is allowed, not whether this session was counted.
+    private var streamPlayCountedUrl: String? = null
+
     private val streamRetryRunnable = Runnable { retryCurrentStream() }
 
     // Live-radio stutters leave no trace at state level (playbackState stays READY, no error), so
@@ -267,14 +283,6 @@ class AudioPlaybackService : MediaSessionService() {
         private const val LISTEN_BANK_INTERVAL_MS = 30_000L
         /** Suppress repeat skip toasts within this window so a run of bad files does not spam (S0413). */
         private const val SKIP_TOAST_DEBOUNCE_MS = 3_000L
-        private const val MAX_STREAM_BACKOFF_SHIFT = 2
-
-        /**
-         * S1291: how long reconnect attempts may continue after a stream that already played once
-         * stops being reachable. Without this cap the retry loop (<= 8 s apart) runs until the
-         * process dies, keeping a foreground service with a wake mode alive all night.
-         */
-        private const val MAX_STREAM_RETRY_WINDOW_MS = 5 * 60 * 1000L
         private const val STREAM_OUTCOME_OK = "OK"
         /** Matches VideoPlayerManager.POSITION_SAVE_INTERVAL_MS (15 s). */
         private const val POSITION_SAVE_INTERVAL_MS = 15_000L
@@ -325,9 +333,10 @@ class AudioPlaybackService : MediaSessionService() {
         // cold start (e.g. car media-button restart with no track loaded yet).
         // Media3 DefaultMediaNotificationProvider will replace this placeholder with the real
         // media notification once a MediaSession + track are established.
+        Timber.d("S1399: audio-playback cold-start placeholder notification built with the branded status-bar icon")
         val placeholderNotification = NotificationCompat
             .Builder(this, MediaNotificationManager.NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification_audio)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentTitle(getString(R.string.app_name))
             .setContentText("")
             .setSilent(true)
@@ -443,8 +452,15 @@ class AudioPlaybackService : MediaSessionService() {
             override fun onPlayerError(error: PlaybackException) {
                 autoStopHandler.removeCallbacks(autoStopRunnable)
                 val p = player
-                if (p != null && canRetryStream(error)) {
-                    scheduleStreamRetry()
+                // Asked only when a player is alive: the policy spends an attempt when it answers
+                // with a retry, and there would be nothing left to reconnect.
+                val retryDecision = if (p == null) {
+                    StreamServiceRetryDecision.Ignore
+                } else {
+                    streamRetryPolicy.onFailure(error.toStreamFailure(), SystemClock.elapsedRealtime())
+                }
+                if (retryDecision is StreamServiceRetryDecision.RetryAfter) {
+                    scheduleStreamRetry(retryDecision.delayMs)
                     return
                 }
                 if (p != null && error.isSkippable() && p.hasNextMediaItem()
@@ -709,22 +725,17 @@ class AudioPlaybackService : MediaSessionService() {
     // session and keep the stop behavior. See S0413 research/01.
     private fun PlaybackException.isSkippable(): Boolean = errorCode in 3000..4999
 
-    private fun canRetryStream(error: PlaybackException): Boolean {
-        val ioErrorRange =
-            PlaybackException.ERROR_CODE_IO_UNSPECIFIED..PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE
-        val withinRetryWindow = streamHasSuccessfulPlayback ||
-            SystemClock.elapsedRealtime() - streamConnectionStartedAtMs <
-            RadioStreamBufferConfig.DIALOG_TIMEOUT_MS
-        return error.errorCode in ioErrorRange && withinRetryWindow
-    }
+    /**
+     * This site has never read a response code out of the `cause` chain, so no HTTP status is ever
+     * observed here. The policy answers the bad-HTTP-status code from the code alone, which is what
+     * the flat IO range did before the move (S1513).
+     */
+    private fun PlaybackException.toStreamFailure(): StreamAudioFailure =
+        StreamAudioFailure(StreamFailureClass.classify(errorCode, httpStatus = null), errorCode)
 
-    private fun scheduleStreamRetry() {
-        val delay = (RadioStreamBufferConfig.BASE_RETRY_DELAY_MS shl streamRetryAttempt)
-            .coerceAtMost(RadioStreamBufferConfig.MAX_RETRY_DELAY_MS)
-        streamRetryAttempt = (streamRetryAttempt + 1).coerceAtMost(MAX_STREAM_BACKOFF_SHIFT)
-        if (streamRetryStartedAtMs == 0L) streamRetryStartedAtMs = SystemClock.elapsedRealtime()
+    private fun scheduleStreamRetry(delayMs: Long) {
         autoStopHandler.removeCallbacks(streamRetryRunnable)
-        autoStopHandler.postDelayed(streamRetryRunnable, delay)
+        autoStopHandler.postDelayed(streamRetryRunnable, delayMs)
     }
 
     private fun retryCurrentStream() {
@@ -734,9 +745,9 @@ class AudioPlaybackService : MediaSessionService() {
             // playback behind their back (and re-arm playWhenReady, which also blocks swipe-away).
             !currentPlayer.playWhenReady -> {
                 Timber.d("AudioPlaybackService: stream retry dropped - playback paused")
-                streamRetryStartedAtMs = 0L
+                streamRetryPolicy.onRetryDropped()
             }
-            giveUpStreamRetry() -> {
+            streamRetryPolicy.onRetryDue(SystemClock.elapsedRealtime()) is StreamServiceRetryDecision.GiveUp -> {
                 Timber.w("AudioPlaybackService: stream unreachable - stopping service instead of retrying")
                 AudioNowPlayingSnapshotStore.clear(this)
                 stopSelf()
@@ -748,27 +759,15 @@ class AudioPlaybackService : MediaSessionService() {
         }
     }
 
-    /**
-     * S1291: a source that never played gets the short connect window; one that already played gets
-     * a bounded reconnect window instead of the former unlimited loop.
-     */
-    private fun giveUpStreamRetry(): Boolean {
-        val now = SystemClock.elapsedRealtime()
-        if (!streamHasSuccessfulPlayback) {
-            return now - streamConnectionStartedAtMs >= RadioStreamBufferConfig.DIALOG_TIMEOUT_MS
-        }
-        return streamRetryStartedAtMs != 0L && now - streamRetryStartedAtMs >= MAX_STREAM_RETRY_WINDOW_MS
-    }
-
     private fun resetStreamRecovery(mediaItem: MediaItem?) {
         autoStopHandler.removeCallbacks(streamRetryRunnable)
-        streamConnectionStartedAtMs = SystemClock.elapsedRealtime()
-        streamHasSuccessfulPlayback = false
-        streamRetryAttempt = 0
-        streamRetryStartedAtMs = 0L
+        streamRetryPolicy.onStreamChanged(SystemClock.elapsedRealtime())
+        streamPlayCountedUrl = null
         val streamUrl = mediaItem?.localConfiguration?.uri?.toString() ?: return
         serviceScope.launch {
-            streamHasSuccessfulPlayback = streamSourceRepository.getByUrl(streamUrl)?.lastPlayedAt != null
+            streamRetryPolicy.onKnownPlayedBefore(
+                streamSourceRepository.getByUrl(streamUrl)?.lastPlayedAt != null
+            )
         }
     }
 
@@ -810,16 +809,27 @@ class AudioPlaybackService : MediaSessionService() {
 
     private fun recordCurrentStreamSuccess() {
         val streamUrl = player?.currentMediaItem?.localConfiguration?.uri?.toString() ?: return
-        streamRetryAttempt = 0
-        streamRetryStartedAtMs = 0L
+        streamRetryPolicy.onStreamReady()
+        // S1536: READY repeats after every rebuffer and reconnect, which for a live stream is routine,
+        // so the play counter fires on the first READY of this listening session only. The bullet and
+        // the last-played stamp still refresh on every READY, as they did before.
+        val firstReady = streamPlayCountedUrl != streamUrl
+        streamPlayCountedUrl = streamUrl
+        Timber.d("S1536: stream READY firstReady=%s url=%s", firstReady, streamUrl)
         serviceScope.launch {
             val source = streamSourceRepository.getByUrl(streamUrl) ?: return@launch
             // S1291: only a catalog stream earns the reconnect window. Setting this for every media
             // item made an ordinary file (e.g. FILE_NOT_FOUND after cache eviction) retry forever
             // instead of taking the fatal-error path that stops the service.
-            streamHasSuccessfulPlayback = true
-            streamSourceRepository.recordPlayOutcome(source.id, STREAM_OUTCOME_OK)
-            streamSourceRepository.markPlayed(source.id, System.currentTimeMillis())
+            streamRetryPolicy.onCatalogStreamPlaying()
+            if (firstReady) {
+                // S1536: the use case owns the StreamPlayed statistic; going to the repository direct
+                // is what left background radio out of the "streams played" count entirely.
+                recordStreamPlayOutcome.recordPlaySuccess(source.id)
+            } else {
+                streamSourceRepository.recordPlayOutcome(source.id, STREAM_OUTCOME_OK)
+                streamSourceRepository.markPlayed(source.id, System.currentTimeMillis())
+            }
         }
     }
 

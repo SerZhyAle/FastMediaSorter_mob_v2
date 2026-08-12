@@ -27,13 +27,18 @@ import timber.log.Timber
         InputBindingEntity::class,
         DeviceProfileEntity::class,
         StreamSourceEntity::class,
+        StreamPlayOutcomeEntity::class,
         AppLaunchPanelTileEntity::class,
         LauncherCellEntity::class,
         LauncherJournalEntity::class,
         LauncherPinEntity::class,
-        LauncherStateEntity::class
+        LauncherStateEntity::class,
+        InstalledAppEntity::class,
+        LauncherLaunchStatsEntity::class,
+        SensorSeriesPointEntity::class,
+        NetworkMeasurementEntity::class
     ],
-    version = 44,
+    version = 49,
     // Export the schema JSON (committed under app_v2/schemas/) so future migrations can be
     // validated and the schema diff is reviewable. Arms the migration-test guard (S0731).
     exportSchema = true
@@ -55,11 +60,16 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun inputBindingDao(): InputBindingDao
     abstract fun deviceProfileDao(): DeviceProfileDao
     abstract fun streamSourceDao(): StreamSourceDao
+    abstract fun streamPlayOutcomeDao(): StreamPlayOutcomeDao
     abstract fun appLaunchPanelTileDao(): AppLaunchPanelTileDao
     abstract fun launcherCellDao(): LauncherCellDao
     abstract fun launcherJournalDao(): LauncherJournalDao
     abstract fun launcherPinDao(): LauncherPinDao
     abstract fun launcherStateDao(): LauncherStateDao
+    abstract fun installedAppDao(): InstalledAppDao
+    abstract fun launcherLaunchStatsDao(): LauncherLaunchStatsDao
+    abstract fun sensorSeriesDao(): SensorSeriesDao
+    abstract fun networkMeasurementDao(): NetworkMeasurementDao
 
     companion object {
         /**

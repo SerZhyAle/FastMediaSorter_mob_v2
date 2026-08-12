@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -62,6 +63,7 @@ class CleanupTrashFoldersUseCase @Inject constructor() {
                 )
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "CleanupTrashFoldersUseCase: error during cleanup")
         }
 

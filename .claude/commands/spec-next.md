@@ -48,31 +48,41 @@ Everything else is excluded. Preflight applies eligibility itself; the loop neve
 
 ## Process
 
-### Stage 0 - Session init and device probe (once per session)
+### Stage 0 - Session bootstrap (once per session)
 
-**Session state.** `--resume` present -> `pwsh -NoProfile -File scripts/spec_catalog/spec-next-session.ps1 -Verb Resume`; seed the in-memory `processed` set from its `excludeCsv`. No `--resume` -> `pwsh -NoProfile -File scripts/spec_catalog/spec-next-session.ps1 -Verb Init` (add `-Threshold <n>` if `--threshold` was passed) - a fresh round, per Hard rules "round memory is session-scoped".
-
-Before the loop, detect whether on-device verification is available this run:
+One call replaces the four that used to open every round - round state, device probe, device persist, first ranking - each of which cost a turn (S1596):
 
 ```powershell
-pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -Package com.sza.fastmediasorter.debug -CheckMcp -Json
+pwsh -NoProfile -File scripts/spec_catalog/session-bootstrap.ps1 [-Resume] [-Threshold <n>] [-SkipDevice]
 ```
 
-- Exit 0 (`ready:true`) -> `DEVICE_ONLINE = true`. The session will run **Stage 5.5 (device drain)** after the impl loop exhausts.
-- Any other exit -> `DEVICE_ONLINE = false`. The `BlockNeedUserTest` backlog stays parked for the human; Stage 5.5 is a silent no-op.
-- Either way, persist it: `pwsh -NoProfile -File scripts/spec_catalog/spec-next-session.ps1 -Verb Device -Online <true|false> [-SelectedDevice <id>]`. This is what lets a future threshold-triggered reset restore device state without re-deriving it from a `Resume` payload that could be stale - always re-probe even on `--resume`, a resumed process may be reconnecting after the device was unplugged mid-session.
+It returns one JSON payload with four blocks - `session`, `device`, `selection`, `lease` - each carrying its own `status` (`ok` / `failed` / `skipped`), the child's own `exitCode` and its `reason` verbatim. Read the payload; do not re-run the components it already ran.
+
+- `--resume` present -> pass `-Resume`, then seed the in-memory `processed` set from `session.payload.excludeCsv`. No `--resume` -> omit it: a fresh round, per Hard rules "round memory is session-scoped". `--threshold <n>` maps to `-Threshold <n>`.
+- `device.payload.ready` true -> `DEVICE_ONLINE = true`, and the session will run **Stage 5.5 (device drain)** after the impl loop exhausts. False -> `DEVICE_ONLINE = false`, the `BlockNeedUserTest` backlog stays parked for the human and Stage 5.5 is a silent no-op. The package has already persisted this into the round state - do not persist it again. It re-probes on every invocation including `-Resume`, because a resumed process may be reconnecting after the device was unplugged mid-session.
+- `selection` is this iteration's preflight payload. Go straight to Stage 2 with it.
+- Exit **0** -> every requested block assembled. Exit **1** -> read `failedBlocks` and each named block's `reason`; a failed `session` or `selection` block means the round cannot start, so report which one and stop rather than proceeding on partial data. Exit **2** -> a component script is missing, which is a repository defect rather than a round outcome.
+
+The package also accepts `-Claim`, and this skill never passes it: the drift gate (Stage 3) sits between selecting a ticket and claiming it, and a package that claimed up front would leave a lease on a ticket the gate is about to defer.
+
+**Parallel sessions are supported (S1437).** Two or three `/spec-next` or `/spec-do` sessions may run at once against one working tree: each gets its own round-state file, so a fresh round no longer refuses. They take *different* tickets because each claims its pick (Stage 3.5 below) before working it. Own session after a threshold `/clear` -> the right flag was `--resume` all along; re-run with it.
 
 ### Stage 1 - Preflight (rank + skip-cache + auto-skip + drift, one call)
+
+**First iteration: already done** - the payload is the `selection` block from Stage 0. Every later iteration re-ranks with the round's updated exclusion set:
 
 ```powershell
 pwsh -NoProfile -File scripts/spec_catalog/spec-next-preflight.ps1 -Exclude <processed-ids-csv>
 ```
 
-One read-only call returns a single JSON blob with `ranked[]`, `skip_cache` / `skip_cached_ids`, `auto_skipped[]` and `selected`. `order_source` and `current_release` are echoed at the top of the payload - quote them when reporting the pick. A field's exact shape -> "Preflight payload field contract" in `.claude/reference/spec-next.md`; the stages below need no more than those four names.
+One read-only call returns a single JSON blob with `ranked[]`, `skip_cache` / `skip_cached_ids`, `auto_skipped[]` and `selected`. `order_source` and `current_release` are echoed at the top of the payload - quote them when reporting the pick. A field's exact shape -> "Preflight payload field contract" in `.claude/reference/spec-next.md`; the stages below need no more than those four names. The block Stage 0 hands over has exactly this shape - it is the same script's output.
 
-`-Exclude` carries in-memory `processed` round-memory set (Stage 5) so each loop iteration gets next candidate in one call. First iteration: omit `-Exclude`.
+`selected == null` -> branch on `selected_none_reason`, because "the work is finished" and "the work is taken" call for different next moves (S1437):
 
-`selected == null` -> eligible set exhausted -> final report (Stage 6) and stop.
+- `queue-exhausted` / `no-candidate` -> eligible set exhausted -> final report (Stage 6) and stop, as before.
+- `all-leased` -> eligible tickets exist but every one is held by a live sibling session. Report each holder from `leased_ids` (`id`, `sessionId`, `last_seen_minutes`), state that the queue is busy rather than finished and that re-running later picks one up, then stop. **Do not wait or poll** - a free ticket is not guaranteed to appear, so blocking would hold the session to a timeout for an answer that is already final.
+
+`-Exclude` carries in-memory `processed` round-memory set (Stage 5) so each loop iteration gets next candidate in one call.
 
 ### Stage 2 - Persist preflight side effects (only mutations in selection)
 
@@ -90,10 +100,28 @@ Preflight is read-only by contract; this skill performs writes it implies:
 
 ### Stage 3 - Drift gate
 
-`selected.drift.verdict == DRIFT` (what that verdict means -> "Stage 3" note in `.claude/reference/spec-next.md`): note it in the round verdict, then:
+Branch on `selected.drift.verdict` (what the verdicts mean -> "Stage 3" note in `.claude/reference/spec-next.md`). Note the verdict in the round verdict either way, and when you proceed, name which proof cleared it:
 
-- `selected.last_audit_present` is true OR spec has "Implementation State" block -> proceed to Stage 4 (`/spec-all` resumes at right stage).
-- Neither -> defer: skip-cache spec with `Reason "drift-needs-review"` (TTL 3 days), surface in final report under "Drift detected - needs manual review", add to `processed`, re-run Stage 1.
+- `CLEAN` -> proceed to Stage 4.
+- `COMMIT_ONLY` -> proceed to Stage 4. A commit carrying the id is expected of any ticket that has been worked on and says nothing about the tree; no inline marker means nothing unaccounted is sitting in `app_v2/src` (S1429).
+- `DRIFT` -> inline `// Sxxxx:` markers exist, so ask what accounts for them. **Any one** of these three is enough to proceed to Stage 4 (`/spec-all` resumes at the right stage):
+  1. `selected.last_audit_present` is true;
+  2. the spec carries an "Implementation State" block;
+  3. `selected.tactical_index.fresh` is true - a tactical plan exists and its `Last updated` is not older than the newest in-window commit, so its phase counters already account for what landed. `/spec-dev` recomputes its cursor from the phase files and skips `PRE-RESOLVED` steps, so a live plan cannot duplicate work.
+- `DRIFT` with none of the three -> defer: skip-cache the spec with `Reason "drift-needs-review"` and `-Ttl 3`, surface it in the final report under "Drift detected - needs manual review", release any lease on it (`ticket-lease.ps1 -Verb Release -Id <id>` - this path never reaches Stage 5, where the normal release lives), add to `processed`, re-run Stage 1.
+
+### Stage 3.5 - Claim the ticket (S1437)
+
+Preflight ranks but never claims - it is read-only by contract, and a ranking call that claimed would take tickets just because someone looked at the queue. The claim is what actually arbitrates between two sessions that ranked the same top ticket:
+
+```powershell
+pwsh -NoProfile -File scripts/spec_catalog/ticket-lease.ps1 -Verb Claim -Id <selected.id> -Reason "/spec-next"
+```
+
+- Exit **0** -> the ticket is yours. Proceed to Stage 4.
+- Exit **3** -> a sibling session claimed it first. Log one line `[claim-lost] <id> - held by <session>`, add the id to the in-memory `processed` set, and re-run Stage 1 with the updated `-Exclude`. **This is a normal outcome, not an error** - do not stop the round and do not report it as a failure.
+
+Claim *after* the drift gate, never before: a ticket deferred for manual drift review must not be left leased, or no sibling can pick it up either.
 
 ### Stage 4 - Delegate to `/spec-all` (with preflight handoff)
 
@@ -123,6 +151,14 @@ pwsh -NoProfile -File scripts/spec_catalog/spec-next-session.ps1 -Verb Record -I
 ```
 
 `-Outcome` maps from status: `Verified` -> `verified`; any `Block*` -> `blocked`; unchanged from start -> `skipped`; anything else (`Implemented`/`Partial`/`Broken`/still `In Progress`) -> `advanced`. Verdict wording per status -> "Round-outcome table" in `.claude/reference/spec-next.md`, read before writing the round verdict.
+
+**Then release the lease (S1437)** - for *every* outcome, `advanced` / `verified` / `blocked` / `skipped` alike:
+
+```powershell
+pwsh -NoProfile -File scripts/spec_catalog/ticket-lease.ps1 -Verb Release -Id <Sxxxx>
+```
+
+A blocked ticket must not stay leased, or no sibling can pick it up. A failed release is logged and does not stop the round: the lease expires on its own with the session's liveness, so a missed release costs a delay, not a stuck ticket.
 
 **Round memory.** Maintain in-memory `processed` set of ticket ids touched during this `/spec-next` invocation (mirrors what was just written to disk - the in-memory set still feeds Stage 1's `-Exclude`, the state file is what survives a reset). After Stage 5, add just-handled id. Pass whole set to next Stage 1 call via `-Exclude`.
 
@@ -218,6 +254,6 @@ Skip Stages 1..6 entirely in this mode - no preflight, no skip-cache, no loop, n
 - **No spec file rewrites here.** Sync touches journal, not `.md`. If `.md` malformed (preflight returns it under `malformed`), skip spec and list under "Skipped" in final report.
 - **Round memory is session-scoped.** Resets on every fresh `/spec-next` invocation. Crashes / interruptions do not persist it.
 - **Branch awareness.** Do not switch git branches. User controls active branch; `/spec-next` runs on whatever branch is checked out.
-- **Forbidden:** writing to `PLAN/spec-catalog.jsonl` directly; writing to `temp/spec-next-skip-cache.json` directly (use `skip-cache.ps1`); renaming spec files; creating audit / fix files in `PLAN/`.
+- **Forbidden:** writing to `PLAN/spec-catalog.jsonl` directly; writing to `temp/spec-next-skip-cache.json` directly (use `skip-cache.ps1`); writing to `temp/SPEC-TICKET.LEASES/` directly (use `ticket-lease.ps1` - a hand-written lease bypasses the atomic claim that keeps two sessions off one ticket); renaming spec files; creating audit / fix files in `PLAN/`.
 
 Script call ownership (this skill vs a delegated one) -> "Spec Catalog hooks" in `.claude/reference/spec-next.md`.

@@ -35,4 +35,7 @@ interface LauncherJournalDao {
             "(SELECT id FROM launcher_journal ORDER BY launchedAt DESC LIMIT :keep)"
     )
     suspend fun trim(keep: Int)
+
+    @Query("DELETE FROM launcher_journal")
+    suspend fun deleteAll()
 }
