@@ -22,6 +22,15 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <!--
+      S1614: the steps gadget's permission lives here, not in src/launcherEnabled, because Play
+      classifies ACTIVITY_RECOGNITION as a health feature and blocks the release commit until the
+      Health declaration is answered - a review surface the sideload flavor does not have. The
+      gadget code stays shared; DeviceSensorAvailabilityRepositoryImpl reads the merged manifest
+      and reports the capability absent wherever this permission is not declared.
+    -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+
+    <!--
       S0559: the MediaProjection consent activity, the mediaProjection capture service, and the
       FOREGROUND_SERVICE_MEDIA_PROJECTION permission moved to src/screenCapture/AndroidManifest.xml
       (shared with the standard store flavor). This overlay file keeps only the noLegal-only
