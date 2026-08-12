@@ -1,0 +1,7 @@
+• Home-screen launcher - shortcuts, contact cells, titled sections, a desktop that scrolls.
+• Desktop gadgets - clock, sensors, map, signal strip and Now Playing.
+• Taskbar status area - configurable indicators, Wi-Fi and Bluetooth tiles.
+• All installed apps - a full-screen list straight from the desktop.
+• Web search from the desktop - type once, open in the browser.
+• Launcher settings - grouped sections and a one-tap reset.
+..
