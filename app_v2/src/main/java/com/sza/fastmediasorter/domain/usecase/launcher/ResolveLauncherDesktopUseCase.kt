@@ -58,7 +58,6 @@ class ResolveLauncherDesktopUseCase @Inject constructor(
                 .distinctUntilChanged(),
         ) { cells, wifi, bluetooth, _, networkMonitorEnabled ->
             val radioStates = RadioStates(wifi, bluetooth)
-            Timber.d("S1441: desktop re-resolve, wifi=%s, bluetooth=%s", wifi, bluetooth)
             cells.filterNot { it.hidesWithDisabledNetworkMonitor(networkMonitorEnabled) }
                 .map { it.toUi(radioStates) }
         }.flowOn(Dispatchers.IO)

@@ -114,7 +114,6 @@ class StreamInlineAudioManager(
                 val entry = metadata.get(i)
                 if (entry is IcyInfo) {
                     nowPlaying.value = entry.title?.takeIf { it.isNotBlank() }?.let(NowPlayingMetadata::parse)
-                    Timber.d("S1142: inline local ICY, nowPlaying=${nowPlaying.value}")
                 }
             }
         }
@@ -130,7 +129,6 @@ class StreamInlineAudioManager(
             } else {
                 null
             }
-            Timber.d("S1142: inline service metadata, nowPlaying=${nowPlaying.value}")
         }
 
         override fun onPlayerError(error: PlaybackException) {
@@ -207,7 +205,6 @@ class StreamInlineAudioManager(
         scheduleToleranceTimeout()
         nowPlaying.value = null
         views.miniControl.isVisible = true
-        Timber.d("S1219: mini control shown, width=${views.miniControl.width}")
         callbacks.onPlayingChanged(source.id)
         renderTitle()
         Timber.i("StreamInlineAudioManager: inline audio start - %s (bg=%b)", source.url, useBackgroundService)
@@ -251,7 +248,6 @@ class StreamInlineAudioManager(
                 )
                 .setHandleAudioBecomingNoisy(true)
                 .build()
-            Timber.d("S0896: StreamInlineAudioManager OFF-mode player built with handleAudioFocus")
             local.setMediaItem(MediaItem.fromUri(source.url))
             local.addListener(playerListener)
             local.addAnalyticsListener(underrunListener)

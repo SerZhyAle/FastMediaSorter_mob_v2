@@ -199,7 +199,6 @@ class PdfTextSelectionManager(
         val nativeRange = nativeLayout?.charRangeForPoint(bitmapPoint.x, bitmapPoint.y)
         val range = nativeRange ?: ocrCharRange(bitmapPoint, bitmap, pageText)
         val words = nativeLayout?.items?.size ?: -1
-        Timber.d("S1276: resolved native=${nativeRange != null} words=$words range=${range?.first}-${range?.last}")
         return range
     }
 

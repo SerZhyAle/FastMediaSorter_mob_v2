@@ -224,7 +224,6 @@ class StreamGridAdapter(
                 if (event.action == MotionEvent.ACTION_BUTTON_PRESS &&
                     event.buttonState == MotionEvent.BUTTON_SECONDARY
                 ) {
-                    Timber.d("S1111: grid tile right-click -> overflow")
                     binding.btnGridOverflow.performClick()
                     true
                 } else {
@@ -329,7 +328,6 @@ class StreamGridAdapter(
                 val tile = atlasPreviewLoader(url)
                 if (boundUrl != url) return@launch
                 if (tile != null) {
-                    Timber.d("S1154: grid atlas-preview tile applied")
                     showArtwork(tile)
                     // The tile is a real preview, so the cell is no longer "no frame".
                     binding.root.contentDescription =

@@ -145,7 +145,6 @@ class MainProgramsMenuCoordinator(
                 true
             }
             MENU_ITEM_NETWORK_MONITOR -> {
-                Timber.d("S1433: launch Network Monitor from Programs menu")
                 activity.startActivity(NetworkMonitorActivity.createIntent(activity))
                 true
             }

@@ -1,0 +1,60 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: a .txt file renders in the dedicated text viewer, with its content view populated.
+# Oracle: tvTextContent inside textViewerContainer - the TEXT viewer specifically inflated.
+#
+# S1612 note: features/player/player_documents.yaml already opens readme.txt, but its assertion is
+# on mediaContentArea - the generic player container, which is visible for an image, a video or a
+# PDF just the same. That proves "the player opened something", not "the text viewer rendered the
+# text". This flow closes that gap by asserting the text-specific views, so a regression that
+# routes .txt to the wrong viewer fails here instead of passing there.
+#
+# Precondition: the "Загрузки" LOCAL resource is registered and setup_test_media.ps1 has seeded
+# Docs/readme.txt under it - the same precondition player_documents.yaml relies on. Navigate the
+# same way that flow does: the seeded folders are reached through the Локальные -> Загрузки
+# resource, NOT as a top-level "Docs" resource (measured 2026-08-13 - no such resource is
+# registered, and asserting it failed on the first tap).
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+
+- tapOn:
+    text: "Локальные"
+    index: 0
+- scrollUntilVisible:
+    element:
+      text: "Загрузки"
+    timeout: 10000
+- tapOn:
+    text: "Загрузки"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+    timeout: 20000
+- runFlow: ../../_shared/downloads_sort_reset.yaml
+
+- scrollUntilVisible:
+    element:
+      text: "readme.txt"
+    timeout: 40000
+    visibilityPercentage: 30
+    centerElement: true
+    waitToSettleTimeoutMs: 600
+- tapOn:
+    containsChild:
+      text: "readme.txt"
+
+# THE PROOF: the text-viewer overlay is up and its content view is populated. Both are specific to
+# the text renderer - neither is visible for an image or a video. Never optional.
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/textViewerContainer"
+    timeout: 15000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/textViewerContainer"
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/tvTextContent"
+
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

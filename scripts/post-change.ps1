@@ -517,6 +517,19 @@ else {
     Skip-Step "strings-audit" "not applicable for ChangeType $resolvedChangeType"
 }
 
+# S1627: name the strings that do not yet reach all thirteen declared locales. Advisory on purpose -
+# the refusal lives at the pre-release stage, where one bulk round trip clears every key of the
+# release at once, so failing a ticket's close here would demand ten translations per key for no
+# shipping benefit. Silence is what let 1887 keys accumulate, so the count is printed either way.
+if ($runsStringFormatGate) {
+    Invoke-AdvisoryStep "new-lexeme-count" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/utils/list-new-lexemes.ps1") -Module $Module
+    } "advisory (new strings not yet in every locale; the pre-release stage translates them in bulk)"
+}
+else {
+    Skip-Step "new-lexeme-count" "not applicable - no changed file is a strings resource file"
+}
+
 if ($runsStringFormatGate) {
     Invoke-Gate "string-format-gate" {
         $a = @(

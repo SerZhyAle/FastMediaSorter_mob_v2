@@ -145,7 +145,6 @@ class StreamInfoDialog(
     private fun renderMeasured(measured: StreamMeasuredFormats) {
         val group = formatter.measuredGroup(measured)
         val nothingReported = group.properties.all { it.value == StreamInfoValue.Unavailable }
-        Timber.d("S1474: measurement finished, nothing reported = %s", nothingReported)
         if (nothingReported) {
             binding.streamInfoMeasuredState.setText(R.string.stream_info_state_unavailable)
         } else {

@@ -100,7 +100,6 @@ private fun decodeStillFrame(
     resources: Resources,
 ): Resource<Drawable>? =
     try {
-        Timber.d("S1317: still-frame decode, req=%dx%d", width, height)
         val bitmap = ImageDecoder.decodeBitmap(imageSource) { decoder, info, _ ->
             decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE)
             val sample = AnimatedImageHeaderSniffer.sampleSize(
@@ -133,7 +132,6 @@ private fun decodeAnimatedDrawable(imageSource: ImageDecoder.Source, width: Int,
             )
             if (sample > 1) decoder.setTargetSampleSize(sample)
         }
-        Timber.d("S1026: decoded animated drawable, req=%dx%d", width, height)
         AnimatedImageDrawableResource(drawable)
     } catch (e: IOException) {
         // Corrupt/partial animated file - let Glide surface the load failure, don't crash decode.

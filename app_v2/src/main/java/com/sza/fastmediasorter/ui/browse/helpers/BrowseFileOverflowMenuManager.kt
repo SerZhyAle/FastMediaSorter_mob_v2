@@ -47,10 +47,8 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         val entries = GroupedEntries()
         addDirectEntries(entries, menuContext, actions)
         addExtendedEntries(entries, menuContext, actions)
-        Timber.d("S1325: row menu dir=%s", menuContext.file.isDirectory)
         if (entries.isEmpty()) return
         val groupSizes = listOf(entries.topLevel, entries.organize, entries.text, entries.edit, entries.share)
-        Timber.d("S1252: grouped menu sizes=%s", groupSizes.map { it.size })
         render(anchor, entries)
     }
 

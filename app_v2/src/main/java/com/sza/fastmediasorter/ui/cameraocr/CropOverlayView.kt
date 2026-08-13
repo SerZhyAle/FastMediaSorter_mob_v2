@@ -134,7 +134,6 @@ class CropOverlayView @JvmOverloads constructor(
 
     private fun applyDefaultFrame() {
         if (contentRect.isEmpty) return
-        Timber.d("S1602: crop frame default, contentBottom=%.1f viewH=%d", contentRect.bottom, height)
         selection.set(
             contentRect.left + defaultInsetPx,
             contentRect.top + defaultInsetPx,

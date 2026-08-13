@@ -55,7 +55,6 @@ private class StepsGadgetView(
     private val binding = GadgetLauncherStepsBinding.inflate(LayoutInflater.from(context), this)
 
     override suspend fun CoroutineScope.onActive() {
-        Timber.d("S1179: steps tile active, activityGranted=%b", hasActivityPermission())
         if (!hasActivityPermission()) {
             showMessage()
             return

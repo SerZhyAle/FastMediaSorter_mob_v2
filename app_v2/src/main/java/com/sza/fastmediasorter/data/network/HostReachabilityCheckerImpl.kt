@@ -26,7 +26,6 @@ class HostReachabilityCheckerImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             val endpoint = endpointResolver.resolve(host, port)
             if (endpoint.host != host || endpoint.port != port) {
-                Timber.d("S1320: probe redirected $host:$port -> ${endpoint.host}:${endpoint.port}")
             }
             SmbErrorClassifier.checkConnectivity(endpoint.host, endpoint.port, timeoutMs)
         }

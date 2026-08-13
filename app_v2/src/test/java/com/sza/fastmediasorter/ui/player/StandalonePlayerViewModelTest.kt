@@ -9,6 +9,8 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.MaterializeUriToFileUseCase
 import com.sza.fastmediasorter.domain.usecase.ResolveLocalPathFromUriUseCase
+import com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
+import dagger.Lazy
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -48,6 +50,7 @@ class StandalonePlayerViewModelTest {
             materializeUriToFileUseCase = mockk<MaterializeUriToFileUseCase>(relaxed = true),
             localMediaScanner = mockk<LocalMediaScanner>(relaxed = true),
             settingsRepository = mockk<SettingsRepository>(relaxed = true),
+            searchLyricsUseCase = mockk<Lazy<SearchLyricsUseCase>>(relaxed = true),
             stereoFormatOverrideDao = mockk<StereoFormatOverrideDao>(relaxed = true),
         )
     }

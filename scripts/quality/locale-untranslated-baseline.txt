@@ -1,0 +1,35 @@
+# S1627 - identities already untranslated when the thirteen-locale rule was introduced.
+#
+# Generated 2026-08-14 with:
+#   pwsh -NoProfile -File scripts/utils/list-new-lexemes.ps1 -BaselinePath <absent> -Quiet
+#
+# One "set|file|key" per line. list-new-lexemes.ps1 subtracts this set, so a gap that existed
+# before the rule cannot be reported as a new one. Anything not listed here is new.
+#
+# All 19 entries are the same defect: the English phrasing leaves a format placeholder standing
+# alone, the external translator renders "%1$s" as a word, and the import guard rejects the line.
+# S1626 rewrites that phrasing - each key it fixes lands in every locale on the next bulk round and
+# should then be deleted from this file (list-new-lexemes.ps1 reports such an entry as stale).
+# S1550 shrinks the neighbouring set - layout literals marked translatable="false" - which never
+# reaches the export and therefore never appears here.
+#
+# Do not hand-edit entries. Regenerate with the command above.
+main|strings_file_operations.xml|addresource_quick_sort_full_message
+main|strings_file_operations.xml|addresource_some_resources_unavailable_after_add
+main|strings_file_operations.xml|delete_files_confirmation
+main|strings_link_auth.xml|s0155_pick_account_title
+main|strings_reader.xml|text_note_save_success_remote
+main|strings_scheduled.xml|scheduled_op_schedule_summary
+main|strings_video_player.xml|playback_resumed_from
+main|strings_video_player.xml|player_health_fallback_failed
+main|strings.xml|auth_offer_dialog_message
+main|strings.xml|browse_empty_filtered_out
+main|strings.xml|delivery_offer_message
+main|strings.xml|launcher_gadget_map_actions_at
+main|strings.xml|network_monitor_bandwidth_pair
+main|strings.xml|network_monitor_result_resource_ok
+main|strings.xml|network_monitor_result_subnet_scan
+main|strings.xml|panel_remove_channel_message
+main|strings.xml|removable_volume_button_label
+main|strings.xml|s0117_batch_dialog_more_failures
+main|strings.xml|sleep_timer_hours

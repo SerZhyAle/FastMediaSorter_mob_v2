@@ -89,7 +89,6 @@ class SearchableLanguagePickerDialog : DialogFragment() {
             mode = mode,
             noLegalOcrLabelsEnabled = capabilityAvailability.isOcrEngineSelectionAvailable(),
             onClick = { language ->
-                Timber.d("S1214: picker emits key=$requestKey code=${language.code}")
                 setFragmentResult(requestKey, bundleOf(RESULT_LANGUAGE_CODE to language.code))
                 dismiss()
             }

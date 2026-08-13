@@ -7,6 +7,7 @@ import android.graphics.PorterDuff
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
+import timber.log.Timber
 
 /**
  * Model + Canvas painter of the immersive HUD panel.
@@ -101,9 +102,11 @@ class HudCanvasRenderer {
         // S1239: the seek band takes the dead 44 px between the header band (ends at
         // TERMINAL_TOP + TERMINAL_H) and the control row (starts at ROW_TOP). It deliberately
         // stays out of that row's reflow - the row is already full, since S1238's worst case
-        // (both track blocks plus both sliders) overruns ROW_AREA_RIGHT by 20 px, so there was no
-        // width left to take. Horizontally the same two terminal buttons bound it, and the right
-        // end reserves SEEK_TIME_ZONE_W for the elapsed/total label.
+        // (both track blocks plus both sliders) leaves only 28 px between blocks, so there was no
+        // width left to take. S1278 fixed the 20 px spill that case used to produce, but it did
+        // not free any width - the row now fits exactly rather than fitting with room to spare.
+        // Horizontally the same two terminal buttons bound it, and the right end reserves
+        // SEEK_TIME_ZONE_W for the elapsed/total label.
         private const val SEEK_TOP = 140f
         private const val SEEK_H = 24f
         private const val SEEK_KNOB_R = 20f
@@ -283,7 +286,15 @@ class HudCanvasRenderer {
 
         val totalWidth = blocks.sumOf { it.width.toDouble() }.toFloat()
         val free = ROW_AREA_RIGHT - ROW_AREA_LEFT - totalWidth
-        val gap = maxOf(MIN_BLOCK_GAP, free / (blocks.size + 1))
+        // S1278: no MIN_BLOCK_GAP floor here. The floor never bound in either layout that has room
+        // (452 px and 187 px of gap, both far above it) and bound only on the full strip, where it
+        // held a 40 px gap the row could not afford and pushed the 20 px overflow onto the depth
+        // slider - drawing it past the panel background. The even share already is the largest gap
+        // that fits, so clamping at zero is the only guard still needed: negative free would
+        // otherwise stack the blocks backwards.
+        val gap = (free / (blocks.size + 1)).coerceAtLeast(0f)
+        val lastRight = ROW_AREA_LEFT + totalWidth + gap * blocks.size
+        Timber.d("S1278: row blocks=%d gap=%.0f lastRight=%.0f limit=%.0f", blocks.size, gap, lastRight, ROW_AREA_RIGHT)
         var cursor = ROW_AREA_LEFT + gap
         for (block in blocks) {
             block.place(cursor)

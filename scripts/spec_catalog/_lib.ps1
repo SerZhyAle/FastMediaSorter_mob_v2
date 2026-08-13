@@ -8,6 +8,13 @@ $libDir = $PSScriptRoot
 if (-not $libDir) { $libDir = Split-Path -Parent $MyInvocation.MyCommand.Path }
 $repoRoot = (Resolve-Path (Join-Path $libDir '..\..')).Path
 $script:RepoRoot = $repoRoot
+
+# S1621: the research-section parser lives in its own leaf file so preview.ps1 can load it
+# WITHOUT this library. Re-exported from here unchanged, so every existing caller of
+# Get-SpecSectionLines / Get-OpenStatusPattern / Get-ResearchSectionHeadingPattern is
+# untouched by the move.
+. (Join-Path $libDir '_research-items.ps1')
+
 $script:CatalogPath = Join-Path $repoRoot 'PLAN\spec-catalog.jsonl'
 # Archived records live in a separate journal so the hot read path scans only
 # active tickets. See PLAN/S0454_spec-catalog-journal-compaction.md.
@@ -52,7 +59,10 @@ $script:StatusEnum = @(
     'Archived'
 )
 $script:IdPattern        = '^S\d{4}$'
-$script:FilePattern      = '^PLAN/S\d{4}_(?!spec_)'
+# S1620: an archived record's file lives in PLAN/archive/, so the pattern admits that one
+# optional segment. The `_spec_` ban and the Sxxxx_ prefix still apply in both locations -
+# archiving must not become a way to smuggle a non-conforming name into the journal.
+$script:FilePattern      = '^PLAN/(archive/)?S\d{4}_(?!spec_)'
 $script:PriorityMin      = 0
 $script:PriorityMax      = 100
 $script:PriorityDefault  = 50
@@ -603,6 +613,47 @@ function Resolve-SpecPath {
     if ([System.IO.Path]::IsPathRooted($p)) { return $p }
     return (Join-Path $script:RepoRoot $p)
 }
+
+function Assert-ClosingGates {
+    # Run every gate that guards a transition INTO a closed status, from the one place
+    # both status-change paths can reach.
+    #
+    # Why here and not in update.ps1: the canonical closure path is /spec-check, which
+    # runs close-and-log.ps1 -> close.ps1, and close.ps1 invoked no gate at all. A gate
+    # wired only into update.ps1 guards the path used less often - which is the state
+    # the S1606 durable-evidence gate was in until S1607 moved the call here.
+    #
+    # Archived is deliberately absent from the gated list: it closes a ticket that
+    # already passed these gates, and blocking cleanup would make tidying the catalog
+    # harder than leaving it untidy.
+    param(
+        [Parameter(Mandatory)][string] $Id,
+        [string] $OldStatus,
+        [Parameter(Mandatory)][string] $NewStatus
+    )
+    $gatedStatuses = @('Implemented', 'Verified')
+    if ($gatedStatuses -notcontains $NewStatus -or $OldStatus -eq $NewStatus) { return }
+
+    # S1606 - a closed spec must not cite evidence under disposable temp/.
+    # S1607 - a closed spec must not strand an open question nobody owns.
+    $checkers = @('check-evidence-durable.ps1', 'check-open-items-carried.ps1')
+    foreach ($name in $checkers) {
+        $checker = Join-Path $PSScriptRoot $name
+        # A missing checker is tolerated, matching how the owner-inputs gate call behaves:
+        # a partial checkout must not make the catalog unwritable.
+        if (-not (Test-Path -LiteralPath $checker)) { continue }
+        $output = & $checker -Id $Id 2>&1
+        # Exit 2 fails too: "could not look" is not "found nothing".
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host ""
+            Write-Host ("Closing gate blocked {0} -> {1} ({2}):" -f $Id, $NewStatus, $name) -ForegroundColor Yellow
+            $output | ForEach-Object { Write-Host $_ }
+            Write-Host ""
+            throw ("Cannot close '{0}': {1} reported exit {2}. Fix what it names, then re-run." -f $Id, $name, $LASTEXITCODE)
+        }
+    }
+}
+
 
 function Sync-SpecHeaderStatus {
     # Mirror a status change (and optional human note) into the FIRST

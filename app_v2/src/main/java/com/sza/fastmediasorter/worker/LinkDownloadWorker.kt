@@ -410,7 +410,6 @@ class LinkDownloadWorker @AssistedInject constructor(
         // foreground notification posted to a missing channel with
         // CannotPostForegroundServiceNotificationException. ensureChannel is idempotent.
         ensureChannel(context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-        Timber.d("S1399: link-download foreground notification built with the branded status-bar icon")
         val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentTitle(context.getString(R.string.link_download_notif_title_downloading))

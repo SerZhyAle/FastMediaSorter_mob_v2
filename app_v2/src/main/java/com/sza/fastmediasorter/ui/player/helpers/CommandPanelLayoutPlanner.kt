@@ -299,7 +299,6 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
                     MediaType.PDF -> R.string.pdf_edit_title
                     else -> R.string.menu_edit_adjust
                 }
-                Timber.d("S1365: edit label resolved for type=$type -> res=$titleRes")
                 return titleRes
             }
         }

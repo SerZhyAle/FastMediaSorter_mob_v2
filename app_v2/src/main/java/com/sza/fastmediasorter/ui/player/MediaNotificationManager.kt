@@ -68,7 +68,6 @@ object MediaNotificationManager {
             .build()
 
         provider.setSmallIcon(NotificationIcons.STATUS_BAR)
-        Timber.d("S1399: Media3 playback notification provider configured with the branded status-bar icon")
 
         return provider
     }

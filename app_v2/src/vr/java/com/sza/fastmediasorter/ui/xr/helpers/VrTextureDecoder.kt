@@ -59,7 +59,6 @@ class VrTextureDecoder(private val context: Context) {
         return try {
             val bytes = ByteArray(buf.remaining())
             buf.get(bytes)
-            Timber.d("S0960: RGBA copy ok, ${bytes.size} bytes (${bitmap.width}x${bitmap.height})")
             bytes
         } catch (oom: OutOfMemoryError) {
             Timber.e(oom, "copyBitmapToRgbaBytes: heap cannot fit $size bytes; degrading gracefully")
@@ -106,7 +105,6 @@ class VrTextureDecoder(private val context: Context) {
         val sample = pickSampleSizeForBudget(BUNDLED_WIDTH, BUNDLED_HEIGHT)
         val sampledW = BUNDLED_WIDTH / sample
         val sampledH = BUNDLED_HEIGHT / sample
-        Timber.d("S0960: bundled decode preflight sample=$sample -> ${sampledW}x${sampledH}")
         val pool = Glide.get(context).bitmapPool
         val reusable = pool.getDirty(sampledW, sampledH, Bitmap.Config.ARGB_8888)
         val opts = BitmapFactory.Options().apply {
@@ -204,7 +202,6 @@ class VrTextureDecoder(private val context: Context) {
      */
     private fun retryWithoutPool(file: File, opts: BitmapFactory.Options): Bitmap? {
         if (opts.inBitmap == null) return null
-        Timber.d("S1221: pool reuse rejected for ${file.name}; retrying without inBitmap")
         Timber.w("decodeFilePooled: ${file.name} pooled decode returned null; retry without pool reuse")
         opts.inBitmap = null
         return try {

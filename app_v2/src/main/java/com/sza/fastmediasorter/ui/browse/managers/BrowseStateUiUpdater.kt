@@ -90,7 +90,6 @@ class BrowseStateUiUpdater(
             // S1272: Browse spells the active filter out under the toolbar, the way Main already does.
             // The badge stays alongside it - a count at a glance, the detail underneath.
             val summary = describeFilter(filter)
-            Timber.d("S1272: filter strip parts=${summary.length} count=${filter.activeFilterCount()}")
             binding.tvFilterWarning.text = activity.getString(R.string.filters_active, summary)
             binding.tvFilterWarning.isVisible = summary.isNotEmpty()
             binding.btnFilter.setBadgeText(filter.activeFilterCount().toString())
@@ -145,7 +144,6 @@ class BrowseStateUiUpdater(
         // S1019: write affordance from the shared policy resolver so it matches the player and the
         // operation-layer guards; clearing "read-only" now enables move/rename/delete for network resources.
         val canWrite = resource?.allowsWriteOperations() ?: false
-        Timber.d("S1019: write-gate type=${resource?.type} readOnly=${resource?.isReadOnly} canWrite=$canWrite")
 
         binding.layoutOperations.isVisible = hasSelection || state.lastOperation != null
         // Re-settle the nav-bar insets now that the bottom bar visibility is decided: which strip

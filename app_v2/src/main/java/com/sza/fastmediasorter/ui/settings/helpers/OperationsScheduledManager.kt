@@ -146,11 +146,6 @@ class OperationsScheduledManager(
 
     /** Applies the master scheduled toggle + dependent visibility from the latest settings. */
     fun render(settings: AppSettings) {
-        Timber.d(
-            "S1397: scheduled container visible=%b animating=%b",
-            settings.enableScheduledOperations,
-            binding.rvScheduledOps.isAnimating,
-        )
         binding.rowEnableScheduledOps.setCheckedSilently(settings.enableScheduledOperations)
         binding.containerScheduledContent.isVisible = settings.enableScheduledOperations
         binding.layoutScheduledActions.isVisible = settings.enableScheduledOperations
@@ -344,7 +339,6 @@ class OperationsScheduledManager(
      * before it, and the user can decline without leaving the settings screen at all.
      */
     private fun explainThenOpenBatteryOptimizationScreen() {
-        Timber.d("S1436: battery optimization explained before the system screen")
         MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.perm_title_battery_optimization)
             .setMessage(

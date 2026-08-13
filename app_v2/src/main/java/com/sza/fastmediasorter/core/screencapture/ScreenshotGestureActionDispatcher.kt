@@ -204,7 +204,6 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
      * to [launchApp] so the gesture keeps doing something visible instead of silently failing.
      */
     private fun launchSelectedApp(context: Context, packageName: String) {
-        Timber.d("S1036: gesture OPEN_APP fired, stored package='%s'", packageName)
         if (packageName.isBlank()) {
             launchApp(context)
             return

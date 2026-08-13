@@ -69,6 +69,7 @@ Verification mechanics:
 | Flavor gating | `Grep` for `BuildConfig.<FLAG>` if §3.2 names a flag |
 | Step status consistency | Parse `[x] done` in phase file; cross-check Verification predicates |
 | Phase status consistency | INDEX row status == phase `Status:` header |
+| Open item carried | `pwsh -NoProfile -File scripts/spec_catalog/check-open-items-carried.ps1 -Id <Sxxxx>` - PASS iff exit 0. Every research-section item must be `Resolved` or carry a literal `Carrier: Sxxxx`. FAIL blocks the `Verified` flip anyway: `close.ps1` runs the same gate (S1607) |
 | Debug-tag invariant | Current journal status `BlockNeedUserTest`: `Grep` for `Timber.d("<Sxxxx>:` across `.kt` - PASS iff ≥1 hit, FAIL if none (spec lost its device-test probe). Any other status: PASS iff zero hits - surviving tags stale (WARN, list them; verdict flip in step 6 deletes them). |
 
 **4 - Score.**

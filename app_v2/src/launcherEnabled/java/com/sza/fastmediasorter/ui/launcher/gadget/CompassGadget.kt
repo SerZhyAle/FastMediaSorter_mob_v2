@@ -66,7 +66,6 @@ private class CompassGadgetView(
      */
     override suspend fun CoroutineScope.onActive() {
         val granted = hasLocationPermission()
-        Timber.d("S1179: compass tile active, locationGranted=%b", granted)
         val altitudes: Flow<Double?> = if (granted) {
             observeMotion().map { it.altitudeMeters }.onStart { emit(null) }
         } else {

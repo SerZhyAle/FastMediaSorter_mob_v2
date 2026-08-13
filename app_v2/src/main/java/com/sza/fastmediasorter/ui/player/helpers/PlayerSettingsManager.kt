@@ -112,7 +112,6 @@ class PlayerSettingsManager(
             it.removeSuffix("x").toFloatOrNull() == currentSpeed 
         }.coerceAtLeast(3) // Default to 1.0x if not found
         
-        Timber.d("S1456: player playback-speed dialog bound to host")
         AlertDialog.Builder(activity)
             .setTitle(activity.getString(R.string.playback_speed))
             .setSingleChoiceItems(speeds, currentIndex) { dialog, which ->

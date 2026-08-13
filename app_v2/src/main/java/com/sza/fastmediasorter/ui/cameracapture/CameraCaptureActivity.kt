@@ -418,7 +418,6 @@ class CameraCaptureActivity :
      */
     private fun renderProfileButton() {
         val offered = flowManager.availableProfiles().size > 1 && !flowManager.isVideoMode
-        Timber.d("S1262: button offered=%b available=%s", offered, flowManager.availableProfiles())
         binding.btnCameraProfile.visibility = if (offered) View.VISIBLE else View.GONE
         val profile = flowManager.activeProfile
         val manual = CameraProfilePresentation.isManual(
@@ -426,7 +425,6 @@ class CameraCaptureActivity :
             sessionManager.currentExposureCompensationIndex,
             sessionManager.currentWhiteBalanceMode,
         )
-        Timber.d("S1418: profile=%s manual=%b offered=%b", profile, manual, offered)
         if (offered) {
             val description = getString(
                 R.string.camera_profile_button,
@@ -449,15 +447,6 @@ class CameraCaptureActivity :
     /** S1262: the anchored profile menu - one checkable row per profile the bound lens can honour. */
     private fun showProfileMenu() {
         val profiles = flowManager.availableProfiles()
-        val caps = flowManager.currentCapabilities
-        Timber.d(
-            "S1417: menu=%s manualSensor=%b iso=%s shutter=%s lensFacing=%d",
-            profiles,
-            caps.supportsManualSensor,
-            caps.isoRange,
-            caps.shutterRangeNs,
-            caps.activeLensFacing,
-        )
         val popup = PopupMenu(this, binding.btnCameraProfile)
         profiles.forEachIndexed { index, profile ->
             popup.menu.add(PROFILE_MENU_GROUP, index, index, CameraProfilePresentation.labelRes(profile))
@@ -475,7 +464,6 @@ class CameraCaptureActivity :
     }
 
     private fun applyProfile(profile: PhotoProfile) {
-        Timber.d("S1262: picked=%s active=%s", profile, flowManager.activeProfile)
         flowManager.onProfileSelected(profile)
         // The sport recipe trades light for a frozen frame; say so once, not on every re-pick.
         if (flowManager.activeProfile == PhotoProfile.SPORT && !sportNoticeShown) {

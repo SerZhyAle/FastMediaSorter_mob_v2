@@ -91,7 +91,6 @@ private class AudioNowPlayingGadgetView(
      * be asked for a powerful permission by the system, with the reason nowhere in sight.
      */
     private fun showAccessDisclosure() {
-        Timber.d("S0429: notification-access disclosure opened from the Now Playing gadget")
         MaterialAlertDialogBuilder(context)
             .setTitle(R.string.launcher_now_playing_access_title)
             .setMessage(R.string.launcher_now_playing_access_message)
@@ -140,7 +139,6 @@ private class AudioNowPlayingGadgetView(
         if (accessGranted) {
             val foreign = activeSession.read()
             if (foreign.active) {
-                Timber.d("S0429: now-playing resolved to a foreign media session")
                 return activeSession to foreign
             }
         }

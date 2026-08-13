@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.core.launcher.LauncherStarterSets.StarterResource
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.data.model.DeviceProfileType
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import org.junit.Assert.assertEquals
@@ -326,6 +327,43 @@ class LauncherStarterSetsTest {
     }
 
     @Test
+    fun `imported shortcuts stay overlap-free at every supported column count`() {
+        val imported = importedPins()
+        assertTrue(imported.all { it.target.startsWith(LauncherCellCommand.PREFIX_PIN) })
+        val items = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1, allAudioId = 2, allImagesId = 3),
+            allPaddingAvailable,
+            emptySet(),
+            importedShortcuts = imported,
+        )
+        columnCounts.forEach { columns ->
+            val placed = LauncherStarterSets.place(items, columns)
+            assertNoOverlap(placed)
+            placed.forEach { assertTrue("cell past right edge at $columns", it.colIndex + it.spanW <= columns) }
+        }
+    }
+
+    @Test
+    fun `imported shortcuts sit in the content section, never the app-functions section`() {
+        val imported = importedPins()
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1),
+            allPaddingAvailable,
+            emptySet(),
+            importedShortcuts = imported,
+        ).map { it.target }
+        val contentHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_EVERYTHING_ELSE))
+        val actionsHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_APP_FUNCTIONS))
+        imported.forEach { item ->
+            val index = targets.indexOf(item.target)
+            assertTrue("imported target absent: ${item.target}", index > contentHeaderIndex)
+            assertTrue("imported target under the app-functions header: ${item.target}", index < actionsHeaderIndex)
+        }
+    }
+
+    @Test
     fun `a header persists the widest span while the packed one fits the grid it is seeded on`() {
         val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
         val placed = LauncherStarterSets.place(items, columns = 4)
@@ -454,6 +492,17 @@ class LauncherStarterSetsTest {
         )
         addAll(commonTail)
     }
+
+    /** S1613: pinned-shortcut items shaped exactly as the seed encodes what the platform hands back. */
+    private fun importedPins(): List<LauncherStarterSets.StarterItem> =
+        listOf("alpha", "beta", "gamma").map { shortcutId ->
+            LauncherStarterSets.StarterItem(
+                kind = LauncherCellKind.SHORTCUT,
+                target = LauncherCellCommand.PinnedShortcut("com.example.publisher", shortcutId, shortcutId).encode(),
+            )
+        }
+
+    private fun sectionTarget(sectionKey: String): String = LauncherCellCommand.Section(sectionKey).encode()
 
     private fun assertNoOverlap(placed: List<LauncherStarterSets.PlacedStarterItem>) {
         val occupied = mutableSetOf<Pair<Int, Int>>()

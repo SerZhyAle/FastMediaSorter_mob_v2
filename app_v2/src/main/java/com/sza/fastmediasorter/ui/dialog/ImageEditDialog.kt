@@ -54,7 +54,6 @@ class ImageEditDialog(
         val screenWidth = context.resources.displayMetrics.widthPixels
         val dialogWidth = (screenWidth * WIDTH_FRACTION_OF_SCREEN).toInt()
         window?.setLayout(dialogWidth, ViewGroup.LayoutParams.WRAP_CONTENT)
-        Timber.d("S1366: ImageEditDialog width=${dialogWidth}px of screen ${screenWidth}px")
 
         setupUI()
     }

@@ -7,6 +7,15 @@ appId: com.sza.fastmediasorter.debug
 #               must be present on the device at:
 #               /sdcard/TestMedia/3D-SBS-Test.mkv
 # Setup: run scripts/utils/setup_test_media.ps1 before this test.
+#
+# BLOCKED BY S1618 - DO NOT TRUST A GREEN RESULT FROM THIS FLOW.
+# The "Playback Settings" dialog this flow drives is unreachable from the player UI:
+# PlayerSettingsManager.showPlayerSettingsDialog() has no call site, and
+# custom_player_controls.xml carries no settings or fullscreen button. The steps below that
+# open the dialog use regex selectors with optional: true, so they silently never fire -
+# this flow could never have passed. It is exempted from assert-maestro-oracle.ps1 until
+# S1618 decides whether the entry point is restored or the feature path is removed.
+# Rewrite the dialog steps against real ids as part of closing S1618; do not patch blindly.
 
 # Launch app
 - launchApp
@@ -107,9 +116,9 @@ appId: com.sza.fastmediasorter.debug
     text: "has stopped"
 - assertNotVisible:
     text: "Unfortunately"
+# Proof assertion, so it is not optional: an optional error guard passes either way.
 - assertNotVisible:
     text: "Error"
-    optional: true
 
 # --- Switch back to Auto mode ---
 

@@ -76,7 +76,6 @@ class CompanionQrScanActivity : AppCompatActivity() {
     }
 
     private fun denyAndFinish() {
-        Timber.d("S1436: QR pairing camera denial explained from the registry")
         val message = permissionRationaleShort(Manifest.permission.CAMERA, PermissionTask.QR_PAIRING)
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         setResult(RESULT_CANCELED)

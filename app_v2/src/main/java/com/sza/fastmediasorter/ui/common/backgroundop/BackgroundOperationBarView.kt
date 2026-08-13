@@ -42,7 +42,6 @@ class BackgroundOperationBarView @JvmOverloads constructor(
     }
 
     fun render(state: BackgroundOperationBarState) {
-        Timber.d("S1398: bar render %s", state)
         when (state) {
             BackgroundOperationBarState.Hidden -> isVisible = false
 

@@ -77,7 +77,6 @@ class OperationsDestinationsManager(
         ) { _, bundle ->
             val subjectId = bundle.getString(ColorPickerDialog.RESULT_SUBJECT_ID).orEmpty()
             val color = bundle.getInt(ColorPickerDialog.RESULT_COLOR)
-            Timber.d("S1331: color result received subject=%s", subjectId)
             // Resolved from the StateFlow rather than currentDestinations: after a recreation the
             // result can arrive before the collector has replayed its first value.
             val resource = viewModel.destinations.value.firstOrNull { it.id.toString() == subjectId }

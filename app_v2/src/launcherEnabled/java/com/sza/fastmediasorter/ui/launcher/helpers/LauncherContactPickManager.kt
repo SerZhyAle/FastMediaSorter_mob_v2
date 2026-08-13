@@ -82,11 +82,9 @@ class LauncherContactPickManager(
      * refusal simply leaves it working from the snapshot, which is what it has always done.
      */
     fun start(action: LauncherContactAction) {
-        Timber.d("S0428: contact cell flow started action=%s", action.name)
         val granted = ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_CONTACTS) ==
             PackageManager.PERMISSION_GRANTED
         val askable = activity.canRequestPermission(Manifest.permission.READ_CONTACTS)
-        Timber.d("S1206: pin flow contacts granted=%s askable=%s", granted, askable)
         if (askable) {
             explainThenAsk(action)
         } else {
@@ -153,7 +151,6 @@ class LauncherContactPickManager(
         manager.setFragmentResultListener(KEY_NUMBER, activity) { _, bundle ->
             bundle.getString(LauncherPhoneNumberDialogFragment.RESULT_NUMBER)?.let { number ->
                 // Length only - the number itself is user data and never reaches the log.
-                Timber.d("S0428: manual number pinned action=%s digits=%d", action.name, number.length)
                 onTargetPicked(
                     LauncherContactTarget(
                         action = action,
@@ -198,7 +195,6 @@ class LauncherContactPickManager(
             val result = resolvePick(action, picked)
             // Outcome kind only - never the person. For MESSAGE it doubles as the grant-reach signal:
             // anything but Unavailable means the read into the contact's own rows went through.
-            Timber.d("S1176: pick action=%s outcome=%s", action.name, result.javaClass.simpleName)
             when (val outcome = result) {
                 is PickContactShortcutUseCase.Outcome.Ready -> onTargetPicked(outcome.target)
                 is PickContactShortcutUseCase.Outcome.ChooseChannel -> chooseChannel(outcome.channels)
@@ -231,7 +227,6 @@ class LauncherContactPickManager(
         // Ahead of the duplicate-open guard on purpose: a picker still up from a rebind has to find a
         // live listener too, and its pick arrives through the FragmentManager, not the dialog instance.
         manager.setFragmentResultListener(requestKey, activity) { _, bundle ->
-            Timber.d("S1331: contact picker result key=%s", requestKey)
             bundle.getString(SearchableOptionPickerDialog.RESULT_OPTION_ID)?.let(handlePick)
         }
         // A dialog left up on a rebind must not be duplicated by a second tap - same guard the rest of

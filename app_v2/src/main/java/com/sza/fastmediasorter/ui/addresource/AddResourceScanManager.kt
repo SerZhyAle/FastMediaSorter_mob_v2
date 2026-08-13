@@ -170,7 +170,6 @@ internal class AddResourceScanManager(
         val header = dialogView.findViewById<CollapsibleSectionHeader>(R.id.headerRemovableVolumes) ?: return
         val container = dialogView.findViewById<android.widget.LinearLayout>(R.id.containerRemovableVolumes) ?: return
         activity.lifecycleScope.launch {
-            Timber.d("S1378: building the removable-media section")
             val volumes = viewModel.getRemovableVolumes()
             if (volumes.isEmpty()) return@launch
             volumes.forEach { container.addView(removableVolumeButton(it, dialog, useSafOnly)) }

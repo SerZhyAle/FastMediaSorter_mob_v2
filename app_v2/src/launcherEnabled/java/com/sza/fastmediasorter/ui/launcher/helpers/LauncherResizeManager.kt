@@ -109,7 +109,6 @@ class LauncherResizeManager(
         if (candW != baseW || candH != baseH) {
             viewModel.resizeCell(activeCellId, candW, candH)
         } else if (!canceled && isTap(event)) {
-            Timber.d("S1404: resize handle tapped, showing the drag hint")
             Snackbar.make(container, R.string.launcher_edit_resize_hint_drag, Snackbar.LENGTH_SHORT).show()
         }
         return true

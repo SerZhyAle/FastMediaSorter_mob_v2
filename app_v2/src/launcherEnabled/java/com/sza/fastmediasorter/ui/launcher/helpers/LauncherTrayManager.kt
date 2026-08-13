@@ -124,7 +124,6 @@ class LauncherTrayManager(
      */
     fun bind(replaceSystemStatusArea: Flow<Boolean>, trayComposition: Flow<LauncherTrayComposition>) {
         lifecycleOwner.collectOnLifecycle(replaceSystemStatusArea) {
-            Timber.d("S1087: tray status content visible=%s", it)
             statusContentVisible = it
             apply()
         }
@@ -153,7 +152,6 @@ class LauncherTrayManager(
     private fun apply() {
         val battery = statusContentVisible && composition.battery
         val network = statusContentVisible && composition.network
-        Timber.d("S1415: tray composition applied visible=%s composition=%s", statusContentVisible, composition)
         clock.root.isVisible = statusContentVisible && composition.clock
         indicators.trayNetwork.isVisible = network
         indicators.trayBatteryLevel.isVisible = battery
@@ -181,7 +179,6 @@ class LauncherTrayManager(
      * as off.
      */
     private fun renderBluetooth(enabled: Boolean?) {
-        Timber.d("S1415: bluetooth state=%s", enabled)
         if (enabled != true) {
             indicators.trayBluetooth.isVisible = false
             return
@@ -204,7 +201,6 @@ class LauncherTrayManager(
             return
         }
         if (!simSignalMonitor.hasPermission() && !phoneStatePermissionRequested) {
-            Timber.d("S1415: requesting READ_PHONE_STATE for the SIM indicators")
             phoneStatePermissionRequested = true
             onRequestPhoneStatePermission()
         }
@@ -213,7 +209,6 @@ class LauncherTrayManager(
     }
 
     private fun renderSim(levels: Map<Int, Int>) {
-        Timber.d("S1415: sim levels=%s", levels)
         renderSimSlot(indicators.traySim1, SIM1_SLOT, composition.sim1, levels)
         renderSimSlot(indicators.traySim2, SIM2_SLOT, composition.sim2, levels)
     }
@@ -342,7 +337,6 @@ class LauncherTrayManager(
      * blink below [BATTERY_BLINK_PERCENT] repeats what red already said rather than being the only signal.
      */
     private fun applyBatteryLevelStyle(percent: Int) {
-        Timber.d("S1415: battery level rendered percent=%d", percent)
         val color = when {
             percent < BATTERY_CRITICAL_PERCENT -> ContextCompat.getColor(context, R.color.error_color)
             percent < BATTERY_WARNING_PERCENT -> ContextCompat.getColor(context, R.color.warning_color)

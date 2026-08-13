@@ -62,7 +62,6 @@ class StandaloneVrCinemaLaunchManager @Inject constructor(
      */
     fun launch(file: MediaFile) {
         val owner = context as? LifecycleOwner ?: return
-        Timber.d("S1114: standalone VR launch from controls row")
         owner.lifecycleScope.launch {
             val request = StartVrPlaybackRequest(
                 launchMode = VrLaunchMode.FILE_URI,

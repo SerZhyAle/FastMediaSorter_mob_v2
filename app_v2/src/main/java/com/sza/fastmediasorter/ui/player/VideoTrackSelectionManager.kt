@@ -91,7 +91,6 @@ class VideoTrackSelectionManager(
         }
 
         player.trackSelectionParameters = paramsBuilder.build()
-        Timber.d("S1144: applied audio=$preferredAudioLang channelPref=${preference != null}")
     }
 
     fun applySubtitleStyle(fontSize: TranslationFontSize, fontFamily: TranslationFontFamily) {

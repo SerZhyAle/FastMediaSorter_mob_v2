@@ -57,7 +57,6 @@ object WelcomeFeatureCards {
                 )
             )
         }
-        Timber.d("S1386: welcome role showcase built, cards=${cards.size}")
         return cards
     }
 

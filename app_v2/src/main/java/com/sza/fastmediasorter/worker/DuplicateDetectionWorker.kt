@@ -119,7 +119,6 @@ class DuplicateDetectionWorker @AssistedInject constructor(
     }
 
     private fun buildNotification(): Notification {
-        Timber.d("S1399: duplicate-detection notification built with the branded status-bar icon")
         return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(context.getString(R.string.duplicate_scan_notif_title))
             .setContentText(context.getString(R.string.duplicate_scan_notif_running))

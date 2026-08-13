@@ -83,6 +83,15 @@ foreach ($ticketId in $Id) {
     try { Assert-Record -Record $updated }
     catch { $errors.Add("$ticketId : $($_.Exception.Message)") }
 
+    # This script writes the journal itself rather than delegating to update.ps1, so the
+    # closing gates have to be invoked here too - otherwise a batch is a way to close a
+    # ticket around them. Collected as an error rather than thrown, matching the batch
+    # contract: every ticket is judged, then the whole batch aborts if any failed.
+    if ($PSBoundParameters.ContainsKey('Status')) {
+        try { Assert-ClosingGates -Id $ticketId -OldStatus $oldStatus -NewStatus $updated.status }
+        catch { $errors.Add("$ticketId : $($_.Exception.Message)") }
+    }
+
     $allRecords[$idx] = $updated
     $results.Add(("{0} {1} -> {2} (priority: {3})" -f $ticketId, $oldStatus, $updated.status, $updated.priority))
 }

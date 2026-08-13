@@ -99,7 +99,6 @@ class MainLayoutChromeManager(
                 binding.btnStartPlayer.visibility = View.GONE
             }
             val freeWidth = if (overflow) 0 else available - needed
-            Timber.d("S1443: control bar measured available=$available needed=$needed free=$freeWidth")
             onControlBarFreeWidth(freeWidth)
             // S1258: the probe measure() above overwrites each child's measured size with its
             // preferred one. TextView centers TEXT against getMeasuredHeight() while

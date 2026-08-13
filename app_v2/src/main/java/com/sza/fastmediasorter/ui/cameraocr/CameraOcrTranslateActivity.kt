@@ -15,8 +15,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityCameraOcrTranslateBinding
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrFlowManager
+import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrFlowManagerFactory
 import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrStorageManager
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
@@ -29,7 +29,6 @@ import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Locale
@@ -46,7 +45,7 @@ class CameraOcrTranslateActivity :
     CameraOcrFlowManager.Callback {
 
     @Inject
-    lateinit var settingsRepository: SettingsRepository
+    lateinit var flowManagerFactory: CameraOcrFlowManagerFactory
 
     private lateinit var flowManager: CameraOcrFlowManager
     private var calculatorEnabled = false
@@ -75,40 +74,36 @@ class CameraOcrTranslateActivity :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val translationManager = TranslationManager(
-            context = this,
-            settingsRepository = settingsRepository,
-            callback = object : TranslationManager.TranslationCallback {
-                override fun showError(message: String) {
-                    runOnUiThread {
-                        Toast.makeText(this@CameraOcrTranslateActivity, message, Toast.LENGTH_LONG).show()
-                    }
-                }
-
-                override fun showModelDownloadPrompt(
-                    languageName: String,
-                    onConfirm: () -> Unit,
-                    onCancel: () -> Unit
-                ) {
-                    runOnUiThread {
-                        MaterialAlertDialogBuilder(this@CameraOcrTranslateActivity)
-                            .setTitle(R.string.download_translation_model_title)
-                            .setMessage(getString(R.string.download_translation_model_message, languageName))
-                            .setPositiveButton(R.string.download) { _, _ -> onConfirm() }
-                            .setNegativeButton(R.string.cancel) { _, _ -> onCancel() }
-                            .setOnCancelListener { onCancel() }
-                            .showBoundToHost(this@CameraOcrTranslateActivity)
-                    }
+        val translationCallback = object : TranslationManager.TranslationCallback {
+            override fun showError(message: String) {
+                runOnUiThread {
+                    Toast.makeText(this@CameraOcrTranslateActivity, message, Toast.LENGTH_LONG).show()
                 }
             }
-        )
 
-        flowManager = CameraOcrFlowManager(
+            override fun showModelDownloadPrompt(
+                languageName: String,
+                onConfirm: () -> Unit,
+                onCancel: () -> Unit
+            ) {
+                runOnUiThread {
+                    MaterialAlertDialogBuilder(this@CameraOcrTranslateActivity)
+                        .setTitle(R.string.download_translation_model_title)
+                        .setMessage(getString(R.string.download_translation_model_message, languageName))
+                        .setPositiveButton(R.string.download) { _, _ -> onConfirm() }
+                        .setNegativeButton(R.string.cancel) { _, _ -> onCancel() }
+                        .setOnCancelListener { onCancel() }
+                        .showBoundToHost(this@CameraOcrTranslateActivity)
+                }
+            }
+        }
+
+        flowManager = flowManagerFactory.create(
+            context = this,
             scope = lifecycleScope,
-            settingsRepository = settingsRepository,
             storageManager = CameraOcrStorageManager(applicationContext),
-            translationManager = translationManager,
-            callback = this
+            translationCallback = translationCallback,
+            callback = this,
         )
 
         // Automatically start on first creation: from an existing image (S1042 - e.g. a screenshot
@@ -163,7 +158,7 @@ class CameraOcrTranslateActivity :
     }
 
     override fun observeData() {
-        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+        collectOnLifecycle(appSettings) { settings ->
             calculatorEnabled = settings.enableCalculator
             cropInterfaceLang = settings.language
             flowManager.setOcrOnlyActive(!settings.enableTranslation || settings.cameraOcrOnly)
@@ -293,7 +288,7 @@ class CameraOcrTranslateActivity :
 
     private fun showCompactSettingsDialog() {
         lifecycleScope.launch {
-            val settings = settingsRepository.getSettings().first()
+            val settings = flowManagerFactory.currentSettings()
 
             val view = LayoutInflater.from(this@CameraOcrTranslateActivity)
                 .inflate(R.layout.dialog_camera_ocr_settings, null)
@@ -392,7 +387,6 @@ class CameraOcrTranslateActivity :
 
     private fun listenForLanguagePick(requestKey: String, onPicked: (String) -> Unit) {
         supportFragmentManager.setFragmentResultListener(requestKey, this) { _, bundle ->
-            Timber.d("S1214: camera-ocr language result key=$requestKey")
             bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)?.let(onPicked)
         }
     }

@@ -725,6 +725,22 @@ switch ($Action) {
             }
             else { Save-File $target $newContent; Write-Host "[$($loc.Tag)] added to $File" -ForegroundColor Green }
         }
+        # S1627: name the locales this call left empty. The silence was the gap - the parameter for
+        # them already existed, so a key reached the release in three languages without anything
+        # saying so. This is a hint, not an obligation: the refusal lives at the pre-release stage,
+        # where one bulk round trip covers every key of the release at once.
+        $missingOptional = @($optionalLocales | Where-Object { -not $_.Value })
+        if ($missingOptional.Count -gt 0) {
+            $missingCodes = @($missingOptional | ForEach-Object { $_.Code })
+            # Keys are quoted because a tag carrying a hyphen (zh-Hans) is not a bare hashtable key,
+            # and the call operator is shown because pwsh -File cannot pass a hashtable at all - it
+            # arrives as the literal string "System.Collections.Hashtable" and the call fails.
+            $fragment = '-Translations @{ ' + (($missingCodes | ForEach-Object { "'$_'='<text>'" }) -join '; ') + ' }'
+            Write-Host ''
+            Write-Host "Not supplied for $($missingOptional.Count) of $($declaredLocaleTags.Count) declared locales: $($missingCodes -join ', ')" -ForegroundColor Yellow
+            Write-Host 'The pre-release stage translates these in bulk (S1627). Fill them here only if the values are already known:' -ForegroundColor DarkGray
+            Write-Host "  & $($MyInvocation.MyCommand.Path) -Action add -Key $Key .. $fragment"
+        }
         if (-not $DryRun) {
             Write-Host ''
             Write-Host "Validate parity: scripts/check_strings_localized.ps1 -KeyPrefix `"$Key`"" -ForegroundColor Cyan

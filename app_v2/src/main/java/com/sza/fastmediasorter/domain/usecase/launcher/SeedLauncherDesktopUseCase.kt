@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.domain.usecase.launcher
 
 import android.content.Context
 import com.sza.fastmediasorter.core.launcher.LauncherStarterSets
+import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
@@ -38,6 +40,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
     private val routeAvailability: ResolvePanelRouteAvailabilityUseCase,
     private val provisionDefaultResources: ProvisionDefaultResourcesUseCase,
     private val resolveInstalledPackages: ResolveInstalledPackagesUseCase,
+    private val appShortcuts: AppShortcutDataSource,
     @ApplicationContext private val context: Context,
 ) {
 
@@ -71,17 +74,26 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             // Behind the already-seeded early-exit above, so a desktop that will not be seeded never pays
             // for the package-manager probe (strategic §3.2).
             val installedPackages = resolveInstalledPackages(LauncherStarterSets.candidatePackages)
+            // S1613: behind the same early exit, so a desktop that will not be seeded never pays for it.
+            val importedShortcuts = appShortcuts.allPinned().map { shortcut ->
+                LauncherStarterSets.StarterItem(
+                    kind = LauncherCellKind.SHORTCUT,
+                    target = LauncherCellCommand.PinnedShortcut(
+                        packageName = shortcut.packageName,
+                        shortcutId = shortcut.id,
+                        label = shortcut.label,
+                    ).encode(),
+                )
+            }
+
+            Timber.d("S1613: seeding desktop with %d imported shortcut(s)", importedShortcuts.size)
 
             val items = LauncherStarterSets.itemsFor(
                 profile,
                 starterResources,
                 routeAvailableInBuild,
                 installedPackages,
-            )
-            Timber.d(
-                "S1428: seeding %d starter items, %d of them section headers",
-                items.size,
-                items.count { it.kind == LauncherCellKind.SECTION },
+                importedShortcuts,
             )
             val ownPackage = context.packageName
             val now = System.currentTimeMillis()
@@ -119,10 +131,6 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 addedAt = now,
             )
         }
-        Timber.d(
-            "S1587: seeding $orientation at $columns columns, ${cells.size} cells, " +
-                "last row ${cells.maxOfOrNull { it.rowIndex + it.spanH } ?: 0}",
-        )
         desktop.seedIfEmpty(orientation, cells)
     }
 }

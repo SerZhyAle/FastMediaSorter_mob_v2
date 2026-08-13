@@ -51,7 +51,6 @@ class QuickAudioRecorderLaunchManager(
                 Manifest.permission.RECORD_AUDIO
             )
         ) {
-            Timber.d("S1436: recorder widget microphone denial explained from the registry")
             toast(activity.permissionRationaleShort(Manifest.permission.RECORD_AUDIO))
         } else {
             toast(activity.getString(R.string.quick_recorder_permission_settings))

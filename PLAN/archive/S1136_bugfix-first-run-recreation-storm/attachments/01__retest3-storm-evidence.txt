@@ -1,0 +1,43 @@
+S1107 RE-TEST #3 evidence - onResume SYNCHRONOUS fix (v2.60.7181.927, code 260718192)
+Device emulator-5554 (Pixel 4, Android 17 emulator), standard-debug. Default launcher = nexuslauncher (failing precondition).
+Run window log: temp/S1107/run_20260718_1927.log (7126 lines). Onboarding: opt-in "use as home" ON -> 6-page walk -> Finish @ 19:32:24.
+
+=== DECISIVE TIMELINE (all 19:32) - ONBOARDING PATH ===
+30.074  D/BaseActivity  onCreate: SettingsActivity                         <- first-run Settings, instance #1
+30.214  I/ActivityTaskManager  Displayed ...SettingsActivity +185ms         <- instance #1 shown/resumed
+30.663  D/GeneralSettingsLauncherHelper  S1107: onboarding opt-in -> auto-request HOME role from Settings
+                                                                            <- (a) TAG FIRES from onboarding (D-level). NEW vs attempt 2.
+30.672  I/ActivityTaskManager  START ... REQUEST_ROLE ... RequestRoleActivity ... from uid 10233 (com.sza.fastmediasorter.debug) result code=0
+                                                                            <- enableMode() launched RequestRoleActivity from instance #1
+30.758  D/LeakCanary  Watching ...SettingsActivity received onDestroy       <- instance #1 DESTROYED by storm, 86ms after launch
+30.764  D/BaseActivity  onDestroy: SettingsActivity                          <- instance #1 gone
+30.790  D/BaseActivity  onCreate: SettingsActivity                          <- instance #2 (storm)
+30.849  W/RequestRoleActivity  Package name cannot be null or empty: null   <- (c) NULL PACKAGE recurs, caller already destroyed
+30.850  I/RequestRoleFragment  Role request result requestingUid=-1 requestingPackageName=null roleName=android.app.role.HOME qualifyingCount=-1 result=1
+                                                                            <- (b) DIALOG DOES NOT PRESENT; result=1 (canceled)
+31.227  D/BaseActivity  onCreate: SettingsActivity                          <- instance #3 (storm, survives)
+31.320  I/ActivityTaskManager  Displayed ...SettingsActivity +713ms         <- instance #3 settled
+31.851  D/BaseActivity  onDestroy: SettingsActivity                          <- instance #2 gone
+
+Storm magnitude in window: onCreate: SettingsActivity x3, onDestroy: SettingsActivity x2 (instance #3 is the surviving resumed top).
+
+=== POST-STATE ===
+topResumedActivity = com.sza.fastmediasorter.ui.settings.SettingsActivity t136 (stable, settled)
+HOME role holder    = com.google.android.apps.nexuslauncher  (app does NOT hold; request bailed)
+LauncherHomeActivity = ENABLED in enabledComponents -> markAsHomeCandidate() ran -> completeWelcomeFlow() took requestLauncherRole=true branch and built openLauncherSectionIntent(requestRole=true). Deep-link extra was genuinely set, not a test artifact.
+
+=== ROOT CAUSE (high confidence) - attempt-3 hypothesis DISPROVEN ===
+The null-package is NOT a consumption-timing problem (onViewCreated vs onResume vs view.post). It is a CALLER-LIFETIME RACE:
+- The synchronous onResume consumption now runs (tag fires) on instance #1, which IS resumed at launch time - so attempt 3 fixed attempt 2's "handler never fires".
+- But instance #1 is destroyed by the first-run recreation storm at 30.758, only 86ms after it launched RequestRoleActivity.
+- RequestRoleActivity resolves its caller (requestingPackageName) asynchronously at 30.849 - 91ms AFTER the caller was destroyed. The caller ActivityRecord is gone -> requestingPackageName=null -> bail (result=1). Identical failure to attempt 1.
+- Direct-launch isolation works only because there is no storm: the caller survives long enough for RequestRoleActivity to resolve it.
+
+Being resumed at launch time is INSUFFICIENT: the request must be launched from an instance that SURVIVES the storm, or the storm must be eliminated/deferred.
+
+Fix directions (follow-up, not applied here):
+1. Defer enableMode until the storm settles - fire from the FINAL settled instance (e.g. debounce > ~1.3s storm, or gate on a "first-run settled" signal), and re-arm the extra across instances instead of consume-once on the first (doomed) instance.
+2. Own the role request at a non-recreating host (MainActivity launched after Settings), so the caller outlives RequestRoleActivity's resolution.
+3. Eliminate the first-run SettingsActivity recreation storm at source (first-run locale/theme re-application recreating SettingsActivity x3) - apply locale/theme before SettingsActivity starts.
+
+No app crash/exception in the run window.

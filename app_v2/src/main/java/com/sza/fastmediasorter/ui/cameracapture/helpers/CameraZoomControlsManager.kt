@@ -12,7 +12,6 @@ import com.google.android.material.slider.Slider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
-import timber.log.Timber
 import java.util.Locale
 import kotlin.math.abs
 
@@ -39,13 +38,6 @@ class CameraZoomControlsManager(
         // S1189: the lens's own optical limits, at the same precision the presets are rounded to.
         val nativeMin = CameraRuntimeCapabilities.roundToStep(capabilities.minZoomRatio)
         val nativeMax = CameraRuntimeCapabilities.roundToStep(capabilities.maxZoomRatio)
-        Timber.d("S1189: presets=%s native=%.1f..%.1f", capabilities.zoomPresets, nativeMin, nativeMax)
-        Timber.d(
-            "S1260: display labels=%s",
-            capabilities.zoomPresets.map {
-                CameraRuntimeCapabilities.roundEquivalentForDisplay(it * capabilities.zoomMultiplier)
-            },
-        )
         if (capabilities.showsCrossLensFloor) {
             // S1261: the device's widest equivalent leads the row even though the bound lens cannot
             // reach it - its tap switches optics. Amber: it IS a native minimum, just of another lens.

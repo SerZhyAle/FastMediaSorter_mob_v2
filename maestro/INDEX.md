@@ -16,7 +16,9 @@ Status: active S0551 capability-regression suite.
 - `features/browse/` - All Images, filter, sort + empty state.
 - `features/files/` - rename, trash/undo, overwrite conflict.
 - `features/resource/` - create local, edit (rename round-trip), full create+delete lifecycle.
-- `features/settings/` - settings search empty-state.
+- `features/settings/` - settings search empty-state (negative half) and search-to-section navigation (positive half, S1612).
+- `features/statistics/` - usage dashboard opens from its opt-in-gated settings row (S1612).
+- `features/text/` - `.txt` renders in the dedicated text viewer, asserted on the text views rather than the generic player container (S1612).
 - `features/player/` - video, image, audio lyrics, documents, resume, info dialog.
 - `features/slideshow/` - slideshow start/stop regression.
 - `features/edge/` - no-extension and large-video edge cases, back-from-every-screen.

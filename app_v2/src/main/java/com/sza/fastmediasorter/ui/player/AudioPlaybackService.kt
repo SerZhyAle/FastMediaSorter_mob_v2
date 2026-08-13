@@ -333,7 +333,6 @@ class AudioPlaybackService : MediaSessionService() {
         // cold start (e.g. car media-button restart with no track loaded yet).
         // Media3 DefaultMediaNotificationProvider will replace this placeholder with the real
         // media notification once a MediaSession + track are established.
-        Timber.d("S1399: audio-playback cold-start placeholder notification built with the branded status-bar icon")
         val placeholderNotification = NotificationCompat
             .Builder(this, MediaNotificationManager.NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(NotificationIcons.STATUS_BAR)
@@ -511,7 +510,6 @@ class AudioPlaybackService : MediaSessionService() {
 
             override fun seekToNext() {
                 if (isLiveStreamItem()) {
-                    Timber.d("S1146: seekToNext no-op for live stream")
                     return
                 }
                 if (exoPlayer.mediaItemCount <= 1) {
@@ -527,7 +525,6 @@ class AudioPlaybackService : MediaSessionService() {
 
             override fun seekToPrevious() {
                 if (isLiveStreamItem()) {
-                    Timber.d("S1146: seekToPrevious no-op for live stream")
                     return
                 }
                 if (exoPlayer.mediaItemCount <= 1) {
@@ -801,7 +798,6 @@ class AudioPlaybackService : MediaSessionService() {
         try {
             p.replaceMediaItem(index, updated)
             lastIcyTitle = rawIcyTitle
-            Timber.d("S1142: live ICY pushed, artist=${parsed.artist} title=${parsed.title}")
         } catch (e: IllegalStateException) {
             Timber.w(e, "AudioPlaybackService: live ICY metadata update skipped")
         }
@@ -815,7 +811,6 @@ class AudioPlaybackService : MediaSessionService() {
         // the last-played stamp still refresh on every READY, as they did before.
         val firstReady = streamPlayCountedUrl != streamUrl
         streamPlayCountedUrl = streamUrl
-        Timber.d("S1536: stream READY firstReady=%s url=%s", firstReady, streamUrl)
         serviceScope.launch {
             val source = streamSourceRepository.getByUrl(streamUrl) ?: return@launch
             // S1291: only a catalog stream earns the reconnect window. Setting this for every media

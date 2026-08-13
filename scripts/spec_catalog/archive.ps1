@@ -23,7 +23,11 @@ if (-not $record) {
 }
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$doneDir  = Join-Path $repoRoot 'temp\done'
+# S1620: the archive is the only durable record of WHY a closed decision was made, so it
+# lives under version control. It used to go to temp/done/, which is git-ignored and
+# disposable - archiving therefore deleted the reasoning from every machine but this one.
+# PLAN/ itself stays untracked; .gitignore re-includes PLAN/archive/ specifically.
+$doneDir  = Join-Path $repoRoot 'PLAN\archive'
 if (-not (Test-Path $doneDir)) {
     New-Item -ItemType Directory -Path $doneDir -Force | Out-Null
 }
@@ -85,7 +89,7 @@ $moved = New-Object System.Collections.Generic.List[string]
 
 if ($null -ne $specFile) {
     # Set the in-file header to Archived before moving, so the artefact in
-    # temp/done/ matches the journal (shared fail-soft helper, first line only).
+    # PLAN/archive/ matches the journal (shared fail-soft helper, first line only).
     [void](Sync-SpecHeaderStatus -PathRef $specFile -Status 'Archived')
     $specFileName = Split-Path -Path $specFile -Leaf
     Move-Item -LiteralPath $specFile -Destination (Join-Path $doneDir $specFileName) -Force
@@ -115,12 +119,23 @@ for ($i = 0; $i -lt $allRecords.Count; $i++) {
 # When the id is no longer in the active journal (already moved to archive),
 # fall back to the record resolved earlier via Find-Record's archive fallback.
 $old = if ($idx -ge 0) { $allRecords[$idx] } else { $record }
+
+# S1620: record where the file actually IS, not where it used to be. The previous version
+# kept the PLAN/ path after moving the file, so 1502 of 1504 archived records pointed at
+# something that no longer existed and select.ps1 handed callers a dead path. Only rewrite
+# when a file was really moved: a record whose artefact was never found keeps its original
+# path rather than gaining a fabricated one.
+$archivedFileRef = [string]$old.file
+if ($null -ne $specFile) {
+    $archivedFileRef = 'PLAN/archive/' + (Split-Path -Path $specFile -Leaf)
+}
+
 $archived = [pscustomobject]@{
     id       = [string]$old.id
     name     = [string]$old.name
     status   = 'Archived'
     priority = 0
-    file     = [string]$old.file
+    file     = $archivedFileRef
     created  = [string]$old.created
     updated  = (Get-Now)
 }
@@ -149,5 +164,5 @@ Write-Catalog -Records ([object[]]$remaining)
 $movedStr = if ($moved.Count -gt 0) { $moved -join ', ' } else { '(no files found)' }
 Exit-CatalogLock
 
-Write-Output ("$Id archived [priority -> 0]. Moved: $movedStr -> temp/done/")
+Write-Output ("$Id archived [priority -> 0]. Moved: $movedStr -> PLAN/archive/")
 exit 0

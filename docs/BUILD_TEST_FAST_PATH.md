@@ -243,7 +243,21 @@ Use the dedicated noLegal wrappers, not the standard fast-check assumptions.
 
 Reason: the noLegal graph intentionally avoids configuration-cache reuse.
 
-### 12. KAPT stall recovery
+### 12. Change touching flavor-visible resources or flavor source sets
+
+Prove each affected flavor with the same fast check, selected by `-Flavor`. No dedicated letter exists or is needed.
+
+```powershell
+.\a.ps1 fc -Flavor Lite      # Standard | NoLegal | Lite | Photos | Legacy | Vr
+.\a.ps1 fc -Flavor Legacy    # the only path that compiles against minSdk 23
+.\a.ps1 fc -Flavor Vr        # the only path that compiles src/vr
+```
+
+`-Flavor` works on `fk` and `fr` too, and every call takes `BUILD.LOCK`, so a spec demanding proof on "every affected variant" is satisfiable without a direct `gradlew` call. Run them one at a time - Rule 23 allows a single gradle invocation at once. Measured on a warm daemon: roughly 1-2.5 min per flavor, since each one owns its own configuration-cache entry.
+
+Reason this is spelled out: the flag existed long before it was documented, and S1568 deferred its per-flavor validation on the assumption that no such command was available (S1589).
+
+### 13. KAPT stall recovery
 
 If a targeted Kotlin/unit task hangs around `kaptGenerateStubs...` or `kapt...Kotlin`, recover instead of wiping all caches.
 
@@ -279,6 +293,7 @@ Move upward only when needed:
 | Shared model / serializer / infra | `.\a.ps1 fu` | install/runtime behavior also changed |
 | Packaging/install concern | `.\a.ps1 d` | device-specific behavior matters |
 | Wear-only change | `:wear:assembleDebug` | shared app code also changed |
+| Flavor-visible resources / flavor source sets | `.\a.ps1 fc -Flavor <name>` per affected flavor | packaging proof needed on that flavor |
 
 ## Anti-patterns
 

@@ -542,7 +542,6 @@ class MediaFileAdapter(
         private val selectionCheckedChangeListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
             val file = getItemByPosition() ?: return@OnCheckedChangeListener
             if (BrowseItemOperationPolicy.isSelectable(file)) {
-                Timber.d("S1325: row selection dir=%s checked=%s", file.isDirectory, isChecked)
                 onSelectionChanged(file, isChecked)
             }
         }
@@ -1318,4 +1317,3 @@ class MediaFileAdapter(
     }
 
 }
-

@@ -16,10 +16,14 @@
     d    - Fast reusable debug build
     db   - Fast reusable debug build (without zip)
     dav  - Debug build with timestamped app version
-    fk   - Fast Kotlin compile check (standard)
+    fk   - Fast Kotlin compile check (standard; -Flavor picks another)
     fkn  - Fast Kotlin compile check (noLegal)
-    fr   - Fast resources/manifest check
-    fc   - Fast code + resources check
+    fr   - Fast resources/manifest check (-Flavor applies)
+    fc   - Fast code + resources check (-Flavor applies)
+           All six flavors are reachable on fk/fr/fc without a dedicated letter:
+           -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr, e.g. `.\a.ps1 fc -Flavor Lite`.
+           This is how "build every affected variant" is satisfied - each call takes
+           BUILD.LOCK, so no direct gradlew invocation is needed.
     fu   - Fast full unit-test suite
     flr  - Fast lint-rules detector test suite (:lint-rules:test)
     fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log; -IncludeDetekt opt-in)
@@ -148,6 +152,8 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  fkn  - Fast Kotlin compile check (noLegal)" -ForegroundColor Cyan
     Write-Host "  fr   - Fast resources/manifest check" -ForegroundColor Cyan
     Write-Host "  fc   - Fast code + resources check" -ForegroundColor Cyan
+    Write-Host "         fk/fr/fc take -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr," -ForegroundColor DarkCyan
+    Write-Host "         e.g. '.\a.ps1 fc -Flavor Lite' - proves any of the six flavors." -ForegroundColor DarkCyan
     Write-Host "  fu   - Fast full unit-test suite" -ForegroundColor Cyan
     Write-Host "  flr  - Fast lint-rules detector test suite (:lint-rules:test)" -ForegroundColor Cyan
     Write-Host "  fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log)" -ForegroundColor Cyan

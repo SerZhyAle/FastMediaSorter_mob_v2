@@ -163,7 +163,6 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
     }
 
     private fun buildNotification(): Notification {
-        Timber.d("S1399: network-files sync notification built with the branded status-bar icon")
         return NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(applicationContext.getString(R.string.network_sync_settings))
             .setContentText(applicationContext.getString(R.string.sync_status_in_progress))

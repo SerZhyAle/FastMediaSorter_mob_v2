@@ -90,7 +90,6 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             // concurrent placements that both saw the same square free would otherwise both land on it.
             db.withTransaction {
                 val anchor = findFreeAnchor(candidate, columns) ?: return@withTransaction null
-                Timber.d("S1170: free slot %d,%d of %d columns", anchor.row, anchor.col, columns)
                 Timber.i("Launcher desktop: placing new cell at %d,%d", anchor.row, anchor.col)
                 cellDao.upsert(candidate.copy(rowIndex = anchor.row, colIndex = anchor.col).toEntity())
             }
@@ -165,7 +164,6 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         spanH = spanH,
         headerRows = headerRowsFor(kindName, spanH, orientationName),
     ).also { covers ->
-        if (covers) Timber.d("S1428: refused %s at row %d - it would cover a header row", kindName, rowIndex)
     }
 
     /**

@@ -205,7 +205,7 @@ Sanity rationale: confirm inventory carries specs that shipped this window. `PLA
 
 `$RELEASE_PACKAGE` is the number from the `DEBUG-v0NN` branch this release was cut from (the `current-next-release:` marker in `PLAN/RELEASE_QUEUE.md`). The command moves that package's block **from `PLAN/RELEASE_READY.md`** into `PLAN/RELEASE_QUEUE_DONE.md`, stamps it with the shipped version, and advances the marker. Any unfinished ticket still sitting in `RELEASE_QUEUE.md` under that package is reported and left alone - it does not ship, and re-sorting it into a later package is the owner's call, never this pipeline's. Use `-DryRun` first if the block looks unexpected.
 
-Everything that reached `main` this plateau sits at `Implemented` or `Verified`; those specs no longer belong in the active `PLAN/` workspace. Archive them all in one sweep - each `archive.ps1` moves `PLAN/Sxxxx_<slug>.md` (+ tactical folder) to git-ignored `temp/done/` and flips the journal record to `Archived` (`priority -> 0`). `PLAN/` + `spec-catalog.jsonl` are git-ignored, so this touches no tracked file and needs no commit - pure workspace declutter with zero git-flow impact. Archived records stay addressable (`select.ps1 -Id Sxxxx` resolves them via the archive fallback) and files stay under `temp/done/`, so an `Implemented` (not yet device-verified) spec swept here is trivially restored if it later turns out broken.
+Everything that reached `main` this plateau sits at `Implemented` or `Verified`; those specs no longer belong in the active `PLAN/` workspace. Archive them all in one sweep - each `archive.ps1` moves `PLAN/Sxxxx_<slug>.md` (+ tactical folder) to version-controlled `PLAN/archive/` and flips the journal record to `Archived` (`priority -> 0`). `PLAN/` + `spec-catalog.jsonl` stay git-ignored, but the archive itself is tracked (S1620), so a release sweep now produces a real commit - the closed specs it moves are the durable record of why each decision was made. Archived records stay addressable (`select.ps1 -Id Sxxxx` resolves them via the archive fallback) and files stay under `PLAN/archive/`, so an `Implemented` (not yet device-verified) spec swept here is trivially restored if it later turns out broken.
 
 ```powershell
 # Enumerate every Implemented + Verified spec, archive each (continue on per-id failure).
@@ -245,7 +245,7 @@ Release pipeline complete.
   Google Drive: standard ZIP (password 1) synced by a.ps1 r
   4pda:        manual post pending (channel 4)
   IzzyOnDroid: auto-pull after acceptance (RFP one-time, channel 5)
-  Specs archived: $ARCHIVED_COUNT Implemented+Verified specs -> temp/done/
+  Specs archived: $ARCHIVED_COUNT Implemented+Verified specs -> PLAN/archive/
 
 Manual follow-ups (if any):
   [INVENTORY MISSED] Sxxxx - confirm whether spec delivered user-visible change; add record via scripts/all_features/add.ps1

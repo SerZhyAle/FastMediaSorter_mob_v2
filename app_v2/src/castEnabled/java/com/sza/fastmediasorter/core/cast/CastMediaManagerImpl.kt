@@ -291,7 +291,6 @@ class CastMediaManagerImpl(
         proxyServer.serveFile(localFile)
         val castUrl = proxyServer.castUrl()
         val mimeType = LocalCastProxyServer.mimeType(localFile)
-        Timber.d("S1155: cast local file mime=$mimeType name=${file.name}")
         // S1499: the panel's single-eye crop deliberately does not reach Cast output. It is a GL Crop
         // effect inside ExoPlayer's render pipeline, and nothing in that pipeline travels to the
         // receiver - the proxy above range-streams the original file untouched, and MediaInfo carries

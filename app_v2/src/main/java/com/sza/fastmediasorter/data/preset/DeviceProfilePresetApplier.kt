@@ -52,7 +52,6 @@ class DeviceProfilePresetApplier @Inject constructor(
             "enableBackgroundSync" -> settings.copy(enableBackgroundSync = raw.toBool())
             "enableStreams" -> settings.copy(enableStreams = raw.toBool())
             "streamsSmartBuffering" -> {
-                Timber.d("S1215: preset smart-buffering cell raw=%s", raw)
                 settings.copy(streamsSmartBuffering = raw.toBool())
             }
             "allFiles" -> settings.copy(allFiles = raw.toBool())

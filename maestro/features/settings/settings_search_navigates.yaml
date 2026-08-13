@@ -1,0 +1,62 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: settings search finds a real setting and navigating to a result opens its section.
+# Oracle: the destination section container is visible after the jump - proof the search index maps
+#   a query to a reachable settings location, not merely that it filters a list.
+#
+# S1612 note: features/settings/settings_search.yaml proves the NEGATIVE half - a no-match query
+# surfaces the empty-results text. That is deterministic but says nothing about a query that DOES
+# match: an index that returns nothing for every input passes it. This flow proves the positive
+# half, so the two together cover both directions of the same feature.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- runFlow: ../../_shared/dismiss_settings_dialogs.yaml
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/titleText"
+    timeout: 10000
+
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/searchButton"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/searchInput"
+    timeout: 8000
+
+# A query that MUST match. It has to be ASCII: Maestro's inputText cannot type non-ASCII text at
+# all (mobile-dev-inc/maestro#146), so a Cyrillic query fails the run outright rather than
+# returning no results. "Lang" works on a ru-locale device because the language row's title is the
+# trilingual literal "Language/Язык/Мова", whose ASCII half the index matches.
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/searchInput"
+- inputText: "Lang"
+
+# First proof: the index returned results rather than the empty state.
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/searchResultsRecycler"
+    timeout: 8000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/searchResultsRecycler"
+- assertNotVisible:
+    id: "com.sza.fastmediasorter.debug:id/searchEmptyText"
+
+# Second proof: acting on a result lands on the setting it named.
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/searchResultsRecycler"
+    childOf:
+      id: "com.sza.fastmediasorter.debug:id/searchOverlay"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rowLanguage"
+    timeout: 10000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/rowLanguage"
+
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

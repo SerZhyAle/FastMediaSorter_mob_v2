@@ -270,7 +270,6 @@ class CameraSettingsDialogFragment : DialogFragment() {
         binding.rowCameraManualSensor.setOnCheckedChangeListener { checked ->
             binding.layoutCameraIsoControls.isVisible = checked
             binding.layoutCameraShutterControls.isVisible = checked
-            Timber.d("S1590: manual sensor toggled to $checked, iso/shutter rows now in scroll region")
             draft = draft.copy(
                 manualSensorEnabled = checked,
                 manualIso = binding.sliderCameraIso.value.toInt(),

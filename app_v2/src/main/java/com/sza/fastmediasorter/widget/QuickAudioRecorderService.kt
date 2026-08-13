@@ -349,7 +349,6 @@ class QuickAudioRecorderService : Service() {
             stopIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        Timber.d("S1399: quick audio-recorder notification built with the branded status-bar icon")
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentTitle(getString(R.string.app_name))

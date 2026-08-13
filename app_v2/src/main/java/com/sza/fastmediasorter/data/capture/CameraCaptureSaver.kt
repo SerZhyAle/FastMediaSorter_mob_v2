@@ -78,7 +78,6 @@ class CameraCaptureSaver @Inject constructor(
         // left the settings read, the media-scanner broadcast, the whole network upload and the
         // temp-file delete on the main thread - StrictMode reported the last of those. withContext
         // returns to the caller's context, so the post-save UI work keeps running on Main unchanged.
-        Timber.d("S1354: camera capture local destination save")
         var savedPath = resolveSavedPath(target, name)
         Timber.i(
             "CameraCaptureSaver: save ENTRY tempFile=%s name=%s target=%s savedPath=%s",

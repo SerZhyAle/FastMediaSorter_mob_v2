@@ -197,13 +197,11 @@ class CameraCaptureSessionManager(
                     // sorted widest-first, so "first back" used to open on the ultra-wide entry whose
                     // own floor is 1.0, and the sub-1x pill vanished from the zoom row.
                     activeCameraIndex = lensEnumeration.initialLensIndex(availableLenses)
-                    Timber.d("S1261: initial lens %s", availableLenses.getOrNull(activeCameraIndex)?.id)
                     Timber.i(
                         "CameraCapture: %d lens(es) offered, %d of them physical sub-lenses",
                         availableLenses.size,
                         availableLenses.count { it.isPhysicalSubLens },
                     )
-                    Timber.d("S1189: lens set %s", availableLenses.map { it.id })
                     // S0753: the NIGHT extension needs the ExtensionsManager ready before binding; a
                     // null manager just means the extension is unavailable, not a bind failure.
                     val extFuture = ExtensionsManager.getInstanceAsync(context, provider)
@@ -432,7 +430,6 @@ class CameraCaptureSessionManager(
 
             else -> NO_LENS_CHANGE
         }
-        Timber.d("S1189: macro=%b target=%d", enabled, target)
         if (provider == null || preview == null || target == NO_LENS_CHANGE) {
             applyCamera2Options()
             return
@@ -986,7 +983,6 @@ private fun lensReaching(lenses: List<CameraLensEntry>, equivalent: Float): Came
 internal fun List<CameraLensEntry>.bindableIndex(index: Int, videoMode: Boolean): Int {
     val subLens = getOrNull(index)?.takeIf { videoMode && it.isPhysicalSubLens } ?: return index
     val parent = indexOfFirst { it.logicalCameraId == subLens.logicalCameraId && !it.isPhysicalSubLens }
-    Timber.d("S1479: video mode resolves ${subLens.id} -> ${getOrNull(parent)?.id ?: subLens.id}")
     return if (parent >= 0) parent else index
 }
 

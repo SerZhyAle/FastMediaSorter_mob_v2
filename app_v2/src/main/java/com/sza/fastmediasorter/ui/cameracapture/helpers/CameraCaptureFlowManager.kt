@@ -241,7 +241,6 @@ class CameraCaptureFlowManager(
      */
     fun onCrossLensFloorSelected(equivalent: Float) {
         if (!currentCapabilities.showsCrossLensFloor) return
-        Timber.d("S1261: floor pill tap eq=%.2f", equivalent)
         // S1262/ADR-2: the pill is an explicit lens choice, same as the switch button.
         profiles.releaseWithoutClearing("cross-lens floor pill")
         session.switchCamera(targetEquivalentFloor = equivalent)

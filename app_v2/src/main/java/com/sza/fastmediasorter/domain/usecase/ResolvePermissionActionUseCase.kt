@@ -52,7 +52,6 @@ class ResolvePermissionActionUseCase @Inject constructor() {
                 PermissionStatus.ASKED_EACH_TIME -> PermissionAction.None
             }
         }
-        Timber.d("S1426: action entry=%s status=%s -> %s", entry.id, status, action)
         return action
     }
 

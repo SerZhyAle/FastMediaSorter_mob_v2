@@ -47,7 +47,6 @@ class LauncherAppActionMenuManager(
         dismiss()
         pendingQuery = scope.launch {
             val rows = buildRows(anchor, packageName)
-            Timber.d("S1401: app action menu for %s built with %d row(s)", packageName, rows.size)
             if (rows.isEmpty() || !anchor.isAttachedToWindow) return@launch
             showPopup(anchor, rows)
         }

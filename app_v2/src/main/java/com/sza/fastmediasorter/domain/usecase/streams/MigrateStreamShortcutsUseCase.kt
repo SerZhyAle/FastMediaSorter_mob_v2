@@ -30,7 +30,6 @@ class MigrateStreamShortcutsUseCase @Inject constructor(
         val migrated = ShortcutManagerCompat
             .getShortcuts(context, ShortcutManagerCompat.FLAG_MATCH_PINNED)
             .mapNotNull(::rebuild)
-        Timber.d("S1471: pinned stream shortcut migration found %d stale pin(s)", migrated.size)
         if (migrated.isNotEmpty()) {
             ShortcutManagerCompat.updateShortcuts(context, migrated)
             Timber.i("MigrateStreamShortcutsUseCase: rewrote %d pinned stream shortcuts", migrated.size)

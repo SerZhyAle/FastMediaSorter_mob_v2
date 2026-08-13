@@ -139,7 +139,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             SearchableLanguagePickerDialog.RESULT_KEY,
             this
         ) { _, bundle ->
-            Timber.d("S1214: welcome ui-language result received")
             val code = bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)
                 ?: return@setFragmentResultListener
             if (code != LocaleHelper.getLanguage(this)) {
@@ -220,7 +219,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     private fun observeBrandBackdrop() {
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
-                Timber.d("S1234: welcome brand animation start")
                 binding.brandAnimation.startAnimation()
             }
 

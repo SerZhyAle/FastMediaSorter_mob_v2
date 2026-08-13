@@ -41,7 +41,7 @@ Conclusion: **a test build (commit + push to a DEBUG branch) costs 0 minutes.** 
 **Build flow** (local, free):
 
 - `.\a.ps1 dq` - fast debug build (no zip, quiet).
-- `.\a.ps1 fc` - fast local code + resources check.
+- `.\a.ps1 fc` - fast local code + resources check; `-Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr` proves any single flavor locally, for free.
 - `.\a.ps1 c "<message>"` - commit and push to the current `DEBUG-v0NN` branch.
 - Skill: `/build` - the build checklist (work order) plus the full build/script/versioning reference.
 

@@ -102,7 +102,6 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
                 .setDataSourceFactory(dataSourceFactory)
                 .setLoadErrorHandlingPolicy(RadioStreamBufferConfig.createLoadErrorHandlingPolicy(context))
         )
-        Timber.d("S1512: http(s) video session built with the shared loader policy")
         trackSelector?.let { builder.setTrackSelector(it) }
     }
 
@@ -161,12 +160,6 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
         audioIso = streamSettings.streamsDefaultAudioLanguage.isoCodeOrNull(),
         subtitleIso = streamSettings.streamsDefaultSubtitleLanguage.isoCodeOrNull()
     )
-    Timber.d(
-        "S1144: seated channel=%s defaults=%s",
-        trackSelectionManager.channelPreference,
-        trackSelectionManager.streamDefaults
-    )
-
     // S1127: open the time-to-first-frame window exactly at prepare, so TTFF excludes setup work above.
     diagnostics.onPrepared()
     player.prepare()

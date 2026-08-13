@@ -523,7 +523,6 @@ class UnifiedFileOperationHandler @Inject constructor(
         destParentPath: String,
         progressCallback: ((Int, Int, String) -> Unit)? = null
     ): Result<Int> = withContext(Dispatchers.IO) {
-        Timber.d("S1325: copy dir dispatch dest=%s", destParentPath)
         refuseUnsafeDirectoryOperation(sourcePath, destParentPath, isMove = false)?.let {
             Timber.w("executeCopyDirectory refused: ${it.reason}")
             return@withContext Result.failure(it)
@@ -562,7 +561,6 @@ class UnifiedFileOperationHandler @Inject constructor(
         destParentPath: String,
         progressCallback: ((Int, Int, String) -> Unit)? = null
     ): Result<Int> = withContext(Dispatchers.IO) {
-        Timber.d("S1325: move dir dispatch dest=%s", destParentPath)
         refuseUnsafeDirectoryOperation(sourcePath, destParentPath, isMove = true)?.let {
             Timber.w("executeMoveDirectory refused: ${it.reason}")
             return@withContext Result.failure(it)
@@ -623,7 +621,6 @@ class UnifiedFileOperationHandler @Inject constructor(
         destPath: String,
         requiredBytes: Long?,
     ): DirectoryOperationRefusal? {
-        Timber.d("S1378: destination space pre-flight for %s", destPath)
         val needed = requiredBytes?.takeIf { it > 0 }
         val freeBytes = needed?.let { getDestinationFreeSpace(destPath) }
         return if (needed == null || freeBytes == null || needed <= freeBytes) {

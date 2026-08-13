@@ -40,12 +40,7 @@ class VrStereoConfigResolver(private val stereoDetector: StereoDetector) {
             "parseFilenameConfig: $filename -> projection=${config.projection}, layout=${config.layout} " +
                 "(source=${if (detected != null) "stereo-detector" else "legacy"})"
         )
-        Timber.d(
-            "S0771: immersive stereo resolved layout=${config.layout} " +
-                "source=${if (detected != null) "stereo-detector" else "legacy"} file=$filename"
-        )
         // S1112: verify TB (_stereo_tb) content resolves to TOP_BOTTOM, not SIDE_BY_SIDE.
-        Timber.d("S1112: $filename -> proj=${config.projection} layout=${config.layout}")
         return config
     }
 

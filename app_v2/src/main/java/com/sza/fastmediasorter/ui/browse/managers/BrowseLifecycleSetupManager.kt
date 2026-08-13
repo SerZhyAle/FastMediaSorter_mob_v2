@@ -95,7 +95,6 @@ class BrowseLifecycleSetupManager(
         scope.launch(ioDispatcher) {
             try {
                 if (dependencies.cacheCleanup.hasActiveTransfer()) {
-                    Timber.d("S1362: startup cache cleanup skipped during active transfer")
                     Timber.i("BrowseLifecycleSetupManager: skipped cache cleanup during active transfer")
                 } else {
                     dependencies.cacheCleanup.unifiedCache.clearAll()

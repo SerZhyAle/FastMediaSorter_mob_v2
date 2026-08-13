@@ -27,7 +27,6 @@ class PermissionRequestMarkerRepositoryImpl @Inject constructor(
         StrictModeHelper.allowDiskReads { prefs.getBoolean(permissionId, false) }
 
     override fun markRequested(permissionId: String) {
-        Timber.d("S1426: marker recorded for %s", permissionId)
         StrictModeHelper.allowDiskWrites { prefs.edit().putBoolean(permissionId, true).apply() }
     }
 

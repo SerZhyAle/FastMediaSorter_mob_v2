@@ -114,7 +114,6 @@ class ImmersiveBrowsePlaybackController @Inject constructor(
 
     private fun applyRenderConfig(displayName: String) {
         val config = stereoConfigResolver.resolve(displayName)
-        Timber.d("S1222: browse applies $displayName -> ${config.projection}/${config.layout}")
         runtime.setRenderConfig(config.projection.value, config.layout.value)
     }
 

@@ -7,8 +7,6 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.core.capability.MediaCapabilities
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -26,8 +24,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class CameraLaunchActivity : AppCompatActivity() {
 
-    @Inject lateinit var settingsRepository: SettingsRepository
-    @Inject lateinit var mediaCapabilities: MediaCapabilities
+    @Inject lateinit var launchManagerFactory: CameraLaunchWidgetManagerFactory
 
     private lateinit var launchManager: CameraLaunchWidgetManager
 
@@ -41,10 +38,8 @@ class CameraLaunchActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        launchManager = CameraLaunchWidgetManager(
+        launchManager = launchManagerFactory.create(
             activity = this,
-            settingsRepository = settingsRepository,
-            mediaCapabilities = mediaCapabilities,
             coroutineScope = lifecycleScope,
             forceVideo = intent?.getBooleanExtra(EXTRA_FORCE_VIDEO, false) == true,
             requestPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },

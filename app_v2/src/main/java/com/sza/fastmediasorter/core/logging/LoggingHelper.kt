@@ -51,7 +51,6 @@ object LoggingHelper {
         val context = appContext ?: return
         // First SharedPreferences read is disk I/O and this arrives on the viewer thread.
         val enabled = StrictModeHelper.allowDiskIO { DebugLogMirrorPrefs.isEnabled(context) }
-        Timber.d("S1357: mirror target request, opt-in=$enabled")
         if (enabled) {
             fileLoggingTree?.updateDebugMirrorTargetFromPath(path)
         }

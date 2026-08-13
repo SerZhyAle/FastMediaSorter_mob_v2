@@ -56,7 +56,6 @@ private class SpeedGadgetView(
      * caller to have checked one.
      */
     override suspend fun CoroutineScope.onActive() {
-        Timber.d("S1179: speed tile active, locationGranted=%b", hasLocationPermission())
         if (!hasLocationPermission()) {
             showMessage(R.string.launcher_gadget_sensor_no_permission)
             return

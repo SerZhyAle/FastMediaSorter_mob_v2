@@ -122,7 +122,6 @@ class DeliverableDownloadWorker @AssistedInject constructor(
     }
 
     private fun buildNotification(set: DeliverableSet, contentText: String, percent: Int): Notification {
-        Timber.d("S1399: deliverable-download notification built with the branded status-bar icon")
         val featureName = context.getString(featureNameRes(set))
         val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(NotificationIcons.STATUS_BAR)

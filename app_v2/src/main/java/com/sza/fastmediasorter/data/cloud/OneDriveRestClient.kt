@@ -351,11 +351,6 @@ class OneDriveRestClient @Inject constructor(
                 // S1361: see GoogleDriveMultipartUploader - a body with no declared length is buffered
                 // whole in memory and drains after the response read has already started counting.
                 if (fileSize > 0L) connection.setFixedLengthStreamingMode(fileSize)
-                Timber.d(
-                    "S1361: OneDrive upload $fileName streamed=${fileSize > 0L} body=$fileSize " +
-                        "readBudgetMs=${HttpTimeouts.uploadReadTimeoutMs(fileSize)}"
-                )
-
                 try {
                     val outputStream = connection.outputStream
                     val buffer = ByteArray(65536) // 64KB buffer for better network throughput

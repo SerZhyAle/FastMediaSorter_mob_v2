@@ -173,7 +173,6 @@ class MainCameraCaptureManager(
         pendingBaseName = null
         multiCapture = false
         if (dir == null || base == null) return
-        Timber.d("S1593: clearPending offloading scratch delete")
         coroutineScope.launch(Dispatchers.IO + NonCancellable) {
             File(dir, "$base.jpg").delete()
             File(dir, "$base.mp4").delete()

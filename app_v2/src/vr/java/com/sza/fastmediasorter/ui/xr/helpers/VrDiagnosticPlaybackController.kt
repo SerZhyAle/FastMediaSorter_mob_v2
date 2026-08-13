@@ -67,7 +67,6 @@ class VrDiagnosticPlaybackController(
             addListener(object : Player.Listener {
                 // S1113: confirm the 7K immersive decoder produces an output size (and thus frames).
                 override fun onVideoSizeChanged(videoSize: VideoSize) {
-                    Timber.d("S1113: video size ${videoSize.width}x${videoSize.height} file=${file.name}")
                 }
 
                 override fun onPlayerError(error: PlaybackException) {

@@ -16,9 +16,11 @@ import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.LocalPathResolution
 import com.sza.fastmediasorter.domain.usecase.MaterializeUriToFileUseCase
 import com.sza.fastmediasorter.domain.usecase.ResolveLocalPathFromUriUseCase
+import com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
 import com.sza.fastmediasorter.domain.usecase.UriMaterialization
 import com.sza.fastmediasorter.ui.player.helpers.PlayerStereoModeCoordinator
 import com.sza.fastmediasorter.ui.player.standalone.StandaloneFolderPagingManager
+import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -47,6 +49,10 @@ class StandalonePlayerViewModel @Inject constructor(
     private val materializeUriToFileUseCase: MaterializeUriToFileUseCase,
     private val localMediaScanner: LocalMediaScanner,
     private val settingsRepository: SettingsRepository,
+    // S1329: held behind Lazy because all five standalone hosts share this ViewModel while only the audio
+    // one looks up lyrics. The use case pulls in the SMB/SFTP/FTP singletons, and the hosts keep exactly
+    // those behind Lazy on purpose - a local or content URI must not pay for the network stack.
+    private val searchLyricsUseCase: Lazy<SearchLyricsUseCase>,
     stereoFormatOverrideDao: StereoFormatOverrideDao
 ) :
     BaseViewModel<StandalonePlayerViewModel.StandalonePlayerState, StandalonePlayerViewModel.StandalonePlayerEvent>() {
@@ -136,6 +142,17 @@ class StandalonePlayerViewModel @Inject constructor(
                 _messageFlow.tryEmit(context.getString(R.string.error_opening_file_simple))
         }
     }
+
+    /**
+     * S1329: the lyrics lookup as behaviour rather than as the injected use case. Only the audio host binds
+     * a lyrics view, but it used to field-inject `SearchLyricsUseCase` and call it from the Activity, which
+     * is the Rule 3 violation this replaces; the operation lives here so the host asks for a result.
+     */
+    suspend fun findLyricsFor(
+        mediaFile: MediaFile,
+        resolvedTitle: String? = null,
+        resolvedArtist: String? = null,
+    ): Result<String> = searchLyricsUseCase.get().execute(mediaFile, resolvedTitle, resolvedArtist)
 
     private val _messageFlow = MutableSharedFlow<String>(extraBufferCapacity = 1)
     val messageFlow: SharedFlow<String> = _messageFlow.asSharedFlow()

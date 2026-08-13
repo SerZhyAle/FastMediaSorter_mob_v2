@@ -53,6 +53,11 @@
         Fix   = 'A repository script was added, renamed or removed without re-rendering the cheatsheet - regenerate it, do not hand-edit the render target.'
     }
 
+    'new-lexeme-count' = @{
+        Repro = 'pwsh -NoProfile -File scripts/utils/list-new-lexemes.ps1'
+        Fix   = 'Advisory only - a new string does not yet reach all thirteen declared locales. Nothing to fix at close time: the pre-release step 0.8 translates the whole release in one bulk round trip. Fill values early only if they are already known, via set-android-string.ps1 -Translations.'
+    }
+
     'strings-audit' = @{
         Repro = 'pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<prefix>"'
         Fix   = 'A string key is missing from EN, RU or UK - add the missing locales via scripts/utils/set-android-string.ps1 -Action add, which enforces parity.'

@@ -10,9 +10,11 @@
 
     Gates (in order):
       - assert-no-ticket-logs        (Sxxxx probe / permanent-log invariant)
-      - assert-flavor-flags-not-growing
-      - assert-neuroslop             (umbrella over the ratchet detectors)
-      - assert-deprecated-pm-flags
+      - assert-source-gates          (S1338: every lexical ratchet rule over ONE walk of the
+                                      tree - the nine neuroslop rules plus flavor-flags,
+                                      deprecated-pm-flags, public-mutable-flow, window-insets,
+                                      swallowed-cancellation, activity-logic (S1329),
+                                      untracked-dialog and the two string-resource rules)
       - assert-listener-symmetry
       - assert-qualifier-shadowing   (values-land key a smallestWidth bucket always outranks)
       - assert-tactical-step-form    (S1343 Why-field ratchet over PLAN/*/PHASE_*.md)
@@ -24,6 +26,7 @@
       - assert-backup-rules-consistent (S1552 API 31+ extraction rules vs the pre-31 backup rules)
       - assert-launcher-reset-coverage (S1540 launcher settings vs the launcher reset's field list)
       - assert-unreferenced-strings   (S1568 string keys nothing under <module>/src references)
+      - assert-maestro-oracle        (S1612 Maestro flows that are green without proving anything)
       - assert-hook-inventory        (S1604 registered Claude Code hooks vs docs/AGENT_HOOKS.md)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
@@ -74,6 +77,11 @@ $gates = [ordered]@{
     # one paid for again by every locale tranche. Baseline is an allowlist of NAMES, not a count, so
     # a new dead key cannot hide behind a deleted one.
     'assert-unreferenced-strings.ps1'           = @('-Quiet')
+    # S1612: Maestro flow YAML vs the oracle convention. A flow that carries optional: true on its
+    # proof assertion, a regex selector Maestro never matches, or a coordinate tap standing in for
+    # an assertion is GREEN while proving nothing - that is how the previous generation of flows
+    # became fictitious. Static YAML scan of two directories, no device and no gradle daemon.
+    'assert-maestro-oracle.ps1'                 = @('-Quiet')
     # S1070: guards the tooling itself rather than app sources - a bare Write-Error under
     # EAP=Stop makes the following `exit N` unreachable, so a script's documented code
     # collapses to 1. Cheap (scans scripts/*.ps1 only) and the class has regrown 3 times.

@@ -1372,6 +1372,17 @@ scripts/quality/assert-16kb-alignment.ps1
   Exit: 0 - all checked 64-bit .so have every LOAD segment aligned >= 16 KB, OR nothing
 ```
 
+### assert-activity-logic-not-growing.ps1
+
+```
+scripts/quality/assert-activity-logic-not-growing.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
+```
+
 ### assert-allfeatures-sync.ps1
 
 ```
@@ -1668,6 +1679,16 @@ scripts/quality/assert-listener-symmetry.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-maestro-oracle.ps1
+
+```
+scripts/quality/assert-maestro-oracle.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - clean: no violation found.; 1 - substantive failure: at least one violation remains.; 2 - the gate itself cannot run (no scan root exists / a file is unreadable).
+```
+
 ### assert-memory-budget.ps1
 
 ```
@@ -1689,6 +1710,19 @@ scripts/quality/assert-neuroslop.ps1
   Params:
     -Gate                 [SwitchParameter]
     -ChangedFiles         [String[]]
+```
+
+### assert-new-lexemes-translated.ps1
+
+```
+scripts/quality/assert-new-lexemes-translated.ps1
+  Params:
+    -Module               [String] = 'app_v2'
+    -SourceSet            [String[]] = @('main', 'vr', 'noLegal')
+    -BaselinePath         [String]
+    -OutDir               [String]
+    -Quiet                [SwitchParameter]
+  Exit: 0 - every string reaches all thirteen declared locales, or its gap predates the rule.; 1 - new untranslated strings exist; the release is blocked until they are translated.; 2 - the gate cannot verify: the producer or the baseline is missing.
 ```
 
 ### assert-no-ticket-logs.ps1
@@ -2458,6 +2492,13 @@ scripts/spec_catalog/_lib.ps1
   (no param block)
 ```
 
+### _research-items.ps1
+
+```
+scripts/spec_catalog/_research-items.ps1
+  (no param block)
+```
+
 ### archive.ps1
 
 ```
@@ -2474,6 +2515,22 @@ scripts/spec_catalog/bulk-update.ps1
     -Id        (req)  [String[]]
     -Status           [String]  {Draft|Approved|Tactical|In Progress|Implemented|Verified|Partial|Broken|BlockByOtherTask|BlockNeedUserTest|BlockQuestions|BlockExternal|Archived}
     -Priority         [Int32] = -1  {range 0..100}
+```
+
+### check-evidence-durable.ps1
+
+```
+scripts/spec_catalog/check-evidence-durable.ps1
+  Params:
+    -Id  (req)  [String]
+```
+
+### check-open-items-carried.ps1
+
+```
+scripts/spec_catalog/check-open-items-carried.ps1
+  Params:
+    -Id  (req)  [String]
 ```
 
 ### check-owner-inputs.ps1
@@ -2576,6 +2633,15 @@ scripts/spec_catalog/list-blockneedusertest.ps1
 ```
 scripts/spec_catalog/migrate-archive-split.ps1
   (no param block)
+```
+
+### migrate-archive-to-plan.ps1
+
+```
+scripts/spec_catalog/migrate-archive-to-plan.ps1
+  Params:
+    -Apply         [SwitchParameter]
+    -Help          [SwitchParameter]
 ```
 
 ### next-id.ps1
@@ -3246,6 +3312,51 @@ scripts/utils/Install_release_on_adb_connected_device.ps1
     -Launch            [SwitchParameter]
     -NoReplace         [SwitchParameter]
     -Flavor            [String] = "standard"
+```
+
+### list-new-lexemes.ps1
+
+```
+scripts/utils/list-new-lexemes.ps1
+  Params:
+    -Module               [String] = 'app_v2'
+    -SourceSet            [String[]] = @('main', 'vr', 'noLegal')
+    -BaselinePath         [String]
+    -OutDir               [String]
+    -Quiet                [SwitchParameter]
+  Exit: 0 - every unit reaches all thirteen locales, or the only gaps are baselined.; 1 - unusable input: the export failed, or its sidecar could not be read.; 3 - new untranslated text exists; the produced files name it.
+```
+
+### locale-bulk-export.ps1
+S1420: exports the English UI corpus as one plain line per phrase, for an external translator.
+
+```
+scripts/utils/locale-bulk-export.ps1
+  S1420: exports the English UI corpus as one plain line per phrase, for an external translator.
+  Params:
+    -Module                  [String] = 'app_v2'
+    -SourceSet               [String[]] = @('main')
+    -ReferenceLocale         [String] = 'de'
+    -All                     [SwitchParameter]
+    -SourceFile              [String]
+    -OutDir                  [String]
+    -MinLetterRun            [Int32] = 3
+```
+
+### locale-bulk-import.ps1
+S1420: imports one locale's translated line file back into its string resources.
+
+```
+scripts/utils/locale-bulk-import.ps1
+  S1420: imports one locale's translated line file back into its string resources.
+  Params:
+    -TextPath   (req)  [String]
+    -Locale            [String]
+    -IndexPath         [String]
+    -Module            [String] = 'app_v2'
+    -SourceSet         [String] = 'main'
+    -DryRun            [SwitchParameter]
+  Exit: 0 - every locale file written, nothing rejected.; 1 - unusable input: file or sidecar missing or unreadable, locale not declared or the default
 ```
 
 ### locale-set.ps1

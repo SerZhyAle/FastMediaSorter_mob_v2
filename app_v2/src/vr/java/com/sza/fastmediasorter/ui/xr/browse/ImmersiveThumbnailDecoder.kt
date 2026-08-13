@@ -70,7 +70,6 @@ class ImmersiveThumbnailDecoder @Inject constructor(
             Timber.i("ImmersiveThumbnailDecoder: skip video frame, native heap low")
             return null
         }
-        Timber.d("S1116: video thumb decode cell=%dx%d", cellW, cellH)
         val retriever = MediaMetadataRetriever()
         return runCatching {
             if (model.startsWith("content://") || model.startsWith("file://")) {

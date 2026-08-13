@@ -243,7 +243,6 @@ class NowPlayingManager(
         bar.miniTitle.text = meta.title?.toString()
             ?: activityBinding.root.context.getString(R.string.now_playing_label)
         val artworkUri = meta.artworkUri
-        Timber.d("S1382: content live=${player.isLiveStreamItem()} art=${artworkUri != null}")
         // A local file can read as non-seekable for a frame while its timeline is still empty, so the
         // stream branch falls back to the rotating note rather than leaving the slot blank.
         if (player.isLiveStreamItem()) {
@@ -295,7 +294,6 @@ class NowPlayingManager(
         scope.launch {
             val coords = faviconCoords ?: faviconAtlasStore.coords().also { faviconCoords = it }
             val index = coords[url]
-            Timber.d("S1382: stream icon lookup index=$index url=$url")
             if (index == null) return@launch
             val tile = faviconSlicer.tileFor(index) ?: return@launch
             // The decode is off the main thread, so the track may have moved on meanwhile.
@@ -323,7 +321,6 @@ class NowPlayingManager(
      * and the note has to continue from where it stood when playback resumes.
      */
     private fun applyNoteRotation(isPlaying: Boolean) {
-        Timber.d("S1382: note rotation playing=$isPlaying")
         if (isPlaying) {
             noteAnimator?.startNote()
             noteAnimator?.resumeNote()
@@ -354,7 +351,6 @@ class NowPlayingManager(
      * cannot forget to cancel the infinite note animation - the leak shape S1302 was opened for.
      */
     private fun hideBar() {
-        Timber.d("S1382: bar hidden, note animator stopped")
         miniBar?.root?.isVisible = false
         noteAnimator?.stopNote()
         noteShown = false

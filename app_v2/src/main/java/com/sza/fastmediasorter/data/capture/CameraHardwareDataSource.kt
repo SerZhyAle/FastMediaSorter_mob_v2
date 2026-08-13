@@ -42,7 +42,6 @@ class CameraHardwareDataSource @Inject constructor(
                 }
             }
         }
-        Timber.d("S1189: camera inventory entries=%d", entries.size)
         return CameraHardwareInventory(entries)
     }
 

@@ -425,7 +425,6 @@ class LauncherHomeViewModel @Inject constructor(
     /** Runs a scheduled op after the user confirmed it: background, with a start then result toast. */
     fun executeScheduledOp(operationId: Long) {
         viewModelScope.launch {
-            Timber.d("S1103: executeScheduledOp $operationId")
             _events.send(LauncherHomeEvent.Message(R.string.launcher_scheduled_op_started))
             val result = executeScheduledOperation(operationId)
             _events.send(
@@ -453,7 +452,6 @@ class LauncherHomeViewModel @Inject constructor(
         // the third early return crossed detekt's ReturnCount limit.
         when {
             command is LauncherCellCommand.ScheduledOp -> {
-                Timber.d("S1170: scheduled op %d asks for confirmation", command.operationId)
                 viewModelScope.launch {
                     _events.send(LauncherHomeEvent.ConfirmScheduledOp(command.operationId))
                 }
@@ -477,7 +475,6 @@ class LauncherHomeViewModel @Inject constructor(
 
     /** Edit mode is state this ViewModel already owns; everything else needs the activity. */
     private fun runLauncherAction(actionKey: String) {
-        Timber.d("S1402: launcher action cell tapped: %s", actionKey)
         if (actionKey == LauncherActionCatalog.KEY_EDIT_DESKTOP) {
             setEditMode(true)
             return

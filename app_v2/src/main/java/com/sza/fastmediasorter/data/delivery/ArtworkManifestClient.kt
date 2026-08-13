@@ -51,7 +51,6 @@ class ArtworkManifestClient @Inject constructor(
     private suspend fun manifest(): ArtworkManifest? = mutex.withLock {
         cached?.let { return it }
         val fetched = fetch() ?: return null
-        Timber.d("S1483: artwork manifest fetched, sets=%d, generatedAt=%s", fetched.sets.size, fetched.generatedAt)
         cached = fetched
         fetched
     }

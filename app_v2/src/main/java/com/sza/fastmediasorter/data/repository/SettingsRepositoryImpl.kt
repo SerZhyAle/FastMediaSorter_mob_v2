@@ -944,7 +944,6 @@ class SettingsRepositoryImpl @Inject constructor(
      */
     private suspend fun decryptPassword(encryptedPassword: String?): String = withContext(Dispatchers.IO) {
         if (encryptedPassword.isNullOrEmpty()) return@withContext ""
-        Timber.d("S1517: decrypting default password on thread=%s", Thread.currentThread().name)
         val isEncrypted = runCatching {
             android.util.Base64.decode(encryptedPassword, android.util.Base64.NO_WRAP)
         }.isSuccess

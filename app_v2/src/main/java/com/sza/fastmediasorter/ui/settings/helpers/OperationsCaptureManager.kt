@@ -179,7 +179,6 @@ class OperationsCaptureManager(
      * overlay - and the explanation is the registry's, not this screen's.
      */
     private fun explainThenRequestLocation() {
-        Timber.d("S1436: geotag toggle explains location before requesting it")
         binding.rowCameraGeotag.setCheckedSilently(false)
         Snackbar.make(
             binding.root,

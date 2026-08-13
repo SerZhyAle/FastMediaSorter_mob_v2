@@ -102,7 +102,6 @@ class VrHudBannerRenderer(private val runtime: DiagnosticXrRuntime) {
      * next to the filename so the operator can see what the parser decided.
      */
     fun queueFilename(filename: String, projection: ProjectionType, layout: StereoLayout) {
-        Timber.d("S0961: filename HUD queued file=$filename proj=$projection layout=$layout")
         val bytes = generateFilenameHudBytes(filename, projection, layout)
         runtime.queueHud(bytes, HUD_BANNER_WIDTH, HUD_BANNER_HEIGHT)
     }

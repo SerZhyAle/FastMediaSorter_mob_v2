@@ -56,7 +56,6 @@ class DirectoryTreeTransferManager @Inject constructor(
         val destinationStrategy = strategyFor(destinationPath)
             ?: return@withContext Result.failure(noStrategy(destinationPath))
 
-        Timber.d("S1325: tree transfer delete=%s dest=%s", deleteSource, destinationPath)
         var transferred = 0
         val failures = mutableListOf<String>()
         val pending = ArrayDeque<Pair<String, String>>()

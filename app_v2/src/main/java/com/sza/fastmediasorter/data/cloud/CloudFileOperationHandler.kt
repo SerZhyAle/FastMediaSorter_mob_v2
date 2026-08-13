@@ -975,7 +975,6 @@ class CloudFileOperationHandler @Inject constructor(
                         )
                     }
                 }
-                Timber.d("S1361: upload attempt $attempt of $UPLOAD_MAX_ATTEMPTS for $fileName")
                 if (!isRetriableUploadFailure(result) || attempt == UPLOAD_MAX_ATTEMPTS) break
                 Timber.w("uploadToCloudFromPath: attempt $attempt/$UPLOAD_MAX_ATTEMPTS failed for $fileName, retrying")
                 delay(UPLOAD_RETRY_DELAYS_MS[attempt - 1])

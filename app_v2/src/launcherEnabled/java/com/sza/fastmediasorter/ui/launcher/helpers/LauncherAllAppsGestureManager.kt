@@ -58,7 +58,6 @@ class LauncherAllAppsGestureManager(
     private fun isDesktopAtTop(): Boolean {
         val atTop = viewport.scrollY == 0
         if (!atTop) {
-            Timber.d("S1401: swipe-up yielded to the desktop scroll, scrollY=%d", viewport.scrollY)
         }
         return atTop
     }

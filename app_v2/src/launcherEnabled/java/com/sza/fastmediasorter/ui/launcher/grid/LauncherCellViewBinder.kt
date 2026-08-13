@@ -18,7 +18,6 @@ import com.sza.fastmediasorter.databinding.ItemLauncherSectionHeaderBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
-import timber.log.Timber
 
 /**
  * S0404: fills [LauncherDesktopLayout] with cell views. Shortcuts draw an icon + label here, gadgets
@@ -98,15 +97,6 @@ class LauncherCellViewBinder(
         val key = RenderKey(cells, columns, editMode, rows, foldedSections)
         if (lastKey == key) return
         lastKey = key
-        Timber.d("S1173: desktop render cells=%d editMode=%b", cells.size, editMode)
-        Timber.d("S1288: desktop rows=%d viewportRows=%d editMode=%b", rows, viewportRows, editMode)
-        Timber.d(
-            "S1428: render folded=%d drawn=%d of %d cells editMode=%b",
-            foldedSections.size,
-            plan.size,
-            cells.size,
-            editMode,
-        )
         container.removeAllViews()
         container.columns = columns
         container.rows = rows
@@ -311,11 +301,6 @@ class LauncherCellViewBinder(
                 binding.cellIcon.setImageResource(visual.iconRes ?: R.drawable.ic_launcher_mode)
             }
         }
-        Timber.d(
-            "S1414: shortcut caption '%s' at %.1fpx",
-            binding.cellLabel.text,
-            binding.cellLabel.textSize,
-        )
         bindMonogram(binding, visual?.monogramSeed)
         bindModeBadge(binding, item.modeBadge)
         binding.root.contentDescription = describe(binding, item)

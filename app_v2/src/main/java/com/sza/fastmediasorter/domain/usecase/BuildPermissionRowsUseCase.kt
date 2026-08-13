@@ -25,7 +25,6 @@ class BuildPermissionRowsUseCase @Inject constructor(
 ) {
 
     operator fun invoke(entries: List<PermissionEntry>, context: Context): List<PermissionRow> {
-        Timber.d("S1436: building permission rows from ${entries.size} registry entries")
         val rows = mutableListOf<PermissionRow>()
         val required = entries.filterNot { it.optional }
         registry.getGroups().forEach { header ->

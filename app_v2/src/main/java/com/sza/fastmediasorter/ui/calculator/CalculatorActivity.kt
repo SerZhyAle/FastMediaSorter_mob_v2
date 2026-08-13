@@ -10,21 +10,16 @@ import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.databinding.ActivityCalculatorBinding
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorInputManager
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import timber.log.Timber
 
 @AndroidEntryPoint
 class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
-
-    @Inject
-    lateinit var settingsRepository: SettingsRepository
 
     private lateinit var inputManager: CalculatorInputManager
 
@@ -53,7 +48,7 @@ class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
     }
 
     override fun observeData() {
-        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+        collectOnLifecycle(appSettings) { settings ->
             renderAvailability(settings.enableCalculator)
         }
     }

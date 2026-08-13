@@ -63,9 +63,9 @@
 | `.\a.ps1 d`    | Fast reusable debug build (standard) |
 | `.\a.ps1 db`   | Fast reusable debug build, skip zip |
 | `.\a.ps1 dav`  | Debug build with timestamped app version |
-| `.\a.ps1 fk`   | Fast Kotlin compile check |
-| `.\a.ps1 fr`   | Fast resources/manifest check |
-| `.\a.ps1 fc`   | Fast code + resources check |
+| `.\a.ps1 fk`   | Fast Kotlin compile check (standard; add `-Flavor <name>` for any other) |
+| `.\a.ps1 fr`   | Fast resources/manifest check (`-Flavor` applies) |
+| `.\a.ps1 fc`   | Fast code + resources check (`-Flavor` applies) |
 | `.\a.ps1 fu`   | Fast full unit-test suite |
 | `.\a.ps1 flr`  | Fast lint-rules detector test suite (`:lint-rules:test`); `-Tests <filter>` narrows it |
 | `.\a.ps1 dc`   | Clean + debug build |
@@ -120,6 +120,11 @@ layer; `mobile-mcp` drives agent UI walks, Maestro runs repeatable flows
 .\a.ps1 fr                      # XML/resources/manifest/navigation changes
 .\a.ps1 fc                      # Small mixed code + resource changes
 
+# PER-FLAVOR PROOF - all six flavors, no dedicated letter needed
+.\a.ps1 fc -Flavor Lite         # also: Standard | NoLegal | Photos | Legacy | Vr
+.\a.ps1 fc -Flavor Legacy       # covers minSdk 23
+.\a.ps1 fc -Flavor Vr           # the only check that compiles src/vr
+
 # UNIT TESTS
 .\a.ps1 fu
 .\gradlew.bat testStandardDebugUnitTest
@@ -137,7 +142,8 @@ pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests
 2. `.\a.ps1 fr` for resource / manifest edits.
 3. `.\a.ps1 fc` for small mixed edits.
 4. `pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "..."` for focused logic changes.
-5. `.\a.ps1 d` only when you need APK packaging / installable artifact proof.
+5. `.\a.ps1 fc -Flavor <name>` per affected flavor when a change touches flavor-visible resources or flavor source sets. This is what satisfies a spec demanding proof on "every affected variant" - all six flavors are reachable and each call takes `BUILD.LOCK`, so the requirement never needs a direct `gradlew` call or a deferral (S1589; S1568 deferred it only because the flag was undocumented).
+6. `.\a.ps1 d` only when you need APK packaging / installable artifact proof.
 
 `.\a.ps1 dav` is the slow artifact path. It keeps timestamped in-app versioning, but each unique override creates a fresh configuration-cache entry by design.
 
@@ -485,6 +491,49 @@ Three facts a reader cannot derive from the commands:
 - **A key kept despite being unreferenced belongs in the baseline, with a reason.** `scripts/quality/assert-unreferenced-strings-baseline.txt` is an allowlist of names, not a count, so a new dead key cannot slip in behind a deleted one. The reason column is the record of why the key was kept - an unexplained entry is how the previous 397 accumulated.
 
 The three actions share one definition of "a reference", in `scripts/quality/lib/android-string-liveness.ps1`. Change it there, never in a caller.
+
+### Thirteen locales - S1627
+
+```powershell
+# WHAT DOES NOT YET REACH EVERY DECLARED LOCALE (0 clean, 3 non-empty, 1 unusable input)
+pwsh -NoProfile -File scripts/utils/list-new-lexemes.ps1
+
+# THE SAME SET AS A RELEASE BLOCKER (0 clean, 1 blocked, 2 cannot verify)
+pwsh -NoProfile -File scripts/quality/assert-new-lexemes-translated.ps1
+
+# THE BULK ROUND TRIP THAT CLEARS IT
+pwsh -NoProfile -File scripts/utils/locale-bulk-import.ps1 -TextPath <file returned by the translator>
+```
+
+The app declares thirteen interface locales in `app_v2/src/main/res/xml/locales_config.xml`. Three - `en`, `ru`, `uk` - are authored and must stay complete. The other ten are machine-translated in bulk and are allowed to lag, but only until the release. The loop, in order:
+
+1. Writing a key with `set-android-string.ps1 -Action add` names the locales the call left empty and prints a ready-to-paste `-Translations` fragment. A hint, not a refusal.
+2. Closing a ticket that touched a strings file prints the `new-lexeme-count` advisory. Also not a refusal.
+3. The pre-release sweep runs step `0.8`, which **is** the refusal. `list-new-lexemes.ps1` writes `temp/S1627/new_lexemes_en.txt`; that file goes to the external translation service, each returned file comes back through `locale-bulk-import.ps1`, and the step is re-run until it is 0.
+
+Three facts a reader cannot derive from the commands:
+
+- **The refusal sits at the release, not at the ticket, by owner decision (strategic ADR-2).** Nothing ships between releases, so translating each key the day it is written buys the user nothing while costing ten translations per ticket; one batch per release costs one round trip for all of them.
+- **A missing translation is an absent key, never an English copy (ADR-6, S1190).** Android falls back to English on its own, so a partial locale is a shippable state. This is why the producer asks each locale's resource file which keys it carries, rather than comparing values.
+- **`scripts/quality/locale-untranslated-baseline.txt` holds identities, not a count.** It froze the 19 keys already untranslated on 2026-08-14 - all of them `S1626`'s placeholder-misread phrasings - so a pre-existing gap cannot be reported as new. A count would let a new key slip in behind an old one cleared in the same release. Entries leave the file as `S1626` fixes them; the producer reports a cleared entry as stale.
+
+### Maestro oracle convention - S1612
+
+```powershell
+# GATE (fails on any flow that can be green without proving anything)
+pwsh -NoProfile -File scripts/quality/assert-maestro-oracle.ps1
+
+# ALSO RUNS INSIDE THE FAST STATIC BATCH
+pwsh -NoProfile -File scripts/quality/assert-fast-gates.ps1
+```
+
+Scans `maestro/` and `scripts/devtest/maestro/` for the three authoring mistakes that make a flow green while proving nothing. The authoritative rule text lives in `maestro/WRITING_TESTS.md` section "Oracle convention" - the gate encodes exactly those rules and must not drift from them.
+
+Three facts a reader cannot derive from the commands:
+
+- **`optional: true` is judged by what it is attached to, not by where it appears.** On a navigation `tapOn` whose target genuinely varies - a system permission dialog, a skippable onboarding page - it is correct and stays. On `assertVisible` / `assertNotVisible` it turns the proof into a no-op that passes either way, so the gate tracks the enclosing command opener rather than matching the line on its own.
+- **A regex selector does not fail loudly, it fails silently.** Maestro does not reliably match `id: ".*settings.*"`, so the step never fires and the flow proceeds green. This is why the rule is mechanical: a reviewer reading the YAML sees an intention that the runtime never carries out.
+- **Every exemption names its reason and its exit condition.** `$exemptRelativePaths` in the gate holds `_shared/permissions.yaml` permanently (a fragment of nothing but optional permission taps, which the convention sanctions) and the two `device_only/3d-video-*.yaml` flows temporarily, pending S1618 - they drive a "Playback Settings" dialog that is unreachable from the player UI, so their regex selectors cannot be replaced with real ids because those ids do not exist.
 
 ## BUILD TYPES
 

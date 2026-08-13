@@ -26,3 +26,11 @@ the price of a permanent duplicate entry - strictly worse. Discharge the real ob
 the named records, check every untouched sibling for the same edit, and write what you found and why no
 sibling needed changing into the phase file or the audit block. `PASS WITH ADVISORIES` with the
 reasoning recorded beats a bare `PASS` bought with a corrupted changelog.
+
+**The S1622 guard does NOT cover a re-run whose description changed (measured 2026-08-13, S1589).** Its
+dedup deliberately treats a materially different description as a different change - goal 2 of S1622
+requires exactly that, so a description that is a prefix of a longer one writes its own row. The
+`[set of N: ..]` suffix is the only part it ignores. So if the re-run adds a file AND you rewrite the
+description to name it, you get two rows and the script is behaving correctly. Keep the description
+**byte-identical** across a re-run to let the guard collapse it; if you must change it, expect the
+second row and remove the stale one deliberately.

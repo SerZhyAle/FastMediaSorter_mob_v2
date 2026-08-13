@@ -1,0 +1,103 @@
+# Стратегическая спецификация: S0088 — Snapshot-тест геометрии VR видеослоя
+
+**Ticket:** S0088
+**Status:** Verified
+**Implemented date:** 2026-05-05
+**Tactical plan:** `PLAN/S0088_test-vr-video-layer-geometry-snapshot/INDEX.md`
+**Priority:** 15
+**Date:** 2026-05-05
+**Tier:** 4 — Low
+**Roadmap entry:** Spin-off из S0027 (закрыт Verified) — item §11.5 не верифицирован автоматически.
+
+> **Scope:** STRATEGIC. Цели, ограничения, открытые вопросы. Без имён классов, путей, лимитов строк, миграций Room, модулей Hilt.
+
+---
+
+## 1. Проблема
+
+После фикса S0027 ориентация VR видеослоя исправлена: `vLens = 0.5 - 0.5 * r * sin(az)` (V-axis корректен), `VideoLayerGeometry` логируется при каждом `applyLayerDescriptor`. Регрессионный тест (S0027 §11.5) так и не создан — инверсию orientation/V-axis можно снова не заметить без надевания шлема. Это единственный незакрытый пункт из S0027 Last Audit FAIL.
+
+---
+
+## 2. Цели
+
+1. Unit-тест ловит инверсию V-axis в fisheye-шейдере: если `vLens` вдруг вернётся к `+ 0.5 * r * sin(az)` — тест падает.
+2. Unit-тест проверяет snapshot `VideoLayerGeometry` для каждого поддерживаемого режима (CINEMA_QUAD, EQUIRECT_2 180°, EQUIRECT_2 360°): при изменении параметров геометрии тест падает с diff'ом.
+3. Тест выполняется в CI без устройства (JVM unit-тест или instrumented с mock OpenXR).
+
+**Non-goals:**
+
+- Не тестируется рантайм OpenXR на реальном железе.
+- Не покрывается стерео-рассогласование (left/right swap) — если понадобится, отдельная задача.
+- Не покрывается fisheye-дисторсия (S0012).
+
+---
+
+## 3. Ограничения
+
+- **Flavor:** только VR-флейвор.
+- **Без новых зависимостей:** тест использует только существующий шейдер/код геометрии + стандартный JUnit.
+
+---
+
+## 4. Контекст текущей архитектуры
+
+- `VrStereoRenderer.kt` содержит fisheye-шейдер с V-axis комментарием (WHY-блок). Шейдерный GLSL — строка внутри Kotlin-файла, парсится как строка.
+- `applyLayerDescriptor` в `OpenXrSessionManager.kt` пишет `VideoLayerGeometry` лог — это единственная точка вывода геометрии.
+- `VrLayerDescriptorFactory` (или аналог) вычисляет `centralHorizontalAngleRadians`, `upper/lowerVerticalAngleRadians`, `radiusMeters` per-режим.
+
+---
+
+## 5. Предлагаемый подход
+
+**Тест 1 — V-axis assertion:**
+Парсить GLSL-строку fisheye-шейдера из `VrStereoRenderer` как строку. Проверять, что `vLens`-строка содержит `"- 0.5 * r * sin(az)"`, а не `"+ 0.5 * r * sin(az)"`. Упрощённо: `assertContains(fisheyeFragSrc, "0.5 - 0.5 * r * sin(az)")`.
+
+**Тест 2 — VideoLayerGeometry snapshot:**
+Вызвать фабрику геометрии для каждого режима. Сравнить параметры с зафиксированными эталонными значениями (snapshot). При первом прогоне — сгенерировать snapshot; при последующих — сравнивать. Допустимый delta для float: `1e-4`.
+
+---
+
+## 6. Открытые вопросы
+
+1. Шейдерная строка доступна как Kotlin `companion object val` или только как приватное поле? Если приватное — нужен `@VisibleForTesting` или рефакторинг в `object`.
+2. `VrLayerDescriptorFactory` — существует отдельный класс или параметры считаются inline в `OpenXrSessionManager`? Если inline — стоит ли выносить для тестируемости?
+
+---
+
+## 7. Риски
+
+| Риск | Вероятность | Митигация |
+|---|:---:|---|
+| Шейдер как приватная строка — тест требует рефакторинга | Средняя | `@VisibleForTesting` без изменения логики |
+| Snapshot устаревает при легитимном изменении параметров | Низкая | Snapshot обновляется вручную с явным diff в PR |
+
+---
+
+## 8. Связи
+
+- **S0027** (Verified) — источник; §11.5 этой задачи не был закрыт автоматически.
+- **S0012** (Implemented) — fisheye-форматы; тест должен покрывать форматы из S0012.
+
+---
+
+## 9. Критерии готовности
+
+1. Тест 1 (V-axis): `assertContains` на шейдерную строку — проходит в `./gradlew testVrDebugUnitTest`.
+2. Тест 2 (snapshot): параметры geom для 3 режимов зафиксированы; тест падает, если любой float отклонился > `1e-4`.
+3. Тест намеренно нарушает V-axis (`vLens = 0.5 + ...`) — тест 1 падает. Smoke-проверка self-consistency.
+
+---
+
+## Last Audit
+
+**Date:** 2026-05-05
+**Mode:** full
+**Flags:** —
+**Outcome:** Verified
+**Counts:** PASS 15 · WARN 0 · FAIL 0 · MANUAL 2 · EXEMPT 0
+
+### Manual / on-device
+
+- [ ] §9.1 Run `./gradlew testVrDebugUnitTest` — verify both tests pass green.
+- [ ] §9.3 Smoke-check: temporarily flip `0.5 - 0.5 * r * sin(az)` to `0.5 + ...` and confirm Test 1 fails.

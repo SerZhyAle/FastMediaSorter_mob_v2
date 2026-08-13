@@ -64,7 +64,6 @@ class ApplyProfilePresetUseCase @Inject constructor(
      */
     suspend fun applySettingsOnly(profileType: DeviceProfileType): Result<Boolean> {
         val overrides = presetDataSource.load()[profileType].orEmpty()
-        Timber.d("S1216: apply $profileType with ${overrides.size} preset overrides")
         return try {
             // S0876: transform overload (mutex-serialized read+write) - Welcome invokes this during
             // onboarding, overlapping the enable-all flow's concurrent deliverable-install writers.

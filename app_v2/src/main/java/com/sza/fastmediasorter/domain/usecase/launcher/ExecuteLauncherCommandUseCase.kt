@@ -40,7 +40,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
 ) {
 
     suspend fun launch(command: LauncherCellCommand): Boolean {
-        Timber.d("S1435: launcher command funnel entered, command=%s", command)
         val started = when (command) {
             is LauncherCellCommand.App -> launchPackage(command.packageName)
             is LauncherCellCommand.Feature -> launchFeature(command.routeKey)
@@ -73,7 +72,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
         val route = InternalRouteCatalog.byKey(routeKey) ?: return false
         val availability = resolveRouteAvailability(routeKey)
         if (routeKey == InternalRouteCatalog.KEY_NETWORK_MONITOR) {
-            Timber.d("S1433: launch Network Monitor from launcher, enabled=%s", availability.isLaunchable)
         }
         return when {
             availability.isLaunchable -> startIntent(route.intent(context))
@@ -106,7 +104,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             Timber.i("Launcher: stream %s is no longer in the catalog", streamId)
             return false
         }
-        Timber.d("S1471: launcher stream tile hands off to the trampoline")
         // S1471: the trampoline, not the Streams screen - this one command backs both the launcher
         // desktop tile and the Streams gadget row, so both surfaces get the screen-less start.
         return startIntent(StreamPlayLaunchActivity.createIntent(context, source.url))
@@ -155,7 +152,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             return false
         }
         val started = startIntent(intent)
-        Timber.d("S1176: run action=%s started=%b", target.action.name, started)
         return started
     }
 
@@ -189,7 +185,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
     }
 
     private fun favoriteFileIntent(command: LauncherCellCommand.FavoriteFile): Intent {
-        Timber.d("S1170: favourite row opens resource %d", command.resourceId)
         return PlayerActivity.createPanelIntent(
             context = context,
             resourceId = command.resourceId,
@@ -207,7 +202,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
 
     /** Uses only documented Maps URLs and intents; no Maps-internal activity names are relied upon. */
     private fun geographicIntent(command: LauncherCellCommand.Geographic): Intent {
-        Timber.d("S1175: geographic cell tapped, action=%s", command.action)
         return geographicIntentFor(command)
     }
 

@@ -604,13 +604,11 @@ class CommandPanelController(
         popup.setForceShowIcon(true)
 
         val iconColor = android.graphics.Color.DKGRAY
-        Timber.d("S1365: overflow menu opened for type=${currentFile.type}, ${commands.size} commands")
 
         // S1364: count the section's members before creating it - Android does not hide an empty
         // submenu, and on a video or text file none of these commands is emitted at all. Same
         // count-then-guard order as SendToMenuManager.buildOverflowSubMenu().
         val editCommands = commands.filter { it in EDIT_SUBMENU_COMMANDS }
-        Timber.d("S1364: editing section members=${editCommands.size}, autorotate=${state.playerRotationSensorEnabled}")
         val editSubMenu = if (editCommands.isEmpty()) {
             null
         } else {

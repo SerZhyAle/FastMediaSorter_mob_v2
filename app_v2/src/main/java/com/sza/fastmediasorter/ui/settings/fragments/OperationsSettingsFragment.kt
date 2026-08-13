@@ -455,7 +455,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         }
         binding.rowEnableNetworkMonitor.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            Timber.d("S1433: Network Monitor enabled=%s", isChecked)
             viewModel.updateSettings(viewModel.settings.value.copy(enableNetworkMonitor = isChecked))
         }
         binding.rowEmbeddedGame.setOnCheckedChangeListener { isChecked ->

@@ -61,11 +61,6 @@ internal object GoogleDriveMultipartUploader {
         // risks an OOM on large media and lets the socket buffer absorb the upload so the response
         // read starts - and its budget expires - before the bytes have left the device.
         if (declaredLength > 0L) connection.setFixedLengthStreamingMode(declaredLength)
-        Timber.d(
-            "S1361: Drive upload $fileName streamed=${declaredLength > 0L} body=$declaredLength " +
-                "readBudgetMs=${HttpTimeouts.uploadReadTimeoutMs(declaredLength)}"
-        )
-
         return try {
             val outputStream = connection.outputStream
             outputStream.write(preamble)

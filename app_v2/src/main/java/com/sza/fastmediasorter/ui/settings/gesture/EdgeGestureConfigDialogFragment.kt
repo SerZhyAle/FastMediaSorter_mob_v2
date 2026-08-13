@@ -145,7 +145,6 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
             val packageName = bundle.getString(AppPickerDialogFragment.RESULT_PACKAGE).orEmpty()
             val slot = pendingAppSlot
             pendingAppSlot = null
-            Timber.d("S1036: app picker returned '%s' for slot %s", packageName, slot)
             if (slot != null && packageName.isNotEmpty()) {
                 manager?.onAppPicked(slot.first, slot.second, packageName)
             }

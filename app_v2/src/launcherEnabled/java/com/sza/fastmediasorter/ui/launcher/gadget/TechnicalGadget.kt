@@ -63,7 +63,6 @@ private class TechnicalGadgetView(
     }
 
     override suspend fun CoroutineScope.onActive() {
-        Timber.d("S1178: technical gadget %s active", key)
         while (isActive) {
             render(formatter.format(provider.read()))
             // The period belongs to the metric, not to this view: uptime moves every second while total

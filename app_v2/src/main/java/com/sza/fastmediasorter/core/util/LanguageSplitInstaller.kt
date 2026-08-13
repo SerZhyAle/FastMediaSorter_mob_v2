@@ -45,7 +45,6 @@ class LanguageSplitInstaller @Inject constructor(
      * goes away takes the wait with it.
      */
     suspend fun ensureLanguage(languageTag: String): Outcome {
-        Timber.d("S1190: language split requested for %s", languageTag)
         val locale = Locale.forLanguageTag(languageTag)
         if (locale.language.isEmpty()) {
             Timber.i("LanguageSplitInstaller: '%s' is not a language tag", languageTag)

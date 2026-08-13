@@ -115,7 +115,6 @@ class LauncherTaskbarManager(
             return
         }
         reportedRecentsCapacity = capacity
-        Timber.d("S1431: taskbar tray visible=%s recents capacity=%d", binding.trayContainer.isVisible, capacity)
         onRecentsCapacity(capacity)
     }
 }

@@ -134,6 +134,37 @@ class AppShortcutDataSource @Inject constructor(
             ?.let { info -> toShortcut(service, packageName, info) }
     }
 
+    /**
+     * S1613: every shortcut the platform still records as pinned by *this* launcher, across all packages.
+     *
+     * This is the launcher's own pinned set and the only one readable: the query flag for shortcuts pinned
+     * by any launcher needs a permission absent from the public platform API, so a foreign launcher's
+     * desktop cannot be imported at all - only what was pinned here.
+     *
+     * Icons are deliberately not decoded: the desktop cell resolves its own through [pinned] when it draws,
+     * and the caller runs before the first grid draw.
+     */
+    fun allPinned(): List<AppShortcut> {
+        val service = launcherApps?.takeIf { isHostPermitted() } ?: return emptyList()
+        val query = LauncherApps.ShortcutQuery()
+            .setQueryFlags(LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED)
+        val infos = try {
+            service.getShortcuts(query, Process.myUserHandle())
+        } catch (e: SecurityException) {
+            Timber.i(e, "Launcher pin: no longer the home app, cannot list the pinned set")
+            null
+        } catch (e: IllegalStateException) {
+            Timber.i(e, "Launcher pin: user locked or unavailable while listing the pinned set")
+            null
+        }
+        val raw = infos.orEmpty()
+        val pinned = raw
+            .filter { it.isEnabled }
+            .map { info -> toShortcut(service, info.`package`, info, decodeIcon = false) }
+        Timber.d("S1613: pinned set for this launcher - %d raw, %d live", raw.size, pinned.size)
+        return pinned
+    }
+
     /** Starts one shortcut; [sourceBounds] feeds the system launch animation. */
     fun start(packageName: String, shortcutId: String, sourceBounds: Rect?): Boolean {
         if (!isHostPermitted()) return false
@@ -153,15 +184,20 @@ class AppShortcutDataSource @Inject constructor(
         }
     }
 
+    /**
+     * [decodeIcon] false skips the drawable: a caller that only needs identity and caption pays a binder
+     * round trip instead of a bitmap decode per shortcut.
+     */
     private fun toShortcut(
         service: LauncherApps,
         packageName: String,
         info: ShortcutInfo,
+        decodeIcon: Boolean = true,
     ): AppShortcut = AppShortcut(
         id = info.id,
         packageName = packageName,
         label = (info.shortLabel?.toString()?.takeIf { it.isNotBlank() } ?: info.longLabel?.toString()).orEmpty(),
-        icon = iconOf(service, info),
+        icon = if (decodeIcon) iconOf(service, info) else null,
         isEnabled = info.isEnabled,
         disabledMessage = info.disabledMessage?.toString(),
     )

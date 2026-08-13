@@ -62,7 +62,6 @@ class MicRecordingSaver @Inject constructor(
         browsedResource: MediaResource?,
         upload: suspend (tempFile: File, name: String, resource: MediaResource) -> Boolean,
     ): Result {
-        Timber.d("S1354: microphone capture local destination save")
         val targetResource = resolveMicSaveResource(browsedResource)
         var success = false
         var savedPath: String? = null

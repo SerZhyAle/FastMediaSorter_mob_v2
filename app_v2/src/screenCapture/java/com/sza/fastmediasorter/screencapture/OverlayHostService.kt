@@ -104,7 +104,6 @@ class OverlayHostService : Service() {
                 overlayManager.hide()
                 overlayManager.show(stripVisibleZones, enabledZones, zoneActions)
                 overlayVisible = true
-                Timber.d("S1162: overlay host resolved actions for ${zoneActions.size} zone(s)")
             } catch (e: Exception) {
                 Timber.e(e, "OverlayHostService: failed to start overlay host")
                 stopOverlayHost()
@@ -143,7 +142,6 @@ class OverlayHostService : Service() {
 
     private fun startForegroundCompat() {
         createChannel()
-        Timber.d("S1399: overlay-host service notification built with the branded status-bar icon")
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentTitle(getString(R.string.screen_capture_service_notification_title))

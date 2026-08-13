@@ -117,7 +117,6 @@ internal suspend fun VideoPlayerManager.playSmbVideo(
     // before this call overwrites the field.
     releaseIfRacedPlayer()
 
-    Timber.d("S1056: SMB renderers factory applied")
     exoPlayer = ExoPlayer.Builder(context)
         .setRenderersFactory(createPlaybackRenderersFactory(context))
         .setMediaSourceFactory(

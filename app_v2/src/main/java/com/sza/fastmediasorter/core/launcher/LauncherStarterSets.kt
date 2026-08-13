@@ -196,12 +196,16 @@ object LauncherStarterSets {
      *
      * S1428: the second header is what ends the first section. Membership is positional and the last
      * section on the desktop has no lower bound, so a single header would own every cell below it.
+     *
+     * S1613: [importedShortcuts] land at the tail of the content section, never inside the app-functions
+     * section, and any whose target the starter set already placed is dropped.
      */
     fun itemsFor(
         profile: DeviceProfileType,
         resources: StarterResources,
         routeAvailableInBuild: Map<String, Boolean>,
         installedPackages: Set<String>,
+        importedShortcuts: List<StarterItem> = emptyList(),
     ): List<StarterItem> {
         val streamsAvailable = routeAvailableInBuild[InternalRouteCatalog.KEY_STREAMS] == true
         val items = mutableListOf(section(LauncherCellCommand.SECTION_EVERYTHING_ELSE))
@@ -214,6 +218,8 @@ object LauncherStarterSets {
         items += profileItems(profile, resources, streamsAvailable, installedPackages)
         items += commonFeatures(routeAvailableInBuild)
         items += commonThirdPartyApps(installedPackages)
+        val placedTargets = items.mapTo(mutableSetOf()) { it.target }
+        items += importedShortcuts.filterNot { it.target in placedTargets }
         items += section(LauncherCellCommand.SECTION_APP_FUNCTIONS)
         items += launcherActions(profile)
         items += commonTail()

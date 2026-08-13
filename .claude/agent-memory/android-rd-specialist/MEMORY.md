@@ -8,44 +8,40 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps growth.
 - [Finish follow-ups](feedback_finish_mechanical_followups_in_context.md) · [Skill aliases](feedback_skill_aliases.md) · [/quick+Sxxxx still closes](feedback_skill_fix_with_ticket_id_still_closes_ticket.md) - skip-list is id-less only
 - [Agent Kit](reference_universal_agent_kit.md) · [No paid services](feedback_no_paid_or_key_services.md) · [Open-Meteo](project_weather_gadget_open_meteo.md)
 - [fms_companion](project_fms_companion_subproject.md) - Go+Wails, out of repo · [Windows rebrand](project_fms_windows_rebrand.md)
-- [Process audit](project_process_audit_2026_07.md) - context×turns · [Mining](reference_transcript_cost_mining.md) · [Canon copy](reference_canon_working_copy.md) - stale
+- [Process audit](project_process_audit_2026_07.md) - context×turns · [Mining](reference_transcript_cost_mining.md)
 
 ## Devices & release
 - [Devices](reference_test_device_galaxy_s21.md) · [adb CLI](reference_adb_swiss_army.md) + [.debug pkg](reference_adb_and_debug_package.md)
 - [No system roles on owner phones](feedback_never_grant_system_roles_on_owner_phone.md) · [test media](reference_setup_test_media.md) · [gh CLI](reference_gh_cli_location.md)
-- [am start refused for non-exported](feedback_am_start_refused_for_non_exported.md) - drive the real trigger; prove by effect
-- [logcat -d wraps in ~2 min](feedback_logcat_dump_wraps_before_you_read_it.md) - stream to a file, never dump after
-- [R8 mapping is per-build](project_r8_mapping_is_per_build.md)
+- [am start refused for non-exported](feedback_am_start_refused_for_non_exported.md) - drive the real trigger
+- [logcat -d wraps in ~2 min](feedback_logcat_dump_wraps_before_you_read_it.md) - stream to a file
 - [Play API read-only](reference_play_console_api_access.md) · [FGS precedent](project_play_release_in_review.md) · [Reach = screen.*](project_play_device_reach_screen_portrait.md)
 - [API != public page](project_play_listing_api_vs_public_page.md) · [No coverage regression](feedback_release_no_coverage_regression.md) · [OCR versions](feedback_release_check_ocr_translate_versions.md)
 - [Crash scan = ANR only](project_crash_scan_blind_to_java_crashes.md) · [Store art](project_store_screenshot_capture_traps.md)
-- [Maestro flaky](project_prerelease_maestro_harness_flaky.md) · [Car head unit](project_owner_runs_app_on_car_head_unit.md) · [3rd-party branding](feedback_third_party_branding_not_a_blocker.md)
+- [Maestro flaky](project_prerelease_maestro_harness_flaky.md)
 - [Release gotchas](project_skill_release_gotchas.md) · [Archive after release](feedback_archive_after_every_release.md) · [emulator-only](feedback_prerelease_emulator_only.md)
 
 ## Emulator & device testing
 - [Capture](reference_emulator_capture_family_testing.md) - reshape, never rotate + [MediaProjection](reference_emulator_mediaprojection_capture.md)
 - [AVD quirks](feedback_avd_device_sweep_gotchas.md) + [media](feedback_avd_mediastore_not_indexed.md) + [taps](feedback_bottomsheet_menu_untappable_emulator.md)
-- [Stylus overlay eats typed text](feedback_stylus_overlay_eats_typed_text.md) - tree lies; keyboard shifts dialogs
+- [Stylus overlay eats typed text](feedback_stylus_overlay_eats_typed_text.md) - tree lies
+- [Maestro needs ru app locale](feedback_maestro_suite_needs_ru_app_locale.md) - log mojibake is display-only + [flow traps](feedback_maestro_flow_authoring_traps.md) - ASCII-only inputText
 - [Acceptance ceiling](feedback_emulator_acceptance_ceiling.md) · [False negatives](feedback_avd_evidence_traps_width_and_logs.md)
 - [Onboarding](feedback_onboarding_device_test_gotchas.md) · [Widget-only](reference_trigger_widget_only_features_on_emulator.md) · [Too fast for transfer UI](feedback_emulator_too_fast_for_transfer_ui.md)
-- [Reset settings, keep onboarding](feedback_reset_appsettings_without_onboarding.md) - drop the DataStore file, never `pm clear`
+- [Reset settings, keep onboarding](feedback_reset_appsettings_without_onboarding.md) - drop the DataStore file
 - [Launcher desktop](feedback_launcher_desktop_device_test_setup.md) - HOME ships disabled · [Theme switch](feedback_color_theme_device_switch.md)
 - [Animator scale first](feedback_check_animator_scale_before_diagnosing.md) - AVDs run scale=0 · [Dialogs under wm](feedback_dialogs_invisible_under_wm_override.md)
-- [Black shot = FLAG_SECURE](feedback_black_screenshot_means_flag_secure.md) · [Popup absent = modality](feedback_popup_invisible_to_uiautomator_is_modality.md)
-- [Voice transcription](reference_voice_note_transcription.md)
 
 ## Build, flavors, gates
 - [Not your CODE.LOCK](feedback_code_lock_release_ownership.md) · [No concurrent gradle](feedback_no_concurrent_gradle_invocations.md)
 - [Don't idle on a lock](feedback_do_not_idle_on_a_lock.md) · [Lock per step, not ticket](feedback_code_lock_is_per_step_not_per_ticket.md)
-- [Lock pid is always dead](feedback_code_lock_pid_is_always_dead.md) - judge by transcript
-- [Lock denial doesn't stop the batch](feedback_code_lock_denial_does_not_stop_the_batch.md) - exit 4 reads friendly
+- [Lock denial doesn't stop the batch](feedback_code_lock_denial_does_not_stop_the_batch.md)
 - [agent-lock has no CLI](project_agent_lock_release_lies.md) - use `exit-code-lock.ps1`
-- [Host big binaries, don't commit](feedback_big_binaries_hosted_not_committed.md)
 - [No redundant flavor compile](feedback_no_redundant_flavor_compile.md) · [BuildConfig names lie](feedback_dont_infer_from_buildconfig_names.md) · [Lowest flavor wins](feedback_push_features_to_lowest_flavor.md)
 - [Capability != Availability](project_flavor_flags_ratchet_blocks_capability_availability.md) - copy LauncherModeContract
 - [Flavor grid generated](project_flavor_matrix_cloud_correction.md) · [photos/lite OCR](project_photos_flavor_ocr_break.md)
 - [S0386 native-attach API36](project_s0386_native_attach_broken_api36.md) · [.so bundle vs on-demand](project_native_so_bundle_standard_vs_ondemand_nolegal.md)
-- [screenCapture noLegal-only](project_screencapture_nolegal_only.md) · [gates gesture](project_screencapture_gates_gesture_capability.md)
+- [screenCapture ships in standard too](project_screencapture_nolegal_only.md) - filename lies; both flags on · [gates gesture](project_screencapture_gates_gesture_capability.md)
 - [manifest.srcFile wins](project_agp_manifest_srcfile_overrides_flavor_manifest.md) · [MSAL hash per keystore](project_msal_signing_hash_per_keystore.md)
 - [material-icons stays](project_material_icons_extended_not_removable.md) · [Phantom unresolved ref](project_incremental_build_phantom_unresolved.md)
 - [Build gotchas](project_build_gotchas.md) + [no redirect in pwsh tool](feedback_build_output_pipe_truncation.md) - `*>` fakes exit 255 + [a.ps1](feedback_aps1_launcher_pwsh_cwd.md)
@@ -53,7 +49,6 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps growth.
 - [Unmask kapt NPE](project_kapt_npe_unmask.md) + [subagent claims](feedback_verify_subagent_build_failures.md) · [Remove dead config](feedback_remove_dead_applications_too.md)
 - [Ctor change -> compile tests](feedback_constructor_change_compile_tests.md) + [pre-existing fails](feedback_build_pre_existing_test_failures.md)
 - [fk misses the Hilt graph](feedback_fk_does_not_validate_hilt_graph.md) - MissingBinding hides
-- [Binding field types](feedback_check_generated_binding_types.md) · [No glob path in KDoc](feedback_kdoc_nested_comment_glob_path.md)
 
 ## detekt / lint / gates / logging
 - **OPEN BEFORE WRITING ANY KOTLIN:** [detekt-clean first time](feedback_write_detekt_clean_first_time.md) - ReturnCount>2, MagicNumber, >120-char lines, brace-less if/else.
@@ -91,6 +86,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps growth.
 - Second-level index: [streams, VR/XR, camera, player family](INDEX_streams_vr.md) - open it when the task touches any of those; nothing else needs them.
 
 ## Spec lifecycle & catalog
+- [Rework = new ticket](feedback_new_ticket_not_reopen_for_rework.md) - never reopen a shipped one; old id is context only
 - [Unblocks at BlockNeedUserTest](feedback_blocker_unblocks_at_needusertest.md) - don't wait for Verified
 - [Tags may be line-wrapped](feedback_probe_tag_multiline_grep.md) · [Verify spec id first](feedback_verify_spec_id_before_pipeline.md)
 - [DRIFT from a commit mention](feedback_drift_check_false_positive_on_commit_mention.md) - 0 markers = not done
@@ -99,7 +95,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps growth.
 - [Owner gate](feedback_strategic_spec_owner_gate.md) · [§3.3 ≠ owner ruling](feedback_spec_tech_ui_placement_refusal.md) · [plan quality](feedback_spec_tech_plan_quality.md) · [Phase audit](feedback_phase_boundary_audit.md)
 - [Verify code first](feedback_spec_dev_continue_verify_code_first.md) · [Plan file lists can be wrong](feedback_tactical_plan_file_list_may_be_wrong.md)
 - [Capture may be superseded](feedback_old_capture_may_be_superseded.md) · [Dead code may be scaffolding](feedback_dead_code_vs_active_tickets.md)
-- [Superseded phases: delete, don't tick](feedback_delete_superseded_phase_files_not_tick.md) - /spec-dev would undo the newer ticket
+- [Superseded phases: delete, don't tick](feedback_delete_superseded_phase_files_not_tick.md) - /spec-dev would undo it
 - [Never call scaffolding done](feedback_no_scaffolding_as_done.md) · [no fake autopilot blocker](feedback_no_safety_blocker_gating_autopilot.md)
 - [No quotes in -StatusNote](feedback_status_note_quotes_corrupt_catalog.md)
 - [Status before gate](feedback_blockneedusertest_status_before_gate.md) + [tags](feedback_timber_tags_before_test.md) + [phases](feedback_per_phase_debug_tags_break_gate.md) · [close.ps1 2-step](project_close_ps1_two_step_unblock.md)
@@ -107,6 +103,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps growth.
 - [Busy = lease, not status](feedback_ticket_busyness_is_a_lease_not_a_status.md) + [queue driver goes mute in Stage 0](project_spec_all_queue_driver_stage0_silence.md)
 - [Long gap voids the round](feedback_long_gap_invalidates_round_state.md)
 - [Capability inventory](project_functionality_log.md) · [flavors from the gate](feedback_feature_record_flavors_from_gate.md) · [noLegal features](feedback_features_nolegal.md)
+- [Owner translates in bulk](project_owner_external_translation_route.md) - flat line file out, per-language file back; never hand-translate the ten
 - [exit codes](project_spec_catalog_exit_code_contract.md) · [delete is soft](project_spec_catalog_delete_is_soft_and_ids_burn.md) · [insert -File](project_insert_ps1_file_validation.md) · [Scan roots](project_catalog_scan_source_sets.md) · [Dedup: 1 word](feedback_spec_dedup_query_shape.md)
 - [set.ps1 stops](project_catalog_set_ps1_stops_on_error.md) · [-Search coverage](reference_catalog_search_coverage.md) · [Big-file decomposition](project_s0002_decomposition_toolkit.md)
 
@@ -119,6 +116,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps growth.
 - [string[] CSV via -File](feedback_string_array_param_csv_via_file.md) + [-DevLogs](feedback_devlogs_array_binding.md) · [strings tool](reference_strings_tool.md) + [main/res only](feedback_string_tools_main_res_only.md)
 - [Grep mangles `//`](feedback_grep_output_mangles_comment_markers.md)
 - [rg skips CATALOG](feedback_rg_gitignore_catalog.md) · [BG exit = the echo](feedback_background_task_exit_code_is_echo.md) + [no probe echo](feedback_no_flush_echo_commands.md)
+- [`Select -First N` detaches a running script](feedback_select_first_detaches_running_script.md) - state read next is mid-write
 - [$LASTEXITCODE guard after a cmdlet](feedback_lastexitcode_null_after_cmdlet.md)
 - [Workflow journal](reference_workflow_journal_recovery.md) + [args trap](reference_workflow_args_trap.md)
 
@@ -129,7 +127,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps growth.
 - [Silent != stuck](feedback_silent_subagent_is_not_stuck.md)
 - [Welcome consolidation](feedback_welcome_process_consolidation.md) · [5h limit](feedback_workflow_session_limit_budget.md) · [Don't stop on a guess](feedback_dont_stop_loop_on_context_guess.md)
 - [ScheduleWakeup is /loop-only](feedback_schedulewakeup_loop_mode_only.md) · [Never style-edit a spec](feedback_no_ellipsis_edits_in_verbatim_code_spans.md) · [Edit splice](feedback_edit_line_delete_splice.md)
-- [Pre-S1332 logs void](project_pre_s1332_log_evidence_untrustworthy.md) · [An invariant is a claim](feedback_documented_invariant_is_a_claim.md)
+- [An invariant is a claim](feedback_documented_invariant_is_a_claim.md)
 - [Audit the fixes too](feedback_audit_fixes_need_their_own_round.md)
 - [javap the android.jar](feedback_verify_platform_api_with_javap.md) · [Verify owner's mechanism](feedback_verify_owner_proposed_remedy_mechanism.md)
 - [Signed-off needs widget check](feedback_owner_signed_values_still_need_widget_validation.md) · [Never pass inference as owner's](feedback_never_attribute_agent_inference_to_owner.md)

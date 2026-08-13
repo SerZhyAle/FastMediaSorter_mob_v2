@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import com.sza.fastmediasorter.ui.player.helpers.StreamQualityStepDownController.Cap
+import com.sza.fastmediasorter.ui.player.helpers.StreamQualityStepDownController.Memory
 import com.sza.fastmediasorter.ui.player.helpers.StreamQualityStepDownController.Rendition
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -233,8 +235,159 @@ class StreamQualityStepDownControllerTest {
         assertNull(controller.indexOfPlaying(Rendition(320, 180, 200_000)))
     }
 
+    // --- S1511: remembered ceiling and the probe upward -----------------------------------------
+
+    @Test
+    fun `S1511 - a remembered rung present in the ladder is adopted`() {
+        val adopted = controller.setRenditions(ladder3(), Memory(Rendition(1280, 720, 2_500_000), 0))
+
+        assertEquals(1, controller.currentCeilingIndex)
+        assertEquals(720, adopted?.heightPx)
+    }
+
+    @Test
+    fun `S1511 - a remembered rung below every rung on this ladder leaves the ceiling at the top`() {
+        // The source re-encoded upward: nothing here is as small as what was learned, and a memory must
+        // not pin a channel to a rung it no longer offers.
+        val adopted = controller.setRenditions(ladder3(), Memory(Rendition(320, 180, 100_000), 3))
+
+        assertEquals(2, controller.currentCeilingIndex)
+        assertEquals(1080, adopted?.heightPx)
+    }
+
+    @Test
+    fun `S1511 - a remembered rung the ladder lost falls back to the nearest rung below it`() {
+        // 3 Mbps is gone; 2.5 Mbps is the highest rung at or below it.
+        controller.setRenditions(ladder3(), Memory(Rendition(1600, 900, 3_000_000), 0))
+
+        assertEquals(1, controller.currentCeilingIndex)
+    }
+
+    @Test
+    fun `S1511 - a probe is not due before its wait elapses and is due after`() {
+        controller.setRenditions(ladder3(), Memory(Rendition(640, 360, 800_000), 0))
+
+        // The first call only anchors the wait - the ladder arrives without a clock.
+        assertFalse(controller.isProbeDue(clockMs))
+        assertFalse(controller.isProbeDue(clockMs + PROBE_BASE_WAIT_MS - 1))
+        assertTrue(controller.isProbeDue(clockMs + PROBE_BASE_WAIT_MS))
+    }
+
+    @Test
+    fun `S1511 - a ceiling already at the top is never due for a probe`() {
+        controller.setRenditions(ladder3())
+
+        assertFalse(controller.isProbeDue(clockMs))
+        assertFalse(controller.isProbeDue(clockMs + PROBE_MAX_WAIT_MS))
+        assertNull(controller.startProbe(clockMs + PROBE_MAX_WAIT_MS))
+    }
+
+    @Test
+    fun `S1511 - a stall during an open probe fails it and restores the previous ceiling`() {
+        controller.setRenditions(ladder3(), Memory(Rendition(640, 360, 800_000), 0))
+        assertFalse(controller.isProbeDue(clockMs))
+
+        val raised = controller.startProbe(clockMs + PROBE_BASE_WAIT_MS)
+        assertEquals(720, raised?.maxHeightPx)
+        assertEquals(1, controller.currentCeilingIndex)
+        assertTrue(controller.isProbeOpen)
+
+        // One stall is enough: inside an open probe it is the verdict, not a vote towards the step-down
+        // threshold, so the hysteresis count is irrelevant here.
+        val restored = controller.registerStall(clockMs + PROBE_BASE_WAIT_MS + 1)
+
+        assertEquals(360, restored?.maxHeightPx)
+        assertEquals(0, controller.currentCeilingIndex)
+        assertFalse(controller.isProbeOpen)
+    }
+
+    @Test
+    fun `S1511 - a probe that survives the window succeeds and keeps the higher ceiling`() {
+        controller.setRenditions(ladder3(), Memory(Rendition(640, 360, 800_000), 0))
+        assertFalse(controller.isProbeDue(clockMs))
+        controller.startProbe(clockMs + PROBE_BASE_WAIT_MS)
+
+        val stillRunning = clockMs + PROBE_BASE_WAIT_MS + PROBE_WINDOW_MS - 1
+        assertFalse(controller.closeProbeIfSurvived(stillRunning, Rendition(1280, 720, 2_500_000)))
+
+        val survived = clockMs + PROBE_BASE_WAIT_MS + PROBE_WINDOW_MS
+        assertTrue(controller.closeProbeIfSurvived(survived, Rendition(1280, 720, 2_500_000)))
+        assertEquals(1, controller.currentCeilingIndex)
+        assertFalse(controller.isProbeOpen)
+    }
+
+    @Test
+    fun `S1511 - a probe whose window passed without the picture climbing is not a success`() {
+        controller.setRenditions(ladder3(), Memory(Rendition(640, 360, 800_000), 0))
+        assertFalse(controller.isProbeDue(clockMs))
+        controller.startProbe(clockMs + PROBE_BASE_WAIT_MS)
+
+        // The ceiling was raised to 720 but ABR never left 360: nothing was proven about the higher rung.
+        val survived = clockMs + PROBE_BASE_WAIT_MS + PROBE_WINDOW_MS
+        assertFalse(controller.closeProbeIfSurvived(survived, Rendition(640, 360, 800_000)))
+        assertTrue(controller.isProbeOpen)
+    }
+
+    @Test
+    fun `S1511 - a failed probe doubles that rung's wait and leaves the rung above it alone`() {
+        controller.setRenditions(ladder3(), Memory(Rendition(640, 360, 800_000), 0))
+        assertFalse(controller.isProbeDue(clockMs))
+
+        val failedAtMs = failOneProbe(clockMs + PROBE_BASE_WAIT_MS)
+
+        // 720 failed once, so its wait is doubled.
+        assertFalse(controller.isProbeDue(failedAtMs + 2 * PROBE_BASE_WAIT_MS - 1))
+        assertTrue(controller.isProbeDue(failedAtMs + 2 * PROBE_BASE_WAIT_MS))
+
+        // Let the retry succeed; the ceiling is now 720 and the rung above it has failed nothing, so it
+        // is due after the base wait rather than inheriting 720's doubled one.
+        val retryMs = failedAtMs + 2 * PROBE_BASE_WAIT_MS
+        controller.startProbe(retryMs)
+        val succeededMs = retryMs + PROBE_WINDOW_MS
+        assertTrue(controller.closeProbeIfSurvived(succeededMs, Rendition(1280, 720, 2_500_000)))
+
+        assertFalse(controller.isProbeDue(succeededMs + PROBE_BASE_WAIT_MS - 1))
+        assertTrue(controller.isProbeDue(succeededMs + PROBE_BASE_WAIT_MS))
+    }
+
+    @Test
+    fun `S1511 - the wait stops doubling at the cap`() {
+        controller.setRenditions(ladder3(), Memory(Rendition(640, 360, 800_000), 0))
+        assertFalse(controller.isProbeDue(clockMs))
+
+        var atMs = clockMs + PROBE_BASE_WAIT_MS
+        var wait = PROBE_BASE_WAIT_MS
+        repeat(FAILURES_PAST_THE_CAP) {
+            atMs = failOneProbe(atMs)
+            wait = (2 * wait).coerceAtMost(PROBE_MAX_WAIT_MS)
+            atMs += wait
+        }
+
+        // Every further failure keeps the same hourly ceiling instead of growing without bound.
+        val lastFailureMs = failOneProbe(atMs)
+        assertFalse(controller.isProbeDue(lastFailureMs + PROBE_MAX_WAIT_MS - 1))
+        assertTrue(controller.isProbeDue(lastFailureMs + PROBE_MAX_WAIT_MS))
+    }
+
+    /** Open the probe that is due at [dueMs] and kill it with a stall; returns the instant it failed. */
+    private fun failOneProbe(dueMs: Long): Long {
+        assertTrue(controller.isProbeDue(dueMs))
+        assertNotNull(controller.startProbe(dueMs))
+        controller.registerStall(dueMs + 1)
+        assertFalse(controller.isProbeOpen)
+        return dueMs + 1
+    }
+
     private companion object {
         /** Mirrors the controller's private `STALL_DECAY_WINDOW_MS`. */
         const val DECAY_WINDOW_MS = 120_000L
+
+        /** Mirror the controller's private probe constants - see `StreamQualityStepDownController`. */
+        const val PROBE_BASE_WAIT_MS = 300_000L
+        const val PROBE_MAX_WAIT_MS = 3_600_000L
+        const val PROBE_WINDOW_MS = 120_000L
+
+        /** Enough failures to pass `PROBE_WAIT_DOUBLINGS_MAX` and land on the cap. */
+        const val FAILURES_PAST_THE_CAP = 5
     }
 }

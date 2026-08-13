@@ -62,7 +62,6 @@ class BrowseInlineAudioManager(
     // Contract matches AudioFocusManager's ADR-2 default: pause on transient loss, stop on
     // permanent loss, no auto-resume on regain.
     private val audioFocusManager = AudioFocusManager(context) { isPermanent ->
-        Timber.d("S0896: BrowseInlineAudioManager reacting to audio focus loss (permanent=$isPermanent)")
         if (isPermanent) {
             inlineStop()
         } else {
@@ -175,7 +174,6 @@ class BrowseInlineAudioManager(
         // coroutine-deferred request could race a newer inlineStart() and steal/abandon its
         // already-granted focus instead of its own (both share one AudioFocusManager instance).
         audioFocusManager.requestFocus()
-        Timber.d("S0896: BrowseInlineAudioManager audio focus request for '${file.name}' granted=${audioFocusManager.hasFocus}")
         if (!audioFocusManager.hasFocus) {
             // inlineStop() (called by every inlineStart() caller just before this) already reset
             // _inlinePlayerState to idle - nothing further to clean up here.

@@ -635,7 +635,6 @@ class BackgroundMusicManager @Inject constructor(
         activeHostCount = (activeHostCount - 1).coerceAtLeast(0)
         if (activeHostCount > 0) {
             // S0896: another window still owns this singleton - do not tear down its player/listeners.
-            Timber.d("S0896: BackgroundMusicManager release() skipped - $activeHostCount other host(s) still active")
             return
         }
 

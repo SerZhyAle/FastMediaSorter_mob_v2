@@ -54,7 +54,6 @@ class StreamPlayLaunchActivity : AppCompatActivity() {
      */
     private suspend fun route(url: String) {
         val source = routeManager.headlessSource(url)
-        Timber.d("S1471: shortcut trampoline routing, headless=%s", source != null)
         if (source == null || !headlessPlay.play(source)) {
             startActivity(StreamsActivity.createPlayShortcutIntent(this, url))
         }

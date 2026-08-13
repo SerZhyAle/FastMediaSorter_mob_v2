@@ -19,7 +19,6 @@ class ToggleRadioTargetUseCase @Inject constructor(
 
     suspend operator fun invoke(target: OsShortcutCatalog.Target): Boolean {
         val kind = target.radio
-        Timber.d("S1441: radio tap on %s, kind=%s, supported=%s", target.key, kind, radioControl.isToggleSupported)
         if (kind == null || !radioControl.isToggleSupported) return false
         val toggled = radioControl.toggle(kind)
         // Which way a tap resolved is the first thing a "the button does nothing" report needs, and the

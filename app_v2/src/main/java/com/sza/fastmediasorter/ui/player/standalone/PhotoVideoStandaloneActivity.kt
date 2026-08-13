@@ -769,12 +769,10 @@ class PhotoVideoStandaloneActivity :
                     R.id.menu_rotate_content_standalone -> {
                         viewModel.rotateSession90()
                         val newAngle = viewModel.state.value.sessionRotationAngle
-                        Timber.d("S0995: standalone rotate90 tap -> $newAngle")
                         photoVideoHandle.setContentRotationDegrees(newAngle)
                         true
                     }
                     R.id.menu_rotate_content_ccw_standalone -> {
-                        Timber.d("S1364: standalone rotate -90 tap")
                         viewModel.rotateSessionCounter90()
                         photoVideoHandle.setContentRotationDegrees(viewModel.state.value.sessionRotationAngle)
                         true

@@ -52,7 +52,6 @@ class CompanionQrShareActivity : AppCompatActivity() {
         val payload = intent.getStringExtra(EXTRA_PAYLOAD).orEmpty()
         val resourceName = intent.getStringExtra(EXTRA_RESOURCE_NAME).orEmpty()
         val passwordIncluded = intent.getBooleanExtra(EXTRA_PASSWORD_INCLUDED, true)
-        Timber.d("S1039: QR display for '$resourceName' passwordIncluded=$passwordIncluded")
 
         binding.tvQrResourceName.text = resourceName
         binding.tvQrNoPasswordNote.visibility = if (passwordIncluded) View.GONE else View.VISIBLE

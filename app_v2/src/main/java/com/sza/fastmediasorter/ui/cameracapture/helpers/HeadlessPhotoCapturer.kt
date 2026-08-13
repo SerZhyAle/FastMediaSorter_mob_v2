@@ -109,7 +109,6 @@ class HeadlessPhotoCapturer(
                     cameraProvider = provider
                     val lens = resolveLens(provider)
                     val bucket = orientationManager.rotationBucket.value
-                    Timber.d("S1478: headless lens=%s rotation=%d aspect=%d", lens.id, bucket, aspectRatio)
                     val selector = CameraUseCaseFactory.selectorFor(lens)
                     // S1478: the same factory the camera screen builds its use cases with, so the two
                     // capture routes share one definition of output geometry instead of two builders.

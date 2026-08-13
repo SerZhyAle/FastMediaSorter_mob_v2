@@ -62,7 +62,6 @@ object StreamEditDialog {
         // so a host already tearing down must not attach a window. The streams screen never hit this;
         // a desktop cell whose host is finishing does.
         if (activity.isFinishing || activity.isDestroyed) return
-        Timber.d("S1500: edit dialog shown for ${source.title} from ${activity.javaClass.simpleName}")
         val binding = DialogAddStreamBinding.inflate(activity.layoutInflater)
         binding.tilUrl.hint = activity.getString(R.string.streams_add_url_hint)
         binding.tilTitle.isVisible = true
@@ -158,7 +157,6 @@ object StreamEditDialog {
                 2 -> false
                 else -> null
             }
-            Timber.d("S1144: channel dialog wrote audio=$audioIso sub=$subtitleIso on=$subtitlesEnabled")
             write(url, audioIso, subtitleIso, subtitlesEnabled)
         }
     }

@@ -46,14 +46,12 @@ class LauncherEditModeManager(
         // press that lands on a cell or an interactive gadget is consumed by that child first and never
         // reaches here. While the desktop is locked the gesture is a silent no-op by owner's decision.
         desktop.setOnLongClickListener {
-            Timber.d("S1090: desktop long-press, locked=%s", viewModel.desktopLocked.value)
             if (viewModel.desktopLocked.value || viewModel.editMode.value) return@setOnLongClickListener false
             viewModel.setEditMode(true)
             true
         }
         doneButton.setOnClickListener { viewModel.setEditMode(false) }
         addCellButton.setOnClickListener {
-            Timber.d("S1209: taskbar add-cell tapped")
             onAddCellClick()
         }
         // Both affordances exist only while editing; the desktop stays clean otherwise.
@@ -163,7 +161,6 @@ class LauncherEditModeManager(
         val wasIdle = autoScrollStepPx == 0
         autoScrollStepPx = step
         if (wasIdle) {
-            Timber.d("S1209: drag edge auto-scroll started, step=%d", step)
             desktop.postOnAnimation(autoScroller)
         }
     }

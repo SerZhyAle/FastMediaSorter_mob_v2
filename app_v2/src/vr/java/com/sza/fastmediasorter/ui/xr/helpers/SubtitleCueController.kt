@@ -41,7 +41,6 @@ class SubtitleCueController(private val runtime: DiagnosticXrRuntime) {
         lastText = text
         if (text.isBlank()) {
             runtime.queueSubtitle(EMPTY, 0, 0)
-            Timber.d("S0986: subtitle cleared")
             return
         }
         val bytes = renderToBytes(text)
@@ -50,7 +49,6 @@ class SubtitleCueController(private val runtime: DiagnosticXrRuntime) {
             return
         }
         runtime.queueSubtitle(bytes, SubtitleCueRenderer.WIDTH, SubtitleCueRenderer.HEIGHT)
-        Timber.d("S0986: subtitle cue queued len=${text.length}")
     }
 
     private fun renderToBytes(text: String): ByteArray? {

@@ -524,7 +524,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             this
         ) { _, bundle ->
             val sortModeName = bundle.getString(FilterResourceDialog.RESULT_SORT_MODE)
-            Timber.d("S1331: filter result received sort=%s", sortModeName)
             viewModel.setSortMode(
                 sortModeName?.let { runCatching { enumValueOf<SortMode>(it) }.getOrNull() }
                     ?: SortMode.MANUAL
@@ -1329,7 +1328,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     /** S1443: re-place the collapsed chips against the width the command bar last reported. */
     private fun reapplyCollapsedChipPlacement() {
         if (!::collapsedChipsPlacement.isInitialized) return
-        Timber.d("S1443: re-place collapsed chips free=$controlBarFreeWidthPx wide=${isWideLayout()}")
         collapsedChipsPlacement.apply(controlBarFreeWidthPx, isWideLayout())
     }
 

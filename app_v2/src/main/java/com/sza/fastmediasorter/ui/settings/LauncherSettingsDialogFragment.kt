@@ -99,7 +99,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
 
     /** S1422: only the top bar starts expanded - it is the group the launcher work keeps changing. */
     private fun setupCollapsibleSections() {
-        Timber.d("S1422: registering the four launcher settings sections")
         sectionsManager.register(binding.headerLauncherTaskbar, binding.containerLauncherTaskbar, "launcher__taskbar")
         sectionsManager.register(
             binding.headerLauncherTopBar,
@@ -223,7 +222,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             .setTitle(R.string.launcher_settings_reset_title)
             .setMessage(R.string.launcher_settings_reset_message)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                Timber.d("S1400: launcher reset confirmed in the settings dialog")
                 launcherViewModel.resetToDefaults()
             }
             .setNegativeButton(android.R.string.cancel, null)

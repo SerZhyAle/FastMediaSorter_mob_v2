@@ -101,6 +101,22 @@ Carry the reindex outcome into the step 4 verdict: exit 2 (uncommitted fresh mir
 
 On exit 3, read `.claude/reference/spec-prerelease.md` §"0.7" - it names the artefact the shipped index is actually built from.
 
+### 0.8 - Produce and clear the new-lexeme list (content, no device, GATING)
+
+**Mandatory, unconditional - not "if strings changed".** The app declares thirteen interface locales; three are authored, ten are machine-translated in bulk. This is the step where the ten catch up, so the release ships no English caption to a user who chose another language. Needs no device, no gradle. On `--dry-run`, list the plan and run nothing.
+
+```powershell
+pwsh -NoProfile -File scripts/quality/assert-new-lexemes-translated.ps1
+```
+
+Branch on its exit code:
+
+- **0** - every string reaches all thirteen locales, or its gap predates the rule. Continue.
+- **1** - new untranslated strings exist. **Hard release blocker**, and the fix is a task of this stage, not of the ticket that added the strings: hand `temp/S1627/new_lexemes_en.txt` (written by the gate's own run) to the external translation service, import each returned file with `scripts/utils/locale-bulk-import.ps1 -TextPath <returned file>`, then re-run this step until it is 0. When the values are already known, `set-android-string.ps1 -Action set -Key <key> -Locale <tag>` fills them directly instead. Do not proceed to step 1 on exit 1.
+- **2** - the gate cannot verify: its producer or `scripts/quality/locale-untranslated-baseline.txt` is missing. Treat as sweep abort (exit 2 in step 4), same as any infrastructure failure - never as a pass.
+
+Carry the outcome into the step 4 verdict the way 0.7's is carried: exit 1 blocks a clean PASS, exit 2 aborts the sweep.
+
 ### 1 - Pre-flight: single device, prepare, hard-grant permissions
 
 **1.0 - Assert exactly one online device first.** Clear every phantom offline `emulator-55xx` sibling, resolve one id, pass that id to **every** helper below via `-DeviceId` - never rely on single-device auto-detect:
@@ -172,7 +188,7 @@ pwsh -NoProfile -File scripts/devtest/prerelease-verdict.ps1 `
     -Json
 ```
 
-Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write timestamped report to `temp/S0484/prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence paths). Aggregate verdict is `reindex AND log AND perf AND maestro`; screenshots evidence-only. A step-0.7 exit 2 (fresh settings mirror not yet committed) or exit 3 (unfixed catalog/annotation/HOW_TO inconsistency) forces a non-PASS just as a red log audit does - record it on the reindex report line.
+Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write timestamped report to `temp/S0484/prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence paths). Aggregate verdict is `reindex AND log AND perf AND maestro`; screenshots evidence-only. A step-0.7 exit 2 (fresh settings mirror not yet committed) or exit 3 (unfixed catalog/annotation/HOW_TO inconsistency) forces a non-PASS just as a red log audit does - record it on the reindex report line. A step-0.8 exit 1 (new strings still untranslated) forces a non-PASS the same way; record it on its own report line, naming the key count.
 
 Always run detailed log audit below before trusting a PASS - the verdict is a coarse gate; why it never proves a clean run is in `.claude/reference/spec-prerelease.md` §"4".
 

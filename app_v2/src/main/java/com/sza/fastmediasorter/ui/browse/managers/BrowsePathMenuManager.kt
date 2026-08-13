@@ -27,7 +27,6 @@ class BrowsePathMenuManager(private val context: Context) {
         folders: List<String>,
         onDepthSelected: (Int) -> Unit
     ) {
-        Timber.d("S1316: path menu opened depth=%d", folders.size)
         val popup = PopupMenu(context, anchor)
         var deepest = popup.menu.add(0, ROOT_DEPTH, ROOT_DEPTH, resourceName)
         folders.forEachIndexed { index, folder ->

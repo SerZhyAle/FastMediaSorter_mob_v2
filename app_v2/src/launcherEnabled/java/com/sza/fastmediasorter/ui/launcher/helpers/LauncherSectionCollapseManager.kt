@@ -68,7 +68,6 @@ class LauncherSectionCollapseManager(
         val nowExpanded = !store.isExpanded(key, EXPANDED_BY_DEFAULT)
         store.setExpanded(key, nowExpanded)
         revision.value += 1
-        Timber.d("S1428: section '%s' expanded=%b key=%s", cell.target, nowExpanded, key)
     }
 
     /**

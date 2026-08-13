@@ -310,7 +310,6 @@ class StereoDetector @javax.inject.Inject constructor() {
         // No enabled source identified the content. Apply ambiguity behavior.
         if (config.ambiguityBestGuess) {
             val guess = aggressiveDimensionGuess(format.width, format.height)
-            Timber.d("S1229: best-guess %dx%d -> %s", format.width, format.height, guess)
             if (guess != StereoMode.MONO) {
                 Timber.d("VR_AUDIT/12: detectForVideo result=%s source=ambiguity-best-guess filename=%s", guess, path)
                 return guess
