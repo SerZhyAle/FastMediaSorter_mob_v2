@@ -1,0 +1,8 @@
+• Immersive VR browser - aim with a ray, start playback in the headset.
+• Cast stereo video - one eye sent to the TV, correctly cropped.
+• Subtitle styling - font, size and colour in the panel player.
+• Viewfinder aspect - 4:3, 16:9 or full screen, and the shot matches.
+• Per-lens camera memory - zoom and scenario remembered for each lens.
+• Command bar overflow - extra actions move into the three-dots menu.
+• Edge swipe in fullscreen - brings the player controls back.
+..
