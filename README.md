@@ -58,13 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.8122.034 (August 2026)
+## What's New in v2.60.8151.948 (August 2026)
 
 **New:**
-Home-screen launcher, desktop gadgets, taskbar status area, all-apps list, web search from the desktop, channel catalog with radio and webcams, about this channel, background stream shortcuts, thirteen interface languages, themed launcher icon, SD cards and external drives, image rotation and editing, Network Monitor, transfer progress everywhere, document translation, Wear OS SFTP test.
+Immersive VR browser with ray navigation, single-eye Cast for stereo video, subtitle styling in the panel player, viewfinder aspect selection, per-lens camera memory, command bar overflow menu, edge swipe for the player controls, send cloud and web files to other apps, adaptive stream quality with per-channel memory, taskbar on either edge, compact launcher section headers.
 
 **Fixed:**
-Streams report a lost network instead of failing silently, the channel grid stays quiet with no connection, file counts are truthful, dialogs keep their state across rotation, the camera opens without freezing the interface, stream quality steps down instead of stalling.
+Pinned shortcuts survive a launcher reset, resource-type tabs always fit the screen, the settings search button stays reachable in landscape, settings and transfers survive app updates, the Google account stays connected after an update, an unreachable SFTP server is not retried on every thumbnail, startup no longer blocks on preferences or image setup, rotating while saving an account no longer crashes.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
