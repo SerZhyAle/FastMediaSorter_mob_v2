@@ -1,0 +1,37 @@
+# S1207 - verdict-bearing extract from the post-fix device capture
+# Device RFCR110NBQJ (Galaxy S21, Android 15), standard-debug v2.60.8112.319, final implementation.
+# Source capture: 2365 lines, taken 2026-08-14 17:42. Main thread = pid/tid 28079.
+
+## Player open
+08-14 17:42:48.102  1811  3443 I ActivityTaskManager: START u0 {cmp=com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.player.PlayerActivity (has extras)} with LAUNCH_MULTIPLE from uid 10371 (BAL_ALLOW_VISIBLE_WINDOW) result code=0
+08-14 17:42:48.862 28079 28079 D VideoPlayerManager$playerListener: VideoPlayerManager: onRenderedFirstFrame path=/storage/emulated/0/Movies/CAP_20260627_213430_2.mp4
+
+## Cast work - thread ids
+08-14 17:42:48.349 28079 28353 I DynamiteModule: Considering local module com.google.android.gms.cast.framework.dynamite:0 and remote module com.google.android.gms.cast.framework.dynamite:262932001
+08-14 17:42:48.349 28079 28353 I DynamiteModule: Selected remote version of com.google.android.gms.cast.framework.dynamite, version >= 262932001
+08-14 17:42:48.349 28079 28353 V DynamiteModule: Dynamite loader version >= 2, using loadModule2NoCrashUtils
+08-14 17:42:48.376 28079 28353 I CastDynamiteModuleImpl: sk created by ClassLoader dalvik.system.DelegateLastClassLoader[DexPathList[[zip file "/data/app/~~ZhEjvyeiKvHju74gXi8_EA==/com.google.android.gms-xqjWHUxIWzZtqjSIM68s9w==/split_DynamiteModulesC_installtime.apk"],nativeLibraryDirectories=[/data/app/~~ZhEjvyeiKvHju74gXi8_EA==/com.google.android.gms-xqjWHUxIWzZtqjSIM68s9w==/split_DynamiteModulesC_installtime.apk!/lib/arm64-v8a, /system/lib64, /system/system_ext/lib64]]].
+08-14 17:42:48.385 28079 28353 D ConnectivityManager: StackLog: [android.net.ConnectivityManager.sendRequestForNetwork(ConnectivityManager.java:4744)] [android.net.ConnectivityManager.sendRequestForNetwork(ConnectivityManager.java:4912)] [android.net.ConnectivityManager.registerNetworkCallback(ConnectivityManager.java:5329)] [android.net.ConnectivityManager.registerNetworkCallback(ConnectivityManager.java:5299)] [com.google.android.gms.internal.cast.zzdd.zza(com.google.android.gms:play-services-cast@@21.4.0:6)] [com.google.android.gms.internal.cast.zzcy.<init>(com.google.android.gms:play-services-cast@@21.4.0:4)] [com.google.android.gms.cast.framework.CastContext.<init>(com.google.android.gms:play-services-cast-framework@@21.4.0:16)] [com.google.android.gms.cast.framework.CastContext.zzb(com.google.android.gms:play-services-cast-framework@@21.4.0:2)] [com.google.android.gms.cast.framework.zzi.call(com.google.android.gms:play-services-cast-framework@@21.4.0:10)] [com.google.android.gms.tasks.zzz.run(com.google.android.gms:play-services-tasks@@18.1.0:1)] [kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:111)] [kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:99)] [kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)] [kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:811)] [kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:715)] [kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:702)]
+08-14 17:42:48.427 28079 28079 D CastMediaManagerImpl: CastMediaManager: initialized, isCasting=false
+
+## Every StrictMode violation header
+08-14 17:42:17.794 28079 28079 D StrictMode: StrictMode policy violation; ~duration=195 ms: android.os.strictmode.DiskReadViolation
+08-14 17:42:17.794 28079 28079 D StrictMode: StrictMode policy violation; ~duration=1 ms: android.os.strictmode.DiskReadViolation
+08-14 17:42:17.794 28079 28079 D StrictMode: StrictMode policy violation; ~duration=1 ms: android.os.strictmode.DiskWriteViolation
+08-14 17:42:17.795 28079 28079 D StrictMode: StrictMode policy violation; ~duration=1 ms: android.os.strictmode.DiskWriteViolation
+08-14 17:42:17.795 28079 28079 D StrictMode: StrictMode policy violation; ~duration=1 ms: android.os.strictmode.DiskReadViolation
+08-14 17:42:17.795 28079 28079 D StrictMode: StrictMode policy violation; ~duration=0 ms: android.os.strictmode.DiskReadViolation
+08-14 17:42:17.795 28079 28079 D StrictMode: StrictMode policy violation; ~duration=0 ms: android.os.strictmode.DiskReadViolation
+08-14 17:42:48.379 28079 28079 D StrictMode: StrictMode policy violation; ~duration=84 ms: android.os.strictmode.DiskReadViolation
+08-14 17:42:48.379 28079 28079 D StrictMode: StrictMode policy violation; ~duration=84 ms: android.os.strictmode.DiskReadViolation
+08-14 17:42:48.380 28079 28079 D StrictMode: StrictMode policy violation; ~duration=63 ms: android.os.strictmode.DiskReadViolation
+08-14 17:42:48.380 28079 28079 D StrictMode: StrictMode policy violation; ~duration=63 ms: android.os.strictmode.DiskReadViolation
+
+## Cast frames inside any StrictMode stack (expected: none)
+(no matches - no StrictMode stack touches Cast)
+
+## getSharedInstance anywhere (expected: none)
+0
+
+## Crash / Cast-unavailable markers (expected: none)
+(no matches)
