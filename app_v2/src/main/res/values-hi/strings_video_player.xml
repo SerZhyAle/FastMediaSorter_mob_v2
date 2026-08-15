@@ -43,7 +43,6 @@
     <string name="playback_settings_3d_spherical_format">गोलाकार प्रारूप</string>
     <string name="playback_speed">प्लेबैक गति</string>
     <string name="player_3d_detected_toast">3डी वीडियो का पता चला है। इसे बाहरी वीआर प्लेयर में खोलने के लिए फ़ाइल जानकारी का उपयोग करें।</string>
-    <string name="player_audio_track">ऑडियो ट्रैक की भाषा</string>
     <string name="player_command_panel_mode_playerViewPanel_resize_mode">उपयुक्त</string>
     <string name="player_credentials_missing">आपके सहेजे गए क्रेडेंशियल मौजूद नहीं हैं। कृपया उन्हें अपडेट करें और पुनः प्रयास करें।</string>
     <string name="player_file_moved">फाइल स्थानांतरित हो गई।</string>
@@ -62,11 +61,6 @@
     <string name="player_media_files_load_failed">फ़ाइल सूची लोड नहीं हो सकी। कृपया पुनः प्रयास करें।</string>
     <string name="player_open_link_failed">वह लिंक खुल नहीं पाया।</string>
     <string name="player_page_not_ready">वह पेज अभी तैयार नहीं है। कृपया पुनः प्रयास करें।</string>
-    <string name="player_repeat_video">प्लेबैक दोहराएँ</string>
-    <string name="player_settings_title">प्लेयर सेटिंग्स</string>
-    <string name="player_show_subtitles">उपशीर्षक दिखाएँ</string>
-    <string name="player_speed">प्लेबैक गति</string>
-    <string name="player_subtitle_language">उपशीर्षक भाषा</string>
     <string name="player_webview_unavailable">रीडिंग व्यू तक पहुंच नहीं हो पा रही है। कृपया पुनः प्रयास करें।</string>
     <string name="video">वीडियो</string>
     <string name="video_aspect_ratio_label">आस्पेक्ट रेशियो: %1$s</string>

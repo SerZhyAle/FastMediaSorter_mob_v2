@@ -46,11 +46,18 @@ appId: com.sza.fastmediasorter.debug
     id: "com.sza.fastmediasorter.debug:id/searchEmptyText"
 
 # Second proof: acting on a result lands on the setting it named.
+#
+# S1669: this used to tap the recycler itself. A tap on a container lands on its geometric centre,
+# which is whichever row happens to sit in the middle - the fourth one on this device - so the flow
+# failed for a reason that had nothing to do with the feature it tests. Matching the row by its own
+# title also makes the flow independent of how many results the query returns, which an index would
+# not be: the row is identified by what it says, not by where it landed.
+#
+# Exact text, not a pattern: the Oracle convention forbids regex selectors because Maestro does not
+# match them reliably and the step then silently never fires. The row's title is the trilingual
+# literal below, and matching non-ASCII text is fine - it is inputText that cannot type it.
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/searchResultsRecycler"
-    childOf:
-      id: "com.sza.fastmediasorter.debug:id/searchOverlay"
-    index: 0
+    text: "Language/Язык/Мова"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/rowLanguage"

@@ -51,5 +51,5 @@
     <string name="calculator_title">ক্যালকুলেটর</string>
     <string name="calculator_prank_title">বিপজ্জনক সিস্টেম পরিচালনা</string>
     <string name="calculator_prank_message">একটি বিপজ্জনক সিস্টেম অপারেশন সম্পন্ন হয়েছে, যার ফলে এই ডিভাইসের সমস্ত ডেটা মুছে গেছে।</string>
-    <string name="calculator_prank_details">আরও বিস্তারিত...</string>
+    <string name="calculator_prank_details">আরও বিস্তারিত..</string>
 </resources>

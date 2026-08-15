@@ -94,6 +94,7 @@ class SftpConnectionPool {
     // unreachable server. Map mutation still happens on that monitor, so the S0866 TOCTOU
     // guarantee holds; only the SSH handshake moved out from under it.
     private val sessionCreationLocks = ConcurrentHashMap<ConnectionKey, Any>()
+    private val connectionFailureCache = SftpConnectionFailureCache()
 
     // S1296: which pooled session a live PLAYBACK borrow belongs to. Release used to resolve the
     // owner by scanning pooledSessions, which fails once invalidateSession removes the entry while
@@ -252,6 +253,9 @@ class SftpConnectionPool {
                     pooledSessions.remove(key)
                 }
             }
+            // S1651: after the live-session check, so a healthy pooled session is never rejected by
+            // a negative record left behind by an earlier attempt on a since-recovered endpoint.
+            failFastIfRecentlyUnreachable(info)
 
             val jsch = JSch()
             applyIdentity(jsch, info, namePrefix = "key")
@@ -263,7 +267,15 @@ class SftpConnectionPool {
             // interval/count keeps the cost negligible for healthy sessions.
             session.setServerAliveInterval(SERVER_ALIVE_INTERVAL_MS)
             session.setServerAliveCountMax(SERVER_ALIVE_COUNT_MAX)
-            session.connect(CONNECTION_TIMEOUT)
+            try {
+                session.connect(CONNECTION_TIMEOUT)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                recordUnreachable(info, e)
+                throw e
+            }
+            clearUnreachable(info)
 
             val pooled = PooledConnection(session = session, jsch = jsch)
             val firstCh = openChannelSafe(pooled)
@@ -276,7 +288,28 @@ class SftpConnectionPool {
 
     private fun creationLock(key: ConnectionKey): Any = sessionCreationLocks.computeIfAbsent(key) { Any() }
 
+    /**
+     * S1651: both handshake sites call this under [creationLock], so temp cleanup, listing, paging
+     * and counting share one proven socket-connect refusal instead of each waiting out its own
+     * CONNECTION_TIMEOUT. Rethrows the original throwable, leaving caller messaging unchanged.
+     */
+    private fun failFastIfRecentlyUnreachable(info: SftpClient.SftpConnectionInfo) {
+        val recent = connectionFailureCache.recentFailure(info) ?: return
+        // Owner ask: a reused refusal must stay distinguishable from a real connection attempt.
+        Timber.i("SFTP connect skipped for ${info.host}:${info.port} - recent connect failure reused")
+        throw recent
+    }
+
+    private fun recordUnreachable(info: SftpClient.SftpConnectionInfo, cause: Throwable) {
+        connectionFailureCache.record(info, cause)
+    }
+
+    private fun clearUnreachable(info: SftpClient.SftpConnectionInfo) {
+        connectionFailureCache.clear(info)
+    }
+
     suspend fun invalidate(info: SftpClient.SftpConnectionInfo) {
+        clearUnreachable(info)
         invalidateSession(ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint))
     }
 
@@ -375,6 +408,23 @@ class SftpConnectionPool {
         stopPeriodicSweep()
     }
 
+    /**
+     * S1651 test seam: replays the handshake outcome hooks the creation paths use, so the
+     * pool-level cooldown and its recovery boundaries are provable without a live SSH server.
+     */
+    internal fun applyHandshakeOutcomeForTest(info: SftpClient.SftpConnectionInfo, failure: Throwable?) {
+        if (failure != null) {
+            recordUnreachable(info, failure)
+        } else {
+            clearUnreachable(info)
+        }
+    }
+
+    /** S1651 test seam: the pre-handshake guard both creation paths run under [creationLock]. */
+    internal fun failFastIfRecentlyUnreachableForTest(info: SftpClient.SftpConnectionInfo) {
+        failFastIfRecentlyUnreachable(info)
+    }
+
     // ── Blocking path (ExoPlayer / PLAYBACK) ────────────────────────────────────────────────────
 
     @Throws(IOException::class)
@@ -449,6 +499,10 @@ class SftpConnectionPool {
                     pooledSessions.remove(key)
                 }
             }
+            // S1651: PLAYBACK is the pool's second handshake site, so it shares the same cooldown -
+            // otherwise a start-playback attempt still pays a full CONNECTION_TIMEOUT on a host
+            // FILE_OPS has just proven unreachable.
+            failFastIfRecentlyUnreachable(info)
 
             val jsch = JSch()
             applyIdentity(jsch, info, namePrefix = "exoplayer_key")
@@ -460,7 +514,13 @@ class SftpConnectionPool {
             // interval/count keeps the cost negligible for healthy sessions.
             session.setServerAliveInterval(SERVER_ALIVE_INTERVAL_MS)
             session.setServerAliveCountMax(SERVER_ALIVE_COUNT_MAX)
-            session.connect(CONNECTION_TIMEOUT)
+            try {
+                session.connect(CONNECTION_TIMEOUT)
+            } catch (e: Exception) {
+                recordUnreachable(info, e)
+                throw e
+            }
+            clearUnreachable(info)
             val pooled = PooledConnection(session = session, jsch = jsch)
             synchronized(pooledSessions) { pooledSessions[key] = pooled }
             Timber.d("SFTP [PLAYBACK] new unified session created - host=${info.host}")
@@ -586,6 +646,7 @@ class SftpConnectionPool {
     // ── Disconnect all ───────────────────────────────────────────────────────────────────────────
 
     suspend fun disconnectAll() {
+        connectionFailureCache.clearAll()
         synchronized(pooledSessions) {
             stopPeriodicSweep()
             pooledSessions.values.forEach { pooled ->

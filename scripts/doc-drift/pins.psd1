@@ -237,6 +237,7 @@
             gradleKey = 'room-schema-version'
             docs      = @{
                 'dev/TECH_REQUIREMENTS.md' = @{ required = $true; matcher = '\| Room DB version\s*\|\s*(?<v>\d+)\s*\|\s*Current schema version' }
+                'docs/DEV_OPS.md'           = @{ required = $true; matcher = 'Room schema version:\s*(?<v>\d+)' }
             }
             policy    = 'allMustMatch'
             exclude   = @()

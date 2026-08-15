@@ -117,6 +117,20 @@ Branch on its exit code:
 
 Carry the outcome into the step 4 verdict the way 0.7's is carried: exit 1 blocks a clean PASS, exit 2 aborts the sweep.
 
+### 0.9 - Report capabilities no user guide mentions (content, no device, ADVISORY)
+
+Needs no device, no gradle. Sits here rather than in `post-change.ps1` because a capability record is written when the code lands, while its guide text is written at release time - failing the authoring call would block a feature ticket on documentation that is not yet due. On `--dry-run`, list the plan and run nothing.
+
+```powershell
+pwsh -NoProfile -File scripts/quality/assert-guide-coverage.ps1 -Gate
+```
+
+Branch on its exit code:
+
+- **0** - every capability outside the baseline is mentioned in at least one English guide. Continue.
+- **1** - a capability shipped that no guide mentions. **Advisory, not a release blocker**: name each id in the step 4 verdict and hand them to the guide-writing step of the release campaign. Silencing one by adding it to `scripts/quality/guide-coverage-baseline.txt` is allowed only with a stated reason - the baseline is the accumulated debt this gate exists to shrink (S1395 let it grow across several releases unseen).
+- **2** - the gate cannot verify: the inventory, the document registry, or the guide set is missing. Treat as sweep abort, same as any infrastructure failure - never as a pass.
+
 ### 1 - Pre-flight: single device, prepare, hard-grant permissions
 
 **1.0 - Assert exactly one online device first.** Clear every phantom offline `emulator-55xx` sibling, resolve one id, pass that id to **every** helper below via `-DeviceId` - never rely on single-device auto-detect:

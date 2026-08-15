@@ -24,6 +24,9 @@ Standard, Lite, and Photos require Android 8.0 (API 26) or newer. The **Legacy**
 ### Does the app have widgets?
 Yes! FastMediaSorter v2 ships a variety of home-screen widgets - find them via long-press on the home screen → Widgets → FastMediaSorter. They include resource shortcuts, slideshow launchers, and more.
 
+### Can the app replace my home screen?
+Yes, in the **Standard** and **noLegal** builds. Turn on **Make this app the home screen** in **Settings → General** and pick FastMediaSorter when Android asks which home screen to use. You get a desktop with shortcuts to your folders, gadgets like a clock and weather, an app grid and a taskbar. Turn the setting off, or choose **Exit launcher mode**, and Android restores your previous home screen - your desktop layout is kept for next time. See [HOW_TO](HOW_TO.md#how-to-use-the-app-as-your-home-screen) for the full walkthrough.
+
 ---
 
 ## File Operations
@@ -228,6 +231,11 @@ Main menu → **"Favorites"** tab
 
 ### Is my data collected?
 **No.** FastMediaSorter does NOT collect or send any personal data.
+
+### Do contact shortcuts on the launcher desktop need access to my contacts?
+**No.** Pinning a person to the launcher desktop asks for no contacts permission at all. You pick the person in Android's own contact picker, the app reads that one record once, and keeps it as a snapshot on the cell - it never gets to browse your address book. Calling uses the number you chose in the picker, so the cell dials exactly that number.
+
+An optional **Contacts** permission group does exist, requestable on demand, under **Settings → General → Permissions & Access**. Denying it changes nothing about the behaviour above - shortcuts keep working the same no-permission way.
 
 ### Does the app save GPS location in my photos?
 Only if you turn it on. In **Settings → Operations → Photography**, enable photo capture, then turn on **Geotag photos** underneath it - the app asks for location permission right away, not at shutter time. A geotagged photo's File Info screen shows the capture date and the GPS spot from the photo's EXIF data as a tappable link that opens your maps app or browser.

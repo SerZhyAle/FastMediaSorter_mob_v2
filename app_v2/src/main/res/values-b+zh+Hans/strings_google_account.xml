@@ -12,7 +12,7 @@
     <string name="s0200_card_state_bound_sign_out">登出</string>
     <string name="s0200_card_state_needs_resign_in_summary">重新连接 %1$s 以保持 Drive 正常工作。</string>
     <string name="s0200_card_state_needs_resign_in_cta">重新连接</string>
-    <string name="s0200_card_authenticating">正在登录……</string>
+    <string name="s0200_card_authenticating">正在登录..</string>
     <string name="s0200_card_diag_cct_ok">检测到浏览器：%1$s。</string>
     <string name="s0200_card_diag_cct_missing">未安装受支持的浏览器。请安装浏览器以使用 Google。</string>
     <string name="s0200_card_diag_show">诊断</string>

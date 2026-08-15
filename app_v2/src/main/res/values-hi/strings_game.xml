@@ -23,7 +23,7 @@
     <string name="game_help_title">कैसे खेलने के लिए</string>
     <string name="game_how_to_play">कैसे खेलने के लिए?</string>
     <string name="game_level">स्तर %1$d</string>
-    <string name="game_loading">गेम लोड हो रहा है...</string>
+    <string name="game_loading">गेम लोड हो रहा है..</string>
     <string name="game_menu_label">मिनी-गेम खेलें</string>
     <string name="game_move_down">नीचे की ओर</string>
     <string name="game_move_left">बाएं खिसको</string>

@@ -69,7 +69,7 @@ class SaveVideoFrameManager(
         activity.lifecycleScope.launch {
             try {
                 // Load settings in coroutine (suspends on IO, avoids blocking UI thread)
-                val settings = activity.settingsRepository.getSettings().first()
+                val settings = activity.playerHostFactory.settingsRepository.getSettings().first()
                 val useJpeg = settings.videoSnapshotFormat == "JPG"
                 val fileName = buildFileName(sourceFileName, positionMs, useJpeg)
                 val tempFile = writeTempFile(bitmap, fileName, useJpeg)

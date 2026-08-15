@@ -5,16 +5,16 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.databinding.ActivityResourceLaunchWidgetConfigBinding
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
@@ -74,7 +74,7 @@ class RandomPhotoFrameConfigActivity : BaseActivity<ActivityResourceLaunchWidget
         // host must consume the window insets here too.
         binding.widgetConfigComposeView.applySystemBarInsetPadding()
         binding.widgetConfigComposeView.setContent {
-            MaterialTheme {
+            FastMediaSorterComposeTheme {
                 val entryPoint = EntryPointAccessors.fromApplication(
                     applicationContext,
                     RandomPhotoFrameConfigEntryPoint::class.java

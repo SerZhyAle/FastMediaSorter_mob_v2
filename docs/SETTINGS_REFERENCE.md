@@ -289,6 +289,7 @@ _Settings -> General -> System launcher settings_
 | Show pinned apps | Shows pinned apps on the launcher desktop. |
 | Show recent apps | Shows recently used apps on the launcher desktop. |
 | Show status tray | Master switch for the launcher's tray block; the switches below it decide which indicators the block contains. |
+| Taskbar position | Puts the taskbar with the Start button along the bottom or the top edge of the desktop. |
 | Clock and indicators on the top bar | Moves the clock with seconds to the left of the launcher top bar and the device indicators to the right, freeing the Start panel for more recent apps; available only while the system status area is replaced. |
 | Battery | Shows the battery charge in the launcher tray as a number in an outline, yellow below 30 percent, red below 15, blinking below 10. |
 | Bluetooth | Shows a Bluetooth icon in the launcher tray while the adapter is on. |

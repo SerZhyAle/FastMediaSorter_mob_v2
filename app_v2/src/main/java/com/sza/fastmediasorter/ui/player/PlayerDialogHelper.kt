@@ -434,21 +434,6 @@ class PlayerDialogHelper(
     }
     
     /**
-     * Show player settings dialog for video/audio files
-     */
-    fun showPlayerSettingsDialog(
-        currentSettings: com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog.PlayerSettings,
-        onSettingsApplied: (com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog.PlayerSettings) -> Unit
-    ) {
-        val dialog = com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog(
-            context = activity,
-            currentSettings = currentSettings,
-            onSettingsApplied = onSettingsApplied
-        )
-        safeShow(dialog)
-    }
-    
-    /**
      * Show cloud authentication error dialog
      * @param providerName Optional provider name (e.g., "Dropbox", "Google Drive")
      * @param onAuthRequest Optional callback to trigger authentication

@@ -105,10 +105,37 @@ function Get-ParamInfo {
     return $out
 }
 
+function Get-HeaderWindow {
+    # How far into a file the header reaches. A flat 60-line cap used to stand in for this and
+    # truncated any longer header silently: assert-exit-contract.ps1 dropped its whole 'Exit codes'
+    # block out of the cheatsheet the moment its description grew, and the cheatsheet reported no
+    # exit codes rather than reporting that it could not find them (S1547). The window now runs to
+    # the end of a leading <# .. #> block, and never shrinks below the old 60 - so it can only
+    # recover lines, never lose one.
+    param([string] $Path)
+    $all = @(Get-Content -LiteralPath $Path -TotalCount 400 -ErrorAction SilentlyContinue)
+    if ($all.Count -eq 0) { return @() }
+    $open = -1
+    $close = -1
+    for ($i = 0; $i -lt $all.Count; $i++) {
+        if ($open -lt 0) {
+            if ($all[$i] -match '<#') {
+                $open = $i
+                if ($all[$i] -match '#>') { $close = $i; break }
+            } elseif ($all[$i].Trim() -ne '' -and $all[$i] -notmatch '^\s*#') {
+                # Real code before any block comment - there is no block header to measure.
+                break
+            }
+        } elseif ($all[$i] -match '#>') { $close = $i; break }
+    }
+    $window = if ($close -ge 0) { [Math]::Max(60, $close + 1) } else { 60 }
+    return @($all | Select-Object -First $window)
+}
+
 function Get-ExitCodeLines {
     # Best-effort: pull an 'Exit codes' section from the header comment.
     param([string] $Path)
-    $head = Get-Content -LiteralPath $Path -TotalCount 60 -ErrorAction SilentlyContinue
+    $head = Get-HeaderWindow -Path $Path
     $hit = @()
     $inBlock = $false
     foreach ($line in $head) {

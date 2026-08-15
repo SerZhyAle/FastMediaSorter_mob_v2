@@ -374,12 +374,16 @@ class PlayerLifecycleManager(
         activity.lifecycleScope.launch(Dispatchers.IO) {
             try {
                 if (PlaybackCompletionDetector.isNearEnd(position, duration)) {
-                    activity.playbackPositionRepository.markPlaybackCompleted(
+                    activity.playerHostFactory.playbackPositionRepository.markPlaybackCompleted(
                         currentFile.path,
                         reason = "playback-completed-near-end"
                     )
                 } else {
-                    activity.playbackPositionRepository.savePosition(currentFile.path, position, duration)
+                    activity.playerHostFactory.playbackPositionRepository.savePosition(
+                        currentFile.path,
+                        position,
+                        duration,
+                    )
                     Timber.d("PlayerLifecycleManager: Saved playback position $position/$duration for ${currentFile.name}")
                 }
             } catch (e: Exception) {
@@ -545,7 +549,7 @@ class PlayerLifecycleManager(
             activity.lifecycleScope.launch {
                 // S0438: a player host keeps the screen on when either the global or the dependent
                 // player setting is on - restore to that effective rule, not preventSleep alone.
-                val settings = activity.settingsRepository.getSettings().first()
+                val settings = activity.playerHostFactory.settingsRepository.getSettings().first()
                 if (settings.preventSleep || settings.keepScreenOnPlayer) {
                     activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 } else {

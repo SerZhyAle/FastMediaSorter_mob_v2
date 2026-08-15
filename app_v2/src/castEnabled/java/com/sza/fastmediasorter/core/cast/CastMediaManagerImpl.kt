@@ -7,13 +7,13 @@ import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import androidx.mediarouter.app.MediaRouteChooserDialogFragment
 import androidx.mediarouter.media.MediaRouteSelector
+import com.google.android.gms.cast.CastMediaControlIntent
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaMetadata
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
-import com.google.android.gms.cast.CastMediaControlIntent
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.util.PermissionHelper
@@ -22,11 +22,14 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.helpers.CastStreamDecision
 import com.sza.fastmediasorter.ui.player.helpers.CastStreamResolver
 import com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -70,10 +73,19 @@ class CastMediaManagerImpl(
     override val castAvailableState = MutableStateFlow(false)
 
     private val proxyServer = LocalCastProxyServer(context)
+    private val stereoCropTranscoder = CastStereoCropTranscoder()
     private val castStreamResolver = CastStreamResolver()
     private var castContext: CastContext? = null
     private var currentSession: CastSession? = null
     private var downloadJob: Job? = null
+
+    /** True once a load has been started, so a repeated [init] does not start a second one. */
+    @Volatile private var initStarted = false
+
+    /** True after [release]; a load that lands afterwards must register nothing. */
+    @Volatile private var released = false
+
+    @Volatile private var croppedCastFile: File? = null
 
     private val sessionListener = object : SessionManagerListener<CastSession> {
         override fun onSessionStarted(session: CastSession, sessionId: String) {
@@ -120,42 +132,74 @@ class CastMediaManagerImpl(
     // ── Lifecycle ────────────────────────────────────────────────────────────
 
     /**
-     * Call once after CastContext is available (i.e. after FastMediaSorterApp.onCreate).
+     * Start Cast initialization and return at once. Availability reaches the command panel through
+     * [castAvailableState], which [CommandPanelController] already collects, so nothing waits here.
+     *
+     * S1207: the single-argument `getSharedInstance` loads a Play Services Dynamite module from disk
+     * on the calling thread, and the caller is `PlayerActivity.onCreate` - StrictMode measured up to
+     * 148 ms of main-thread disk read before the first frame of every player open, paid by everyone
+     * and useful only to the few who cast. The two-argument overload does that work on the executor
+     * it is given, and [lifecycleScope] is the Activity's, so the coroutine resumes on the main
+     * thread - which is where the Cast SDK requires the session manager to be touched.
      */
     override fun init() {
-        if (!mediaCapabilities.supportsCast) {
-            Timber.i("CastMediaManager: cast not supported on this platform - init skipped")
+        val skipReason = resolveInitSkipReason()
+        if (skipReason != null) {
+            Timber.i("CastMediaManager: init skipped - %s", skipReason)
             return
         }
-        if (!PermissionHelper.hasLocalNetworkPermission(context)) {
-            Timber.i("CastMediaManager: local network permission not granted - Cast init deferred")
-            return
-        }
-        try {
-            castContext = CastContext.getSharedInstance(context)
-            castContext?.sessionManager?.addSessionManagerListener(
-                sessionListener,
-                CastSession::class.java
-            )
-            // Resume any pre-existing session (e.g. app re-launched while casting)
-            currentSession = castContext?.sessionManager?.currentCastSession
-            if (currentSession != null) {
-                _isCasting = true
-                if (!proxyServer.isAlive) proxyServer.start()
+        initStarted = true
+        lifecycleScope.launch {
+            try {
+                onCastContextReady(CastContext.getSharedInstance(context, Dispatchers.IO.asExecutor()).await())
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                onCastContextFailed(e)
             }
-            castAvailableState.value = true
-            Timber.d("CastMediaManager: initialized, isCasting=$_isCasting")
-        } catch (e: Exception) {
-            Timber.w("CastMediaManager: Cast SDK not available - ${e.message}")
-            castContext = null
-            castAvailableState.value = false
         }
+    }
+
+    /** Reason [init] must not start a load, or null when it may. Written for the log line. */
+    private fun resolveInitSkipReason(): String? = when {
+        !mediaCapabilities.supportsCast -> "cast not supported on this platform"
+        !PermissionHelper.hasLocalNetworkPermission(context) -> "local network permission not granted"
+        initStarted -> "already initialized or still loading"
+        else -> null
+    }
+
+    private fun onCastContextReady(ready: CastContext) {
+        if (released) {
+            Timber.d("CastMediaManager: Cast context arrived after release - discarded")
+            return
+        }
+        castContext = ready
+        ready.sessionManager.addSessionManagerListener(sessionListener, CastSession::class.java)
+        // Resume any pre-existing session (e.g. app re-launched while casting)
+        currentSession = ready.sessionManager.currentCastSession
+        if (currentSession != null) {
+            _isCasting = true
+            if (!proxyServer.isAlive) proxyServer.start()
+        }
+        castAvailableState.value = true
+        Timber.d("CastMediaManager: initialized, isCasting=$_isCasting")
+    }
+
+    private fun onCastContextFailed(error: Exception) {
+        Timber.w("CastMediaManager: Cast SDK not available - %s", error.message)
+        castContext = null
+        castAvailableState.value = false
+        // A later player open may find Play Services healthy again, so do not latch the failure.
+        initStarted = false
     }
 
     /** Unregister listener, stop proxy, cancel downloads. Call from onDestroy. */
     override fun release() {
+        released = true
         downloadJob?.cancel()
         downloadJob = null
+        stereoCropTranscoder.release()
+        discardCroppedFile()
         try {
             castContext?.sessionManager?.removeSessionManagerListener(
                 sessionListener,
@@ -223,20 +267,20 @@ class CastMediaManagerImpl(
      * If no session is active this is a no-op (the session listener will call sendMedia
      * when a session starts, if the user selects a device after tapping cast).
      */
-    override fun sendCurrentMedia(file: MediaFile) {
+    override fun sendCurrentMedia(file: MediaFile, stereoCrop: CastStereoCrop?) {
         if (!_isCasting || currentSession == null) {
             Timber.d("CastMediaManager: sendCurrentMedia called but not casting - ignoring")
             return
         }
         downloadJob?.cancel()
         downloadJob = lifecycleScope.launch {
-            resolveAndSend(file)
+            resolveAndSend(file, stereoCrop)
         }
     }
 
     // ── Internal ─────────────────────────────────────────────────────────────
 
-    private suspend fun resolveAndSend(file: MediaFile) {
+    private suspend fun resolveAndSend(file: MediaFile, stereoCrop: CastStereoCrop?) {
         // Live streams cannot be materialized to a temp file + proxy (unbounded). Hand the URL to
         // the receiver directly; reject protocols the receiver cannot play (RTSP).
         when (val decision = castStreamResolver.resolve(file.path)) {
@@ -288,17 +332,37 @@ class CastMediaManagerImpl(
             return
         }
 
-        proxyServer.serveFile(localFile)
+        val cropResult = if (stereoCrop != null && file.type == MediaType.VIDEO) {
+            discardCroppedFile()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, R.string.cast_cropping_stereo, Toast.LENGTH_SHORT).show()
+            }
+            val result = stereoCropTranscoder.crop(context, localFile, stereoCrop, context.cacheDir)
+            Timber.d("S1558: crop outcome for ${file.name} is $result")
+            if (result == CastStereoCropResult.SkippedLong) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, R.string.cast_crop_skipped_long, Toast.LENGTH_LONG).show()
+                }
+            }
+            result
+        } else {
+            CastStereoCropResult.Failed
+        }
+        val castFile = when (cropResult) {
+            is CastStereoCropResult.Cropped -> cropResult.file.also { croppedCastFile = it }
+            CastStereoCropResult.SkippedLong,
+            CastStereoCropResult.Failed -> localFile
+        }
+
+        proxyServer.serveFile(castFile)
         val castUrl = proxyServer.castUrl()
-        val mimeType = LocalCastProxyServer.mimeType(localFile)
-        // S1499: the panel's single-eye crop deliberately does not reach Cast output. It is a GL Crop
-        // effect inside ExoPlayer's render pipeline, and nothing in that pipeline travels to the
-        // receiver - the proxy above range-streams the original file untouched, and MediaInfo carries
-        // no crop or region-of-interest hint the default Chromecast receiver honours. Applying it
-        // needs either an FFmpeg transcode in the proxy (encode latency at session start, ~2x cache,
-        // battery) or a custom receiver app (Cast console registration plus hosting). Deferred until
-        // one is funded; S1558 owns that decision and carries both cost estimates.
-        Timber.d("CastMediaManager: casting ${file.name} via $castUrl")
+        val mimeType = LocalCastProxyServer.mimeType(castFile)
+        // S1558: Cast reproduces the panel's single-eye crop by exporting a cached half-frame with
+        // Media3 Transformer. Long clips keep the original, and live streams bypass this proxy path.
+        Timber.d(
+            "CastMediaManager: casting ${file.name} via $castUrl stereoCrop=$stereoCrop " +
+                "cropped=${cropResult is CastStereoCropResult.Cropped} served=${castFile.name}",
+        )
 
         withContext(Dispatchers.Main) {
             loadMediaOnReceiver(file, castUrl, mimeType)
@@ -393,8 +457,17 @@ class CastMediaManagerImpl(
     private fun handleSessionEnd() {
         _isCasting = false
         currentSession = null
+        discardCroppedFile()
         proxyServer.stop()
         onCastStateChanged(false, null)
+    }
+
+    private fun discardCroppedFile() {
+        val file = croppedCastFile ?: return
+        croppedCastFile = null
+        if (file.exists() && !file.delete()) {
+            Timber.w("CastMediaManager: could not delete cropped Cast file ${file.name}")
+        }
     }
 
     fun isWifiConnected(): Boolean {

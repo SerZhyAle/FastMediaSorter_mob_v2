@@ -14,7 +14,7 @@
     <string name="settings_stereo_vr_trust_metadata_title">使用嵌入式元数据</string>
     <string name="settings_stereo_vr_trust_metadata_summary">从空间视频和全景照片元数据中检测</string>
     <string name="settings_stereo_vr_trust_aspect_title">根据长宽比猜测</string>
-    <string name="settings_stereo_vr_trust_aspect_summary">可靠性较低——可能会将普通宽幅照片标记为 3D 照片。</string>
+    <string name="settings_stereo_vr_trust_aspect_summary">可靠性较低-可能会将普通宽幅照片标记为 3D 照片。</string>
     <string name="settings_stereo_vr_ambiguity_title">格式不清晰时</string>
     <string name="settings_stereo_vr_ambiguity_summary">开启：进行最佳猜测。关闭：以 2D 模式打开。</string>
     <string name="settings_stereo_vr_default_layout_label">默认布局</string>

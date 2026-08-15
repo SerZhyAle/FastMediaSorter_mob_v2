@@ -9,8 +9,7 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * S1066: realises a 16:9 photo selection by cropping the full 4:3 sensor frame the capture delivered,
- * because the photo stream is always requested at 4:3 (see `CameraUseCaseFactory.PHOTO_ASPECT_RATIO`).
+ * S1066: realises a narrower photo selection by centre-cropping the frame the capture delivered.
  *
  * S1478: shared by both capture routes - the camera screen and the headless edge-gesture shot. It used
  * to be a private method of the session manager, which left the headless path with no way to reach it;
@@ -19,14 +18,14 @@ import java.io.FileOutputStream
 internal object CapturedPhotoAspectCropper {
 
     /**
-     * Centre-crops a captured JPEG to the 16:9 result frame inside the full 4:3 sensor frame,
-     * overwriting [file]. The sensor JPEG is stored landscape, so 16:9 (wider than 4:3) keeps the full
-     * long edge and trims the short edge; the pixels stay in their stored orientation, so
-     * TAG_ORIENTATION and the other tags remain valid and are re-applied via [restoreExif] (S0765).
-     * A frame already at or below 16:9 is left untouched, and any failure keeps the saved photo -
+     * Centre-crops a captured JPEG to [targetRatio] - the wanted long-edge / short-edge ratio -
+     * overwriting [file]. The sensor JPEG is stored landscape, so a wider target keeps the full long
+     * edge and trims the short edge; the pixels stay in their stored orientation, so TAG_ORIENTATION
+     * and the other tags remain valid and are re-applied via [restoreExif] (S0765). A frame already
+     * at or narrower than the target is left untouched, and any failure keeps the saved photo -
      * wrong proportions beat losing the shot.
      */
-    fun cropToSixteenNine(file: File) {
+    fun cropToRatio(file: File, targetRatio: Float) {
         runCatching {
             val originalExif = runCatching { ExifInterface(file.absolutePath) }.getOrNull()
 
@@ -36,7 +35,9 @@ internal object CapturedPhotoAspectCropper {
             val h = decoder.height
             val longEdge = maxOf(w, h)
             val shortEdge = minOf(w, h)
-            val targetShort = (longEdge.toLong() * SIXTEEN_NINE_SHORT / SIXTEEN_NINE_LONG).toInt()
+            // A non-positive target resolves to the untouched short edge, which the guard below turns
+            // into "leave the photo alone" - one exit instead of a second early return.
+            val targetShort = if (targetRatio > 0f) (longEdge / targetRatio).toInt() else shortEdge
             if (targetShort >= shortEdge) {
                 decoder.recycle()
                 return
@@ -56,8 +57,51 @@ internal object CapturedPhotoAspectCropper {
         }.onFailure { Timber.w(it, "CapturedPhotoAspectCropper: aspect crop failed") }
     }
 
-    private const val SIXTEEN_NINE_LONG = 16
-    private const val SIXTEEN_NINE_SHORT = 9
+    /**
+     * S0753: centre-crops a captured JPEG by [factor] and rescales it to the original size, matching
+     * the saved photo to the digital (soft) zoom, overwriting [file].
+     *
+     * S1658: moved here from the session manager for the reason S1478 moved its sibling - the two
+     * capture-path crops are one concern, and neither reads any session state. A crop keeps the pixels
+     * in their stored orientation, so the snapshotted tags stay valid and are re-applied via
+     * [restoreExif] (S0765): `Bitmap.compress` emits a bare JPEG, which used to drop
+     * orientation/datetime/GPS from every digital-zoom shot.
+     */
+    fun cropCenter(file: File, factor: Float) {
+        runCatching {
+            val originalExif = runCatching { ExifInterface(file.absolutePath) }.getOrNull()
+
+            @Suppress("DEPRECATION")
+            val decoder = BitmapRegionDecoder.newInstance(file.absolutePath, false) ?: return
+            val w = decoder.width
+            val h = decoder.height
+            val cropW = (w / factor).toInt().coerceAtLeast(1)
+            val cropH = (h / factor).toInt().coerceAtLeast(1)
+            val left = (w - cropW) / 2
+            val top = (h - cropH) / 2
+            val region = decoder.decodeRegion(Rect(left, top, left + cropW, top + cropH), null)
+            decoder.recycle()
+            val scaled = Bitmap.createScaledBitmap(region, w, h, true)
+            FileOutputStream(file).use { scaled.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, it) }
+            if (scaled != region) region.recycle()
+            scaled.recycle()
+            originalExif?.let { restoreExif(it, file) }
+        }.onFailure { Timber.w(it, "CapturedPhotoAspectCropper: digital-zoom crop failed") }
+    }
+
+    /** The 16:9 target, for the callers whose selection is the ratio itself rather than the screen. */
+    const val SIXTEEN_NINE = 16f / 9f
+
+    /**
+     * S1658: the shape of a screen as a long-edge / short-edge ratio, so a caller can ask for "crop to
+     * what the viewfinder filled" without repeating the arithmetic. An unmeasured screen (either edge
+     * zero) answers [SIXTEEN_NINE], which is the stream the full-screen selection is built from.
+     */
+    fun ratioOfScreen(width: Int, height: Int): Float {
+        val longEdge = maxOf(width, height)
+        val shortEdge = minOf(width, height)
+        return if (shortEdge > 0) longEdge.toFloat() / shortEdge.toFloat() else SIXTEEN_NINE
+    }
 }
 
 /** S0765: JPEG quality every re-encode on the capture paths writes with. */

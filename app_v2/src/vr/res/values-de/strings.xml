@@ -14,7 +14,7 @@
     <string name="settings_stereo_vr_trust_metadata_title">Eingebettete Metadaten verwenden</string>
     <string name="settings_stereo_vr_trust_metadata_summary">Erkennung aus Metadaten von räumlichen Videos und Fotokugeln</string>
     <string name="settings_stereo_vr_trust_aspect_title">Schätzung anhand des Seitenverhältnisses</string>
-    <string name="settings_stereo_vr_trust_aspect_summary">Weniger zuverlässig – kann normale Breitbildfotos fälschlicherweise als 3D kennzeichnen.</string>
+    <string name="settings_stereo_vr_trust_aspect_summary">Weniger zuverlässig - kann normale Breitbildfotos fälschlicherweise als 3D kennzeichnen.</string>
     <string name="settings_stereo_vr_ambiguity_title">Wenn das Format unklar ist</string>
     <string name="settings_stereo_vr_ambiguity_summary">Ein: Eine bestmögliche Schätzung vornehmen. Aus: In 2D öffnen.</string>
     <string name="settings_stereo_vr_default_layout_label">Standardlayout</string>

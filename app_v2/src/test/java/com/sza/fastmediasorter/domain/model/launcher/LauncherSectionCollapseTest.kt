@@ -24,7 +24,24 @@ class LauncherSectionCollapseTest {
 
     @Test
     fun `a collapsed section keeps its own header on screen`() {
-        assertEquals(0, renderRow(0, headerRows = listOf(0, 5), collapsed = setOf(0)))
+        assertEquals(0, renderRow(0, headerRows = listOf(0, 5), collapsed = setOf(0), isHeader = true))
+    }
+
+    @Test
+    fun `a cell sharing a collapsed header's row is not drawn`() {
+        // S1642: the header takes two columns and its section owns the rest of that row, so folding the
+        // section has to take those cells with it.
+        assertNull(renderRow(0, headerRows = listOf(0, 5), collapsed = setOf(0)))
+    }
+
+    @Test
+    fun `a cell sharing an expanded header's row is drawn beside it`() {
+        assertEquals(0, renderRow(0, headerRows = listOf(0, 5), collapsed = setOf(5)))
+    }
+
+    @Test
+    fun `a header on a folded row is drawn at its lifted row`() {
+        assertEquals(1, renderRow(5, headerRows = listOf(0, 5), collapsed = setOf(0, 5), isHeader = true))
     }
 
     @Test
@@ -67,7 +84,7 @@ class LauncherSectionCollapseTest {
     fun `folding the last section hides everything under it and lifts nothing`() {
         val headers = listOf(0, 5)
 
-        assertEquals(5, renderRow(5, headers, collapsed = setOf(5)))
+        assertEquals(5, renderRow(5, headers, collapsed = setOf(5), isHeader = true))
         assertNull(renderRow(6, headers, collapsed = setOf(5)))
         assertNull(renderRow(30, headers, collapsed = setOf(5)))
     }
@@ -88,6 +105,10 @@ class LauncherSectionCollapseTest {
         assertEquals(7, renderRow(7, headerRows = emptyList(), collapsed = emptySet()))
     }
 
-    private fun renderRow(row: Int, headerRows: List<Int>, collapsed: Set<Int>): Int? =
-        LauncherSectionMembership.renderRowFor(row, headerRows, collapsed)
+    private fun renderRow(
+        row: Int,
+        headerRows: List<Int>,
+        collapsed: Set<Int>,
+        isHeader: Boolean = false,
+    ): Int? = LauncherSectionMembership.renderRowFor(row, isHeader, headerRows, collapsed)
 }

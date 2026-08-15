@@ -4,7 +4,7 @@
 <resources>
     <string name="draw_color_custom_cd">自定义颜色</string>
     <string name="draw_overflow_save_inplace">节省</string>
-    <string name="draw_overflow_save_new">另存为...</string>
+    <string name="draw_overflow_save_new">另存为..</string>
     <string name="draw_overflow_settings">设置</string>
     <string name="draw_overflow_undo_all">全部撤销</string>
     <string name="draw_overflow_undo_last">撤销上一步操作</string>

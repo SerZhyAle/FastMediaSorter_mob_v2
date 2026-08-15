@@ -14,7 +14,7 @@
     <string name="ocr_font_size">ओसीआर फ़ॉन्ट आकार</string>
     <string name="ocr_images_only">OCR सुविधा केवल छवियों के लिए उपलब्ध है।</string>
     <string name="ocr_no_text_found">छवि में कोई पाठ नहीं मिला</string>
-    <string name="ocr_processing">पाठ को पहचानना...</string>
+    <string name="ocr_processing">पाठ को पहचानना..</string>
     <string name="ocr_requires_newer_device">इस डिवाइस पर OCR उपलब्ध नहीं है। %1$s (API: %2$d)। इसके लिए API 26+ और 3GB+ RAM की आवश्यकता है।</string>
     <string name="ocr_result_title">मान्यता प्राप्त पाठ</string>
     <string name="ocr_unavailable_reason_os">एंड्रॉइड का संस्करण बहुत पुराना है।</string>
@@ -24,7 +24,7 @@
     <string name="translation_font_family">फुहारा परिवार</string>
     <string name="translation_font_size">फ़ॉन्ट आकार</string>
     <string name="translation_lens_style">ब्लॉकों में अनुवाद परिणाम</string>
-    <string name="translation_model_prewarm_downloading">अनुवाद मॉडल डाउनलोड हो रहा है...</string>
+    <string name="translation_model_prewarm_downloading">अनुवाद मॉडल डाउनलोड हो रहा है..</string>
     <string name="translation_model_prewarm_failed">अनुवाद मॉडल डाउनलोड नहीं हो सका। कृपया पुनः प्रयास करें।</string>
     <string name="translation_model_prewarm_ready">अनुवाद मॉडल तैयार है।</string>
     <string name="translation_model_prewarm_retry">पुन: प्रयास करें</string>
@@ -32,6 +32,6 @@
     <string name="translation_settings">टेक्स्ट सेटिंग्स</string>
     <string name="translation_source_language">मूल भाषा</string>
     <string name="translation_source_language_and_ocr">मूल भाषा और ओसीआर</string>
-    <string name="translation_started">अनुवाद शुरू हो गया है...</string>
+    <string name="translation_started">अनुवाद शुरू हो गया है..</string>
     <string name="translation_target_language">अनुवाद करने के लिए</string>
 </resources>

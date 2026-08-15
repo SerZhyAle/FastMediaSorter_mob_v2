@@ -1,17 +1,12 @@
 package com.sza.fastmediasorter.ui.cameracapture.helpers
 
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
-import android.graphics.BitmapRegionDecoder
-import android.graphics.Rect
 import android.hardware.camera2.CameraMetadata
 import android.hardware.camera2.CaptureRequest
 import android.util.Size
 import android.view.Surface
-import android.view.View
 import androidx.camera.camera2.interop.Camera2CameraControl
 import androidx.camera.camera2.interop.CaptureRequestOptions
-import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.FocusMeteringAction
@@ -28,17 +23,17 @@ import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
-import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraAspectSelection
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraLensEntry
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
+import com.sza.fastmediasorter.ui.cameracapture.model.PhotoProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.io.FileOutputStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -134,7 +129,7 @@ class CameraCaptureSessionManager(
     private var whiteBalanceMode: Int? = null
     private var manualIso: Int? = null
     private var manualShutterNs: Long? = null
-    private var selectedAspectRatio: Int? = null
+    private var selectedAspect: CameraAspectSelection? = null
     private var selectedResolution: Size? = null
 
     /** S0753: digital (crop) zoom factor on top of the optical/CameraX max; 1 = no digital crop. */
@@ -172,11 +167,15 @@ class CameraCaptureSessionManager(
     /** Invoked on the main thread after every successful bind / lens switch. */
     var onCapabilitiesChanged: ((CameraRuntimeCapabilities) -> Unit)? = null
 
+    /** S1658: the lens being left, reported before the switch clears its intents, so it can be saved. */
+    var onLensLeaving: ((lensId: String) -> Unit)? = null
+
     /**
-     * S1066: overlays (e.g. the result frame) that must scale in lockstep with the preview under the
-     * soft digital zoom, so they keep marking the same region of the digitally-zoomed image.
+     * S1658: the lens being entered, reported after the reset and before the bind - the one moment a
+     * remembered set can be written back without costing a second rebind. Never fired for a
+     * profile-driven switch, which would otherwise overwrite the profile the user just picked.
      */
-    var previewScaleLinkedViews: List<View> = emptyList()
+    var onLensEntering: ((lensId: String) -> Unit)? = null
 
     @SuppressLint("MissingPermission")
     fun bind(
@@ -264,7 +263,7 @@ class CameraCaptureSessionManager(
      * list starts with. No-op when the device offers no lens of that facing.
      */
     @SuppressLint("MissingPermission")
-    fun switchToFacing(facing: Int) {
+    fun switchToFacing(facing: Int, restoreSaved: Boolean = true) {
         val provider = cameraProvider
         val preview = previewView
         if (provider == null || preview == null) return
@@ -274,23 +273,30 @@ class CameraCaptureSessionManager(
             availableLenses.indexOfFirst { it.lensFacing == facing }
         }
         if (availableLenses.getOrNull(targetIndex)?.lensFacing != facing) return
-        bindLens(provider, preview, targetIndex)
+        bindLens(provider, preview, targetIndex, restoreSaved)
     }
 
     /**
      * Binds [targetIndex] as the active lens, or does nothing when it is already bound.
      *
      * A different physical lens has its own capabilities, so every per-lens intent is dropped first -
-     * night/HDR/macro and, since S1262, the profile intents too: BOKEH availability and the usable
-     * shutter range are both per-lens, so carrying them across would promise a profile the new lens
-     * may not have.
+     * BOKEH availability and the usable shutter range are both per-lens, so carrying them across
+     * would promise a profile the new lens may not have. S1658 makes that reset the baseline rather
+     * than the outcome: [onLensEntering] writes the entered lens's own remembered set over it, unless
+     * [restoreSaved] is false because a profile - not the user - asked for this switch.
      */
     @SuppressLint("MissingPermission")
-    private fun bindLens(provider: ProcessCameraProvider, preview: PreviewView, targetIndex: Int) {
+    private fun bindLens(
+        provider: ProcessCameraProvider,
+        preview: PreviewView,
+        targetIndex: Int,
+        restoreSaved: Boolean = true,
+    ) {
         // S1479: resolved here as well as in the bind itself, so cycling onto a sub-lens the video
         // pipeline cannot carry is a no-op instead of a rebind that drops every per-lens intent.
         val resolvedIndex = availableLenses.bindableIndex(targetIndex, videoMode)
         if (resolvedIndex == activeCameraIndex) return
+        availableLenses.getOrNull(activeCameraIndex)?.id?.let { onLensLeaving?.invoke(it) }
         activeCameraIndex = resolvedIndex
         nightMode = false
         hdrEnabled = false
@@ -301,8 +307,25 @@ class CameraCaptureSessionManager(
         manualIso = null
         manualShutterNs = null
         exposureCompensationIndex = 0
+        if (restoreSaved) availableLenses.getOrNull(resolvedIndex)?.id?.let { onLensEntering?.invoke(it) }
         runCatching { bindToLifecycle(provider, preview) }
             .onFailure { Timber.e(it, "CameraCaptureSessionManager: lens switch failed") }
+    }
+
+    /**
+     * S1658: writes a remembered set onto the session without rebinding. Called from [onLensEntering],
+     * between the reset above and the bind that follows, so the imminent bind picks up the profile
+     * intents and the Camera2 options in one pass. HDR stays out: it is a toggle, not a profile.
+     */
+    fun restorePerLensState(saved: CameraLensSettingsMemory.LensSettings) {
+        nightMode = saved.profile == PhotoProfile.NIGHT
+        bokehEnabled = saved.profile == PhotoProfile.PORTRAIT
+        macroEnabled = saved.profile == PhotoProfile.MACRO
+        sportEnabled = saved.profile == PhotoProfile.SPORT
+        whiteBalanceMode = saved.whiteBalanceMode
+        manualIso = saved.manualIso
+        manualShutterNs = saved.manualShutterNs
+        exposureCompensationIndex = saved.exposureCompensationIndex
     }
 
     /**
@@ -472,9 +495,9 @@ class CameraCaptureSessionManager(
         applyCamera2Options()
     }
 
-    fun setAspectRatioAndResolution(aspectRatio: Int?, resolution: Size?) {
-        val changed = selectedAspectRatio != aspectRatio || selectedResolution != resolution
-        selectedAspectRatio = aspectRatio
+    fun setAspectRatioAndResolution(selection: CameraAspectSelection?, resolution: Size?) {
+        val changed = selectedAspect != selection || selectedResolution != resolution
+        selectedAspect = selection
         selectedResolution = resolution
         if (!changed) return
         val provider = cameraProvider
@@ -495,7 +518,13 @@ class CameraCaptureSessionManager(
 
     val currentManualShutterNs: Long? get() = manualShutterNs
 
-    val currentAspectRatio: Int? get() = selectedAspectRatio
+    val currentAspect: CameraAspectSelection? get() = selectedAspect
+
+    /** S1658: the bound lens, so the host can key a per-lens memory off the identity S1457 already tracks. */
+    val boundLensId: String? get() = lastBoundLensId
+
+    /** S1658: every lens currently offered, so a memory entry for a lens that has left can be dropped. */
+    val offeredLensIds: Set<String> get() = availableLenses.mapTo(mutableSetOf()) { it.id }
 
     val currentResolution: Size? get() = selectedResolution
 
@@ -530,14 +559,9 @@ class CameraCaptureSessionManager(
         applyDigitalZoomScale(1f)
     }
 
-    /** S1066: scales the preview and every preview-linked overlay (result frame) together, so the frame
-     *  keeps marking the same image region under the soft digital zoom. */
+    /** S0753: scales the preview itself, which is how the soft digital zoom is shown. */
     private fun applyDigitalZoomScale(scale: Float) {
         previewView?.let {
-            it.scaleX = scale
-            it.scaleY = scale
-        }
-        previewScaleLinkedViews.forEach {
             it.scaleX = scale
             it.scaleY = scale
         }
@@ -608,7 +632,14 @@ class CameraCaptureSessionManager(
         // reading the session fields there cropped the finished photo by whatever the user had moved
         // to since. Sampled once, here, and the callback reads nothing else.
         val zoomFactorAtShutter = digitalZoomFactor
-        val aspectCropAtShutter = !videoMode && selectedAspectRatio == AspectRatio.RATIO_16_9
+        // S1658: only the full-screen selection still needs a crop - the other two are already the
+        // shape the stream was requested at. Sampled here for the same reason as the zoom above.
+        val cropRatioAtShutter = if (!videoMode && selectedAspect?.cropsToScreen == true) {
+            val metrics = previewView.resources.displayMetrics
+            CapturedPhotoAspectCropper.ratioOfScreen(metrics.widthPixels, metrics.heightPixels)
+        } else {
+            null
+        }
         val builder = ImageCapture.OutputFileOptions.Builder(outputFile)
         // S0766: opt-in geotag. CameraX writes GPS into the JPEG EXIF before any digital-zoom crop,
         // and the crop path preserves the GPS tags (PRESERVED_EXIF_TAGS, S0765), so a cropped shot
@@ -624,15 +655,17 @@ class CameraCaptureSessionManager(
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                     // S0753: match the saved photo to a digital (soft) zoom by cropping it off-thread.
-                    // S1066: and, in photo mode, crop the full 4:3 sensor frame down to the selected
-                    // 16:9 result frame so the file equals the on-screen frame. Both run on the crop
-                    // worker so capture never blocks the UI; 4:3 needs neither.
-                    if (zoomFactorAtShutter > 1f || aspectCropAtShutter) {
+                    // S1658: and, on the full-screen selection, crop the 16:9 frame down to the shape
+                    // of the screen it filled, so the file equals what the viewfinder showed. Both run
+                    // on the crop worker so capture never blocks the UI.
+                    if (zoomFactorAtShutter > 1f || cropRatioAtShutter != null) {
                         val executor = cropExecutor
                             ?: Executors.newSingleThreadExecutor().also { cropExecutor = it }
                         executor.execute {
-                            if (zoomFactorAtShutter > 1f) cropCenter(outputFile, zoomFactorAtShutter)
-                            if (aspectCropAtShutter) CapturedPhotoAspectCropper.cropToSixteenNine(outputFile)
+                            if (zoomFactorAtShutter > 1f) {
+                                CapturedPhotoAspectCropper.cropCenter(outputFile, zoomFactorAtShutter)
+                            }
+                            cropRatioAtShutter?.let { CapturedPhotoAspectCropper.cropToRatio(outputFile, it) }
                             ContextCompat.getMainExecutor(previewView.context).execute { onSaved() }
                         }
                     } else {
@@ -648,33 +681,6 @@ class CameraCaptureSessionManager(
         )
     }
 
-    /** S0753: center-crops a captured JPEG by [factor] to match the digital (soft) zoom, overwriting it. */
-    private fun cropCenter(file: File, factor: Float) {
-        runCatching {
-            // S0765: snapshot the EXIF CameraX wrote before we overwrite the file. Bitmap.compress
-            // emits a bare JPEG with no metadata, which silently dropped orientation/datetime/GPS for
-            // every digital-zoom shot. A center crop keeps the pixels in their stored (sensor)
-            // orientation, so the original tags - including TAG_ORIENTATION - remain valid as-is.
-            val originalExif = runCatching { ExifInterface(file.absolutePath) }.getOrNull()
-
-            @Suppress("DEPRECATION")
-            val decoder = BitmapRegionDecoder.newInstance(file.absolutePath, false) ?: return
-            val w = decoder.width
-            val h = decoder.height
-            val cropW = (w / factor).toInt().coerceAtLeast(1)
-            val cropH = (h / factor).toInt().coerceAtLeast(1)
-            val left = (w - cropW) / 2
-            val top = (h - cropH) / 2
-            val region = decoder.decodeRegion(Rect(left, top, left + cropW, top + cropH), null)
-            decoder.recycle()
-            val scaled = Bitmap.createScaledBitmap(region, w, h, true)
-            FileOutputStream(file).use { scaled.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, it) }
-            if (scaled != region) region.recycle()
-            scaled.recycle()
-            originalExif?.let { restoreExif(it, file) }
-        }.onFailure { Timber.w(it, "CameraCaptureSessionManager: digital-zoom crop failed") }
-    }
-
     fun unbind() {
         activeRecording?.stop()
         activeRecording = null
@@ -685,8 +691,6 @@ class CameraCaptureSessionManager(
         videoCapture = null
         camera = null
         previewView = null
-        // S1066: drop the overlay references so a closed session never pins a destroyed view.
-        previewScaleLinkedViews = emptyList()
         // S0767: orderly shutdown() (never shutdownNow) lets an in-flight crop finish writing its JPEG
         // and releases the worker thread deterministically instead of waiting for GC, without blocking
         // the calling (main) thread; nulling the field lets a later bind()+crop recreate it.
@@ -767,7 +771,7 @@ class CameraCaptureSessionManager(
         val carriedZoomRatio = if (lastBoundLensId == activeLens.id) requestedZoomRatio ?: currentZoomRatio() else null
         val useCases = CameraUseCaseFactory(
             videoMode = videoMode,
-            selectedAspectRatio = selectedAspectRatio,
+            selection = selectedAspect,
             selectedResolution = selectedResolution,
             targetRotation = targetRotation,
             physicalCameraId = activeLens.physicalCameraId,
@@ -878,14 +882,6 @@ class CameraCaptureSessionManager(
             }
         }
     }
-
-    /**
-     * S1066: true when a result frame must be drawn over the preview - photo mode with a selected ratio
-     * narrower than the full sensor frame (16:9 inside 4:3). Video previews the recorded region, so no
-     * frame; 4:3 fills the shown frame, so no frame (spec ADR-1, §6.4).
-     */
-    fun shouldShowResultFrame(): Boolean =
-        !videoMode && selectedAspectRatio == AspectRatio.RATIO_16_9
 
     private fun applyCamera2Options() {
         val control = camera?.cameraControl ?: return

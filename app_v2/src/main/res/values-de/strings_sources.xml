@@ -12,7 +12,7 @@
     <string name="smb_manual_share_dialog_title">Geben Sie den Namen der Beteiligung ein</string>
     <string name="smb_manual_share_hint">z. B. Fotos, Medien, Backups</string>
     <string name="smb_manual_share_section_previous">Bisher verwendet:</string>
-    <string name="smb_network_unstable">Netzwerk instabil – bitte überprüfen Sie Ihr WLAN.</string>
+    <string name="smb_network_unstable">Netzwerk instabil - bitte überprüfen Sie Ihr WLAN.</string>
     <string name="smb_no_shares_found_title">Keine Anteile gefunden</string>
     <string name="smb_password">Passwort</string>
     <string name="smb_port">Hafen</string>
@@ -73,8 +73,8 @@
     <string name="dropbox">Dropbox</string>
     <string name="dropbox_authentication_failed">Dropbox-Authentifizierung fehlgeschlagen</string>
     <string name="dropbox_beta_email_body">Hallo,\n\nBitte fügen Sie mein Dropbox-Konto der FastMediaSorter-Beta-Testerliste hinzu.\n\nMeine Dropbox-E-Mail-Adresse:</string>
-    <string name="dropbox_beta_email_subject">FastMediaSorter – Dropbox-Beta-Zugriffsanfrage</string>
-    <string name="dropbox_beta_message">Die Dropbox-Integration befindet sich derzeit in der eingeschränkten Beta-Phase.\n\n⚠️ Warum muss ich Sie kontaktieren?\nDropbox verlangt von App-Entwicklern, dass sie Tester während der Testphase manuell registrieren. Dies ist eine einmalige technische Formalität seitens Dropbox – Ihre E-Mail-Adresse wird nur verwendet, um Ihr Dropbox-Konto zur Liste der zulässigen Tester hinzuzufügen.\n\n🔒 Ihre Privatsphäre wird vollumfänglich respektiert:\n\\u) Wir erfassen, speichern oder teilen Ihre E-Mail-Adresse NICHT\n\\u) Wir greifen NICHT auf Ihre Dateien oder Daten zu\n\\u) Ihre E-Mail-Adresse wird ausschließlich verwendet, um Ihnen in dieser App Zugriff auf Dropbox zu gewähren.\n\nUm Zugriff zu erhalten, senden Sie uns eine E-Mail an: nserzhyale@gmail.com</string>
+    <string name="dropbox_beta_email_subject">FastMediaSorter - Dropbox-Beta-Zugriffsanfrage</string>
+    <string name="dropbox_beta_message">Die Dropbox-Integration befindet sich derzeit in der eingeschränkten Beta-Phase.\n\n⚠️ Warum muss ich Sie kontaktieren?\nDropbox verlangt von App-Entwicklern, dass sie Tester während der Testphase manuell registrieren. Dies ist eine einmalige technische Formalität seitens Dropbox - Ihre E-Mail-Adresse wird nur verwendet, um Ihr Dropbox-Konto zur Liste der zulässigen Tester hinzuzufügen.\n\n🔒 Ihre Privatsphäre wird vollumfänglich respektiert:\n\\u) Wir erfassen, speichern oder teilen Ihre E-Mail-Adresse NICHT\n\\u) Wir greifen NICHT auf Ihre Dateien oder Daten zu\n\\u) Ihre E-Mail-Adresse wird ausschließlich verwendet, um Ihnen in dieser App Zugriff auf Dropbox zu gewähren.\n\nUm Zugriff zu erhalten, senden Sie uns eine E-Mail an: nserzhyale@gmail.com</string>
     <string name="dropbox_beta_send_email">E-Mail senden</string>
     <string name="dropbox_beta_title">Dropbox Beta-Zugang</string>
     <string name="dropbox_connection_test_failed">Verbindung fehlgeschlagen: %1$s</string>

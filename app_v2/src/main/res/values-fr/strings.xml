@@ -379,8 +379,6 @@
     <string name="cb_cloud_read_only_mode_desc">Empêche les opérations sur les fichiers (copier, déplacer, supprimer)</string>
     <string name="cb_cloud_picker_add_as_destination_desc">Marquer ce dossier cloud comme destination de tri rapide</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">Rechercher les fichiers multimédias dans tous les sous-dossiers imbriqués</string>
-    <string name="cb_repeat_video_desc">Répéter la vidéo actuelle en continu</string>
-    <string name="cb_show_subtitles_desc">Afficher les pistes de sous-titres lorsqu\'elles sont disponibles</string>
     <string name="virtual_camera_photos">Photos de l\'appareil photo</string>
     <string name="network_delete_warning">Les fichiers seront définitivement supprimés de l\'emplacement réseau</string>
     <string name="save_audio_metadata_locally">Enregistrer les données multimédias téléchargées localement</string>
@@ -983,14 +981,14 @@
     <string name="toast_image_flipped">Image retournée avec succès</string>
     <string name="toast_flip_failed">Impossible de retourner l\'image. Réessayez.</string>
     <string name="toast_filter_active">Filtre actif..</string>
-    <string name="progress_applying_filter">Application du filtre...</string>
-    <string name="progress_applying_adjustments">Application des ajustements...</string>
-    <string name="progress_rotating_image">Image rotative...</string>
+    <string name="progress_applying_filter">Application du filtre..</string>
+    <string name="progress_applying_adjustments">Application des ajustements..</string>
+    <string name="progress_rotating_image">Image rotative..</string>
     <string name="progress_flipping_image">Retournement d\'image %1$s..</string>
     <string name="toast_no_files_to_play">Aucun fichier à lire</string>
     <string name="toast_resource_not_loaded">Ressource non chargée</string>
     <string name="at_least_one_media_type_required">Au moins un type de média doit être sélectionné.</string>
-    <string name="reopen_with_encoding">Rouvrir avec l\'encodage...</string>
+    <string name="reopen_with_encoding">Rouvrir avec l\'encodage..</string>
     <string name="select_encoding">Sélectionner l\'encodage</string>
     <string name="reader_settings">Paramètres du lecteur</string>
     <string name="reader_theme_light">Lumière</string>
@@ -1000,7 +998,7 @@
     <string name="read_aloud">Lecture à voix haute</string>
     <string name="redo">Refaire</string>
     <string name="find_hint">Trouver..</string>
-    <string name="replace_hint">Remplacer par...</string>
+    <string name="replace_hint">Remplacer par..</string>
     <string name="replace">Remplacer</string>
     <string name="replace_all">Remplacer tout</string>
     <string name="find_and_replace">Rechercher et remplacer</string>
@@ -1022,8 +1020,8 @@
     </plurals>
     <string name="resource_deleted">Source supprimée</string>
     <string name="msg_loading_timeout">Le chargement a pris trop de temps</string>
-    <string name="speed_test_preparing">Préparation du test de vitesse...</string>
-    <string name="speed_test_saving">Enregistrement des résultats...</string>
+    <string name="speed_test_preparing">Préparation du test de vitesse..</string>
+    <string name="speed_test_saving">Enregistrement des résultats..</string>
     <string name="no_files_to_restore">Aucun fichier supprimé à restaurer</string>
     <string name="failed_to_restore_files">Échec de la restauration des fichiers</string>
     <string name="reload_files_failed">Impossible d\'actualiser la liste des fichiers.</string>
@@ -1038,7 +1036,7 @@
     <string name="tooltip_use_trash_message">Lorsque cette option est activée, les fichiers locaux supprimés sont déplacés vers un dossier masqué .trash et peuvent être récupérés via Annuler. Sous Android 12 et versions ultérieures, certains dossiers partagés nécessitent MANAGE_MEDIA ; sans cette autorisation, la corbeille peut revenir à une suppression définitive. Lorsqu\'elle est désactivée, les fichiers sont supprimés définitivement et immédiatement, et l\'espace disque est libéré aussitôt. Les fichiers réseau et cloud sont toujours supprimés définitivement.</string>
     <string name="send_email">Envoyer un courriel</string>
     <string name="no_email_client">Aucun client de messagerie trouvé</string>
-    <string name="receive_share_preparing">Préparation du contenu partagé...</string>
+    <string name="receive_share_preparing">Préparation du contenu partagé..</string>
     <string name="receive_share_source_name">Commun</string>
     <string name="receive_share_no_content">Aucun contenu reçu pour l\'importation</string>
     <string name="receive_share_cache_failed">Impossible de préparer le fichier partagé. Veuillez réessayer.</string>
@@ -1088,13 +1086,6 @@
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Veuillez patienter..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Chargement..</string>
-    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>
-    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>
-    <string name="dialog_player_settings_chipSpeed1_text">1x</string>
-    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string>
-    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>
-    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>
-    <string name="dialog_player_settings_chipSpeed2_text">2x</string>
     <string name="dialog_slideshow_settings_tvIntervalValue_text">5s</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">Max (Mo)</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">Min (MB)</string>
@@ -1105,7 +1096,7 @@
     <string name="item_folder_tvFolderName_text">Nom du dossier</string>
     <string name="integration_tests_title">Tests d\'intégration</string>
     <string name="integration_tests_description">Tests automatisés des opérations sur les fichiers pour tous les types de ressources</string>
-    <string name="scanning_resources">Recherche de ressources...</string>
+    <string name="scanning_resources">Recherche de ressources..</string>
     <string name="thumbnail">Vignette</string>
     <string name="resource_type_icon">Icône du type de source</string>
     <string name="cd_resource_icon_quick_slideshow">Lancer le diaporama</string>
@@ -1316,7 +1307,7 @@
     <string name="now_playing_seek_bar_desc">Barre de recherche</string>
     <string name="action_find_duplicates">Trouver les doublons</string>
     <string name="action_delete_duplicates">Rechercher et supprimer les doublons</string>
-    <string name="action_delete_by_size">Supprimer par taille...</string>
+    <string name="action_delete_by_size">Supprimer par taille..</string>
     <string name="cd_resource_ops_menu">Menu Opérations sur les ressources</string>
     <string name="cmd_camera_capture">Capture avec l\'appareil photo</string>
     <string name="camera_capture_filename_title">Enregistrer sous</string>
@@ -1337,7 +1328,7 @@
     <string name="duplicate_wasted_bytes">Espace gaspillé : %1$s</string>
     <string name="duplicate_scan_network_warning">L\'analyse du réseau peut prendre beaucoup de temps et consommer beaucoup de bande passante. Continuer ?</string>
     <string name="duplicate_scan_notif_title">Analyse en double</string>
-    <string name="duplicate_scan_notif_running">Recherche de doublons en cours...</string>
+    <string name="duplicate_scan_notif_running">Recherche de doublons en cours..</string>
     <string name="duplicate_scan_notif_channel_name">Scanner en double</string>
     <string name="action_create_folder">Créer un dossier</string>
     <string name="action_create_text_file">Créer une note textuelle</string>
@@ -1360,7 +1351,7 @@
     <string name="archive_name_invalid_chars_error">Le nom contient des caractères invalides</string>
     <string name="archive_destination_label">Dossier de destination : %1$s</string>
     <string name="archive_action_btn">Archive</string>
-    <string name="archive_progress_title">Création de l\'archive...</string>
+    <string name="archive_progress_title">Création de l\'archive..</string>
     <string name="archive_success">Archive créée : %1$s (%2$d fichiers)</string>
     <string name="archive_error">Erreur d\'archivage : %1$s</string>
     <string name="archive_destination_not_found">Le dossier de destination n\'est plus disponible.</string>
@@ -1369,7 +1360,7 @@
     <string name="unarchive_dialog_title">Extraire l\'archive ?</string>
     <string name="unarchive_dialog_message">\"%1$s\" -&gt; dossier \"%2$s\"</string>
     <string name="unarchive_action_extract">Extrait</string>
-    <string name="unarchive_progress_title">Extraction de l\'archive...</string>
+    <string name="unarchive_progress_title">Extraction de l\'archive..</string>
     <string name="unarchive_progress_entry">Extraction : %1$s</string>
     <string name="unarchive_success">Archive extraite</string>
     <string name="unarchive_error_zip_bomb">Archives trop volumineuses ou trop profondes</string>
@@ -1527,7 +1518,7 @@
     <string name="rotation_toggle_sensor_off_desc">Rotation de l\'écran : verrouillée</string>
     <string name="link_download_notif_text_preview_only_signed_in">Impossible d\'extraire le contenu de la page. Aucune connexion nécessaire.</string>
     <string name="error_reason_local_destination_permission_denied">Impossible d\'enregistrer ici - Android limite l\'écriture dans ce dossier. Essayez d\'enregistrer dans Musique, Films, Images ou Téléchargements.</string>
-    <string name="s0266_apk_download_preparing">Préparation de l\'installation...</string>
+    <string name="s0266_apk_download_preparing">Préparation de l\'installation..</string>
     <string name="s0281_google_oauth_only_note">Impossible d\'accéder à ce contenu YouTube. Les identifiants de connexion ne sont pas enregistrés.</string>
     <string name="browse_transfer_progress_background">Arrière-plan</string>
     <string name="browse_transfer_already_running">Un transfert de fichiers est déjà en cours.</string>
@@ -1554,7 +1545,7 @@
     <string name="system_info_copy_full_report">Copier le rapport complet</string>
     <string name="system_info_reveal_confirm_title">Copier le rapport complet ?</string>
     <string name="system_info_reveal_confirm_message">La copie inclura des valeurs sensibles (hachage de signature, adresses locales, chemins de montage). Continuer ?</string>
-    <string name="audio_next_track_loading">Chargement du morceau suivant...</string>
+    <string name="audio_next_track_loading">Chargement du morceau suivant..</string>
     <string name="widget_quick_audio_recorder_label">Enregistreur rapide</string>
     <string name="widget_quick_audio_recorder_description">Appuyez pour démarrer un enregistrement vocal ; appuyez de nouveau pour l’arrêter et l’enregistrer.</string>
     <string name="quick_recorder_notification_recording">Enregistrement..</string>
@@ -1587,7 +1578,7 @@
     <string name="delivery_offer_message">Cette fonctionnalité nécessite un téléchargement supplémentaire (environ %1$s). Télécharger maintenant ?</string>
     <string name="delivery_offer_message_unknown_size">Cette fonctionnalité nécessite un petit téléchargement supplémentaire. L\'obtenir maintenant ?</string>
     <string name="delivery_state_downloading">Téléchargement..</string>
-    <string name="delivery_state_verifying">Vérification du téléchargement...</string>
+    <string name="delivery_state_verifying">Vérification du téléchargement..</string>
     <string name="delivery_state_error">Impossible de télécharger - vérifiez votre connexion et réessayez.</string>
     <string name="delivery_action_download">Télécharger</string>
     <string name="delivery_action_retry">Essayer à nouveau</string>
@@ -1628,7 +1619,7 @@
     <string name="sftp_auth_method_label">Méthode de connexion</string>
     <string name="sftp_server_verification_title">Vérification du serveur (facultative)</string>
     <string name="sftp_server_verification_subtitle">Sécurité optionnelle permettant de confirmer l\'authenticité du serveur.</string>
-    <string name="sftp_host_key_fingerprint_helper">Utilisez cette méthode uniquement si vous souhaitez épingler le serveur et vous protéger contre l\'usurpation d\'identité. Format : SHA256 :…</string>
+    <string name="sftp_host_key_fingerprint_helper">Utilisez cette méthode uniquement si vous souhaitez épingler le serveur et vous protéger contre l\'usurpation d\'identité. Format : SHA256 :..</string>
     <string name="ext_section_ocr_translation">Traduction &amp; reconnaissance OCR</string>
     <string name="ext_section_media_playback">Lecture multimédia</string>
     <string name="ext_shortcut_packs_title">Téléchargements OCR &amp; traduction</string>
@@ -1639,7 +1630,7 @@
     <string name="download_runner_notif_title_failed">Échec du téléchargement de %s</string>
     <string name="screen_capture_saved_to">Enregistré sous %1$s : %2$s</string>
     <string name="screen_capture_service_notification_title">Capture d\'écran</string>
-    <string name="screen_capture_service_notification_text">Capture d\'écran actuelle...</string>
+    <string name="screen_capture_service_notification_text">Capture d\'écran actuelle..</string>
     <string name="setting_group_system_apps_title">Interaction avec le système d\'exploitation</string>
     <string name="setting_subgroup_screen_gestures_title">Gestes depuis le bord de l\'écran</string>
     <string name="setting_gesture_overlay_title">Superposition de gestes</string>
@@ -2069,7 +2060,7 @@
     <string name="programs_panel_hide_action">Masquer le panneau</string>
     <string name="main_programs_panel_strip">Programmes et scénarios</string>
     <string name="streams_panel_collapse_action">Réduire le panneau</string>
-    <string name="main_streams_panel_strip">Flux...</string>
+    <string name="main_streams_panel_strip">Flux..</string>
     <string name="camera_scenario_ocr_translate">Reconnaissance de texte</string>
     <string name="recording_pause">Mettre en pause l\'enregistrement</string>
     <string name="recording_resume">Reprise de l\'enregistrement</string>
@@ -2663,7 +2654,6 @@
     <string name="network_monitor_status_unknown">Ouvert à la vérification</string>
     <string name="network_monitor_active_title">Connexion active</string>
     <string name="network_monitor_active_none">Aucune connexion n\'est disponible. Activez le Wi-Fi ou les données mobiles pour vous connecter à Internet.</string>
-    <string name="network_monitor_local_ip_label">IP locale</string>
     <string name="network_monitor_value_unknown">Inconnu</string>
     <string name="network_monitor_internet_ok">Internet fonctionne</string>
     <string name="network_monitor_internet_captive">Ce réseau vous demande de vous connecter.</string>
@@ -2696,7 +2686,7 @@
     <string name="network_monitor_route_present">Présent</string>
     <string name="network_monitor_route_absent">Aucun</string>
     <string name="network_monitor_chart_signal_heading">Signal</string>
-    <string name="network_monitor_chart_waiting">Collecte des données...</string>
+    <string name="network_monitor_chart_waiting">Collecte des données..</string>
     <string name="network_monitor_chart_summary">Maintenant %1$s / min %2$s / max %3$s / %4$s</string>
     <string name="network_monitor_trend_rising">soulèvement</string>
     <string name="network_monitor_trend_falling">chute</string>
@@ -2727,7 +2717,7 @@
     <string name="network_monitor_bluetooth_signal_heading">Signal de l\'appareil</string>
     <string name="network_monitor_gnss_visible_label">Satellites en vue</string>
     <string name="network_monitor_gnss_used_label">Utilisé pour la position</string>
-    <string name="network_monitor_gnss_acquiring">Recherche de satellites...</string>
+    <string name="network_monitor_gnss_acquiring">Recherche de satellites..</string>
     <string name="network_monitor_gnss_used_in_fix">compté en position</string>
     <string name="network_monitor_gnss_not_in_fix">non compté</string>
     <string name="network_monitor_gnss_position_heading">Position</string>
@@ -2762,10 +2752,10 @@
     <string name="network_monitor_action_speed_test">Mesurer la vitesse</string>
     <string name="network_monitor_action_cancel">Arrêt</string>
     <string name="network_monitor_action_continue">Continuer</string>
-    <string name="network_monitor_running_check_resource">Vérification de la ressource...</string>
-    <string name="network_monitor_running_scan_subnet">Analyse du réseau...</string>
-    <string name="network_monitor_running_external_ip">Demande de l\'adresse externe...</string>
-    <string name="network_monitor_running_speed_test">Mesure de la vitesse...</string>
+    <string name="network_monitor_running_check_resource">Vérification de la ressource..</string>
+    <string name="network_monitor_running_scan_subnet">Analyse du réseau..</string>
+    <string name="network_monitor_running_external_ip">Demande de l\'adresse externe..</string>
+    <string name="network_monitor_running_speed_test">Mesure de la vitesse..</string>
     <string name="network_monitor_warn_speed_test_title">Cela utilisera le trafic</string>
     <string name="network_monitor_warn_speed_test_message">Le test de débit effectue environ 20 Mo de téléchargement et d\'envoi au total. Ce volume de données est facturé sur votre forfait mobile. Vous pouvez l\'interrompre à tout moment.</string>
     <string name="network_monitor_warn_subnet_title">Cela permettra d\'analyser votre réseau local.</string>

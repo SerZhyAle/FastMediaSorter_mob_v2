@@ -27,7 +27,7 @@
     <string name="addresource_some_resources_unavailable_after_add">%1$s. Alcune risorse non sono disponibili al momento.</string>
     <string name="addresource_validation_generic">Sembra che manchi qualcosa: controlla il modulo e riprova.</string>
     <string name="import_auto">Ricerca automatica nella cartella Download</string>
-    <string name="import_browse">Sfoglia per il file...</string>
+    <string name="import_browse">Sfoglia per il file..</string>
     <string name="import_failed">Impossibile importare le impostazioni. Riprova.</string>
     <string name="import_failed_title">Importazione non riuscita</string>
     <string name="import_fav_action">Importare</string>
@@ -72,7 +72,7 @@
     <string name="delete_by_size_larger">Più grande di</string>
     <string name="delete_by_size_no_matches">Nessun file corrispondente trovato</string>
     <string name="delete_by_size_preview_title">Conferma l\'eliminazione</string>
-    <string name="delete_by_size_scanning">Scansione in corso...</string>
+    <string name="delete_by_size_scanning">Scansione in corso..</string>
     <string name="delete_by_size_smaller">Più piccolo di</string>
     <string name="delete_by_size_warning_no_trash">Attenzione: il cestino non è supportato per questa risorsa. L\'eliminazione sarà permanente!</string>
     <string name="delete_confirmation">Eliminare i file?</string>
@@ -121,7 +121,7 @@
     <string name="file_not_found_message">Il file \"%1$s\" non esiste più. Potrebbe essere stato eliminato o spostato al di fuori dell\'app. Aggiornare questa risorsa?</string>
     <string name="file_not_found_name">File non trovato: %1$s</string>
     <string name="file_not_found_title">File non trovato</string>
-    <string name="file_operation_progress_preparing">Preparazione in corso...</string>
+    <string name="file_operation_progress_preparing">Preparazione in corso..</string>
     <string name="file_ops_in_overflow_menu">Operazioni sui file nel menu a discesa</string>
     <string name="file_ops_moved_to_menu_hint">Le azioni sui file sono state spostate nel menu ⋮ su ciascun file</string>
     <string name="file_path_label">Percorso: %1$s</string>

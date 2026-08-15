@@ -29,7 +29,7 @@ This assessment is based on the current repository snapshot in `DEBUG-v026`.
 | Dialog-related XML files | 135 | Files whose names/content indicate dialog UI |
 | Dialog signal lines | 868 | Lines matching dialog builders, message/title setters, confirm/cancel styles, or dialog controls |
 | Dialog-bearing files | 199 | Kotlin/XML files containing dialog-related signals |
-| Room DB version | 41 | Current value in `AppDatabase` |
+| Room DB version | 41 | Assessment baseline captured for this report |
 
 ## 3. Complexity Reading
 
@@ -38,7 +38,7 @@ FastMediaSorter v2 is no longer a small utility app. By current implementation s
 - Multi-module surface: phone/tablet app plus Wear OS companion.
 - Large feature breadth: local media, network protocols, cloud providers, documents, OCR, translation, widgets, automation, streams, VR/noLegal, and in-progress launcher mode.
 - Broad UI surface: many screens, multiple player hosts, settings areas, and a high dialog density.
-- Persistent data model: Room schema at version 41 indicates long-running feature evolution and migration burden.
+- Persistent data model: the report's Room schema version-41 baseline indicates long-running feature evolution and migration burden.
 - Flavor and device branching: Standard / Lite / Photos / Legacy plus XR-specific source sets and capability gating.
 
 ## 4. Indicative Person-Hour Estimate

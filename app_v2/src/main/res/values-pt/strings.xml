@@ -379,8 +379,6 @@
     <string name="cb_cloud_read_only_mode_desc">Impede operações de arquivo (copiar, mover, excluir)</string>
     <string name="cb_cloud_picker_add_as_destination_desc">Marcar esta pasta na nuvem como destino de classificação rápida</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">Procurar arquivos de mídia em todas as subpastas aninhadas</string>
-    <string name="cb_repeat_video_desc">Repetir o vídeo atual continuamente</string>
-    <string name="cb_show_subtitles_desc">Exibir faixas de legenda quando disponíveis</string>
     <string name="virtual_camera_photos">Fotos da Câmera</string>
     <string name="network_delete_warning">Os arquivos serão excluídos permanentemente do local de rede</string>
     <string name="save_audio_metadata_locally">Salvar dados de mídia baixados localmente</string>
@@ -983,14 +981,14 @@
     <string name="toast_image_flipped">Imagem espelhada com sucesso</string>
     <string name="toast_flip_failed">Não foi possível espelhar a imagem. Tente novamente.</string>
     <string name="toast_filter_active">Filtro ativo..</string>
-    <string name="progress_applying_filter">Aplicando filtro...</string>
-    <string name="progress_applying_adjustments">Aplicando ajustes...</string>
-    <string name="progress_rotating_image">Imagem rotativa...</string>
+    <string name="progress_applying_filter">Aplicando filtro..</string>
+    <string name="progress_applying_adjustments">Aplicando ajustes..</string>
+    <string name="progress_rotating_image">Imagem rotativa..</string>
     <string name="progress_flipping_image">Invertendo a imagem %1$s..</string>
     <string name="toast_no_files_to_play">Nenhum arquivo para reproduzir</string>
     <string name="toast_resource_not_loaded">Recurso não carregado</string>
     <string name="at_least_one_media_type_required">Pelo menos um tipo de mídia deve ser selecionado.</string>
-    <string name="reopen_with_encoding">Reabrir com codificação...</string>
+    <string name="reopen_with_encoding">Reabrir com codificação..</string>
     <string name="select_encoding">Selecione a codificação</string>
     <string name="reader_settings">Configurações do leitor</string>
     <string name="reader_theme_light">Luz</string>
@@ -1000,7 +998,7 @@
     <string name="read_aloud">Ler em voz alta</string>
     <string name="redo">Refazer</string>
     <string name="find_hint">Encontrar..</string>
-    <string name="replace_hint">Substituir por...</string>
+    <string name="replace_hint">Substituir por..</string>
     <string name="replace">Substituir</string>
     <string name="replace_all">Substituir tudo</string>
     <string name="find_and_replace">Localizar e substituir</string>
@@ -1022,8 +1020,8 @@
     </plurals>
     <string name="resource_deleted">Recurso excluído</string>
     <string name="msg_loading_timeout">O carregamento demorou demais</string>
-    <string name="speed_test_preparing">Preparando o teste de velocidade...</string>
-    <string name="speed_test_saving">Salvando resultados...</string>
+    <string name="speed_test_preparing">Preparando o teste de velocidade..</string>
+    <string name="speed_test_saving">Salvando resultados..</string>
     <string name="no_files_to_restore">Nenhum arquivo excluído para restaurar</string>
     <string name="failed_to_restore_files">Falha ao restaurar arquivos</string>
     <string name="reload_files_failed">Não foi possível atualizar a lista de arquivos.</string>
@@ -1038,7 +1036,7 @@
     <string name="tooltip_use_trash_message">Quando ativado, os ficheiros locais eliminados são movidos para uma pasta oculta .trash e podem ser recuperados com Anular. No Android 12+, algumas pastas partilhadas precisam de MANAGE_MEDIA; sem essa permissão, a reciclagem pode recorrer à eliminação permanente. Quando desativado, os ficheiros são eliminados permanentemente de imediato e o espaço em disco é libertado logo. Os ficheiros de rede e na nuvem são sempre eliminados permanentemente.</string>
     <string name="send_email">Enviar e-mail</string>
     <string name="no_email_client">Nenhum cliente de e-mail encontrado</string>
-    <string name="receive_share_preparing">Preparando conteúdo compartilhado...</string>
+    <string name="receive_share_preparing">Preparando conteúdo compartilhado..</string>
     <string name="receive_share_source_name">Compartilhado</string>
     <string name="receive_share_no_content">Nenhum conteúdo recebido para importação.</string>
     <string name="receive_share_cache_failed">Não foi possível preparar o arquivo compartilhado. Tente novamente.</string>
@@ -1088,13 +1086,6 @@
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Aguarde..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Carregando..</string>
-    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>
-    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>
-    <string name="dialog_player_settings_chipSpeed1_text">1x</string>
-    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string>
-    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>
-    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>
-    <string name="dialog_player_settings_chipSpeed2_text">2x</string>
     <string name="dialog_slideshow_settings_tvIntervalValue_text">5s</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">Máximo (MB)</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">Mínimo (MB)</string>
@@ -1105,7 +1096,7 @@
     <string name="item_folder_tvFolderName_text">Nome da pasta</string>
     <string name="integration_tests_title">Testes de integração</string>
     <string name="integration_tests_description">Testes automatizados de operações de arquivos em todos os tipos de recursos.</string>
-    <string name="scanning_resources">Analisando recursos...</string>
+    <string name="scanning_resources">Analisando recursos..</string>
     <string name="thumbnail">Miniatura</string>
     <string name="resource_type_icon">Ícone do tipo de recurso</string>
     <string name="cd_resource_icon_quick_slideshow">Iniciar apresentação de slides</string>
@@ -1337,7 +1328,7 @@
     <string name="duplicate_wasted_bytes">Espaço desperdiçado: %1$s</string>
     <string name="duplicate_scan_network_warning">A varredura de rede pode demorar bastante e consumir muito tráfego. Deseja continuar?</string>
     <string name="duplicate_scan_notif_title">digitalização duplicada</string>
-    <string name="duplicate_scan_notif_running">Verificando duplicados...</string>
+    <string name="duplicate_scan_notif_running">Verificando duplicados..</string>
     <string name="duplicate_scan_notif_channel_name">Scanner de duplicados</string>
     <string name="action_create_folder">Criar pasta</string>
     <string name="action_create_text_file">Criar nota de texto</string>
@@ -1360,7 +1351,7 @@
     <string name="archive_name_invalid_chars_error">O nome contém caracteres inválidos.</string>
     <string name="archive_destination_label">Pasta de destino: %1$s</string>
     <string name="archive_action_btn">Arquivo</string>
-    <string name="archive_progress_title">Criando arquivo...</string>
+    <string name="archive_progress_title">Criando arquivo..</string>
     <string name="archive_success">Arquivo criado: %1$s (%2$d arquivos)</string>
     <string name="archive_error">Erro de arquivamento: %1$s</string>
     <string name="archive_destination_not_found">A pasta de destino não está mais disponível.</string>
@@ -1369,7 +1360,7 @@
     <string name="unarchive_dialog_title">Extrair arquivo?</string>
     <string name="unarchive_dialog_message">\"%1$s\" -&gt; pasta \"%2$s\"</string>
     <string name="unarchive_action_extract">Extrair</string>
-    <string name="unarchive_progress_title">Extraindo arquivo...</string>
+    <string name="unarchive_progress_title">Extraindo arquivo..</string>
     <string name="unarchive_progress_entry">Extraindo: %1$s</string>
     <string name="unarchive_success">Arquivo extraído</string>
     <string name="unarchive_error_zip_bomb">Arquivo muito grande ou muito profundo</string>
@@ -1527,7 +1518,7 @@
     <string name="rotation_toggle_sensor_off_desc">Rotação da tela: bloqueada</string>
     <string name="link_download_notif_text_preview_only_signed_in">Não foi possível extrair o conteúdo da página. Não é necessário fazer login.</string>
     <string name="error_reason_local_destination_permission_denied">Não foi possível salvar aqui - o Android restringe a gravação nesta pasta. Tente salvar em Música, Filmes, Imagens ou Downloads.</string>
-    <string name="s0266_apk_download_preparing">Preparando a instalação...</string>
+    <string name="s0266_apk_download_preparing">Preparando a instalação..</string>
     <string name="s0281_google_oauth_only_note">Não foi possível acessar este conteúdo do YouTube. Os dados de login não estão armazenados aqui.</string>
     <string name="browse_transfer_progress_background">Segundo plano</string>
     <string name="browse_transfer_already_running">Já há uma transferência de arquivos em execução.</string>
@@ -1554,7 +1545,7 @@
     <string name="system_info_copy_full_report">Copiar relatório completo</string>
     <string name="system_info_reveal_confirm_title">Copiar relatório completo?</string>
     <string name="system_info_reveal_confirm_message">A cópia incluirá valores sensíveis (hash da assinatura, endereços locais, caminhos de montagem). Continuar?</string>
-    <string name="audio_next_track_loading">Carregando a próxima faixa...</string>
+    <string name="audio_next_track_loading">Carregando a próxima faixa..</string>
     <string name="widget_quick_audio_recorder_label">Gravador rápido</string>
     <string name="widget_quick_audio_recorder_description">Toque para iniciar uma gravação de voz; toque novamente para parar e salvar.</string>
     <string name="quick_recorder_notification_recording">Gravação..</string>
@@ -1585,8 +1576,8 @@
     <string name="resource_menu_move_to_top">Mover para o topo</string>
     <string name="resource_menu_move_to_bottom">Mover para o fim</string>
     <string name="delivery_offer_message_unknown_size">Este recurso requer um pequeno download adicional. Baixe agora!</string>
-    <string name="delivery_state_downloading">Baixando...</string>
-    <string name="delivery_state_verifying">Verificando o download...</string>
+    <string name="delivery_state_downloading">Baixando..</string>
+    <string name="delivery_state_verifying">Verificando o download..</string>
     <string name="delivery_state_error">Não foi possível fazer o download - verifique sua conexão e tente novamente.</string>
     <string name="delivery_action_download">Download</string>
     <string name="delivery_action_retry">Tente novamente</string>
@@ -1638,7 +1629,7 @@
     <string name="download_runner_notif_title_failed">Falha ao baixar %s</string>
     <string name="screen_capture_saved_to">Salvo em %1$s: %2$s</string>
     <string name="screen_capture_service_notification_title">Captura de tela</string>
-    <string name="screen_capture_service_notification_text">Capturando a tela atual...</string>
+    <string name="screen_capture_service_notification_text">Capturando a tela atual..</string>
     <string name="setting_group_system_apps_title">Interação com o sistema operacional</string>
     <string name="setting_subgroup_screen_gestures_title">Gestos nas bordas da tela</string>
     <string name="setting_gesture_overlay_title">Sobreposição de gestos</string>
@@ -2278,7 +2269,7 @@
     <string name="launcher_welcome_toggle_title">Usar como tela inicial</string>
     <string name="launcher_settings_dialog_title">Configurações do launcher do sistema</string>
     <string name="launcher_menu_launcher_settings">Configurações do launcher</string>
-    <string name="welcome_streams_catalog_downloading">Baixando...</string>
+    <string name="welcome_streams_catalog_downloading">Baixando..</string>
     <string name="companion_import_summary">%1$s, %2$s</string>
     <string name="companion_import_added_one">Adicionado: %1$s</string>
     <string name="companion_import_updated_one">Atualizado: %1$s</string>
@@ -2662,7 +2653,6 @@
     <string name="network_monitor_status_unknown">Abra para verificar</string>
     <string name="network_monitor_active_title">Conexão ativa</string>
     <string name="network_monitor_active_none">Nada está conectado. Ligue o Wi-Fi ou os dados móveis para se conectar à internet.</string>
-    <string name="network_monitor_local_ip_label">IP local</string>
     <string name="network_monitor_value_unknown">Desconhecido</string>
     <string name="network_monitor_internet_ok">A internet funciona</string>
     <string name="network_monitor_internet_captive">Esta rede deseja que você faça login.</string>
@@ -2695,7 +2685,7 @@
     <string name="network_monitor_route_present">Presente</string>
     <string name="network_monitor_route_absent">Nenhum</string>
     <string name="network_monitor_chart_signal_heading">Sinal</string>
-    <string name="network_monitor_chart_waiting">Reunindo leituras...</string>
+    <string name="network_monitor_chart_waiting">Reunindo leituras..</string>
     <string name="network_monitor_chart_summary">Agora %1$s / mínimo %2$s / máximo %3$s / %4$s</string>
     <string name="network_monitor_trend_rising">ascendente</string>
     <string name="network_monitor_trend_falling">caindo</string>
@@ -2725,7 +2715,7 @@
     <string name="network_monitor_bluetooth_signal_heading">Sinal do dispositivo</string>
     <string name="network_monitor_gnss_visible_label">Satélites à vista</string>
     <string name="network_monitor_gnss_used_label">Usado para posicionamento</string>
-    <string name="network_monitor_gnss_acquiring">Procurando satélites...</string>
+    <string name="network_monitor_gnss_acquiring">Procurando satélites..</string>
     <string name="network_monitor_gnss_used_in_fix">contado em posição</string>
     <string name="network_monitor_gnss_not_in_fix">não contabilizado</string>
     <string name="network_monitor_gnss_position_heading">Posição</string>
@@ -2760,16 +2750,16 @@
     <string name="network_monitor_action_speed_test">Meça a velocidade</string>
     <string name="network_monitor_action_cancel">Parar</string>
     <string name="network_monitor_action_continue">Continuar</string>
-    <string name="network_monitor_running_check_resource">Verificando o recurso...</string>
-    <string name="network_monitor_running_scan_subnet">Analisando a rede...</string>
-    <string name="network_monitor_running_external_ip">Solicitando o endereço externo...</string>
-    <string name="network_monitor_running_speed_test">Medindo a velocidade...</string>
+    <string name="network_monitor_running_check_resource">Verificando o recurso..</string>
+    <string name="network_monitor_running_scan_subnet">Analisando a rede..</string>
+    <string name="network_monitor_running_external_ip">Solicitando o endereço externo..</string>
+    <string name="network_monitor_running_speed_test">Medindo a velocidade..</string>
     <string name="network_monitor_warn_speed_test_title">Isso vai usar tráfego</string>
     <string name="network_monitor_warn_speed_test_message">O teste de velocidade consome cerca de 20 MB no total, entre downloads e uploads. Em um plano de dados móveis, esse tráfego é cobrado. Você pode interromper o teste a qualquer momento.</string>
     <string name="network_monitor_warn_subnet_title">Isso irá sondar sua rede local.</string>
     <string name="network_monitor_warn_subnet_message">A varredura contata endereços na sua rede local para verificar quais respondem. Nada sai da rede, mas algumas redes de escritórios e campus consideram essa varredura indesejada. Você pode interrompê-la a qualquer momento.</string>
     <string name="network_monitor_warn_external_ip_title">Seu endereço foi encaminhado para outro serviço.</string>
-    <string name="network_monitor_warn_external_ip_message">Para obter seu endereço externo, o aplicativo consulta um serviço público na internet, e esse serviço visualiza o endereço fornecido. O endereço é exibido apenas aqui — ele nunca é registrado no histórico de medições.</string>
+    <string name="network_monitor_warn_external_ip_message">Para obter seu endereço externo, o aplicativo consulta um serviço público na internet, e esse serviço visualiza o endereço fornecido. O endereço é exibido apenas aqui - ele nunca é registrado no histórico de medições.</string>
     <string name="network_monitor_warn_metered_title">Esta rede cobra pelo tráfego.</string>
     <string name="network_monitor_warn_metered_message">O teste de velocidade transfere cerca de 20 MB em uma conexão cobrada pela sua operadora. Mesmo assim, deseja executá-lo?</string>
     <string name="network_monitor_result_external_ip">Endereço externo: %1$s (%2$s)</string>

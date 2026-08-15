@@ -11,7 +11,7 @@
     <string name="pdf_export_failed">Échec de l\'exportation : %s</string>
     <string name="pdf_export_success">%d pages ont été exportées avec succès vers le dossier Téléchargements.</string>
     <string name="pdf_export_to_jpg">Exporter les pages au format JPG</string>
-    <string name="pdf_exporting_started">Exportation des pages...</string>
+    <string name="pdf_exporting_started">Exportation des pages..</string>
     <string name="pdf_file_not_found">Ce fichier PDF n\'est plus disponible.</string>
     <string name="pdf_fullscreen">Affichage plein écran de la page PDF</string>
     <string name="pdf_keywords_label">Mots-clés : %1$s</string>
@@ -27,7 +27,7 @@
     <string name="pdf_scroll_mode">Mode de défilement</string>
     <string name="pdf_subject_label">Sujet : %1$s</string>
     <string name="pdf_text_empty">Aucun texte trouvé sur cette page</string>
-    <string name="pdf_text_extracting">Extraction du texte...</string>
+    <string name="pdf_text_extracting">Extraction du texte..</string>
     <string name="pdf_text_mode_enter">Sélection de texte</string>
     <string name="pdf_thumbnails">Vignettes de page</string>
     <string name="pdf_version_label">Version PDF : %1$s</string>
@@ -54,7 +54,7 @@
     <string name="epub_reader_settings">Paramètres du lecteur</string>
     <string name="epub_reader_theme">Thème</string>
     <string name="epub_search_all_chapters">Rechercher tous les chapitres</string>
-    <string name="epub_search_hint">Texte de recherche...</string>
+    <string name="epub_search_hint">Texte de recherche..</string>
     <string name="epub_search_no_results">Aucun résultat trouvé</string>
     <string name="epub_search_results">%1$d donne %2$d chapitres</string>
     <string name="epub_searching">Recherche..</string>

@@ -4,7 +4,7 @@
 <resources>
     <string name="draw_color_custom_cd">Colore personalizzato</string>
     <string name="draw_overflow_save_inplace">Salva</string>
-    <string name="draw_overflow_save_new">Salva con nome...</string>
+    <string name="draw_overflow_save_new">Salva con nome..</string>
     <string name="draw_overflow_settings">Impostazioni</string>
     <string name="draw_overflow_undo_all">Annulla tutto</string>
     <string name="draw_overflow_undo_last">Annulla ultimo</string>

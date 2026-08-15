@@ -91,7 +91,7 @@ class SftpFileOperationHandler @Inject constructor(
     ): FileOperationResult {
         val destinationPath = operation.destination.path
 
-        // Handle Local/SAF -> SFTP move explictly
+        // Handle Local/SAF -> SFTP move explicitly
         if (destinationPath.startsWith("sftp:", ignoreCase = true)) {
             Timber.d("SFTP executeMove: Starting move of ${operation.sources.size} files to $destinationPath")
             

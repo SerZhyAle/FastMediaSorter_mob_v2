@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.domain.model
 
+import com.google.gson.annotations.SerializedName
+
 /**
  * Resource type enum matching specification
  */
@@ -22,22 +24,47 @@ enum class ResourceType {
 /**
  * Media type enum matching specification
  */
+// S1661: rides in every cached file list row as MediaFile.type, so a blob written by one release is read
+// back by the next one. Gson takes the written value from the constant itself, so neither MediaFile's
+// @SerializedName fields nor its keep rule reaches these names - they are pinned here instead. The wire
+// names deliberately repeat the constant names so cache blobs written before this change keep parsing.
 enum class MediaType {
+    @SerializedName("IMAGE")
     IMAGE,
-    VIDEO,
-    AUDIO,
-    GIF,
-    TEXT,
-    PDF,
-    EPUB,
-    
-    // Binary file types (Task 6)
-    BINARY_ARCHIVE,    // ZIP, RAR, 7z, TAR, GZ
-    BINARY_DISK,       // ISO, DMG, IMG
-    BINARY_EXECUTABLE, // APK, EXE, DLL, SO
-    BINARY_OTHER,      // Other binary files
 
-    OFFICE_DOCUMENT;   // DOC, DOCX, RTF, ODT files opened through an external viewer
+    @SerializedName("VIDEO")
+    VIDEO,
+
+    @SerializedName("AUDIO")
+    AUDIO,
+
+    @SerializedName("GIF")
+    GIF,
+
+    @SerializedName("TEXT")
+    TEXT,
+
+    @SerializedName("PDF")
+    PDF,
+
+    @SerializedName("EPUB")
+    EPUB,
+
+    // Binary file types (Task 6)
+    @SerializedName("BINARY_ARCHIVE")
+    BINARY_ARCHIVE, // ZIP, RAR, 7z, TAR, GZ
+
+    @SerializedName("BINARY_DISK")
+    BINARY_DISK, // ISO, DMG, IMG
+
+    @SerializedName("BINARY_EXECUTABLE")
+    BINARY_EXECUTABLE, // APK, EXE, DLL, SO
+
+    @SerializedName("BINARY_OTHER")
+    BINARY_OTHER, // Other binary files
+
+    @SerializedName("OFFICE_DOCUMENT")
+    OFFICE_DOCUMENT; // DOC, DOCX, RTF, ODT files opened through an external viewer
 
     /**
      * Check if this is a binary file type
@@ -295,9 +322,13 @@ object SyntheticResourceIds {
     const val STREAM = -200L
 }
 
+// S1660: rides inside the cached file list as MediaFile.attributes, so it survives an app update and
+// must survive a new R8 mapping with it. MediaFile's own keep rule names that one class by hand and
+// does not reach this nested type, so the field names are pinned here instead - the same fix S1638 and
+// S1657 applied to the other two persisted models of this shape.
 data class FileAttributes(
-    val readOnly: Boolean = false,
-    val hidden: Boolean = false
+    @SerializedName("readOnly") val readOnly: Boolean = false,
+    @SerializedName("hidden") val hidden: Boolean = false
 )
 
 /**
@@ -349,13 +380,26 @@ data class MediaFile(
 /**
  * File operation type for undo functionality
  */
+// S1661: reaches disk as BrowseFileTransferRequest.operationType, which a @HiltWorker reads back after the
+// process that wrote it is gone. Gson takes the written value from the constant itself, so the request
+// model's @SerializedName fields do not reach these names - they are pinned here instead. The wire names
+// deliberately repeat the constant names so a request parked by an earlier release keeps parsing.
 enum class FileOperationType {
+    @SerializedName("COPY")
     COPY,
+
+    @SerializedName("MOVE")
     MOVE,
+
+    @SerializedName("RENAME")
     RENAME,
+
+    @SerializedName("DELETE")
     DELETE,
+
     // Destination-picker-only mode: the dialog captures the picked folder and hands it back
     // to the caller via onDestinationSelected, without running any copy/move operation.
+    @SerializedName("ARCHIVE")
     ARCHIVE
 }
 

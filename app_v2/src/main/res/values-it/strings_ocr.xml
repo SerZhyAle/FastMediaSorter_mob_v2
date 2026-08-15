@@ -24,7 +24,7 @@
     <string name="translation_font_family">Famiglia di caratteri</string>
     <string name="translation_font_size">Dimensione del carattere</string>
     <string name="translation_lens_style">Risultato della traduzione in blocchi</string>
-    <string name="translation_model_prewarm_downloading">Download del modello di traduzione in corso...</string>
+    <string name="translation_model_prewarm_downloading">Download del modello di traduzione in corso..</string>
     <string name="translation_model_prewarm_failed">Impossibile scaricare il modello di traduzione. Riprova.</string>
     <string name="translation_model_prewarm_ready">Modello di traduzione pronto.</string>
     <string name="translation_model_prewarm_retry">Riprova</string>

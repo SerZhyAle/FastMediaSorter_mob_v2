@@ -11,6 +11,12 @@
 -keep class com.sza.fastmediasorter.data.model.TrashMetadata { *; }
 -keep class com.sza.fastmediasorter.domain.game.** { *; }
 
+# Cached file lists persist MediaFile JSON across app updates. Keep its field names stable so a
+# release mapping change cannot turn an existing cache blob into an incomplete object.
+-keep,allowoptimization class com.sza.fastmediasorter.domain.model.MediaFile {
+    <fields>;
+}
+
 # The startup settings dump reflects every AppSettings field for support diagnostics. Keep the
 # reflective fields, then retain only their names; the class name remains obfuscatable.
 -keep,allowoptimization,allowobfuscation class com.sza.fastmediasorter.domain.model.AppSettings {

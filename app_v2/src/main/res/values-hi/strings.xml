@@ -379,8 +379,6 @@
     <string name="cb_cloud_read_only_mode_desc">फ़ाइल कार्रवाइयां रोकता है (कॉपी, स्थानांतरण, हटाना)</string>
     <string name="cb_cloud_picker_add_as_destination_desc">इस क्लाउड फ़ोल्डर को त्वरित सॉर्ट गंतव्य के रूप में चिह्नित करें</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">सभी नेस्टेड उप-निर्देशिकाओं में मीडिया फ़ाइलें खोजें</string>
-    <string name="cb_repeat_video_desc">मौजूदा वीडियो को लगातार लूप करें</string>
-    <string name="cb_show_subtitles_desc">उपलब्ध होने पर उपशीर्षक ट्रैक दिखाएं</string>
     <string name="virtual_camera_photos">कैमरा फ़ोटो</string>
     <string name="network_delete_warning">फ़ाइलें नेटवर्क स्थान से स्थायी रूप से हटा दी जाएंगी</string>
     <string name="save_audio_metadata_locally">डाउनलोड किया गया मीडिया डेटा स्थानीय रूप से सहेजें</string>
@@ -983,14 +981,14 @@
     <string name="toast_image_flipped">छवि सफलतापूर्वक पलटी गई</string>
     <string name="toast_flip_failed">छवि पलटी नहीं जा सकी. फिर से कोशिश करें.</string>
     <string name="toast_filter_active">फ़िल्टर सक्रिय..</string>
-    <string name="progress_applying_filter">फ़िल्टर लागू किया जा रहा है...</string>
-    <string name="progress_applying_adjustments">समायोजन लागू किए जा रहे हैं...</string>
-    <string name="progress_rotating_image">घूमती हुई छवि...</string>
+    <string name="progress_applying_filter">फ़िल्टर लागू किया जा रहा है..</string>
+    <string name="progress_applying_adjustments">समायोजन लागू किए जा रहे हैं..</string>
+    <string name="progress_rotating_image">घूमती हुई छवि..</string>
     <string name="progress_flipping_image">छवि पलटना %1$s..</string>
     <string name="toast_no_files_to_play">चलाने के लिए कोई फ़ाइल नहीं</string>
     <string name="toast_resource_not_loaded">संसाधन लोड नहीं हुआ</string>
     <string name="at_least_one_media_type_required">कम से कम एक मीडिया प्रकार का चयन करना आवश्यक है</string>
-    <string name="reopen_with_encoding">एनकोडिंग के साथ पुनः खोलें...</string>
+    <string name="reopen_with_encoding">एनकोडिंग के साथ पुनः खोलें..</string>
     <string name="select_encoding">एन्कोडिंग चुनें</string>
     <string name="reader_settings">पाठक सेटिंग्स</string>
     <string name="reader_theme_light">रोशनी</string>
@@ -1022,8 +1020,8 @@
     </plurals>
     <string name="resource_deleted">संसाधन हटाया गया</string>
     <string name="msg_loading_timeout">लोड होने में बहुत ज़्यादा समय लगा</string>
-    <string name="speed_test_preparing">स्पीड टेस्ट की तैयारी चल रही है...</string>
-    <string name="speed_test_saving">परिणाम सहेजे जा रहे हैं...</string>
+    <string name="speed_test_preparing">स्पीड टेस्ट की तैयारी चल रही है..</string>
+    <string name="speed_test_saving">परिणाम सहेजे जा रहे हैं..</string>
     <string name="no_files_to_restore">पुनर्स्थापित करने के लिए कोई हटाई गई फ़ाइल नहीं है</string>
     <string name="failed_to_restore_files">फ़ाइलों को पुनर्स्थापित करने में विफल</string>
     <string name="reload_files_failed">फ़ाइल सूची को रीफ़्रेश नहीं किया जा सका।</string>
@@ -1038,7 +1036,7 @@
     <string name="tooltip_use_trash_message">चालू होने पर, हटाई गई स्थानीय फ़ाइलें एक छिपे हुए .trash फ़ोल्डर में चली जाती हैं और पूर्ववत करें से वापस पाई जा सकती हैं। Android 12+ पर कुछ साझा फ़ोल्डरों के लिए MANAGE_MEDIA चाहिए; इसके बिना ट्रैश स्थायी विलोपन पर लौट सकता है। बंद होने पर, फ़ाइलें तुरंत स्थायी रूप से हट जाती हैं और डिस्क स्थान एक ही बार में खाली हो जाता है। नेटवर्क और क्लाउड फ़ाइलें हमेशा स्थायी रूप से हटाई जाती हैं।</string>
     <string name="send_email">ईमेल भेजें</string>
     <string name="no_email_client">कोई ईमेल क्लाइंट नहीं मिला</string>
-    <string name="receive_share_preparing">साझा सामग्री तैयार की जा रही है...</string>
+    <string name="receive_share_preparing">साझा सामग्री तैयार की जा रही है..</string>
     <string name="receive_share_source_name">साझा</string>
     <string name="receive_share_no_content">आयात करने के लिए कोई सामग्री प्राप्त नहीं हुई।</string>
     <string name="receive_share_cache_failed">साझा की गई फ़ाइल तैयार नहीं हो सकी। कृपया पुनः प्रयास करें।</string>
@@ -1088,13 +1086,6 @@
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">कृपया प्रतीक्षा करें..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">लोड हो रहा है..</string>
-    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>
-    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>
-    <string name="dialog_player_settings_chipSpeed1_text">1x</string>
-    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string>
-    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>
-    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>
-    <string name="dialog_player_settings_chipSpeed2_text">2x</string>
     <string name="dialog_slideshow_settings_tvIntervalValue_text">5s</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">अधिकतम (एमबी)</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">न्यूनतम (एमबी)</string>
@@ -1105,7 +1096,7 @@
     <string name="item_folder_tvFolderName_text">फ़ोल्डर का नाम</string>
     <string name="integration_tests_title">एकीकरण परीक्षण</string>
     <string name="integration_tests_description">सभी प्रकार के संसाधनों में फ़ाइल संचालन का स्वचालित परीक्षण</string>
-    <string name="scanning_resources">संसाधनों की स्कैनिंग...</string>
+    <string name="scanning_resources">संसाधनों की स्कैनिंग..</string>
     <string name="thumbnail">थंबनेल</string>
     <string name="resource_type_icon">संसाधन प्रकार का आइकन</string>
     <string name="cd_resource_icon_quick_slideshow">स्लाइड शो प्रारंभ</string>
@@ -1337,7 +1328,7 @@
     <string name="duplicate_wasted_bytes">व्यर्थ स्थान: %1$s</string>
     <string name="duplicate_scan_network_warning">नेटवर्क स्कैन में काफी समय लग सकता है और बहुत अधिक डेटा खपत हो सकती है। जारी रखें?</string>
     <string name="duplicate_scan_notif_title">डुप्लिकेट स्कैन</string>
-    <string name="duplicate_scan_notif_running">डुप्लिकेट फ़ाइलों की स्कैनिंग की जा रही है...</string>
+    <string name="duplicate_scan_notif_running">डुप्लिकेट फ़ाइलों की स्कैनिंग की जा रही है..</string>
     <string name="duplicate_scan_notif_channel_name">डुप्लिकेट स्कैनर</string>
     <string name="action_create_folder">फ़ोल्डर बनाएँ</string>
     <string name="action_create_text_file">टेक्स्ट नोट बनाएं</string>
@@ -1349,7 +1340,7 @@
     <string name="error_folder_create_failed">फ़ोल्डर नहीं बनाया जा सका.</string>
     <string name="error_folder_rename_failed">फ़ोल्डर का नाम नहीं बदला जा सका.</string>
     <string name="error_some_operations_failed">%2$d में से %1$d कार्रवाइयां विफल रहीं</string>
-    <string name="menu_automate_source">स्वचालन...</string>
+    <string name="menu_automate_source">स्वचालन..</string>
     <string name="menu_add_receiver">सॉर्ट सूची में जोड़ें</string>
     <string name="msg_added_as_receiver">संसाधन Sort List में जोड़ा गया</string>
     <string name="btn_edit_receiver">कॉन्फ़िगर</string>
@@ -1369,7 +1360,7 @@
     <string name="unarchive_dialog_title">आर्काइव निकालें?</string>
     <string name="unarchive_dialog_message">\"%1$s\" -&gt; फ़ोल्डर \"%2$s\"</string>
     <string name="unarchive_action_extract">निकालना</string>
-    <string name="unarchive_progress_title">आर्काइव निकाला जा रहा है...</string>
+    <string name="unarchive_progress_title">आर्काइव निकाला जा रहा है..</string>
     <string name="unarchive_progress_entry">निष्कर्षण: %1$s</string>
     <string name="unarchive_success">पुरालेख निकाला गया</string>
     <string name="unarchive_error_zip_bomb">संग्रह का आकार या गहराई बहुत अधिक है</string>
@@ -1526,7 +1517,7 @@
     <string name="rotation_toggle_sensor_off_desc">स्क्रीन रोटेशन: लॉक किया गया</string>
     <string name="link_download_notif_text_preview_only_signed_in">पृष्ठ की सामग्री नहीं निकाली जा सकी. साइन-इन की ज़रूरत नहीं है.</string>
     <string name="error_reason_local_destination_permission_denied">यहां सहेजा नहीं जा सका - Android इस फ़ोल्डर में लिखने पर रोक लगाता है. Music, Movies, Pictures या Downloads में सहेजने की कोशिश करें.</string>
-    <string name="s0266_apk_download_preparing">इंस्टॉलेशन की तैयारी चल रही है...</string>
+    <string name="s0266_apk_download_preparing">इंस्टॉलेशन की तैयारी चल रही है..</string>
     <string name="s0281_google_oauth_only_note">मुझे यह YouTube सामग्री नहीं मिल पाई। साइन-इन जानकारी यहाँ संग्रहीत नहीं है।</string>
     <string name="browse_transfer_progress_background">पृष्ठभूमि</string>
     <string name="browse_transfer_already_running">एक फ़ाइल स्थानांतरण पहले से चल रहा है.</string>
@@ -1553,10 +1544,10 @@
     <string name="system_info_copy_full_report">पूरी रिपोर्ट की प्रतिलिपि बनाएं</string>
     <string name="system_info_reveal_confirm_title">पूरी रिपोर्ट की कॉपी चाहिए?</string>
     <string name="system_info_reveal_confirm_message">इस प्रतिलिपि में संवेदनशील मान (हस्ताक्षर हैश, स्थानीय पते, माउंट पथ) शामिल होंगे। जारी रखें?</string>
-    <string name="audio_next_track_loading">अगला ट्रैक लोड हो रहा है...</string>
+    <string name="audio_next_track_loading">अगला ट्रैक लोड हो रहा है..</string>
     <string name="widget_quick_audio_recorder_label">त्वरित रिकॉर्डर</string>
     <string name="widget_quick_audio_recorder_description">वॉइस रिकॉर्डिंग शुरू करने के लिए टैप करें; रोकने और सेव करने के लिए दोबारा टैप करें।</string>
-    <string name="quick_recorder_notification_recording">रिकॉर्डिंग...</string>
+    <string name="quick_recorder_notification_recording">रिकॉर्डिंग..</string>
     <string name="quick_recorder_notification_channel">आवाज रिकॉर्डिंग</string>
     <string name="quick_recorder_action_stop">रुकना</string>
     <string name="quick_recorder_error">ऑडियो रिकॉर्ड नहीं हो सका</string>
@@ -1584,8 +1575,8 @@
     <string name="resource_menu_move_to_top">सबसे ऊपर ले जाएं</string>
     <string name="resource_menu_move_to_bottom">सबसे नीचे ले जाएं</string>
     <string name="delivery_offer_message_unknown_size">इस फ़ीचर के लिए एक छोटा सा अतिरिक्त डाउनलोड करना होगा। क्या आप इसे अभी डाउनलोड करना चाहते हैं?</string>
-    <string name="delivery_state_downloading">डाउनलोड हो रहा है...</string>
-    <string name="delivery_state_verifying">डाउनलोड की जाँच हो रही है...</string>
+    <string name="delivery_state_downloading">डाउनलोड हो रहा है..</string>
+    <string name="delivery_state_verifying">डाउनलोड की जाँच हो रही है..</string>
     <string name="delivery_state_error">डाउनलोड नहीं हो सका - कृपया अपना कनेक्शन जांचें और दोबारा प्रयास करें।</string>
     <string name="delivery_action_download">डाउनलोड करना</string>
     <string name="delivery_action_retry">पुनः प्रयास करें</string>
@@ -1637,7 +1628,7 @@
     <string name="download_runner_notif_title_failed">%s डाउनलोड करने में विफल रहा</string>
     <string name="screen_capture_saved_to">%1$s में सहेजा गया: %2$s</string>
     <string name="screen_capture_service_notification_title">स्क्रीन कैप्चर</string>
-    <string name="screen_capture_service_notification_text">वर्तमान स्क्रीन को कैप्चर किया जा रहा है...</string>
+    <string name="screen_capture_service_notification_text">वर्तमान स्क्रीन को कैप्चर किया जा रहा है..</string>
     <string name="setting_group_system_apps_title">ऑपरेटिंग सिस्टम के साथ परस्पर क्रिया</string>
     <string name="setting_subgroup_screen_gestures_title">स्क्रीन किनारों के जेस्चर</string>
     <string name="setting_gesture_overlay_title">जेस्चर ओवरले</string>
@@ -1818,7 +1809,7 @@
     <string name="save_fallback_resource_unavailable">%1$s में सहेजा गया - %2$s अनुपलब्ध है</string>
     <string name="save_fallback_channel_name">फ़ॉलबैक सहेजें</string>
     <string name="link_download_notif_text_saved_fallback">%1$s को डाउनलोड में सहेजा गया - गंतव्य उपलब्ध नहीं था</string>
-    <string name="quick_voice_recording_dialog_title">रिकॉर्डिंग...</string>
+    <string name="quick_voice_recording_dialog_title">रिकॉर्डिंग..</string>
     <string name="quick_voice_recording_stop">रुकें और बचत करें</string>
     <string name="quick_voice_menu_label">आवाज रिकॉर्डिंग</string>
     <string name="quick_recorder_saved_to">रिकॉर्डिंग %1$s में सहेजी गई</string>
@@ -2066,7 +2057,7 @@
     <string name="programs_panel_hide_action">पैनल छिपाएँ</string>
     <string name="main_programs_panel_strip">कार्यक्रम और परिदृश्य</string>
     <string name="streams_panel_collapse_action">पैनल संक्षिप्त करें</string>
-    <string name="main_streams_panel_strip">धाराएँ...</string>
+    <string name="main_streams_panel_strip">धाराएँ..</string>
     <string name="camera_scenario_ocr_translate">पाठ पहचान</string>
     <string name="recording_pause">रिकॉर्डिंग रोकें</string>
     <string name="recording_resume">रिकॉर्डिंग फिर से शुरू करें</string>
@@ -2276,7 +2267,7 @@
     <string name="launcher_welcome_toggle_title">होम स्क्रीन के रूप में उपयोग करें</string>
     <string name="launcher_settings_dialog_title">सिस्टम लॉन्चर सेटिंग्स</string>
     <string name="launcher_menu_launcher_settings">लॉन्चर सेटिंग्स</string>
-    <string name="welcome_streams_catalog_downloading">डाउनलोड हो रहा है...</string>
+    <string name="welcome_streams_catalog_downloading">डाउनलोड हो रहा है..</string>
     <string name="companion_import_summary">%1$s, %2$s</string>
     <string name="companion_import_added_one">जोड़ा गया: %1$s</string>
     <string name="companion_import_updated_one">अपडेट किया गया: %1$s</string>
@@ -2659,7 +2650,6 @@
     <string name="network_monitor_status_unknown">जाँच के लिए खोलें</string>
     <string name="network_monitor_active_title">सक्रिय कनेक्शन</string>
     <string name="network_monitor_active_none">कुछ भी कनेक्ट नहीं है। ऑनलाइन होने के लिए वाई-फाई या मोबाइल डेटा चालू करें।</string>
-    <string name="network_monitor_local_ip_label">स्थानीय आईपी</string>
     <string name="network_monitor_value_unknown">अज्ञात</string>
     <string name="network_monitor_internet_ok">इंटरनेट काम करता है</string>
     <string name="network_monitor_internet_captive">यह नेटवर्क चाहता है कि आप साइन इन करें</string>
@@ -2692,7 +2682,7 @@
     <string name="network_monitor_route_present">उपस्थित</string>
     <string name="network_monitor_route_absent">कोई नहीं</string>
     <string name="network_monitor_chart_signal_heading">संकेत</string>
-    <string name="network_monitor_chart_waiting">पठन सामग्री एकत्रित की जा रही है...</string>
+    <string name="network_monitor_chart_waiting">पठन सामग्री एकत्रित की जा रही है..</string>
     <string name="network_monitor_chart_summary">अब %1$s / न्यूनतम %2$s / अधिकतम %3$s / %4$s</string>
     <string name="network_monitor_trend_rising">बढ़ते हुए</string>
     <string name="network_monitor_trend_falling">गिरना</string>
@@ -2722,7 +2712,7 @@
     <string name="network_monitor_bluetooth_signal_heading">डिवाइस सिग्नल</string>
     <string name="network_monitor_gnss_visible_label">दृश्य में उपग्रह</string>
     <string name="network_monitor_gnss_used_label">स्थिति के लिए उपयोग किया जाता है</string>
-    <string name="network_monitor_gnss_acquiring">उपग्रहों की खोज की जा रही है...</string>
+    <string name="network_monitor_gnss_acquiring">उपग्रहों की खोज की जा रही है..</string>
     <string name="network_monitor_gnss_used_in_fix">स्थिति में गिना गया</string>
     <string name="network_monitor_gnss_not_in_fix">गिनती नहीं की गई</string>
     <string name="network_monitor_gnss_position_heading">पद</string>
@@ -2757,10 +2747,10 @@
     <string name="network_monitor_action_speed_test">गति मापें</string>
     <string name="network_monitor_action_cancel">रुकना</string>
     <string name="network_monitor_action_continue">जारी रखना</string>
-    <string name="network_monitor_running_check_resource">संसाधन की जाँच की जा रही है...</string>
-    <string name="network_monitor_running_scan_subnet">नेटवर्क स्कैन किया जा रहा है...</string>
-    <string name="network_monitor_running_external_ip">बाहरी पते के लिए अनुरोध किया जा रहा है...</string>
-    <string name="network_monitor_running_speed_test">गति मापना...</string>
+    <string name="network_monitor_running_check_resource">संसाधन की जाँच की जा रही है..</string>
+    <string name="network_monitor_running_scan_subnet">नेटवर्क स्कैन किया जा रहा है..</string>
+    <string name="network_monitor_running_external_ip">बाहरी पते के लिए अनुरोध किया जा रहा है..</string>
+    <string name="network_monitor_running_speed_test">गति मापना..</string>
     <string name="network_monitor_warn_speed_test_title">इससे यातायात का उपयोग होगा</string>
     <string name="network_monitor_warn_speed_test_message">स्पीड टेस्ट में कुल मिलाकर लगभग 20 MB डेटा डाउनलोड और अपलोड होता है। मोबाइल प्लान में इस डेटा के लिए शुल्क लगता है। आप इसे कभी भी बंद कर सकते हैं।</string>
     <string name="network_monitor_warn_subnet_title">यह आपके स्थानीय नेटवर्क की जांच करेगा।</string>

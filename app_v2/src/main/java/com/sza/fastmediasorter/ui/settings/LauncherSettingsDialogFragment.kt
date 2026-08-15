@@ -111,6 +111,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     }
 
     private fun setupRows() {
+        setupPlacementRow()
         binding.rowLauncherShowRecents.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(launcherTaskbarShowRecents = isChecked))
@@ -182,6 +183,27 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         binding.btnResetLauncher.setOnClickListener { confirmReset() }
     }
 
+    /**
+     * S1643: which screen edge the whole taskbar is anchored to, kept out of [setupRows] for the same
+     * reason [setupTrayRows] is. Entry order follows [AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS], so
+     * the selected index is the option index and no second mapping can drift away from the first.
+     */
+    private fun setupPlacementRow() {
+        binding.rowLauncherTaskbarPlacement.setEntries(
+            listOf(
+                getText(R.string.launcher_settings_taskbar_placement_bottom),
+                getText(R.string.launcher_settings_taskbar_placement_top),
+            )
+        )
+        binding.rowLauncherTaskbarPlacement.setOnItemSelectedListener { index ->
+            if (isUpdatingFromSettings) return@setOnItemSelectedListener
+            val options = AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS
+            val placement = options.getOrElse(index) { AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM }
+            Timber.d("S1643: taskbar placement chosen in settings, value=$placement")
+            viewModel.updateSettings(viewModel.settings.value.copy(launcherTaskbarPlacement = placement))
+        }
+    }
+
     /** S1415: the six tray-composition rows, kept out of [setupRows] so neither function grows past its limit. */
     private fun setupTrayRows() {
         binding.rowLauncherTrayClock.setOnCheckedChangeListener { isChecked ->
@@ -243,6 +265,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             binding.rowLauncherReplaceStatusArea.setCheckedSilently(settings.launcherReplaceSystemStatusArea)
             binding.rowLauncherTopStatusStrip.setCheckedSilently(settings.launcherTopStatusStripMode)
             renderTopStatusStripRows(settings)
+            binding.rowLauncherTaskbarPlacement.setSelection(placementIndex(settings))
             binding.rowLauncherLockDesktop.setCheckedSilently(settings.launcherDesktopLocked)
             val densityIndex = AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(settings.launcherDensityFactor)
             binding.rowLauncherDensity.setSelection(if (densityIndex >= 0) densityIndex else DENSITY_DEFAULT_INDEX)
@@ -287,6 +310,12 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         binding.rowLauncherShowTray.setSubtitle(
             if (moved) getText(R.string.launcher_settings_tray_moved_hint) else null
         )
+    }
+
+    /** A stored token from a newer build resolves to no entry, so the row falls back to the bottom edge. */
+    private fun placementIndex(settings: AppSettings): Int {
+        val index = AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS.indexOf(settings.launcherTaskbarPlacement)
+        return if (index >= 0) index else 0
     }
 
     private fun renderWallpaperRow(settings: AppSettings) {

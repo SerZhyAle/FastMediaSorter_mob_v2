@@ -39,11 +39,24 @@ Checklist for every `description:` field:
 
 ## Where each artifact lives
 
-- Rule (behavioral, always-loaded): `CLAUDE.md` - mirror into `AGENTS.md` (and update `.github/copilot-instructions.md` if the shared rule appears there).
+- Rule (behavioral, always-loaded): `CLAUDE.md` - then mirror it per the rule mirroring contract below.
 - Mechanical gate: `scripts/quality/assert-*.ps1`, wired into `scripts/post-change.ps1` and `a.ps1 fg`.
 - Slash command: `.claude/commands/<name>.md` with a trigger-focused `description:` in frontmatter.
 - Auto-triggered skill: `.claude/skills/<name>/SKILL.md`.
 - Subagent: `.claude/agents/<name>.md`.
+
+## Rule mirroring contract
+
+The `repository-rules` record in `docs/DOCUMENT_REGISTRY.jsonl` lists every agent-facing rules file, but a list of neighbours does not say which of them owes you a copy of your new rule. Four roles do. A file has exactly one.
+
+- **Authority** - `CLAUDE.md`. The only place a rule is formulated and the only place it gets a number. The number is the rule's identity for life; renumbering breaks every citation below.
+- **Full digest** - `AGENTS.md`, `.github/copilot-instructions.md`. Read by agents that never load the authority (Copilot pulls its file into every chat and pulls no other), so each must name **every** numbered rule and cite it as the literal token `Rule N`. Its own numbering, wording and grouping are free; only the citation is fixed, because the citation is what a machine can check. A range (`Rules 24-29`) does not count as citing its members - that is precisely how rules 25-28 looked covered while nothing stated them (S1548).
+- **Pointer** - `GEMINI.md`. Carries no rules at all, and must name the authority and every full digest so a reader who starts there can still reach them. A pointer that grows a rule list becomes a digest nobody remembers to update.
+- **Consumer** - `.claude/commands/*.md`, `.claude/skills/*/SKILL.md`, `.claude/agents/*.md`, `.claude/reference/*.md`, `.claude/templates/*.md`, `.github/prompts/*.prompt.md`, `docs/AGENT_HOOKS.md`. Cites rules as needed, owes no coverage, and never owns a formulation.
+
+So: adding rule 31 means writing it in `CLAUDE.md` and stating it in both full digests with a `Rule 31` citation. Nothing else is owed.
+
+Gate: `scripts/quality/assert-rule-digest-sync.ps1` (in `a.ps1 fg` and in `post-change.ps1` whenever a role file is in the changed set). It enforces citation coverage and pointer reachability - never wording, because a digest paraphrases by definition and byte-equality would turn it into a copy. The role table lives in the gate's own header, so declaring a new agent-rules file is one line plus a role decision.
 
 ## When NOT to add a rule
 

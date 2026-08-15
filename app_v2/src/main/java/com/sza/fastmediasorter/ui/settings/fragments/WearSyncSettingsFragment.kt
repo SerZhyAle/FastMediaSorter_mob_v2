@@ -40,13 +40,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
+import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.settings.WearSyncUiState
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
@@ -58,14 +59,19 @@ class WearSyncSettingsFragment : BottomSheetDialogFragment() {
 
     private val viewModel: WearSyncViewModel by viewModels()
 
+    // The island reads its colours off its own context, so it must be the dialog's themed context
+    // (DialogFragment hands it out through the inflater) rather than the plain activity context -
+    // otherwise the sheet chrome and the content inside it can resolve different surfaces.
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
-        ComposeView(requireContext()).apply {
+        ComposeView(inflater.context).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                WearSyncScreen(
-                    viewModel = viewModel,
-                    onPushClick = { launchBeamDialog() }
-                )
+                FastMediaSorterComposeTheme {
+                    WearSyncScreen(
+                        viewModel = viewModel,
+                        onPushClick = { launchBeamDialog() }
+                    )
+                }
             }
         }
 

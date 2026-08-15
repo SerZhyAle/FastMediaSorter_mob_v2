@@ -25,7 +25,7 @@
     <string name="addresource_smb_scan_none_found">未找到共享文件夹。如果您的共享文件夹使用自定义名称，请手动添加。</string>
     <string name="addresource_validation_generic">似乎缺少某些内容 - 请检查表格并重试。</string>
     <string name="import_auto">在下载中自动查找</string>
-    <string name="import_browse">浏览文件...</string>
+    <string name="import_browse">浏览文件..</string>
     <string name="import_failed">设置导入失败，请重试。</string>
     <string name="import_failed_title">导入失败</string>
     <string name="import_fav_action">进口</string>
@@ -119,7 +119,7 @@
     <string name="file_not_found_message">文件“%1$s”已不存在。它可能已被删除或移出应用程序。是否刷新此资源？</string>
     <string name="file_not_found_name">文件未找到：%1$s</string>
     <string name="file_not_found_title">文件未找到</string>
-    <string name="file_operation_progress_preparing">准备中……</string>
+    <string name="file_operation_progress_preparing">准备中..</string>
     <string name="file_ops_in_overflow_menu">溢出菜单中的文件操作</string>
     <string name="file_ops_moved_to_menu_hint">文件操作已移至每个文件的 ⋮ 菜单</string>
     <string name="file_path_label">路径：%1$s</string>

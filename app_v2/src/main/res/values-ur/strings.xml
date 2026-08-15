@@ -379,8 +379,6 @@
     <string name="cb_cloud_read_only_mode_desc">فائل کارروائیوں کو روکتا ہے (کاپی، منتقلی، حذف)</string>
     <string name="cb_cloud_picker_add_as_destination_desc">اس کلاؤڈ فولڈر کو فوری ترتیب کی منزل کے طور پر نشان زد کریں</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">تمام نیسٹڈ ذیلی فولڈرز میں میڈیا فائلیں تلاش کریں</string>
-    <string name="cb_repeat_video_desc">موجودہ ویڈیو کو مسلسل دہرائیں</string>
-    <string name="cb_show_subtitles_desc">دستیاب ہونے پر سب ٹائٹل ٹریکس دکھائیں</string>
     <string name="virtual_camera_photos">کیمرہ کی تصاویر</string>
     <string name="network_delete_warning">فائلیں نیٹ ورک مقام سے مستقل طور پر حذف ہو جائیں گی</string>
     <string name="save_audio_metadata_locally">ڈاؤن لوڈ شدہ میڈیا ڈیٹا مقامی طور پر محفوظ کریں</string>
@@ -1088,13 +1086,6 @@
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">براہ کرم انتظار کریں..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">لوڈ ہو رہا ہے..</string>
-    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>
-    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>
-    <string name="dialog_player_settings_chipSpeed1_text">1x</string>
-    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string>
-    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>
-    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>
-    <string name="dialog_player_settings_chipSpeed2_text">2x</string>
     <string name="dialog_slideshow_settings_tvIntervalValue_text">5s</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">زیادہ سے زیادہ (MB)</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">کم سے کم (MB)</string>
@@ -1628,7 +1619,7 @@
     <string name="sftp_auth_method_label">سائن ان کرنے کا طریقہ</string>
     <string name="sftp_server_verification_title">سرور کی توثیق (اختیاری)</string>
     <string name="sftp_server_verification_subtitle">اختیاری سیکیورٹی جو تصدیق کرتی ہے کہ سرور حقیقی ہے۔</string>
-    <string name="sftp_host_key_fingerprint_helper">اسے صرف اس صورت میں استعمال کریں جب آپ سرور کو پن کرنا چاہتے ہیں اور سرور کی نقالی سے بچانا چاہتے ہیں۔ فارمیٹ: SHA256:...</string>
+    <string name="sftp_host_key_fingerprint_helper">اسے صرف اس صورت میں استعمال کریں جب آپ سرور کو پن کرنا چاہتے ہیں اور سرور کی نقالی سے بچانا چاہتے ہیں۔ فارمیٹ: SHA256:..</string>
     <string name="ext_section_ocr_translation">ترجمہ اور OCR شناخت</string>
     <string name="ext_section_media_playback">میڈیا پلے بیک</string>
     <string name="ext_shortcut_packs_title">OCR اور ترجمے کے ڈاؤن لوڈز</string>
@@ -2663,7 +2654,6 @@
     <string name="network_monitor_status_unknown">چیک کرنے کے لیے کھولیں۔</string>
     <string name="network_monitor_active_title">فعال کنکشن</string>
     <string name="network_monitor_active_none">کچھ بھی منسلک نہیں ہے۔ آن لائن ہونے کے لیے Wi-Fi یا موبائل ڈیٹا آن کریں۔</string>
-    <string name="network_monitor_local_ip_label">مقامی IP</string>
     <string name="network_monitor_value_unknown">نامعلوم</string>
     <string name="network_monitor_internet_ok">انٹرنیٹ کام کرتا ہے۔</string>
     <string name="network_monitor_internet_captive">یہ نیٹ ورک چاہتا ہے کہ آپ سائن ان کریں۔</string>

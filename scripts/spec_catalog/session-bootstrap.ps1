@@ -29,6 +29,11 @@
 .PARAMETER SkipDevice
     Do not probe the device and do not persist a device state. For a ticket that needs no hardware.
 
+.PARAMETER DeviceTimeoutSec
+    Wall-clock bound on the device probe (default 90). On expiry the device block reports
+    status=failed with exit 124 and the round continues with DEVICE_ONLINE=false, instead of the
+    package hanging with no output (S1633).
+
 .PARAMETER Claim
     Also claim the selected ticket. Off by default: the claim is the one irreversible act in the
     package, and the driver's drift gate sits between selection and claim.
@@ -70,6 +75,9 @@ param(
 
     [string[]]$Exclude = @(),
 
+    [ValidateRange(5, 600)]
+    [int]$DeviceTimeoutSec = 90,
+
     [int]$Threshold = 0,
 
     [string]$Reason = 'session-bootstrap',
@@ -83,6 +91,12 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '..\utils\agent-lock.ps1')
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+
+# Component calls run in separate pwsh processes. Keep their fallback identity aligned when
+# the host did not supply an agent-session id, so Device and Claim see the state Init created.
+if ([string]::IsNullOrWhiteSpace($env:CLAUDE_CODE_SESSION_ID)) {
+    $env:CLAUDE_CODE_SESSION_ID = "pid-$PID"
+}
 
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
     "$env:ProgramFiles\PowerShell\7\pwsh.exe"
@@ -141,6 +155,44 @@ function Invoke-Component {
     }
 }
 
+function Invoke-ComponentBounded {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [string[]]$Arguments = @(),
+        [Parameter(Mandatory)][int]$TimeoutSec
+    )
+    # S1633: the device block is the only component that talks to hardware, and a probe that
+    # never returns used to hang Stage 0 forever with an empty stdout - no ticket session could
+    # start at all, and the symptom read as "the agent went silent" rather than as an error.
+    # Two differences from Invoke-Component, both required:
+    #   - FILE redirection instead of a pipe. A daemon the probe leaves behind (adb forks one)
+    #     can inherit a file handle harmlessly; an inherited PIPE keeps the read side open past
+    #     the child's own exit, which is the hang itself.
+    #   - a wall-clock bound, so a probe that cannot finish degrades into a failed block rather
+    #     than stopping the package. That is the script's stated contract for every other block.
+    $outFile = [System.IO.Path]::GetTempFileName()
+    $errFile = [System.IO.Path]::GetTempFileName()
+    try {
+        $proc = Start-Process -FilePath $pwshExe -PassThru -NoNewWindow `
+            -ArgumentList (@('-NoProfile', '-File', $Path) + $Arguments) `
+            -RedirectStandardOutput $outFile -RedirectStandardError $errFile
+        if ($proc.WaitForExit($TimeoutSec * 1000)) {
+            $text = ((Get-Content -LiteralPath $outFile, $errFile -Raw -ErrorAction SilentlyContinue) -join "`n").Trim()
+            return [PSCustomObject]@{ output = $text; exitCode = $proc.ExitCode }
+        }
+        # Kill the tree: whatever the probe spawned is what is holding it, and leaving it behind
+        # would keep the temp files locked and the hazard alive for the next round.
+        try { $proc.Kill($true) } catch { <# raced with its own exit; nothing left to stop #> }
+        return [PSCustomObject]@{
+            output   = "device probe exceeded ${TimeoutSec}s and was stopped: $Path"
+            exitCode = 124
+        }
+    }
+    finally {
+        Remove-Item -LiteralPath $outFile, $errFile -Force -ErrorAction SilentlyContinue
+    }
+}
+
 function Read-ChildJson {
     param([string]$Text)
     if ([string]::IsNullOrWhiteSpace($Text)) { return $null }
@@ -170,7 +222,7 @@ $sessionBlock = New-Block `
 if ($SkipDevice) {
     $deviceBlock = New-Block -Status 'skipped' -BlockReason 'skipped by -SkipDevice'
 } else {
-    $probeRun = Invoke-Component -Path $deviceScript -Arguments @(
+    $probeRun = Invoke-ComponentBounded -Path $deviceScript -TimeoutSec $DeviceTimeoutSec -Arguments @(
         '-Package', $debugPackage, '-CheckMcp', '-Json'
     )
     $probe = Read-ChildJson -Text $probeRun.output

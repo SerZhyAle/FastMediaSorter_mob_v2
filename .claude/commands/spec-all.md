@@ -54,6 +54,18 @@ Resolved -> read strategic spec file, read current `Status:`, **jump to resume s
 
 **Preflight handoff (from `/spec-next`).** If `$ARGUMENTS` carries a `preflight:` context line, trust it and skip 0a `select.ps1` resolve **and** 0a-drift for this ticket - `/spec-next`'s preflight already resolved `status`, `tactical_folder`, `last_audit`, `timber_tags_kt`, `depends_on`, and drift verdict. Key Resume Map off the handed `status`; only re-read spec file body (needed for content), not catalog metadata.
 
+### 0a.5 - Ticket lease ownership
+
+After a ticket id is resolved and before research, planning, or implementation, claim its lease:
+
+```powershell
+pwsh -NoProfile -File scripts/spec_catalog/ticket-lease.ps1 -Verb Claim -Id <Sxxxx> -Reason "/spec-all"
+```
+
+Exit 0 owns or refreshes the lease. Exit 3 means a live sibling owns the ticket: report its id and stop before any work. The top-level `/spec-all` invocation is the lease owner, including when `/spec-next` already claimed the same ticket in the same session. Re-claim the lease at long-running phase boundaries to refresh its heartbeat.
+
+When delegating to `/spec-dev`, include the literal context `lease-owner=spec-all`. That is a parent-owned lease: `/spec-dev` may refresh it but must not release it.
+
 ### 0a-drift - Code-vs-spec drift check (resume modes only)
 
 Skip this step entirely when `preflight:` context line present - `/spec-next` already ran drift-check and handed verdict. Otherwise, before delegating to F1/F2 for a `Draft` / `Approved` / `Tactical` / `Broken` spec:
@@ -191,6 +203,8 @@ MAX_FIX_ITERATIONS exhausted -> final report as Incomplete.
 - Report format + its `add_to_dev_log.ps1` line: `.claude/reference/spec-all.md` section 9 - read when composing the final report.
 - `close-and-log.ps1` finalization shortcut and its `-DevLogs` / `-FuncOp` flag contract: `.claude/reference/spec-all.md` section 10 - read when this orchestrator itself closes a ticket (`Verified` / final `BlockNeedUserTest` / `BlockExternal`) with code touched; a sub-skill that ran last already did it.
 - Device-test gate: `.claude/reference/spec-all.md` section 11 - read the moment this pipeline sets a ticket to `BlockNeedUserTest`, before parking the block.
+
+Before every final report, release the top-level lease in a `finally`-equivalent step. Run `pwsh -NoProfile -File scripts/spec_catalog/ticket-lease.ps1 -Verb Release -Id <Sxxxx>` for success, a hard stop, or a deferred manual item. A failed release is reported but does not replace the pipeline verdict because the lease expires by liveness.
 
 ---
 

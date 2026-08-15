@@ -79,14 +79,7 @@ if ($scanRoots.Count -eq 0) {
 $exemptRelativePaths = @(
     # Fragment of nothing but optional system-permission taps, sanctioned by the convention.
     # Permanent exemption.
-    'maestro/_shared/permissions.yaml',
-
-    # S1618: both flows drive the "Playback Settings" dialog, which is unreachable from the
-    # player UI (showPlayerSettingsDialog() has no call site). Their regex selectors cannot be
-    # replaced with real ids because the ids do not exist. Temporary - remove both entries when
-    # S1618 either restores the entry point or removes the feature path.
-    'maestro/device_only/3d-video-sbs.yaml',
-    'maestro/device_only/3d-video-switching.yaml'
+    'maestro/_shared/permissions.yaml'
 )
 
 function Get-RelativePath {

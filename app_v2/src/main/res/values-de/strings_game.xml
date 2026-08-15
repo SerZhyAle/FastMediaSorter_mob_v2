@@ -12,10 +12,10 @@
     <string name="game_cell_wall">Wand</string>
     <string name="game_defeat_toast">Du wurdest von einem Feind gefangen genommen.</string>
     <string name="game_help_intro">Erreiche den grünen Ausgang mit dem blauen Monster, bevor dich die Feinde einkesseln.</string>
-    <string name="game_help_legend_exit">Grün – Ausgang zur nächsten Ebene</string>
-    <string name="game_help_legend_kryvavitsa">Rot – Kryvavitsa, jagt den Spieler</string>
-    <string name="game_help_legend_player">Blau – Monster, die Spielfigur, die du steuerst</string>
-    <string name="game_help_legend_shadow">Lila – kleineres Kryvavitsa, bewegt sich zufällig</string>
+    <string name="game_help_legend_exit">Grün - Ausgang zur nächsten Ebene</string>
+    <string name="game_help_legend_kryvavitsa">Rot - Kryvavitsa, jagt den Spieler</string>
+    <string name="game_help_legend_player">Blau - Monster, die Spielfigur, die du steuerst</string>
+    <string name="game_help_legend_shadow">Lila - kleineres Kryvavitsa, bewegt sich zufällig</string>
     <string name="game_help_legend_title">Legende</string>
     <string name="game_help_legend_wall">Graue Wand, kann verschoben werden</string>
     <string name="game_help_rules">Benutze die Pfeiltasten, die Tastatur, das Steuerkreuz, Wischgesten oder tippe auf das Spielfeld, um ein Feld zu bewegen.\nDie rote Kryvavitsa jagt das Monster. Lila, kleinere Kryvavitsas streifen zufällig umher.\nSchiebe graue Wände in freie Felder, um einen Weg freizumachen. Die dicke Begrenzung blockiert den Ausgang.\nPunktzahl: -10 pro Zug, +10 für das Verschieben einer Wand, +50 für das Zerstören eines lila Gegners, +1000 für das Erreichen des Ausgangs.\nWenn ein Gegner dasselbe oder ein benachbartes Feld erreicht, ist das Spiel vorbei.</string>
@@ -23,7 +23,7 @@
     <string name="game_help_title">Spielanleitung</string>
     <string name="game_how_to_play">Wie spielt man?</string>
     <string name="game_level">Level %1$d</string>
-    <string name="game_loading">Spiel wird geladen...</string>
+    <string name="game_loading">Spiel wird geladen..</string>
     <string name="game_menu_label">Spiele das Minispiel</string>
     <string name="game_move_down">Nach unten schieben</string>
     <string name="game_move_left">Nach links bewegen</string>
@@ -55,11 +55,11 @@
     <string name="game_mode_kryvavitsa">Kryvavitsa</string>
     <string name="game_mode_contrast">Kontrast</string>
     <string name="game_help_intro_kryvavitsa">Erreiche mit dem Mann die Tür, bevor die Frau mit dem Maschinengewehr und ihre mit Messern bewaffneten Helfer euch in die Enge treiben.</string>
-    <string name="game_help_legend_player_kryvavitsa">Mann – die Spielfigur, die du steuerst</string>
-    <string name="game_help_legend_kryvavitsa_kryvavitsa">Frau mit Maschinengewehr – die Kryvavitsa jagt dich</string>
-    <string name="game_help_legend_shadow_kryvavitsa">Frau mit einem Messer – kleinere Kryvavitsa, bewegt sich unvorhersehbar</string>
-    <string name="game_help_legend_exit_kryvavitsa">Tür – Ausgang zur nächsten Ebene</string>
-    <string name="game_help_legend_wall_kryvavitsa">Schwarze Wand – kann verschoben werden</string>
+    <string name="game_help_legend_player_kryvavitsa">Mann - die Spielfigur, die du steuerst</string>
+    <string name="game_help_legend_kryvavitsa_kryvavitsa">Frau mit Maschinengewehr - die Kryvavitsa jagt dich</string>
+    <string name="game_help_legend_shadow_kryvavitsa">Frau mit einem Messer - kleinere Kryvavitsa, bewegt sich unvorhersehbar</string>
+    <string name="game_help_legend_exit_kryvavitsa">Tür - Ausgang zur nächsten Ebene</string>
+    <string name="game_help_legend_wall_kryvavitsa">Schwarze Wand - kann verschoben werden</string>
     <string name="game_help_rules_kryvavitsa">Benutze die Pfeiltasten, die Tastatur, das Steuerkreuz, Wischgesten oder tippe auf das Spielfeld, um ein Feld zu bewegen.\nDie Frau mit dem Maschinengewehr jagt den Mann. Ihre mit Messern bewaffneten Helfer laufen ziellos umher und stampfen dabei.\nSchiebe schwarze Wände in freie Felder, um einen Weg freizumachen. Die dicke Begrenzung versperrt den Weg vom Spielfeld.\nPunktzahl: -10 pro Zug, +10 für das Verschieben einer Wand, +50 für das Zerquetschen eines Helfers, +1000 für das Erreichen der Tür.\nWenn ein Gegner dasselbe oder ein benachbartes Feld erreicht, ist das Spiel vorbei.</string>
     <string name="game_skip_turn">Zug überspringen</string>
 </resources>

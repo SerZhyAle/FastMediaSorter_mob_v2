@@ -379,8 +379,6 @@
     <string name="cb_cloud_read_only_mode_desc">禁止文件操作（复制、移动、删除）</string>
     <string name="cb_cloud_picker_add_as_destination_desc">将此云文件夹标记为快速分类目标</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">在所有嵌套子目录中搜索媒体文件</string>
-    <string name="cb_repeat_video_desc">持续循环播放当前视频</string>
-    <string name="cb_show_subtitles_desc">在有字幕时显示字幕轨道</string>
     <string name="virtual_camera_photos">相机照片</string>
     <string name="network_delete_warning">文件将从网络位置永久删除</string>
     <string name="save_audio_metadata_locally">在本地保存已下载的媒体数据</string>
@@ -983,14 +981,14 @@
     <string name="toast_image_flipped">图片已成功翻转</string>
     <string name="toast_flip_failed">无法翻转图片，再试一次。</string>
     <string name="toast_filter_active">筛选生效中..</string>
-    <string name="progress_applying_filter">应用筛选条件...</string>
-    <string name="progress_applying_adjustments">正在进行调整……</string>
-    <string name="progress_rotating_image">图片正在旋转……</string>
+    <string name="progress_applying_filter">应用筛选条件..</string>
+    <string name="progress_applying_adjustments">正在进行调整..</string>
+    <string name="progress_rotating_image">图片正在旋转..</string>
     <string name="progress_flipping_image">翻转图像 %1$s..</string>
     <string name="toast_no_files_to_play">没有可播放的文件</string>
     <string name="toast_resource_not_loaded">资源未加载</string>
     <string name="at_least_one_media_type_required">必须至少选择一种媒体类型。</string>
-    <string name="reopen_with_encoding">重新打开并编码...</string>
+    <string name="reopen_with_encoding">重新打开并编码..</string>
     <string name="select_encoding">选择编码</string>
     <string name="reader_settings">阅读器设置</string>
     <string name="reader_theme_light">光</string>
@@ -1000,7 +998,7 @@
     <string name="read_aloud">朗读</string>
     <string name="redo">重做</string>
     <string name="find_hint">寻找..</string>
-    <string name="replace_hint">替换为……</string>
+    <string name="replace_hint">替换为..</string>
     <string name="replace">代替</string>
     <string name="replace_all">全部替换</string>
     <string name="find_and_replace">查找和替换</string>
@@ -1022,8 +1020,8 @@
     </plurals>
     <string name="resource_deleted">资源已删除</string>
     <string name="msg_loading_timeout">加载耗时过长</string>
-    <string name="speed_test_preparing">准备进行速度测试……</string>
-    <string name="speed_test_saving">保存结果……</string>
+    <string name="speed_test_preparing">准备进行速度测试..</string>
+    <string name="speed_test_saving">保存结果..</string>
     <string name="no_files_to_restore">没有可恢复的已删除文件</string>
     <string name="failed_to_restore_files">文件恢复失败</string>
     <string name="reload_files_failed">文件列表无法刷新。</string>
@@ -1038,7 +1036,7 @@
     <string name="tooltip_use_trash_message">启用后，删除的本地文件会被移到隐藏的 .trash 文件夹，可以通过撤销恢复。在 Android 12 及以上，部分共享文件夹需要 MANAGE_MEDIA 权限；没有该权限时，回收站可能退回为永久删除。停用后，文件会立即被永久删除，磁盘空间也随即释放。网络和云端文件始终会被永久删除。</string>
     <string name="send_email">发送电子邮件</string>
     <string name="no_email_client">未找到邮件客户端</string>
-    <string name="receive_share_preparing">准备共享内容……</string>
+    <string name="receive_share_preparing">准备共享内容..</string>
     <string name="receive_share_source_name">共享</string>
     <string name="receive_share_no_content">未收到要导入的内容</string>
     <string name="receive_share_cache_failed">共享文件准备失败，请重试。</string>
@@ -1088,13 +1086,6 @@
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">请稍候..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">正在加载..</string>
-    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>
-    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>
-    <string name="dialog_player_settings_chipSpeed1_text">1x</string>
-    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string>
-    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>
-    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>
-    <string name="dialog_player_settings_chipSpeed2_text">2x</string>
     <string name="dialog_slideshow_settings_tvIntervalValue_text">5s</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">最大值（MB）</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">最小值（MB）</string>
@@ -1105,7 +1096,7 @@
     <string name="item_folder_tvFolderName_text">文件夹名称</string>
     <string name="integration_tests_title">集成测试</string>
     <string name="integration_tests_description">对所有资源类型的文件操作进行自动化测试</string>
-    <string name="scanning_resources">正在扫描资源……</string>
+    <string name="scanning_resources">正在扫描资源..</string>
     <string name="thumbnail">缩略图</string>
     <string name="resource_type_icon">资源类型图标</string>
     <string name="cd_resource_icon_quick_slideshow">开始幻灯片放映</string>
@@ -1337,7 +1328,7 @@
     <string name="duplicate_wasted_bytes">浪费的空间：%1$s</string>
     <string name="duplicate_scan_network_warning">网络扫描可能耗时较长并消耗大量流量。是否继续？</string>
     <string name="duplicate_scan_notif_title">重复扫描</string>
-    <string name="duplicate_scan_notif_running">正在扫描重复项……</string>
+    <string name="duplicate_scan_notif_running">正在扫描重复项..</string>
     <string name="duplicate_scan_notif_channel_name">重复扫描器</string>
     <string name="action_create_folder">创建文件夹</string>
     <string name="action_create_text_file">创建文本笔记</string>
@@ -1360,7 +1351,7 @@
     <string name="archive_name_invalid_chars_error">名称包含无效字符</string>
     <string name="archive_destination_label">目标文件夹：%1$s</string>
     <string name="archive_action_btn">档案</string>
-    <string name="archive_progress_title">正在创建存档...</string>
+    <string name="archive_progress_title">正在创建存档..</string>
     <string name="archive_success">已创建归档：%1$s（%2$d 个文件）</string>
     <string name="archive_error">归档错误：%1$s</string>
     <string name="archive_destination_not_found">目标文件夹已不可用。</string>
@@ -1369,7 +1360,7 @@
     <string name="unarchive_dialog_title">提取压缩文件？</string>
     <string name="unarchive_dialog_message">\"%1$s\" -&gt; 文件夹 \"%2$s\"</string>
     <string name="unarchive_action_extract">提炼</string>
-    <string name="unarchive_progress_title">正在提取压缩文件……</string>
+    <string name="unarchive_progress_title">正在提取压缩文件..</string>
     <string name="unarchive_progress_entry">正在提取：%1$s</string>
     <string name="unarchive_success">已提取的存档</string>
     <string name="unarchive_error_zip_bomb">存档过大或过深</string>
@@ -1477,7 +1468,7 @@
     <string name="s0151_toast_content_unavailable">无法访问此链接的内容</string>
     <string name="s0151_dialog_auth_title">登录到 %1$s？</string>
     <string name="s0151_dialog_message">此链接的实际内容需要登录才能查看 - 预览图片已被跳过。</string>
-    <string name="s0117_progress_batch_item">正在下载第 %1$d 项（共 %2$d 项）...</string>
+    <string name="s0117_progress_batch_item">正在下载第 %1$d 项（共 %2$d 项）..</string>
     <string name="s0117_toast_batch_saved">已保存 %1$d 件商品</string>
     <string name="s0117_batch_dialog_title">批量下载摘要</string>
     <string name="s0117_batch_dialog_summary">已保存 %1$d 件商品，共 %2$d 件。</string>
@@ -1491,7 +1482,7 @@
     </plurals>
     <string name="webview_auth_save_button">保存授权</string>
     <string name="webview_auth_cancel_button">取消</string>
-    <string name="webview_auth_url_prompt">输入网址（https://...）</string>
+    <string name="webview_auth_url_prompt">输入网址（https://..）</string>
     <string name="webview_auth_invalid_url">无效的网址 - 必须以 http:// 或 https:// 开头</string>
     <string name="auth_add_picker_title">选择一种资源</string>
     <string name="auth_add_enter_manually">手动输入地址</string>
@@ -1521,12 +1512,12 @@
     <string name="link_download_notif_text_analyzing">正在分析页面..</string>
     <string name="link_download_notif_text_downloading_pct">正在下载 %1$d%%</string>
     <string name="link_download_notif_action_cancel">取消</string>
-    <string name="auth_sessions_info_text">此屏幕显示通过应用内登录浏览器捕获的授权信息。每个条目存储一个网站上一个帐户的 Cookie。标记为“登录被拒绝”的条目是在您选择“不询问”时创建的——它们会阻止该网站再次出现登录提示。要为同一网站添加第二个帐户，请使用顶部菜单中的“添加授权”。</string>
+    <string name="auth_sessions_info_text">此屏幕显示通过应用内登录浏览器捕获的授权信息。每个条目存储一个网站上一个帐户的 Cookie。标记为“登录被拒绝”的条目是在您选择“不询问”时创建的-它们会阻止该网站再次出现登录提示。要为同一网站添加第二个帐户，请使用顶部菜单中的“添加授权”。</string>
     <string name="rotation_toggle_sensor_on_desc">屏幕旋转：已解锁</string>
     <string name="rotation_toggle_sensor_off_desc">屏幕旋转：已锁定</string>
     <string name="link_download_notif_text_preview_only_signed_in">无法提取页面内容。无需登录。</string>
     <string name="error_reason_local_destination_permission_denied">无法保存到此处 - Android 限制向此文件夹写入。尝试保存到“音乐”“电影”“图片”或“下载”。</string>
-    <string name="s0266_apk_download_preparing">准备安装……</string>
+    <string name="s0266_apk_download_preparing">准备安装..</string>
     <string name="s0281_google_oauth_only_note">无法获取此 YouTube 内容。此处未保存登录信息。</string>
     <string name="browse_transfer_progress_background">后台</string>
     <string name="browse_transfer_already_running">已有文件传输正在进行。</string>
@@ -1553,7 +1544,7 @@
     <string name="system_info_copy_full_report">完整报告副本</string>
     <string name="system_info_reveal_confirm_title">能否复制完整报告？</string>
     <string name="system_info_reveal_confirm_message">副本将包含敏感信息（签名哈希值、本地地址、挂载路径）。是否继续？</string>
-    <string name="audio_next_track_loading">正在加载下一首曲目……</string>
+    <string name="audio_next_track_loading">正在加载下一首曲目..</string>
     <string name="widget_quick_audio_recorder_label">快速录音机</string>
     <string name="widget_quick_audio_recorder_description">点击开始录音；再次点击停止并保存</string>
     <string name="quick_recorder_notification_recording">记录..</string>
@@ -1584,8 +1575,8 @@
     <string name="resource_menu_move_to_top">移到最顶部</string>
     <string name="resource_menu_move_to_bottom">移到最底部</string>
     <string name="delivery_offer_message_unknown_size">此功能需要额外下载一个小型应用。现在就下载吗？</string>
-    <string name="delivery_state_downloading">正在下载……</string>
-    <string name="delivery_state_verifying">正在检查下载情况……</string>
+    <string name="delivery_state_downloading">正在下载..</string>
+    <string name="delivery_state_verifying">正在检查下载情况..</string>
     <string name="delivery_state_error">下载失败 - 请检查您的网络连接并重试。</string>
     <string name="delivery_action_download">下载</string>
     <string name="delivery_action_retry">再试一次</string>
@@ -1637,7 +1628,7 @@
     <string name="download_runner_notif_title_failed">下载 %s 失败</string>
     <string name="screen_capture_saved_to">已保存至 %1$s： %2$s</string>
     <string name="screen_capture_service_notification_title">屏幕截图</string>
-    <string name="screen_capture_service_notification_text">正在截取当前屏幕...</string>
+    <string name="screen_capture_service_notification_text">正在截取当前屏幕..</string>
     <string name="setting_group_system_apps_title">与操作系统的交互</string>
     <string name="setting_subgroup_screen_gestures_title">屏幕边缘手势</string>
     <string name="setting_gesture_overlay_title">手势浮层</string>
@@ -2093,7 +2084,7 @@
     <string name="sftp_share_export_title">共享 SFTP 访问权限</string>
     <string name="sftp_share_export_warning">此文件包含访问密码。请仅发送给您信任的人。</string>
     <string name="sftp_share_omit_password">请勿包含密码</string>
-    <string name="sftp_share_private_network_warning">此服务器位于您的本地网络中——接收方只能从同一网络连接。</string>
+    <string name="sftp_share_private_network_warning">此服务器位于您的本地网络中-接收方只能从同一网络连接。</string>
     <string name="sftp_share_export_failed">无法创建访问文件。</string>
     <string name="sftp_share_export_action">分享</string>
     <string name="companion_import_title">导入访问权限</string>
@@ -2277,7 +2268,7 @@
     <string name="launcher_welcome_toggle_title">用作主屏幕</string>
     <string name="launcher_settings_dialog_title">系统启动器设置</string>
     <string name="launcher_menu_launcher_settings">启动器设置</string>
-    <string name="welcome_streams_catalog_downloading">正在下载……</string>
+    <string name="welcome_streams_catalog_downloading">正在下载..</string>
     <string name="companion_import_summary">%1$s，%2$s</string>
     <string name="companion_import_added_one">已添加：%1$s</string>
     <string name="companion_import_updated_one">已更新：%1$s</string>
@@ -2661,7 +2652,6 @@
     <string name="network_monitor_status_unknown">打开查看</string>
     <string name="network_monitor_active_title">活动连接</string>
     <string name="network_monitor_active_none">当前未连接任何设备。请开启 Wi-Fi 或移动数据连接网络。</string>
-    <string name="network_monitor_local_ip_label">本地IP</string>
     <string name="network_monitor_value_unknown">未知</string>
     <string name="network_monitor_internet_ok">互联网作品</string>
     <string name="network_monitor_internet_captive">此网络要求您登录。</string>
@@ -2694,7 +2684,7 @@
     <string name="network_monitor_route_present">展示</string>
     <string name="network_monitor_route_absent">没有任何</string>
     <string name="network_monitor_chart_signal_heading">信号</string>
-    <string name="network_monitor_chart_waiting">收集阅读材料……</string>
+    <string name="network_monitor_chart_waiting">收集阅读材料..</string>
     <string name="network_monitor_chart_summary">现在 %1$s / 最小 %2$s / 最大 %3$s / %4$s</string>
     <string name="network_monitor_trend_rising">上升</string>
     <string name="network_monitor_trend_falling">坠落</string>
@@ -2724,7 +2714,7 @@
     <string name="network_monitor_bluetooth_signal_heading">设备信号</string>
     <string name="network_monitor_gnss_visible_label">可见卫星</string>
     <string name="network_monitor_gnss_used_label">用于定位</string>
-    <string name="network_monitor_gnss_acquiring">正在搜索卫星……</string>
+    <string name="network_monitor_gnss_acquiring">正在搜索卫星..</string>
     <string name="network_monitor_gnss_used_in_fix">计入位置</string>
     <string name="network_monitor_gnss_not_in_fix">未计入。</string>
     <string name="network_monitor_gnss_position_heading">位置</string>
@@ -2738,7 +2728,7 @@
     <string name="network_monitor_gnss_track_summary">曲目会保留在此设备上，并且仅在当前屏幕打开时写入。不会发送到任何地方。</string>
     <string name="network_monitor_gnss_track_points">记录点数：%1$d</string>
     <string name="network_monitor_gnss_track_share">分享曲目文件</string>
-    <string name="network_monitor_gnss_track_share_failed">音轨文件不可用——它可能已被更新的会话覆盖。请开启录音功能并重试。</string>
+    <string name="network_monitor_gnss_track_share_failed">音轨文件不可用-它可能已被更新的会话覆盖。请开启录音功能并重试。</string>
     <string name="network_monitor_path_heading">通往互联网的路径</string>
     <string name="network_monitor_path_device">这个设备</string>
     <string name="network_monitor_path_gateway">网关</string>
@@ -2759,10 +2749,10 @@
     <string name="network_monitor_action_speed_test">测量速度</string>
     <string name="network_monitor_action_cancel">停止</string>
     <string name="network_monitor_action_continue">继续</string>
-    <string name="network_monitor_running_check_resource">正在检查资源……</string>
-    <string name="network_monitor_running_scan_subnet">正在扫描网络……</string>
+    <string name="network_monitor_running_check_resource">正在检查资源..</string>
+    <string name="network_monitor_running_scan_subnet">正在扫描网络..</string>
     <string name="network_monitor_running_external_ip">正在请求外部地址。</string>
-    <string name="network_monitor_running_speed_test">测量速度……</string>
+    <string name="network_monitor_running_speed_test">测量速度..</string>
     <string name="network_monitor_warn_speed_test_title">这将利用交通流量</string>
     <string name="network_monitor_warn_speed_test_message">速度测试总共会消耗大约 20 MB 的下载和上传流量。如果您使用移动套餐，这部分流量会产生费用。您可以随时停止测试。</string>
     <string name="network_monitor_warn_subnet_title">这将探测您的本地网络</string>

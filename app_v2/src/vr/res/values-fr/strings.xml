@@ -14,7 +14,7 @@
     <string name="settings_stereo_vr_trust_metadata_title">Utiliser les métadonnées intégrées</string>
     <string name="settings_stereo_vr_trust_metadata_summary">Détection à partir des métadonnées spatiales vidéo et photo sphériques</string>
     <string name="settings_stereo_vr_trust_aspect_title">Estimez d\'après le format d\'image</string>
-    <string name="settings_stereo_vr_trust_aspect_summary">Moins fiable – peut étiqueter des photos grand format ordinaires comme des photos 3D.</string>
+    <string name="settings_stereo_vr_trust_aspect_summary">Moins fiable - peut étiqueter des photos grand format ordinaires comme des photos 3D.</string>
     <string name="settings_stereo_vr_ambiguity_title">Lorsque le format n\'est pas clair</string>
     <string name="settings_stereo_vr_ambiguity_summary">Activé : faire une estimation. Désactivé : ouvrir en 2D</string>
     <string name="settings_stereo_vr_default_layout_label">Mise en page par défaut</string>

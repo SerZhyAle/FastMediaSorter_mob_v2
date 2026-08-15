@@ -27,7 +27,7 @@
     <string name="pdf_scroll_mode">Modo de desplazamiento</string>
     <string name="pdf_subject_label">Asunto: %1$s</string>
     <string name="pdf_text_empty">No se encontró texto en esta página.</string>
-    <string name="pdf_text_extracting">Extrayendo texto...</string>
+    <string name="pdf_text_extracting">Extrayendo texto..</string>
     <string name="pdf_text_mode_enter">Selección de texto</string>
     <string name="pdf_thumbnails">Miniaturas de página</string>
     <string name="pdf_version_label">Versión PDF: %1$s</string>

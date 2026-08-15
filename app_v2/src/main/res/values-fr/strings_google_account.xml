@@ -12,7 +12,7 @@
     <string name="s0200_card_state_bound_sign_out">se déconnecter</string>
     <string name="s0200_card_state_needs_resign_in_summary">Reconnectez %1$s pour que Drive continue de fonctionner.</string>
     <string name="s0200_card_state_needs_resign_in_cta">Reconnect</string>
-    <string name="s0200_card_authenticating">Connexion en cours...</string>
+    <string name="s0200_card_authenticating">Connexion en cours..</string>
     <string name="s0200_card_diag_cct_ok">Navigateur détecté : %1$s.</string>
     <string name="s0200_card_diag_cct_missing">Aucun navigateur compatible n\'est installé. Veuillez en installer un pour utiliser Google.</string>
     <string name="s0200_card_diag_show">Diagnostic</string>

@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.cameracapture.helpers
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
-import androidx.camera.core.AspectRatio
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -12,6 +11,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraAspectSelection
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraLensEntry
 import timber.log.Timber
 import java.io.File
@@ -86,15 +86,15 @@ class HeadlessPhotoCapturer(
      * caller opted into geotagging and holds a fix; null leaves the photo without GPS. Exactly one of
      * [onSaved] / [onError] is invoked on the main thread.
      *
-     * S1478: [aspectRatio] is the stored `AspectRatio.RATIO_*` selection. The photo stream is always
-     * 4:3, so 16:9 is realised by cropping the saved file (S1066) - the same way the camera screen
-     * does it.
+     * S1658: [selection] is the user's stored frame shape. The stream is requested at that shape, so
+     * only the full-screen selection still crops the saved file - the same way the camera screen does
+     * it, which is what keeps the two routes producing the same photo.
      */
     @SuppressLint("MissingPermission")
     fun capture(
         outputFile: File,
         location: Location?,
-        aspectRatio: Int,
+        selection: CameraAspectSelection,
         onSaved: () -> Unit,
         onError: (Throwable) -> Unit,
     ) {
@@ -115,7 +115,7 @@ class HeadlessPhotoCapturer(
                     // S1189: the selector binds the logical camera; a chosen sub-lens travels here.
                     val imageCapture = CameraUseCaseFactory(
                         videoMode = false,
-                        selectedAspectRatio = null,
+                        selection = selection,
                         selectedResolution = null,
                         targetRotation = bucket,
                         physicalCameraId = lens.physicalCameraId,
@@ -127,7 +127,7 @@ class HeadlessPhotoCapturer(
                     // that is at least STARTED, and this registry is the one it will watch.
                     captureLifecycle.resume()
                     provider.bindToLifecycle(captureLifecycle, selector, imageCapture)
-                    takePicture(imageCapture, outputFile, location, aspectRatio, onSaved, onError)
+                    takePicture(imageCapture, outputFile, location, selection, onSaved, onError)
                 }.onFailure { error ->
                     Timber.e(error, "HeadlessPhotoCapturer: provider/bind failed")
                     release()
@@ -155,7 +155,7 @@ class HeadlessPhotoCapturer(
         imageCapture: ImageCapture,
         outputFile: File,
         location: Location?,
-        aspectRatio: Int,
+        selection: CameraAspectSelection,
         onSaved: () -> Unit,
         onError: (Throwable) -> Unit,
     ) {
@@ -173,7 +173,7 @@ class HeadlessPhotoCapturer(
                     // Released before the crop so the camera device is not held while a JPEG is
                     // decoded and re-encoded.
                     release()
-                    cropThenReport(outputFile, aspectRatio, onSaved)
+                    cropThenReport(outputFile, selection, onSaved)
                 }
 
                 override fun onError(exception: ImageCaptureException) {
@@ -190,18 +190,21 @@ class HeadlessPhotoCapturer(
     }
 
     /**
-     * S1478: applies the 16:9 crop off the main thread, then reports success there. A crop failure is
+     * S1478: applies the crop off the main thread, then reports success there. A crop failure is
      * already swallowed inside the cropper: the uncropped photo is saved, and losing it would be worse
-     * than wrong proportions.
+     * than wrong proportions. S1658: only the full-screen selection needs one - the other two are
+     * already the shape the stream was requested at.
      */
-    private fun cropThenReport(outputFile: File, aspectRatio: Int, onSaved: () -> Unit) {
-        if (aspectRatio != AspectRatio.RATIO_16_9) {
+    private fun cropThenReport(outputFile: File, selection: CameraAspectSelection, onSaved: () -> Unit) {
+        if (!selection.cropsToScreen) {
             onSaved()
             return
         }
+        val metrics = context.resources.displayMetrics
+        val targetRatio = CapturedPhotoAspectCropper.ratioOfScreen(metrics.widthPixels, metrics.heightPixels)
         val worker = Executors.newSingleThreadExecutor()
         worker.execute {
-            CapturedPhotoAspectCropper.cropToSixteenNine(outputFile)
+            CapturedPhotoAspectCropper.cropToRatio(outputFile, targetRatio)
             ContextCompat.getMainExecutor(context).execute { onSaved() }
         }
         // Shut down straight after submitting: an already-queued task still runs, and the worker thread

@@ -437,8 +437,6 @@
     <string name="cb_cloud_read_only_mode_desc">Prevents file operations (copy, move, delete)</string>
     <string name="cb_cloud_picker_add_as_destination_desc">Mark this cloud folder as a quick sort destination</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">Search for media files in all nested subdirectories</string>
-    <string name="cb_repeat_video_desc">Loop current video continuously</string>
-    <string name="cb_show_subtitles_desc">Display subtitle tracks when available</string>
     <string name="virtual_camera_photos">Camera Photos</string>
     <string name="network_delete_warning">Files will be permanently deleted from the network location</string>
     <string name="save_audio_metadata_locally">Save downloaded media data locally</string>
@@ -1351,13 +1349,6 @@
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Please wait..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Loading..</string>
-    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>
-    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>
-    <string name="dialog_player_settings_chipSpeed1_text">1x</string>
-    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string>
-    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>
-    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>
-    <string name="dialog_player_settings_chipSpeed2_text">2x</string>
     <string name="dialog_slideshow_settings_tvIntervalValue_text">5s</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">Max (MB)</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">Min (MB)</string>
@@ -1448,7 +1439,7 @@
     <string name="hint_server_path">Server Path (optional)</string>
     <string name="hint_cloud_folder_id">Cloud Folder ID</string>
     <string name="hint_slideshow_interval">Slideshow Interval (seconds)</string>
-    <string name="hint_access_pin">PIN Code (4–6 digits)</string>
+    <string name="hint_access_pin">PIN Code (4-6 digits)</string>
     <string name="hint_comment">Comment (optional)</string>
 
     <string name="label_media_types">Media Types</string>
@@ -3116,7 +3107,6 @@
     <string name="network_monitor_status_unknown">Open to check</string>
     <string name="network_monitor_active_title">Active connection</string>
     <string name="network_monitor_active_none">Nothing is connected. Turn on Wi-Fi or mobile data to get online.</string>
-    <string name="network_monitor_local_ip_label">Local IP</string>
     <string name="network_monitor_value_unknown">Unknown</string>
     <string name="network_monitor_internet_ok">Internet works</string>
     <string name="network_monitor_internet_captive">This network wants you to sign in</string>
@@ -3295,4 +3285,10 @@
     <string name="network_monitor_ip_addresses_label">IP addresses</string>
     <string name="network_monitor_permission_grant">Permission not granted. Tap to grant it.</string>
     <string name="network_monitor_permission_open_settings">Permission is blocked. Tap to open app settings.</string>
+    <string name="cast_cropping_stereo">Preparing the single-eye copy..</string>
+    <string name="cast_crop_skipped_long">Video is too long to crop. Casting the full frame.</string>
+    <string name="launcher_settings_taskbar_placement_title">Taskbar position</string>
+    <string name="launcher_settings_taskbar_placement_bottom">Bottom</string>
+    <string name="launcher_settings_taskbar_placement_top">Top</string>
+    <string name="camera_aspect_full_screen">Full screen</string>
 </resources>

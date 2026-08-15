@@ -170,6 +170,17 @@ class ImportFavoritesUseCase @Inject constructor(
             val model = gson.fromJson(json, FavoritesExportFile::class.java)
                 ?: return Result.failure(JsonParseException("Invalid JSON structure"))
 
+            // S1632: Gson builds the object without the constructor, so a file whose keys do not match
+            // - every export written before the fields were pinned with @SerializedName - arrives with
+            // nulls in non-null properties. Catch it here; otherwise the first read below throws and the
+            // raw Kotlin NPE text becomes the message the user is shown.
+            @Suppress("SENSELESS_COMPARISON")
+            if (model.version == null || model.favorites == null) {
+                Timber.d("S1632: import rejected - keys did not match, every field arrived null")
+                return Result.failure(IllegalArgumentException("File is corrupted or invalid"))
+            }
+            Timber.d("S1632: import parsed version=${model.version} count=${model.favorites.size}")
+
             // Version check (major version must match)
             val majorVersion = model.version.substringBefore(".")
             if (majorVersion != SUPPORTED_MAJOR_VERSION) {

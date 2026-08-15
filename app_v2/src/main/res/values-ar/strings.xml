@@ -379,8 +379,6 @@
     <string name="cb_cloud_read_only_mode_desc">يمنع عمليات الملفات (نسخ، نقل، حذف)</string>
     <string name="cb_cloud_picker_add_as_destination_desc">تحديد مجلد السحابة هذا كوجهة للفرز السريع</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">البحث عن ملفات الوسائط في جميع المجلدات الفرعية المتداخلة</string>
-    <string name="cb_repeat_video_desc">تكرار الفيديو الحالي بشكل متواصل</string>
-    <string name="cb_show_subtitles_desc">عرض مسارات الترجمة عند توفرها</string>
     <string name="virtual_camera_photos">صور الكاميرا</string>
     <string name="network_delete_warning">سيتم حذف الملفات نهائيًا من موقع الشبكة</string>
     <string name="save_audio_metadata_locally">حفظ بيانات الوسائط التي تم تنزيلها محليًا</string>
@@ -1000,7 +998,7 @@
     <string name="read_aloud">اقرأ بصوت عالٍ</string>
     <string name="redo">إعادة العمل</string>
     <string name="find_hint">يجد..</string>
-    <string name="replace_hint">استبدل بـ...</string>
+    <string name="replace_hint">استبدل بـ..</string>
     <string name="replace">يستبدل</string>
     <string name="replace_all">استبدل الكل</string>
     <string name="find_and_replace">البحث والاستبدال</string>
@@ -1088,13 +1086,6 @@
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">يرجى الانتظار..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">جارٍ التحميل..</string>
-    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>
-    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>
-    <string name="dialog_player_settings_chipSpeed1_text">1x</string>
-    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string>
-    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>
-    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>
-    <string name="dialog_player_settings_chipSpeed2_text">2x</string>
     <string name="dialog_slideshow_settings_tvIntervalValue_text">5s</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">الحد الأقصى (ميغابايت)</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">مين (ميغابايت)</string>
@@ -1368,7 +1359,7 @@
     <string name="unarchive_dialog_title">هل تريد استخراج الملف المضغوط؟</string>
     <string name="unarchive_dialog_message">\"%1$s\" -&gt; المجلد \"%2$s\"</string>
     <string name="unarchive_action_extract">يستخرج</string>
-    <string name="unarchive_progress_title">جارٍ استخراج الأرشيف...</string>
+    <string name="unarchive_progress_title">جارٍ استخراج الأرشيف..</string>
     <string name="unarchive_progress_entry">جارٍ الاستخراج: %1$s</string>
     <string name="unarchive_success">تم استخراج الأرشيف</string>
     <string name="unarchive_error_zip_bomb">الأرشيف كبير جدًا أو عميق جدًا</string>
@@ -2661,7 +2652,6 @@
     <string name="network_monitor_status_unknown">افتح للتحقق</string>
     <string name="network_monitor_active_title">اتصال نشط</string>
     <string name="network_monitor_active_none">لا يوجد اتصال بالإنترنت. قم بتشغيل الواي فاي أو بيانات الهاتف المحمول للاتصال بالإنترنت.</string>
-    <string name="network_monitor_local_ip_label">عنوان IP المحلي</string>
     <string name="network_monitor_value_unknown">مجهول</string>
     <string name="network_monitor_internet_ok">شبكة الإنترنت</string>
     <string name="network_monitor_internet_captive">تطلب منك هذه الشبكة تسجيل الدخول</string>

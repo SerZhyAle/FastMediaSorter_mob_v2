@@ -6,7 +6,7 @@
     <string name="keybinding_capture_commit">Definir</string>
     <string name="keybinding_capture_conflict">Já está vinculado a: %s</string>
     <string name="keybinding_capture_current">Capturado: %s</string>
-    <string name="keybinding_capture_title">Pressione uma tecla ou um botão...</string>
+    <string name="keybinding_capture_title">Pressione uma tecla ou um botão..</string>
     <string name="keybinding_device_gamepad">gamepad</string>
     <string name="keybinding_device_keyboard">Teclado</string>
     <string name="keybinding_device_mouse">Rato</string>
@@ -135,7 +135,7 @@
     <string name="keybinding_label_vr_zoom_start">Iniciar Zoom</string>
     <string name="keybinding_remap_not_impl">Reiniciar tudo - em breve</string>
     <string name="keybinding_remap_reset_all">Redefinir tudo</string>
-    <string name="keybinding_remap_search_hint">Comandos de pesquisa...</string>
+    <string name="keybinding_remap_search_hint">Comandos de pesquisa..</string>
     <string name="keybinding_row_remap">Remap</string>
     <string name="keybinding_row_reset">Restaurar para as configurações padrão</string>
     <string name="kbm_help_browse_back">Acesse a pasta principal</string>
@@ -145,7 +145,7 @@
     <string name="kbm_help_dialog_primary">Ação principal (OK / Aplicar)</string>
     <string name="kbm_help_dialog_toggle">Alternar opção</string>
     <string name="kbm_help_empty">Ainda não existem atalhos registrados para esta tela.</string>
-    <string name="kbm_help_full_docs_link">Abra a lista completa de referência de teclado/mouse...</string>
+    <string name="kbm_help_full_docs_link">Abra a lista completa de referência de teclado/mouse..</string>
     <string name="kbm_help_global_escape">Cancelar, limpar seleção, fechar caixa de diálogo</string>
     <string name="kbm_help_global_exit">Sair da tela atual</string>
     <string name="kbm_help_global_f1">Mostrar esta ajuda</string>

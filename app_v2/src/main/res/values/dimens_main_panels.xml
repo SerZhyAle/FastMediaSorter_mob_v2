@@ -15,6 +15,11 @@
          (96 -> 108dp = 225%), so its right edge (108) lands on the leading-cell boundary shared with
          the other panels. Portrait only. -->
     <dimen name="main_panel_first_tab_width">108dp</dimen>
+    <!-- S1659: both tab widths above are the upper bound, not the applied width. Five tabs at these
+         values need 492dp and no phone portrait is that wide, so MainResourceTabsManager divides the
+         strip width by the tab count and keeps 108/96 only as the ratio of the leading accent and as
+         the cap a wide screen settles on. The lower bound of that division is main_panel_item_min_width
+         (48dp), the same touch module the panel items use. -->
     <dimen name="main_panel_item_spacing">2dp</dimen>
     <!-- S1443: hysteresis gap a collapsed-panel chip must clear on top of its own measured width
          before it is allowed into the command bar, so a chip sitting exactly on the boundary does not

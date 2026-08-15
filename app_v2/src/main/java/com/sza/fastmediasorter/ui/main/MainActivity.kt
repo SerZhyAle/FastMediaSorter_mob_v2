@@ -44,11 +44,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
-import com.sza.fastmediasorter.domain.repository.ResourceRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsSink
-import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
-import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorAprilFoolsPrankManager
@@ -62,6 +58,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCollapsedChipsPlacementManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCommandBarTooltipManager
 import com.sza.fastmediasorter.ui.main.helpers.MainExitButtonManager
+import com.sza.fastmediasorter.ui.main.helpers.MainHelperFactory
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadMenuManager
@@ -205,26 +202,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     // S0043: settings-permission launcher removed - Manage Storage intent is now launched via SettingsIntentLauncher (which carries setLaunchBounds for XR / freeform / foldable). Result is delivered through onActivityResult below and forwarded to permissionsHelper.
 
     @Inject
-    lateinit var settingsRepository: SettingsRepository
+    lateinit var mainHelperFactory: MainHelperFactory
 
     @Inject
     lateinit var smbClient: SmbClient
 
     @Inject
     lateinit var unifiedCache: UnifiedFileCache
-
-    @Inject
-    lateinit var getResumeStateUseCase: GetResumeStateUseCase
-
-    @Inject
-    lateinit var clearResumeStateUseCase: ClearResumeStateUseCase
-
-    // S1152: last-active-stream store, read by the resume helper to resume a stream on cold start.
-    @Inject
-    lateinit var streamResumeStateRepository: com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
-
-    @Inject
-    lateinit var resourceRepository: ResourceRepository
 
     @Inject
     lateinit var mediaCapabilities: MediaCapabilities
@@ -381,14 +365,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
 
         // Initialize helpers (binding is already available - set by BaseActivity.onCreate)
-        resumeHelper = MainResumePlaybackHelper(
+        resumeHelper = mainHelperFactory.createResumePlaybackHelper(
             activity = this,
             binding = binding,
-            settingsRepository = settingsRepository,
-            resourceRepository = resourceRepository,
-            getResumeStateUseCase = getResumeStateUseCase,
-            clearResumeStateUseCase = clearResumeStateUseCase,
-            streamResumeStateRepository = streamResumeStateRepository
         )
         permissionsHelper = MainStoragePermissionsHelper(
             activity = this,
@@ -441,7 +420,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         if (intent?.action == ACTION_CAMERA_OCR_TRANSLATE) {
             lifecycleScope.launch {
-                val enabled = settingsRepository.getSettings().first().cameraOcrTranslationEnabled
+                val enabled = appSettings.first().cameraOcrTranslationEnabled
                 if (enabled) {
                     startActivity(com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this@MainActivity))
                 } else if (isTaskRoot) {
@@ -559,7 +538,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         if (intent.action == ACTION_CAMERA_OCR_TRANSLATE) {
             lifecycleScope.launch {
-                val enabled = settingsRepository.getSettings().first().cameraOcrTranslationEnabled
+                val enabled = appSettings.first().cameraOcrTranslationEnabled
                 if (enabled) {
                     startActivity(com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this@MainActivity))
                 } else if (isTaskRoot) {
@@ -861,9 +840,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         )
         // S0831/S0770: per-item panel actions (new-window launch + Remove/Disable confirms). Constructed
         // before the coordinator/menu-actions below, which delegate to it.
-        panelItemActions = MainPanelItemActionsManager(
+        panelItemActions = mainHelperFactory.createPanelItemActionsManager(
             activity = this,
-            settingsRepository = settingsRepository,
             unpinStreamSource = viewModel::unpinStreamSource,
             currentSettings = { latestSettings },
             resourceVrCinema = resourceVrCinemaLaunchManager,
@@ -886,7 +864,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             ),
         )
         // S0755: programs panel renders the same menu the dropdown builds (single source of order/gates).
-        programsPanelManager = MainProgramsPanelManager(
+        programsPanelManager = mainHelperFactory.createProgramsPanelManager(
             panel = binding.mainProgramsPanel,
             populateMenu = { popup, excludeStreams -> populateMainWindowDropdownMenu(popup, excludeStreams) },
             onItemSelected = { itemId -> handleMainWindowMenuItem(itemId) },
@@ -897,7 +875,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onConfigure = { startActivity(SettingsActivity.openProgramsSectionIntent(this)) },
             // S0807: "Hide panel" drops the panel; the collector restores the top command-bar three-dots.
             onHidePanel = { panelItemActions.hideProgramsPanelFromPanel() },
-            settingsRepository = settingsRepository,
             scope = lifecycleScope,
             // S0809: collapsed chip lives in the shared collapsed-panels row (activity layout).
             collapsedChip = binding.chipProgramsCollapsed,
@@ -908,7 +885,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // S0756/S0777: streams panel - entry button + pinned channels. An AUDIO channel tap plays inline
         // in the home window (the panel owns the now-playing mini-control); a VIDEO/RTSP tap falls back to
         // the Streams screen.
-        streamsPanelManager = MainStreamsPanelManager(
+        streamsPanelManager = mainHelperFactory.createStreamsPanelManager(
             panel = binding.mainStreamsPanel,
             lifecycleOwner = this,
             scope = lifecycleScope,
@@ -945,8 +922,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 isFavoritesEnabled = { latestSettings?.enableFavorites == true },
                 isChannelFavorite = { channel -> viewModel.favoriteStreamUrls.value.contains(channel.url) },
             ),
-            // S0808: persist the streams-panel collapsed-strip state (mirror of the programs panel).
-            settingsRepository = settingsRepository,
             // S0809: collapsed chip lives in the shared collapsed-panels row (activity layout).
             collapsedChip = binding.chipStreamsCollapsed,
             onChipVisibilityChanged = ::reapplyCollapsedChipPlacement,
@@ -1214,11 +1189,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         }
 
-        val eventHandler = com.sza.fastmediasorter.ui.main.helpers.MainEventHandler(
+        val eventHandler = mainHelperFactory.createEventHandler(
             activity = this,
             binding = binding,
             viewModel = viewModel,
-            settingsRepository = settingsRepository,
             passwordManager = passwordManager,
             onOpenSettings = ::openSettings,
             onRecordLastPlayed = ::recordLastPlayedResource,
@@ -1230,7 +1204,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             tabsManager.createTabs()
         }
         // Observe settings to show/hide Favorites button
-        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+        collectOnLifecycle(appSettings) { settings ->
             latestSettings = settings // S0770: keep the freshest snapshot for the panel item menus.
             val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
             val networkMonitorNowEnabled =
@@ -1395,13 +1369,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun setupResourceTypeTabs() {
-        tabsManager = MainResourceTabsManager(
+        tabsManager = mainHelperFactory.createResourceTabsManager(
             tabLayout = binding.tabResourceTypes,
             // S0809: the filter's collapsed representation is now the shared-row chip, not an in-place strip.
             collapsedStrip = binding.chipFilterCollapsed,
-            configuration = resources.configuration,
             gate = remoteSourceGate,
-            settingsRepository = settingsRepository,
             scope = lifecycleScope,
             onTabSelected = { tab -> viewModel.setActiveTab(tab) },
             onFavoritesReselected = { viewModel.openFavorites() },

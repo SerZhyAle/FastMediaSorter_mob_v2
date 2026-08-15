@@ -14,7 +14,7 @@
     <string name="ocr_font_size">OCR字体大小</string>
     <string name="ocr_images_only">OCR技术仅适用于图像。</string>
     <string name="ocr_no_text_found">图片中未找到文本</string>
-    <string name="ocr_processing">识别文本……</string>
+    <string name="ocr_processing">识别文本..</string>
     <string name="ocr_requires_newer_device">此设备不支持 OCR 功能。%1$s（API：%2$d）。需要 API 26 或更高版本以及 3GB 或更高内存。</string>
     <string name="ocr_result_title">识别文本</string>
     <string name="ocr_unavailable_reason_os">Android 版本太旧了</string>
@@ -24,7 +24,7 @@
     <string name="translation_font_family">字体系列</string>
     <string name="translation_font_size">字体大小</string>
     <string name="translation_lens_style">翻译结果以块的形式呈现</string>
-    <string name="translation_model_prewarm_downloading">正在下载翻译模型……</string>
+    <string name="translation_model_prewarm_downloading">正在下载翻译模型..</string>
     <string name="translation_model_prewarm_failed">翻译模型下载失败，请重试。</string>
     <string name="translation_model_prewarm_ready">翻译模型已准备就绪。</string>
     <string name="translation_model_prewarm_retry">重试</string>
@@ -32,6 +32,6 @@
     <string name="translation_settings">文本设置</string>
     <string name="translation_source_language">原文</string>
     <string name="translation_source_language_and_ocr">原始语言和OCR</string>
-    <string name="translation_started">翻译开始……</string>
+    <string name="translation_started">翻译开始..</string>
     <string name="translation_target_language">翻译成</string>
 </resources>

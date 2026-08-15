@@ -8,8 +8,14 @@
 #
 # All 19 entries are the same defect: the English phrasing leaves a format placeholder standing
 # alone, the external translator renders "%1$s" as a word, and the import guard rejects the line.
-# S1626 rewrites that phrasing - each key it fixes lands in every locale on the next bulk round and
-# should then be deleted from this file (list-new-lexemes.ps1 reports such an entry as stale).
+# S1626 owns these keys. Do not expect them to clear soon: as of 2026-08-14 that ticket is
+# BlockExternal, because the obvious rule was measured and refused to hold - a placeholder standing
+# at a string edge occurs in 55.6% of the rejected bodies and 57.0% of the surviving ones, so it
+# does not discriminate, and no English body may be rewritten on a hypothesis that predicts nothing.
+# A candidate rule can only be validated by sending reformulated bodies through the same machine
+# translator, so this set clears through a probe in a future bulk round, not through an edit anyone
+# can make today. A key that does clear should be deleted from this file - list-new-lexemes.ps1
+# reports such an entry as stale rather than failing on it.
 # S1550 shrinks the neighbouring set - layout literals marked translatable="false" - which never
 # reaches the export and therefore never appears here.
 #

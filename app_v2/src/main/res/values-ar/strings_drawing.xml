@@ -4,7 +4,7 @@
 <resources>
     <string name="draw_color_custom_cd">لون مخصص</string>
     <string name="draw_overflow_save_inplace">يحفظ</string>
-    <string name="draw_overflow_save_new">حفظ باسم...</string>
+    <string name="draw_overflow_save_new">حفظ باسم..</string>
     <string name="draw_overflow_settings">إعدادات</string>
     <string name="draw_overflow_undo_all">تراجع عن الكل</string>
     <string name="draw_overflow_undo_last">التراجع الأخير</string>

@@ -26,7 +26,7 @@
     <string name="addresource_smb_scan_none_found">कोई शेयर नहीं मिला। यदि आपके शेयरों में कस्टम नाम हैं, तो उन्हें मैन्युअल रूप से जोड़ें।</string>
     <string name="addresource_validation_generic">लगता है कुछ छूट गया है - फॉर्म की जांच करें और दोबारा कोशिश करें।</string>
     <string name="import_auto">डाउनलोड में स्वतः खोजें</string>
-    <string name="import_browse">फ़ाइल खोजें...</string>
+    <string name="import_browse">फ़ाइल खोजें..</string>
     <string name="import_failed">आपकी सेटिंग्स आयात नहीं हो सकीं। कृपया पुनः प्रयास करें।</string>
     <string name="import_failed_title">आयात विफल</string>
     <string name="import_fav_action">आयात</string>
@@ -71,7 +71,7 @@
     <string name="delete_by_size_larger">की तुलना में बड़ा है</string>
     <string name="delete_by_size_no_matches">कोई मेल खाने वाली फ़ाइलें नहीं मिलीं</string>
     <string name="delete_by_size_preview_title">विलोपन की पुष्टि करें</string>
-    <string name="delete_by_size_scanning">स्कैनिंग...</string>
+    <string name="delete_by_size_scanning">स्कैनिंग..</string>
     <string name="delete_by_size_smaller">तुलना में छोटा</string>
     <string name="delete_by_size_warning_no_trash">चेतावनी: इस संसाधन के लिए ट्रैश समर्थित नहीं है। डिलीट करना स्थायी होगा!</string>
     <string name="delete_confirmation">फाइलों को नष्ट?</string>
@@ -120,7 +120,7 @@
     <string name="file_not_found_message">फ़ाइल \"%1$s\" अब मौजूद नहीं है। संभवतः इसे हटा दिया गया है या ऐप से बाहर ले जाया गया है। क्या आप इस संसाधन को रीफ़्रेश करना चाहेंगे?</string>
     <string name="file_not_found_name">फ़ाइल नहीं मिली: %1$s</string>
     <string name="file_not_found_title">फ़ाइल प्राप्त नहीं हुई</string>
-    <string name="file_operation_progress_preparing">तैयारी चल रही है...</string>
+    <string name="file_operation_progress_preparing">तैयारी चल रही है..</string>
     <string name="file_ops_in_overflow_menu">ओवरफ़्लो मेनू में फ़ाइल संचालन</string>
     <string name="file_ops_moved_to_menu_hint">फ़ाइल संबंधी क्रियाएँ प्रत्येक फ़ाइल पर ⋮ मेनू में स्थानांतरित कर दी गई हैं।</string>
     <string name="file_path_label">पथ: %1$s</string>

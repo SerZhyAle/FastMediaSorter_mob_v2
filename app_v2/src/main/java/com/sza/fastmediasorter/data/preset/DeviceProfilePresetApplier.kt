@@ -329,6 +329,10 @@ class DeviceProfilePresetApplier @Inject constructor(
             "launcherDensityFactor" -> applyLauncherField(field, raw, settings) { s ->
                 raw.trim().toFloatOrNull()?.let { s.copy(launcherDensityFactor = it) }
             }
+            "launcherTaskbarPlacement" -> applyLauncherField(field, raw, settings) { s ->
+                raw.trim().takeIf { it in AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS }
+                    ?.let { s.copy(launcherTaskbarPlacement = it) }
+            }
             "launcherTaskbarShowRecents" -> applyLauncherField(field, raw, settings) { s ->
                 s.copy(launcherTaskbarShowRecents = raw.toBool())
             }

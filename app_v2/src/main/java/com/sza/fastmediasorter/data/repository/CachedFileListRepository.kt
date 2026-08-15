@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.data.repository
 
+import android.database.sqlite.SQLiteException
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import com.sza.fastmediasorter.data.local.db.CachedFileListDao
 import com.sza.fastmediasorter.data.local.db.CachedFileListEntity
@@ -9,6 +11,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import javax.inject.Inject
@@ -37,6 +40,55 @@ class CachedFileListRepository @Inject constructor(
 
     private fun decompress(data: ByteArray): String =
         GZIPInputStream(data.inputStream()).bufferedReader(Charsets.UTF_8).readText()
+
+    private suspend fun discardInvalidCachedFiles(resourceId: Long) {
+        try {
+            cachedFileListDao.deleteByResourceId(resourceId)
+        } catch (exception: SQLiteException) {
+            Timber.w(exception, "CachedFileList: failed to discard resource $resourceId")
+        }
+    }
+
+    private suspend fun readValidCachedFiles(
+        resourceId: Long,
+        compressedData: ByteArray
+    ): MutableList<MediaFile>? {
+        return try {
+            // A JSON array may itself carry null elements, so the element type stays nullable here
+            // instead of letting a null entry surface as a NullPointerException further down.
+            val files: List<MediaFile?>? = gson.fromJson(
+                decompress(compressedData),
+                mediaFileListType
+            )
+            if (files == null || files.any { it == null || !it.hasRequiredCacheValues() }) {
+                discardInvalidCachedFiles(resourceId)
+                Timber.w("CachedFileList: discarded invalid snapshot for resource $resourceId")
+                null
+            } else {
+                files.filterNotNull().toMutableList()
+            }
+        } catch (exception: IOException) {
+            discardInvalidCachedFiles(resourceId)
+            Timber.w(exception, "CachedFileList: failed to read resource $resourceId")
+            null
+        } catch (exception: JsonSyntaxException) {
+            discardInvalidCachedFiles(resourceId)
+            Timber.w(exception, "CachedFileList: failed to read resource $resourceId")
+            null
+        } catch (_: NullPointerException) {
+            // Last net for a mapping-mismatched blob that left a non-null Kotlin property unset. The
+            // cause is already known, so the resource id carries more than the throwable would.
+            discardInvalidCachedFiles(resourceId)
+            Timber.w("CachedFileList: incomplete snapshot for resource $resourceId")
+            null
+        }
+    }
+
+    private fun MediaFile.hasRequiredCacheValues(): Boolean = try {
+        name.isNotBlank() && path.isNotBlank() && type.name.isNotBlank()
+    } catch (_: NullPointerException) {
+        false
+    }
 
     // ── Public API ────────────────────────────────────────────────────────────
 
@@ -76,12 +128,20 @@ class CachedFileListRepository @Inject constructor(
     /** Load the file list for a resource, or return null if nothing is cached. */
     suspend fun getCachedFiles(resourceId: Long): List<MediaFile>? {
         return try {
-            val entity = cachedFileListDao.getByResourceId(resourceId) ?: return null
-            val files: List<MediaFile> = gson.fromJson(decompress(entity.compressedData), mediaFileListType)
-            Timber.d("CachedFileList: loaded ${files.size} files for resource $resourceId")
-            files
-        } catch (e: Exception) {
-            Timber.e(e, "CachedFileList: failed to load files for resource $resourceId")
+            val entity = cachedFileListDao.getByResourceId(resourceId)
+            if (entity == null) {
+                null
+            } else {
+                val files = readValidCachedFiles(resourceId, entity.compressedData)
+                if (files == null) {
+                    null
+                } else {
+                    Timber.d("CachedFileList: loaded ${files.size} files for resource $resourceId")
+                    files
+                }
+            }
+        } catch (exception: SQLiteException) {
+            Timber.e(exception, "CachedFileList: failed to load files for resource $resourceId")
             null
         }
     }
@@ -109,8 +169,7 @@ class CachedFileListRepository @Inject constructor(
     suspend fun updateFile(resourceId: Long, oldPath: String, newFile: MediaFile) = patchMutex.withLock {
         try {
             val entity = cachedFileListDao.getByResourceId(resourceId) ?: return
-            val files: MutableList<MediaFile> =
-                gson.fromJson(decompress(entity.compressedData), mediaFileListType)
+            val files = readValidCachedFiles(resourceId, entity.compressedData) ?: return
             val idx = files.indexOfFirst { it.path == oldPath }
             if (idx < 0) {
                 Timber.w("CachedFileList: updateFile - $oldPath not found in resource $resourceId")
@@ -144,8 +203,7 @@ class CachedFileListRepository @Inject constructor(
         if (filePaths.isEmpty()) return@withLock
         try {
             val entity = cachedFileListDao.getByResourceId(resourceId) ?: return@withLock
-            val files: MutableList<MediaFile> =
-                gson.fromJson(decompress(entity.compressedData), mediaFileListType)
+            val files = readValidCachedFiles(resourceId, entity.compressedData) ?: return@withLock
             val victims = filePaths.toHashSet()
             val removed = files.removeIf { it.path in victims }
             if (!removed) {
@@ -162,4 +220,3 @@ class CachedFileListRepository @Inject constructor(
         }
     }
 }
-

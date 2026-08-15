@@ -50,7 +50,7 @@
     <string name="scheduled_ops_next_run">अगली दौड़ यहाँ होगी:</string>
     <string name="scheduled_ops_no_destinations">गंतव्य अनुभाग में पहले गंतव्य जोड़ें</string>
     <string name="scheduled_ops_notif_channel_name">निर्धारित संचालन</string>
-    <string name="scheduled_ops_notif_running">निर्धारित कार्यक्रम चल रहा है...</string>
+    <string name="scheduled_ops_notif_running">निर्धारित कार्यक्रम चल रहा है..</string>
     <string name="scheduled_ops_op_copy">प्रतिलिपि</string>
     <string name="scheduled_ops_op_delete">मिटाना</string>
     <string name="scheduled_ops_op_move">कदम</string>

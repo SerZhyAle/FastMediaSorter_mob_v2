@@ -4,7 +4,7 @@
 <resources>
     <string name="draw_color_custom_cd">Sonderfarbe</string>
     <string name="draw_overflow_save_inplace">Speichern</string>
-    <string name="draw_overflow_save_new">Speichern unter…</string>
+    <string name="draw_overflow_save_new">Speichern unter..</string>
     <string name="draw_overflow_settings">Einstellungen</string>
     <string name="draw_overflow_undo_all">Alle Aktionen rückgängig machen</string>
     <string name="draw_overflow_undo_last">Letzte Aktion rückgängig machen</string>
@@ -16,7 +16,7 @@
     <string name="draw_overlay_toolbar_rect">Rechteck</string>
     <string name="draw_save_failed_toast">Speichern fehlgeschlagen</string>
     <string name="draw_save_ok_toast">Gespeichert</string>
-    <string name="draw_save_remote_failed">Der Ordner konnte nicht erreicht werden. Ihre Zeichnung befindet sich noch auf diesem Gerät – versuchen Sie, sie erneut zu speichern.</string>
+    <string name="draw_save_remote_failed">Der Ordner konnte nicht erreicht werden. Ihre Zeichnung befindet sich noch auf diesem Gerät - versuchen Sie, sie erneut zu speichern.</string>
     <string name="draw_settings_brush_size">Bürstengröße</string>
     <string name="draw_settings_opacity">Opazität</string>
     <string name="draw_settings_text_large">Groß</string>

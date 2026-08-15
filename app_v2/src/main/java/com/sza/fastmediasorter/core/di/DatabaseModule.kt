@@ -44,6 +44,7 @@ import com.sza.fastmediasorter.data.local.db.ScheduledOperationDao
 import com.sza.fastmediasorter.data.local.db.SensorSeriesDao
 import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
 import com.sza.fastmediasorter.data.local.db.StreamPlayOutcomeDao
+import com.sza.fastmediasorter.data.local.db.StreamQualityMemoryDao
 import com.sza.fastmediasorter.data.local.db.StreamSourceDao
 import com.sza.fastmediasorter.data.local.db.StreamingCacheDao
 import com.sza.fastmediasorter.data.local.db.ThumbnailCacheDao
@@ -170,6 +171,12 @@ object DatabaseModule {
     @Singleton
     fun provideStreamPlayOutcomeDao(database: AppDatabase): StreamPlayOutcomeDao {
         return database.streamPlayOutcomeDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideStreamQualityMemoryDao(database: AppDatabase): StreamQualityMemoryDao {
+        return database.streamQualityMemoryDao()
     }
     
     @Provides

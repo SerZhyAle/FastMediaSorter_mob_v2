@@ -44,7 +44,6 @@
     <string name="playback_settings_3d_spherical_format">کروی شکل</string>
     <string name="playback_speed">پلے بیک کی رفتار</string>
     <string name="player_3d_detected_toast">3D ویڈیو کا پتہ چلا۔ فائل کی معلومات کو بیرونی VR پلیئر میں کھولنے کے لیے استعمال کریں۔</string>
-    <string name="player_audio_track">آڈیو ٹریک کی زبان</string>
     <string name="player_command_panel_mode_playerViewPanel_resize_mode">فٹ</string>
     <string name="player_credentials_missing">محفوظ کردہ اسناد غائب ہیں۔ انہیں اپ ڈیٹ کریں اور دوبارہ کوشش کریں۔</string>
     <string name="player_file_moved">فائل منتقل ہو گئی۔</string>
@@ -64,11 +63,6 @@
     <string name="player_media_files_load_failed">فائل کی فہرست لوڈ نہیں ہو سکی۔ دوبارہ کوشش کریں۔</string>
     <string name="player_open_link_failed">وہ لنک نہیں کھول سکا۔</string>
     <string name="player_page_not_ready">وہ صفحہ ابھی تک تیار نہیں ہے۔ دوبارہ کوشش کریں۔</string>
-    <string name="player_repeat_video">پلے بیک کو دہرائیں۔</string>
-    <string name="player_settings_title">پلیئر کی ترتیبات</string>
-    <string name="player_show_subtitles">سب ٹائٹلز دکھائیں۔</string>
-    <string name="player_speed">پلے بیک کی رفتار</string>
-    <string name="player_subtitle_language">ذیلی عنوان کی زبان</string>
     <string name="player_webview_unavailable">پڑھنے کے منظر تک رسائی نہیں ہو سکی۔ دوبارہ کوشش کریں۔</string>
     <string name="video">ویڈیو</string>
     <string name="video_aspect_ratio_label">پہلو کا تناسب: %1$s</string>

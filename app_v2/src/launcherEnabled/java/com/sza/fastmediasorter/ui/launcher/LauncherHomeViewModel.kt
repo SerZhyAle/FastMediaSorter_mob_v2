@@ -211,6 +211,17 @@ class LauncherHomeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     /**
+     * S1643: whether the taskbar composition is anchored to the top screen edge instead of the bottom one.
+     *
+     * A [StateFlow] rather than a plain flow because the Start menu reads the current value synchronously
+     * while it builds its dialog, before any collector could have delivered a first value.
+     */
+    val taskbarAtTop: StateFlow<Boolean> = settingsRepository.getSettings()
+        .map { it.launcherTaskbarPlacement == AppSettings.LAUNCHER_TASKBAR_PLACEMENT_TOP }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    /**
      * S1431: whether the clock and the indicator set are drawn on the freed top band instead of the taskbar
      * tray. Both conditions are folded together here rather than in each of the three consumers, because a
      * mode left on with the status area no longer replaced would take the indicators off the tray and have

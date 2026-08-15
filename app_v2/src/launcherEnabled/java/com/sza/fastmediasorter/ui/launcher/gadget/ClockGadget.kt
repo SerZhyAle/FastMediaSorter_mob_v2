@@ -9,6 +9,7 @@ import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
+import androidx.core.view.doOnLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.GadgetLauncherClockBinding
 import com.sza.fastmediasorter.util.resolveActivityCompat
@@ -52,6 +53,15 @@ private class ClockGadgetView(context: Context) : LauncherGadgetView(context) {
         binding.gadgetClockDate.format12Hour = datePattern
         binding.gadgetClockDate.format24Hour = datePattern
         contentDescription = context.getString(R.string.launcher_gadget_clock_actions)
+        doOnLayout {
+            Timber.d(
+                "S1610: clock card %dx%dpx, time %.1fpx, date %.1fpx",
+                it.width,
+                it.height,
+                binding.gadgetClockTime.textSize,
+                binding.gadgetClockDate.textSize,
+            )
+        }
         setOnClickListener { openSystemClock(context) }
         setOnLongClickListener {
             openCalendar(context)

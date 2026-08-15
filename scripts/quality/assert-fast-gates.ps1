@@ -28,6 +28,8 @@
       - assert-unreferenced-strings   (S1568 string keys nothing under <module>/src references)
       - assert-maestro-oracle        (S1612 Maestro flows that are green without proving anything)
       - assert-hook-inventory        (S1604 registered Claude Code hooks vs docs/AGENT_HOOKS.md)
+      - assert-rule-digest-sync      (S1548 CLAUDE.md numbered rules vs the two full digests)
+      - assert-gson-persistence-contract (S1639 a durable Gson model whose wire names nothing pins)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
@@ -175,6 +177,18 @@ $gates = [ordered]@{
     # agent refused by an undocumented guard cannot find out what refused it. Compares the two
     # settings files against docs/AGENT_HOOKS.md as text, no gradle daemon.
     'assert-hook-inventory.ps1'                 = @()
+    # S1548: the two full digests of CLAUDE.md's numbered rules are written by hand and nothing
+    # compared them, so copilot-instructions.md silently lacked five rules - including four whose
+    # violation a hook refuses outright. Reads four markdown files as text, no gradle daemon.
+    'assert-rule-digest-sync.ps1'               = @()
+    # S1639: a model whose Gson JSON outlives the process, with neither @SerializedName on its fields
+    # nor a keep rule holding their names. R8 renames them per build, so the writer and the reader are
+    # two different mappings and the record read after an update is wrong or half-null. The class
+    # reached users six times (S0719, S0737, S1630, S1631, S1632, S1638) and was fixed one model at a
+    # time because nothing tied "this goes to storage" to "its names are pinned" - the two facts live
+    # in different files and usually different modules. Parses both source trees and the two
+    # proguard-rules.pro files, no gradle daemon.
+    'assert-gson-persistence-contract.ps1'      = @('-Quiet')
 }
 
 # S1338: these five accept -ChangedFiles and used to be invoked with no arguments at
@@ -184,7 +198,8 @@ $gates = [ordered]@{
 # or CI run keeps the strict project-wide judgement.
 $changedFilesAware = @(
     'assert-source-gates.ps1',
-    'assert-listener-symmetry.ps1'
+    'assert-listener-symmetry.ps1',
+    'assert-gson-persistence-contract.ps1'
 )
 
 $results = [System.Collections.Generic.List[object]]::new()

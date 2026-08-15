@@ -11,7 +11,7 @@
     <string name="pdf_export_failed">Esportazione non riuscita: %s</string>
     <string name="pdf_export_success">Esportazione di %d pagine nella sezione Download completata con successo.</string>
     <string name="pdf_export_to_jpg">Esporta le pagine come JPG</string>
-    <string name="pdf_exporting_started">Esportazione delle pagine in corso...</string>
+    <string name="pdf_exporting_started">Esportazione delle pagine in corso..</string>
     <string name="pdf_file_not_found">Questo file PDF non è più disponibile.</string>
     <string name="pdf_fullscreen">Visualizzazione a schermo intero della pagina PDF</string>
     <string name="pdf_keywords_label">Parole chiave: %1$s</string>
@@ -27,7 +27,7 @@
     <string name="pdf_scroll_mode">Modalità scorrimento</string>
     <string name="pdf_subject_label">Oggetto: %1$s</string>
     <string name="pdf_text_empty">Nessun testo trovato in questa pagina</string>
-    <string name="pdf_text_extracting">Estrazione del testo in corso...</string>
+    <string name="pdf_text_extracting">Estrazione del testo in corso..</string>
     <string name="pdf_text_mode_enter">Selezione del testo</string>
     <string name="pdf_thumbnails">Miniature della pagina</string>
     <string name="pdf_version_label">Versione PDF: %1$s</string>
@@ -57,7 +57,7 @@
     <string name="epub_search_hint">Cerca il testo..</string>
     <string name="epub_search_no_results">Nessun risultato trovato</string>
     <string name="epub_search_results">%1$d risulta in %2$d capitoli</string>
-    <string name="epub_searching">Ricerca in corso...</string>
+    <string name="epub_searching">Ricerca in corso..</string>
     <string name="epub_table_of_contents">Sommario</string>
     <string name="epub_text_empty_tts">Nessun testo trovato nel capitolo</string>
     <string name="text_content_hint">Contenuto testuale</string>

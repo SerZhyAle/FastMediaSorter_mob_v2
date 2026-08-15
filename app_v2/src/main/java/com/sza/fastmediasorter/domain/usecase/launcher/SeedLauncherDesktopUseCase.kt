@@ -46,6 +46,10 @@ class SeedLauncherDesktopUseCase @Inject constructor(
 
     suspend operator fun invoke(portraitColumns: Int, landscapeColumns: Int): Unit = withContext(Dispatchers.IO) {
         runCatching {
+            // S1642: ahead of the already-seeded exit on purpose - a desktop seeded by an earlier build is
+            // exactly the one carrying full-row headers, and it is the one this would otherwise skip.
+            desktop.normalizeSectionSpans()
+
             val state = desktop.state()
             if (state.seededPortrait && state.seededLandscape) return@runCatching
 
@@ -121,9 +125,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 orientation = orientation,
                 rowIndex = placed.rowIndex,
                 colIndex = placed.colIndex,
-                // Not placed.spanW: a section header is persisted at the widest grid it can ever be
-                // drawn on, while the packer clamps it to the grid being seeded (S1428).
-                spanW = placed.storedSpanW,
+                spanW = placed.spanW,
                 spanH = placed.spanH,
                 kind = placed.item.kind,
                 target = placed.item.target.replace(LauncherStarterSets.OWN_APP_TOKEN, ownPackage),

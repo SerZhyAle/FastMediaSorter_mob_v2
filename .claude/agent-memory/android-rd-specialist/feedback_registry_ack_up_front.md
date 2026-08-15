@@ -9,6 +9,23 @@ Whenever a closure's changed set includes a file matched by a `docs/DOCUMENT_REG
 `paths` (privacy policy, settings reference + its manifest/annotations, ALL_FEATURES, README mirrors),
 read those records first and pass `-RegistryAck "<id>[,<id>]"` on the **first** `post-change.ps1` call.
 
+**The two that bite tooling tickets, measured 2026-08-14:**
+
+- `repository-rules` covers far more than `CLAUDE.md` - its `paths` include `.claude/commands/*.md`,
+  `.claude/reference/*.md`, `.claude/templates/*.md`, `.claude/agents/*.md`, `.claude/skills/*/SKILL.md`,
+  `AGENTS.md`, `GEMINI.md`, `.github/copilot-instructions.md`, `docs/AGENT_HOOKS.md`. So **editing any
+  command or skill file** trips the advisory. Discharging it means checking whether the sibling rule
+  sets restate the rule you changed - grep the distinctive phrase across `CLAUDE/AGENTS/GEMINI.md` and
+  `.claude/**`, and record the result.
+- `script-cheatsheet` covers `docs/SCRIPT_CHEATSHEET.md`, a generated single-path record with no
+  siblings - acknowledging it is a formality, but it still blocks a bare `PASS`.
+
+**Related, same "before the first call" family:** `docs/SCRIPT_CHEATSHEET.md` goes stale whenever a
+`.ps1` is **added** or its `param()` block or header `Exit codes:` section changes, and
+`script-cheatsheet-sync-gate` then fires as an advisory. Run
+`pwsh -NoProfile -File scripts/utils/help.ps1 -Generate` and put the regenerated file in the changed
+set **before** the first closure call. Hit three times in one session on 2026-08-14.
+
 **Why:** the `document-registry` step withholds a bare `PASS` until the touched records are
 acknowledged - it exits 1 as an advisory, so the run still ends `PASS WITH ADVISORIES` and exit 0. The
 only way to a clean verdict is to re-run, and `post-change` writes its dev-log row on every run, so the

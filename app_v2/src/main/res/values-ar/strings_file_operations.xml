@@ -26,7 +26,7 @@
     <string name="addresource_smb_scan_none_found">لم يتم العثور على مشاركات. إذا كانت مشاركاتك تستخدم أسماءً مخصصة، فأضفها يدويًا.</string>
     <string name="addresource_validation_generic">يبدو أن هناك شيئًا مفقودًا - تحقق من النموذج وحاول مرة أخرى.</string>
     <string name="import_auto">البحث التلقائي في التنزيلات</string>
-    <string name="import_browse">تصفح الملفات...</string>
+    <string name="import_browse">تصفح الملفات..</string>
     <string name="import_failed">تعذر استيراد إعداداتك. حاول مرة أخرى.</string>
     <string name="import_failed_title">فشلت عملية الاستيراد</string>
     <string name="import_fav_action">يستورد</string>

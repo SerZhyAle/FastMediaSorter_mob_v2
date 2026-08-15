@@ -32,7 +32,11 @@ Everything else works the same - file operations (copy, move, delete, rename), s
 
 1. **Single-eye 3D, every flavor:** SBS/OU/180/360 content is auto-detected (filename markers, MP4/Matroska metadata, or an optional aspect-ratio heuristic) and cropped to one eye so it plays back normally on any flat screen - phone, tablet, or a headset's regular 2D window. This works out of the box, no VR build required.
 
-2. **Full immersion, `noLegal` today:** on a Quest or other OpenXR headset running the `noLegal` sideload build, opening 3D content through the player's VR badge, Browse's "Open in VR Cinema" menu item, or the "Test Immersive" button in Settings starts a dedicated OpenXR session with real per-eye rendering for SBS/OU/180/360 content. Moving between files inside that session is next/previous only for now; any button, key, or click exits back to the flat screen.
+2. **Full immersion, `noLegal` today:** on a Quest or other OpenXR headset running the `noLegal` sideload build, opening 3D content through the player's VR badge, Browse's "Open in VR Cinema" menu item, or the "Test Immersive" button in Settings starts a dedicated OpenXR session with real per-eye rendering for SBS/OU/180/360 content. Moving between files inside that session is next/previous, or through the in-headset browser described below; any button, key, or click exits back to the flat screen.
+
+**Browsing inside the headset:** the immersive session has its own browse window, so you are not limited to the one file that opened it. Choosing **"Open in VR Cinema"** on a *resource* (rather than on a single file) opens that resource as a tile grid in front of you. Aim the controller ray at a tile and pull the trigger to select it: folders open in place, and a video or 3D image starts in the immersive player without ever dropping back to the flat screen. Tiles carry previews, and 3D images are classified by the same SBS/OU/equirectangular detection the flat player uses.
+
+Two limits worth knowing: the in-headset browser reads **local resources only** - network and cloud sources are not offered there yet - and the grid is driven by the controller ray, not by the thumbstick.
 
 3. **`vr` flavor:** builds and installs, but its headset rendering isn't connected yet - it plays like Standard until the immersive rewrite (epic S0773) lands.
 

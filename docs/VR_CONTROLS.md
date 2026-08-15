@@ -42,6 +42,11 @@ small control scheme:
   itself and lists every binding above. Any controller press closes it, and that
   press does nothing else. The **HELP** button on the strip, immediately left of
   HIDE, brings the legend back at any time.
+- The same ray drives the **in-headset browse grid**, which is the other surface
+  the session can show (see [VR Edition](VR_EDITION.md)). Point at a tile and
+  pull the trigger: a folder opens in place, a file starts playing. There is no
+  separate grid control scheme - the ray and the trigger are the whole of it, and
+  thumbstick navigation of the grid is not implemented yet.
 - Still missing in the headset: the file-operations panel. Zoom is on the
   thumbstick's up/down axis, not a HUD control.
 

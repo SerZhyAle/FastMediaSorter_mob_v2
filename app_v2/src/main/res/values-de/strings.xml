@@ -379,8 +379,6 @@
     <string name="cb_cloud_read_only_mode_desc">Verhindert Dateivorgänge (Kopieren, Verschieben, Löschen)</string>
     <string name="cb_cloud_picker_add_as_destination_desc">Diesen Cloud-Ordner als Schnellsortierungsziel markieren</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">Mediendateien in allen verschachtelten Unterordnern suchen</string>
-    <string name="cb_repeat_video_desc">Aktuelles Video fortlaufend wiederholen</string>
-    <string name="cb_show_subtitles_desc">Untertitelspuren anzeigen, falls verfügbar</string>
     <string name="virtual_camera_photos">Kamerafotos</string>
     <string name="network_delete_warning">Dateien werden endgültig vom Netzwerkspeicherort gelöscht</string>
     <string name="save_audio_metadata_locally">Heruntergeladene Mediendaten lokal speichern</string>
@@ -983,14 +981,14 @@
     <string name="toast_image_flipped">Bild erfolgreich gespiegelt</string>
     <string name="toast_flip_failed">Bild konnte nicht gespiegelt werden. Erneut versuchen.</string>
     <string name="toast_filter_active">Filter aktiv..</string>
-    <string name="progress_applying_filter">Filter wird angewendet…</string>
+    <string name="progress_applying_filter">Filter wird angewendet..</string>
     <string name="progress_applying_adjustments">Anpassungen werden angewendet..</string>
     <string name="progress_rotating_image">Bild wird gedreht..</string>
     <string name="progress_flipping_image">Bild spiegeln %1$s..</string>
     <string name="toast_no_files_to_play">Keine Dateien zum Abspielen</string>
     <string name="toast_resource_not_loaded">Ressource nicht geladen</string>
     <string name="at_least_one_media_type_required">Mindestens ein Medientyp muss ausgewählt werden.</string>
-    <string name="reopen_with_encoding">Mit neuer Kodierung erneut öffnen…</string>
+    <string name="reopen_with_encoding">Mit neuer Kodierung erneut öffnen..</string>
     <string name="select_encoding">Kodierung auswählen</string>
     <string name="reader_settings">Leseeinstellungen</string>
     <string name="reader_theme_light">Licht</string>
@@ -1000,7 +998,7 @@
     <string name="read_aloud">Vorlesen</string>
     <string name="redo">Wiederholen</string>
     <string name="find_hint">Finden..</string>
-    <string name="replace_hint">Ersetzen durch…</string>
+    <string name="replace_hint">Ersetzen durch..</string>
     <string name="replace">Ersetzen</string>
     <string name="replace_all">Alle ersetzen</string>
     <string name="find_and_replace">Suchen und Ersetzen</string>
@@ -1022,7 +1020,7 @@
     </plurals>
     <string name="resource_deleted">Ressource gelöscht</string>
     <string name="msg_loading_timeout">Laden hat zu lange gedauert</string>
-    <string name="speed_test_preparing">Geschwindigkeitstest wird vorbereitet…</string>
+    <string name="speed_test_preparing">Geschwindigkeitstest wird vorbereitet..</string>
     <string name="speed_test_saving">Ergebnisse speichern..</string>
     <string name="no_files_to_restore">Keine gelöschten Dateien zum Wiederherstellen</string>
     <string name="failed_to_restore_files">Dateien konnten nicht wiederhergestellt werden</string>
@@ -1038,7 +1036,7 @@
     <string name="tooltip_use_trash_message">Wenn aktiviert, werden gelöschte lokale Dateien in einen versteckten Ordner .trash verschoben und lassen sich über Rückgängig wiederherstellen. Ab Android 12 benötigen manche geteilten Ordner MANAGE_MEDIA; ohne diese Berechtigung kann der Papierkorb auf endgültiges Löschen zurückfallen. Wenn deaktiviert, werden Dateien sofort endgültig gelöscht und der Speicherplatz wird sofort frei. Netzwerk- und Cloud-Dateien werden immer endgültig gelöscht.</string>
     <string name="send_email">E-Mail senden</string>
     <string name="no_email_client">Kein E-Mail-Programm gefunden</string>
-    <string name="receive_share_preparing">Gemeinsame Inhalte werden vorbereitet…</string>
+    <string name="receive_share_preparing">Gemeinsame Inhalte werden vorbereitet..</string>
     <string name="receive_share_source_name">Gemeinsam</string>
     <string name="receive_share_no_content">Es wurden keine Inhalte zum Importieren empfangen.</string>
     <string name="receive_share_cache_failed">Die freigegebene Datei konnte nicht vorbereitet werden. Bitte versuchen Sie es erneut.</string>
@@ -1088,13 +1086,6 @@
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Bitte warten..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Wird geladen..</string>
-    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>
-    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>
-    <string name="dialog_player_settings_chipSpeed1_text">1x</string>
-    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string>
-    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>
-    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>
-    <string name="dialog_player_settings_chipSpeed2_text">2x</string>
     <string name="dialog_slideshow_settings_tvIntervalValue_text">5s</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">Max (MB)</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">Min (MB)</string>
@@ -1105,7 +1096,7 @@
     <string name="item_folder_tvFolderName_text">Ordnername</string>
     <string name="integration_tests_title">Integrationstests</string>
     <string name="integration_tests_description">Automatisierte Tests von Dateivorgängen über alle Ressourcentypen hinweg</string>
-    <string name="scanning_resources">Ressourcen werden durchsucht…</string>
+    <string name="scanning_resources">Ressourcen werden durchsucht..</string>
     <string name="thumbnail">Miniaturansicht</string>
     <string name="resource_type_icon">Symbol des Ressourcentyps</string>
     <string name="cd_resource_icon_quick_slideshow">Diashow starten</string>
@@ -1158,7 +1149,7 @@
     <string name="hint_server_path">Serverpfad (optional)</string>
     <string name="hint_cloud_folder_id">Cloud-Ordner-ID</string>
     <string name="hint_slideshow_interval">Diashow-Intervall (Sekunden)</string>
-    <string name="hint_access_pin">PIN-Code (4–6 Ziffern)</string>
+    <string name="hint_access_pin">PIN-Code (4-6 Ziffern)</string>
     <string name="hint_comment">Kommentar (optional)</string>
     <string name="label_media_types">Medientypen</string>
     <string name="label_destination_settings">Zieleinstellungen</string>
@@ -1245,7 +1236,7 @@
     <string name="remember_file_list">Dateiliste für diese Ressource merken</string>
     <string name="remember_file_list_help_title">Dateiliste merken</string>
     <string name="remember_file_list_help_message">Wenn diese Option aktiviert ist, speichert die App die Ressourcendateiliste nach dem Scan in der Datenbank. Beim nächsten Öffnen werden die Dateien sofort aus dem Cache geladen. Verwenden Sie die Aktualisierungsfunktion, um Änderungen an externen Dateien zu übernehmen.</string>
-    <string name="file_not_found_playing_from_start">Datei „%1$s“ nicht gefunden – Wiedergabe von Anfang an</string>
+    <string name="file_not_found_playing_from_start">Datei „%1$s“ nicht gefunden - Wiedergabe von Anfang an</string>
     <string name="picture_in_picture">Bild-in-Bild</string>
     <string name="pip_play">Spielen</string>
     <string name="pip_pause">Pause</string>
@@ -1337,7 +1328,7 @@
     <string name="duplicate_wasted_bytes">Verschwendeter Speicherplatz: %1$s</string>
     <string name="duplicate_scan_network_warning">Der Netzwerkscan kann lange dauern und viel Datenverkehr beanspruchen. Fortfahren?</string>
     <string name="duplicate_scan_notif_title">Doppelscan</string>
-    <string name="duplicate_scan_notif_running">Suche nach Duplikaten...</string>
+    <string name="duplicate_scan_notif_running">Suche nach Duplikaten..</string>
     <string name="duplicate_scan_notif_channel_name">Duplikatscanner</string>
     <string name="action_create_folder">Ordner erstellen</string>
     <string name="action_create_text_file">Textnotiz erstellen</string>
@@ -1360,7 +1351,7 @@
     <string name="archive_name_invalid_chars_error">Der Name enthält ungültige Zeichen</string>
     <string name="archive_destination_label">Zielordner: %1$s</string>
     <string name="archive_action_btn">Archiv</string>
-    <string name="archive_progress_title">Archiv wird erstellt...</string>
+    <string name="archive_progress_title">Archiv wird erstellt..</string>
     <string name="archive_success">Archiv erstellt: %1$s (%2$d Dateien)</string>
     <string name="archive_error">Archivierungsfehler: %1$s</string>
     <string name="archive_destination_not_found">Der Zielordner ist nicht mehr verfügbar.</string>
@@ -1369,7 +1360,7 @@
     <string name="unarchive_dialog_title">Archiv extrahieren?</string>
     <string name="unarchive_dialog_message">\"%1$s\" -&gt; Ordner \"%2$s\"</string>
     <string name="unarchive_action_extract">Extrakt</string>
-    <string name="unarchive_progress_title">Archiv wird extrahiert...</string>
+    <string name="unarchive_progress_title">Archiv wird extrahiert..</string>
     <string name="unarchive_progress_entry">Extrahieren: %1$s</string>
     <string name="unarchive_success">Archiv extrahiert</string>
     <string name="unarchive_error_zip_bomb">Archiv zu groß oder zu tief</string>
@@ -1407,7 +1398,7 @@
     <string name="download">Herunterladen</string>
     <string name="permission_denied">Zugriff verweigert</string>
     <string name="failed_to_request_permission">Die Anfrage nach der Berechtigung ist fehlgeschlagen.</string>
-    <string name="permission_error_retry">Zugriffsfehler – bitte versuchen Sie es erneut.</string>
+    <string name="permission_error_retry">Zugriffsfehler - bitte versuchen Sie es erneut.</string>
     <string name="error_init_settings">Diese Einstellungen konnten nicht geöffnet werden. Erneut versuchen.</string>
     <string name="tts_not_available">Text-to-Speech nicht verfügbar</string>
     <string name="translation_failed">Übersetzung fehlgeschlagen</string>
@@ -1470,14 +1461,14 @@
     <string name="chromeos_banner_shown_pref_key">chromeos_banner_shown</string>
     <string name="s0116_toast_saved_to_resource">Gespeichert: %1$s</string>
     <string name="s0116_toast_saved_to_downloads">Unter Downloads gespeichert: %1$s</string>
-    <string name="s0116_toast_drm_blocked">Geschützter Inhalt – Download nicht möglich</string>
+    <string name="s0116_toast_drm_blocked">Geschützter Inhalt - Download nicht möglich</string>
     <string name="s0116_toast_mux_failed">MP4 konnte nicht zusammengestellt werden (Codec: %1$s)</string>
     <string name="s0116_toast_streaming_disabled">Streams sind in dieser Version nicht verfügbar.</string>
-    <string name="s0116_toast_auth_required">Anmeldung erforderlich für %1$s – Einstellungen öffnen</string>
+    <string name="s0116_toast_auth_required">Anmeldung erforderlich für %1$s - Einstellungen öffnen</string>
     <string name="s0151_toast_content_unavailable">Der Inhalt unter diesem Link konnte nicht geladen werden.</string>
     <string name="s0151_dialog_auth_title">Bei %1$s anmelden?</string>
-    <string name="s0151_dialog_message">Für den eigentlichen Inhalt dieses Links ist eine Anmeldung erforderlich – das Vorschaubild wurde übersprungen.</string>
-    <string name="s0117_progress_batch_item">Element %1$d von %2$d wird heruntergeladen…</string>
+    <string name="s0151_dialog_message">Für den eigentlichen Inhalt dieses Links ist eine Anmeldung erforderlich - das Vorschaubild wurde übersprungen.</string>
+    <string name="s0117_progress_batch_item">Element %1$d von %2$d wird heruntergeladen..</string>
     <string name="s0117_toast_batch_saved">%1$d Artikel gespeichert</string>
     <string name="s0117_batch_dialog_title">Zusammenfassung des Batch-Downloads</string>
     <string name="s0117_batch_dialog_summary">%1$d von %2$d Artikeln gespeichert.</string>
@@ -1492,7 +1483,7 @@
     <string name="webview_auth_save_button">Autorisierung speichern</string>
     <string name="webview_auth_cancel_button">Stornieren</string>
     <string name="webview_auth_url_prompt">URL eingeben (https://..)</string>
-    <string name="webview_auth_invalid_url">Ungültige URL – muss mit http:// oder https:// beginnen</string>
+    <string name="webview_auth_invalid_url">Ungültige URL - muss mit http:// oder https:// beginnen</string>
     <string name="auth_add_picker_title">Wählen Sie eine Ressource aus</string>
     <string name="auth_add_enter_manually">Adresse manuell eingeben</string>
     <string name="auth_offer_dialog_title">Bei %1$s anmelden?</string>
@@ -1522,12 +1513,12 @@
     <string name="link_download_notif_text_analyzing">Seite wird analysiert..</string>
     <string name="link_download_notif_text_downloading_pct">Wird heruntergeladen %1$d%%</string>
     <string name="link_download_notif_action_cancel">Abbrechen</string>
-    <string name="auth_sessions_info_text">Dieser Bildschirm zeigt die über den In-App-Anmeldebrowser erfassten Autorisierungen. Jeder Eintrag speichert Cookies für ein Konto auf einer Website. Einträge mit der Kennzeichnung „Anmeldung abgelehnt“ wurden erstellt, als Sie „Nicht fragen“ ausgewählt haben – sie verhindern, dass die Anmeldeaufforderung für diese Website erneut angezeigt wird. Um ein zweites Konto für dieselbe Website hinzuzufügen, verwenden Sie „Autorisierung hinzufügen“ im oberen Menü.</string>
+    <string name="auth_sessions_info_text">Dieser Bildschirm zeigt die über den In-App-Anmeldebrowser erfassten Autorisierungen. Jeder Eintrag speichert Cookies für ein Konto auf einer Website. Einträge mit der Kennzeichnung „Anmeldung abgelehnt“ wurden erstellt, als Sie „Nicht fragen“ ausgewählt haben - sie verhindern, dass die Anmeldeaufforderung für diese Website erneut angezeigt wird. Um ein zweites Konto für dieselbe Website hinzuzufügen, verwenden Sie „Autorisierung hinzufügen“ im oberen Menü.</string>
     <string name="rotation_toggle_sensor_on_desc">Bildschirmdrehung: entsperrt</string>
     <string name="rotation_toggle_sensor_off_desc">Bildschirmdrehung: gesperrt</string>
     <string name="link_download_notif_text_preview_only_signed_in">Der Seiteninhalt konnte nicht extrahiert werden. Eine Anmeldung ist nicht nötig.</string>
     <string name="error_reason_local_destination_permission_denied">Hier kann nicht gespeichert werden - Android schränkt das Schreiben in diesen Ordner ein. Versuche es mit Musik, Filmen, Bildern oder Downloads.</string>
-    <string name="s0266_apk_download_preparing">Installation wird vorbereitet…</string>
+    <string name="s0266_apk_download_preparing">Installation wird vorbereitet..</string>
     <string name="s0281_google_oauth_only_note">Ich konnte diesen YouTube-Inhalt nicht abrufen. Meine Anmeldedaten werden hier nicht gespeichert.</string>
     <string name="browse_transfer_progress_background">Hintergrund</string>
     <string name="browse_transfer_already_running">Eine Dateiübertragung läuft bereits.</string>
@@ -1554,7 +1545,7 @@
     <string name="system_info_copy_full_report">Vollständigen Bericht kopieren</string>
     <string name="system_info_reveal_confirm_title">Vollständigen Bericht kopieren?</string>
     <string name="system_info_reveal_confirm_message">Die Kopie enthält sensible Daten (Signatur-Hash, lokale Adressen, Mount-Pfade). Fortfahren?</string>
-    <string name="audio_next_track_loading">Nächster Titel wird geladen…</string>
+    <string name="audio_next_track_loading">Nächster Titel wird geladen..</string>
     <string name="widget_quick_audio_recorder_label">Schnellrekorder</string>
     <string name="widget_quick_audio_recorder_description">Tippen Sie hier, um eine Sprachaufnahme zu starten; tippen Sie erneut, um sie zu beenden und zu speichern.</string>
     <string name="quick_recorder_notification_recording">Aufnahme..</string>
@@ -1585,9 +1576,9 @@
     <string name="resource_menu_move_to_top">Ganz nach oben verschieben</string>
     <string name="resource_menu_move_to_bottom">Ganz nach unten verschieben</string>
     <string name="delivery_offer_message_unknown_size">Für diese Funktion ist ein kleiner zusätzlicher Download erforderlich. Jetzt herunterladen?</string>
-    <string name="delivery_state_downloading">Wird heruntergeladen…</string>
-    <string name="delivery_state_verifying">Download wird geprüft...</string>
-    <string name="delivery_state_error">Download fehlgeschlagen – überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.</string>
+    <string name="delivery_state_downloading">Wird heruntergeladen..</string>
+    <string name="delivery_state_verifying">Download wird geprüft..</string>
+    <string name="delivery_state_error">Download fehlgeschlagen - überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.</string>
     <string name="delivery_action_download">Herunterladen</string>
     <string name="delivery_action_retry">Versuchen Sie es erneut</string>
     <string name="delivery_progress_content_description">Downloadfortschritt</string>
@@ -1638,7 +1629,7 @@
     <string name="download_runner_notif_title_failed">%s konnte nicht heruntergeladen werden</string>
     <string name="screen_capture_saved_to">Gespeichert unter %1$s: %2$s</string>
     <string name="screen_capture_service_notification_title">Bildschirmaufnahme</string>
-    <string name="screen_capture_service_notification_text">Der aktuelle Bildschirm wird erfasst…</string>
+    <string name="screen_capture_service_notification_text">Der aktuelle Bildschirm wird erfasst..</string>
     <string name="setting_group_system_apps_title">Zusammenspiel mit dem Betriebssystem</string>
     <string name="setting_subgroup_screen_gestures_title">Randgesten am Bildschirm</string>
     <string name="setting_gesture_overlay_title">Gesten-Overlay</string>
@@ -2094,7 +2085,7 @@
     <string name="sftp_share_export_title">SFTP-Zugang freigeben</string>
     <string name="sftp_share_export_warning">Diese Datei enthält das Zugangspasswort. Geben Sie sie nur an Personen weiter, denen Sie vertrauen.</string>
     <string name="sftp_share_omit_password">Das Passwort darf nicht angegeben werden.</string>
-    <string name="sftp_share_private_network_warning">Dieser Server befindet sich in Ihrem lokalen Netzwerk – der Empfänger kann sich nur aus demselben Netzwerk verbinden.</string>
+    <string name="sftp_share_private_network_warning">Dieser Server befindet sich in Ihrem lokalen Netzwerk - der Empfänger kann sich nur aus demselben Netzwerk verbinden.</string>
     <string name="sftp_share_export_failed">Die Zugriffsdatei konnte nicht erstellt werden.</string>
     <string name="sftp_share_export_action">Aktie</string>
     <string name="companion_import_title">Zugang importieren</string>
@@ -2200,7 +2191,7 @@
     <string name="gesture_action_explain_previous_app">Öffnet die Übersicht der zuletzt genutzten Apps.</string>
     <string name="gesture_write_settings_title">Helligkeitssteuerung erlauben</string>
     <string name="gesture_write_settings_message">Um die Bildschirmhelligkeit per Geste zu ändern, erlaube dieser App, Systemeinstellungen zu ändern.</string>
-    <string name="transfer_destination_unreachable">Zielserver nicht erreichbar – Übertragung abgebrochen</string>
+    <string name="transfer_destination_unreachable">Zielserver nicht erreichbar - Übertragung abgebrochen</string>
     <string name="rotate_content_90_title">Um 90° drehen</string>
     <string name="rotate_content_90_desc">Drehen Sie den Rahmen um 90 Grad im Uhrzeigersinn.</string>
     <string name="error_network_host_key_changed">Der Server dieses freigegebenen Ordners unterscheidet sich von dem, mit dem du gekoppelt warst. Zu deiner Sicherheit wurde nichts geladen. Koppele erneut, nur wenn du diesem Netzwerk vertraust.</string>
@@ -2278,7 +2269,7 @@
     <string name="launcher_welcome_toggle_title">Als Startbildschirm verwenden</string>
     <string name="launcher_settings_dialog_title">Systemlauncher-Einstellungen</string>
     <string name="launcher_menu_launcher_settings">Launcher-Einstellungen</string>
-    <string name="welcome_streams_catalog_downloading">Wird heruntergeladen…</string>
+    <string name="welcome_streams_catalog_downloading">Wird heruntergeladen..</string>
     <string name="companion_import_summary">%1$s, %2$s</string>
     <string name="companion_import_added_one">Hinzugefügt: %1$s</string>
     <string name="companion_import_updated_one">Aktualisiert: %1$s</string>
@@ -2361,7 +2352,7 @@
     <string name="browse_menu_group_share_info">Teilen und Info</string>
     <string name="browse_transfer_indicator">%1$s %2$d%% - %3$s</string>
     <string name="browse_transfer_indicator_action">%1$s. Tippen, um den Fortschrittsdialog wieder zu öffnen</string>
-    <string name="pdf_text_selection_word_not_found">Das Wort wurde nicht gefunden – bitte manuell auswählen.</string>
+    <string name="pdf_text_selection_word_not_found">Das Wort wurde nicht gefunden - bitte manuell auswählen.</string>
     <string name="launcher_settings_replace_status_area_title">Systemstatusleiste ersetzen</string>
     <string name="launcher_gadget_favorites_empty">Noch nichts in den Favoriten. Tippen, um sie zu öffnen.</string>
     <string name="launcher_gadget_scheduled_empty">Noch keine geplanten Aufgaben. Tippen, um eine einzurichten.</string>
@@ -2398,7 +2389,7 @@
     <string name="removable_volumes_section">Wechseldatenträger</string>
     <string name="removable_volume_button_label">%1$s - %2$s kostenlos</string>
     <string name="removable_volume_button_description">Wechselmedium %1$s, %2$s frei. Öffnet dieses Volume.</string>
-    <string name="removable_volume_access_request">Um %1$s zu lesen, wählen Sie dieses Volume im sich anschließend öffnenden Systemdialog aus – die App erhält nur Zugriff auf den von Ihnen ausgewählten Ordner.</string>
+    <string name="removable_volume_access_request">Um %1$s zu lesen, wählen Sie dieses Volume im sich anschließend öffnenden Systemdialog aus - die App erhält nur Zugriff auf den von Ihnen ausgewählten Ordner.</string>
     <string name="launcher_edit_resize_hint_drag">Diese Ecke ziehen, um die Größe des Widgets zu ändern.</string>
     <string name="launcher_edit_kind_action">Launcher-Aktion</string>
     <string name="launcher_settings_reset_title">Launcher-Einstellungen zurücksetzen</string>
@@ -2662,7 +2653,6 @@
     <string name="network_monitor_status_unknown">Zum Prüfen öffnen</string>
     <string name="network_monitor_active_title">Aktive Verbindung</string>
     <string name="network_monitor_active_none">Es besteht keine Verbindung. Schalten Sie WLAN oder mobile Daten ein, um online zu gehen.</string>
-    <string name="network_monitor_local_ip_label">Lokale IP-Adresse</string>
     <string name="network_monitor_value_unknown">Unbekannt</string>
     <string name="network_monitor_internet_ok">Internet funktioniert</string>
     <string name="network_monitor_internet_captive">Dieses Netzwerk möchte, dass Sie sich anmelden.</string>
@@ -2672,7 +2662,7 @@
     <string name="network_monitor_transport_vpn">VPN</string>
     <string name="network_monitor_transport_other">Weitere Verbindung</string>
     <string name="network_monitor_disabled_title">Netzwerkmonitor ist ausgeschaltet</string>
-    <string name="network_monitor_disabled_message">Aktivieren Sie diese Funktion unter Einstellungen – Betrieb, um Ihre Verbindungs-, Signal- und Netzwerkdetails anzuzeigen.</string>
+    <string name="network_monitor_disabled_message">Aktivieren Sie diese Funktion unter Einstellungen - Betrieb, um Ihre Verbindungs-, Signal- und Netzwerkdetails anzuzeigen.</string>
     <string name="network_monitor_unsupported_message">Diese App-Version enthält keinen Netzwerkmonitor.</string>
     <string name="network_monitor_open_settings">Einstellungen öffnen</string>
     <string name="network_monitor_radio_wifi">WLAN-Radio</string>
@@ -2725,7 +2715,7 @@
     <string name="network_monitor_bluetooth_signal_heading">Gerätesignal</string>
     <string name="network_monitor_gnss_visible_label">Satelliten im Blickfeld</string>
     <string name="network_monitor_gnss_used_label">Wird für die Position verwendet</string>
-    <string name="network_monitor_gnss_acquiring">Suche nach Satelliten...</string>
+    <string name="network_monitor_gnss_acquiring">Suche nach Satelliten..</string>
     <string name="network_monitor_gnss_used_in_fix">in Position gezählt</string>
     <string name="network_monitor_gnss_not_in_fix">nicht gezählt</string>
     <string name="network_monitor_gnss_position_heading">Position</string>
@@ -2739,7 +2729,7 @@
     <string name="network_monitor_gnss_track_summary">Der Titel bleibt auf diesem Gerät und wird nur geschrieben, solange dieser Bildschirm geöffnet ist. Es werden keine Daten an Dritte gesendet.</string>
     <string name="network_monitor_gnss_track_points">Aufgezeichnete Punkte: %1$d</string>
     <string name="network_monitor_gnss_track_share">Teile die Trackdatei</string>
-    <string name="network_monitor_gnss_track_share_failed">Die Trackdatei ist nicht verfügbar – sie wurde möglicherweise durch eine neuere Session ersetzt. Aktivieren Sie die Aufnahme und versuchen Sie es erneut.</string>
+    <string name="network_monitor_gnss_track_share_failed">Die Trackdatei ist nicht verfügbar - sie wurde möglicherweise durch eine neuere Session ersetzt. Aktivieren Sie die Aufnahme und versuchen Sie es erneut.</string>
     <string name="network_monitor_path_heading">Weg ins Internet</string>
     <string name="network_monitor_path_device">Dieses Gerät</string>
     <string name="network_monitor_path_gateway">Tor</string>
@@ -2752,7 +2742,7 @@
     <string name="network_monitor_actions_heading">Schecks</string>
     <string name="network_monitor_target_label">Was zu überprüfen ist</string>
     <string name="network_monitor_target_internet">Das Internet</string>
-    <string name="network_monitor_range_heading">Zu scannender Adressbereich – leer lassen, um dieses Gerätesubnetz zu scannen</string>
+    <string name="network_monitor_range_heading">Zu scannender Adressbereich - leer lassen, um dieses Gerätesubnetz zu scannen</string>
     <string name="network_monitor_range_first_hint">Aus</string>
     <string name="network_monitor_action_check_resource">Überprüfen Sie die ausgewählte Ressource</string>
     <string name="network_monitor_action_scan_subnet">Scannen Sie das lokale Netzwerk</string>
@@ -2760,10 +2750,10 @@
     <string name="network_monitor_action_speed_test">Messen Sie die Geschwindigkeit</string>
     <string name="network_monitor_action_cancel">Stoppen</string>
     <string name="network_monitor_action_continue">Weitermachen</string>
-    <string name="network_monitor_running_check_resource">Ressource wird geprüft…</string>
-    <string name="network_monitor_running_scan_subnet">Netzwerk wird gescannt…</string>
+    <string name="network_monitor_running_check_resource">Ressource wird geprüft..</string>
+    <string name="network_monitor_running_scan_subnet">Netzwerk wird gescannt..</string>
     <string name="network_monitor_running_external_ip">Anfrage nach der externen Adresse.</string>
-    <string name="network_monitor_running_speed_test">Die Geschwindigkeit messen…</string>
+    <string name="network_monitor_running_speed_test">Die Geschwindigkeit messen..</string>
     <string name="network_monitor_warn_speed_test_title">Dies wird Verkehr beanspruchen</string>
     <string name="network_monitor_warn_speed_test_message">Der Geschwindigkeitstest lädt und lädt insgesamt etwa 20 MB hoch. Dieses Datenvolumen wird in Ihrem Mobilfunktarif abgerechnet. Sie können den Test jederzeit abbrechen.</string>
     <string name="network_monitor_warn_subnet_title">Dies dient der Überprüfung Ihres lokalen Netzwerks.</string>
@@ -2784,14 +2774,14 @@
     <string name="network_monitor_result_subnet_too_large">Dieser Adressbereich ist größer als %1$d Adressen. Schränken Sie ihn ein und versuchen Sie es erneut.</string>
     <string name="network_monitor_result_subnet_invalid">Das ist kein IPv4-Adresspaar. Verwenden Sie ein Format wie 192.168.1.1 und 192.168.1.254.</string>
     <string name="network_monitor_result_speed_test">%1$s herunterladen, %2$s hochladen.</string>
-    <string name="network_monitor_result_speed_test_failed">Der Geschwindigkeitstest konnte nicht abgeschlossen werden – überprüfen Sie die Verbindung und versuchen Sie es erneut.</string>
+    <string name="network_monitor_result_speed_test_failed">Der Geschwindigkeitstest konnte nicht abgeschlossen werden - überprüfen Sie die Verbindung und versuchen Sie es erneut.</string>
     <string name="network_monitor_result_speed_test_metered">Nicht gemessen: Dieses Netzwerk berechnet Gebühren für den Datenverkehr.</string>
     <string name="network_monitor_result_resource_ok">Die Ressource hat geantwortet. %1$s</string>
-    <string name="network_monitor_result_resource_failed">Die Ressource hat nicht geantwortet – überprüfen Sie die Adresse und die Zugangsdaten und versuchen Sie es dann erneut.</string>
+    <string name="network_monitor_result_resource_failed">Die Ressource hat nicht geantwortet - überprüfen Sie die Adresse und die Zugangsdaten und versuchen Sie es dann erneut.</string>
     <string name="network_monitor_result_resource_missing">Diese Ressource ist nicht mehr verfügbar. Wählen Sie eine andere.</string>
     <string name="network_monitor_history_empty">Es liegen noch keine Messwerte vor. Führen Sie eine Überprüfung im Internet durch, dann werden sie hier angezeigt.</string>
     <string name="network_monitor_history_export">Export</string>
-    <string name="network_monitor_history_export_failed">Die Datei konnte nicht vorbereitet werden – schaffen Sie Speicherplatz frei und versuchen Sie es erneut.</string>
+    <string name="network_monitor_history_export_failed">Die Datei konnte nicht vorbereitet werden - schaffen Sie Speicherplatz frei und versuchen Sie es erneut.</string>
     <string name="network_monitor_history_clear">Klar</string>
     <string name="network_monitor_history_clear_title">Messverlauf löschen</string>
     <string name="network_monitor_history_clear_message">Dadurch werden alle gespeicherten Messwerte von diesem Gerät gelöscht. Exportieren Sie die Daten zuerst, falls Sie sie noch benötigen.</string>

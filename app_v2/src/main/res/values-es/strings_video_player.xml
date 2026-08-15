@@ -44,7 +44,6 @@
     <string name="playback_settings_3d_spherical_format">Formato esférico</string>
     <string name="playback_speed">Velocidad de reproducción</string>
     <string name="player_3d_detected_toast">Se ha detectado un vídeo 3D. Utilice la información del archivo para abrirlo en un reproductor de realidad virtual externo.</string>
-    <string name="player_audio_track">Idioma de la pista de audio</string>
     <string name="player_command_panel_mode_playerViewPanel_resize_mode">adaptar</string>
     <string name="player_credentials_missing">Faltan las credenciales guardadas. Actualízalas e inténtalo de nuevo.</string>
     <string name="player_file_moved">Archivo movido.</string>
@@ -64,11 +63,6 @@
     <string name="player_media_files_load_failed">No se pudo cargar la lista de archivos. Inténtalo de nuevo.</string>
     <string name="player_open_link_failed">No se pudo abrir ese enlace.</string>
     <string name="player_page_not_ready">Esa página aún no está lista. Inténtalo de nuevo.</string>
-    <string name="player_repeat_video">Repetir reproducción</string>
-    <string name="player_settings_title">Configuración del reproductor</string>
-    <string name="player_show_subtitles">Mostrar subtítulos</string>
-    <string name="player_speed">Velocidad de reproducción</string>
-    <string name="player_subtitle_language">Idioma de los subtítulos</string>
     <string name="player_webview_unavailable">No se pudo acceder a la vista de lectura. Inténtalo de nuevo.</string>
     <string name="video">Video</string>
     <string name="video_aspect_ratio_label">Relación de aspecto: %1$s</string>

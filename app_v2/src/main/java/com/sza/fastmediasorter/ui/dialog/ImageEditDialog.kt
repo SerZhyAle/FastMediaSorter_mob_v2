@@ -301,7 +301,7 @@ class ImageEditDialog(
 
     private companion object {
         // A plain Dialog with no explicit window width falls back to the narrow platform dialog width,
-        // which clipped the button labels. 0.9 matches the sibling PlayerSettingsDialog in this package.
+        // which clipped the button labels.
         const val WIDTH_FRACTION_OF_SCREEN = 0.9
     }
 }

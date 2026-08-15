@@ -44,7 +44,6 @@
     <string name="playback_settings_3d_spherical_format">شكل كروي</string>
     <string name="playback_speed">سرعة التشغيل</string>
     <string name="player_3d_detected_toast">تم اكتشاف فيديو ثلاثي الأبعاد. استخدم معلومات الملف لفتحه في مشغل الواقع الافتراضي الخارجي.</string>
-    <string name="player_audio_track">لغة المسار الصوتي</string>
     <string name="player_command_panel_mode_playerViewPanel_resize_mode">ملائم</string>
     <string name="player_credentials_missing">البيانات المحفوظة مفقودة. قم بتحديثها وحاول مرة أخرى.</string>
     <string name="player_file_moved">تم نقل الملف.</string>
@@ -64,11 +63,6 @@
     <string name="player_media_files_load_failed">تعذر تحميل قائمة الملفات. حاول مرة أخرى.</string>
     <string name="player_open_link_failed">لم أتمكن من فتح هذا الرابط.</string>
     <string name="player_page_not_ready">هذه الصفحة غير جاهزة بعد. حاول مرة أخرى.</string>
-    <string name="player_repeat_video">إعادة التشغيل</string>
-    <string name="player_settings_title">إعدادات اللاعب</string>
-    <string name="player_show_subtitles">عرض الترجمة</string>
-    <string name="player_speed">سرعة التشغيل</string>
-    <string name="player_subtitle_language">لغة الترجمة</string>
     <string name="player_webview_unavailable">تعذر الوصول إلى وضع القراءة. حاول مرة أخرى.</string>
     <string name="video">فيديو</string>
     <string name="video_aspect_ratio_label">نسبة العرض إلى الارتفاع: %1$s</string>

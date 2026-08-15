@@ -128,6 +128,11 @@ function Get-SanitizedCall([string] $content, [int] $prefixStart, [int] $openPar
 }
 
 $findings = [System.Collections.Generic.List[object]]::new()
+# Ids for which a probe call actually exists in source, whatever its status. A stale probe counts
+# here too: the tag is present, and its own finding above already reports the status mismatch
+# (S1290). Populated from the probe match rather than the generic id match, so only a real
+# Timber.d("Sxxxx: opener qualifies.
+$probeIds = [System.Collections.Generic.HashSet[string]]::new()
 
 foreach ($root in $scanRoots) {
     $files = Get-ChildItem -LiteralPath $root -Recurse -File -Filter '*.kt' -ErrorAction SilentlyContinue |
@@ -158,8 +163,11 @@ foreach ($root in $scanRoots) {
             $allowed = $false
             if ($level -eq 'd') {
                 $pm = $probeRx.Match($span)
-                if ($pm.Success -and $blockNeedUserTest.Contains('S' + $pm.Groups['num'].Value)) {
-                    $allowed = $true
+                if ($pm.Success) {
+                    [void]$probeIds.Add('S' + $pm.Groups['num'].Value)
+                    if ($blockNeedUserTest.Contains('S' + $pm.Groups['num'].Value)) {
+                        $allowed = $true
+                    }
                 }
             }
 
@@ -187,6 +195,23 @@ foreach ($root in $scanRoots) {
 
 $actual = $findings.Count
 
+# S1290 - the other direction of the same invariant. The gate already holds both sides in memory
+# at this point, so the check costs neither an extra catalogue read nor a second source walk.
+# Exceptions are an allow-list rather than a count: measured 2026-08-14, every real gap had a
+# legitimate named reason (the ticket changes tooling or documentation, so a probe has nowhere to
+# live), and a bare counter would have recorded that as anonymous debt.
+$baselineFile = Join-Path $PSScriptRoot 'blockneedusertest-probe-baseline.txt'
+$excused = [System.Collections.Generic.HashSet[string]]::new()
+if (Test-Path -LiteralPath $baselineFile) {
+    foreach ($line in Get-Content -LiteralPath $baselineFile) {
+        $trimmedLine = $line.Trim()
+        if ($trimmedLine -eq '' -or $trimmedLine.StartsWith('#')) { continue }
+        if ($trimmedLine -match '^(?<id>S\d{4})\s+\S') { [void]$excused.Add($Matches['id']) }
+    }
+}
+
+$missingProbe = @($blockNeedUserTest | Where-Object { -not $probeIds.Contains($_) -and -not $excused.Contains($_) } | Sort-Object)
+
 if (-not $Quiet -and $actual -gt 0) {
     Write-Host "Forbidden permanent-log ticket ids:`n"
     foreach ($f in ($findings | Sort-Object File, Line)) {
@@ -195,7 +220,16 @@ if (-not $Quiet -and $actual -gt 0) {
     Write-Host ''
 }
 
-Write-Host ("assert-no-ticket-logs: expected: 0 | actual: {0}  (allowed BlockNeedUserTest probes: {1})" -f $actual, $blockNeedUserTest.Count)
+if (-not $Quiet -and $missingProbe.Count -gt 0) {
+    Write-Host "BlockNeedUserTest tickets with no probe in source:`n"
+    foreach ($id in $missingProbe) {
+        Write-Host ("  {0}  - status BlockNeedUserTest but no Timber.d(`"{0}: ..`") in app_v2/src or wear/src" -f $id)
+    }
+    Write-Host "  Add the probe, or excuse the ticket with a reason in scripts/quality/blockneedusertest-probe-baseline.txt`n"
+}
 
-if ($Gate -and $actual -gt 0) { exit 1 }
+Write-Host ("assert-no-ticket-logs: expected: 0 | actual: {0} forbidden log id(s), {1} missing probe(s)  (BlockNeedUserTest: {2}, probes in source: {3}, excused: {4})" -f
+    $actual, $missingProbe.Count, $blockNeedUserTest.Count, $probeIds.Count, $excused.Count)
+
+if ($Gate -and ($actual + $missingProbe.Count) -gt 0) { exit 1 }
 exit 0

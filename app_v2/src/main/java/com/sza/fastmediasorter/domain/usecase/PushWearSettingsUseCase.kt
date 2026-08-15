@@ -15,7 +15,9 @@ class PushWearSettingsUseCase @Inject constructor(
     suspend operator fun invoke(settings: WearSettingsPayload): Result<Unit> = runCatching {
         val nodes = wearableRepository.getConnectedNodes()
         check(nodes.isNotEmpty()) { "No watch connected" }
-        val settingsBytes = gson.toJson(settings).toByteArray(Charsets.UTF_8)
+        val settingsJson = gson.toJson(settings)
+        Timber.d("S1631: settings pushed, real keys=${settingsJson.startsWith("{\"audioEnabled\"")}")
+        val settingsBytes = settingsJson.toByteArray(Charsets.UTF_8)
         val envelope = WearEventEnvelope(
             eventType = WearDataLayerPaths.EVENT_SETTINGS,
             sentAt = System.currentTimeMillis(),

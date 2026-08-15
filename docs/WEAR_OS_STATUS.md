@@ -369,13 +369,13 @@ wear/src/main/java/com/sza/fastmediasorter/wear/
 
 ## 🛠️ Technical Details for Developers
 
-- **Package**: `com.sza.fastmediasorter.wear`
-- **Min SDK**: 30 (Wear OS 3.0)
-- **Compile SDK**: 35
-- **Target SDK**: 35
-- **Version Code**: 1
-- **Version Name**: 1.0.0-MVP
-- **Kotlin Version**: 1.9.24
+- **Install package (`applicationId`)**: `com.sza.fastmediasorter` - the phone app's identity, required for Data Layer delivery (S1681)
+- **Code namespace**: `com.sza.fastmediasorter.wear`
+- **Min SDK**: 28 (Wear OS 2.0+)
+- **Compile SDK**: 36
+- **Target SDK**: 36
+- **Version code / name**: generated, kept in sync with app_v2 by `build-with-version.ps1` - read `wear/build.gradle.kts` for the current values rather than trusting a number written here
+- **Kotlin Version**: see `docs/TECH_STACK.md` (single source of truth for toolchain pins)
 - **Java Target**: 17
 - **Compose Version**: 1.5.14
 - **Hilt Version**: 2.50

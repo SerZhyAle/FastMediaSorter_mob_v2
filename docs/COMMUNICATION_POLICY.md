@@ -116,6 +116,7 @@ Rules:
 - Verify parity with `scripts/check_strings_localized.ps1` - exit code 1 is a blocker.
 - EN is the source locale; RU and UK must match in structure and intent, adapted naturally (not word-for-word translated).
 - `..` (two dots) as ellipsis in all locales; never `…` (Unicode) or `...`.
+- A plain hyphen `-` in all locales; never the long dashes `–` (en), `—` (em) or `―` (horizontal bar).
 
 ---
 

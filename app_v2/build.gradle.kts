@@ -635,6 +635,7 @@ android {
         getByName("testNoLegal") {
             kotlin.directories.add("src/testNetworkMonitor/java")
             kotlin.directories.add("src/testLauncherEnabled/java")
+            kotlin.directories.add("src/testVr/java")
         }
         // lite mounts streamingDisabled AND cloudDisabled - it mounts neither test set, which is
         // exactly what makes its unit tests compilable again.
@@ -799,6 +800,17 @@ android {
                 // natively - exit value 10, no Java-level OOM, truncated suite. Recycling the
                 // worker every 100 classes caps that peak; cost is a few JVM warmups per run.
                 it.forkEvery = 100L
+                // S1657: Gson ships no java.time adapter, so a bare Gson() reflects over java.time's own
+                // private fields. The test JVM enforces modules and refuses that read with
+                // InaccessibleObjectException, which made every serialization test of a model carrying an
+                // Instant fail on a difference the app never sees.
+                // S1668 took the app off that path - the injected Gson now registers InstantTypeAdapter - so
+                // this open is no longer what lets the model tests run. It is still required by exactly one
+                // test, InstantTypeAdapterTest, which serializes with a bare reflective Gson to prove the
+                // adapter emits identical bytes to the format already stored on users' devices. Measured:
+                // with this line removed that single test fails and the other 13 in the pair of classes pass.
+                // Remove the line only together with that compatibility guard.
+                it.jvmArgs("--add-opens=java.base/java.time=ALL-UNNAMED")
                 it.systemProperty(
                     "settings.manifest.generate",
                     System.getProperty("settings.manifest.generate") ?: "false"
@@ -1667,9 +1679,20 @@ dependencies {
 // Test configurations are excluded on purpose: Robolectric 4.11.1 requests bcprov-jdk18on:1.76 on
 // the unit-test classpath, and nothing on a test classpath reaches the APK, so asserting there
 // would break the suite over a version that never ships.
+//
+// S1636: the scope is a WHITELIST of variant runtime classpaths, not "everything except test".
+// The guard's own justification is "what ships in the APK", and a variant's `*RuntimeClasspath`
+// is exactly that set. Excluding by the substring "test" left every TOOL classpath inside the
+// guard, and one of them - `androidLintTool`, lint's own runtime - pulls bcpkix/bcprov 1.79
+// through com.android.tools.lint. So every lint task died during dependency resolution while
+// the APK built green: `.\a.ps1 ch` and `lint-baseline.xml` regeneration were unusable, which
+// is what blocked S1329 step 06.2. Naming lint in a blacklist would have left the next tool
+// configuration (ksp, kapt, detekt, lintChecks) to trip the same wire.
 val expectedBouncyCastleVersion = "1.75"
 
-configurations.matching { !it.name.contains("test", ignoreCase = true) }.configureEach {
+configurations.matching {
+    it.name.endsWith("RuntimeClasspath") && !it.name.contains("test", ignoreCase = true)
+}.configureEach {
     resolutionStrategy.eachDependency {
         if (requested.group == "org.bouncycastle" && requested.version != expectedBouncyCastleVersion) {
             throw GradleException(

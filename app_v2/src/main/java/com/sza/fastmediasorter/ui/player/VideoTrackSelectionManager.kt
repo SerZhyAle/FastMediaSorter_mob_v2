@@ -10,7 +10,6 @@ import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
-import com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog
 import timber.log.Timber
 
 /**
@@ -52,7 +51,7 @@ class VideoTrackSelectionManager(
 
     fun applyTrackSelection(
         player: ExoPlayer,
-        settings: PlayerSettingsDialog.PlayerSettings,
+        settings: PlayerSettings,
         appLanguage: String
     ) {
         var paramsBuilder = player.trackSelectionParameters.buildUpon()
@@ -61,10 +60,10 @@ class VideoTrackSelectionManager(
         val preferredAudioLang = preference?.audioLang
             ?: streamDefaults?.audioIso
             ?: when (settings.audioLanguage) {
-            PlayerSettingsDialog.LanguageOption.DEFAULT -> appLanguage
-            PlayerSettingsDialog.LanguageOption.ENGLISH -> "en"
-            PlayerSettingsDialog.LanguageOption.RUSSIAN -> "ru"
-            PlayerSettingsDialog.LanguageOption.UKRAINIAN -> "uk"
+            PlayerSettings.LanguageOption.DEFAULT -> appLanguage
+            PlayerSettings.LanguageOption.ENGLISH -> "en"
+            PlayerSettings.LanguageOption.RUSSIAN -> "ru"
+            PlayerSettings.LanguageOption.UKRAINIAN -> "uk"
         }
         paramsBuilder = paramsBuilder.setPreferredAudioLanguage(preferredAudioLang)
         Timber.d("VideoTrackSelectionManager: Set preferred audio language to $preferredAudioLang")
@@ -73,10 +72,10 @@ class VideoTrackSelectionManager(
             val preferredSubtitleLang = preference?.subtitleLang
                 ?: streamDefaults?.subtitleIso
                 ?: when (settings.subtitleLanguage) {
-                PlayerSettingsDialog.LanguageOption.DEFAULT -> appLanguage
-                PlayerSettingsDialog.LanguageOption.ENGLISH -> "en"
-                PlayerSettingsDialog.LanguageOption.RUSSIAN -> "ru"
-                PlayerSettingsDialog.LanguageOption.UKRAINIAN -> "uk"
+                PlayerSettings.LanguageOption.DEFAULT -> appLanguage
+                PlayerSettings.LanguageOption.ENGLISH -> "en"
+                PlayerSettings.LanguageOption.RUSSIAN -> "ru"
+                PlayerSettings.LanguageOption.UKRAINIAN -> "uk"
             }
             paramsBuilder = paramsBuilder
                 .setPreferredTextLanguage(preferredSubtitleLang)

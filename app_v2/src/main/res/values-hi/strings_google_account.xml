@@ -3,7 +3,7 @@
      Untranslated keys are absent on purpose - Android falls back to English (S1190, ADR-6). -->
 <resources>
     <string name="s0200_cct_unavailable_title">ब्राउज़र आवश्यक है</string>
-    <string name="s0200_cct_unavailable_message">Google में साइन इन करने के लिए Chrome कस्टम टैब को सपोर्ट करने वाला ब्राउज़र आवश्यक है। कृपया कोई भी सपोर्टेड ब्राउज़र (Chrome, Firefox, Brave...) इंस्टॉल करें और दोबारा प्रयास करें। ऐप की अन्य सुविधाएं काम करती रहेंगी।</string>
+    <string name="s0200_cct_unavailable_message">Google में साइन इन करने के लिए Chrome कस्टम टैब को सपोर्ट करने वाला ब्राउज़र आवश्यक है। कृपया कोई भी सपोर्टेड ब्राउज़र (Chrome, Firefox, Brave..) इंस्टॉल करें और दोबारा प्रयास करें। ऐप की अन्य सुविधाएं काम करती रहेंगी।</string>
     <string name="s0200_cct_unavailable_retry">पुनः प्रयास करें</string>
     <string name="s0200_card_title">गूगल खाता</string>
     <string name="s0200_card_state_unbound_summary">Google Drive बैकअप का उपयोग करने और अपने खाते में दोबारा लॉग इन किए बिना ड्राइव फ़ोल्डर जोड़ने के लिए एक बार साइन इन करें।</string>

@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -17,8 +18,8 @@ import org.junit.Test
  * desktop renders as "unknown gadget". Nothing compile-time ties them, so this test does - it fails
  * the moment a `KEY_*` rename in the registry drifts from the string the starter set emits.
  *
- * S1428 added a second copy under the same constraint: the span a section header is stored at mirrors
- * the renderer's own maximum column count.
+ * S1642 keeps a second copy under the same constraint: the span a section header is stored and drawn at
+ * has to fit the narrowest grid the renderer resolves.
  *
  * Lives in `src/testLauncherEnabled`: [LauncherGadgetRegistry] ships only in the launcherEnabled source
  * set, and that set is mounted by two flavors. S1498 moved this out of `src/testStandard`, whose single
@@ -28,10 +29,12 @@ import org.junit.Test
 class LauncherStarterSetsParityTest {
 
     @Test
-    fun `the stored header span mirrors the widest grid the renderer can draw`() {
-        // A header stored narrower than the grid it is drawn on leaves the rest of its row free in the
-        // database while covering it on screen, so a cell dropped there lands underneath the header.
-        assertEquals(LauncherGridGeometry.MAX_COLUMNS, LauncherSectionMembership.HEADER_STORED_SPAN_W)
+    fun `the header span fits the narrowest grid the renderer can resolve`() {
+        // S1642: the header is stored and drawn at one span, so the only way it can fail to fit is by
+        // exceeding the smallest column count the desktop ever resolves - where it would be clamped on
+        // screen while the table still held the wider rectangle.
+        assertEquals(2, LauncherSectionMembership.HEADER_SPAN_W)
+        assertTrue(LauncherSectionMembership.HEADER_SPAN_W <= LauncherGridGeometry.MIN_COLUMNS)
     }
 
     @Test

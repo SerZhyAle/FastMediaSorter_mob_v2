@@ -379,8 +379,6 @@
     <string name="cb_cloud_read_only_mode_desc">ফাইল অপারেশন (কপি, স্থানান্তর, মুছে ফেলা) প্রতিরোধ করে</string>
     <string name="cb_cloud_picker_add_as_destination_desc">এই ক্লাউড ফোল্ডারটিকে Quick Sort গন্তব্য হিসেবে চিহ্নিত করুন</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">সব নেস্টেড সাবডিরেক্টরিতে মিডিয়া ফাইল খুঁজুন</string>
-    <string name="cb_repeat_video_desc">বর্তমান ভিডিওটি ক্রমাগত লুপ করুন</string>
-    <string name="cb_show_subtitles_desc">পাওয়া গেলে সাবটাইটেল ট্র্যাক দেখান</string>
     <string name="virtual_camera_photos">ক্যামেরার ছবি</string>
     <string name="network_delete_warning">ফাইলগুলো নেটওয়ার্ক অবস্থান থেকে স্থায়ীভাবে মুছে ফেলা হবে</string>
     <string name="save_audio_metadata_locally">ডাউনলোড করা মিডিয়া ডেটা স্থানীয়ভাবে সংরক্ষণ করুন</string>
@@ -1088,13 +1086,6 @@
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">অনুগ্রহ করে অপেক্ষা করুন..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">লোড হচ্ছে..</string>
-    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>
-    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>
-    <string name="dialog_player_settings_chipSpeed1_text">1x</string>
-    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string>
-    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>
-    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>
-    <string name="dialog_player_settings_chipSpeed2_text">2x</string>
     <string name="dialog_slideshow_settings_tvIntervalValue_text">5s</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">সর্বোচ্চ (এমবি)</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">সর্বনিম্ন (এমবি)</string>
@@ -2661,7 +2652,6 @@
     <string name="network_monitor_status_unknown">যাচাইয়ের জন্য খোলা</string>
     <string name="network_monitor_active_title">সক্রিয় সংযোগ</string>
     <string name="network_monitor_active_none">কোনো সংযোগ নেই। অনলাইনে আসার জন্য ওয়াই-ফাই বা মোবাইল ডেটা চালু করুন।</string>
-    <string name="network_monitor_local_ip_label">স্থানীয় আইপি</string>
     <string name="network_monitor_value_unknown">অজানা</string>
     <string name="network_monitor_internet_ok">ইন্টারনেট কাজ করে</string>
     <string name="network_monitor_internet_captive">এই নেটওয়ার্কটি চায় আপনি সাইন ইন করুন।</string>

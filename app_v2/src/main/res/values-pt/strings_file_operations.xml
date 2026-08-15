@@ -26,7 +26,7 @@
     <string name="addresource_smb_scan_none_found">Nenhuma pasta compartilhada encontrada. Se as suas pastas usam nomes personalizados, adicione-as manualmente.</string>
     <string name="addresource_validation_generic">Parece que está faltando alguma coisa - verifique o formulário e tente novamente.</string>
     <string name="import_auto">Encontrar automaticamente em Downloads</string>
-    <string name="import_browse">Procurar arquivo...</string>
+    <string name="import_browse">Procurar arquivo..</string>
     <string name="import_failed">Não foi possível importar suas configurações. Tente novamente.</string>
     <string name="import_failed_title">Importação falhou</string>
     <string name="import_fav_action">Importar</string>
@@ -71,7 +71,7 @@
     <string name="delete_by_size_larger">Maior que</string>
     <string name="delete_by_size_no_matches">Nenhum arquivo correspondente encontrado</string>
     <string name="delete_by_size_preview_title">Confirmar exclusão</string>
-    <string name="delete_by_size_scanning">Digitalizando...</string>
+    <string name="delete_by_size_scanning">Digitalizando..</string>
     <string name="delete_by_size_smaller">Menor que</string>
     <string name="delete_by_size_warning_no_trash">Aviso: a lixeira não é suportada para este recurso. A exclusão será permanente!</string>
     <string name="delete_confirmation">Apagar arquivos?</string>
@@ -120,7 +120,7 @@
     <string name="file_not_found_message">O arquivo \"%1$s\" não existe mais. Ele pode ter sido excluído ou movido para fora do aplicativo. Deseja atualizar este recurso?</string>
     <string name="file_not_found_name">Arquivo não encontrado: %1$s</string>
     <string name="file_not_found_title">Arquivo não encontrado</string>
-    <string name="file_operation_progress_preparing">Preparando...</string>
+    <string name="file_operation_progress_preparing">Preparando..</string>
     <string name="file_ops_in_overflow_menu">Operações de arquivo no menu de opções</string>
     <string name="file_ops_moved_to_menu_hint">As ações de arquivo foram movidas para o menu ⋮ em cada arquivo.</string>
     <string name="file_path_label">Caminho: %1$s</string>

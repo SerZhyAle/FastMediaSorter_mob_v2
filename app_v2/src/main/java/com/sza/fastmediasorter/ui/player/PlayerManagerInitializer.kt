@@ -249,7 +249,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
 
         activity.uiStateCoordinator = com.sza.fastmediasorter.ui.player.helpers.PlayerUiStateCoordinator(
             binding = activity.activityBinding,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
             coroutineScope = activity.lifecycleScope,
             callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerUiStateCoordinatorCallbackImpl(
                 activity = activity,
@@ -279,7 +279,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.printManager = DocumentPrintManager(host = activity, mediaCapabilities = activity.mediaCapabilities)
         activity.saveVideoFrameManager = SaveVideoFrameManager(
             activity = activity,
-            fileOperationUseCase = activity.fileOperationUseCase,
+            fileOperationUseCase = activity.playerHostFactory.fileOperation,
             imageClipboardWriter = activity.imageClipboardWriter,
             localDestinationClassifier = activity.localDestinationClassifier,
             localDestinationWriter = activity.localDestinationWriter
@@ -287,7 +287,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.imageCropManager = com.sza.fastmediasorter.ui.player.helpers.ImageCropManager(
             context = activity,
             lifecycleScope = activity.lifecycleScope,
-            fileOperationUseCase = activity.fileOperationUseCase
+            fileOperationUseCase = activity.playerHostFactory.fileOperation
         )
         activity.cropDelegate = com.sza.fastmediasorter.ui.player.helpers.PlayerCropDelegate(
             host = activity,
@@ -304,7 +304,10 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         )
         activity.imageDrawOverlayManager.baseBitmapProvider = { activity.viewModel.currentDisplayedBitmap }
         activity.imageDrawOverlayManager.bindToolbar(activity.activityBinding.drawOverlayToolbarStub.root)
-        activity.playerDrawingSaveHelper = com.sza.fastmediasorter.ui.player.helpers.PlayerDrawingSaveHelper(activity)
+        activity.playerDrawingSaveHelper = com.sza.fastmediasorter.ui.player.helpers.PlayerDrawingSaveHelper(
+            activity,
+            activity.imageEditFactory.mergeDrawOverlay,
+        )
         activity.setupDrawOverlaySaveCallback()
         activity.setupDrawOverlayActionCallbacks()
         activity.setupDrawOverlayInPlaceSaveCallback()
@@ -326,21 +329,21 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.dialogHelper = PlayerDialogHelper(
             activity = activity,
             viewModel = activity.viewModel,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
             smbClient = activity.smbClientLazy,
             sftpClient = activity.sftpClientLazy,
             ftpClient = activity.ftpClientLazy,
-            credentialsRepository = activity.credentialsRepositoryLazy,
+            credentialsRepository = activity.playerHostFactory.credentialsRepository,
             unifiedCache = activity.unifiedCacheLazy,
-            rotateImageUseCase = activity.rotateImageUseCase,
-            flipImageUseCase = activity.flipImageUseCase,
-            networkImageEditUseCase = activity.networkImageEditUseCase,
-            applyImageFilterUseCase = activity.applyImageFilterUseCase,
-            adjustImageUseCase = activity.adjustImageUseCase,
-            extractGifFramesUseCase = activity.extractGifFramesUseCase,
-            saveGifFirstFrameUseCase = activity.saveGifFirstFrameUseCase,
-            changeGifSpeedUseCase = activity.changeGifSpeedUseCase,
-            downloadNetworkFileUseCase = activity.downloadNetworkFileUseCase,
+            rotateImageUseCase = activity.imageEditFactory.rotateImage,
+            flipImageUseCase = activity.imageEditFactory.flipImage,
+            networkImageEditUseCase = activity.imageEditFactory.networkImageEdit,
+            applyImageFilterUseCase = activity.imageEditFactory.applyImageFilter,
+            adjustImageUseCase = activity.imageEditFactory.adjustImage,
+            extractGifFramesUseCase = activity.imageEditFactory.extractGifFrames,
+            saveGifFirstFrameUseCase = activity.imageEditFactory.saveGifFirstFrame,
+            changeGifSpeedUseCase = activity.imageEditFactory.changeGifSpeed,
+            downloadNetworkFileUseCase = activity.playerHostFactory.downloadNetworkFile,
             dialogCallback = object : PlayerDialogHelper.DialogCallback {
                 override fun onImageEditComplete() {
                     activity.viewModel.refreshCurrentFileInfo()
@@ -410,7 +413,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         val bigButtonsMode = PlayerLayoutModePrefs.isBigButtonsMode(activity)
         activity.commandPanelController = CommandPanelController(
             binding = activity.activityBinding,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
             coroutineScope = activity.lifecycleScope,
             callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerCommandPanelCallbackImpl(
                 activity = activity,
@@ -424,9 +427,9 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
 
         activity.imageLoadingManager = ImageLoadingManager(
             binding = activity.activityBinding,
-            settingsRepository = activity.settingsRepository,
-            searchAudioCoverUseCase = activity.searchAudioCoverUseCase,
-            audioMetadataCacheRepository = activity.audioMetadataCacheRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
+            searchAudioCoverUseCase = activity.playerHostFactory.searchAudioCover,
+            audioMetadataCacheRepository = activity.playerHostFactory.audioMetadataCacheRepository,
             okHttpClient = activity.okHttpClient,
             lifecycleScope = activity.lifecycleScope,
             loadingIndicatorCoordinator = activity.loadingIndicatorCoordinator,
@@ -459,7 +462,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             googleDriveClient = activity.googleDriveClientLazy,
             dropboxClient = activity.dropboxClientLazy,
             oneDriveClient = activity.oneDriveClientLazy,
-            credentialsRepository = activity.credentialsRepositoryLazy,
+            credentialsRepository = activity.playerHostFactory.credentialsRepository,
             smbFileOperationHandler = activity.smbFileOperationHandlerLazy,
             sftpFileOperationHandler = activity.sftpFileOperationHandlerLazy,
             ftpFileOperationHandler = activity.ftpFileOperationHandlerLazy,
@@ -476,7 +479,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
 
         activity.translationManager = TranslationManager(
             context = activity,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
             callback = object : TranslationManager.TranslationCallback {
                 override fun showError(message: String) {
                     activity.showError(message)
@@ -521,8 +524,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             context = activity,
             binding = activity.activityBinding,
             lifecycleScope = activity.lifecycleScope,
-            settingsRepository = activity.settingsRepository,
-            searchLyricsUseCase = activity.searchLyricsUseCase,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
+            searchLyricsUseCase = activity.playerHostFactory.searchLyrics,
             getTranslationSessionSettings = { activity.translationSessionSettings }
         )
 
@@ -545,7 +548,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             context = activity,
             lifecycleOwner = activity,
             binding = activity.activityBinding,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
             callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerTranslationButtonCallbackImpl(
                 activity = activity,
                 viewModel = activity.viewModel
@@ -555,14 +558,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         // OPTIMIZATION: VideoPlayerManager uses lazy initialization (see PlayerViewerFactory)
         activity.playerSettingsManager = PlayerSettingsManager(
             activity = activity,
-            dialogHelper = activity.dialogHelper,
             videoPlayerManagerProvider = { activity.videoPlayerManager },
-            settingsRepository = activity.settingsRepository,
-            // Reads live stereo mode from ViewModel so dialog always shows the current value
-            getStereoMode = { activity.viewModel.stereoMode.value },
-            // Propagate user stereo selection back into ViewModel
-            onStereoModeChanged = { mode -> activity.viewModel.setStereoMode(mode) },
-            callback = object : PlayerSettingsManager.Callback {}
+            settingsRepository = activity.playerHostFactory.settingsRepository,
         )
 
         // Observe stereoMode StateFlow and apply GL effects to the player whenever it changes.
@@ -603,7 +600,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         // S0895: repeatOnLifecycle(STARTED) - same unsafe-collect fix as the two collectors above.
         activity.lifecycleScope.launch {
             activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                activity.settingsRepository.getSettings()
+                activity.playerHostFactory.settingsRepository.getSettings()
                     .map { it.panelStereoSingleEye }
                     .distinctUntilChanged()
                     .collect { enabled ->
@@ -675,7 +672,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.imageOcrManager = ImageOcrManager(
             binding = activity.activityBinding,
             lifecycleScope = activity.lifecycleScope,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
             translationManager = activity.translationManager,
             textViewerManagerProvider = { activity.textViewerManager },
             loadingIndicatorCoordinator = activity.loadingIndicatorCoordinator,
@@ -724,7 +721,13 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 activity.viewModel.updateCastState(isCasting, deviceName)
                 if (isCasting) {
                     val currentFile = activity.viewModel.state.value.currentFile
-                    if (currentFile != null) activity.castMediaManager.sendCurrentMedia(currentFile)
+                    // S1558: backing field, not the lazy getter - see PlayerActivity.castCurrentMedia.
+                    if (currentFile != null) {
+                        activity.castMediaManager.sendCurrentMedia(
+                            currentFile,
+                            activity._videoPlayerManager?.currentPanelStereoCrop,
+                        )
+                    }
                 }
             }
         )
@@ -840,7 +843,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 "onedrive" to activity.oneDriveClient,
                 "dropbox" to activity.dropboxClient
             ),
-            playbackPositionRepository = activity.playbackPositionRepository,
+            playbackPositionRepository = activity.playerHostFactory.playbackPositionRepository,
             // S0213 Pillar A: cooldown gate at playVideo entry - short-circuits decoder-error replays.
             decoderFailureTracker = activity.recentDecoderFailureTracker,
             // S0391: source-availability gate for the Favorites mixed-source playback path.
@@ -878,7 +881,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 activity.backgroundMusicManager
             },
             dialogAndUiStateManager = activity.dialogAndUiStateManager,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
             lifecycleScope = activity.lifecycleScope,
             callback = object : AudioSlideshowPhotoModeManager.Callback {
                 override fun updateSlideShowButton() = activity.dialogAndUiStateManager.updateSlideShowButton()
@@ -897,9 +900,9 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.playerVrLaunchManager = PlayerVrLaunchManager(
             activity = activity,
             viewModel = activity.viewModel,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
             detectionFacade = activity.xrDetectionFacade,
-            startVrPlaybackUseCase = activity.startVrPlaybackUseCase,
+            startVrPlaybackUseCase = activity.playerHostFactory.startVrPlayback,
             payloadHolder = activity.vrLaunchPayloadHolder,
         ).also { it.bind() }
 

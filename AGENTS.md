@@ -12,9 +12,21 @@
 
 ## 3. Core Rules
 - Stack: Android, Kotlin 1.9+, Java 17, Hilt, Room, Media3, Timber.
-- Directories: `app_v2/`, `wear/`, `dev/`, `docs/`, `scripts/`, `temp/` (scratch/logs). Read-only: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
-- Temp layout (CLAUDE.md Rule 10.1): ticket-bound scratch/artifacts -> `temp/Sxxxx/` (per-ticket subdir; replaces flat `temp/Sxxxx_*`); no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root, never nested: `temp/BUILD.LOCK`, `temp/CODE.LOCK`, `temp/spec-all-queue.lock`, `temp/spec-next-skip-cache.json`, raw logcat sinks `temp/current.log` + `temp/fastmediasorter_*.log`, stream-catalog files.
-- No Activity logic (delegate to `helpers/*Manager.kt`).
+- Directories: `app_v2/`, `wear/`, `dev/`, `docs/`, `scripts/`, `temp/` (scratch/logs). Read-only zones, no exceptions (CLAUDE.md Rule 4): `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
+- Temp layout (CLAUDE.md Rule 1): ticket-bound scratch/artifacts -> `temp/Sxxxx/` (per-ticket subdir; replaces flat `temp/Sxxxx_*`); no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root, never nested: `temp/BUILD.LOCK`, `temp/CODE.LOCK`, `temp/spec-all-queue.lock`, `temp/spec-next-skip-cache.json`, raw logcat sinks `temp/current.log` + `temp/fastmediasorter_*.log`, stream-catalog files.
+- File size ceiling 1500 LOC (CLAUDE.md Rule 2): extract logic to `helpers/*Manager.kt` rather than growing a file past it.
+- No Activity logic (CLAUDE.md Rule 3): delegate to `helpers/*Manager.kt`.
+- Backup before a big edit (CLAUDE.md Rule 5): a file over 500 LOC gets a timestamped copy under `temp/Sxxxx/` (or `temp/scratch/`) first.
+- Naming (CLAUDE.md Rule 6): `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
+- Lint (CLAUDE.md Rule 7): fix the warnings in the files you touched, not only the ones you introduced.
+- Read before editing (CLAUDE.md Rule 8): the comments and KDoc already in the area are requirements - read them first and never override one silently.
+- Comment discipline (CLAUDE.md Rule 9): EN-only, explain WHY not WHAT, no trivial comments, remove stale ones.
+- Spec catalog is script-owned (CLAUDE.md Rule 12): never hand-edit `PLAN/spec-catalog.jsonl`, never rename an `Sxxxx_` prefix; mutate through `scripts/spec_catalog/*.ps1`.
+- Script ownership (CLAUDE.md Rule 13): a project script that is buggy or insufficient gets fixed, not worked around.
+- Flavor isolation (CLAUDE.md Rule 14): no `BuildConfig.IS_*` flavor guards in `src/main/` - use an interface plus flavor source sets.
+- Input coverage (CLAUDE.md Rule 16): every interactive surface supports keyboard, D-pad/TV and mouse - set `focusable`, `clickable`, `nextFocus*`.
+- Lazy optimization (CLAUDE.md Rule 18): Hilt `dagger.Lazy<T>`, `<ViewStub>` for optional layouts, release player/media resources the moment playback pauses.
+- Deprecated PackageManager flags (CLAUDE.md Rule 21): no raw-int `getPackageInfo`/`getApplicationInfo`/`queryIntentActivities`/`resolveActivity` in `src/main` - use the `*Compat` helpers in `util/PackageManagerCompat.kt`. Gate: `scripts/quality/assert-deprecated-pm-flags.ps1`.
 - What to work on next comes from `PLAN/RELEASE_QUEUE.md` (CLAUDE.md 4): release package ascending, then the owner's line order inside it; then `Implemented` rows in `PLAN/RELEASE_READY.md`, then `--` parked lines, then anything unlisted. Catalog `priority` is a tiebreak for unlisted tickets only. Recommend from that file, quote the package and line, state any deviation. `spec-next-preflight.ps1` and `release-plan.ps1` rank from it.
 - Bash `find` safety: the rule has one home, canon `rules/GITHUB_INTERACTION.md` section 6. This repo owns only the enforcement: a `find` with a disk-wide start path or no `-maxdepth` is blocked before bash spawns, and file/class lookup goes through the `Glob`/`Grep` tools or `dev/CATALOG/scripts/query.ps1`. Detail: CLAUDE.md Rule 24, contract in `docs/AGENT_HOOKS.md`.
 - No `.ps1` as a Bash command head (CLAUDE.md Rule 25): never run a PowerShell script directly in Bash (`./a.ps1 fk`, `.\a.ps1 d`, `scripts/foo.ps1`); Bash cannot execute a `.ps1` and the failure returns **exit 0**, so a broken build/check looks like it passed. Always `pwsh -NoProfile -File ./a.ps1 <cmd>` from the repo root. Contract: `docs/AGENT_HOOKS.md`.
@@ -24,9 +36,9 @@
 - Hooks and the inventory (CLAUDE.md Rule 29): a hook may **refuse** a tool call, **rewrite** its input, **observe** its result or **warn** you, and `docs/AGENT_HOOKS.md` is the complete list - every registered hook, its event, verdict shape, escape hatch, and whether it is global (per-machine, absent on a fresh checkout) or project (travels with the repository). Two are named in no rule above: `guard-catalog-before-kt-search` **refuses** an unnarrowed `.kt` search until the class catalogue was queried this session, and `guard-uncapped-read` **rewrites** a `Read` carrying no explicit window to `limit: 800`, so a long file you did not window is only partly read (`.claude/commands|skills|templates|reference|agents` are exempt; policy in `docs/AGENT_COST_PLAYBOOK.md` "Context hygiene"). Registering or removing a hook requires editing the inventory in the same change - gate `scripts/quality/assert-hook-inventory.ps1` in `.\a.ps1 fg`.
 - Timber only (no `Log.d()`). `Sxxxx` ticket ids only in `BlockNeedUserTest` temporary debug logs.
 - Strings: prefer `scripts/utils/set-android-string.ps1`.
-- Layouts: portrait edit requires landscape (`res/layout-land/`) edit.
-- UI changes: run `/ui-clarify` before implementation.
-- WindowInsets: systemBars + displayCutout safe bounds (fitsSystemWindows not enough).
+- Layouts (CLAUDE.md Rule 11): a portrait edit requires the matching `res/layout-land/` edit.
+- UI changes (CLAUDE.md Rule 10): run `/ui-clarify` and settle placement/visibility/fallback before implementation.
+- WindowInsets (CLAUDE.md Rule 17): systemBars + displayCutout safe bounds (fitsSystemWindows not enough).
 - Dialog action pair (S0538/S0684): confirm/cancel in any dialog/bottom-sheet/custom layout uses the named styles - confirm = `DialogConfirm` (green, wide), cancel = `DialogCancel` (soft-pink tonal, shorter/narrower), destructive = `DialogDestructive` (red). Never a one-off cancel button. Gate: `scripts/quality/assert-dialog-cancel-style.ps1`.
 - Settings docs sync (CLAUDE.md Rule 22): any change to a setting, including one hosted in a dialog/bottom-sheet/wizard page, must regenerate `docs/settings/settings-manifest.json` + `docs/SETTINGS_REFERENCE*.md` and update `docs/settings/settings-annotations.json`. A non-screen surface registers in `SettingsDocScopeCatalog`, never in `SettingsSearchLayoutCatalog` (S1035/S1313). Gate: `scripts/quality/assert-settings-doc-sync.ps1`.
 - Thirteen locales for a new UI string (CLAUDE.md Rule 30): a key added to `values/strings*.xml` reaches every locale declared in `app_v2/src/main/res/xml/locales_config.xml` before the release, not only the authored `en`/`ru`/`uk`. The refusal sits at the pre-release stage - `scripts/quality/assert-new-lexemes-translated.ps1`, wired as step 0.8 of `/spec-prerelease` - because nothing ships between releases and one bulk round trip clears every key of a release at once, while translating per ticket costs ten translations a key for no shipping benefit (owner ruling 2026-08-14, S1627 ADR-2). The authoring call and the ticket close only name what is missing; they never refuse. The producer is `scripts/utils/list-new-lexemes.ps1` and the loop is written out in `docs/DEV_OPS.md` "Thirteen locales".
@@ -66,7 +78,7 @@
 - Subagent MCP isolation: When defining a subagent, always give it an explicit `tools:` frontmatter allowlist that omits every MCP tool name, unless the subagent strictly requires driving the UI/emulator (exploratory walkthroughs) - omitting `tools:` entirely grants the full set the parent session has, MCP-registered tools included. This prevents duplicate Node/MCP server instances. (S1348: `enable_mcp_tools` is not a real Claude Code option - do not use it.)
 
 ## 7. Validation
-- Follow `CLAUDE.md` validation ladder. Record `expected: X | actual: Y`.
+- Follow `CLAUDE.md` validation ladder. Record `expected: X | actual: Y` for every non-trivial step, naming the command run and its exit code (CLAUDE.md Rule 15).
 - No completion claim without fresh evidence: run the proving command, read its exit code/output, cite it. Prior runs and self-reports (incl. a subagent's "build passed") are not evidence. Red-flag words - "should", "probably", "seems", "looks fixed" - mean stop and run the check first.
 - Prefer the cheapest proof that matches the change: `.\a.ps1 fk` for Kotlin symbol edits (`fkn` for noLegal), `.\a.ps1 fr` for resources/manifests, `.\a.ps1 fc` for mixed small changes, `.\a.ps1 fg` to batch the fast static gates in one process, and full debug APK builds only when packaging/install behavior matters.
 
@@ -77,4 +89,4 @@
 - Listener symmetry: every `register*`/`addListener`/`addObserver` has a matching removal on the symmetric lifecycle edge.
 - No main-thread Room (`allowMainThreadQueries()` banned); DAO `suspend`/`Flow`; atomic multi-step writes in `@Transaction`/`withTransaction`.
 - One owner per `ExoPlayer` with a full release contract (`release()` + `setVideoSurface(null)` + remove listeners + abandon focus); mirror across player hosts. Glide decode-at-size + `clear(target)` on detach.
-- Reflection/serialization/DI/manifest/dependency changes are proven on the minified release/target variant, not only debug (extends dead-weight rule).
+- Reflection/serialization/DI/manifest/dependency changes are proven on the minified release/target variant, not only debug - which extends dead-weight hygiene (CLAUDE.md Rule 20): orphaned classes, resources, string keys and keep rules are deleted in the same change that orphans them.

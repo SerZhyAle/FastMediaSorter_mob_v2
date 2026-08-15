@@ -46,6 +46,19 @@ interface LauncherDesktopRepository {
     suspend fun removeCell(id: Long)
 
     /**
+     * S1642: brings every stored section header to the one span a header is stored and drawn at.
+     *
+     * Not a Room migration and deliberately not one: no column changes, only values written by an earlier
+     * build. The owner ruled on 2026-08-15 that the compact geometry applies to every desktop at once,
+     * testing desktops included, and that no migration be written for it (strategic §6.3). Narrowing a
+     * header only ever frees squares, so no shortcut moves and nothing can be overlapped by it.
+     *
+     * Idempotent - safe to call on every launcher start, including before the seed decides it has nothing
+     * to do.
+     */
+    suspend fun normalizeSectionSpans()
+
+    /**
      * Moves a cell's anchor. Returns whether it moved. Three outcomes, in this order:
      *
      * 1. The whole `spanW x spanH` footprint is free - the cell takes it.

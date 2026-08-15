@@ -216,9 +216,19 @@
 
         <TextView android:id="@+id/tvAnimatedBadge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|end" android:layout_marginTop="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginTop" android:layout_marginEnd="@dimen/player_epub_button_margin_end" android:background="@drawable/bg_circle_dark" android:paddingHorizontal="@dimen/player_button_padding" android:paddingVertical="@dimen/player_button_padding" android:text="@string/animated_badge_gif" android:textColor="@color/white" android:textSize="@dimen/player_audio_info_text_size" android:textStyle="bold" android:visibility="gone" />
 
+        <!-- S1647: portrait parity - the video gesture indicator, centred over the media. Lost when this
+             file was rewritten as a ConstraintLayout; its absence made the ViewBinding field nullable and
+             every consumer already guarded with a safe call, which is why nothing crashed and nobody saw it. -->
+        <TextView android:id="@+id/tvVideoGestureIndicator" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:background="@drawable/bg_circle_dark" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" android:paddingVertical="@dimen/player_button_padding" android:textColor="@color/white" android:textSize="@dimen/activity_player_unified_audioSlideshowSongLabel_textSize" android:textStyle="bold" android:visibility="gone" />
+
         <include layout="@layout/player_pdf_controls_overlay_content" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="bottom" />
 
         <include layout="@layout/player_vr_launch_overlay_content" />
+
+        <!-- S1647: portrait parity - touch-zone help button, visible in fullscreen touch-zone mode for
+             IMAGE/GIF. Top-end inside the media area rather than at the root, so the command panel above
+             cannot cover it the way a parent-anchored copy would. Declared last for z-order, as in portrait. -->
+        <ImageButton android:id="@+id/btnTouchZonesHelp" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:layout_gravity="top|end" android:layout_marginTop="@dimen/player_epub_button_margin_top" android:layout_marginEnd="@dimen/player_epub_button_margin_end" android:background="@drawable/bg_circle_dark" android:src="@drawable/ic_help_outline_24" android:contentDescription="@string/touch_zones_help" android:scaleType="fitCenter" android:padding="@dimen/player_epub_button_padding" android:elevation="@dimen/elevation_player_overlay" android:visibility="gone" />
 
         <!-- S0021: Diagnostic FPS overlay (parity with portrait layout). -->
         <TextView android:id="@+id/tvPlayerFpsOverlay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|end" android:layout_marginTop="@dimen/margin_small" android:layout_marginEnd="@dimen/margin_small" android:background="@drawable/bg_fps_overlay" android:paddingHorizontal="@dimen/margin_small" android:paddingVertical="2dp" android:textColor="@color/white" android:textSize="@dimen/toggler_desc_text_size" android:elevation="@dimen/elevation_player_overlay" android:focusable="false" android:clickable="false" android:visibility="gone" />

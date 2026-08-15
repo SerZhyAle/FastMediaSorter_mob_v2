@@ -147,6 +147,7 @@ foreach ($fqcn in $declaringSets.Keys) {
         Simple  = $fqcn.Substring($fqcn.LastIndexOf('.') + 1)
         Package = $fqcn.Substring(0, $fqcn.LastIndexOf('.'))
         Sets    = @($declaringSets[$fqcn])
+        Visible = @($visible)
         Missing = @($map.FlavorNames | Where-Object { -not $visible.Contains($_) })
     }
 }
@@ -209,6 +210,74 @@ foreach ($file in Get-ChildItem -LiteralPath $sharedTestRoot -Recurse -Filter '*
 
 Write-Progressline ("scanned $scanned shared test file(s) under $Module/src/test")
 
+# S1557: the first rule catches a test that is too broad for its subject. The reverse failure is
+# just as silent: a test under test<Flavor> may cover only one flavor although its named subject
+# is visible from a wider capability set or src/main. Imports are deliberately not used here: a
+# test routinely imports support types from broader homes, so treating each import as its subject
+# turns a correct capability test into a false positive.
+$subjects = @{}
+foreach ($entry in $index.Values) { $subjects[$entry.Fqcn] = $entry }
+foreach ($fqcn in $mainDeclarations.Keys) {
+    $subjects[$fqcn] = [pscustomobject]@{
+        Fqcn    = $fqcn
+        Simple  = $fqcn.Substring($fqcn.LastIndexOf('.') + 1)
+        Package = $fqcn.Substring(0, $fqcn.LastIndexOf('.'))
+        Sets    = @('main')
+        Visible = @($map.FlavorNames)
+        Missing = @()
+    }
+}
+
+function Get-TestSetFlavors([string]$TestSet) {
+    if (-not $map.TestSetMounts.Contains($TestSet)) { return @() }
+    return @($map.TestSetMounts[$TestSet] | ForEach-Object {
+            $_.Substring(4, 1).ToLowerInvariant() + $_.Substring(5)
+        })
+}
+
+function Get-FlavorSetKey([string[]]$Flavors) {
+    return (@($Flavors | Sort-Object) -join ',')
+}
+
+$narrowScanned = 0
+foreach ($testSet in $map.TestSetMounts.Keys) {
+    $testRoot = Join-Path $RepoRoot "$Module/src/$testSet"
+    if (-not (Test-Path -LiteralPath $testRoot)) { continue }
+    $testHome = @(Get-TestSetFlavors $testSet)
+    if ($testHome.Count -eq 0) {
+        Write-Error "assert-shared-test-flavor-scope: no mounted flavor home for $Module/src/$testSet - nothing was examined." -ErrorAction Continue
+        exit 2
+    }
+    $homeKey = Get-FlavorSetKey $testHome
+    foreach ($file in Get-ChildItem -LiteralPath $testRoot -Recurse -Filter '*.kt' -File) {
+        $narrowScanned++
+        $relative = $file.FullName.Substring($RepoRoot.Length).TrimStart('\', '/').Replace('\', '/')
+        $lines = [System.IO.File]::ReadAllLines($file.FullName)
+        $package = $null
+        foreach ($line in $lines) {
+            if ($line -match '^package\s+([\w.]+)') { $package = $Matches[1]; break }
+        }
+        $samePackageEntries = if ($package -and $byPackage.ContainsKey($package)) { $byPackage[$package] } else { @() }
+        $usesScopedSamePackageSubject = $false
+        foreach ($samePackageEntry in $samePackageEntries) {
+            if ($lines -match "\b$([regex]::Escape($samePackageEntry.Simple))\b") {
+                $usesScopedSamePackageSubject = $true
+                break
+            }
+        }
+        if ($usesScopedSamePackageSubject) { continue }
+        $subjectName = $file.BaseName -replace 'Test$', ''
+        $candidates = @($subjects.Values | Where-Object { $_.Simple -eq $subjectName })
+        if ($candidates.Count -ne 1) { continue }
+        $entry = $candidates[0]
+        if ((Get-FlavorSetKey $entry.Visible) -eq $homeKey) { continue }
+        $violations.Add([pscustomobject]@{
+                File = $relative; Line = 1; Entry = $entry; Via = 'test file name'; TestSet = $testSet; Home = $testHome
+            })
+    }
+}
+Write-Progressline ("scanned $narrowScanned flavor-home test file(s) under $Module/src/test<Flavor>")
+
 # Where the test belongs. A set only one flavor mounts sends the test to that flavor's own unit-test
 # set; a set several flavors share sends it to the matching shared test set, which build.gradle.kts
 # mounts into exactly the same flavors. Duplicating the file into each test<Flavor> is the wrong fix.
@@ -267,12 +336,17 @@ if ($violations.Count -gt 0) {
     foreach ($violation in $violations) {
         $entry = $violation.Entry
         Write-Host ("    {0}:{1}  {2} ({3})" -f $violation.File, $violation.Line, $entry.Fqcn, $violation.Via)
-        Write-Host ("        lives in $Module/src/$($entry.Sets -join ', ')/java - unit-test compilation breaks on: $($entry.Missing -join ', ')")
+        if ($violation.PSObject.Properties['Home']) {
+            Write-Host ("        test home: $($violation.Home -join ', '); subject home: $($entry.Visible -join ', ')")
+        }
+        else {
+            Write-Host ("        lives in $Module/src/$($entry.Sets -join ', ')/java - unit-test compilation breaks on: $($entry.Missing -join ', ')")
+        }
         Write-Host ("        move the test to $Module/src/$(Get-TargetTestSet $entry)/java")
     }
-    $why = 'assert-shared-test-flavor-scope: the shared unit-test set compiles for EVERY flavor, so a ' +
-    'reference to a flavor-scoped type breaks unit-test COMPILATION on the flavors listed above - no ' +
-    'test runs there at all. See dev/FLAVOR_DEVELOPMENT_RULES.md RULE 7.'
+    $why = 'assert-shared-test-flavor-scope: a test must run on exactly the flavors that can see its ' +
+    'subject. A wider home breaks compilation; a narrower home silently omits valid flavors. See ' +
+    'dev/FLAVOR_DEVELOPMENT_RULES.md RULE 7.'
     if ($Gate) {
         Write-Error $why -ErrorAction Continue
         exit 1

@@ -71,8 +71,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
     private suspend fun launchFeature(routeKey: String): Boolean {
         val route = InternalRouteCatalog.byKey(routeKey) ?: return false
         val availability = resolveRouteAvailability(routeKey)
-        if (routeKey == InternalRouteCatalog.KEY_NETWORK_MONITOR) {
-        }
         return when {
             availability.isLaunchable -> startIntent(route.intent(context))
             // Compiled in but switched off: open the setting that controls it rather than dead-launch.
@@ -201,11 +199,7 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
         appShortcutDataSource.start(command.packageName, command.shortcutId, sourceBounds = null)
 
     /** Uses only documented Maps URLs and intents; no Maps-internal activity names are relied upon. */
-    private fun geographicIntent(command: LauncherCellCommand.Geographic): Intent {
-        return geographicIntentFor(command)
-    }
-
-    private fun geographicIntentFor(command: LauncherCellCommand.Geographic): Intent = when (command.action) {
+    private fun geographicIntent(command: LauncherCellCommand.Geographic): Intent = when (command.action) {
         LauncherGeographicAction.DIRECTIONS -> Intent(
             Intent.ACTION_VIEW,
             Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${Uri.encode(command.query)}"),
@@ -216,10 +210,24 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             Uri.parse("google.navigation:q=${Uri.encode(command.query)}"),
         ).setPackage(GOOGLE_MAPS_PACKAGE)
 
-        LauncherGeographicAction.SHOW_PLACE -> Intent(
-            Intent.ACTION_VIEW,
-            Uri.parse("geo:0,0?q=${Uri.encode(command.query)}"),
-        )
+        LauncherGeographicAction.SHOW_PLACE -> showPlaceIntent(command)
+    }
+
+    /**
+     * S1616: a stored link is opened as a link, a stored place name as a search.
+     *
+     * `geo:0,0?q=` means "look this text up", so the link a share keeps when it cannot be resolved to
+     * coordinates (S1585 §6.1) used to open a search for its own URL. Maps parses its own links; when
+     * Maps is absent the same view intent still reaches a browser instead of failing to start.
+     */
+    private fun showPlaceIntent(command: LauncherCellCommand.Geographic): Intent {
+        Timber.d("S1616: show place, query is a link: ${command.isWebLinkQuery}")
+        if (!command.isWebLinkQuery) {
+            return Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=${Uri.encode(command.query)}"))
+        }
+        val viaMaps = Intent(Intent.ACTION_VIEW, Uri.parse(command.query)).setPackage(GOOGLE_MAPS_PACKAGE)
+        val mapsHandles = context.packageManager.resolveActivityCompat(viaMaps) != null
+        return if (mapsHandles) viaMaps else Intent(Intent.ACTION_VIEW, Uri.parse(command.query))
     }
 
     private fun launchPackage(packageName: String): Boolean {

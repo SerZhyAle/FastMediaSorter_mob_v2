@@ -379,8 +379,6 @@
     <string name="cb_cloud_read_only_mode_desc">Impedisce le operazioni sui file (copia, sposta, elimina)</string>
     <string name="cb_cloud_picker_add_as_destination_desc">Contrassegna questa cartella cloud come destinazione di smistamento rapido</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">Cerca file multimediali in tutte le sottocartelle annidate</string>
-    <string name="cb_repeat_video_desc">Riproduce il video corrente in loop continuo</string>
-    <string name="cb_show_subtitles_desc">Mostra le tracce dei sottotitoli quando disponibili</string>
     <string name="virtual_camera_photos">Foto della fotocamera</string>
     <string name="network_delete_warning">I file verranno eliminati definitivamente dalla posizione di rete</string>
     <string name="save_audio_metadata_locally">Salva localmente i dati multimediali scaricati</string>
@@ -983,9 +981,9 @@
     <string name="toast_image_flipped">Immagine capovolta</string>
     <string name="toast_flip_failed">Impossibile capovolgere l\'immagine. Riprova.</string>
     <string name="toast_filter_active">Filtro attivo..</string>
-    <string name="progress_applying_filter">Applicazione del filtro in corso...</string>
-    <string name="progress_applying_adjustments">Applicazione delle regolazioni in corso...</string>
-    <string name="progress_rotating_image">Immagine rotante...</string>
+    <string name="progress_applying_filter">Applicazione del filtro in corso..</string>
+    <string name="progress_applying_adjustments">Applicazione delle regolazioni in corso..</string>
+    <string name="progress_rotating_image">Immagine rotante..</string>
     <string name="progress_flipping_image">Capovolgimento dell\'immagine %1$s..</string>
     <string name="toast_no_files_to_play">Nessun file da riprodurre</string>
     <string name="toast_resource_not_loaded">Risorsa non caricata</string>
@@ -1000,7 +998,7 @@
     <string name="read_aloud">Leggi ad alta voce</string>
     <string name="redo">Rifare</string>
     <string name="find_hint">Trovare..</string>
-    <string name="replace_hint">Sostituire con...</string>
+    <string name="replace_hint">Sostituire con..</string>
     <string name="replace">Sostituire</string>
     <string name="replace_all">Sostituisci tutto</string>
     <string name="find_and_replace">Trova e sostituisci</string>
@@ -1022,8 +1020,8 @@
     </plurals>
     <string name="resource_deleted">Risorsa eliminata</string>
     <string name="msg_loading_timeout">Il caricamento ha impiegato troppo tempo</string>
-    <string name="speed_test_preparing">Preparazione del test di velocità...</string>
-    <string name="speed_test_saving">Salvataggio dei risultati in corso...</string>
+    <string name="speed_test_preparing">Preparazione del test di velocità..</string>
+    <string name="speed_test_saving">Salvataggio dei risultati in corso..</string>
     <string name="no_files_to_restore">Nessun file eliminato da ripristinare</string>
     <string name="failed_to_restore_files">Impossibile ripristinare i file</string>
     <string name="reload_files_failed">Impossibile aggiornare l\'elenco dei file.</string>
@@ -1088,13 +1086,6 @@
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Attendere..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Caricamento..</string>
-    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>
-    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>
-    <string name="dialog_player_settings_chipSpeed1_text">1x</string>
-    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string>
-    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>
-    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>
-    <string name="dialog_player_settings_chipSpeed2_text">2x</string>
     <string name="dialog_slideshow_settings_tvIntervalValue_text">5s</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">Massimo (MB)</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">Min (MB)</string>
@@ -1105,7 +1096,7 @@
     <string name="item_folder_tvFolderName_text">Nome della cartella</string>
     <string name="integration_tests_title">Test di integrazione</string>
     <string name="integration_tests_description">Test automatizzati delle operazioni sui file per tutti i tipi di risorse.</string>
-    <string name="scanning_resources">Scansione delle risorse in corso...</string>
+    <string name="scanning_resources">Scansione delle risorse in corso..</string>
     <string name="thumbnail">Miniatura</string>
     <string name="resource_type_icon">Icona del tipo di risorsa</string>
     <string name="cd_resource_icon_quick_slideshow">Avvia la presentazione</string>
@@ -1337,7 +1328,7 @@
     <string name="duplicate_wasted_bytes">Spazio sprecato: %1$s</string>
     <string name="duplicate_scan_network_warning">La scansione di rete potrebbe richiedere molto tempo e consumare una grande quantità di traffico. Continuare?</string>
     <string name="duplicate_scan_notif_title">Scansione duplicata</string>
-    <string name="duplicate_scan_notif_running">Ricerca di duplicati in corso...</string>
+    <string name="duplicate_scan_notif_running">Ricerca di duplicati in corso..</string>
     <string name="duplicate_scan_notif_channel_name">Scanner duplicatore</string>
     <string name="action_create_folder">Crea cartella</string>
     <string name="action_create_text_file">Crea una nota di testo</string>
@@ -1360,7 +1351,7 @@
     <string name="archive_name_invalid_chars_error">Il nome contiene caratteri non validi</string>
     <string name="archive_destination_label">Cartella di destinazione: %1$s</string>
     <string name="archive_action_btn">Archivio</string>
-    <string name="archive_progress_title">Creazione dell\'archivio in corso...</string>
+    <string name="archive_progress_title">Creazione dell\'archivio in corso..</string>
     <string name="archive_success">Archivio creato: %1$s (%2$d file)</string>
     <string name="archive_error">Errore di archiviazione: %1$s</string>
     <string name="archive_destination_not_found">La cartella di destinazione non è più disponibile.</string>
@@ -1369,7 +1360,7 @@
     <string name="unarchive_dialog_title">Estrarre l\'archivio?</string>
     <string name="unarchive_dialog_message">\"%1$s\" -&gt; cartella \"%2$s\"</string>
     <string name="unarchive_action_extract">Estrarre</string>
-    <string name="unarchive_progress_title">Estrazione dell\'archivio in corso...</string>
+    <string name="unarchive_progress_title">Estrazione dell\'archivio in corso..</string>
     <string name="unarchive_progress_entry">Estrazione: %1$s</string>
     <string name="unarchive_success">Archivio estratto</string>
     <string name="unarchive_error_zip_bomb">Archivio troppo grande o troppo profondo</string>
@@ -1527,7 +1518,7 @@
     <string name="rotation_toggle_sensor_off_desc">Rotazione dello schermo: bloccata</string>
     <string name="link_download_notif_text_preview_only_signed_in">Impossibile estrarre il contenuto della pagina. Non serve l\'accesso.</string>
     <string name="error_reason_local_destination_permission_denied">Impossibile salvare qui - Android limita la scrittura in questa cartella. Prova a salvare in Musica, Video, Immagini o Download.</string>
-    <string name="s0266_apk_download_preparing">Preparazione dell\'installazione in corso...</string>
+    <string name="s0266_apk_download_preparing">Preparazione dell\'installazione in corso..</string>
     <string name="s0281_google_oauth_only_note">Impossibile visualizzare questo contenuto di YouTube. Le credenziali di accesso non sono memorizzate qui.</string>
     <string name="browse_transfer_progress_background">In background</string>
     <string name="browse_transfer_already_running">È già in corso un trasferimento di file.</string>
@@ -1554,7 +1545,7 @@
     <string name="system_info_copy_full_report">Copia il rapporto completo</string>
     <string name="system_info_reveal_confirm_title">Copiare il rapporto completo?</string>
     <string name="system_info_reveal_confirm_message">La copia includerà valori sensibili (hash della firma, indirizzi locali, percorsi di montaggio). Continuare?</string>
-    <string name="audio_next_track_loading">Caricamento del brano successivo...</string>
+    <string name="audio_next_track_loading">Caricamento del brano successivo..</string>
     <string name="widget_quick_audio_recorder_label">Registratore rapido</string>
     <string name="widget_quick_audio_recorder_description">Tocca per avviare una registrazione vocale; tocca di nuovo per interrompere e salvare.</string>
     <string name="quick_recorder_notification_recording">Registrazione..</string>
@@ -1586,8 +1577,8 @@
     <string name="resource_menu_move_to_bottom">Sposta in fondo a tutto</string>
     <string name="delivery_offer_message">Questa funzionalità richiede un download aggiuntivo (circa %1$s). Vuoi scaricarlo ora?</string>
     <string name="delivery_offer_message_unknown_size">Questa funzionalità richiede un piccolo download aggiuntivo. Scaricalo ora?</string>
-    <string name="delivery_state_downloading">Download in corso...</string>
-    <string name="delivery_state_verifying">Controllo del download in corso...</string>
+    <string name="delivery_state_downloading">Download in corso..</string>
+    <string name="delivery_state_verifying">Controllo del download in corso..</string>
     <string name="delivery_state_error">Impossibile scaricare: controlla la connessione e riprova.</string>
     <string name="delivery_action_download">Scaricamento</string>
     <string name="delivery_action_retry">Riprova</string>
@@ -2069,7 +2060,7 @@
     <string name="programs_panel_hide_action">Nascondi pannello</string>
     <string name="main_programs_panel_strip">Programmi e scenari</string>
     <string name="streams_panel_collapse_action">Comprimi pannello</string>
-    <string name="main_streams_panel_strip">Streaming...</string>
+    <string name="main_streams_panel_strip">Streaming..</string>
     <string name="camera_scenario_ocr_translate">Riconoscimento testo</string>
     <string name="recording_pause">Metti in pausa la registrazione</string>
     <string name="recording_resume">Riprendi la registrazione</string>
@@ -2279,7 +2270,7 @@
     <string name="launcher_welcome_toggle_title">Usa come schermata Home</string>
     <string name="launcher_settings_dialog_title">Impostazioni del launcher di sistema</string>
     <string name="launcher_menu_launcher_settings">Impostazioni del launcher</string>
-    <string name="welcome_streams_catalog_downloading">Download in corso...</string>
+    <string name="welcome_streams_catalog_downloading">Download in corso..</string>
     <string name="companion_import_summary">%1$s, %2$s</string>
     <string name="companion_import_added_one">Aggiunta: %1$s</string>
     <string name="companion_import_updated_one">Aggiornata: %1$s</string>
@@ -2663,7 +2654,6 @@
     <string name="network_monitor_status_unknown">Aperto per controllare</string>
     <string name="network_monitor_active_title">Connessione attiva</string>
     <string name="network_monitor_active_none">Non è presente alcuna connessione. Attiva il Wi-Fi o i dati mobili per connetterti a Internet.</string>
-    <string name="network_monitor_local_ip_label">IP locale</string>
     <string name="network_monitor_value_unknown">Sconosciuto</string>
     <string name="network_monitor_internet_ok">Internet funziona</string>
     <string name="network_monitor_internet_captive">Questa rete vuole che tu acceda</string>
@@ -2696,7 +2686,7 @@
     <string name="network_monitor_route_present">Presente</string>
     <string name="network_monitor_route_absent">Nessuno</string>
     <string name="network_monitor_chart_signal_heading">Segnale</string>
-    <string name="network_monitor_chart_waiting">Raccolta delle letture...</string>
+    <string name="network_monitor_chart_waiting">Raccolta delle letture..</string>
     <string name="network_monitor_chart_summary">Ora %1$s / min %2$s / max %3$s / %4$s</string>
     <string name="network_monitor_trend_rising">in aumento</string>
     <string name="network_monitor_trend_falling">cadente</string>
@@ -2726,7 +2716,7 @@
     <string name="network_monitor_bluetooth_signal_heading">Segnale del dispositivo</string>
     <string name="network_monitor_gnss_visible_label">Satelliti in vista</string>
     <string name="network_monitor_gnss_used_label">Utilizzato per la posizione</string>
-    <string name="network_monitor_gnss_acquiring">Alla ricerca di satelliti...</string>
+    <string name="network_monitor_gnss_acquiring">Alla ricerca di satelliti..</string>
     <string name="network_monitor_gnss_used_in_fix">conteggiato in posizione</string>
     <string name="network_monitor_gnss_not_in_fix">non conteggiato</string>
     <string name="network_monitor_gnss_position_heading">Posizione</string>
@@ -2761,10 +2751,10 @@
     <string name="network_monitor_action_speed_test">Misurare la velocità</string>
     <string name="network_monitor_action_cancel">Fermare</string>
     <string name="network_monitor_action_continue">Continuare</string>
-    <string name="network_monitor_running_check_resource">Verifica della risorsa in corso...</string>
-    <string name="network_monitor_running_scan_subnet">Scansione della rete in corso...</string>
+    <string name="network_monitor_running_check_resource">Verifica della risorsa in corso..</string>
+    <string name="network_monitor_running_scan_subnet">Scansione della rete in corso..</string>
     <string name="network_monitor_running_external_ip">Richiesta dell\'indirizzo esterno.</string>
-    <string name="network_monitor_running_speed_test">Misurare la velocità...</string>
+    <string name="network_monitor_running_speed_test">Misurare la velocità..</string>
     <string name="network_monitor_warn_speed_test_title">Questo utilizzerà il traffico</string>
     <string name="network_monitor_warn_speed_test_message">Il test di velocità scarica e carica circa 20 MB in totale. Con un piano dati mobile, questo traffico viene addebitato. È possibile interromperlo in qualsiasi momento.</string>
     <string name="network_monitor_warn_subnet_title">Questo testerà la tua rete locale</string>

@@ -346,7 +346,7 @@
     <string name="hint_server_path">Путь на сервере (необязательно)</string>
     <string name="hint_cloud_folder_id">ID облачной папки</string>
     <string name="hint_comment">Комментарий (необязательно)</string>
-    <string name="hint_access_pin">PIN-код (4–6 цифр)</string>
+    <string name="hint_access_pin">PIN-код (4-6 цифр)</string>
     <string name="hint_slideshow_interval">Интервал слайдшоу (секунды)</string>
     <string name="label_media_types">Типы медиа</string>
     <string name="label_scanning_settings">Условия сканирования содержимого</string>
@@ -389,7 +389,7 @@
     <string name="warning_title">Предупреждение</string>
     <string name="warning_read_only_destination">Папка назначения только для чтения может блокировать операции копирования/перемещения.</string>
     <string name="warning_endpoint_changed_rescan">Путь или endpoint изменен. Требуется повторное сканирование/проверка.</string>
-    <string name="warning_path_duplicate_existing">Ресурс с таким путем уже существует. Дубликат разрешен, но рекомендуется редактировать существующий ресурс.</string>
+    <string name="warning_path_duplicate_existing">Ресурс с таким путём уже существует. Дубликат разрешен, но рекомендуется редактировать существующий ресурс.</string>
     <string name="resource_editor_init_failed">Не удалось инициализировать редактор ресурса</string>
     <string name="resource_editor_validation_before_test">Проверка данных не пройдена перед тестом подключения</string>
     <string name="resource_editor_no_changes_or_invalid">Нет изменений для сохранения или форма заполнена некорректно</string>
@@ -1216,14 +1216,6 @@
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Пожалуйста, подождите..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Загрузка..</string>
-    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed1_text">1x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed2_text">2x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_slideshow_settings_tvIntervalValue_text">5с</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">Макс (МБ)</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">Мин (МБ)</string>
     <string name="fragment_settings_images_tilImageSizeMax_hint">Макс (КБ)</string>
@@ -1459,8 +1451,6 @@
     <string name="cb_cloud_read_only_mode_desc">Запрещает операции с файлами (копирование, перемещение, удаление)</string>
     <string name="cb_cloud_picker_add_as_destination_desc">Отметить эту облачную папку как назначение для быстрой сортировки</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">Искать медиафайлы во всех вложенных подпапках</string>
-    <string name="cb_repeat_video_desc">Непрерывное повторение текущего видео</string>
-    <string name="cb_show_subtitles_desc">Показывать субтитры при наличии</string>
 
     <!-- Settings descriptions -->
     <string name="save_audio_metadata_locally">Сохранять загруженные медиаданные локально</string>
@@ -3080,7 +3070,6 @@
     <string name="network_monitor_status_unknown">Откройте, чтобы проверить</string>
     <string name="network_monitor_active_title">Активное подключение</string>
     <string name="network_monitor_active_none">Ничего не подключено. Включите Wi-Fi или мобильные данные, чтобы выйти в сеть.</string>
-    <string name="network_monitor_local_ip_label">Локальный IP</string>
     <string name="network_monitor_value_unknown">Неизвестно</string>
     <string name="network_monitor_internet_ok">Интернет работает</string>
     <string name="network_monitor_internet_captive">Эта сеть требует входа</string>
@@ -3259,4 +3248,11 @@
     <string name="network_monitor_ip_addresses_label">IP-адреса</string>
     <string name="network_monitor_permission_grant">Разрешение не выдано. Нажмите, чтобы выдать его.</string>
     <string name="network_monitor_permission_open_settings">Разрешение заблокировано. Нажмите, чтобы открыть настройки приложения.</string>
+    <string name="cast_cropping_stereo">Готовим копию для одного глаза..</string>
+    <string name="cast_crop_skipped_long">Видео слишком длинное для обрезки. Транслируем весь кадр.</string>
+    <string name="dialog_slideshow_settings_tvIntervalValue_text">5s</string>
+    <string name="launcher_settings_taskbar_placement_title">Расположение панели задач</string>
+    <string name="launcher_settings_taskbar_placement_bottom">Снизу</string>
+    <string name="launcher_settings_taskbar_placement_top">Сверху</string>
+    <string name="camera_aspect_full_screen">На весь экран</string>
 </resources>

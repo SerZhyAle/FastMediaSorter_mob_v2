@@ -71,7 +71,13 @@ $srcRoots = @(
     # feature was invisible to the catalogue while catalog-sync still reported PASS, because this list
     # is the only definition of "the code" and a missing root looks identical to an empty one.
     (Join-Path $Root "$Module\src\launcherEnabled\java"),
-    (Join-Path $Root "$Module\src\launcherDisabled\java")
+    (Join-Path $Root "$Module\src\launcherDisabled\java"),
+    # S1558: the Cast seam implementations. Added 2026-08-14 for the same reason as the launcher pair
+    # above - CastMediaManagerImpl, LocalCastProxyServer and CastStereoCropTranscoder were invisible to
+    # the catalogue while catalog-sync reported PASS, because this list is the only definition of "the
+    # code" and an unlisted root is indistinguishable from an empty one.
+    (Join-Path $Root "$Module\src\castEnabled\java"),
+    (Join-Path $Root "$Module\src\castDisabled\java")
 ) | Where-Object { Test-Path $_ }
 if (-not $srcRoots -or $srcRoots.Count -eq 0) {
     throw "No supported source roots found for module '$Module'"

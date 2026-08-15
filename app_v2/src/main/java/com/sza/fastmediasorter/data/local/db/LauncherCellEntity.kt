@@ -78,6 +78,21 @@ interface LauncherCellDao {
     suspend fun sectionHeaderRows(orientation: String, kind: String): List<Int>
 
     /**
+     * S1642: narrows every stored section header to [spanW], returning how many rows changed.
+     *
+     * A desktop written by an S1428 build stored its headers at the widest grid there is, so the squares
+     * beside a header read as occupied in the table while the renderer now draws it two cells wide - the
+     * false occupancy this ticket exists to remove, and the one thing narrowing at render time cannot fix,
+     * because [findOverlapping] queries the stored span. Idempotent by the `spanW != :spanW` clause, so it
+     * can run on every launcher start and writes nothing once the desktop is already narrow.
+     *
+     * Both the kind and the target span are parameters, so the enum name and the span constant each keep
+     * one home in Kotlin rather than gaining a second copy inside SQL.
+     */
+    @Query("UPDATE launcher_cells SET spanW = :spanW WHERE kind = :kind AND spanW != :spanW")
+    suspend fun narrowSectionSpans(kind: String, spanW: Int): Int
+
+    /**
      * The first cell whose footprint overlaps the rect at ([rowIndex], [colIndex]) sized
      * [spanW] x [spanH], ignoring [excludeId] (the cell being moved).
      *

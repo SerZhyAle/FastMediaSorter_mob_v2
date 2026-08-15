@@ -9668,7 +9668,7 @@
     <ID>ReturnCount:CandidateSelectionPolicy.kt$CandidateSelectionPolicy$fun choose(candidates: List&lt;HtmlMediaCandidate&gt;): HtmlMediaCandidate?</ID>
     <ID>ReturnCount:CastMediaManagerImpl.kt$CastMediaManagerImpl$fun isWifiConnected(): Boolean</ID>
     <ID>ReturnCount:CastMediaManagerImpl.kt$CastMediaManagerImpl$override fun showCastDialog(activity: FragmentActivity)</ID>
-    <ID>ReturnCount:CastMediaManagerImpl.kt$CastMediaManagerImpl$private suspend fun resolveAndSend(file: MediaFile)</ID>
+    <ID>ReturnCount:CastMediaManagerImpl.kt$CastMediaManagerImpl$private suspend fun resolveAndSend(file: MediaFile, stereoCrop: CastStereoCrop?)</ID>
     <ID>ReturnCount:CastStreamResolver.kt$CastStreamResolver$fun resolve(path: String): CastStreamDecision</ID>
     <ID>ReturnCount:ChaquopyRuntimeHolder.kt$ChaquopyRuntimeHolder$fun ensureInitialized(): Boolean</ID>
     <ID>ReturnCount:CharsetDetector.kt$CharsetDetector$fun detect(file: File): Charset</ID>

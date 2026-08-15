@@ -123,10 +123,11 @@ wear/
 
 ### Key Configurations
 
-- **API Level**: 30+ (Wear OS 3.0)
-- **Target SDK**: 35
-- **Min SDK**: 30 (Wear OS 3.0)
-- **Package**: `com.sza.fastmediasorter.wear`
+- **Compile SDK**: 36
+- **Target SDK**: 36
+- **Min SDK**: 28 (Wear OS 2.0+)
+- **Install package (`applicationId`)**: `com.sza.fastmediasorter` - identical to the phone app on purpose; Play Services drops Data Layer traffic unless the package name and the signing certificate both match across the two devices (S1681)
+- **Code namespace**: `com.sza.fastmediasorter.wear` - keeps the `.wear` segment, so class names are unaffected by the line above
 - **Main Activity**: `com.sza.fastmediasorter.wear.MainActivity`
 
 ## Verification Checklist

@@ -173,11 +173,14 @@ $sourceSettings = @(
 $missingSettings = @($sourceSettings | Where-Object { $_ -notin $inventorySettings })
 $staleSettings = @($inventorySettings | Where-Object { $_ -notin $sourceSettings })
 if ($missingSettings.Count -gt 0 -or $staleSettings.Count -gt 0) {
+    # The remedy is named as a runnable command, not as a mechanism: "regenerate via the export test
+    # in generate mode" reads as an invitation to call gradlew bare, which takes no BUILD.LOCK and so
+    # violates Rule 23. -RegenerateInventory below does the same run under the lock (S1194).
     if ($missingSettings.Count -gt 0) {
-        Add-Fail 'settings-source-fresh' "inventory missing source entry '$($missingSettings[0])' - regenerate docs/icons/icon-inventory.json via IconInventoryExportTest generate mode"
+        Add-Fail 'settings-source-fresh' "inventory missing source entry '$($missingSettings[0])' - run: pwsh -NoProfile -File scripts/quality/assert-icon-inventory-sync.ps1 -RegenerateInventory"
     }
     if ($staleSettings.Count -gt 0) {
-        Add-Fail 'settings-source-fresh' "inventory still carries stale settings entry '$($staleSettings[0])' - regenerate docs/icons/icon-inventory.json via IconInventoryExportTest generate mode"
+        Add-Fail 'settings-source-fresh' "inventory still carries stale settings entry '$($staleSettings[0])' - run: pwsh -NoProfile -File scripts/quality/assert-icon-inventory-sync.ps1 -RegenerateInventory"
     }
 }
 
@@ -328,7 +331,7 @@ if ($IncludeExportTest) {
     }
     finally { Pop-Location; Exit-AgentLock -Name Build }
     if ($testExit -ne 0) {
-        Add-Fail 'inventory-fresh' 'committed docs/icons/icon-inventory.json differs from the live app registries - regenerate with the export test in generate mode (-Dicon.inventory.generate=true)'
+        Add-Fail 'inventory-fresh' 'committed docs/icons/icon-inventory.json differs from the live app registries - run: pwsh -NoProfile -File scripts/quality/assert-icon-inventory-sync.ps1 -RegenerateInventory'
     }
 }
 else {

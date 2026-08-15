@@ -58,6 +58,10 @@ Required-flag defaults in this repo:
 - `docs/TECH_STACK.md`: required only for the small cheat-sheet subset it explicitly owns.
 - `CLAUDE.md`: required only for headline pins already mentioned in the prompt file.
 
+### Room schema references
+
+The `room-schema-version` pin has two required current references: `dev/TECH_REQUIREMENTS.md` and `docs/DEV_OPS.md`. A historical snapshot may retain the schema version that was current when the snapshot was written, but it must not be added to this pin or describe that value as current.
+
 ## Tests
 
 `pwsh -NoProfile -File scripts/doc-drift.tests/Run-Tests.ps1` returns `0` when all asserts pass.

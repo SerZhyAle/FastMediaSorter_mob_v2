@@ -3,7 +3,7 @@
      Untranslated keys are absent on purpose - Android falls back to English (S1190, ADR-6). -->
 <resources>
     <string name="s0200_cct_unavailable_title">Browser pieno</string>
-    <string name="s0200_cct_unavailable_message">Per accedere a Google è necessario un browser che supporti le schede personalizzate di Chrome. Installa un browser compatibile (Chrome, Firefox, Brave...) e riprova. Le altre funzionalità dell\'app continueranno a funzionare.</string>
+    <string name="s0200_cct_unavailable_message">Per accedere a Google è necessario un browser che supporti le schede personalizzate di Chrome. Installa un browser compatibile (Chrome, Firefox, Brave..) e riprova. Le altre funzionalità dell\'app continueranno a funzionare.</string>
     <string name="s0200_cct_unavailable_retry">Riprova</string>
     <string name="s0200_card_title">Account Google</string>
     <string name="s0200_card_state_unbound_summary">Accedi una sola volta per utilizzare il backup di Google Drive e aggiungere cartelle a Drive senza dover accedere nuovamente al tuo account.</string>
@@ -12,7 +12,7 @@
     <string name="s0200_card_state_bound_sign_out">disconnessione</string>
     <string name="s0200_card_state_needs_resign_in_summary">Riconnetti %1$s per mantenere Drive funzionante.</string>
     <string name="s0200_card_state_needs_resign_in_cta">Ricollega</string>
-    <string name="s0200_card_authenticating">Accesso in corso...</string>
+    <string name="s0200_card_authenticating">Accesso in corso..</string>
     <string name="s0200_card_diag_cct_ok">Browser rilevato: %1$s.</string>
     <string name="s0200_card_diag_cct_missing">Nessun browser supportato installato. Installane uno per utilizzare Google.</string>
     <string name="s0200_card_diag_show">Diagnostica</string>

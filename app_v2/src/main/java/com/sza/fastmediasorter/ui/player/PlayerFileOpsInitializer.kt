@@ -28,14 +28,14 @@ internal class PlayerFileOpsInitializer(
         activity.playerFileOperationQueue = PlayerFileOperationQueue(
             scope = activity.fileOpsAppScope,
             fileOperationUseCase = activity.viewModel.fileOperationUseCase,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
         )
 
         activity.fileOperationsHandler = FileOperationsHandler(
             context = activity,
             lifecycleScope = activity.lifecycleScope,
             appScope = activity.fileOpsAppScope,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
             fileOperationUseCase = activity.viewModel.fileOperationUseCase,
             playerFileOperationQueue = activity.playerFileOperationQueue,
             callback = buildFileOpsCallback(),
@@ -50,7 +50,7 @@ internal class PlayerFileOpsInitializer(
         activity.playerFolderPickerHandler = com.sza.fastmediasorter.ui.player.helpers.PlayerFolderPickerHandler(
             activity = activity,
             coroutineScope = activity.lifecycleScope,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
             fileOperationsHandler = activity.fileOperationsHandler,
             restrictedTreeTargetPolicy = activity.restrictedTreeTargetPolicy,
             onLaunchPicker = { uri -> activity.folderPickerLauncher.launch(uri) },
@@ -59,7 +59,7 @@ internal class PlayerFileOpsInitializer(
         val slotLabelFormatter = KeybindingRowLabelFormatter(activity)
         activity.destinationButtonsManager = DestinationButtonsManager(
             root = activity.activityBinding.root,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
             getDestinationsUseCase = activity.viewModel.getDestinationsUseCase,
             lifecycleScope = activity.lifecycleScope,
             callback = buildDestinationButtonsCallback(),

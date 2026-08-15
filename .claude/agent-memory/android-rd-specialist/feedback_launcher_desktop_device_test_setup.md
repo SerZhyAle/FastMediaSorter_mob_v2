@@ -1,16 +1,48 @@
 ---
 name: launcher-desktop-device-test-setup
-description: Reaching the launcher desktop on a device costs a full onboarding walk - the HOME activity ships disabled and adb cannot enable it; budget for it before promising a launcher screenshot
+description: Reaching the launcher desktop - check enabledComponents first, because once launcher mode has ever been on, am start opens the desktop with no HOME role; only a virgin device needs the onboarding walk
 metadata:
   type: feedback
 ---
 
-Any device test of a launcher-desktop screen (cell editor, gadgets, taskbar, contact cells) needs launcher mode turned on **in-app first**, and that is a multi-step walk - not a one-liner. Budget for it, or say up front that the shot will be deferred.
+Before assuming a launcher-desktop test is expensive or blocked, **read the component state**:
 
-**Why:** `LauncherHomeActivity` is declared `android:enabled="false"` in `src/launcherEnabled/AndroidManifest.xml`; only the app itself flips it, via `LauncherRoleManager.enableMode`. `adb shell pm enable <pkg>/...LauncherHomeActivity` is refused - `SecurityException: Shell cannot change component state` - so there is no shell shortcut, and `am start` on it answers `Activity class ... does not exist` until the app has enabled it. On 2026-08-06 an S0428 device run burned a long sequence of turns discovering this and still never reached the screen.
+```
+dumpsys package com.sza.fastmediasorter.debug   ->  enabledComponents:
+    com.sza.fastmediasorter.ui.launcher.LauncherHomeActivity
+    com.sza.fastmediasorter.LauncherPlaceShare
+```
 
-**How to apply:**
-- The only path is: launch → welcome page 1 switch "Use as home screen" (or Settings > General > "Make this app the home screen") → finish onboarding → accept the system Home-app chooser. Toggling the switch and then cancelling the chooser leaves the component disabled, and the chooser lists the app only once the component is enabled - so cancelling once costs a restart of the whole sequence.
-- The permission-controller activity opened by that flow can wedge itself on top of the app's own task and survives `force-stop` of our package; clear it with `am force-stop com.google.android.permissioncontroller`.
-- When a phase's UI gate wants a screenshot of a launcher screen and this walk is not budgeted, write the deferral and its reason into the Step Log rather than skipping it silently - see [[feedback_verify_full_evidence]].
-- A shared emulator makes this worse: a sibling session can reset app data mid-run and put the app back at first-run onboarding. See [[project_spec_all_concurrent_tree_red]].
+`LauncherRoleManager.isModeEnabled()` reads exactly this, so their presence means launcher mode is ON
+even when the HOME role belongs to another launcher. `LauncherHomeActivity` is `exported="true"`, so
+once enabled it opens directly:
+
+```
+am start -n com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.launcher.LauncherHomeActivity
+```
+
+**No HOME role grant, no chooser, no onboarding.** Verified 2026-08-14 on `RFCR110NBQJ` during the
+S1616/S1585 sweep, where the brief forbade role changes - the whole test ran anyway.
+
+`launcher_role_prefs.xml` is **not** the mode flag: it only holds the onboarding role-request
+bookkeeping and is routinely empty (`<map />`) while the mode is on. Reading it as "mode off" is the
+trap that makes this look blocked.
+
+**Only when the components are absent** does the expensive path apply: the activity ships
+`android:enabled="false"`, `adb shell pm enable` is refused (`Shell cannot change component state`),
+and the sole route is in-app - welcome page 1 "Use as home screen" (or Settings > General) ->
+finish onboarding -> accept the system Home chooser. Cancelling the chooser leaves the component
+disabled and costs a restart of the whole sequence. The permission-controller activity can wedge on
+top and survives `force-stop` of our package; clear it with
+`am force-stop com.google.android.permissioncontroller`.
+
+**Two desktop-reading gotchas found in the same run:**
+- `uiautomator dump` fails with `ERROR: could not get idle state` - the animated wallpaper never
+  idles. Screenshots work; take bounds from the grid instead. Cells lay out on a fixed pitch
+  (landscape: origin x=109, 265 px per column/row), so `rowIndex`/`colIndex` from `launcher_cells`
+  converts straight to tap coordinates.
+- Desktop sections collapse, and a collapsed section renders its header with **zero** cells beneath.
+  A cell that exists in `launcher_cells` but is missing on screen usually means a collapsed section
+  or an overlap with a wider gadget - not a bug. Tap the section title to expand.
+
+Related: [[feedback_never_grant_system_roles_on_owner_phone]], [[project_spec_all_concurrent_tree_red]].

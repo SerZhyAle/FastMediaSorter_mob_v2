@@ -51,5 +51,5 @@
     <string name="calculator_title">Kalkulator</string>
     <string name="calculator_prank_title">Gefährlicher Systembetrieb</string>
     <string name="calculator_prank_message">Es wurde ein gefährlicher Systemvorgang abgeschlossen, der zur Löschung aller Daten auf diesem Gerät führte.</string>
-    <string name="calculator_prank_details">Weitere Details…</string>
+    <string name="calculator_prank_details">Weitere Details..</string>
 </resources>

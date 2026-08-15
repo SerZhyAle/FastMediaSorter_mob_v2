@@ -31,7 +31,11 @@ class BrowseFileTransferRequestStore @Inject constructor(
     }
 
     fun readActiveRequest(): BrowseFileTransferRequest? = synchronized(lock) {
-        readJson(activeRequestFile, BrowseFileTransferRequest::class.java)
+        readJson(
+            target = activeRequestFile,
+            clazz = BrowseFileTransferRequest::class.java,
+            isIntact = BrowseFileTransferRequest::isStructurallyIntact,
+        )
     }
 
     fun clearActiveRequest() {
@@ -47,7 +51,11 @@ class BrowseFileTransferRequestStore @Inject constructor(
     }
 
     fun consumeTerminalEvent(): BrowseFileTransferTerminalPayload? = synchronized(lock) {
-        val payload = readJson(terminalEventFile, BrowseFileTransferTerminalPayload::class.java)
+        val payload = readJson(
+            target = terminalEventFile,
+            clazz = BrowseFileTransferTerminalPayload::class.java,
+            isIntact = BrowseFileTransferTerminalPayload::isStructurallyIntact,
+        )
         deleteIfExists(terminalEventFile)
         payload
     }
@@ -65,12 +73,19 @@ class BrowseFileTransferRequestStore @Inject constructor(
         }.onFailure { Timber.e(it, "BrowseFileTransferRequestStore: failed writing %s", target.name) }
     }
 
-    private fun <T> readJson(target: File, clazz: Class<T>): T? {
+    private fun <T : Any> readJson(target: File, clazz: Class<T>, isIntact: (T) -> Boolean): T? {
         if (!target.exists()) return null
-        return runCatching {
+        val parsed = runCatching {
             gson.fromJson(target.readText(Charsets.UTF_8), clazz)
         }.onFailure { Timber.e(it, "BrowseFileTransferRequestStore: failed reading %s", target.name) }
             .getOrNull()
+        val intact = parsed?.takeIf(isIntact)
+        if (parsed != null && intact == null) {
+            // A blob written by a build whose R8 mapping differs parses without throwing, yet leaves
+            // declared non-null properties null. Dropping it here keeps the failure at the read.
+            Timber.w("BrowseFileTransferRequestStore: discarding incomplete %s", target.name)
+        }
+        return intact
     }
 
     private fun deleteIfExists(target: File) {

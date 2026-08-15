@@ -227,9 +227,16 @@ if ($selected) {
 
     # S1429: the third proof that landed work is accounted for. A Tier-3 ticket records progress in
     # its tactical INDEX, not in the strategic spec, so a gate that reads only `## Last Audit` and
-    # `Implementation State` calls every in-flight tactical ticket unaccounted. The plan counts as
-    # proof only when it is at least as fresh as the newest in-window commit - otherwise a plan
-    # abandoned months ago would vouch for work landed yesterday.
+    # `Implementation State` calls every in-flight tactical ticket unaccounted.
+    #
+    # S1634: "fresh" is now measured against the working tree instead of against a commit date. The
+    # question has not changed - can this plan vouch for the marked code, or was it abandoned before
+    # that code was written - but the old answer came from `git log`, and in a repository with one
+    # developer committing the whole tree under a timestamp subject, a single routine snapshot dated
+    # later than every plan made every in-flight ticket stale at once. The tree answers the same
+    # question directly: compare when the plan was last written to when the marked sources were last
+    # written. A plan touched no earlier than its marked code is accounting for it; a plan that has
+    # not been touched since that code appeared is exactly the abandoned case the rule guards.
     $tacticalIndex = $null
     if ($selected.file) {
         $specRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
@@ -240,21 +247,37 @@ if ($selected) {
             $updatedMatch = [regex]::Match($indexText, '(?m)^\*\*Last updated:\*\*\s*(\d{4}-\d{2}-\d{2})')
             $phasesMatch = [regex]::Match($indexText, '(?m)^\*\*Phases:\*\*\s*(\d+)\s*/\s*(\d+)\s*done')
             $lastUpdated = if ($updatedMatch.Success) { $updatedMatch.Groups[1].Value } else { $null }
-            $newestCommit = $null
-            if ($drift -and $drift.commits) {
-                $newestCommit = @($drift.commits | ForEach-Object { ($_.date -split ' ')[0] } | Sort-Object -Descending)[0]
+
+            # The plan's own last-write time, not the `Last updated:` text: plan-tick.ps1 rewrites
+            # this file on every step it ticks, so the file time tracks real plan activity and cannot
+            # be left behind by a hand edit that forgot the header.
+            $planWrittenAt = (Get-Item -LiteralPath $indexPath).LastWriteTimeUtc
+
+            # The newest write among the sources actually carrying this ticket's inline markers. Only
+            # those files matter: an unrelated source edited today says nothing about this plan.
+            $markedWrittenAt = $null
+            if ($drift -and $drift.code_markers) {
+                foreach ($markerFile in @($drift.code_markers | ForEach-Object { $_.file } | Sort-Object -Unique)) {
+                    $markerPath = Join-Path $specRoot $markerFile
+                    if (Test-Path -LiteralPath $markerPath) {
+                        $written = (Get-Item -LiteralPath $markerPath).LastWriteTimeUtc
+                        if (-not $markedWrittenAt -or $written -gt $markedWrittenAt) { $markedWrittenAt = $written }
+                    }
+                }
             }
-            $fresh = $false
-            if ($lastUpdated) {
-                $fresh = -not $newestCommit -or ([datetime]$lastUpdated -ge [datetime]$newestCommit)
-            }
+
+            # No markers means nothing to vouch for, so a plan that exists is proof enough; the
+            # DRIFT verdict that consults this proof cannot even be reached in that case.
+            $fresh = -not $markedWrittenAt -or $planWrittenAt -ge $markedWrittenAt
+
             $tacticalIndex = [PSCustomObject]@{
-                path          = $indexRel
-                last_updated  = $lastUpdated
-                phases_done   = if ($phasesMatch.Success) { [int]$phasesMatch.Groups[1].Value } else { $null }
-                phases_total  = if ($phasesMatch.Success) { [int]$phasesMatch.Groups[2].Value } else { $null }
-                newest_commit = $newestCommit
-                fresh         = $fresh
+                path              = $indexRel
+                last_updated      = $lastUpdated
+                phases_done       = if ($phasesMatch.Success) { [int]$phasesMatch.Groups[1].Value } else { $null }
+                phases_total      = if ($phasesMatch.Success) { [int]$phasesMatch.Groups[2].Value } else { $null }
+                plan_written_at   = $planWrittenAt.ToString('yyyy-MM-dd HH:mm:ss')
+                marked_written_at = if ($markedWrittenAt) { $markedWrittenAt.ToString('yyyy-MM-dd HH:mm:ss') } else { $null }
+                fresh             = $fresh
             }
         }
     }
@@ -332,7 +355,7 @@ if ($Format -eq 'json') {
             Write-Host "    status mismatch: catalog=$($selected.status_mismatch.catalog) file=$($selected.status_mismatch.file) (file authoritative)" -ForegroundColor Yellow
         }
         if ($selected.drift) {
-            Write-Host "    drift: $($selected.drift.verdict) (commits=$($selected.drift.commits_count) markers=$($selected.drift.markers_count))" -ForegroundColor DarkGray
+            Write-Host "    drift: $($selected.drift.verdict) (markers=$($selected.drift.markers_count))" -ForegroundColor DarkGray
         }
     } else {
         switch ($result.selected_none_reason) {

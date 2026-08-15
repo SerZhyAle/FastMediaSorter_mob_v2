@@ -135,7 +135,7 @@
     <string name="keybinding_label_vr_zoom_start">Démarrage du zoom</string>
     <string name="keybinding_remap_not_impl">Réinitialiser tout - bientôt disponible</string>
     <string name="keybinding_remap_reset_all">Réinitialiser tout</string>
-    <string name="keybinding_remap_search_hint">Commandes de recherche...</string>
+    <string name="keybinding_remap_search_hint">Commandes de recherche..</string>
     <string name="keybinding_row_remap">Reconfiguration</string>
     <string name="keybinding_row_reset">Réinitialiser par défaut</string>
     <string name="kbm_help_browse_back">Aller au dossier parent</string>
@@ -145,7 +145,7 @@
     <string name="kbm_help_dialog_primary">Action principale (OK / Appliquer)</string>
     <string name="kbm_help_dialog_toggle">Option bascule</string>
     <string name="kbm_help_empty">Aucun raccourci n\'est encore enregistré pour cet écran.</string>
-    <string name="kbm_help_full_docs_link">Ouvrir le guide complet du clavier/de la souris…</string>
+    <string name="kbm_help_full_docs_link">Ouvrir le guide complet du clavier/de la souris..</string>
     <string name="kbm_help_global_escape">Annuler, effacer la sélection, fermer la boîte de dialogue</string>
     <string name="kbm_help_global_exit">Quitter l\'écran actuel</string>
     <string name="kbm_help_global_f1">Afficher cette aide</string>

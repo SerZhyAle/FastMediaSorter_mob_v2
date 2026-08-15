@@ -44,7 +44,6 @@
     <string name="playback_settings_3d_spherical_format">Format sphérique</string>
     <string name="playback_speed">Vitesse de lecture</string>
     <string name="player_3d_detected_toast">Vidéo 3D détectée. Utilisez les informations du fichier pour l\'ouvrir dans un lecteur VR externe.</string>
-    <string name="player_audio_track">Langue de la piste audio</string>
     <string name="player_command_panel_mode_playerViewPanel_resize_mode">ajuster</string>
     <string name="player_credentials_missing">Les informations d\'identification enregistrées sont manquantes. Veuillez les mettre à jour et réessayer.</string>
     <string name="player_file_moved">Fichier déplacé.</string>
@@ -58,17 +57,12 @@
     <string name="player_health_file_label">Fichier : %1$s</string>
     <string name="player_health_io_block">Que s\'est-il passé ? Erreur d\'entrée/sortie : le fichier est peut-être corrompu, incomplet ou inaccessible.\n\nQue pouvez-vous essayer ?\n• Assurez-vous que le fichier est entièrement téléchargé\n• Vérifiez si le fichier est corrompu\n• Pour les fichiers réseau, vérifiez la connexion</string>
     <string name="player_health_malformed_block">Problème rencontré : le format du fichier est incorrect ou endommagé.\n\nLa structure du fichier ne correspond pas aux spécifications du support.\n\nQue pouvez-vous essayer :\n• Le fichier est peut-être endommagé ou incomplet.\n• Téléchargez ou réencodez le fichier.\n• Assurez-vous que le transfert du fichier a été effectué correctement.</string>
-    <string name="player_health_switching_to_fallback">La lecture audio rencontre des problèmes - passage au lecteur de secours...</string>
+    <string name="player_health_switching_to_fallback">La lecture audio rencontre des problèmes - passage au lecteur de secours..</string>
     <string name="player_health_timeout_block">Que s\'est-il passé ? L\'opération a expiré.\n\nQue pouvez-vous essayer ?\n• Vérifiez votre connexion réseau\n• Assurez-vous que le serveur répond\n• Réessayez plus tard</string>
     <string name="player_health_unsupported_block">Problème rencontré : ce format n’est pas pris en charge.\n\nLe lecteur de sauvegarde ne peut pas gérer ce format ou ce codec.\n\nVos solutions :\n• Ouvrez le fichier dans un lecteur multimédia externe\n• Convertissez-le dans un format standard (MP4, H.264)</string>
     <string name="player_media_files_load_failed">Impossible de charger la liste des fichiers. Veuillez réessayer.</string>
     <string name="player_open_link_failed">Impossible d\'ouvrir ce lien.</string>
     <string name="player_page_not_ready">Cette page n\'est pas encore disponible. Veuillez réessayer.</string>
-    <string name="player_repeat_video">Lecture répétée</string>
-    <string name="player_settings_title">Paramètres du lecteur</string>
-    <string name="player_show_subtitles">Afficher les sous-titres</string>
-    <string name="player_speed">Vitesse de lecture</string>
-    <string name="player_subtitle_language">Langue des sous-titres</string>
     <string name="player_webview_unavailable">Impossible d\'accéder au mode lecture. Veuillez réessayer.</string>
     <string name="video">Vidéo</string>
     <string name="video_aspect_ratio_label">Format d\'image : %1$s</string>

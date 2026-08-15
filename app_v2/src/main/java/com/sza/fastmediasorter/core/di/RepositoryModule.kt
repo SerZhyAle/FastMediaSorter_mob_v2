@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.core.di
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.sza.fastmediasorter.core.serialization.InstantTypeAdapter
 import com.sza.fastmediasorter.data.detector.RealDeviceProfileDetector
 import com.sza.fastmediasorter.data.game.GameStateRepositoryImpl
 import com.sza.fastmediasorter.data.repository.DischargeRateBatteryRuntimeEstimator
@@ -42,6 +44,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import java.time.Instant
 import javax.inject.Singleton
 
 @Module
@@ -49,9 +52,15 @@ import javax.inject.Singleton
 abstract class RepositoryModule {
 
     companion object {
+        // S1668: [InstantTypeAdapter] replaces the reflective walk over java.time.Instant's private fields that a
+        // bare Gson() falls back to. That walk is refused under JPMS and is a non-SDK interface read on ART, where
+        // failing silently costs the persisted boundAt of the primary account binding. The adapter emits the same
+        // bytes, so blobs written by earlier builds keep parsing.
         @Provides
         @Singleton
-        fun provideGson(): Gson = Gson()
+        fun provideGson(): Gson = GsonBuilder()
+            .registerTypeAdapter(Instant::class.java, InstantTypeAdapter())
+            .create()
     }
     
     @Binds

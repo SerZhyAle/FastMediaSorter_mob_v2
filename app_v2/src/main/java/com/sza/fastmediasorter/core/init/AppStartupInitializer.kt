@@ -6,11 +6,13 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.compat.ChromeOsCompat
 import com.sza.fastmediasorter.core.coordinator.RemoteSourceDisableCoordinator
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
+import com.sza.fastmediasorter.core.util.CacheStatusHelper
 import com.sza.fastmediasorter.data.input.DefaultsMapLoader
 import com.sza.fastmediasorter.data.input.InputBindingRepository
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -21,16 +23,17 @@ import com.sza.fastmediasorter.domain.repository.StatisticsRepository
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
 import com.sza.fastmediasorter.domain.usecase.RenameVirtualResourcesUseCase
 import com.sza.fastmediasorter.util.VirtualPathUtils
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
-import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * Handles all background initialization tasks for the application.
@@ -63,7 +66,11 @@ class AppStartupInitializer @Inject constructor(
     // S0473: guards the always-on baseline launch record so a re-enqueued deferred worker records
     // a single launch per process, never one per worker pass.
     private val launchRecorded = AtomicBoolean(false)
-    
+
+    // S1650: the mirror write [warmGlide] must wait for. Glide sizes its disk cache from that
+    // SharedPreferences value, so building it before the write lands would use a stale size.
+    private var cacheSizeMirrorSync: Job? = null
+
     /**
      * Initialize all background tasks.
      * Should be called from Application.onCreate() after dependency injection.
@@ -95,6 +102,26 @@ class AppStartupInitializer @Inject constructor(
             runDeferredTask("apply-chromeos-defaults") { applyDefaultsChromeOsIfEmpty() }
         }
         runDeferredTask("connection-throttle-bootstrap") { ensureConnectionThrottleManagerInitialized() }
+    }
+
+    /**
+     * S1650: builds Glide off the main thread before the first image load can do it there.
+     *
+     * Glide is built lazily on whichever thread first asks for it, and its `applyOptions` reads the
+     * cache-size mirror and creates the cache directory on that thread - which used to be the main
+     * thread drawing the first thumbnail grid. S1480 added this warm-up to [DeferredStartupWorker],
+     * but that worker starts thirty seconds after launch and always lost the race.
+     *
+     * The status log stays immediately before the build: S1322 measures the cache directory as it is
+     * *before* Glide touches it.
+     *
+     * Residual race accepted, as in S0869's Room warm-up - a main-thread caller that still gets there
+     * first blocks on Glide's own lock instead of doing the disk work itself.
+     */
+    suspend fun warmGlide() {
+        cacheSizeMirrorSync?.join()
+        runDeferredTask("log-glide-disk-cache-status") { CacheStatusHelper.logGlideDiskCacheStatus(context) }
+        runDeferredTask("warm-glide") { Glide.get(context) }
     }
 
     /**
@@ -130,7 +157,7 @@ class AppStartupInitializer @Inject constructor(
      * Sync cache size setting to SharedPreferences for Glide initialization.
      */
     private fun syncCacheSizeToSharedPreferences() {
-        applicationScope.launch {
+        cacheSizeMirrorSync = applicationScope.launch {
             try {
                 val settings = settingsRepository.get().getSettings().first()
                 context.getSharedPreferences("glide_config", Context.MODE_PRIVATE)

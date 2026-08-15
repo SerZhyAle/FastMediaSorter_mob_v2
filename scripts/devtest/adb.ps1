@@ -28,8 +28,9 @@
     uninstall            DESTRUCTIVE: uninstall the resolved package. Requires -Yes
     shot                 screenshot to temp/scratch/<device>_<TS>.png (screencap on device, then
                          pull). Warns when the focused window carries FLAG_SECURE, because such a
-                         capture is black by design and reads as a rendering bug (-Json:
-                         secureWindow)
+                         capture is black by design and reads as a rendering bug, and in that case
+                         also pulls the uiautomator node tree beside it - the black frame is not
+                         layout evidence, the tree is (-Json: secureWindow, treeFile, treeNodes)
     log                  the app's own log lines: every line whose pid belongs to an app
                          process, plus every line whose text names the package. -Tail N
                          (default 200), -Grep <regex>; full capture also to temp/scratch/
@@ -47,6 +48,17 @@
   discovery, the device selection and the exit contract, and - the reason it was worth a ticket -
   the remote path never passes through bash, where MSYS silently rewrites `/sdcard/x` into a path
   inside the Git installation and adb then reports a missing remote object.
+
+  Output streams (S1183). A verb whose product is DATA - devices, props, current, log, shell -
+  writes that data to the SUCCESS stream, so it pipes and redirects:
+      adb.ps1 shell -Cmd 'logcat -d' | Out-File temp/scratch/raw.log
+  A verb whose product is an ACTION - launch, stop, tap, text, key, install, uninstall, push,
+  logcat-clear, wipe-data - and every summary, warning or file-path line keeps the information
+  stream, so a pipeline carries the payload alone and never the decoration. Before this split
+  everything went through Write-Host: the redirect above created an EMPTY file, raised nothing,
+  and printed the lines to the screen anyway - silent data loss that pushed callers back to raw
+  adb.exe and cost them device selection and the exit codes. File-producing verbs (shot, prefs,
+  pull) still announce their path on the information stream; take the path from -Json.
 
   Package resolution (verbs that act on the app): default debug id
   com.sza.fastmediasorter.debug; -Release switches to com.sza.fastmediasorter; -Package
@@ -336,7 +348,7 @@ switch ($Verb.ToLowerInvariant()) {
         }
         if ($Json) { Emit-Ok @($rows) }
         foreach ($r in $rows) {
-            Write-Host ("  {0,-20} {1}  Android {2} (SDK {3})" -f $r.id, $r.model, $r.android, $r.sdk) -ForegroundColor Green
+            Write-Output ("  {0,-20} {1}  Android {2} (SDK {3})" -f $r.id, $r.model, $r.android, $r.sdk)
         }
         Write-Host "OK $($rows.Count) device(s) online" -ForegroundColor Cyan
         exit 0
@@ -353,11 +365,11 @@ switch ($Verb.ToLowerInvariant()) {
         $size    = (Invoke-Adb $id @('shell', 'wm', 'size') | Out-String).Trim()
         $data = [ordered]@{ id = $id; model = $model; android = $rel; sdk = $sdk; density = $density; size = $size }
         if ($Json) { Emit-Ok $data }
-        Write-Host "device : $id" -ForegroundColor Green
-        Write-Host "model  : $model" -ForegroundColor White
-        Write-Host "android: $rel (SDK $sdk)" -ForegroundColor White
-        Write-Host "$density" -ForegroundColor White
-        Write-Host "$size" -ForegroundColor White
+        Write-Output "device : $id"
+        Write-Output "model  : $model"
+        Write-Output "android: $rel (SDK $sdk)"
+        Write-Output "$density"
+        Write-Output "$size"
         exit 0
     }
 
@@ -374,7 +386,7 @@ switch ($Verb.ToLowerInvariant()) {
         }
         $line = if ($line) { $line.Trim() } else { '(unknown)' }
         if ($Json) { Emit-Ok @{ id = $id; current = $line } }
-        Write-Host $line -ForegroundColor Green
+        Write-Output $line
         exit 0
     }
 
@@ -499,16 +511,44 @@ switch ($Verb.ToLowerInvariant()) {
         Invoke-Adb $id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
         if (-not (Test-Path -Path $local -PathType Leaf)) { Fail 7 "screenshot pull produced no file" }
         $secureWindow = Test-SecureFocusedWindow $id
-        if ($Json) { Emit-Ok @{ id = $id; file = $local; secureWindow = $secureWindow } }
+        # S1520: a black frame is not evidence of layout, and the /spec-dev UI gate asks for "a
+        # screenshot" - so on the three sensitive screens the requirement was met while nothing was
+        # shown. S1506 already advised reading `uiautomator dump` instead, but an advisory needs
+        # someone to remember it at the right moment, which is the class of rule this repository
+        # measures at 1-8% compliance. So take the tree HERE, in the same call, whenever the flag is
+        # up: the honest artifact has to be the automatic one. Best-effort throughout - a screenshot
+        # must never fail on account of its own diagnostics.
+        $treeFile = $null
+        $treeNodes = 0
+        if ($secureWindow) {
+            $remoteTree = '/sdcard/_fms_tree.xml'
+            $treeLocal = Join-Path (Get-TempDir) ($name -replace '\.png$', '_tree.xml')
+            Invoke-Adb $id @('shell', 'uiautomator', 'dump', $remoteTree) -AllowFail | Out-Null
+            Invoke-Adb $id @('pull', $remoteTree, $treeLocal) -AllowFail | Out-Null
+            Invoke-Adb $id @('shell', 'rm', '-f', $remoteTree) -AllowFail | Out-Null
+            if (Test-Path -Path $treeLocal -PathType Leaf) {
+                $treeFile = $treeLocal
+                # The node count is printed because an empty tree next to a black frame looks exactly
+                # like a healthy one in a Step Log that records only a path.
+                $treeNodes = ([regex]'<node\b').Matches((Get-Content -LiteralPath $treeLocal -Raw)).Count
+            }
+        }
+        if ($Json) { Emit-Ok @{ id = $id; file = $local; secureWindow = $secureWindow; treeFile = $treeFile; treeNodes = $treeNodes } }
         Write-Host "SHOT $local" -ForegroundColor Green
         if ($secureWindow) {
             Write-Host "NOTE the focused window carries FLAG_SECURE - this capture is expected to be" -ForegroundColor Yellow
             Write-Host "     black (or zero-byte). That is the flag working, not a rendering failure." -ForegroundColor Yellow
             Write-Host "     BaseActivity.applySecureFlagIfEnabled sets it on sensitive screens (Settings," -ForegroundColor Yellow
             Write-Host "     Add Resource, Resource Editor) while the 'secureSensitiveScreens' setting is on." -ForegroundColor Yellow
-            Write-Host "     Read the layout from 'uiautomator dump' instead - a healthy node tree next to a" -ForegroundColor Yellow
-            Write-Host "     black frame confirms this, it does not contradict it. To capture the screen for" -ForegroundColor Yellow
-            Write-Host "     real, turn that setting off first. See docs/TEST_SCENARIOS.md." -ForegroundColor Yellow
+            if ($treeFile) {
+                Write-Host ("TREE $treeFile  ({0} node(s))" -f $treeNodes) -ForegroundColor Green
+                Write-Host "     THIS file, not the black frame, is the layout evidence a /spec-dev UI phase" -ForegroundColor Yellow
+                Write-Host "     records in its Step Log. To capture the screen as an image instead, turn the" -ForegroundColor Yellow
+                Write-Host "     'secureSensitiveScreens' setting off first. See docs/TEST_SCENARIOS.md." -ForegroundColor Yellow
+            } else {
+                Write-Host "     The node tree could not be captured, so this run produced NO layout evidence." -ForegroundColor Yellow
+                Write-Host "     Retry, or turn the 'secureSensitiveScreens' setting off and shoot again." -ForegroundColor Yellow
+            }
         }
         exit 0
     }
@@ -552,7 +592,12 @@ switch ($Verb.ToLowerInvariant()) {
                 appPids    = $appPids
             }
         }
-        foreach ($l in $lines) { Write-Host $l }
+        # S1183: the matched lines are this verb's PRODUCT, so they go to the success stream. They
+        # used to be written with Write-Host, which never reaches a pipeline - so
+        # `adb.ps1 log | Out-File raw.log` created an empty file while the screen showed the lines,
+        # and the caller fell back to raw adb.exe, losing device selection and the exit codes. The
+        # decorations below stay on the information stream: a summary is not data.
+        foreach ($l in $lines) { Write-Output $l }
         # A filter that swallows matching lines must say so: the old silent OK 0 was
         # indistinguishable from an honest no-match and produced wrong Broken verdicts.
         # Never echo the caller's pattern - smoke.ps1 and prerelease-prepare.ps1 match their
@@ -674,7 +719,10 @@ switch ($Verb.ToLowerInvariant()) {
         $out = & $adb -s $id shell $Cmd 2>&1
         $code = $LASTEXITCODE
         if ($Json) { Emit-Ok @{ id = $id; cmd = $Cmd; exit = $code; out = ($out -join "`n") } }
-        foreach ($l in $out) { Write-Host $l }
+        # S1183: the command's own output is this verb's product - success stream, so it can be piped
+        # or redirected. `adb.ps1 shell -Cmd 'logcat -d' | Out-File raw.log` used to write an empty
+        # file with no error at all, which is silent data loss rather than a visible failure.
+        foreach ($l in $out) { Write-Output $l }
         if ($code -ne 0) { Fail 7 "shell command exit $code" }
         exit 0
     }

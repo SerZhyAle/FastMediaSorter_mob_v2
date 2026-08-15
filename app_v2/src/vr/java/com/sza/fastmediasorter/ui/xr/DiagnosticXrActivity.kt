@@ -1116,6 +1116,11 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         legendController = null
         reusablePanelHudBuffer = null
         reusablePanelHudBytes = null
+        // S1640: unsubscribe at the terminal boundary, never in surfaceDestroyed - the surface is
+        // recreated while the activity lives, and removing there would leave it without callbacks.
+        if (::surfaceView.isInitialized) {
+            surfaceView.holder.removeCallback(this)
+        }
         super.onDestroy()
     }
 

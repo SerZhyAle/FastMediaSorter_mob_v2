@@ -54,6 +54,7 @@ function New-Sandbox {
     Copy-Item (Join-Path $repoRoot 'scripts/utils/locale-set.ps1') (Join-Path $sandbox 'scripts/utils/')
     Copy-Item (Join-Path $repoRoot 'scripts/quality/lib/android-string-format.ps1') (Join-Path $sandbox 'scripts/quality/lib/')
     Copy-Item (Join-Path $repoRoot 'scripts/quality/lib/android-string-liveness.ps1') (Join-Path $sandbox 'scripts/quality/lib/')
+    Copy-Item (Join-Path $repoRoot 'scripts/quality/lib/house-text-style.ps1') (Join-Path $sandbox 'scripts/quality/lib/')
 
     $res = Join-Path $sandbox 'app_v2/src/main/res'
 

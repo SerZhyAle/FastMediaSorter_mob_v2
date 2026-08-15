@@ -11,7 +11,7 @@
     <string name="pdf_export_failed">Exportação falhou: %s</string>
     <string name="pdf_export_success">Exportação bem-sucedida de %d páginas para Downloads.</string>
     <string name="pdf_export_to_jpg">Exportar páginas como JPG</string>
-    <string name="pdf_exporting_started">Exportando páginas...</string>
+    <string name="pdf_exporting_started">Exportando páginas..</string>
     <string name="pdf_file_not_found">Este arquivo PDF não está mais disponível.</string>
     <string name="pdf_fullscreen">Visualização em tela cheia da página PDF</string>
     <string name="pdf_keywords_label">Palavras-chave: %1$s</string>
@@ -27,7 +27,7 @@
     <string name="pdf_scroll_mode">Modo de rolagem</string>
     <string name="pdf_subject_label">Assunto: %1$s</string>
     <string name="pdf_text_empty">Nenhum texto encontrado nesta página.</string>
-    <string name="pdf_text_extracting">Extraindo texto...</string>
+    <string name="pdf_text_extracting">Extraindo texto..</string>
     <string name="pdf_text_mode_enter">Seleção de texto</string>
     <string name="pdf_thumbnails">Miniaturas da página</string>
     <string name="pdf_version_label">Versão em PDF: %1$s</string>
@@ -54,10 +54,10 @@
     <string name="epub_reader_settings">Configurações do leitor</string>
     <string name="epub_reader_theme">Tema</string>
     <string name="epub_search_all_chapters">Pesquisar todos os capítulos</string>
-    <string name="epub_search_hint">Texto de pesquisa...</string>
+    <string name="epub_search_hint">Texto de pesquisa..</string>
     <string name="epub_search_no_results">Nenhum resultado encontrado</string>
     <string name="epub_search_results">%1$d resulta em %2$d capítulos</string>
-    <string name="epub_searching">Procurando...</string>
+    <string name="epub_searching">Procurando..</string>
     <string name="epub_table_of_contents">Índice</string>
     <string name="epub_text_empty_tts">Nenhum texto encontrado no capítulo</string>
     <string name="text_content_hint">Conteúdo do texto</string>

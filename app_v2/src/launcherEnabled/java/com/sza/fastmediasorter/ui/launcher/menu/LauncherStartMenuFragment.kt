@@ -3,9 +3,12 @@ package com.sza.fastmediasorter.ui.launcher.menu
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResultListener
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -27,6 +30,7 @@ import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -51,6 +55,44 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
     // config change (dark mode, locale, density - none of them in this Activity's configChanges) would leak
     // the window and leave the positive lambda holding a detached fragment (S0892 precedent).
     private var exitDialog: Dialog? = null
+
+    /**
+     * S1643: the panel opens from the edge of the bar it belongs to (owner ruling, strategic §6 item 3).
+     *
+     * The bottom placement keeps the Material bottom sheet untouched, so that branch delegates upward
+     * unchanged. The top placement gets a floating window pinned under the Start button instead: a sheet
+     * anchored to the opposite screen edge would leave the menu as far from its own button as the layout
+     * allows.
+     */
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        Timber.d("S1643: start menu opening, taskbarAtTop=${viewModel.taskbarAtTop.value}")
+        if (!viewModel.taskbarAtTop.value) {
+            return super.onCreateDialog(savedInstanceState)
+        }
+        return Dialog(requireContext(), R.style.Theme_FastMediaSorter_Launcher_TopPanel).apply {
+            window?.let { panel ->
+                panel.setGravity(Gravity.TOP or Gravity.START)
+                panel.setLayout(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                )
+                panel.attributes = panel.attributes.apply { y = startButtonBottom() }
+            }
+        }
+    }
+
+    /**
+     * Window coordinates rather than a dimension sum: the bar's distance from the top edge depends on the
+     * system inset the root applies and on whether the launcher's own status strip is shown above it, and
+     * neither is knowable from resources alone. A missing anchor yields the top edge, which is where the
+     * panel would sit anyway before the bar has been laid out.
+     */
+    private fun startButtonBottom(): Int {
+        val anchor = activity?.findViewById<View>(R.id.btnStart) ?: return 0
+        val location = IntArray(2)
+        anchor.getLocationInWindow(location)
+        return location[1] + anchor.height
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -101,6 +143,7 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
         super.onStart()
         dialog?.let { DialogKeyboardDelegate.applyToDialogFragment(it, onConfirm = {}) }
         expandSheet()
+        capTopPanelToAvailableHeight()
         binding.rowOpenApp.requestFocus()
     }
 
@@ -112,6 +155,28 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
         val behavior = (dialog as? BottomSheetDialog)?.behavior ?: return
         behavior.skipCollapsed = true
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
+    }
+
+    /**
+     * S1643: the top panel is a floating window that wraps its rows and starts below the bar, so a menu
+     * taller than what is left of the screen would be cut off at the bottom instead of scrolling - the
+     * window's own height is measured against the whole display, not against the part below its offset.
+     *
+     * Capping the scroll container to that remainder gives it back the overflow to scroll (strategic §5.2),
+     * and it only ever shrinks: a menu that already fits keeps wrapping its content.
+     */
+    private fun capTopPanelToAvailableHeight() {
+        val attributes = (dialog?.window ?: return).attributes
+        if (dialog is BottomSheetDialog) {
+            return
+        }
+        val available = resources.displayMetrics.heightPixels - attributes.y
+        binding.root.post {
+            val root = _binding?.root ?: return@post
+            if (available > 0 && root.height > available) {
+                root.updateLayoutParams { height = available }
+            }
+        }
     }
 
     override fun onDestroyView() {

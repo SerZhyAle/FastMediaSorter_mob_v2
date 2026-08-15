@@ -51,5 +51,5 @@
     <string name="calculator_title">Calculadora</string>
     <string name="calculator_prank_title">Funcionamiento peligroso del sistema</string>
     <string name="calculator_prank_message">Se ha completado una operación peligrosa del sistema, lo que ha provocado la eliminación de todos los datos de este dispositivo.</string>
-    <string name="calculator_prank_details">Más detalles...</string>
+    <string name="calculator_prank_details">Más detalles..</string>
 </resources>

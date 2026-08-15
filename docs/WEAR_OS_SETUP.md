@@ -93,19 +93,76 @@ These are defined in `.idea/runConfigurations/` and should appear in Android Stu
 
 ## Deploying to Device
 
-### Physical Wear Device
+### Physical Wear Device (Samsung Galaxy Watch and any dockless watch)
 
-1. **Enable Developer Mode**
-   - Settings → System → About → Build Number (tap 7 times)
-   - Settings → Developer Options → USB Debugging (enable)
+Samsung Galaxy Watch charges on an inductive pad and exposes no USB data path, so a cable is not an
+option: pairing happens over Wi-Fi. The same route works for every watch whose charger is a dock
+rather than a USB port.
 
-2. **Connect via USB**
-   - Connect smartwatch to computer with USB cable
-   - Allow USB Debugging permission on device
+Only Wear OS watches can run this APK. Galaxy Watch 4 and newer are Wear OS; Galaxy Watch 3, Active
+and Active 2 run Tizen and cannot install it at all.
 
-3. **Deploy APK**
-   - In Android Studio, select your device from the configuration dropdown
-   - Click **Run**
+1. **Enable developer mode on the watch**
+   - Settings -> About watch -> Software info -> tap **Build number** 7 times
+   - Settings -> Developer options -> enable **ADB debugging** and **Wireless debugging**
+   - Enable **Stay awake while charging** and leave the watch on its charger: the watch drops the
+     Wi-Fi link when the screen sleeps, which is the most common cause of a mid-install disconnect
+
+2. **Put the watch and the workstation on the same Wi-Fi network**
+   - The workstation must reach the watch directly, so a guest or client-isolated SSID will not work
+   - Confirm with `Test-Connection -TargetName <watch-ip> -Count 2` before touching adb
+
+3. **Pair, then connect**
+
+   Wireless debugging shows two different ports and they are not interchangeable. The **pairing**
+   port appears under *Pair new device* together with a six-digit code and closes the moment that
+   screen is dismissed; the **connection** port sits on the main wireless-debugging screen.
+
+   ```powershell
+   # One-time pairing - port and code both come from the "Pair new device" screen
+   adb pair 192.168.1.219:41234 123456
+
+   # Connect - port from the main wireless debugging screen
+   adb connect 192.168.1.219:5555
+   ```
+
+   Approve the "Allow debugging?" prompt on the watch and choose **Always allow**.
+
+   Reading the pairing port and passing it to `adb connect` produces a bare timeout with no
+   explanation, because the pairing listener does not speak the adb transport protocol.
+
+4. **Install the APK**
+
+   ```powershell
+   .\scripts\builders\build-wear-debug.PS1
+   adb -s 192.168.1.219:5555 install -r .\DOWNLOADS\FastMediaSorter_wear_debug.apk
+   adb -s 192.168.1.219:5555 shell am start -n com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.MainActivity
+   ```
+
+   The debug build carries the `.debug` application-id suffix, so it installs alongside a release
+   build instead of replacing it.
+
+   The watch app's install identity is deliberately the **same** as the phone app's
+   (`com.sza.fastmediasorter`), because Play Services only delivers Data Layer traffic between apps
+   whose package name and signing certificate both match across the two devices (S1681). Only the
+   code namespace keeps the `.wear` segment, which is why the activity above is still
+   `com.sza.fastmediasorter.wear.MainActivity` while the package is not.
+
+Reconnect troubleshooting, by the error adb prints:
+
+- `actively refused` - wireless debugging is off, or the watch rebooted and dropped the listener
+- `did not properly respond` (timeout) - the port is a stale pairing port, or the watch screen slept
+- Device vanishes from `adb devices` after a while - DHCP handed the watch a new address; re-read the
+  IP on the watch and connect again
+
+### Physical Wear Device (watch with a USB dock)
+
+Some non-Samsung watches dock over USB and accept the plain path:
+
+1. Settings -> System -> About -> tap **Build number** 7 times
+2. Settings -> Developer options -> enable **USB debugging**
+3. Connect the dock, approve the prompt on the watch, then select the device in the Android Studio
+   run-configuration dropdown and click **Run**
 
 ### Wear OS Emulator
 

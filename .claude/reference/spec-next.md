@@ -73,13 +73,13 @@ The call itself replaces the previous `search.ps1` + manual rank + `skip-cache.p
 
 **Stage 0 - device probe.** This is a single read-only probe; never blocks the loop. Runs every invocation, including `--resume` - a resumed process is a fresh probe, not a continuation, since the device may have changed while the session was stopped. The result is persisted via `-Verb Device` so Stage 5.5's `DEVICE_ONLINE` check never depends on in-memory state surviving a reset.
 
-**Stage 3 - the drift verdicts (S1429).** Three values, because two different facts used to share one:
+**Stage 3 - the drift verdicts (S1429, narrowed by S1634).** Two live values, because the check reads only the working tree:
 
-- `CLEAN` - no commit carries the id and no inline marker does.
-- `COMMIT_ONLY` - a commit carries the id, no inline `// <id>:` marker does. Expected of any ticket that has been worked on at all; the tree holds nothing unaccounted, so it never parks the ticket. This shape produced six of the `drift-needs-review` skip-cache entries standing on 2026-08-09, each one explaining in its own words that the finding was false.
+- `CLEAN` - no inline marker carries the id.
 - `DRIFT` - inline markers exist in `app_v2/src/`. The fix is likely already (partly) in code and `/spec-all` would re-discover it expensively, unless something accounts for it.
+- `COMMIT_ONLY` - **retired**, never returned. It meant "a commit mentions the id", which in a one-developer, one-branch repository where the whole tree is committed under a timestamp subject was true of nearly every ticket; it produced six of the `drift-needs-review` skip-cache entries standing on 2026-08-09, each explaining in its own words that the finding was false. The field stays in the payload as an empty list so an older caller still parses.
 
-The third proof against `DRIFT` is `selected.tactical_index.fresh`: a tactical plan whose `Last updated` is not older than the newest in-window commit. A Tier-3 ticket records progress in its plan's phase counters, not in the strategic spec, so reading only `Last Audit` and `Implementation State` called every in-flight tactical ticket unaccounted. Freshness is dated against the commit rather than merely required to exist, so a plan abandoned months ago cannot vouch for work that landed yesterday.
+The third proof against `DRIFT` is `selected.tactical_index.fresh`: a tactical plan last written no earlier than the sources carrying this ticket's markers. A Tier-3 ticket records progress in its plan's phase counters, not in the strategic spec, so reading only `Last Audit` and `Implementation State` called every in-flight tactical ticket unaccounted. Freshness is a comparison rather than mere existence, so a plan abandoned before the code was written cannot vouch for it - but both sides of the comparison are file write times in the tree, never commit dates. `plan_written_at` and `marked_written_at` are reported next to the verdict so the answer can be read without re-deriving it. The commit-date version deferred the two top tickets of release package 32 in consecutive rounds on 2026-08-14, both false.
 
 **Stage 4 handoff - what `/spec-all` skips.** `/spec-all` trusts this context and skips its own opening `select.ps1` / catalog re-query for this ticket (its Resume Map keys off handed `status`). It does NOT re-run `preview.ps1` / `drift-check.ps1` for same ticket.
 

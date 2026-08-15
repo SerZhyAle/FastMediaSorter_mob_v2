@@ -652,6 +652,22 @@ function Assert-ClosingGates {
             throw ("Cannot close '{0}': {1} reported exit {2}. Fix what it names, then re-run." -f $Id, $name, $LASTEXITCODE)
         }
     }
+
+    # S1665 - advisories run after the hard gates and are structurally unable to stop a close: their
+    # output is shown, their exit code is not read. The list is separate rather than a flag on the loop
+    # above so that "this one can refuse" stays a property of the list a checker is in, not of a branch
+    # someone can invert later by accident.
+    #
+    # Why advisory and not a gate: a capability record is mandatory only for a ticket that shipped
+    # something user-facing, and the closing path cannot tell that apart from a tooling or documentation
+    # ticket without reading intent. Refusing on a guess would make those tickets unclosable, which is a
+    # worse failure than the reminder being ignored.
+    $advisories = @('check-capability-recorded.ps1')
+    foreach ($name in $advisories) {
+        $checker = Join-Path $PSScriptRoot $name
+        if (-not (Test-Path -LiteralPath $checker)) { continue }
+        & $checker -Id $Id 2>&1 | ForEach-Object { Write-Host $_ }
+    }
 }
 
 

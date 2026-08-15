@@ -11,7 +11,7 @@
     <string name="pdf_export_failed">Export fehlgeschlagen: %s</string>
     <string name="pdf_export_success">%d Seiten erfolgreich in den Download-Ordner exportiert</string>
     <string name="pdf_export_to_jpg">Seiten als JPG exportieren</string>
-    <string name="pdf_exporting_started">Seiten werden exportiert...</string>
+    <string name="pdf_exporting_started">Seiten werden exportiert..</string>
     <string name="pdf_file_not_found">Diese PDF-Datei ist nicht mehr verfügbar.</string>
     <string name="pdf_fullscreen">PDF-Seite im Vollbildmodus anzeigen</string>
     <string name="pdf_keywords_label">Schlüsselwörter: %1$s</string>
@@ -57,7 +57,7 @@
     <string name="epub_search_hint">Suchbegriff..</string>
     <string name="epub_search_no_results">Keine Ergebnisse gefunden</string>
     <string name="epub_search_results">%1$d führt zu %2$d Kapiteln</string>
-    <string name="epub_searching">Suche läuft...</string>
+    <string name="epub_searching">Suche läuft..</string>
     <string name="epub_table_of_contents">Inhaltsverzeichnis</string>
     <string name="epub_text_empty_tts">Im Kapitel wurde kein Text gefunden.</string>
     <string name="text_content_hint">Textinhalt</string>
@@ -79,7 +79,7 @@
     <string name="text_note_save_dialog_hint">Dateiname</string>
     <string name="text_note_save_dialog_ok">Speichern</string>
     <string name="text_note_save_dialog_title">Notiz speichern</string>
-    <string name="text_note_save_error_network">Der Ordner konnte nicht erreicht werden. Ihre Notiz ist auf dem Gerät verblieben – versuchen Sie es erneut, sobald Sie wieder online sind.</string>
+    <string name="text_note_save_error_network">Der Ordner konnte nicht erreicht werden. Ihre Notiz ist auf dem Gerät verblieben - versuchen Sie es erneut, sobald Sie wieder online sind.</string>
     <string name="text_note_save_renamed_suffix">Gespeichert als %1$s (Name war bereits vergeben)</string>
     <string name="text_note_save_success_local">Gespeichert.</string>
     <string name="text_page_indicator">Seite %1$d / %2$d</string>

@@ -76,13 +76,20 @@ class LauncherDesktopRepositoryImplTest {
      * header in, and the only one where `findOverlapping` cannot see the squares a header covers. So it is
      * the state that tells the S1428 straddle rule apart from plain rectangle intersection.
      */
-    private suspend fun insertNarrowHeader(row: Int) = dbRule.db.launcherCellDao().upsert(
+    private suspend fun insertNarrowHeader(row: Int) = insertHeaderWithSpan(row, spanW = 1)
+
+    /**
+     * A header written straight through the DAO at an arbitrary span, which no repository path produces -
+     * every write normalizes it. It is how a desktop seeded by another build is reconstructed: span 1 for a
+     * header narrower than the grid it is drawn on, span 12 for one an S1428 build stored full-row.
+     */
+    private suspend fun insertHeaderWithSpan(row: Int, spanW: Int) = dbRule.db.launcherCellDao().upsert(
         LauncherCellEntity(
             id = 0,
             orientation = LauncherOrientation.PORTRAIT.name,
             rowIndex = row,
             colIndex = 0,
-            spanW = 1,
+            spanW = spanW,
             spanH = 1,
             kind = LauncherCellKind.SECTION.name,
             target = "sec:app_functions",
@@ -96,6 +103,36 @@ class LauncherDesktopRepositoryImplTest {
     @Test
     fun `adding to a free square succeeds`() = runTest {
         assertNotNull(repository.addCell(cell(row = 0, col = 0)))
+    }
+
+    @Test
+    fun `a header placed in the first free slot never lands off column 0`() = runTest {
+        // S1642: the free-slot scan writes the anchor it found rather than the normalized column, so it is
+        // the one path where a header narrow enough to fit beside another could be seated at column 1+.
+        insertNarrowHeader(row = 0)
+        val id = repository.addCellInFirstFreeSlot(section(row = 0), columns = 8)
+        assertNotNull(id)
+        val stored = storedCell(id!!)
+        assertEquals(0, stored?.colIndex)
+        assertTrue("header stayed on the occupied row", (stored?.rowIndex ?: 0) > 0)
+    }
+
+    @Test
+    fun `a second header on a row that already carries one is refused`() = runTest {
+        assertNotNull(repository.addCell(section(row = 0)))
+        assertNull(repository.addCell(section(row = 0)))
+    }
+
+    @Test
+    fun `a shortcut may be placed beside a header on the header's own row`() = runTest {
+        // Strategic §2.2: the point of the compact header is that content fills the rest of its row, so the
+        // column pin above must keep headers apart without keeping shortcuts out.
+        insertNarrowHeader(row = 0)
+        val id = repository.addCellInFirstFreeSlot(cell(row = 0, col = 0), columns = 8)
+        assertNotNull(id)
+        val stored = storedCell(id!!)
+        assertEquals(0, stored?.rowIndex)
+        assertEquals(1, stored?.colIndex)
     }
 
     @Test
@@ -284,28 +321,45 @@ class LauncherDesktopRepositoryImplTest {
     // ── S1428: section headers ──────────────────────────────────────────────
 
     @Test
-    fun `a header is stored at column zero across the widest grid`() = runTest {
+    fun `a header is stored at column zero at the compact span`() = runTest {
         val id = repository.addCell(section(row = 2, col = 3))!!
         val stored = storedCell(id)
-        assertEquals("a header is drawn across the whole row wherever it was stored", 0, stored?.colIndex)
-        assertEquals(LauncherSectionMembership.HEADER_STORED_SPAN_W, stored?.spanW)
+        assertEquals("a header opens its own row wherever it was requested", 0, stored?.colIndex)
+        assertEquals(LauncherSectionMembership.HEADER_SPAN_W, stored?.spanW)
     }
 
     @Test
-    fun `a header reserves its whole row against a later cell`() = runTest {
+    fun `a header leaves the rest of its row free for its own content`() = runTest {
+        // Strategic §2.2: the compact header exists so the section's shortcuts start in the same row.
         repository.addCell(section(row = 0))
-        assertNull("the stored rectangle has to cover every square drawn", repository.addCell(cell(0, 3)))
+        assertNotNull(repository.addCell(cell(0, 3)))
     }
 
     @Test
-    fun `a header restored on a narrower grid keeps its full span`() = runTest {
-        // The stored span is wider than this grid, so a scan bounded by it would find no column at all and
-        // silently place nothing - which is how a header deleted in edit mode would fail to come back.
-        val id = repository.addCellInFirstFreeSlot(section(row = 0), columns = 4)
-        assertNotNull("a header must be placeable on a grid narrower than its stored span", id)
+    fun `a header restored on the narrowest grid keeps its span`() = runTest {
+        // MIN_COLUMNS is 3 and the header is 2, so the compact span fits every grid the desktop resolves -
+        // the case that used to place nothing at all, when the stored span exceeded the grid being scanned.
+        val id = repository.addCellInFirstFreeSlot(section(row = 0), columns = 3)
+        assertNotNull("a header must be placeable on the narrowest grid", id)
         val stored = storedCell(id!!)
         assertEquals(0, stored?.colIndex)
-        assertEquals(LauncherSectionMembership.HEADER_STORED_SPAN_W, stored?.spanW)
+        assertEquals(LauncherSectionMembership.HEADER_SPAN_W, stored?.spanW)
+    }
+
+    @Test
+    fun `normalizing narrows a header written by an earlier build and moves no shortcut`() = runTest {
+        // Strategic §6.3/§11.6: the compact rule reaches desktops seeded before it, and narrowing a header
+        // only frees squares - no shortcut may shift for it.
+        val headerId = insertHeaderWithSpan(row = 0, spanW = 12)
+        val shortcutId = repository.addCell(cell(row = 3, col = 2))!!
+
+        repository.normalizeSectionSpans()
+
+        assertEquals(LauncherSectionMembership.HEADER_SPAN_W, storedCell(headerId)?.spanW)
+        val shortcut = storedCell(shortcutId)
+        assertEquals(3, shortcut?.rowIndex)
+        assertEquals(2, shortcut?.colIndex)
+        assertEquals(1, shortcut?.spanW)
     }
 
     @Test
@@ -322,7 +376,12 @@ class LauncherDesktopRepositoryImplTest {
         val id = repository.addCellInFirstFreeSlot(gadget(row = 0), columns = 4)!!
         // Refusing outright would make a tall gadget unplaceable whenever the first free anchor sits
         // just above a header; the scan is expected to move past that row and keep looking.
-        assertEquals("row 0 would cover the header on row 1", 2, storedCell(id)?.rowIndex)
+        val stored = storedCell(id)
+        assertEquals("row 0 would cover the header on row 1", 1, stored?.rowIndex)
+        // S1642: it lands beside the header rather than below it. Starting on the header's own row is not
+        // a straddle - both rows the gadget covers belong to the section that header opens, which is the
+        // whole point of the compact geometry. Only a cell crossing into the *next* section is refused.
+        assertEquals(2, stored?.colIndex)
     }
 
     @Test

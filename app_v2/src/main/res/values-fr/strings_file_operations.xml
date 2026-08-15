@@ -27,7 +27,7 @@
     <string name="addresource_some_resources_unavailable_after_add">%1$s. Certaines ressources sont actuellement indisponibles.</string>
     <string name="addresource_validation_generic">Il semble qu\'il manque des informations - vérifiez le formulaire et réessayez.</string>
     <string name="import_auto">Recherche automatique dans les téléchargements</string>
-    <string name="import_browse">Rechercher un fichier...</string>
+    <string name="import_browse">Rechercher un fichier..</string>
     <string name="import_failed">Impossible d\'importer vos paramètres. Veuillez réessayer.</string>
     <string name="import_failed_title">Échec de l\'importation</string>
     <string name="import_fav_action">Importer</string>
@@ -121,7 +121,7 @@
     <string name="file_not_found_message">Le fichier « %1$s » n\'existe plus. Il a peut-être été supprimé ou déplacé en dehors de l\'application. Actualiser cette ressource ?</string>
     <string name="file_not_found_name">Fichier introuvable : %1$s</string>
     <string name="file_not_found_title">Fichier introuvable</string>
-    <string name="file_operation_progress_preparing">Préparation en cours...</string>
+    <string name="file_operation_progress_preparing">Préparation en cours..</string>
     <string name="file_ops_in_overflow_menu">Opérations sur les fichiers dans le menu de débordement</string>
     <string name="file_ops_moved_to_menu_hint">Les actions sur les fichiers sont désormais accessibles via le menu ⋮ de chaque fichier.</string>
     <string name="file_path_label">Chemin : %1$s</string>

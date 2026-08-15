@@ -145,7 +145,7 @@
     <string name="kbm_help_dialog_primary">Azione principale (OK / Applica)</string>
     <string name="kbm_help_dialog_toggle">Opzione di attivazione/disattivazione</string>
     <string name="kbm_help_empty">Non sono ancora state registrate scorciatoie per questa schermata.</string>
-    <string name="kbm_help_full_docs_link">Apri il manuale completo di tastiera/mouse...</string>
+    <string name="kbm_help_full_docs_link">Apri il manuale completo di tastiera/mouse..</string>
     <string name="kbm_help_global_escape">Annulla, deseleziona, chiudi la finestra di dialogo</string>
     <string name="kbm_help_global_exit">Esci dalla schermata corrente</string>
     <string name="kbm_help_global_f1">Mostra questo aiuto</string>

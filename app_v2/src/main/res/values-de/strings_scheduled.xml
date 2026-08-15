@@ -44,7 +44,7 @@
     <string name="scheduled_ops_filter_select_at_least_one">Wählen Sie mindestens einen Dateityp aus</string>
     <string name="scheduled_ops_filter_video">Video</string>
     <string name="scheduled_ops_interval_corrected_15">Das Mindestintervall beträgt 15 Minuten.</string>
-    <string name="scheduled_ops_interval_corrected_1h">0 Stunden und 0 Minuten können nicht eingestellt werden – auf 1 Stunde eingestellt.</string>
+    <string name="scheduled_ops_interval_corrected_1h">0 Stunden und 0 Minuten können nicht eingestellt werden - auf 1 Stunde eingestellt.</string>
     <string name="scheduled_ops_log_clear">Protokoll löschen</string>
     <string name="scheduled_ops_log_empty">Das Protokoll ist leer</string>
     <string name="scheduled_ops_log_title">Betriebsprotokoll</string>

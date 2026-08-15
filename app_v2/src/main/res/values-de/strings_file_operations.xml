@@ -24,9 +24,9 @@
     <string name="addresource_smb_scan_found_limited">Der SMB-Scan hat nur wenige Freigaben gefunden. Wenn Sie benutzerdefinierte Freigabenamen verwenden, fügen Sie diese manuell hinzu.</string>
     <string name="addresource_smb_scan_found_more">SMB-Scan abgeschlossen. Falls Sie weitere Freigaben mit benutzerdefinierten Namen haben, fügen Sie diese manuell hinzu.</string>
     <string name="addresource_smb_scan_none_found">Es wurden keine Freigaben gefunden. Falls Ihre Freigaben benutzerdefinierte Namen verwenden, fügen Sie diese manuell hinzu.</string>
-    <string name="addresource_validation_generic">Es scheint, als fehle etwas – überprüfen Sie das Formular und versuchen Sie es erneut.</string>
+    <string name="addresource_validation_generic">Es scheint, als fehle etwas - überprüfen Sie das Formular und versuchen Sie es erneut.</string>
     <string name="import_auto">Automatische Suche in Downloads</string>
-    <string name="import_browse">Datei suchen...</string>
+    <string name="import_browse">Datei suchen..</string>
     <string name="import_failed">Ihre Einstellungen konnten nicht importiert werden. Bitte versuchen Sie es erneut.</string>
     <string name="import_failed_title">Import fehlgeschlagen</string>
     <string name="import_fav_action">Import</string>
@@ -71,7 +71,7 @@
     <string name="delete_by_size_larger">Größer als</string>
     <string name="delete_by_size_no_matches">Keine passenden Dateien gefunden</string>
     <string name="delete_by_size_preview_title">Löschung bestätigen</string>
-    <string name="delete_by_size_scanning">Scanvorgang läuft...</string>
+    <string name="delete_by_size_scanning">Scanvorgang läuft..</string>
     <string name="delete_by_size_smaller">Kleiner als</string>
     <string name="delete_by_size_warning_no_trash">Warnung: Für diese Ressource wird kein Papierkorb unterstützt. Das Löschen ist endgültig!</string>
     <string name="delete_confirmation">Dateien löschen?</string>
@@ -85,13 +85,13 @@
     <string name="delete_permission_denied">Keine Berechtigung zum Löschen dieser Datei</string>
     <string name="delete_resource_message">Möchten Sie %1$s wirklich löschen?</string>
     <string name="delete_resource_title">Ressource löschen</string>
-    <string name="delete_trash_unavailable_fallback_to_hard_delete">Der Papierkorb ist für einige Dateien nicht verfügbar – sie wurden endgültig gelöscht.</string>
+    <string name="delete_trash_unavailable_fallback_to_hard_delete">Der Papierkorb ist für einige Dateien nicht verfügbar - sie wurden endgültig gelöscht.</string>
     <string name="deleted_n_file_s">%1$d-Datei(en) gelöscht</string>
     <string name="deleted_n_files">%1$d-Dateien gelöscht.</string>
     <string name="deleted_n_of_m_files">%1$d von %2$d Dateien gelöscht.</string>
     <string name="file_already_exists">Datei existiert bereits: %1$s</string>
     <string name="file_already_exists_in_folder">%1$s (übersprungen - existiert bereits in %2$s)</string>
-    <string name="file_already_exists_skip">%1$s (übersprungen – Datei existiert bereits)</string>
+    <string name="file_already_exists_skip">%1$s (übersprungen - Datei existiert bereits)</string>
     <string name="file_cloud_id_label">Cloud-ID: %1$s</string>
     <string name="file_count">Dateianzahl</string>
     <string name="file_count_format">%d Dateien</string>
@@ -119,7 +119,7 @@
     <string name="file_not_found_message">Die Datei „%1$s“ existiert nicht mehr. Sie wurde möglicherweise gelöscht oder aus der Anwendung verschoben. Ressource aktualisieren?</string>
     <string name="file_not_found_name">Datei nicht gefunden: %1$s</string>
     <string name="file_not_found_title">Datei nicht gefunden</string>
-    <string name="file_operation_progress_preparing">Vorbereitung läuft…</string>
+    <string name="file_operation_progress_preparing">Vorbereitung läuft..</string>
     <string name="file_ops_in_overflow_menu">Dateivorgänge im Überlaufmenü</string>
     <string name="file_ops_moved_to_menu_hint">Die Dateiaktionen wurden in das ⋮-Menü jeder Datei verschoben.</string>
     <string name="file_path_label">Pfad: %1$s</string>
@@ -133,7 +133,7 @@
     <string name="error_folder_into_itself">Ein Ordner kann nicht in sich selbst kopiert oder verschoben werden. Wählen Sie ein Ziel außerhalb dieses Ordners.</string>
     <string name="error_folder_same_location">Dieser Ordner befindet sich bereits im gewählten Zielordner. Wählen Sie einen anderen Zielordner.</string>
     <string name="browse_transfer_notif_text_folders_done">Übertragene Ordner: %1$d</string>
-    <string name="browse_transfer_folder_partial_state">Angehalten. Bereits erstellte Elemente bleiben am Zielort – überprüfen Sie den Ordner, bevor Sie fortfahren.</string>
+    <string name="browse_transfer_folder_partial_state">Angehalten. Bereits erstellte Elemente bleiben am Zielort - überprüfen Sie den Ordner, bevor Sie fortfahren.</string>
     <string name="browse_row_folder_checkbox">Ordner %1$s auswählen</string>
     <string name="browse_row_file_checkbox">Datei %1$s auswählen</string>
     <string name="browse_transfer_folders_included">Enthaltene Ordner: %1$d</string>

@@ -26,5 +26,5 @@ class NoOpCastController : CastController {
 
     override fun showCastDialog(activity: FragmentActivity) = Unit
 
-    override fun sendCurrentMedia(file: MediaFile) = Unit
+    override fun sendCurrentMedia(file: MediaFile, stereoCrop: CastStereoCrop?) = Unit
 }

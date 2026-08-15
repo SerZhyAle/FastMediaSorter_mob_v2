@@ -86,7 +86,7 @@ From PowerShell in project root:
 adb install .\wear\build\outputs\apk\debug\wear-debug.apk
 
 # Launch app
-adb shell am start -n com.sza.fastmediasorter.wear.debug/com.sza.fastmediasorter.wear.MainActivity
+adb shell am start -n com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.MainActivity
 ```
 
 ---
@@ -142,7 +142,9 @@ Already fixed! This project uses **KSP** instead of deprecated KAPT for annotati
 ### APK deployment fails
 
 1. Check device connection: `adb devices`
-2. Enable USB debugging on device (Settings → Developer Options)
+2. Enable debugging on the watch (Settings → Developer Options). A dockless watch such as Samsung
+   Galaxy Watch has no USB data path and needs **Wireless debugging** plus an `adb pair` /
+   `adb connect` round trip - see [WEAR_OS_SETUP.md](WEAR_OS_SETUP.md) "Physical Wear Device"
 3. Try: `.\gradlew.bat :wear:installDebug --info`
 
 ### Emulator is slow

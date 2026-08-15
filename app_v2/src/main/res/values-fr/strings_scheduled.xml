@@ -51,7 +51,7 @@
     <string name="scheduled_ops_next_run">Prochaine course à :</string>
     <string name="scheduled_ops_no_destinations">Ajoutez d\'abord les destinations dans la section Destinations</string>
     <string name="scheduled_ops_notif_channel_name">Opérations programmées</string>
-    <string name="scheduled_ops_notif_running">Opération planifiée en cours...</string>
+    <string name="scheduled_ops_notif_running">Opération planifiée en cours..</string>
     <string name="scheduled_ops_op_copy">Copie</string>
     <string name="scheduled_ops_op_delete">Supprimer</string>
     <string name="scheduled_ops_op_move">Se déplacer</string>

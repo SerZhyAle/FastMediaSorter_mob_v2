@@ -44,11 +44,10 @@
     <string name="playback_settings_3d_spherical_format">Formato esférico</string>
     <string name="playback_speed">Velocidade de reprodução</string>
     <string name="player_3d_detected_toast">Vídeo 3D detectado. Use as Informações do Arquivo para abri-lo em um reprodutor de RV externo.</string>
-    <string name="player_audio_track">Idioma da faixa de áudio</string>
     <string name="player_command_panel_mode_playerViewPanel_resize_mode">ajustar</string>
     <string name="player_credentials_missing">As credenciais salvas estão faltando. Atualize-as e tente novamente.</string>
     <string name="player_file_moved">Arquivo movido.</string>
-    <string name="player_file_not_found_message">O arquivo \u201c%1$s\u201d não pode mais ser reproduzido – ele foi excluído ou movido.</string>
+    <string name="player_file_not_found_message">O arquivo \u201c%1$s\u201d não pode mais ser reproduzido - ele foi excluído ou movido.</string>
     <string name="player_health_default_block">Detalhes: código de erro adicional %1$d.\n\nO arquivo pode estar corrompido, incompleto ou em um formato não suportado.</string>
     <string name="player_health_dialog_header">O reprodutor de backup não conseguiu reproduzir este arquivo.</string>
     <string name="player_health_error_type_code">Tipo de erro: código %1$d</string>
@@ -64,11 +63,6 @@
     <string name="player_media_files_load_failed">Não foi possível carregar a lista de arquivos. Tente novamente.</string>
     <string name="player_open_link_failed">Não consegui abrir esse link.</string>
     <string name="player_page_not_ready">Essa página ainda não está pronta. Tente novamente.</string>
-    <string name="player_repeat_video">Reprodução repetida</string>
-    <string name="player_settings_title">Configurações do jogador</string>
-    <string name="player_show_subtitles">Mostrar legendas</string>
-    <string name="player_speed">Velocidade de reprodução</string>
-    <string name="player_subtitle_language">Idioma da legenda</string>
     <string name="player_webview_unavailable">Não foi possível acessar o modo de leitura. Tente novamente.</string>
     <string name="video">Vídeo</string>
     <string name="video_aspect_ratio_label">Proporção da tela: %1$s</string>

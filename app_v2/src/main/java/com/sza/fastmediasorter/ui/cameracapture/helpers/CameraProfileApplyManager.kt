@@ -12,8 +12,11 @@ import timber.log.Timber
  * drives the existing session primitives through [Actions], which is what makes the whole state
  * machine testable with fakes.
  *
- * ADR-2: a profile never owns the camera over an explicit user action. A manual lens switch or a
- * move into video mode resets to NORMAL rather than silently fighting the user.
+ * S1658 revokes S1262's ADR-2, which read "a profile never owns the camera over an explicit user
+ * action" and dropped the profile on every lens switch. A lens switch is not a cancellation of the
+ * profile: it is a move to the other lens's own set, which the host restores through [restore]. An
+ * explicit profile choice made after such a switch still outranks the restored one and becomes that
+ * lens's new remembered value. Moving into video mode still resets, because profiles are photo-only.
  */
 class CameraProfileApplyManager(private val actions: Actions) {
 
@@ -57,6 +60,18 @@ class CameraProfileApplyManager(private val actions: Actions) {
             PhotoProfile.MACRO -> actions.setMacro(true)
             PhotoProfile.SPORT -> actions.setSport(true)
         }
+    }
+
+    /**
+     * S1658: marks [profile] active because the entered lens remembered it, without replaying its
+     * recipe. The session has already written the matching intents (see `restorePerLensState`), so
+     * driving the actions here would rebind a second time to reach the state the bind is about to
+     * produce.
+     */
+    fun restore(profile: PhotoProfile) {
+        if (profile == activeProfile) return
+        Timber.d("CameraProfileApplyManager: restoring %s for the entered lens", profile)
+        activeProfile = profile
     }
 
     /** Drop back to NORMAL. [reason] is logged, because most resets are triggered indirectly. */

@@ -71,7 +71,7 @@ class TranslationManager(
     val translation: TextTranslationFacade get() = translationBackend
 
     /** OCR surface (ML Kit text recognition + offline engines). */
-    val recognition: TextRecognizationFacade get() = recognitionBackend
+    val recognition: TextRecognitionFacade get() = recognitionBackend
 
     /**
      * Data class representing a text block with position and translation

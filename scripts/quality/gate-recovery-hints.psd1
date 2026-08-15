@@ -73,11 +73,6 @@
         Fix   = 'A dependency changed without its third-party notice - regenerate the notices artifact so the shipped package keeps declaring what it bundles.'
     }
 
-    'flavor-flag-gate' = @{
-        Repro = 'pwsh -NoProfile -File scripts/quality/assert-flavor-flags-not-growing.ps1 -Gate -ChangedFiles "<your,files>"'
-        Fix   = 'Your change added a BuildConfig.IS_* flavor guard in src/main (CLAUDE.md Rule 14) - move the branch behind a contract interface with a per-flavor binding.'
-    }
-
     'detekt-preflight' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/detekt-scoped.ps1 -ChangedFiles "<your,files>"'
         Fix   = 'detekt found NEW findings in your files - fix them in the source; never widen the baseline to absorb them.'
@@ -91,16 +86,6 @@
     'acceptance-probe-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-ticket-acceptance-probes.ps1 -Gate'
         Fix   = 'An acceptance predicate names a literal that no source line carries - grep the literal in its Timber form and correct the predicate to what the code prints.'
-    }
-
-    'public-mutable-flow-gate' = @{
-        Repro = 'pwsh -NoProfile -File scripts/quality/assert-public-mutable-flow.ps1 -Gate -ChangedFiles "<your,files>"'
-        Fix   = 'A MutableStateFlow / MutableLiveData / MutableSharedFlow is exposed publicly - make the backing property private and expose the read-only projection.'
-    }
-
-    'deprecated-pm-flags-gate' = @{
-        Repro = 'pwsh -NoProfile -File scripts/quality/assert-deprecated-pm-flags.ps1 -Gate -ChangedFiles "<your,files>"'
-        Fix   = 'A raw-int PackageManager overload is back in src/main (CLAUDE.md Rule 21) - call the matching helper in util/PackageManagerCompat.kt instead.'
     }
 
     'fgs-notification-gate' = @{
@@ -138,6 +123,11 @@
         Fix   = 'A guide names a settings path that no longer exists - correct the path to the one the settings manifest records, in every locale of that guide.'
     }
 
+    'gson-persistence-contract-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-gson-persistence-contract.ps1'
+        Fix   = 'A model whose Gson JSON outlives the process has no pinned wire names - annotate every property with @SerializedName, or keep its fields by name in that module''s proguard-rules.pro. An enum reported separately needs its constants pinned, which neither form on the containing model covers. If the model genuinely does not need pinning, add a line with a written justification to scripts/quality/gson-persistence-exemptions-baseline.txt.'
+    }
+
     'launcher-reset-coverage-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-launcher-reset-coverage.ps1 -Gate'
         Fix   = 'A launcher preference is not covered by the reset path - add it there so a reset leaves no stale state behind.'
@@ -148,6 +138,11 @@
         Fix   = 'The icon inventory render is stale - regenerate it; repo-wide, so the finding may belong to another ticket in flight and stays advisory under -ScopeToFile.'
     }
 
+    'doc-icons-sync-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-doc-icons-sync.ps1 -Gate'
+        Fix   = 'A document-icon map, asset, generator or checked page drifted - regenerate the icon assets and checked surfaces, then run the gate again.'
+    }
+
     'device-profile-matrix-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-device-profile-matrix.ps1'
         Fix   = 'The device-profile matrix render is stale - regenerate it; repo-wide, so it stays advisory under -ScopeToFile.'
@@ -156,6 +151,11 @@
     'doc-pins-sync' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/generate-toolchain-pins.ps1'
         Fix   = 'The generated toolchain pins are stale - regenerate them; the generated block is a render target and is never hand-edited.'
+    }
+
+    'rule-digest-sync-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-rule-digest-sync.ps1'
+        Fix   = 'A numbered CLAUDE.md rule is missing from a full digest - state it in the named file and cite it as the literal "Rule N"; a range like "Rules 24-29" does not count. Roles: dev/RULE_AND_SKILL_AUTHORING.md "Rule mirroring contract".'
     }
 
     'document-registry' = @{

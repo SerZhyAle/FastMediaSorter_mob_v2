@@ -148,6 +148,7 @@ Full-size images:
 - 📥 **Download & Open:** Download network files (SMB/SFTP/FTP) to local storage and open them in external apps with progress tracking.
 - 🌐 **Auto-Translation:** Instantly translate text from images, PDFs, and text files using a **Hybrid OCR System** (Google ML Kit + Tesseract) for superior accuracy in both Latin and Cyrillic scripts. Supports both standard and **lens-style overlay mode** for in-place translations.
 - 📱 **Widget Support:** Over a dozen home-screen widgets covering a wide range - resource shortcuts, media players, camera capture, calculators, scheduled tasks, favorites, mini-games, and more. Browse the full selection in your launcher's widget picker.
+- 🏠 **Home-Screen Mode:** Let the app be your device's home screen (Standard and noLegal builds): its own desktop with resource shortcuts that open straight into browse, slideshow or play, resizable gadgets like a clock and weather, contact cells that need no contacts permission, an app grid, and a taskbar. Turn it off at any time and Android restores your previous home screen.
 - ⏰ **Scheduled File Operations:** Automate file operations (Copy/Move/Delete) using time-based rules with flexible filters and background execution.
 - 👆 **Advanced Gestures:** Smart zoom controls (2x/3x/4x) for images and intuitive touch zones for file navigation.
 - 📸 **Save Frame:** Capture the current video frame as a PNG or JPG snapshot and save it to any configured resource - local or network. Output format and destination resource are set in Video Settings.

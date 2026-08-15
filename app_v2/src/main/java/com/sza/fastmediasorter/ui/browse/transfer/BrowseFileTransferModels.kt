@@ -97,7 +97,13 @@ sealed interface BrowseFileTransferTerminalEvent {
 data class BrowseFileTransferTerminalPayload(
     @SerializedName("kind") val kind: String,
     @SerializedName("workId") val workId: String,
-    @SerializedName("operationType") val operationType: String,
+    // S1671: declared as the enum, not a String holding its name. Enum.name and Enum.valueOf read and write
+    // the constant name and never consult @SerializedName, so carrying the value as a String routed it past
+    // the pin S1661 put on FileOperationType and valueOf threw on a blob written under a different R8 mapping.
+    // Gson's enum adapter writes the pinned wire name, which repeats the constant name, so the bytes on disk
+    // are unchanged and a payload parked by an earlier release keeps parsing. An unknown name now decodes to
+    // null and is caught by isStructurallyIntact at the read boundary instead of throwing at the consumer.
+    @SerializedName("operationType") val operationType: FileOperationType,
     @SerializedName("processedCount") val processedCount: Int = 0,
     @SerializedName("failedCount") val failedCount: Int = 0,
     @SerializedName("message") val message: String? = null,
@@ -107,6 +113,35 @@ data class BrowseFileTransferTerminalPayload(
     @SerializedName("undoDestinationFolder") val undoDestinationFolder: String? = null,
     @SerializedName("undoCopiedFiles") val undoCopiedFiles: List<String> = emptyList(),
 )
+
+// S1638: none of these types has a no-arg constructor, so Gson allocates the instance directly and leaves
+// every key it did not find in the JSON at the JVM default - a property Kotlin declares non-null can hold
+// null. Such an object throws far away from the read that produced it: the transfer worker walks
+// `request.sources` inside its own `finally` while purging staged sources, so the NPE would replace the
+// transfer's real outcome instead of surfacing as a bad read. The store checks intactness at the read
+// boundary and drops a failing blob, which is the degradation callers already handle. Each comparison below
+// is "always false" to the compiler and true at runtime - that is the point, and why the suppression is
+// deliberate rather than incidental.
+@Suppress("SENSELESS_COMPARISON")
+internal fun BrowseFileTransferSource.isStructurallyIntact(): Boolean =
+    path != null && displayName != null
+
+@Suppress("SENSELESS_COMPARISON")
+internal fun BrowseFileTransferRequest.isStructurallyIntact(): Boolean =
+    operationType != null &&
+        sourceResourceName != null &&
+        destinationPath != null &&
+        destinationName != null &&
+        sources != null &&
+        sources.all { it != null && it.isStructurallyIntact() }
+
+@Suppress("SENSELESS_COMPARISON")
+internal fun BrowseFileTransferTerminalPayload.isStructurallyIntact(): Boolean =
+    kind != null &&
+        workId != null &&
+        operationType != null &&
+        undoSourceFiles != null &&
+        undoCopiedFiles != null
 
 private const val KIND_SUCCESS = "success"
 private const val KIND_PARTIAL = "partial"
@@ -119,7 +154,7 @@ fun BrowseFileTransferTerminalEvent.toPayload(): BrowseFileTransferTerminalPaylo
     is BrowseFileTransferTerminalEvent.Success -> BrowseFileTransferTerminalPayload(
         kind = KIND_SUCCESS,
         workId = workId,
-        operationType = operationType.name,
+        operationType = operationType,
         processedCount = processedCount,
         undoSourceFiles = undoOperation?.sourceFiles.orEmpty(),
         undoDestinationFolder = undoOperation?.destinationFolder,
@@ -128,7 +163,7 @@ fun BrowseFileTransferTerminalEvent.toPayload(): BrowseFileTransferTerminalPaylo
     is BrowseFileTransferTerminalEvent.PartialSuccess -> BrowseFileTransferTerminalPayload(
         kind = KIND_PARTIAL,
         workId = workId,
-        operationType = operationType.name,
+        operationType = operationType,
         processedCount = processedCount,
         failedCount = failedCount,
         details = details,
@@ -139,44 +174,43 @@ fun BrowseFileTransferTerminalEvent.toPayload(): BrowseFileTransferTerminalPaylo
     is BrowseFileTransferTerminalEvent.Failure -> BrowseFileTransferTerminalPayload(
         kind = KIND_FAILURE,
         workId = workId,
-        operationType = operationType.name,
+        operationType = operationType,
         message = message,
         details = details,
     )
     is BrowseFileTransferTerminalEvent.AuthenticationRequired -> BrowseFileTransferTerminalPayload(
         kind = KIND_AUTH,
         workId = workId,
-        operationType = operationType.name,
+        operationType = operationType,
         provider = provider,
         message = message,
     )
     is BrowseFileTransferTerminalEvent.PermissionRequired -> BrowseFileTransferTerminalPayload(
         kind = KIND_PERMISSION,
         workId = workId,
-        operationType = operationType.name,
+        operationType = operationType,
     )
     is BrowseFileTransferTerminalEvent.Cancelled -> BrowseFileTransferTerminalPayload(
         kind = KIND_CANCELLED,
         workId = workId,
-        operationType = operationType.name,
+        operationType = operationType,
     )
 }
 
 fun BrowseFileTransferTerminalPayload.toEvent(
     pendingIntent: PendingIntent? = null,
 ): BrowseFileTransferTerminalEvent {
-    val opType = FileOperationType.valueOf(operationType)
-    val undoOperation = buildUndoOperation(opType)
+    val undoOperation = buildUndoOperation()
     return when (kind) {
         KIND_SUCCESS -> BrowseFileTransferTerminalEvent.Success(
             workId = workId,
-            operationType = opType,
+            operationType = operationType,
             processedCount = processedCount,
             undoOperation = undoOperation,
         )
         KIND_PARTIAL -> BrowseFileTransferTerminalEvent.PartialSuccess(
             workId = workId,
-            operationType = opType,
+            operationType = operationType,
             processedCount = processedCount,
             failedCount = failedCount,
             details = details,
@@ -184,31 +218,29 @@ fun BrowseFileTransferTerminalPayload.toEvent(
         )
         KIND_FAILURE -> BrowseFileTransferTerminalEvent.Failure(
             workId = workId,
-            operationType = opType,
+            operationType = operationType,
             message = message ?: "",
             details = details,
         )
         KIND_AUTH -> BrowseFileTransferTerminalEvent.AuthenticationRequired(
             workId = workId,
-            operationType = opType,
+            operationType = operationType,
             provider = provider.orEmpty(),
             message = message,
         )
         KIND_PERMISSION -> BrowseFileTransferTerminalEvent.PermissionRequired(
             workId = workId,
-            operationType = opType,
+            operationType = operationType,
             pendingIntent = pendingIntent,
         )
         else -> BrowseFileTransferTerminalEvent.Cancelled(
             workId = workId,
-            operationType = opType,
+            operationType = operationType,
         )
     }
 }
 
-private fun BrowseFileTransferTerminalPayload.buildUndoOperation(
-    operationType: FileOperationType,
-): UndoOperation? {
+private fun BrowseFileTransferTerminalPayload.buildUndoOperation(): UndoOperation? {
     if (undoSourceFiles.isEmpty() || undoDestinationFolder.isNullOrBlank() || undoCopiedFiles.isEmpty()) {
         return null
     }

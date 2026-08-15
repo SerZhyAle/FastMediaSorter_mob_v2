@@ -45,10 +45,12 @@ import javax.inject.Inject
 class StandaloneHostFactory @Inject constructor(
     private val networkClients: StandaloneNetworkClients,
     private val fileOpHandlers: StandaloneFileOpHandlers,
-    private val settingsRepository: SettingsRepository,
+    // S1637: public because PhotoVideoStandaloneActivity reads settings directly for its own UI
+    // decisions and builds ImageCropManager itself - neither is a manager this factory constructs.
+    val settingsRepository: SettingsRepository,
     private val playbackPositionRepository: PlaybackPositionRepository,
     private val resolveOpenInFmsTarget: ResolveOpenInFmsTargetUseCase,
-    private val fileOperationUseCase: FileOperationUseCase,
+    val fileOperationUseCase: FileOperationUseCase,
     private val getDestinationsUseCase: GetDestinationsUseCase,
     private val sendToMenuManager: SendToMenuManager,
     private val saveTextNoteUseCase: SaveTextNoteUseCase,

@@ -109,6 +109,38 @@ class CameraProfileApplyManagerTest {
     }
 
     @Test
+    fun `restoring a lens set marks the profile active without replaying its recipe`() {
+        manager.restore(PhotoProfile.NIGHT)
+
+        assertEquals(PhotoProfile.NIGHT, manager.activeProfile)
+        // S1658: the session wrote the intents before the bind, so replaying them here would rebind
+        // a second time to reach the state the imminent bind already produces.
+        assertTrue(actions.calls.isEmpty())
+    }
+
+    @Test
+    fun `an explicit choice after a restore outranks the restored profile`() {
+        manager.restore(PhotoProfile.NIGHT)
+        actions.calls.clear()
+
+        manager.apply(PhotoProfile.PORTRAIT)
+
+        assertEquals(PhotoProfile.PORTRAIT, manager.activeProfile)
+        assertTrue("bokeh=true" in actions.calls)
+    }
+
+    @Test
+    fun `selfie survives the lens move it causes`() {
+        // S1658: SELFIE switches the lens itself, and the host suppresses both the save and the
+        // restore for that move - so the front lens's own remembered set cannot replace the profile
+        // the user just picked. Here the profile must simply still be the chosen one afterwards.
+        manager.apply(PhotoProfile.SELFIE)
+
+        assertTrue("frontLens" in actions.calls)
+        assertEquals(PhotoProfile.SELFIE, manager.activeProfile)
+    }
+
+    @Test
     fun `reconcile drops a profile the bound lens cannot honour`() {
         manager.apply(PhotoProfile.PORTRAIT)
 

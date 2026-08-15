@@ -23,7 +23,7 @@
     <string name="game_help_title">Como jogar</string>
     <string name="game_how_to_play">Como jogar?</string>
     <string name="game_level">Nível %1$d</string>
-    <string name="game_loading">Carregando jogo...</string>
+    <string name="game_loading">Carregando jogo..</string>
     <string name="game_menu_label">Jogar minijogo</string>
     <string name="game_move_down">Desça</string>
     <string name="game_move_left">Mova-se para a esquerda.</string>

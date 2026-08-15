@@ -55,6 +55,9 @@
           one, or the line count differs from the sidecar - nothing is written in that case.
       3 - written, but at least one line was rejected (placeholder mismatch, empty, or refused by the
           seeder). The named keys stay untranslated and fall back to English.
+
+    House text style is corrected in place, not rejected (S1544): a run whose only event is
+    normalization still exits 0, and each corrected line is named on stdout as 'normalized: ..'.
 #>
 [CmdletBinding()]
 param(
@@ -71,6 +74,7 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot 'locale-set.ps1')
+. (Join-Path $repoRoot 'scripts/quality/lib/house-text-style.ps1')
 
 if (-not (Test-Path -LiteralPath $TextPath)) {
     Write-Error "locale-bulk-import: translated file not found: $TextPath" -ErrorAction Continue
@@ -144,7 +148,12 @@ function Get-FormatSignature([AllowEmptyString()][string]$Text) {
 
 $maps = [ordered]@{}
 $rejected = [System.Collections.Generic.List[string]]::new()
+$normalized = [System.Collections.Generic.List[string]]::new()
 $accepted = 0
+
+# The yo rule is deliberately excluded: none of the ten bulk locales is Russian, and the rule would
+# only ever misfire on a Cyrillic-looking token in another language.
+$styleRules = @('ellipsis', 'long-dash')
 
 for ($i = 0; $i -lt $records.Count; $i++) {
     $record = $records[$i]
@@ -156,6 +165,16 @@ for ($i = 0; $i -lt $records.Count; $i++) {
     if ((Get-FormatSignature $value) -ne [string]$record.formats) {
         [void]$rejected.Add("line $($i + 1) $($record.key) (placeholder mismatch: expected '$($record.formats)')")
         continue
+    }
+
+    # The service re-typographs what it is given - the English source of every key is house-style
+    # clean and the answer comes back with an ellipsis character and an en dash (S1544). Correct it
+    # rather than reject it: a lost format token crashes the app, a stray dash does not, so the key
+    # stays translated and the change is reported instead.
+    $styled = Convert-HouseStyleText -Text $value -Area ResourceValue -Rules $styleRules
+    if ($styled.Changed) {
+        [void]$normalized.Add("line $($i + 1) $($record.key) ($(($styled.RulesFired | Sort-Object) -join ', '))")
+        $value = $styled.Text
     }
 
     # One export may span several source sets, and strings.xml exists in more than one of them, so the
@@ -182,8 +201,9 @@ for ($i = 0; $i -lt $records.Count; $i++) {
 $mapDir = Join-Path $exportDir "maps/$Locale"
 if (-not (Test-Path -LiteralPath $mapDir)) { New-Item -ItemType Directory -Path $mapDir -Force | Out-Null }
 
-Write-Host "locale-bulk-import: $Locale <- $TextPath | lines $($records.Count) | accepted $accepted | rejected $($rejected.Count)"
+Write-Host "locale-bulk-import: $Locale <- $TextPath | lines $($records.Count) | accepted $accepted | rejected $($rejected.Count) | normalized $($normalized.Count)"
 foreach ($reason in $rejected) { Write-Host "  rejected: $reason" }
+foreach ($note in $normalized) { Write-Host "  normalized: $note" }
 
 $seeder = Join-Path $PSScriptRoot 'seed-locale-tranche.ps1'
 $pwshExe = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName

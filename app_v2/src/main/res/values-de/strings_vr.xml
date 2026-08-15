@@ -9,24 +9,24 @@
     <string name="player_vr_return_crashed">VR wurde unerwartet geschlossen. Bitte versuchen Sie es erneut.</string>
     <string name="player_vr_return_unavailable">VR ist derzeit nicht verfügbar.</string>
     <string name="player_vr_overflow_open">In VR öffnen</string>
-    <string name="vr_cheatsheet_ctrl_a">A (rechts) – Pause/Wiedergabe</string>
-    <string name="vr_cheatsheet_ctrl_b">B (rechts) – Ausgang zum 2D-Panel</string>
-    <string name="vr_cheatsheet_ctrl_grip">Greifen – halten + Hand bewegen = Zoomen · beide Griffe ≥ 1 Sekunde = Zoom zurücksetzen</string>
+    <string name="vr_cheatsheet_ctrl_a">A (rechts) - Pause/Wiedergabe</string>
+    <string name="vr_cheatsheet_ctrl_b">B (rechts) - Ausgang zum 2D-Panel</string>
+    <string name="vr_cheatsheet_ctrl_grip">Greifen - halten + Hand bewegen = Zoomen · beide Griffe ≥ 1 Sekunde = Zoom zurücksetzen</string>
     <string name="vr_cheatsheet_ctrl_menu">≡ (links) - Wiedergabesteuerungsdialog</string>
-    <string name="vr_cheatsheet_ctrl_stick_l">Linker Stick – ↑↓ Lautstärke · ←→ Suche ±10s · Klick: immersiv ↔ flach</string>
-    <string name="vr_cheatsheet_ctrl_stick_r">Rechter Stick – Lautstärke erhöhen/verringern · Vorherige/Nächste Datei · Klicken: Neu zentrieren</string>
+    <string name="vr_cheatsheet_ctrl_stick_l">Linker Stick - ↑↓ Lautstärke · ←→ Suche ±10s · Klick: immersiv ↔ flach</string>
+    <string name="vr_cheatsheet_ctrl_stick_r">Rechter Stick - Lautstärke erhöhen/verringern · Vorherige/Nächste Datei · Klicken: Neu zentrieren</string>
     <string name="vr_cheatsheet_ctrl_x">X (links) - Ausgang (Duplikat)</string>
-    <string name="vr_cheatsheet_ctrl_y">Y (links) – Datei-Ops (kurz drücken) / diese Kurzanleitung (lang drücken)</string>
+    <string name="vr_cheatsheet_ctrl_y">Y (links) - Datei-Ops (kurz drücken) / diese Kurzanleitung (lang drücken)</string>
     <string name="vr_cheatsheet_footer">Zum Schließen irgendwo tippen · Zum erneuten Öffnen Y oder F1 gedrückt halten</string>
-    <string name="vr_cheatsheet_hands_double_pinch">Doppeltippen – Pause/Wiedergabe</string>
-    <string name="vr_cheatsheet_hands_ray">Hand zeigen – Zielstrahl · Pinch-Geste – Klick-UI</string>
-    <string name="vr_cheatsheet_hands_swipe">Wischen mit dem Daumen ←→ – ±10s vorwärts · ↑↓ – Lautstärke</string>
-    <string name="vr_cheatsheet_kb_arrows">← → – Positionieren ±10 s · Umschalt+←→ – ±3 s · Strg+←→ – ±60 s · ↑↓ – Lautstärke</string>
-    <string name="vr_cheatsheet_kb_ctrl">Strg+R – Umbenennen · Strg+C – Kopieren · Strg+X – Verschieben · Strg+I – Informationen · Strg+Y – Dateifunktionen</string>
-    <string name="vr_cheatsheet_kb_fkeys">F1 – Diese Kurzanleitung · F2 – Umbenennen · F3 – Info · F4 – Einstellungen · F5 – Kopieren · F6 – Verschieben · F7 – Dateifunktionen · F8 – Löschen · F10 – Beenden</string>
-    <string name="vr_cheatsheet_kb_space">Leertaste / K – Pause / Wiedergabe · J / L – ±10 Sek. · N / P – vorheriger/nächster Titel · M – Stummschaltung</string>
-    <string name="vr_cheatsheet_mouse_buttons">Linke Maustaste – Pause/Wiedergabe · Rechte Maustaste – Einstellungen · Mittlere Maustaste – Neu zentrieren · Taste 4/5 – vorherige/nächste Datei</string>
-    <string name="vr_cheatsheet_mouse_wheel">Rad – Lautstärke · Umschalt + Rad – Suche ±10s</string>
+    <string name="vr_cheatsheet_hands_double_pinch">Doppeltippen - Pause/Wiedergabe</string>
+    <string name="vr_cheatsheet_hands_ray">Hand zeigen - Zielstrahl · Pinch-Geste - Klick-UI</string>
+    <string name="vr_cheatsheet_hands_swipe">Wischen mit dem Daumen ←→ - ±10s vorwärts · ↑↓ - Lautstärke</string>
+    <string name="vr_cheatsheet_kb_arrows">← → - Positionieren ±10 s · Umschalt+←→ - ±3 s · Strg+←→ - ±60 s · ↑↓ - Lautstärke</string>
+    <string name="vr_cheatsheet_kb_ctrl">Strg+R - Umbenennen · Strg+C - Kopieren · Strg+X - Verschieben · Strg+I - Informationen · Strg+Y - Dateifunktionen</string>
+    <string name="vr_cheatsheet_kb_fkeys">F1 - Diese Kurzanleitung · F2 - Umbenennen · F3 - Info · F4 - Einstellungen · F5 - Kopieren · F6 - Verschieben · F7 - Dateifunktionen · F8 - Löschen · F10 - Beenden</string>
+    <string name="vr_cheatsheet_kb_space">Leertaste / K - Pause / Wiedergabe · J / L - ±10 Sek. · N / P - vorheriger/nächster Titel · M - Stummschaltung</string>
+    <string name="vr_cheatsheet_mouse_buttons">Linke Maustaste - Pause/Wiedergabe · Rechte Maustaste - Einstellungen · Mittlere Maustaste - Neu zentrieren · Taste 4/5 - vorherige/nächste Datei</string>
+    <string name="vr_cheatsheet_mouse_wheel">Rad - Lautstärke · Umschalt + Rad - Suche ±10s</string>
     <string name="vr_cheatsheet_section_controllers">Touch-Controller (Quest 2 / 3 / Pro):</string>
     <string name="vr_cheatsheet_section_hands">Handverfolgung (Controller beiseite gelegt):</string>
     <string name="vr_cheatsheet_section_keyboard">Bluetooth-Tastatur:</string>
@@ -37,10 +37,10 @@
     <string name="vr_fops_choose_folder">Wählen Sie einen anderen Ordner.</string>
     <string name="vr_fops_choose_move_target">Wohin ziehen?</string>
     <string name="vr_fops_close">Schließen</string>
-    <string name="vr_fops_copy_to">Kopieren nach…</string>
+    <string name="vr_fops_copy_to">Kopieren nach..</string>
     <string name="vr_fops_delete">Löschen</string>
     <string name="vr_fops_info">Über die Datei</string>
-    <string name="vr_fops_move_to">Wechseln Sie nach…</string>
+    <string name="vr_fops_move_to">Wechseln Sie nach..</string>
     <string name="vr_fops_no_recent">Keine kürzlich angefahrenen Reiseziele</string>
     <string name="vr_fops_not_implemented_copy">VR-Kopie in Ordner landet in einer Folgeiteration</string>
     <string name="vr_fops_not_implemented_move">VR-Verschiebung in den Ordner landet in einer Folgeiteration</string>
@@ -106,6 +106,6 @@
     <string name="vr_settings_xr_unavailable_advisory">Verfügbar auf Geräten wie Meta Quest 3 und Android XR.</string>
     <string name="vr_toggle_enter_description">Immersive Ansicht</string>
     <string name="vr_toggle_exit_description">Immersives Erlebnis verlassen</string>
-    <string name="vr_xr_fallback_flat_mode">Immersiver Modus nicht verfügbar – Spiel im flachen Modus. Sie können das 3D-Format in den Player-Einstellungen ändern.</string>
-    <string name="vr_immersive_preparing">Immersiver Modus wird vorbereitet…</string>
+    <string name="vr_xr_fallback_flat_mode">Immersiver Modus nicht verfügbar - Spiel im flachen Modus. Sie können das 3D-Format in den Player-Einstellungen ändern.</string>
+    <string name="vr_immersive_preparing">Immersiver Modus wird vorbereitet..</string>
 </resources>

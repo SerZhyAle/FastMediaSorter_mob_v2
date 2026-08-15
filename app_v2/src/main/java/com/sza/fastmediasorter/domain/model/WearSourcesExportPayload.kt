@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.domain.model
 
-import com.sza.fastmediasorter.domain.model.WearNetworkSourcePayload
+import com.google.gson.annotations.SerializedName
+
+// S1631: keys pinned - this one travels watch to phone, and the phone is the minified side here.
 
 data class WearSourcesExportPayload(
-    val sources: List<WearNetworkSourcePayload>,
-    val watchName: String
+    @SerializedName("sources") val sources: List<WearNetworkSourcePayload>,
+    @SerializedName("watchName") val watchName: String
 )

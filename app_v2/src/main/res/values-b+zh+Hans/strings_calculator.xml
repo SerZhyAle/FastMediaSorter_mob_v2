@@ -51,5 +51,5 @@
     <string name="calculator_title">计算器</string>
     <string name="calculator_prank_title">危险的系统运行</string>
     <string name="calculator_prank_message">一项危险的系统操作已完成，导致此设备上的所有数据被删除。</string>
-    <string name="calculator_prank_details">更多详情……</string>
+    <string name="calculator_prank_details">更多详情..</string>
 </resources>

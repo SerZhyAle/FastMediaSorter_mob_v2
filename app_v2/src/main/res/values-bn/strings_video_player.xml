@@ -44,11 +44,10 @@
     <string name="playback_settings_3d_spherical_format">গোলাকার বিন্যাস</string>
     <string name="playback_speed">প্লেব্যাক গতি</string>
     <string name="player_3d_detected_toast">3D ভিডিও শনাক্ত করা হয়েছে। এটি একটি বাহ্যিক ভিআর প্লেয়ারে খোলার জন্য ফাইল তথ্য ব্যবহার করুন।</string>
-    <string name="player_audio_track">অডিও ট্র্যাকের ভাষা</string>
     <string name="player_command_panel_mode_playerViewPanel_resize_mode">ফিট</string>
     <string name="player_credentials_missing">সংরক্ষিত ক্রেডেনশিয়ালগুলো পাওয়া যাচ্ছে না। সেগুলো আপডেট করে আবার চেষ্টা করুন।</string>
     <string name="player_file_moved">ফাইলটি সরানো হয়েছে।</string>
-    <string name="player_file_not_found_message">\"%1$s\" ফাইলটি আর চালানো যাচ্ছে না — এটি মুছে ফেলা হয়েছে বা সরানো হয়েছে।</string>
+    <string name="player_file_not_found_message">\"%1$s\" ফাইলটি আর চালানো যাচ্ছে না - এটি মুছে ফেলা হয়েছে বা সরানো হয়েছে।</string>
     <string name="player_health_default_block">বিবরণ: অতিরিক্ত ত্রুটি কোড %1$d।\n\nফাইলটি ত্রুটিপূর্ণ, অসম্পূর্ণ বা অসমর্থিত ফরম্যাটে থাকতে পারে।</string>
     <string name="player_health_dialog_header">ব্যাকআপ প্লেয়ারটি এই ফাইলটি চালাতে পারেনি।</string>
     <string name="player_health_error_type_code">ত্রুটির ধরণ: কোড %1$d</string>
@@ -64,11 +63,6 @@
     <string name="player_media_files_load_failed">ফাইল তালিকাটি লোড করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="player_open_link_failed">ওই লিঙ্কটি খোলা যায়নি।</string>
     <string name="player_page_not_ready">পৃষ্ঠাটি এখনো প্রস্তুত নয়। আবার চেষ্টা করুন।</string>
-    <string name="player_repeat_video">পুনরাবৃত্তি প্লেব্যাক</string>
-    <string name="player_settings_title">প্লেয়ার সেটিংস</string>
-    <string name="player_show_subtitles">সাবটাইটেল দেখান</string>
-    <string name="player_speed">প্লেব্যাক গতি</string>
-    <string name="player_subtitle_language">সাবটাইটেল ভাষা</string>
     <string name="player_webview_unavailable">পঠন দৃশ্যে প্রবেশ করা সম্ভব হয়নি। আবার চেষ্টা করুন।</string>
     <string name="video">ভিডিও</string>
     <string name="video_aspect_ratio_label">আকৃতির অনুপাত: %1$s</string>

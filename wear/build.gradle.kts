@@ -36,7 +36,14 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.sza.fastmediasorter.wear"
+        // S1681: MUST stay identical to app_v2's applicationId. Play Services routes Data Layer
+        // traffic by an AppKey of (package name, signing certificate) and drops anything whose
+        // package name differs across the two devices, inside WearableService and below the app -
+        // so a mismatch is invisible to both sides: the watch logs a sent message and the phone app
+        // is simply never called. While this read "com.sza.fastmediasorter.wear", no payload was
+        // ever deliverable in either direction. The code namespace above deliberately keeps the
+        // .wear segment - only the install identity has to match.
+        applicationId = "com.sza.fastmediasorter"
         // CRITICAL: Do not change - minimum Wear OS 2.0+ (API 28) support
         minSdk = 28  // Wear OS 2.0+ support
         // CRITICAL: Do not change - required for Wear OS Play Store compliance

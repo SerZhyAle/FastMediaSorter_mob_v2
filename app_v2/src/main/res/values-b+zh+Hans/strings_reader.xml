@@ -11,7 +11,7 @@
     <string name="pdf_export_failed">导出失败：%s</string>
     <string name="pdf_export_success">已成功将 %d 页导出到下载目录</string>
     <string name="pdf_export_to_jpg">导出页面为 JPG 格式</string>
-    <string name="pdf_exporting_started">正在导出页面...</string>
+    <string name="pdf_exporting_started">正在导出页面..</string>
     <string name="pdf_file_not_found">此PDF文件已不再可用。</string>
     <string name="pdf_fullscreen">PDF页面全屏视图</string>
     <string name="pdf_keywords_label">关键词：%1$s</string>
@@ -27,7 +27,7 @@
     <string name="pdf_scroll_mode">滚动模式</string>
     <string name="pdf_subject_label">主题：%1$s</string>
     <string name="pdf_text_empty">此页面未找到任何文本</string>
-    <string name="pdf_text_extracting">正在提取文本...</string>
+    <string name="pdf_text_extracting">正在提取文本..</string>
     <string name="pdf_text_mode_enter">文本选择</string>
     <string name="pdf_thumbnails">页面缩略图</string>
     <string name="pdf_version_label">PDF 版本：%1$s</string>
@@ -54,10 +54,10 @@
     <string name="epub_reader_settings">阅读器设置</string>
     <string name="epub_reader_theme">主题</string>
     <string name="epub_search_all_chapters">查看所有章节</string>
-    <string name="epub_search_hint">搜索文本...</string>
+    <string name="epub_search_hint">搜索文本..</string>
     <string name="epub_search_no_results">未找到结果</string>
     <string name="epub_search_results">%1$d 的结果分为 %2$d 章</string>
-    <string name="epub_searching">搜索中……</string>
+    <string name="epub_searching">搜索中..</string>
     <string name="epub_table_of_contents">目录</string>
     <string name="epub_text_empty_tts">章节中未找到文本</string>
     <string name="text_content_hint">文本内容</string>

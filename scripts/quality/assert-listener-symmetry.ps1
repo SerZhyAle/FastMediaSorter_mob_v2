@@ -35,46 +35,33 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$scanRoots = @(
-    Join-Path $repoRoot 'app_v2/src/main'
-    Join-Path $repoRoot 'wear/src/main'
-)
+
+# S1559: ONE scope rule, read by both modes. The full scan used to list app_v2/src/main and
+# wear/src/main while delta mode (S1501) already judged every non-test source set - so an unbalanced
+# registration was refused on its way into a flavor set and then invisible to the integer baseline for
+# good, which is a gate that reports PASS on what it declined to look at. Two lists drift apart; one
+# predicate cannot, and a source set added later joins both modes at once.
+$scopedModules = @('app_v2', 'wear')
+function Test-InSymmetryScope([string]$path) {
+    $p = $path -replace '\\', '/'
+    return ($p -match '(app_v2|wear)/src/') -and ($p -notmatch '(app_v2|wear)/src/(test|androidTest)')
+}
+
+$scanRoots = @(foreach ($m in $scopedModules) {
+    $srcDir = Join-Path $repoRoot "$m/src"
+    if (Test-Path $srcDir) {
+        Get-ChildItem -LiteralPath $srcDir -Directory |
+            Where-Object { Test-InSymmetryScope ("$m/src/" + $_.Name) } |
+            ForEach-Object { $_.FullName }
+    }
+})
 $baselineFile = Join-Path $PSScriptRoot 'listener-symmetry-baseline.txt'
 
-$regContentObserver = [regex]'\bregisterContentObserver\b'
-$unregContentObserver = [regex]'\bunregisterContentObserver\b'
-
-$regReceiver = [regex]'\bregisterReceiver\b'
-$unregReceiver = [regex]'\bunregisterReceiver\b'
-$regReceiverNull = [regex]'\bregisterReceiver\s*\(\s*null\s*,'
-
-$addListener = [regex]'\badd[A-Za-z0-9_]*Listener\b'
-$removeListener = [regex]'\bremove[A-Za-z0-9_]*Listener\b'
-
-$addCallback = [regex]'\badd[A-Za-z0-9_]*Callback\b'
-$removeCallback = [regex]'\bremove[A-Za-z0-9_]*Callback\b'
-# S1433: onBackPressedDispatcher.addCallback(owner, ..) is unregistered by the lifecycle it is handed,
-# so it has no remove* counterpart to pair with and never can have one. Counting it failed every NEW
-# Activity that handles Back - a delta-mode file is entirely new, so its whole count reads as growth -
-# while the dozen existing screens using the identical call passed only because they sit in the
-# baseline. Subtracted rather than dropped from the pattern, matching how registerReceiver(null, ..)
-# is already discounted above.
-$addCallbackLifecycle = [regex]'\bonBackPressedDispatcher\s*(?:\r?\n\s*)?\.\s*addCallback\b'
-
-$addObserver = [regex]'\badd[A-Za-z0-9_]*Observer\b'
-$removeObserver = [regex]'\bremove[A-Za-z0-9_]*Observer\b'
-
-# S0850: the per-file imbalance is this gate's unit of count. Both the full scan and the
-# delta mode call this, so they judge byte-for-byte the same logic.
-function Get-FileImbalance([string]$text) {
-    if ([string]::IsNullOrEmpty($text)) { return 0 }
-    $dObs = [Math]::Abs($regContentObserver.Matches($text).Count - $unregContentObserver.Matches($text).Count)
-    $dRec = [Math]::Abs(($regReceiver.Matches($text).Count - $regReceiverNull.Matches($text).Count) - $unregReceiver.Matches($text).Count)
-    $dList = [Math]::Abs($addListener.Matches($text).Count - $removeListener.Matches($text).Count)
-    $dCb = [Math]::Abs(($addCallback.Matches($text).Count - $addCallbackLifecycle.Matches($text).Count) - $removeCallback.Matches($text).Count)
-    $dObs2 = [Math]::Abs($addObserver.Matches($text).Count - $removeObserver.Matches($text).Count)
-    return $dObs + $dRec + $dList + $dCb + $dObs2
-}
+# S1559: every counting decision - patterns, discounts, per-file imbalance and the detail line - lives
+# in this library so the regression suite can exercise it. The gate itself cannot be loaded for
+# testing (it runs a repository scan on load) and delta mode needs git plus a path inside the
+# repository, so a sandbox fixture can never reach either.
+. (Join-Path $PSScriptRoot 'lib/listener-symmetry-count.ps1')
 
 # S0850: delta mode - per-file imbalance growth vs HEAD over the changed files only. An edit
 # that raises a file's imbalance fails; keeping or reducing it passes; other files' pre-existing
@@ -91,13 +78,11 @@ if ($ChangedFiles) {
     #
     # S1501: the scope is every source set of the two modules, not src/main alone. Delta mode asks
     # "did THIS change add an imbalance", which is a question about the edit and not about the
-    # integer baseline below - and the file that leaked lived in a flavor source set. The full scan
-    # further down still counts src/main only; widening that needs a deliberate re-seed and is S1559.
+    # integer baseline below - and the file that leaked lived in a flavor source set.
+    # S1559: the full scan now derives its roots from this same predicate, so the two modes cannot
+    # disagree about what is in scope.
     $expanded = @(Expand-ChangedFiles -ChangedFiles $ChangedFiles)
-    $scoped = @($expanded | Where-Object {
-            $p = $_ -replace '\\', '/'
-            $p -match '(app_v2|wear)/src/' -and $p -notmatch '(app_v2|wear)/src/(test|androidTest)'
-        })
+    $scoped = @($expanded | Where-Object { Test-InSymmetryScope $_ })
     $countFn = { param($t) Get-FileImbalance $t }
     $d = Measure-ChangedFileGrowth -ChangedFiles $scoped -RepoRoot $repoRoot -Extensions @('.kt') -CountInText $countFn
     Write-Host ("listener-symmetry [delta over changed files]: new imbalance {0}" -f $d.Growth)
@@ -125,30 +110,14 @@ foreach ($file in $files) {
     $text = Get-Content -LiteralPath $file.FullName -Raw
     if ([string]::IsNullOrEmpty($text)) { continue }
 
-    # S0850: the imbalance itself comes from the shared function; the per-category counts
-    # below are recomputed only for -List display detail.
+    # S0850: the imbalance itself comes from the shared function; S1559 moved the -List detail there
+    # too, so the printed numbers and the printed imbalance can no longer disagree.
     $fileImbalance = Get-FileImbalance $text
     if ($fileImbalance -gt 0) {
         $current += $fileImbalance
         if ($List) {
-            $cRegObs = $regContentObserver.Matches($text).Count
-            $cUnregObs = $unregContentObserver.Matches($text).Count
-            $cRegRec = $regReceiver.Matches($text).Count - $regReceiverNull.Matches($text).Count
-            $cUnregRec = $unregReceiver.Matches($text).Count
-            $cAddList = $addListener.Matches($text).Count
-            $cRemoveList = $removeListener.Matches($text).Count
-            $cAddCb = $addCallback.Matches($text).Count
-            $cRemoveCb = $removeCallback.Matches($text).Count
-            $cAddObs = $addObserver.Matches($text).Count
-            $cRemoveObs = $removeObserver.Matches($text).Count
             $rel = $file.FullName.Substring($repoRoot.Length).TrimStart('\', '/') -replace '\\', '/'
-            $details = [System.Collections.Generic.List[string]]::new()
-            if ($cRegObs -ne $cUnregObs) { $details.Add("ContentObserver: $cRegObs vs $cUnregObs") }
-            if ($cRegRec -ne $cUnregRec) { $details.Add("Receiver: $cRegRec vs $cUnregRec") }
-            if ($cAddList -ne $cRemoveList) { $details.Add("Listener: $cAddList vs $cRemoveList") }
-            if ($cAddCb -ne $cRemoveCb) { $details.Add("Callback: $cAddCb vs $cRemoveCb") }
-            if ($cAddObs -ne $cRemoveObs) { $details.Add("Observer: $cAddObs vs $cRemoveObs") }
-            $hits.Add(("{0} (imbalance: {1} | {2})" -f $rel, $fileImbalance, ($details -join ", ")))
+            $hits.Add(("{0} (imbalance: {1} | {2})" -f $rel, $fileImbalance, (Get-FileImbalanceDetail $text)))
         }
     }
 }

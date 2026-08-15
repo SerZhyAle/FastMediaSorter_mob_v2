@@ -37,6 +37,12 @@ interface CastController {
     /** Open the Cast device picker. */
     fun showCastDialog(activity: FragmentActivity)
 
-    /** Cast [file] to the active session; a no-op when not currently casting. */
-    fun sendCurrentMedia(file: MediaFile)
+    /**
+     * Cast [file] to the active session; a no-op when not currently casting.
+     *
+     * [stereoCrop] carries the half-frame the panel is already showing, so the receiver shows the
+     * same eye (S1558). `null` means cast the file untouched, which is also what every non-stereo
+     * file and every failed crop falls back to.
+     */
+    fun sendCurrentMedia(file: MediaFile, stereoCrop: CastStereoCrop? = null)
 }

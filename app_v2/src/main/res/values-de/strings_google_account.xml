@@ -12,7 +12,7 @@
     <string name="s0200_card_state_bound_sign_out">Abmelden</string>
     <string name="s0200_card_state_needs_resign_in_summary">Stellen Sie die %1$s wieder her, damit Drive weiterhin funktioniert.</string>
     <string name="s0200_card_state_needs_resign_in_cta">Wiederverbinden</string>
-    <string name="s0200_card_authenticating">Anmeldung läuft…</string>
+    <string name="s0200_card_authenticating">Anmeldung läuft..</string>
     <string name="s0200_card_diag_cct_ok">Browser erkannt: %1$s.</string>
     <string name="s0200_card_diag_cct_missing">Es ist kein unterstützter Browser installiert. Installieren Sie einen, um Google zu nutzen.</string>
     <string name="s0200_card_diag_show">Diagnostik</string>

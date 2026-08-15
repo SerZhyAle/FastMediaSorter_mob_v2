@@ -93,6 +93,13 @@ function Resolve-AgentLockRepoRoot {
 # functions, where $PSScriptRoot would otherwise be ambiguous across a dot-sourcing boundary.
 $Script:AgentLockRepoRoot = Resolve-AgentLockRepoRoot
 
+# Codex exposes the same stable turn identity under a different environment name. Normalise it
+# once for existing lock and spec scripts, whose child processes inherit this environment.
+if ([string]::IsNullOrWhiteSpace($env:CLAUDE_CODE_SESSION_ID) -and
+    -not [string]::IsNullOrWhiteSpace($env:CODEX_SESSION_ID)) {
+    $env:CLAUDE_CODE_SESSION_ID = $env:CODEX_SESSION_ID
+}
+
 function Get-AgentLockPath {
     param([Parameter(Mandatory)][ValidateSet('Build', 'Code')][string]$Name)
     $tempDir = Join-Path $Script:AgentLockRepoRoot 'temp'

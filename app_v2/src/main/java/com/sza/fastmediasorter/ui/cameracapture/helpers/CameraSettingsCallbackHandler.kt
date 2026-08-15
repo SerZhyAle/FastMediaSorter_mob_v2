@@ -41,7 +41,8 @@ class CameraSettingsCallbackHandler(
         CameraSettingsDialogFragment.CameraSettingsState(
             selfTimerSeconds = flowManager.selfTimerSeconds,
             gridEnabled = flowManager.gridEnabled,
-            aspectRatio = sessionManager.currentAspectRatio,
+            aspect = sessionManager.currentAspect,
+            videoMode = sessionManager.videoMode,
             resolution = sessionManager.currentResolution,
             exposureCompensationIndex = sessionManager.currentExposureCompensationIndex,
             whiteBalanceMode = sessionManager.currentWhiteBalanceMode ?: CameraMetadata.CONTROL_AWB_MODE_AUTO,
@@ -71,7 +72,7 @@ class CameraSettingsCallbackHandler(
         flowManager.setSelfTimerSeconds(state.selfTimerSeconds)
         flowManager.setGridEnabled(state.gridEnabled)
         onGridToggled()
-        sessionManager.setAspectRatioAndResolution(state.aspectRatio, state.resolution)
+        sessionManager.setAspectRatioAndResolution(state.aspect, state.resolution)
         // S1066: the selected ratio drives the result frame (photo) - rebuild it after an apply.
         onAspectRatioApplied()
     }

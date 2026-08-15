@@ -24,7 +24,7 @@
     <string name="translation_font_family">Schriftfamilie</string>
     <string name="translation_font_size">Schriftgröße</string>
     <string name="translation_lens_style">Übersetzungsergebnis in Blöcken</string>
-    <string name="translation_model_prewarm_downloading">Übersetzungsmodell wird heruntergeladen...</string>
+    <string name="translation_model_prewarm_downloading">Übersetzungsmodell wird heruntergeladen..</string>
     <string name="translation_model_prewarm_failed">Das Übersetzungsmodell konnte nicht heruntergeladen werden. Bitte versuchen Sie es erneut.</string>
     <string name="translation_model_prewarm_ready">Übersetzungsmodell bereit.</string>
     <string name="translation_model_prewarm_retry">Wiederholen</string>

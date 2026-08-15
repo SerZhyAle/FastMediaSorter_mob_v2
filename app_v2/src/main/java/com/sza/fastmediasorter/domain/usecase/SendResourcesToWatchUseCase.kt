@@ -81,7 +81,9 @@ class SendResourcesToWatchUseCase @Inject constructor(
             phoneName = Build.MODEL.orEmpty(),
             sources = payloads
         )
-        val bytes = gson.toJson(syncPayload).toByteArray(Charsets.UTF_8)
+        val syncJson = gson.toJson(syncPayload)
+        Timber.d("S1631: sources sent, real keys=${syncJson.startsWith("{\"version\"")}")
+        val bytes = syncJson.toByteArray(Charsets.UTF_8)
         wearableRepository.putDataItem(DATA_LAYER_PATH, bytes)
         Timber.i("Sent $sent resources to watch ($skipped skipped)")
         SendResult(sent, skipped)

@@ -20,6 +20,7 @@ object CaptureSettingsStore {
     private val KEY_CAMERA_COPY_TO_CLIPBOARD = booleanPreferencesKey("camera_copy_to_clipboard")
     private val KEY_CAMERA_GEOTAG_ENABLED = booleanPreferencesKey("camera_geotag_enabled")
     private val KEY_CAMERA_ASPECT_RATIO = intPreferencesKey("camera_aspect_ratio")
+    private val KEY_CAMERA_LENS_SETTINGS = stringPreferencesKey("camera_lens_settings")
     private val KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID = stringPreferencesKey("camera_photos_destination_resource_id")
     private val KEY_MIC_RECORDING_ENABLED = booleanPreferencesKey("mic_recording_enabled")
     private val KEY_MIC_RECORDING_ASK_FILENAME = booleanPreferencesKey("mic_recording_ask_filename")
@@ -34,6 +35,7 @@ object CaptureSettingsStore {
         val cameraCaptureCopyToClipboard: Boolean,
         val cameraGeotagEnabled: Boolean,
         val cameraAspectRatio: Int,
+        val cameraLensSettings: String,
         val cameraPhotosDestinationResourceId: String?,
         val micRecordingEnabled: Boolean,
         val micRecordingAskFilename: Boolean,
@@ -47,7 +49,8 @@ object CaptureSettingsStore {
         cameraCaptureOpenForEditing = preferences[KEY_CAMERA_OPEN_FOR_EDITING] ?: false,
         cameraCaptureCopyToClipboard = preferences[KEY_CAMERA_COPY_TO_CLIPBOARD] ?: false,
         cameraGeotagEnabled = preferences[KEY_CAMERA_GEOTAG_ENABLED] ?: false,
-        cameraAspectRatio = preferences[KEY_CAMERA_ASPECT_RATIO] ?: 0,
+        cameraAspectRatio = preferences[KEY_CAMERA_ASPECT_RATIO] ?: 1,
+        cameraLensSettings = preferences[KEY_CAMERA_LENS_SETTINGS].orEmpty(),
         cameraPhotosDestinationResourceId = preferences[KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID],
         micRecordingEnabled = preferences[KEY_MIC_RECORDING_ENABLED] ?: false,
         micRecordingAskFilename = preferences[KEY_MIC_RECORDING_ASK_FILENAME] ?: true,
@@ -62,6 +65,7 @@ object CaptureSettingsStore {
         preferences[KEY_CAMERA_COPY_TO_CLIPBOARD] = settings.cameraCaptureCopyToClipboard
         preferences[KEY_CAMERA_GEOTAG_ENABLED] = settings.cameraGeotagEnabled
         preferences[KEY_CAMERA_ASPECT_RATIO] = settings.cameraAspectRatio
+        preferences[KEY_CAMERA_LENS_SETTINGS] = settings.cameraLensSettings
         preferences.setOrRemove(KEY_CAMERA_PHOTOS_DESTINATION_RESOURCE_ID, settings.cameraPhotosDestinationResourceId)
         preferences[KEY_MIC_RECORDING_ENABLED] = settings.micRecordingEnabled
         preferences[KEY_MIC_RECORDING_ASK_FILENAME] = settings.micRecordingAskFilename

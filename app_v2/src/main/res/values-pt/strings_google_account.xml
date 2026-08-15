@@ -12,7 +12,7 @@
     <string name="s0200_card_state_bound_sign_out">sair</string>
     <string name="s0200_card_state_needs_resign_in_summary">Reconecte %1$s para manter o Drive funcionando.</string>
     <string name="s0200_card_state_needs_resign_in_cta">Reconectar</string>
-    <string name="s0200_card_authenticating">Iniciando sessão...</string>
+    <string name="s0200_card_authenticating">Iniciando sessão..</string>
     <string name="s0200_card_diag_cct_ok">Navegador detectado: %1$s.</string>
     <string name="s0200_card_diag_cct_missing">Nenhum navegador compatível instalado. Instale um para usar o Google.</string>
     <string name="s0200_card_diag_show">Diagnóstico</string>

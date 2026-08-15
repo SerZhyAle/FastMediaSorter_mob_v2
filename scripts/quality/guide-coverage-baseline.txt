@@ -1,0 +1,30 @@
+# Capability ids no user guide mentions yet (S1653).
+# Regenerate: pwsh -NoProfile -File scripts/quality/assert-guide-coverage.ps1 -UpdateBaseline
+# Shrink this file as guides get written. Growing it means a capability shipped undocumented.
+audio-player.animated-equalizer-bars-backdrop
+audio-player.downloadable-looping-video-backdrops
+audio-player.pulsing-rings-backdrop
+audio-player.sleep-timer
+audio-player.wave-and-particle-backdrop
+drawing-annotations.eraser-tool
+drawing-annotations.freehand-brush-drawing-on-image
+drawing-annotations.oval-shape-tool
+drawing-annotations.rectangle-shape-tool
+extensions-on-demand.bulk-install-all-uninstall-all
+game.kryvavitsa-mini-game
+image-gif-viewer.brightness-adjustment
+image-gif-viewer.contrast-adjustment
+image-gif-viewer.saturation-adjustment
+media-browsing.mediastore-change-observer
+sharing.instagram-receiver
+sharing.viber-receiver
+usage-statistics.always-on-baseline-metrics
+usage-statistics.capture-metrics
+usage-statistics.editing-metrics
+usage-statistics.expanded-metric-coverage
+usage-statistics.operations-metrics
+usage-statistics.sorted-headline-clarified-and-flushed-on-open
+usage-statistics.viewing-metrics
+video-player.picture-in-picture-mode
+vr-openxr.controller-haptic-feedback
+vr-openxr.xr-runtime-detection

@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 internal class PlayerActivityLifecycleBridge(private val activity: PlayerActivity) {
 
     fun observeData() {
-        activity.observerManager = PlayerObserverManager(activity, activity.settingsRepository)
+        activity.observerManager = PlayerObserverManager(activity, activity.playerHostFactory.settingsRepository)
         activity.observerManager.startObserving()
         activity.lifecycleScope.launch {
             activity.lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {

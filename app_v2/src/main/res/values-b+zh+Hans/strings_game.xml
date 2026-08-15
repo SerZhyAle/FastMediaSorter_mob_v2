@@ -14,7 +14,7 @@
     <string name="game_help_intro">在被敌人包围之前，带着蓝色怪物到达绿色出口。</string>
     <string name="game_help_legend_exit">绿色 - 出口，进入下一关</string>
     <string name="game_help_legend_kryvavitsa">红色 - Kryvavitsa，猎杀玩家</string>
-    <string name="game_help_legend_player">蓝色——怪物，你控制的角色</string>
+    <string name="game_help_legend_player">蓝色-怪物，你控制的角色</string>
     <string name="game_help_legend_shadow">紫色 - 较小的 Kryvavitsa，随机移动</string>
     <string name="game_help_legend_title">传奇</string>
     <string name="game_help_legend_wall">灰色墙，可以推</string>
@@ -23,7 +23,7 @@
     <string name="game_help_title">如何玩</string>
     <string name="game_how_to_play">怎么玩？</string>
     <string name="game_level">级别 %1$d</string>
-    <string name="game_loading">游戏正在加载……</string>
+    <string name="game_loading">游戏正在加载..</string>
     <string name="game_menu_label">玩小游戏</string>
     <string name="game_move_down">向下</string>
     <string name="game_move_left">向左移动</string>
@@ -55,11 +55,11 @@
     <string name="game_mode_kryvavitsa">克里瓦维察</string>
     <string name="game_mode_contrast">对比</string>
     <string name="game_help_intro_kryvavitsa">在持机关枪的女人和她持刀的同伙将你包围之前，和男人一起到达门口。</string>
-    <string name="game_help_legend_player_kryvavitsa">人——你控制的角色</string>
-    <string name="game_help_legend_kryvavitsa_kryvavitsa">持机枪的女人——克里瓦维察，追杀你</string>
-    <string name="game_help_legend_shadow_kryvavitsa">持刀女子——小克里瓦维察，随机移动</string>
+    <string name="game_help_legend_player_kryvavitsa">人-你控制的角色</string>
+    <string name="game_help_legend_kryvavitsa_kryvavitsa">持机枪的女人-克里瓦维察，追杀你</string>
+    <string name="game_help_legend_shadow_kryvavitsa">持刀女子-小克里瓦维察，随机移动</string>
     <string name="game_help_legend_exit_kryvavitsa">门 - 通往下一层的出口</string>
-    <string name="game_help_legend_wall_kryvavitsa">黑色墙壁——可以推开</string>
+    <string name="game_help_legend_wall_kryvavitsa">黑色墙壁-可以推开</string>
     <string name="game_help_rules_kryvavitsa">使用方向键、键盘、十字键、滑动或点击棋盘移动一格。\n持机枪的女人正在追捕男人。她手持利刃的帮手们随机游荡，边走边跺脚。\n将黑色墙壁推入空位以开辟道路。厚厚的边框会阻挡离开棋盘。\n得分：每移动一次扣10分，推入墙壁加10分，击倒帮手加50分，到达门口加1000分。\n如果任何敌人到达同一格或相邻格，游戏结束。</string>
     <string name="game_skip_turn">跳过回合</string>
 </resources>

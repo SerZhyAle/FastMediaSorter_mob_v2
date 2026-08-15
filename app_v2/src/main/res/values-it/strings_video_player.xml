@@ -44,7 +44,6 @@
     <string name="playback_settings_3d_spherical_format">Formato sferico</string>
     <string name="playback_speed">Velocità di riproduzione</string>
     <string name="player_3d_detected_toast">Video 3D rilevato. Utilizza le Informazioni file per aprirlo in un lettore VR esterno.</string>
-    <string name="player_audio_track">Lingua della traccia audio</string>
     <string name="player_command_panel_mode_playerViewPanel_resize_mode">adatto</string>
     <string name="player_credentials_missing">Le credenziali salvate non sono presenti. Aggiornale e riprova.</string>
     <string name="player_file_moved">File spostato.</string>
@@ -64,11 +63,6 @@
     <string name="player_media_files_load_failed">Impossibile caricare l\'elenco dei file. Riprova.</string>
     <string name="player_open_link_failed">Impossibile aprire il link.</string>
     <string name="player_page_not_ready">La pagina non è ancora pronta. Riprova.</string>
-    <string name="player_repeat_video">Riproduzione in loop</string>
-    <string name="player_settings_title">Impostazioni del giocatore</string>
-    <string name="player_show_subtitles">Mostra i sottotitoli</string>
-    <string name="player_speed">Velocità di riproduzione</string>
-    <string name="player_subtitle_language">Lingua dei sottotitoli</string>
     <string name="player_webview_unavailable">Impossibile accedere alla visualizzazione di lettura. Riprova.</string>
     <string name="video">Video</string>
     <string name="video_aspect_ratio_label">Rapporto d\'aspetto: %1$s</string>

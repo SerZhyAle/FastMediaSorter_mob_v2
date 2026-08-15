@@ -45,7 +45,6 @@
     <string name="playback_settings_3d_vr180">VR180</string>
     <string name="playback_speed">Швидкість відтворення</string>
     <string name="player_3d_detected_toast">Виявлено 3D-відео. Скористайтеся «Інформація про файл», щоб відкрити його у зовнішньому VR-плеєрі.</string>
-    <string name="player_audio_track">Мова аудіодоріжки</string>
     <string name="player_command_panel_mode_playerViewPanel_resize_mode">fit</string>
     <string name="player_credentials_missing">Збережені облікові дані не знайдено. Оновіть їх і спробуйте ще раз.</string>
     <string name="player_file_moved">Файл переміщено.</string>
@@ -68,11 +67,6 @@
     <string name="player_page_not_ready">Ця сторінка ще не готова. Спробуйте ще раз.</string>
     <string name="player_play_symbol">▶</string>
     <string name="player_previous_symbol">◀</string>
-    <string name="player_repeat_video">Повторювати відтворення</string>
-    <string name="player_settings_title">Налаштування програвача</string>
-    <string name="player_show_subtitles">Показувати субтитри</string>
-    <string name="player_speed">Швидкість відтворення</string>
-    <string name="player_subtitle_language">Мова субтитрів</string>
     <string name="player_volume_down_symbol">−</string>
     <string name="player_volume_up_symbol">+</string>
     <string name="player_webview_unavailable">Не вдалося отримати доступ до області читання. Спробуйте ще раз.</string>

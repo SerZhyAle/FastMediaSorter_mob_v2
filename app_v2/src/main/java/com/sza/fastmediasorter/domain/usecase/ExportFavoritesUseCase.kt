@@ -94,6 +94,7 @@ class ExportFavoritesUseCase @Inject constructor(
         val outputFile = File(downloadsDir, fileName)
 
         val json = gson.toJson(exportFile)
+        Timber.d("S1632: export written, real keys=${json.startsWith("{\"version\"")}")
         outputFile.writeText(json, Charsets.UTF_8)
 
         Timber.d("Favorites exported to ${outputFile.absolutePath}, count=${exportFile.totalCount}")

@@ -16,6 +16,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.VideoPlaybackFailureSessionCache
+import com.sza.fastmediasorter.core.cast.CastStereoCrop
+import com.sza.fastmediasorter.core.cast.toCastStereoCrop
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
@@ -43,7 +45,6 @@ import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.stats.ViewKind
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
-import com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog
 import com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier
 import com.sza.fastmediasorter.ui.player.helpers.applyConfiguredVideoEffects
 import com.sza.fastmediasorter.ui.player.helpers.brightnessAdjustmentToProgress
@@ -230,8 +231,13 @@ class VideoPlayerManager(
     internal var currentPlayerView: PlayerView? = null
     internal var isUsingMediaPlayer = false
 
-    private val playbackControlPrefs =
+    // S1648: lazy, not eager. The manager is constructed from PlayerActivity.onCreate, and opening the
+    // preferences file there was a blocking disk read of ~53 ms on the player's hot open path. Nothing
+    // in the constructor reads a value, so the file is only needed when a control is actually used.
+    private val playbackControlPrefs by lazy(LazyThreadSafetyMode.NONE) {
+        Timber.d("S1648: playback control prefs opened on first use")
         context.getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, Context.MODE_PRIVATE)
+    }
 
     // Stereo detection runs once per video load inside onTracksChanged.
     // S0274 Wave 01: widened to internal so VideoPlayerTracksObserver can call detectForVideo().
@@ -380,6 +386,16 @@ class VideoPlayerManager(
     internal var activeStreamStepDownController:
         com.sza.fastmediasorter.ui.player.helpers.StreamQualityStepDownController? = null
 
+    // S1511: what a previous session learned about this channel, read before prepare and consumed at the
+    // one moment the ladder becomes known. Held as a session field because the inventory site runs inside
+    // a Media3 callback, which cannot suspend to fetch it.
+    internal var activeStreamQualityMemory:
+        com.sza.fastmediasorter.ui.player.helpers.StreamQualityStepDownController.Memory? = null
+
+    // S1511: the channel address this session's memory is filed under, kept so the teardown-safe write
+    // does not have to read it back off a player that may already be gone.
+    internal var activeStreamMemoryPath: String? = null
+
     // S1129: one delayed TextureView capture attempt belongs to one active stream session.
     internal var streamFrameCaptureJob: Job? = null
     internal var streamFrameCaptureAttempted = false
@@ -445,6 +461,21 @@ class VideoPlayerManager(
             singleEyeEnabled = panelStereoSingleEyeEnabled && !vrImmersiveActive,
         )
     }
+
+    /**
+     * S1558: the half-frame the panel is currently showing, for the Cast path to reproduce, or
+     * `null` when the panel is showing the whole frame.
+     *
+     * Gated on the same `panelStereoSingleEyeEnabled && !vrImmersiveActive` condition the
+     * [com.sza.fastmediasorter.ui.player.helpers.PanelStereoCropApplier] call sites use, so Cast
+     * never crops content the panel is deliberately leaving whole.
+     */
+    val currentPanelStereoCrop: CastStereoCrop?
+        get() = if (panelStereoSingleEyeEnabled && !vrImmersiveActive) {
+            stereoVideoProcessor.getCurrentMode().toCastStereoCrop()
+        } else {
+            null
+        }
 
     init {
         settingsRepository.getSettings()
@@ -826,8 +857,8 @@ class VideoPlayerManager(
 
     fun setPlaybackSpeed(speed: Float) = playbackControlsHelper.setPlaybackSpeed(speed)
 
-    /** Apply [PlayerSettingsDialog.PlayerSettings] to the active ExoPlayer instance. */
-    fun applyPlayerSettings(settings: PlayerSettingsDialog.PlayerSettings, appLanguage: String) =
+    /** Apply [PlayerSettings] to the active ExoPlayer instance. */
+    fun applyPlayerSettings(settings: PlayerSettings, appLanguage: String) =
         playbackControlsHelper.applyPlayerSettings(settings, appLanguage)
 
     // ═══════════════════════════════════════════════════════════════════════

@@ -379,8 +379,6 @@
     <string name="cb_cloud_read_only_mode_desc">Impide las operaciones con archivos (copiar, mover, eliminar)</string>
     <string name="cb_cloud_picker_add_as_destination_desc">Marcar esta carpeta en la nube como destino de clasificación rápida</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">Buscar archivos multimedia en todas las subcarpetas anidadas</string>
-    <string name="cb_repeat_video_desc">Repetir el vídeo actual de forma continua</string>
-    <string name="cb_show_subtitles_desc">Mostrar pistas de subtítulos cuando estén disponibles</string>
     <string name="virtual_camera_photos">Fotos de la cámara</string>
     <string name="network_delete_warning">Los archivos se eliminarán permanentemente de la ubicación de red</string>
     <string name="save_audio_metadata_locally">Guardar localmente los datos multimedia descargados</string>
@@ -1000,7 +998,7 @@
     <string name="read_aloud">Leer en voz alta</string>
     <string name="redo">Rehacer</string>
     <string name="find_hint">Encontrar..</string>
-    <string name="replace_hint">Reemplazar con...</string>
+    <string name="replace_hint">Reemplazar con..</string>
     <string name="replace">Reemplazar</string>
     <string name="replace_all">Reemplazar todo</string>
     <string name="find_and_replace">Buscar y reemplazar</string>
@@ -1088,13 +1086,6 @@
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Espera..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Cargando..</string>
-    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>
-    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>
-    <string name="dialog_player_settings_chipSpeed1_text">1x</string>
-    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string>
-    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>
-    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>
-    <string name="dialog_player_settings_chipSpeed2_text">2x</string>
     <string name="dialog_slideshow_settings_tvIntervalValue_text">5s</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">Máximo (MB)</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">Mínimo (MB)</string>
@@ -1158,7 +1149,7 @@
     <string name="hint_server_path">Ruta del servidor (opcional)</string>
     <string name="hint_cloud_folder_id">ID de carpeta en la nube</string>
     <string name="hint_slideshow_interval">Intervalo de presentación de diapositivas (segundos)</string>
-    <string name="hint_access_pin">Código PIN (4–6 dígitos)</string>
+    <string name="hint_access_pin">Código PIN (4-6 dígitos)</string>
     <string name="hint_comment">Comentario (opcional)</string>
     <string name="label_media_types">Tipos de medios</string>
     <string name="label_destination_settings">Ajustes de destino</string>
@@ -1369,7 +1360,7 @@
     <string name="unarchive_dialog_title">¿Extraer archivo?</string>
     <string name="unarchive_dialog_message">\"%1$s\" -&gt; carpeta \"%2$s\"</string>
     <string name="unarchive_action_extract">Extracto</string>
-    <string name="unarchive_progress_title">Extrayendo archivo...</string>
+    <string name="unarchive_progress_title">Extrayendo archivo..</string>
     <string name="unarchive_progress_entry">Extrayendo: %1$s</string>
     <string name="unarchive_success">Archivo extraído</string>
     <string name="unarchive_error_zip_bomb">El archivo es demasiado grande o demasiado profundo.</string>
@@ -1527,7 +1518,7 @@
     <string name="rotation_toggle_sensor_off_desc">Rotación de pantalla: bloqueada</string>
     <string name="link_download_notif_text_preview_only_signed_in">No se pudo extraer el contenido de la página. No hace falta iniciar sesión.</string>
     <string name="error_reason_local_destination_permission_denied">No se pudo guardar aquí - Android restringe la escritura en esta carpeta. Prueba a guardar en Música, Películas, Imágenes o Descargas.</string>
-    <string name="s0266_apk_download_preparing">Preparando la instalación...</string>
+    <string name="s0266_apk_download_preparing">Preparando la instalación..</string>
     <string name="s0281_google_oauth_only_note">No se pudo obtener este contenido de YouTube. Los datos de inicio de sesión no están guardados aquí.</string>
     <string name="browse_transfer_progress_background">En segundo plano</string>
     <string name="browse_transfer_already_running">Ya hay una transferencia de archivos en curso.</string>
@@ -1554,7 +1545,7 @@
     <string name="system_info_copy_full_report">Copiar informe completo</string>
     <string name="system_info_reveal_confirm_title">¿Copiar el informe completo?</string>
     <string name="system_info_reveal_confirm_message">La copia incluirá valores confidenciales (hash de firma, direcciones locales, rutas de montaje). ¿Desea continuar?</string>
-    <string name="audio_next_track_loading">Cargando la siguiente pista...</string>
+    <string name="audio_next_track_loading">Cargando la siguiente pista..</string>
     <string name="widget_quick_audio_recorder_label">Grabadora rápida</string>
     <string name="widget_quick_audio_recorder_description">Toca para iniciar una grabación de voz; toca de nuevo para detenerla y guardarla.</string>
     <string name="quick_recorder_notification_recording">Grabación..</string>
@@ -1585,8 +1576,8 @@
     <string name="resource_menu_move_to_top">Mover arriba del todo</string>
     <string name="resource_menu_move_to_bottom">Mover abajo del todo</string>
     <string name="delivery_offer_message_unknown_size">Esta función requiere una pequeña descarga adicional. ¿La descargas ahora?</string>
-    <string name="delivery_state_downloading">Descargando...</string>
-    <string name="delivery_state_verifying">Comprobando la descarga...</string>
+    <string name="delivery_state_downloading">Descargando..</string>
+    <string name="delivery_state_verifying">Comprobando la descarga..</string>
     <string name="delivery_state_error">No se pudo descargar; compruebe su conexión e inténtelo de nuevo.</string>
     <string name="delivery_action_download">Descargar</string>
     <string name="delivery_action_retry">Intentar otra vez</string>
@@ -2068,7 +2059,7 @@
     <string name="programs_panel_hide_action">Ocultar panel</string>
     <string name="main_programs_panel_strip">Programas y escenarios</string>
     <string name="streams_panel_collapse_action">Contraer panel</string>
-    <string name="main_streams_panel_strip">Transmisiones...</string>
+    <string name="main_streams_panel_strip">Transmisiones..</string>
     <string name="camera_scenario_ocr_translate">Reconocimiento de texto</string>
     <string name="recording_pause">Pausar la grabación</string>
     <string name="recording_resume">Reanudar la grabación</string>
@@ -2278,7 +2269,7 @@
     <string name="launcher_welcome_toggle_title">Usar como pantalla de inicio</string>
     <string name="launcher_settings_dialog_title">Ajustes del launcher del sistema</string>
     <string name="launcher_menu_launcher_settings">Ajustes del launcher</string>
-    <string name="welcome_streams_catalog_downloading">Descargando...</string>
+    <string name="welcome_streams_catalog_downloading">Descargando..</string>
     <string name="companion_import_summary">%1$s, %2$s</string>
     <string name="companion_import_added_one">Añadido: %1$s</string>
     <string name="companion_import_updated_one">Actualizado: %1$s</string>
@@ -2662,7 +2653,6 @@
     <string name="network_monitor_status_unknown">Abierto para comprobar</string>
     <string name="network_monitor_active_title">Conexión activa</string>
     <string name="network_monitor_active_none">No hay nada conectado. Activa el Wi-Fi o los datos móviles para conectarte a internet.</string>
-    <string name="network_monitor_local_ip_label">IP local</string>
     <string name="network_monitor_value_unknown">Desconocido</string>
     <string name="network_monitor_internet_ok">Internet funciona</string>
     <string name="network_monitor_internet_captive">Esta red quiere que inicies sesión</string>
@@ -2726,7 +2716,7 @@
     <string name="network_monitor_bluetooth_signal_heading">Señal del dispositivo</string>
     <string name="network_monitor_gnss_visible_label">Satélites a la vista</string>
     <string name="network_monitor_gnss_used_label">Se utiliza para la posición</string>
-    <string name="network_monitor_gnss_acquiring">Buscando satélites...</string>
+    <string name="network_monitor_gnss_acquiring">Buscando satélites..</string>
     <string name="network_monitor_gnss_used_in_fix">contado en posición</string>
     <string name="network_monitor_gnss_not_in_fix">no contado</string>
     <string name="network_monitor_gnss_position_heading">Posición</string>
@@ -2761,8 +2751,8 @@
     <string name="network_monitor_action_speed_test">Mide la velocidad</string>
     <string name="network_monitor_action_cancel">Detener</string>
     <string name="network_monitor_action_continue">Continuar</string>
-    <string name="network_monitor_running_check_resource">Comprobando el recurso...</string>
-    <string name="network_monitor_running_scan_subnet">Escaneando la red...</string>
+    <string name="network_monitor_running_check_resource">Comprobando el recurso..</string>
+    <string name="network_monitor_running_scan_subnet">Escaneando la red..</string>
     <string name="network_monitor_running_external_ip">Solicitando la dirección externa.</string>
     <string name="network_monitor_running_speed_test">Midiendo la velocidad.</string>
     <string name="network_monitor_warn_speed_test_title">Esto utilizará el tráfico</string>

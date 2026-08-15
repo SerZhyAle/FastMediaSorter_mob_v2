@@ -6,7 +6,7 @@
     <string name="keybinding_capture_commit">तय करना</string>
     <string name="keybinding_capture_conflict">पहले से ही इससे जुड़ा हुआ है: %s</string>
     <string name="keybinding_capture_current">पकड़ा गया: %s</string>
-    <string name="keybinding_capture_title">कोई कुंजी या बटन दबाएँ...</string>
+    <string name="keybinding_capture_title">कोई कुंजी या बटन दबाएँ..</string>
     <string name="keybinding_device_gamepad">गेमपैड</string>
     <string name="keybinding_device_keyboard">कीबोर्ड</string>
     <string name="keybinding_device_mouse">चूहा</string>
@@ -135,7 +135,7 @@
     <string name="keybinding_label_vr_zoom_start">ज़ूम शुरू करें</string>
     <string name="keybinding_remap_not_impl">सभी रीसेट करें - जल्द ही आ रहा है</string>
     <string name="keybinding_remap_reset_all">सभी को पुनः तैयार करना</string>
-    <string name="keybinding_remap_search_hint">खोज कमांड...</string>
+    <string name="keybinding_remap_search_hint">खोज कमांड..</string>
     <string name="keybinding_row_remap">रीमैप</string>
     <string name="keybinding_row_reset">वितथ पर ले जाएं</string>
     <string name="kbm_help_browse_back">मूल फ़ोल्डर पर जाएँ</string>
@@ -145,7 +145,7 @@
     <string name="kbm_help_dialog_primary">प्राथमिक कार्रवाई (ओके / अप्लाई)</string>
     <string name="kbm_help_dialog_toggle">टॉगल विकल्प</string>
     <string name="kbm_help_empty">इस स्क्रीन के लिए अभी तक कोई शॉर्टकट पंजीकृत नहीं है।</string>
-    <string name="kbm_help_full_docs_link">कीबोर्ड/माउस का पूरा संदर्भ खोलें...</string>
+    <string name="kbm_help_full_docs_link">कीबोर्ड/माउस का पूरा संदर्भ खोलें..</string>
     <string name="kbm_help_global_escape">रद्द करें, चयन साफ़ करें, संवाद बंद करें</string>
     <string name="kbm_help_global_exit">वर्तमान स्क्रीन से बाहर निकलें</string>
     <string name="kbm_help_global_f1">यह सहायता दिखाएँ</string>

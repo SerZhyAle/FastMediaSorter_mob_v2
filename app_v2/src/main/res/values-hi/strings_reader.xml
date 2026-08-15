@@ -11,7 +11,7 @@
     <string name="pdf_export_failed">निर्यात विफल: %s</string>
     <string name="pdf_export_success">डाउनलोड फ़ोल्डर में %d पृष्ठ सफलतापूर्वक निर्यात किए गए।</string>
     <string name="pdf_export_to_jpg">पेजों को जेपीजी के रूप में निर्यात करें</string>
-    <string name="pdf_exporting_started">पेज एक्सपोर्ट किए जा रहे हैं...</string>
+    <string name="pdf_exporting_started">पेज एक्सपोर्ट किए जा रहे हैं..</string>
     <string name="pdf_file_not_found">यह पीडीएफ फाइल अब उपलब्ध नहीं है।</string>
     <string name="pdf_fullscreen">पीडीएफ पेज का फुलस्क्रीन दृश्य</string>
     <string name="pdf_keywords_label">कीवर्ड: %1$s</string>
@@ -27,7 +27,7 @@
     <string name="pdf_scroll_mode">स्क्रॉल मोड</string>
     <string name="pdf_subject_label">विषय: %1$s</string>
     <string name="pdf_text_empty">इस पृष्ठ पर कोई पाठ नहीं मिला</string>
-    <string name="pdf_text_extracting">पाठ निकाला जा रहा है...</string>
+    <string name="pdf_text_extracting">पाठ निकाला जा रहा है..</string>
     <string name="pdf_text_mode_enter">पाठ चयन</string>
     <string name="pdf_thumbnails">पेज थंबनेल</string>
     <string name="pdf_version_label">पीडीएफ संस्करण: %1$s</string>
@@ -54,10 +54,10 @@
     <string name="epub_reader_settings">पाठक सेटिंग्स</string>
     <string name="epub_reader_theme">विषय</string>
     <string name="epub_search_all_chapters">सभी अध्यायों में खोजें</string>
-    <string name="epub_search_hint">खोज पाठ...</string>
+    <string name="epub_search_hint">खोज पाठ..</string>
     <string name="epub_search_no_results">कोई परिणाम नहीं मिला</string>
     <string name="epub_search_results">%1$d के परिणामस्वरूप %2$d अध्याय बनते हैं</string>
-    <string name="epub_searching">खोज जारी है...</string>
+    <string name="epub_searching">खोज जारी है..</string>
     <string name="epub_table_of_contents">विषयसूची</string>
     <string name="epub_text_empty_tts">अध्याय में कोई पाठ नहीं मिला</string>
     <string name="text_content_hint">पाठ सामग्री</string>
