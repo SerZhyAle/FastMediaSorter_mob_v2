@@ -696,6 +696,63 @@ Skipping the publish step after a rebuild does not break CI - it silently builds
 binary, which is acceptable because CI is a compile/lint/test gate and this artifact is a prebuilt
 `.so` + `classes.jar` that nothing in the suite exercises. Roles and rationale: `delivery/INVENTORY.md`.
 
+## DEOBFUSCATION RETENTION (S1695)
+
+Gradle overwrites `app_v2/build/outputs/mapping/<variant>/mapping.txt` on every release build, so
+exactly one mapping survives locally - the newest. Once a release has shipped and another build has
+run over it, nothing local can decode a stack trace from it. That is not hypothetical: S1156 sat in
+`BlockExternal` for three weeks because three obfuscated symbols from a shipped release could not be
+resolved. Retention removes the failure by copying the payload out of the release build, keyed by
+`versionCode`.
+
+**What is retained, and what is not.** The R8 mapping and the native debug symbols only, never the
+bundle. Measured 2026-08-15: 21.02 MB per release (mapping 178.9 MB of text compressing to ~14 MB,
+plus ~7.9 MB of symbols), stored in 1.7 s. There is no pruning window - at this size a hundred
+releases cost about 2.1 GB, and deleting old ones would eventually delete exactly the release someone
+needed.
+
+**Layout.** `c:\GD\WORK\FastMediaSorter\deobfuscation\<versionCode>\`:
+
+- `<variant>-deobfuscation.zip` - `mapping.txt` at the root, `symbols/<abi>/<lib>.so.dbg` beneath it.
+- `manifest.json` - one record per variant with the source (`bundle` or `outputs`), `mappingSha256`,
+  byte counts and the store timestamp. Variants of one release are written by separate invocations,
+  so the manifest is merged, never replaced.
+
+**It happens by itself.** `a.ps1 r` retains `standard` from the bundle it just built;
+`build-release-spectrum.ps1` retains every other published flavor from `build/outputs`. Do not add a
+manual step - a step that can be forgotten is indistinguishable from having no retention. A retention
+warning never fails the release build, because the bundle is already good at that point; the gate
+below is what refuses to let it slide.
+
+**Decoding a crash from a shipped release:**
+
+```powershell
+# What is retained at all
+pwsh -NoProfile -File scripts/release/fetch-deobfuscation.ps1 -List
+
+# Pull one release by the version string the crash report carries
+pwsh -NoProfile -File scripts/release/fetch-deobfuscation.ps1 -VersionName 2.60.8122.034
+# .. or by code, or -Latest. The last line printed is the absolute path of mapping.txt,
+# ready to hand to a retrace tool or to assert-enum-persistence-contract.ps1 -Mapping.
+```
+
+**Enforcement.** `scripts/quality/assert-deobfuscation-retained.ps1` judges the newest `release/v*`
+tag and is gating step 0.6 of `/spec-prerelease`. It reads the stored mapping back through the archive
+and recomputes its SHA-256; presence is not accepted as proof, because a cloud folder mid-sync
+presents a correctly sized placeholder. Exit 2 blocks exactly like exit 1 - "cannot verify" is not
+"verified".
+
+**It is deliberately not in `assert-fast-gates.ps1` / `.\a.ps1 fg`.** The check depends on a cloud
+folder that is not mounted on every machine, and a gate that fails for environmental reasons on a
+routine fast check trains everyone to ignore it. It belongs where a release is actually about to
+happen, which is the pre-release sweep.
+
+**Releases older than versionCode 260815000** predate this scheme and were never retained locally.
+Their only surviving mapping is Play Console's, and the console does not hand it back as a file: the
+`ReTrace mapping file` row offers deletion, not download, so the real recovery is downloading the
+whole 85 MB bundle from `Original file` and unzipping
+`BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map` out of it.
+
 ## QUEST DEBUGGING (VR flavor)
 
 **Do NOT launch the VR build via `adb shell am start`, Android Studio Run, or MQDH Launch App.**

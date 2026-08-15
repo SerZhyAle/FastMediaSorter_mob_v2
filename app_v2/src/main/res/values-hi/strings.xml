@@ -2820,4 +2820,13 @@
     <string name="network_monitor_ip_addresses_label">आईपी ​​पते</string>
     <string name="network_monitor_permission_grant">अनुमति नहीं दी गई है। अनुमति देने के लिए टैप करें।</string>
     <string name="network_monitor_permission_open_settings">अनुमति अवरुद्ध है। ऐप सेटिंग्स खोलने के लिए टैप करें।</string>
+    <string name="cast_cropping_stereo">एक आँख वाली प्रति तैयार की जा रही है..</string>
+    <string name="cast_crop_skipped_long">वीडियो काटने के लिए बहुत लंबा है। पूरा फ़्रेम कास्ट किया जा रहा है।</string>
+    <string name="launcher_settings_taskbar_placement_title">टास्कबार की स्थिति</string>
+    <string name="launcher_settings_taskbar_placement_bottom">नीचे</string>
+    <string name="launcher_settings_taskbar_placement_top">ऊपर</string>
+    <string name="camera_aspect_full_screen">पूरी स्क्रीन</string>
+    <string name="wear_sync_no_ack">घड़ी ने पुष्टि नहीं की। वह बंद हो सकती है या सीमा से बाहर हो सकती है।</string>
+    <string name="browse_empty_type_gated">%1$d फ़ाइलें छिपी हैं क्योंकि उनका मीडिया प्रकार बंद है।</string>
+    <string name="browse_empty_type_gated_hint">उन्हें देखने के लिए सेटिंग में वह मीडिया प्रकार फिर से चालू करें।</string>
 </resources>

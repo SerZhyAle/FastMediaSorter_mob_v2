@@ -26,22 +26,28 @@ class SelectedMediaManager @Inject constructor() {
     
     /**
      * Set the selected file for playback.
-     * 
+     *
      * @param file The media file selected for playback
-     * @param isNetworkSource True if the file is from a network source (SMB)
-     * @param streamUri The full URI for streaming (for SMB files)
+     * @param isNetworkSource True if the file is from a network source
+     * @param streamUri The full URI for streaming (for network files)
+     * @param sourceId Id of the network source the file was browsed from
      */
     fun selectFile(
-        file: WearMediaFile, 
+        file: WearMediaFile,
         isNetworkSource: Boolean,
-        streamUri: String? = null
+        streamUri: String? = null,
+        sourceId: String? = null
     ) {
         val effectiveStreamUri = streamUri ?: file.uri.toString()
-        Timber.d("SelectedMediaManager: Selected file=${file.name}, isNetwork=$isNetworkSource, streamUri=$effectiveStreamUri")
+        Timber.d(
+            "SelectedMediaManager: Selected file=${file.name}, isNetwork=$isNetworkSource, " +
+                "sourceId=$sourceId, streamUri=$effectiveStreamUri"
+        )
         _selectedFile.value = SelectedMedia(
             file = file,
             isNetworkSource = isNetworkSource,
-            streamUri = effectiveStreamUri
+            streamUri = effectiveStreamUri,
+            sourceId = sourceId
         )
     }
     
@@ -71,9 +77,15 @@ class SelectedMediaManager @Inject constructor() {
 
 /**
  * Represents a selected media file with streaming information.
+ *
+ * S1687: [sourceId] is what lets a player read the file over the protocol it actually came from.
+ * Without it the handover carried only "is this network", every player assumed SMB, and nothing but
+ * SMB ever played. The protocol enum is deliberately not duplicated here - the id resolves to the
+ * whole [com.sza.fastmediasorter.wear.domain.model.NetworkSource], credentials included.
  */
 data class SelectedMedia(
     val file: WearMediaFile,
     val isNetworkSource: Boolean,
-    val streamUri: String
+    val streamUri: String,
+    val sourceId: String? = null
 )

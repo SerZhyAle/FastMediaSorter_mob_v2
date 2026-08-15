@@ -63,6 +63,20 @@ class ResolveScanFilterUseCase @Inject constructor(
         )
     )
 
+    /**
+     * Same size filter, the global media-type switches lifted. S1696: distinguishes "this resource
+     * holds nothing" from "a media type the user switched off in settings removed everything" - the
+     * intersection in [invoke] discards which types were dropped, so nothing downstream could name
+     * them. The flavor restriction deliberately stays: a type this build cannot open is not one the
+     * user can switch back on, so offering it as the explanation would send them to a dead end.
+     */
+    fun withoutGlobalTypeGate(resource: MediaResource, filter: ScanFilter): ScanFilter {
+        val allTypes = MediaType.entries.toSet()
+        val ungated = aggregateVirtualTypes(resource.path, allTypes)
+            ?: if (resource.allFiles) allTypes else resource.supportedMediaTypes
+        return filter.copy(mediaTypes = applyFlavorMediaTypeRestrictions(ungated))
+    }
+
     private fun aggregateVirtualTypes(
         path: String,
         globallyEnabledTypes: Set<MediaType>

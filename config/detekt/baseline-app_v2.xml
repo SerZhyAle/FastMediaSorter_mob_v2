@@ -9679,7 +9679,6 @@
     <ID>ReturnCount:CloudDataSource.kt$CloudDataSource$override fun read(buffer: ByteArray, offset: Int, length: Int): Int</ID>
     <ID>ReturnCount:CloudFileOperationHandler.kt$CloudFileOperationHandler$override suspend fun executeCopy( operation: FileOperation.Copy, progressCallback: ByteProgressCallback? ): FileOperationResult</ID>
     <ID>ReturnCount:CloudFileOperationHandler.kt$CloudFileOperationHandler$override suspend fun executeMove( operation: FileOperation.Move, progressCallback: ByteProgressCallback? ): FileOperationResult</ID>
-    <ID>ReturnCount:CloudFileOperationHandler.kt$CloudFileOperationHandler$private suspend fun downloadFromCloud( cloudPath: String, localFile: File, @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null ): File?</ID>
     <ID>ReturnCount:CloudFileOperationHandler.kt$CloudFileOperationHandler$private suspend fun downloadFromCloudTo( cloudPath: String, destPath: String, fileName: String, progressCallback: ByteProgressCallback? = null ): Boolean</ID>
     <ID>ReturnCount:CloudFileOperationHandler.kt$CloudFileOperationHandler$private suspend fun uploadToCloud( localFile: File, cloudPath: String, @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null ): String?</ID>
     <ID>ReturnCount:CloudFileOperationHandler.kt$CloudFileOperationHandler$private suspend fun uploadToCloudFromPath( sourcePath: String, fileName: String, cloudPath: String, sourceType: ResourceType, @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null ): String?</ID>
@@ -11631,7 +11630,6 @@
     <ID>UnusedParameter:VimeoExtractionStrategy.kt$VimeoExtractionStrategy$videoId: String</ID>
     <ID>UnusedPrivateMember:AudioServiceController.kt$AudioServiceController$private fun getConnectedController(): MediaController?</ID>
     <ID>UnusedPrivateMember:BrowseViewModel.kt$BrowseViewModel$private fun launchSubfolderReload(path: String)</ID>
-    <ID>UnusedPrivateMember:CloudFileOperationHandler.kt$CloudFileOperationHandler$private suspend fun downloadFromCloud( cloudPath: String, localFile: File, @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null ): File?</ID>
     <ID>UnusedPrivateMember:CloudFileOperationHandler.kt$CloudFileOperationHandler$private suspend fun uploadToCloud( localFile: File, cloudPath: String, @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null ): String?</ID>
     <ID>UnusedPrivateMember:DropboxClient.kt$DropboxClient$private fun clearStoredCredentials()</ID>
     <ID>UnusedPrivateMember:FileInfoDialog.kt$FileInfoDialog$private fun isCloudFile(): Boolean</ID>

@@ -2823,4 +2823,13 @@
     <string name="network_monitor_ip_addresses_label">endereços IP</string>
     <string name="network_monitor_permission_grant">Permissão não concedida. Toque para conceder.</string>
     <string name="network_monitor_permission_open_settings">A permissão está bloqueada. Toque para abrir as configurações do aplicativo.</string>
+    <string name="cast_cropping_stereo">Preparando a cópia para um olho..</string>
+    <string name="cast_crop_skipped_long">O vídeo é longo demais para recortar. Transmitindo o quadro inteiro.</string>
+    <string name="launcher_settings_taskbar_placement_title">Posição da barra de tarefas</string>
+    <string name="launcher_settings_taskbar_placement_bottom">Abaixo</string>
+    <string name="launcher_settings_taskbar_placement_top">Acima</string>
+    <string name="camera_aspect_full_screen">Tela cheia</string>
+    <string name="wear_sync_no_ack">O relógio não confirmou. Ele pode estar desligado ou fora de alcance.</string>
+    <string name="browse_empty_type_gated">%1$d arquivos estão ocultos porque o tipo de mídia deles está desativado.</string>
+    <string name="browse_empty_type_gated_hint">Ative esse tipo de mídia nas configurações para vê-los.</string>
 </resources>

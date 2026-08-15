@@ -102,9 +102,16 @@ class LauncherHomeViewModel @Inject constructor(
     /** S1428: folded sections and the tap that folds them - see [LauncherSectionCollapseManager]. */
     val sections = LauncherSectionCollapseManager(appContext, viewModelScope, cells, _orientation)
 
+    /**
+     * S1680: the seed every settings-derived flow below starts from, so a seed and the model's default
+     * cannot drift apart the next time a default is changed. Behaviour is unchanged today - the literals
+     * this replaced were measured equal to these defaults.
+     */
+    private val settingsDefaults = AppSettings()
+
     val densityFactor: StateFlow<Float> = settingsRepository.getSettings()
         .map { it.launcherDensityFactor }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, DEFAULT_DENSITY_FACTOR)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherDensityFactor)
 
     val taskbarComposition: Flow<LauncherTaskbarComposition> = settingsRepository.getSettings()
         .map {
@@ -176,7 +183,7 @@ class LauncherHomeViewModel @Inject constructor(
      */
     val desktopLocked: StateFlow<Boolean> = settingsRepository.getSettings()
         .map { it.launcherDesktopLocked }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherDesktopLocked)
 
     /**
      * S1101: what the desktop draws behind its cells. Image mode degrades to the branded animation when
@@ -196,7 +203,17 @@ class LauncherHomeViewModel @Inject constructor(
         }
         .distinctUntilChanged()
         .flowOn(Dispatchers.IO)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, LauncherWallpaper.Branded)
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            // imageAvailable is false because a seed must not probe the disk on the main thread; the
+            // default mode is not IMAGE, so the probe would decide nothing anyway.
+            resolveLauncherWallpaper(
+                mode = settingsDefaults.launcherWallpaperMode,
+                imagePath = settingsDefaults.launcherWallpaperImagePath,
+                imageAvailable = false,
+            ),
+        )
 
     /**
      * S1087: who owns the status area while the launcher is on screen. False (the owner's default) keeps
@@ -208,7 +225,7 @@ class LauncherHomeViewModel @Inject constructor(
     val replaceSystemStatusArea: StateFlow<Boolean> = settingsRepository.getSettings()
         .map { it.launcherReplaceSystemStatusArea }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherReplaceSystemStatusArea)
 
     /**
      * S1643: whether the taskbar composition is anchored to the top screen edge instead of the bottom one.
@@ -219,7 +236,11 @@ class LauncherHomeViewModel @Inject constructor(
     val taskbarAtTop: StateFlow<Boolean> = settingsRepository.getSettings()
         .map { it.launcherTaskbarPlacement == AppSettings.LAUNCHER_TASKBAR_PLACEMENT_TOP }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            settingsDefaults.launcherTaskbarPlacement == AppSettings.LAUNCHER_TASKBAR_PLACEMENT_TOP,
+        )
 
     /**
      * S1431: whether the clock and the indicator set are drawn on the freed top band instead of the taskbar
@@ -230,7 +251,11 @@ class LauncherHomeViewModel @Inject constructor(
     val topStatusStripMode: StateFlow<Boolean> = settingsRepository.getSettings()
         .map { it.launcherTopStatusStripMode && it.launcherReplaceSystemStatusArea }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            settingsDefaults.launcherTopStatusStripMode && settingsDefaults.launcherReplaceSystemStatusArea,
+        )
 
     /**
      * S1431: whether the TASKBAR tray is the placement currently in use. The tray renderer treats this as
@@ -241,7 +266,11 @@ class LauncherHomeViewModel @Inject constructor(
     val taskbarTrayContentVisible: StateFlow<Boolean> = settingsRepository.getSettings()
         .map { it.launcherReplaceSystemStatusArea && !it.launcherTopStatusStripMode }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            settingsDefaults.launcherReplaceSystemStatusArea && !settingsDefaults.launcherTopStatusStripMode,
+        )
 
     /**
      * S1415: which indicators the tray shows, one switch per indicator. Only decides whether an indicator
@@ -250,16 +279,19 @@ class LauncherHomeViewModel @Inject constructor(
     val trayComposition: StateFlow<LauncherTrayComposition> = settingsRepository.getSettings()
         .map { LauncherTrayComposition.from(it) }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, LauncherTrayComposition.from(AppSettings()))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, LauncherTrayComposition.from(settingsDefaults))
 
     /**
-     * One-shot: true once the first-rotation hint has been shown, so it never repeats. Seeds the edit
-     * manager's decision on the next orientation change; the write goes back through settings so it
-     * survives a process kill.
+     * One-shot: true once the first-rotation hint has been shown, so it never repeats. The write goes
+     * back through settings so it survives a process kill.
+     *
+     * S1680: a cold [Flow] on purpose, not a `StateFlow`. Its one reader decides by it - whether to show
+     * a hint the user has already dismissed - and S1535 recorded the rule that a decision reads the
+     * stored value, never a seed. A `StateFlow` handed out `false` for the ~100 ms before DataStore
+     * answered, so a rotation inside that window showed the hint a second time.
      */
-    val rotationHintShown: StateFlow<Boolean> = settingsRepository.getSettings()
+    val rotationHintShown: Flow<Boolean> = settingsRepository.getSettings()
         .map { it.launcherRotationHintShown }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val _events = Channel<LauncherHomeEvent>(Channel.BUFFERED)
     val events: Flow<LauncherHomeEvent> = _events.receiveAsFlow()
@@ -732,7 +764,6 @@ class LauncherHomeViewModel @Inject constructor(
 
     private companion object {
         const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
-        const val DEFAULT_DENSITY_FACTOR = 1.0f
 
         /** As many recents as fit a phone taskbar beside the Start button and the tray. */
         const val RECENTS_LIMIT = 6

@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
@@ -37,7 +38,8 @@ class BrowseViewModel @Inject constructor(
     private val ftpDataSource: FtpDataSource,
     private val sftpDataSource: SftpDataSource,
     private val networkSourceRepository: NetworkSourceRepository,
-    private val selectedMediaManager: SelectedMediaManager
+    private val selectedMediaManager: SelectedMediaManager,
+    private val playbackSetManager: PlaybackSetManager
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow<BrowseUiState>(BrowseUiState.Loading)
@@ -189,18 +191,37 @@ class BrowseViewModel @Inject constructor(
     fun selectFile(file: WearMediaFile) {
         Timber.d("File selected: ${file.name}")
         _selectedFile.value = file
-        
-        // Save to SelectedMediaManager for player access
-        // For SMB files, the uri field contains the file path relative to share
+
+        // The set the player will page through is fixed here, from the list on screen, because a
+        // later re-query would answer in a different order than the user saw (S1683 ADR-2).
+        val displayed = (_uiState.value as? BrowseUiState.Success)?.files
+        if (displayed != null) {
+            playbackSetManager.publish(displayed, displayed.indexOfFirst { it.id == file.id })
+        }
+
+        // Save to SelectedMediaManager for player access.
+        // The uri shape differs per protocol and the player has to know which it got: SMB files
+        // carry a path relative to the share, FTP and SFTP files carry a full ftp:// / sftp:// URI.
+        // S1687: the source id travels with them, because it is the only way the player can reach
+        // the protocol and the credentials this file actually needs.
+        Timber.d("S1687: selection handover sourceId=$_sourceId network=$isNetworkSource")
         selectedMediaManager.selectFile(
             file = file,
             isNetworkSource = isNetworkSource,
-            streamUri = file.uri.toString()
+            streamUri = file.uri.toString(),
+            sourceId = _sourceId
         )
     }
     
     fun clearSelection() {
         _selectedFile.value = null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // The manager is a singleton and would otherwise outlive this screen, leaving a player
+        // opened by any later route paging through a list the user has already left.
+        playbackSetManager.clear()
     }
     
     fun getScreenTitle(): String {

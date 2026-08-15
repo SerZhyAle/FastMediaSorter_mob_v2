@@ -3291,4 +3291,7 @@
     <string name="launcher_settings_taskbar_placement_bottom">Bottom</string>
     <string name="launcher_settings_taskbar_placement_top">Top</string>
     <string name="camera_aspect_full_screen">Full screen</string>
+    <string name="wear_sync_no_ack">Watch did not confirm. It may be off or out of range.</string>
+    <string name="browse_empty_type_gated">%1$d files are hidden because their media type is switched off.</string>
+    <string name="browse_empty_type_gated_hint">Turn that media type back on in Settings to see them.</string>
 </resources>

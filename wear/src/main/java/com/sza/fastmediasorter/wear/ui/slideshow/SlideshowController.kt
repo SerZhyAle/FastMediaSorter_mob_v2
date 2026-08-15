@@ -39,12 +39,10 @@ interface SlideshowController {
     fun resume()
     
     /**
-     * Manually advance to next item.
+     * Report that the host navigated on its own, so the controller can follow instead of leading.
+     *
+     * The controller must adopt [index] without emitting its index-changed callback: the host has
+     * already moved, and calling back would navigate a second time (S1683).
      */
-    fun next()
-    
-    /**
-     * Manually go to previous item.
-     */
-    fun previous()
+    fun onManualNavigation(index: Int)
 }

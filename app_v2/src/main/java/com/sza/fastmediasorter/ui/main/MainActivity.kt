@@ -57,6 +57,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCollapsedChipsPlacementManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCommandBarTooltipManager
+import com.sza.fastmediasorter.ui.main.helpers.MainCommandOverflowMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainExitButtonManager
 import com.sza.fastmediasorter.ui.main.helpers.MainHelperFactory
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
@@ -117,6 +118,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var bannerManager: MainChromeOsBannerManager
     private lateinit var tabsManager: MainResourceTabsManager
     private lateinit var layoutChrome: MainLayoutChromeManager
+    private lateinit var commandOverflowMenuManager: MainCommandOverflowMenuManager
     private lateinit var miniGameMenuManager: MainMiniGameMenuManager
     private lateinit var streamsMenuManager: MainStreamsMenuManager
     private lateinit var voiceCaptureManager: MainVoiceCaptureManager
@@ -393,8 +395,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onControlBarFreeWidth = { freeWidthPx ->
                 controlBarFreeWidthPx = freeWidthPx
                 collapsedChipsPlacement.apply(freeWidthPx, isWideLayout())
-            }
+            },
+            // S1672: an eviction summons the "⋮" button that now hosts the evicted command, and a
+            // row that fits again dismisses it.
+            onOverflowChanged = { refreshMainWindowDropdownMenuVisibility() }
         )
+        commandOverflowMenuManager = MainCommandOverflowMenuManager(binding, layoutChrome)
 
         // Resume playback logic - only for standard launcher start with killed process
         if (resumeHelper.shouldAttemptResume(intent)) {
@@ -710,7 +716,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private fun refreshMainWindowDropdownMenuVisibility() {
         // S0755: when the programs panel replaces the menu on the main window, hide the three-dots button.
-        val shouldShowMenuButton = !isProgramsPanelEnabled && getMainWindowDropdownMenuItemCount() > 0
+        // S1672: an evicted command lives in this menu, so it must appear even then - otherwise the
+        // command would be unreachable exactly when the bar is too narrow to show it.
+        val shouldShowMenuButton = (!isProgramsPanelEnabled && getMainWindowDropdownMenuItemCount() > 0) ||
+            (::layoutChrome.isInitialized && layoutChrome.hasOverflow())
         val visibilityChanged = binding.layoutMainDropdownMenu.isVisible != shouldShowMenuButton ||
             binding.btnMainDropdownMenu.isVisible != shouldShowMenuButton
         if (visibilityChanged) {
@@ -757,7 +766,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private fun showMainWindowDropdownMenu() {
         val popup = PopupMenu(this, binding.btnMainDropdownMenu)
-        val itemCount = populateMainWindowDropdownMenu(popup)
+        // S1672: the programs block is built first because it clears the menu; the evicted commands
+        // are appended after it and sort above it on their own order.
+        val programsCount = if (isProgramsPanelEnabled) 0 else populateMainWindowDropdownMenu(popup)
+        val itemCount = programsCount + commandOverflowMenuManager.populate(popup)
         if (itemCount <= 0) {
             refreshMainWindowDropdownMenuVisibility()
             return
@@ -770,7 +782,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     /** S0755: shared click routing for both the dropdown popup and the programs panel buttons. */
     private fun handleMainWindowMenuItem(itemId: Int): Boolean =
-        programsMenuCoordinator.handleMenuItem(itemId)
+        commandOverflowMenuManager.handleMenuItem(itemId) || programsMenuCoordinator.handleMenuItem(itemId)
 
     // S0756: excludeStreams drops the "Streams" item (the programs panel hides it when the streams
     // panel is visible, to avoid duplicating that entry point). The dropdown menu always passes false.
@@ -1143,7 +1155,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 binding.btnToggleView.setIconResource(R.drawable.ic_view_grid)
             }
 
-            binding.btnToggleView.isVisible = true
+            // S1672: routed through the chrome manager - a bare isVisible = true here would undo an
+            // eviction on the next state emission and put the bar back over the screen edge.
+            layoutChrome.setCommandEligible(R.id.btnToggleView, true)
             layoutChrome.restitchControlBarFocusChain()
 
             // Enable Play button if any resources exist (auto-selects last used or first)
@@ -1240,11 +1254,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             isProgramsPanelEnabled = settings.showProgramsPanelInMainWindow
             isStreamsPanelEnabled = settings.showStreamsPanelInMainWindow
             isScreenRecordingEnabled = screenRecordingNowEnabled
-            binding.btnFavorites.visibility = if (settings.enableFavorites) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
+            // S1672: the toggle reports eligibility instead of writing visibility, so the overflow
+            // planner can tell "switched off" from "evicted for width" (both would be GONE).
+            layoutChrome.setCommandEligible(R.id.btnFavorites, settings.enableFavorites)
             resourceAdapter.setUseCompactElements(settings.useCompactElements)
             resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
             // S0727: apply the persisted allowSeparateWindow preference off-Main here (OR runtime

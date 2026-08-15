@@ -16,6 +16,8 @@ import com.sza.fastmediasorter.domain.usecase.SendResourcesToWatchUseCase
 import com.sza.fastmediasorter.service.WearSyncEvents
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,6 +45,8 @@ class WearSyncViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<WearSyncUiState>(WearSyncUiState.Idle)
     val uiState: StateFlow<WearSyncUiState> = _uiState.asStateFlow()
 
+    private var ackTimeoutJob: Job? = null
+
     private val _watchSettingsState = MutableStateFlow<WearSettingsPayload?>(null)
     val watchSettingsState: StateFlow<WearSettingsPayload?> = _watchSettingsState.asStateFlow()
 
@@ -63,8 +67,9 @@ class WearSyncViewModel @Inject constructor(
             WearSyncEvents.ackFlow.collect { ackJson ->
                 val current = _uiState.value
                 if (current is WearSyncUiState.Sending) {
-                    val sent = parseSentCount(ackJson)
-                    _uiState.value = WearSyncUiState.Success(sent, 0)
+                    ackTimeoutJob?.cancel()
+                    val applied = parseAppliedCount(ackJson)
+                    _uiState.value = WearSyncUiState.Success(applied, 0)
                     Timber.i("Wear sync ack received: $ackJson")
                 }
             }
@@ -82,14 +87,18 @@ class WearSyncViewModel @Inject constructor(
     }
 
     fun startPush() {
+        ackTimeoutJob?.cancel()
         _uiState.value = WearSyncUiState.Sending
         viewModelScope.launch {
             sendResourcesToWatchUseCase()
-                .onSuccess { result ->
-                    // State transitions to Success via ack flow; set it here as fallback if ack not received
-                    if (_uiState.value is WearSyncUiState.Sending) {
-                        _uiState.value = WearSyncUiState.Success(result.sent, result.skipped)
-                    }
+                .onSuccess {
+                    // S1682: the use case returns as soon as Play Services accepts the bytes, which is
+                    // necessarily before any watch ack can travel back. Declaring Success here used to
+                    // win that race every time, so the ack collector above could never fire and the
+                    // green check meant "accepted locally", never "the watch applied them". Stay in
+                    // Sending and let the ack decide; a watch that never answers ends in an error the
+                    // user can act on rather than in a check mark that is not true.
+                    startAckTimeout()
                 }
                 .onFailure { e ->
                     Timber.e(e, "Wear sync failed")
@@ -98,7 +107,18 @@ class WearSyncViewModel @Inject constructor(
         }
     }
 
+    private fun startAckTimeout() {
+        ackTimeoutJob = viewModelScope.launch {
+            delay(ACK_TIMEOUT_MS)
+            if (_uiState.value is WearSyncUiState.Sending) {
+                Timber.w("Watch did not acknowledge the sync within $ACK_TIMEOUT_MS ms")
+                _uiState.value = WearSyncUiState.Error(context.getString(R.string.wear_sync_no_ack))
+            }
+        }
+    }
+
     fun reset() {
+        ackTimeoutJob?.cancel()
         _uiState.value = WearSyncUiState.Idle
     }
 
@@ -147,12 +167,23 @@ class WearSyncViewModel @Inject constructor(
         }
     }
 
-    private fun parseSentCount(json: String): Int = try {
-        json.substringAfter("\"added\":").substringBefore(",").trim().toIntOrNull() ?: 0
+    // S1682: the watch reports two numbers, `added` and `updated`. Reading only `added` showed
+    // "0 resources" after a sync that in fact refreshed every existing one, which reads as a failure.
+    private fun parseAppliedCount(json: String): Int =
+        parseIntField(json, "added") + parseIntField(json, "updated")
+
+    private fun parseIntField(json: String, field: String): Int = try {
+        json.substringAfter("\"$field\":", "").substringBefore(",").substringBefore("}")
+            .trim().toIntOrNull() ?: 0
     } catch (_: Exception) { 0 }
 
     companion object {
         private const val PREFS = "wear_sync_prefs"
         private const val KEY_LAST_SYNC = "last_sync_timestamp"
+
+        // Long enough for a Bluetooth-linked watch to wake and apply the payload, short enough that
+        // a user staring at the dialog is not left guessing. The verified round trip of 2026-08-15
+        // acked well inside this window.
+        private const val ACK_TIMEOUT_MS = 15_000L
     }
 }

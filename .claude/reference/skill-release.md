@@ -243,6 +243,7 @@ Release pipeline complete.
   GitHub Store: GitHub Release assets published ($FLAVORS)
   Google Play: standard release published (or BLOCKED on FGS declaration)
   Google Drive: standard ZIP (password 1) synced by a.ps1 r
+  Deobfuscation: retained under $NEW_VERSION_CODE ($RETAINED_VARIANTS) - or name each variant that warned
   4pda:        manual post pending (channel 4)
   IzzyOnDroid: auto-pull after acceptance (RFP one-time, channel 5)
   Specs archived: $ARCHIVED_COUNT Implemented+Verified specs -> PLAN/archive/

@@ -2823,4 +2823,13 @@
     <string name="network_monitor_ip_addresses_label">IP-Adressen</string>
     <string name="network_monitor_permission_grant">Berechtigung nicht erteilt. Tippen Sie hier, um sie zu erteilen.</string>
     <string name="network_monitor_permission_open_settings">Die Berechtigung wurde blockiert. Tippen Sie hier, um die App-Einstellungen zu öffnen.</string>
+    <string name="cast_cropping_stereo">Kopie für ein Auge wird vorbereitet..</string>
+    <string name="cast_crop_skipped_long">Das Video ist zu lang zum Zuschneiden. Es wird das ganze Bild übertragen.</string>
+    <string name="launcher_settings_taskbar_placement_title">Position der Taskleiste</string>
+    <string name="launcher_settings_taskbar_placement_bottom">Unten</string>
+    <string name="launcher_settings_taskbar_placement_top">Oben</string>
+    <string name="camera_aspect_full_screen">Vollbild</string>
+    <string name="wear_sync_no_ack">Die Uhr hat nicht bestätigt. Sie ist möglicherweise aus oder außer Reichweite.</string>
+    <string name="browse_empty_type_gated">%1$d Dateien sind ausgeblendet, weil ihr Medientyp deaktiviert ist.</string>
+    <string name="browse_empty_type_gated_hint">Aktiviere diesen Medientyp in den Einstellungen wieder, um sie zu sehen.</string>
 </resources>

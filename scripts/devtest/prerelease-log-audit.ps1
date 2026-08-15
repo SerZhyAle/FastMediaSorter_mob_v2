@@ -80,6 +80,16 @@ $benignPatterns = @(
     'cr_AndroidProtocolHandler.*Unable to open asset URL'              # WebView probes first; the EPUB interceptor then serves the asset
 ) -join '|'
 
+# S1700: the framework-emitted thumbnail-failure chain (mediaserver FrameDecoder ->
+# StagefrightMetadataRetriever -> MetadataRetrieverClient -> MediaMetadataRetrieverJNI). Kept OUT of
+# $benignPatterns deliberately: it is benign only when the app already handled the extraction on its
+# own budget, which the paired NetworkVideoFrameDecoder marker proves. Without that marker the same
+# chain means local decoding broke and must stay actionable. Mirrors the guard in prerelease-verdict.ps1.
+$guardedThumbnailChain = 'getFrameAtTime: videoFrame is a NULL pointer|failed to capture a video frame|all codecs failed to extract frame|failed to get video frame \(err -\d+\)'
+$thumbnailChainHandled = @(
+    Select-String -Path $LogFile -Pattern 'NetworkVideoFrameDecoder.*(Extraction TIMEOUT|getFrameAtTime returned null)' -List -ErrorAction SilentlyContinue
+).Count -gt 0
+
 # Foreign / other-process tags dropped entirely (same treatment as $systemTagHint): recurrent
 # emulator/system/GMS/Maestro-harness noise that is never our app process, so a match can never
 # hide an app defect. Non-anchored substring match on the parsed tag token (S0976). Keep each
@@ -181,7 +191,8 @@ foreach ($raw in [System.IO.File]::ReadLines((Resolve-Path $LogFile))) {
         $toastHits += [pscustomobject]@{ tag = $tag; msg = $msg }
     }
 
-    $isBenign = (("$tag $msg") -match $benignPatterns) -or (Test-BenignPair $tag $msg)
+    $isBenign = (("$tag $msg") -match $benignPatterns) -or (Test-BenignPair $tag $msg) -or
+                ($thumbnailChainHandled -and $msg -match $guardedThumbnailChain)
 
     # Normalize the message head: drop volatile path/number tails so identical errors cluster.
     $head = ($msg -replace '\d+', '#') -replace '\s+', ' '

@@ -22,8 +22,15 @@ lines in the same trip rather than a separate campaign, he ruled all ten languag
 Measured over the full round of ten locales on 2026-08-14: 18 820 line-slots, 42 rejected. Per-locale
 untranslated fell from 1887 to 89-100, and about 89 of that residue is the deliberate symbol carve-out.
 
+**Exception, ruled 2026-08-15:** for a *small* batch the owner may hand it back to the agent instead. At
+the `/spec-prerelease` step 0.8 blocker of nine keys he chose "переводы сейчас сам" over waiting for the
+box - the round trip is not worth a release-blocking wait when the batch is single-digit. Same tooling
+either way: write one line-file per locale and feed each to `locale-bulk-import.ps1 -Locale <tag>`, which
+still enforces the line-count and format-token refusals.
+
 **How to apply:** never plan a hand-translation pass for the ten best-effort locales again - offer the
-export instead, and ask which languages he wants back. Line position is the only key binding, so the
+export instead, and ask which languages he wants back. Offer to translate inline only when the batch is
+a handful of keys and something is blocked on it. Line position is the only key binding, so the
 two refusals in the import are load-bearing: a differing line count is refused outright, and a line
 whose format tokens drifted from English is rejected individually. `en`/`ru`/`uk` stay owner-authored
 and strict; this route never writes them. See [[feedback_never_attribute_agent_inference_to_owner]].

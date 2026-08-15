@@ -20,6 +20,7 @@ import androidx.camera.video.VideoCapture
 import androidx.camera.view.PreviewView
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraAspectSelection
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraLensEntry
+import timber.log.Timber
 
 /** Builds the CameraX use-case group while keeping output geometry in one place. */
 internal class CameraUseCaseFactory(
@@ -99,6 +100,7 @@ internal class CameraUseCaseFactory(
 
     private fun buildResolutionSelector(allowHighResolution: Boolean): ResolutionSelector {
         val aspect = effectiveAspectRatioInt()
+        Timber.d("S1658: stream aspect selection=${selection ?: CameraAspectSelection.DEFAULT} cameraX=$aspect")
         val builder = ResolutionSelector.Builder()
             .setAspectRatioStrategy(
                 AspectRatioStrategy(aspect, AspectRatioStrategy.FALLBACK_RULE_AUTO),

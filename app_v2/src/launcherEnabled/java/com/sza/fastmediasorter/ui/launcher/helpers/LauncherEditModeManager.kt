@@ -5,13 +5,15 @@ import android.view.DragEvent
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import timber.log.Timber
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 /**
@@ -73,12 +75,19 @@ class LauncherEditModeManager(
      * First rotation while the desktop holds at least one user cell shows the one-shot hint that the two
      * orientations are arranged separately (risk 6). Independent of edit mode - the surprise is the same
      * either way. The "shown" flag is persisted through settings, so it survives a process kill.
+     *
+     * S1680: the flag is awaited rather than read from a `StateFlow` value. This is a decision compared
+     * against a stored value, not a render, so S1535's rule applies - a seed would answer `false` for the
+     * ~100 ms before DataStore has read, and a rotation inside that window re-showed a dismissed hint.
      */
     fun onOrientationChanged() {
-        if (viewModel.rotationHintShown.value) return
-        if (viewModel.cells.value.isEmpty()) return
-        viewModel.markRotationHintShown()
-        Snackbar.make(snackbarAnchor, R.string.launcher_edit_rotation_hint, Snackbar.LENGTH_LONG).show()
+        lifecycleOwner.lifecycleScope.launch {
+            val alreadyShown = viewModel.rotationHintShown.first()
+            if (!alreadyShown && viewModel.cells.value.isNotEmpty()) {
+                viewModel.markRotationHintShown()
+                Snackbar.make(snackbarAnchor, R.string.launcher_edit_rotation_hint, Snackbar.LENGTH_LONG).show()
+            }
+        }
     }
 
     private val dragListener = View.OnDragListener { _, event ->

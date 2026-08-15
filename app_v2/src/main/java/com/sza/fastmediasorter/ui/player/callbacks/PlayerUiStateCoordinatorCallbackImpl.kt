@@ -146,6 +146,7 @@ class PlayerUiStateCoordinatorCallbackImpl(
     }
 
     override fun updateTouchZonesHelpButtonVisibility(visible: Boolean) {
+        Timber.d("S1647: touch-zone help button visibility set to $visible")
         activity.activityBinding.btnTouchZonesHelp?.isVisible = visible
     }
 

@@ -2825,4 +2825,13 @@
     <string name="network_monitor_ip_addresses_label">adresses IP</string>
     <string name="network_monitor_permission_grant">Autorisation refusée. Appuyez pour l\'accorder.</string>
     <string name="network_monitor_permission_open_settings">L\'accès est bloqué. Appuyez pour ouvrir les paramètres de l\'application.</string>
+    <string name="cast_cropping_stereo">Préparation de la copie pour un seul œil..</string>
+    <string name="cast_crop_skipped_long">La vidéo est trop longue pour être recadrée. Diffusion du cadre complet.</string>
+    <string name="launcher_settings_taskbar_placement_title">Position de la barre des tâches</string>
+    <string name="launcher_settings_taskbar_placement_bottom">En bas</string>
+    <string name="launcher_settings_taskbar_placement_top">En haut</string>
+    <string name="camera_aspect_full_screen">Plein écran</string>
+    <string name="wear_sync_no_ack">Aucune confirmation de la montre. Elle est peut-être éteinte ou hors de portée.</string>
+    <string name="browse_empty_type_gated">%1$d fichiers sont masqués car leur type de média est désactivé.</string>
+    <string name="browse_empty_type_gated_hint">Réactivez ce type de média dans les paramètres pour les voir.</string>
 </resources>

@@ -384,32 +384,52 @@ class BrowseResourceLoadManager(
         // A scan the user stopped also ends with an empty list, and blaming the size filter for it
         // would be a second false explanation on top of the one this ticket removes.
         if (shouldStopScanRef.get() || stateFlow.value.mediaFiles.isNotEmpty()) {
-            if (stateFlow.value.filteredOutCount != 0) {
-                updateState { it.copy(filteredOutCount = 0) }
+            if (stateFlow.value.filteredOutCount != 0 || stateFlow.value.typeGatedOutCount != 0) {
+                updateState { it.copy(filteredOutCount = 0, typeGatedOutCount = 0) }
             }
             return
         }
         val unbounded = resolveScanFilter.withoutSizeCeiling(scanFilter)
-        if (unbounded.sizeFilter == scanFilter.sizeFilter) {
-            return
-        }
-        val suppressed = try {
-            mediaScannerFactory.getScanner(resource.type).getFileCount(
-                path = resource.path,
-                supportedTypes = unbounded.mediaTypes,
-                sizeFilter = unbounded.sizeFilter,
-                credentialsId = resource.credentialsId,
-                scanSubdirectories = resource.scanSubdirectories
-            )
-        } catch (e: kotlinx.coroutines.CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            // Falling back to the plain empty state is correct here: the probe is an explanation, and
-            // failing to explain must not turn an empty list into an error.
-            Timber.w(e, "BrowseResourceLoadManager: size-filter probe failed")
+        val sizeSuppressed = if (unbounded.sizeFilter == scanFilter.sizeFilter) {
             0
+        } else {
+            probeSuppressedCount(resource, unbounded, "size-filter")
         }
-        updateState { it.copy(filteredOutCount = suppressed) }
+        // S1696: a globally switched-off media type is the second way this list can be empty while
+        // the folder is not. Probed only when the size filter did not already explain the emptiness -
+        // two explanations at once help nobody, and the size one is the narrower claim.
+        val ungated = resolveScanFilter.withoutGlobalTypeGate(resource, scanFilter)
+        val typeSuppressed = if (sizeSuppressed > 0 || ungated.mediaTypes == scanFilter.mediaTypes) {
+            0
+        } else {
+            probeSuppressedCount(resource, ungated, "type-gate")
+        }
+        Timber.d("S1696: empty-state cause size=$sizeSuppressed typeGate=$typeSuppressed")
+        updateState { it.copy(filteredOutCount = sizeSuppressed, typeGatedOutCount = typeSuppressed) }
+    }
+
+    /**
+     * Counts what a widened filter would have returned, so the empty state can name the filter that
+     * emptied it. The probe is an explanation: failing to explain must not turn an empty list into
+     * an error, so a failure falls back to the plain empty state.
+     */
+    private suspend fun probeSuppressedCount(
+        resource: MediaResource,
+        widened: ScanFilter,
+        probeName: String
+    ): Int = try {
+        mediaScannerFactory.getScanner(resource.type).getFileCount(
+            path = resource.path,
+            supportedTypes = widened.mediaTypes,
+            sizeFilter = widened.sizeFilter,
+            credentialsId = resource.credentialsId,
+            scanSubdirectories = resource.scanSubdirectories
+        )
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.w(e, "BrowseResourceLoadManager: $probeName probe failed")
+        0
     }
 
     /**

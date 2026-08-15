@@ -565,9 +565,9 @@
     "uk": "Пропонує ввести ім'я для кожного знятого фото одразу після зйомки."
   },
   "rowCameraAspect": {
-    "en": "Sets the photo aspect ratio used by the camera capture.",
-    "ru": "Задаёт соотношение сторон фото при съёмке камерой.",
-    "uk": "Задає співвідношення сторін фото під час зйомки камерою."
+    "en": "Chooses the photo frame shape - 4:3, 16:9 (default) or full screen. The choice drives the live viewfinder and the saved file, not an overlay frame drawn over a 4:3 stream.",
+    "ru": "Выбирает форму кадра фото - 4:3, 16:9 (по умолчанию) или во весь экран. Выбор определяет и живой видоискатель, и сохраняемый файл, а не рамку поверх потока 4:3.",
+    "uk": "Вибирає форму кадру фото - 4:3, 16:9 (за замовчуванням) або на весь екран. Вибір визначає і живий видошукач, і збережений файл, а не рамку поверх потоку 4:3."
   },
   "rowCameraCopyToClipboard": {
     "en": "Automatically copies each captured photo to the clipboard after saving.",

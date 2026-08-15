@@ -1259,8 +1259,9 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 1. In Browse, open the toolbar or overflow menu and tap **Capture with camera** (photo) or **Record video**.
 2. Switch between **Photo** and **Video** right on the camera screen if you change your mind.
 3. Set your zoom with a preset chip (0.5x/1x/2x..) or the slider underneath - both stay in sync.
-4. Tap the shooting-scenario button to pick how the shot is taken - normal, night, portrait, selfie, macro or sport. Macro jumps to the dedicated close-focus lens, selfie flips to the front camera, sport keeps the exposure short so motion freezes. Only the scenarios your device can actually deliver are listed, the active one is named on the button, and changing the lens by hand returns the camera to normal.
-5. Tap the shutter (or the record button) to capture. The result saves straight to the resource - local or network - you were browsing.
+4. Tap the aspect button to shape the frame - **4:3**, **16:9** or **Full screen**. The viewfinder itself changes, so what you see is what the saved photo will be, and the choice is remembered next time you open the camera (16:9 until you change it).
+5. Tap the shooting-scenario button to pick how the shot is taken - normal, night, portrait, selfie, macro or sport. Macro jumps to the dedicated close-focus lens, selfie flips to the front camera, sport keeps the exposure short so motion freezes. Only the scenarios your device can actually deliver are listed, the active one is named on the button, and changing the lens by hand returns the camera to normal.
+6. Tap the shutter (or the record button) to capture. The result saves straight to the resource - local or network - you were browsing.
 
 **Tips:**
 

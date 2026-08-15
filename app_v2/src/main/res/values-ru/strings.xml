@@ -3255,4 +3255,7 @@
     <string name="launcher_settings_taskbar_placement_bottom">Снизу</string>
     <string name="launcher_settings_taskbar_placement_top">Сверху</string>
     <string name="camera_aspect_full_screen">На весь экран</string>
+    <string name="wear_sync_no_ack">Часы не подтвердили приём. Возможно, они выключены или вне зоны.</string>
+    <string name="browse_empty_type_gated">%1$d файлов скрыто: их тип медиа выключен в настройках.</string>
+    <string name="browse_empty_type_gated_hint">Включите этот тип медиа в настройках, чтобы увидеть их.</string>
 </resources>

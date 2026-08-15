@@ -20,3 +20,7 @@
 {"kind":"refusal","at":"2026-08-12T01:10:44+02:00","session":"7c00479f-da37-45b6-a42b-d72011460cf0","tool":"Glob","pattern":"**/*CameraSettingsDialog*Test*.kt","glob":"","path":"","type":"","markerPresent":false,"classification":""}
 {"kind":"refusal","at":"2026-08-12T14:40:05+02:00","session":"5e61493e-c8e5-4549-8442-64c41a7bfc73","tool":"Grep","pattern":"BrowseCameraCaptureManager\\(","glob":"*.kt","path":"","type":"","markerPresent":false,"classification":""}
 {"kind":"refusal","at":"2026-08-14T17:29:31+02:00","session":"32e1a0b4-0818-48f8-9226-da86d4db0217","tool":"Grep","pattern":"Timber\\.[dwie]\\(\\s*\"S\\d{4}:","glob":"*.kt","path":"","type":"","markerPresent":false,"classification":""}
+{"kind":"refusal","at":"2026-08-15T16:23:56+02:00","session":"f77c0c40-2a44-42b0-a671-e098cac302a0","tool":"Glob","pattern":"**/*MaterializeShareContent*Test*.kt","glob":"","path":"","type":"","markerPresent":false,"classification":""}
+
+{"kind":"refusal","at":"2026-08-15T16:23:57+02:00","session":"f77c0c40-2a44-42b0-a671-e098cac302a0","tool":"Glob","pattern":"**/*DirectFileExtractionStrategy*Test*.kt","glob":"","path":"","type":"","markerPresent":false,"classification":""}
+{"kind":"refusal","at":"2026-08-15T16:23:57+02:00","session":"f77c0c40-2a44-42b0-a671-e098cac302a0","tool":"Glob","pattern":"**/*LinkDownloadWriter*Test*.kt","glob":"","path":"","type":"","markerPresent":false,"classification":""}

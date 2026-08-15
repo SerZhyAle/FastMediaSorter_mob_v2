@@ -3,7 +3,8 @@ package com.sza.fastmediasorter.domain.usecase
 import android.content.Context
 import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.core.share.ShareableContent
-import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
+import com.sza.fastmediasorter.data.cloud.CloudDownloadUseCase
+import com.sza.fastmediasorter.data.link.HttpFileDownloader
 import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -21,10 +22,10 @@ import javax.inject.Inject
  * a local one (S0493).
  *
  * Local content (or content that does not require materialization) is returned unchanged. Network
- * sources (smb/sftp/ftp) are downloaded via [DownloadNetworkFileUseCase] and cloud:// via
- * [CloudFileOperationHandler] (S0494); schemes without a download primitive (http(s)://) return
- * [Result.failure] so the caller can surface a "could not prepare" message instead of silently
- * doing nothing.
+ * sources (smb/sftp/ftp) are downloaded via [DownloadNetworkFileUseCase], cloud:// via
+ * [CloudDownloadUseCase] and direct http(s):// via [HttpFileDownloader] (S0494). Sources without a
+ * download primitive - streaming manifests above all - return [Result.failure] so the caller can
+ * surface a "could not prepare" message instead of silently doing nothing.
  *
  * The copy keeps the original file name (unlike the hash-named [com.sza.fastmediasorter.core.cache.UnifiedFileCache])
  * so receivers that expose the file name - email attachment, messengers - show a readable name. Copies
@@ -36,7 +37,10 @@ class MaterializeShareContentUseCase @Inject constructor(
     private val downloadNetworkFile: DownloadNetworkFileUseCase,
     // Lazy: cloud download is only needed for cloud:// sources, so the common path (local / smb / sftp /
     // ftp) and flavors without cloud UI never construct the cloud singleton.
-    private val cloudHandler: Lazy<CloudFileOperationHandler>,
+    private val cloudDownload: Lazy<CloudDownloadUseCase>,
+    // Lazy for the same reason: flavors and flows that never share a web file must not construct the
+    // OkHttp link-download stack.
+    private val httpDownloader: Lazy<HttpFileDownloader>,
 ) {
     /**
      * @param onProgress receives 0..100 during download (best-effort - some protocols report none).
@@ -84,26 +88,58 @@ class MaterializeShareContentUseCase @Inject constructor(
         Result.success(content.materializedTo(uri, localFile.absolutePath))
     }
 
-    // Route by scheme and return the local file actually written, or null on failure. smb/sftp/ftp write
-    // exactly to [targetFile] (byte progress on SMB). cloud:// goes through the cloud handler, which can
-    // resolve a different file name from provider metadata, so the real written file is located in the
-    // per-source subdirectory rather than assumed to be [targetFile] (S0494). Cloud has no progress hook,
-    // so the share dialog shows a spinner for it.
+    // Route by scheme and return the local file actually written, or null on failure. smb/sftp/ftp and
+    // http(s) write exactly to [targetFile] (byte progress on SMB, Content-Length progress on http).
+    // cloud:// goes through the cloud downloader, which can resolve a different file name from provider
+    // metadata, so the real written file is located in the per-source subdirectory rather than assumed
+    // to be [targetFile] (S0494).
     private suspend fun downloadTo(sourcePath: String, targetFile: File, onProgress: ((Int) -> Unit)?): File? =
-        if (isCloudScheme(sourcePath)) {
-            val ok = cloudHandler.get().downloadFromCloudToPublic(
-                cloudPath = sourcePath,
-                destPath = targetFile.parentFile?.absolutePath ?: targetFile.absolutePath,
-                fileName = targetFile.name,
-            )
-            when {
-                !ok -> null
-                targetFile.exists() -> targetFile
-                else -> targetFile.parentFile?.listFiles()?.firstOrNull { it.isFile }
-            }
-        } else {
-            if (downloadNetworkFile.execute(sourcePath, targetFile, onProgress)) targetFile else null
+        when {
+            isCloudScheme(sourcePath) -> downloadFromCloud(sourcePath, targetFile, onProgress)
+            isHttpScheme(sourcePath) ->
+                if (httpDownloader.get().download(sourcePath, targetFile, onProgress)) targetFile else null
+            else ->
+                if (downloadNetworkFile.execute(sourcePath, targetFile, onProgress)) targetFile else null
         }
+
+    private suspend fun downloadFromCloud(
+        sourcePath: String,
+        targetFile: File,
+        onProgress: ((Int) -> Unit)?,
+    ): File? {
+        Timber.d("S0494: materializing cloud source %s", sourcePath)
+        val ok = cloudDownload.get().downloadToPublic(
+            cloudPath = sourcePath,
+            destPath = targetFile.parentFile?.absolutePath ?: targetFile.absolutePath,
+            fileName = targetFile.name,
+            progressCallback = percentProgressAdapter(onProgress),
+        )
+        return when {
+            !ok -> null
+            targetFile.exists() -> targetFile
+            else -> targetFile.parentFile?.listFiles()?.firstOrNull { it.isFile }
+        }
+    }
+
+    // The cloud layer reports transferred bytes; the share dialog's contract is 0..100, and a source that
+    // never announces its total size must leave the dialog indeterminate rather than jump to a made-up
+    // percentage, hence the totalBytes guard.
+    private fun percentProgressAdapter(onProgress: ((Int) -> Unit)?): ByteProgressCallback? {
+        if (onProgress == null) {
+            return null
+        }
+        return object : ByteProgressCallback {
+            override suspend fun onProgress(
+                bytesTransferred: Long,
+                totalBytes: Long,
+                speedBytesPerSecond: Long
+            ) {
+                if (totalBytes > 0) {
+                    onProgress(((bytesTransferred * PERCENT_SCALE) / totalBytes).toInt())
+                }
+            }
+        }
+    }
 
     // Per-source subdirectory (hash) keeps the original file name while avoiding same-name collisions
     // between different remote sources. FileProvider serves the whole cacheDir tree (file_provider_paths).
@@ -128,15 +164,31 @@ class MaterializeShareContentUseCase @Inject constructor(
 
     companion object {
         private const val SHARE_CACHE_DIR = "send_to_share"
+        private const val PERCENT_SCALE = 100L
         private const val MAX_SHARE_CACHE_BYTES = 512L * 1024 * 1024 // 512 MB - transient share copies
         private val UNSAFE_NAME_CHARS = Regex("[^A-Za-z0-9._-]")
         private val cacheLock = Mutex()
 
-        /** Schemes with a local-download primitive: smb/sftp/ftp (S0493) and cloud:// (S0494). http(s):// out of scope. */
+        // A manifest describes a stream, not a finite file: materializing one would download an
+        // unbounded body and still produce nothing a receiver could open, so HLS/DASH/Smooth stay on
+        // the existing failure path (S0494 ADR-2).
+        private val STREAMING_MANIFEST_EXTENSIONS = listOf(".m3u8", ".mpd", ".ism")
+
+        /** Schemes with a local-download primitive: smb/sftp/ftp (S0493), cloud:// and direct http(s):// (S0494). */
         internal fun isDownloadableScheme(path: String): Boolean =
-            path.startsWith("smb:/") || path.startsWith("sftp:/") || path.startsWith("ftp:/") || isCloudScheme(path)
+            path.startsWith("smb:/") || path.startsWith("sftp:/") || path.startsWith("ftp:/") ||
+                isCloudScheme(path) || isHttpScheme(path)
 
         internal fun isCloudScheme(path: String): Boolean = path.startsWith("cloud:/")
+
+        /** True for a direct http(s) file URL; a streaming manifest is excluded per ADR-2. */
+        internal fun isHttpScheme(path: String): Boolean {
+            val lower = path.lowercase()
+            val isHttp = lower.startsWith("http:/") || lower.startsWith("https:/")
+            // Query strings are stripped so a signed manifest url is still recognised as a manifest.
+            val withoutQuery = lower.substringBefore('?').substringBefore('#')
+            return isHttp && STREAMING_MANIFEST_EXTENSIONS.none { withoutQuery.endsWith(it) }
+        }
 
         /** Readable share file name: strip any path, replace filesystem-unsafe chars, never blank. */
         internal fun sanitizeFileName(name: String): String =

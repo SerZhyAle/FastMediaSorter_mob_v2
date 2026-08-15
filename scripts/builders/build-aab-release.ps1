@@ -133,6 +133,25 @@ if (-not $apkPath) {
     Write-Host "APK size: $apkSize MB" -ForegroundColor Cyan
 }
 
+# Retain the deobfuscation payload for this release (S1695). Extracted from the
+# bundle rather than from build/outputs, because the .aab is byte-for-byte what
+# ships, so the archived mapping cannot drift from the release it describes.
+# Non-blocking by design: the bundle is already built and good at this point, so
+# an archive problem must not destroy a valid release. The pre-release gate
+# (assert-deobfuscation-retained.ps1) catches a miss before the next release.
+$retainScript = Join-Path $projectRoot "scripts\release\retain-deobfuscation.ps1"
+if (Test-Path $retainScript) {
+    Write-Host "Retaining deobfuscation artifacts (versionCode=$versionCodeInt).." -ForegroundColor Yellow
+    & $retainScript -Variant standard -VersionCode $versionCodeInt -VersionName $versionName -Bundle $aabPath.FullName
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Warning: deobfuscation retention failed (exit $LASTEXITCODE) - resolve before the next release, the pre-release gate will refuse it." -ForegroundColor Yellow
+    } else {
+        Write-Host "Deobfuscation artifacts retained." -ForegroundColor Green
+    }
+} else {
+    Write-Host "Note: retention script not found at $retainScript - skipping retention step." -ForegroundColor DarkGray
+}
+
 # Copy raw AAB+APK to Google Drive AND create password-protected ZIP.
 # Both raw files and the ZIP must be present on GD:
 #   - raw .aab/.apk for direct download by recipients with normal security

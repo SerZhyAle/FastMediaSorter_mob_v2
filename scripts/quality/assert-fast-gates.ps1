@@ -21,6 +21,7 @@
       - assert-flavor-matrix-docs    (S1392 doc flavor tables vs the generated capability snapshot)
 - assert-sdk-pin-claims        (S1438 SDK pins stated in prose vs the build files)
       - assert-ctor-arg-slots        (S1470 primary constructors near the 255 argument-slot ceiling)
+      - assert-packaging-excludes-parity (S1679 shared-library payload stripped in one module only)
       - assert-retired-dependency-names (S1489 prose naming a dependency the project replaced)
       - assert-notification-small-icon (S1399 a small-icon setter handed a drawable literal)
       - assert-backup-rules-consistent (S1552 API 31+ extraction rules vs the pre-31 backup rules)
@@ -91,6 +92,12 @@ $gates = [ordered]@{
     # S1075: dev/TECH_REQUIREMENTS.md pins vs Gradle truth. Static parse of build files
     # + one doc; no gradle daemon. Catches a dependency bump that forgot the doc.
     'assert-doc-pin-drift.ps1'                  = @('-Quiet')
+    # S1679: a packaging exclusion for a SHARED transitive library present in app_v2 but not in wear.
+    # The pin gate above compares versions against docs and cannot express "both modules must strip
+    # the same dead payload". S0385 excluded BouncyCastle's post-quantum tables in app_v2 only, and
+    # wear shipped them for months - 1.2 MB, 10 % of its release APK, on a watch. Parses the two
+    # build files by brace balance, no gradle daemon.
+    'assert-packaging-excludes-parity.ps1'      = @('-Quiet')
     # S1438: SDK pins stated in ORDINARY PROSE, which the managed-block gate above cannot see -
     # an index line, an architecture bullet, an agent definition, agent memory. Eight copies said
     # compileSdk 35 while Gradle compiled against 36, and an agent reading one concludes an API is
@@ -189,6 +196,10 @@ $gates = [ordered]@{
     # in different files and usually different modules. Parses both source trees and the two
     # proguard-rules.pro files, no gradle daemon.
     'assert-gson-persistence-contract.ps1'      = @('-Quiet')
+    # S1674: Room, DataStore and SharedPreferences can persist enum `name` values across an
+    # update. R8 must keep the matching enum fields stable or a later version cannot `valueOf`
+    # the earlier value. The gate inventories those boundaries against base release rules.
+    'assert-enum-persistence-contract.ps1'      = @('-Quiet')
 }
 
 # S1338: these five accept -ChangedFiles and used to be invoked with no arguments at

@@ -10,7 +10,7 @@ description: "Use to run the end-to-end pre-release emulator sweep that gates /s
 > 3. Terse report: one line - verdict + report path.
 > 4. Never auto-run release: PASS proposes `/skill-release`, owner confirms (ADR-1, S0484).
 
-Automates `dev/PRE_RELEASE_MANUAL_TESTS.md` as one gated sweep on emulator: refresh the mutable content a release carries (0 / 0.5 non-gating, 0.7 **gating**) → prepare clean standard-debug install → configure resources + settings → Maestro capability suite → perf → machine PASS/FAIL verdict. PASS proposes `/skill-release`; FAIL parks deduped `/spec-draft` tickets and routes pending-test tickets through `/spec-check`.
+Automates `dev/PRE_RELEASE_MANUAL_TESTS.md` as one gated sweep on emulator: refresh the mutable content a release carries (0 / 0.5 non-gating, 0.6 / 0.7 / 0.8 **gating**) → prepare clean standard-debug install → configure resources + settings → Maestro capability suite → perf → machine PASS/FAIL verdict. PASS proposes `/skill-release`; FAIL parks deduped `/spec-draft` tickets and routes pending-test tickets through `/spec-check`.
 
 Composes existing scripts only and adds **no** app runtime code (S0484 ADR-2); long-form overview and the full tool inventory in `.claude/reference/spec-prerelease.md` - read it when you need which script owns which stage.
 
@@ -81,6 +81,22 @@ Build red on the new pin (pip resolve / Chaquopy sdist fetch) → revert to the 
 **Tier B - check only, never bump: everything else.** A runtime-lib bump invalidates the sweep that follows it, so it belongs to its own ticket with its own regression pass, never to this window.
 
 Read `.claude/reference/spec-prerelease.md` §"0.5 - Dependency pins" before editing any pin - Tier A bump procedure and the Tier B check-only policy live there.
+
+### 0.6 - Confirm the previous release's deobfuscation artifacts are retained (content, no device, GATING)
+
+**Mandatory, unconditional - not "if the last release looked fine".** `docs/RELEASE_READINESS_STANDARD.md` declares retention REQUIRED for every production release, and for a long time nothing enforced it: the miss surfaced only when S1156 sat in `BlockExternal` for three weeks because three obfuscated symbols from a shipped release could not be resolved. This step is where that becomes visible one release later instead of three weeks later. Needs no device, no gradle. On `--dry-run`, list the plan and run nothing.
+
+```powershell
+pwsh -NoProfile -File scripts/quality/assert-deobfuscation-retained.ps1
+```
+
+The check reads the stored mapping back through the archive and recomputes its SHA-256; presence alone is deliberately not accepted, because a cloud folder mid-sync presents a correctly sized placeholder. Branch on the exit code:
+
+- **0** - the previous release is retained and verified, or it predates the retention baseline and is out of scope. Continue.
+- **1** - the previous release is **not** retained, or a stored payload failed verification. **Hard release blocker.** The gate prints the exact `retain-deobfuscation.ps1` command per failed variant; run it against that release's shipped artifact, then re-run this step. Shipping now would leave the previous release permanently undecodable, which is the whole failure this scheme exists to end.
+- **2** - the archive root is unreachable, or no release tag could be resolved. **Also blocking.** An archive that cannot be read is not evidence that anything was retained - "cannot verify" must never pass as "verified", since the failure mode being guarded is retention succeeding into the void.
+
+Carry the outcome into the step 4 verdict on its own report line, naming the failed variants.
 
 ### 0.7 - Reindex settings search + navigation (content, no device, GATING)
 

@@ -257,6 +257,40 @@ class CameraCaptureSessionManager(
     }
 
     /**
+     * The probe reports what the bound lens itself can do; everything the session knows on top of that
+     * - extensions, the device-wide lens picture - is folded in here. Extracted from the bind path so
+     * that path stays inside its length budget as the snapshot grows (S1675 added the rear-lens floors).
+     */
+    private fun decorateCapabilities(
+        probed: CameraRuntimeCapabilities,
+        activeLens: CameraLensEntry,
+    ): CameraRuntimeCapabilities = probed.copy(
+        // Night mode is offered when either the OEM extension or exposure compensation can deliver it.
+        supportsNightMode = nightExtensionAvailable || probed.supportsExposureCompensation,
+        supportsHdrExtension = hdrExtensionAvailable,
+        supportsBokehExtension = bokehExtensionAvailable,
+        minEquivalentZoomRatio = probe.minEquivalentZoom(availableLenses),
+        rearLensEquivalentFloors = rearLensFloors(),
+        macroLensAvailable = probe.macroLensFor(availableLenses, activeLens.lensFacing) != null,
+        activeLensIsWidest = isWidestOfFacing(activeLens, availableLenses),
+        // S1581: the label needs dedicated macro optics, not merely the closest-focusing lens -
+        // otherwise a device without a macro lens calls its own main camera one.
+        activeLensIsMacro = probe.isDedicatedMacroLens(availableLenses, activeLens),
+    )
+
+    /**
+     * S1675: the printed floors of the rear lenses, for the pill row shown where the bound lens has no
+     * zoom range of its own. Empty below two rear lenses - one pill would offer a switch to nowhere.
+     */
+    private fun rearLensFloors(): List<Float> {
+        val floors = availableLenses
+            .filter { it.lensFacing == CameraSelector.LENS_FACING_BACK }
+            .map { it.minZoomRatio * it.equivalentMultiplier }
+        val displayed = CameraRuntimeCapabilities.buildRearLensFloors(floors)
+        return if (displayed.size > 1) displayed else emptyList()
+    }
+
+    /**
      * S1262: moves to a lens with the given [facing] in one action. [switchCamera] cycles, which
      * lands on the wrong optics on a device with several back lenses - a profile names the lens it
      * wants. BACK resolves to the MAIN back lens (S1261 defect D1), not the widest one the sorted
@@ -307,6 +341,7 @@ class CameraCaptureSessionManager(
         manualIso = null
         manualShutterNs = null
         exposureCompensationIndex = 0
+        Timber.d("S1658: lens switch restoreSaved=$restoreSaved index=$resolvedIndex")
         if (restoreSaved) availableLenses.getOrNull(resolvedIndex)?.id?.let { onLensEntering?.invoke(it) }
         runCatching { bindToLifecycle(provider, preview) }
             .onFailure { Timber.e(it, "CameraCaptureSessionManager: lens switch failed") }
@@ -640,6 +675,7 @@ class CameraCaptureSessionManager(
         } else {
             null
         }
+        Timber.d("S1658: shutter aspect=$selectedAspect cropRatio=$cropRatioAtShutter")
         val builder = ImageCapture.OutputFileOptions.Builder(outputFile)
         // S0766: opt-in geotag. CameraX writes GPS into the JPEG EXIF before any digital-zoom crop,
         // and the crop path preserves the GPS tags (PRESERVED_EXIF_TAGS, S0765), so a cropped shot
@@ -828,19 +864,7 @@ class CameraCaptureSessionManager(
             activeLens,
             availableLenses.map { it.lensFacing },
         )
-        // Night mode is offered when either the OEM extension or exposure compensation can deliver it.
-        val supportsNight = nightExtensionAvailable || probed.supportsExposureCompensation
-        capabilities = probed.copy(
-            supportsNightMode = supportsNight,
-            supportsHdrExtension = hdrExtensionAvailable,
-            supportsBokehExtension = bokehExtensionAvailable,
-            minEquivalentZoomRatio = probe.minEquivalentZoom(availableLenses),
-            macroLensAvailable = probe.macroLensFor(availableLenses, activeLens.lensFacing) != null,
-            activeLensIsWidest = isWidestOfFacing(activeLens, availableLenses),
-            // S1581: the label needs dedicated macro optics, not merely the closest-focusing lens -
-            // otherwise a device without a macro lens calls its own main camera one.
-            activeLensIsMacro = probe.isDedicatedMacroLens(availableLenses, activeLens),
-        )
+        capabilities = decorateCapabilities(probed, activeLens)
         if (!capabilities.supportsManualSensor) {
             manualIso = null
             manualShutterNs = null

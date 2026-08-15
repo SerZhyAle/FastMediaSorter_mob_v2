@@ -1425,6 +1425,19 @@ scripts/quality/assert-ctor-arg-slots.ps1
   Exit: 0 - every parsed constructor is under the ceiling (or over it without -Gate).; 1 - at least one constructor exceeds the ceiling, and -Gate was passed.; 2 - could not verify: no source root was readable, so nothing was measured.
 ```
 
+### assert-deobfuscation-retained.ps1
+
+```
+scripts/quality/assert-deobfuscation-retained.ps1
+  Params:
+    -ArchiveRoot         [String] = 'c:\GD\WORK\FastMediaSorter\deobfuscation'
+    -VersionName         [String]
+    -Quiet               [SwitchParameter]
+    -Json                [SwitchParameter]
+    -Help                [SwitchParameter]
+  Exit: 0 - the judged release is retained and verified, or it predates the
+```
+
 ### assert-deprecated-pm-flags.ps1
 
 ```
@@ -1523,6 +1536,17 @@ scripts/quality/assert-empty-catch.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+```
+
+### assert-enum-persistence-contract.ps1
+
+```
+scripts/quality/assert-enum-persistence-contract.ps1
+  Params:
+    -Mapping         [String]
+    -Gate            [SwitchParameter]
+    -Quiet           [SwitchParameter]
+  Exit: 0 - every durable enum-name path has a matching base rule (and, with -Mapping, kept its name).; 1 - a durable enum-name path is unpinned, or the mapping shows a renamed member.; 2 - source, the base ProGuard file or the named mapping could not be inspected.
 ```
 
 ### assert-exit-contract.ps1
@@ -1823,6 +1847,16 @@ scripts/quality/assert-oss-notices.ps1
     -Gate             [SwitchParameter]
     -Quiet            [SwitchParameter]
   Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: generator, parser or manifest missing or unreadable
+```
+
+### assert-packaging-excludes-parity.ps1
+
+```
+scripts/quality/assert-packaging-excludes-parity.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - clean, every module carrying a shared library repeats its payload exclusions; 1 - a module is missing an exclusion, or an unknown payload prefix appeared; 2 - cannot verify: a build file is missing, or has no packaging/resources block to read
 ```
 
 ### assert-public-mutable-flow.ps1
@@ -2487,6 +2521,24 @@ scripts/release/extract-release-notes.ps1
   Exit: 0 - match found, stdout contains the block (non-empty).; 2 - no matching marker for the supplied version.
 ```
 
+### fetch-deobfuscation.ps1
+
+```
+scripts/release/fetch-deobfuscation.ps1
+  Params:
+    -VersionCode         [Int32]
+    -VersionName         [String]
+    -Latest              [SwitchParameter]
+    -Variant             [String] = 'standard'  {standard|lite|photos|legacy|vr|noLegal|wear}
+    -Destination         [String] = 'temp/deobfuscation'
+    -List                [SwitchParameter]
+    -Verify              [SwitchParameter]
+    -Json                [SwitchParameter]
+    -ArchiveRoot         [String] = 'c:\GD\WORK\FastMediaSorter\deobfuscation'
+    -Help                [SwitchParameter]
+  Exit: 0 - request answered: payload extracted, verification passed, or -List
+```
+
 ### gen_fastlane_changelog.ps1
 
 ```
@@ -2525,6 +2577,24 @@ scripts/release/publish-play-release.ps1
   Params:
     -Track          [String] = "production"
     -Status         [String] = "completed"
+```
+
+### retain-deobfuscation.ps1
+
+```
+scripts/release/retain-deobfuscation.ps1
+  Params:
+    -VersionCode    (req)  [Int32]
+    -VersionName           [String]
+    -Variant        (req)  [String]  {standard|lite|photos|legacy|vr|noLegal|wear}
+    -Bundle                [String]
+    -Mapping               [String]
+    -NativeSymbols         [String]
+    -ArchiveRoot           [String] = 'c:\GD\WORK\FastMediaSorter\deobfuscation'
+    -Force                 [SwitchParameter]
+    -DryRun                [SwitchParameter]
+    -Help                  [SwitchParameter]
+  Exit: 0 - payload stored, or already present with an identical mapping.; 1 - retention failed: the source could not be read, the bundle carries no
 ```
 
 ### standard-release-gate.ps1

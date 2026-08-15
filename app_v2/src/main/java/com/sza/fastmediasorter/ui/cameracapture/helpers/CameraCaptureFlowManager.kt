@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.cameracapture.model.PhotoProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -322,7 +323,14 @@ class CameraCaptureFlowManager(
      * re-read after the switch because the rebind reset them before the zoom landed.
      */
     fun onCrossLensFloorSelected(equivalent: Float) {
-        if (!currentCapabilities.showsCrossLensFloor) return
+        // Two callers own a pill that lands here: the cross-lens floor pill on a lens that shows one
+        // (S1261), and the rear-lens pills S1675 puts on a lens with no range of its own - where
+        // showsCrossLensFloor is false by its own definition, so guarding on it alone would make every
+        // tap from that row a no-op. The front camera owns neither pill.
+        val fromLensPillRow = !currentCapabilities.supportsZoom
+        if (currentCapabilities.isFront) return
+        if (!currentCapabilities.showsCrossLensFloor && !fromLensPillRow) return
+        Timber.d("S1675: lens pill tap - equivalent=$equivalent fromLensPillRow=$fromLensPillRow")
         session.switchCamera(targetEquivalentFloor = equivalent)
         liveZoomRatio = session.currentZoomRatio()
         liveLinearZoom = session.currentLinearZoom()

@@ -12,6 +12,7 @@ import com.google.android.material.slider.Slider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+import timber.log.Timber
 import java.util.Locale
 import kotlin.math.abs
 
@@ -64,6 +65,30 @@ class CameraZoomControlsManager(
             addPill(pill)
         }
         syncSelection(liveZoomRatio, liveLinearZoom, capabilities.zoomMultiplier)
+    }
+
+    /**
+     * S1675: the row shown on a lens whose own zoom range is a single point - one pill per rear lens,
+     * printed in equivalent values, tap switches the optics. The preset row cannot serve there: with
+     * `minZoomRatio == maxZoomRatio` it has nothing to offer, which is why the whole row used to
+     * vanish and leave the wide lens without a way back.
+     *
+     * The pills carry a string tag rather than a Float one, so [syncSelection]'s nearest-ratio match
+     * skips them - a lens pill is selected by which lens is bound, never by the live zoom value.
+     */
+    fun configureLensPills(capabilities: CameraRuntimeCapabilities) {
+        presetGroup.removeAllViews()
+        val activeFloor = capabilities.ownEquivalentFloorDisplay
+        Timber.d("S1675: lens pill row - floors=${capabilities.rearLensEquivalentFloors} active=$activeFloor")
+        capabilities.rearLensEquivalentFloors.forEach { floor ->
+            val pill = buildPill(
+                labelValue = floor,
+                amber = true,
+                pillTag = LENS_FLOOR_TAG_PREFIX + floor,
+            ) { onCrossLensFloorSelected(floor) }
+            pill.isSelected = abs(floor - activeFloor) < CameraRuntimeCapabilities.ZOOM_EPSILON
+            addPill(pill)
+        }
     }
 
     /**
@@ -170,5 +195,8 @@ class CameraZoomControlsManager(
          * carries the same value as a plain native preset and highlights normally.
          */
         const val CROSS_LENS_FLOOR_TAG = "cross_lens_floor"
+
+        /** S1675: same reasoning as [CROSS_LENS_FLOOR_TAG], one tag per rear-lens pill. */
+        const val LENS_FLOOR_TAG_PREFIX = "lens_floor_"
     }
 }

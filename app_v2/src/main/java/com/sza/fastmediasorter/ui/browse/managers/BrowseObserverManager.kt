@@ -199,13 +199,24 @@ class BrowseObserverManager(
             return
         }
 
-        // S1584: the size filter, not an empty folder, produced this list. Saying "we checked twice"
-        // here reads as a promise the folder really holds nothing, so the user stops looking.
-        if (state.filteredOutCount > 0) {
-            binding.tvEmptyStateMessage.text =
-                ctx.getString(R.string.browse_empty_filtered_out, state.filteredOutCount)
+        // S1584/S1696: a filter, not an empty folder, produced this list. Saying "we checked twice"
+        // here reads as a promise the folder really holds nothing, so the user stops looking. Size is
+        // tested first because it is the narrower claim, and only one cause is worth naming at once.
+        val filterExplanation = when {
+            state.filteredOutCount > 0 -> Pair(
+                ctx.getString(R.string.browse_empty_filtered_out, state.filteredOutCount),
+                ctx.getString(R.string.browse_empty_filtered_out_hint)
+            )
+            state.typeGatedOutCount > 0 -> Pair(
+                ctx.getString(R.string.browse_empty_type_gated, state.typeGatedOutCount),
+                ctx.getString(R.string.browse_empty_type_gated_hint)
+            )
+            else -> null
+        }
+        if (filterExplanation != null) {
+            binding.tvEmptyStateMessage.text = filterExplanation.first
             binding.tvEmptyStateHint.isVisible = true
-            binding.tvEmptyStateHint.text = ctx.getString(R.string.browse_empty_filtered_out_hint)
+            binding.tvEmptyStateHint.text = filterExplanation.second
             return
         }
 

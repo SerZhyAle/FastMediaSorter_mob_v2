@@ -362,7 +362,7 @@ _Reached from the camera capture screen, not from Settings._
 | Setting | What it does |
 |---|---|
 | Only OCR (no translation) | Skips the translation step and shows the recognized text as-is. |
-| Aspect ratio | Sets the photo aspect ratio used by the camera capture. |
+| Aspect ratio | Chooses the photo frame shape - 4:3, 16:9 (default) or full screen. The choice drives the live viewfinder and the saved file, not an overlay frame drawn over a 4:3 stream. |
 | Grid | Shows a composition grid overlay in the camera viewfinder. |
 | HDR | Enables HDR capture for higher dynamic range photos. |
 | Manual ISO and shutter | Enables manual control of ISO and shutter speed instead of automatic exposure. |

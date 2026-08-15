@@ -1,32 +1,26 @@
 package com.sza.fastmediasorter.wear.ui.player.image
 
-import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
-import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
+import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
-import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.SendFavoritesDeltaUseCase
 import com.sza.fastmediasorter.wear.ui.slideshow.ImageSlideshowController
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.File
-import java.io.FileOutputStream
 import javax.inject.Inject
 
 /**
@@ -35,182 +29,142 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ImageViewerViewModel @Inject constructor(
-    private val mediaRepository: WearMediaRepository,
     private val preferencesRepository: WearPreferencesRepository,
     private val selectedMediaManager: SelectedMediaManager,
-    private val smbDataSource: SmbDataSource,
+    private val playbackSetManager: PlaybackSetManager,
+    private val downloadNetworkFile: DownloadNetworkFileUseCase,
     private val favoritesRepository: WearFavoritesRepository,
     private val sendFavoritesDeltaUseCase: SendFavoritesDeltaUseCase,
-    savedStateHandle: SavedStateHandle,
-    @ApplicationContext private val context: Context
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    
+
     private val _uiState = MutableStateFlow(ImageViewerUiState())
     val uiState: StateFlow<ImageViewerUiState> = _uiState.asStateFlow()
 
     private val _isFavorite = MutableStateFlow(false)
     val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
-    
+
     private val fileId: Long = savedStateHandle.get<Long>("fileId") ?: -1L
-    private var allImages: List<WearMediaFile> = emptyList()
-    
+
     private var slideshowController: ImageSlideshowController? = null
-    
-    // Track if this is an SMB source
-    private var isNetworkSource: Boolean = false
-    
+
+    /**
+     * The selection this screen was opened with, kept only when it is a network one. Paging has to
+     * re-enter the download path with the same source id, or S1687's routing loses the protocol on
+     * the second image.
+     */
+    private var networkSelection: SelectedMedia? = null
+
     init {
         Timber.d("ImageViewerViewModel initialized with fileId: $fileId")
-        
+
         // Auto-load if fileId is valid (from SavedStateHandle)
         if (fileId != -1L) {
+            // Navigation carries the id alone, so the shared set has to be pointed at it here.
+            playbackSetManager.moveTo(fileId)
             loadImageFile()
         }
     }
-    
+
     private fun loadImageFile() {
         Timber.d("Loading image file with fileId: $fileId")
-        
-        // First, check if we have a selected file from SelectedMediaManager (SMB source)
+
+        // First, check if we have a selected file from SelectedMediaManager (network source)
         val selectedMedia = selectedMediaManager.getSelectedFileById(fileId)
-        
+
         if (selectedMedia != null && selectedMedia.isNetworkSource) {
-            // SMB file - load it
-            Timber.d("Loading SMB image: ${selectedMedia.file.name}")
-            isNetworkSource = true
-            loadSmbImage(selectedMedia.streamUri, selectedMedia.file)
+            Timber.d("Loading network image: ${selectedMedia.file.name}")
+            networkSelection = selectedMedia
+            loadNetworkImage(selectedMedia)
         } else {
-            // Local file - use MediaStore
-            loadImages()
+            // Local file - the browse screen already handed over the list it came from
+            showCurrentFromSet()
         }
     }
-    
+
     /**
-     * Load an image from SMB by downloading it to cache.
+     * Show a network image from its cached copy. S1687: which protocol that download speaks is the
+     * use case's decision, not this screen's; this view model used to call SMB unconditionally and
+     * broke every other source.
      */
-    private fun loadSmbImage(filePath: String, file: WearMediaFile) {
+    private fun loadNetworkImage(selected: SelectedMedia) {
+        Timber.d("S1687: network image entry sourceId=${selected.sourceId} uri=${selected.streamUri}")
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            
-            withContext(Dispatchers.IO) {
-                try {
-                    Timber.d("Downloading SMB image: $filePath")
-                    
-                    // Get file stream from SMB
-                    val streamResult = smbDataSource.getFileStream(filePath)
-                    
-                    streamResult.fold(
-                        onSuccess = { inputStream ->
-                            // Create temp file in cache directory
-                            val cacheDir = File(context.cacheDir, "smb_images")
-                            cacheDir.mkdirs()
-                            
-                            // Use hash of file path for unique filename
-                            val tempFileName = "${filePath.hashCode()}_${file.name}"
-                            val tempFile = File(cacheDir, tempFileName)
-                            
-                            Timber.d("Saving to temp file: ${tempFile.absolutePath}")
-                            
-                            // Copy stream to file
-                            inputStream.use { input ->
-                                FileOutputStream(tempFile).use { output ->
-                                    input.copyTo(output)
-                                }
-                            }
-                            
-                            Timber.d("SMB image downloaded, size: ${tempFile.length()} bytes")
-                            
-                            // Create a WearMediaFile with the local temp file URI
-                            val localFile = file.copy(uri = Uri.fromFile(tempFile))
-                            
-                            withContext(Dispatchers.Main) {
-                                allImages = listOf(localFile) // For SMB, we only show one image
-                                _uiState.update {
-                                    it.copy(
-                                        isLoading = false,
-                                        mediaFile = localFile,
-                                        currentIndex = 0,
-                                        totalCount = 1
-                                    )
-                                }
-                                checkFavoriteState(sourceId = "network", filePath = filePath)
-                            }
-                        },
-                        onFailure = { e ->
-                            Timber.e(e, "Failed to download SMB image")
-                            withContext(Dispatchers.Main) {
-                                _uiState.update { 
-                                    it.copy(isLoading = false, error = "Failed to load: ${e.message}") 
-                                }
-                            }
-                        }
-                    )
-                } catch (e: Exception) {
-                    Timber.e(e, "Exception loading SMB image")
-                    withContext(Dispatchers.Main) {
-                        _uiState.update { 
-                            it.copy(isLoading = false, error = "Error: ${e.message}") 
-                        }
+
+            downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.IMAGE).fold(
+                onSuccess = { cachedFile ->
+                    // The cached copy is what gets displayed, but the position stays that of the
+                    // remote file inside the browsed set.
+                    val localFile = selected.file.copy(uri = Uri.fromFile(cachedFile))
+                    val set = playbackSetManager.currentSet.value
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            mediaFile = localFile,
+                            currentIndex = set?.index ?: it.currentIndex,
+                            totalCount = set?.files?.size ?: it.totalCount
+                        )
+                    }
+                    checkFavoriteState(sourceId = "network", filePath = selected.streamUri)
+                },
+                onFailure = { e ->
+                    _uiState.update {
+                        it.copy(isLoading = false, error = "Failed to load: ${e.message}")
                     }
                 }
-            }
+            )
         }
     }
-    
-    private fun loadImages() {
-        viewModelScope.launch {
-            try {
-                // Load all images to enable navigation
-                val result = mediaRepository.getMediaFiles(MediaType.PHOTO).first()
-                result.fold(
-                    onSuccess = { files ->
-                        allImages = files
-                        val currentIndex = files.indexOfFirst { it.id == fileId }
-                        if (currentIndex >= 0) {
-                            _uiState.update {
-                                it.copy(
-                                    isLoading = false,
-                                    mediaFile = files[currentIndex],
-                                    currentIndex = currentIndex,
-                                    totalCount = files.size
-                                )
-                            }
-                            checkFavoriteState(sourceId = "local", filePath = files[currentIndex].uri.toString())
 
-                            // Initialize slideshow controller
-                            initializeSlideshowController(currentIndex)
-                        } else {
-                            _uiState.update { 
-                                it.copy(isLoading = false, error = "Image not found") 
-                            }
-                        }
-                    },
-                    onFailure = { e ->
-                        _uiState.update { 
-                            it.copy(isLoading = false, error = e.message ?: "Unknown error") 
-                        }
-                    }
-                )
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to load images")
-                _uiState.update { it.copy(isLoading = false, error = e.message) }
-            }
+    private fun showCurrentFromSet() {
+        val set = playbackSetManager.currentSet.value
+        val current = set?.current
+        if (set == null || current == null) {
+            showWithoutSet()
+            return
         }
+        _uiState.update {
+            it.copy(
+                isLoading = false,
+                mediaFile = current,
+                currentIndex = set.index,
+                totalCount = set.files.size
+            )
+        }
+        checkFavoriteState(sourceId = "local", filePath = current.uri.toString())
+        initializeSlideshowController(set.files.size)
     }
-    
-    private fun initializeSlideshowController(startIndex: Int) {
+
+    /**
+     * A player reached by any route that did not go through browse gets no set. The file it was
+     * opened with is still shown; position and count keep their empty defaults, which the screen
+     * reads as "paging unavailable" rather than as an error.
+     */
+    private fun showWithoutSet() {
+        val fallback = selectedMediaManager.getSelectedFileById(fileId)?.file
+        if (fallback == null) {
+            _uiState.update { it.copy(isLoading = false, error = "Image not found") }
+            return
+        }
+        Timber.i("No published set for fileId=$fileId, paging unavailable")
+        _uiState.update { it.copy(isLoading = false, mediaFile = fallback) }
+        checkFavoriteState(sourceId = "local", filePath = fallback.uri.toString())
+    }
+
+    private fun initializeSlideshowController(totalItems: Int) {
         viewModelScope.launch {
             val intervalSeconds = preferencesRepository.slideshowIntervalSeconds.first()
-            
+
             slideshowController = ImageSlideshowController(
                 scope = viewModelScope,
                 intervalSeconds = intervalSeconds,
-                totalItems = allImages.size,
+                totalItems = totalItems,
                 onIndexChanged = { newIndex ->
                     navigateToIndex(newIndex)
                 }
             )
-            
+
             // Auto-start if slideshow is enabled in settings
             val isSlideshowEnabled = preferencesRepository.isSlideshowEnabled.first()
             if (isSlideshowEnabled) {
@@ -218,19 +172,19 @@ class ImageViewerViewModel @Inject constructor(
             }
         }
     }
-    
+
     fun startSlideshow() {
         Timber.d("Starting slideshow")
         slideshowController?.start()
         _uiState.update { it.copy(isSlideshowActive = true) }
     }
-    
+
     fun stopSlideshow() {
         Timber.d("Stopping slideshow")
         slideshowController?.stop()
         _uiState.update { it.copy(isSlideshowActive = false) }
     }
-    
+
     fun toggleSlideshow() {
         if (_uiState.value.isSlideshowActive) {
             stopSlideshow()
@@ -238,42 +192,58 @@ class ImageViewerViewModel @Inject constructor(
             startSlideshow()
         }
     }
-    
+
     fun navigateToNext() {
-        if (allImages.isEmpty()) return
-        
-        val nextIndex = (_uiState.value.currentIndex + 1) % allImages.size
-        navigateToIndex(nextIndex)
-        
-        // Notify slideshow controller about manual navigation
-        slideshowController?.next()
+        val next = playbackSetManager.next() ?: return
+        showFile(next)
+        syncSlideshowToSet()
     }
-    
+
     fun navigateToPrevious() {
-        if (allImages.isEmpty()) return
-        
-        val prevIndex = if (_uiState.value.currentIndex > 0) {
-            _uiState.value.currentIndex - 1
-        } else {
-            allImages.size - 1
-        }
-        navigateToIndex(prevIndex)
-        
-        // Notify slideshow controller about manual navigation
-        slideshowController?.previous()
+        val previous = playbackSetManager.previous() ?: return
+        showFile(previous)
+        syncSlideshowToSet()
     }
-    
+
+    /**
+     * The set is the single source of position, so the slideshow controller follows it rather than
+     * keeping a second index of its own.
+     */
+    private fun syncSlideshowToSet() {
+        val index = playbackSetManager.currentSet.value?.index ?: return
+        slideshowController?.onManualNavigation(index)
+    }
+
     private fun navigateToIndex(index: Int) {
-        if (index in allImages.indices) {
-            _uiState.update { 
-                it.copy(
-                    mediaFile = allImages[index],
-                    currentIndex = index
-                ) 
-            }
+        val target = playbackSetManager.currentSet.value?.files?.getOrNull(index) ?: return
+        if (playbackSetManager.moveTo(target.id)) {
+            showFile(target)
         }
     }
-    
+
+    /**
+     * A network file is not readable at its remote path, so paging into one re-enters the download
+     * path instead of handing that path to the image loader.
+     */
+    private fun showFile(file: WearMediaFile) {
+        val selection = networkSelection
+        if (selection != null) {
+            loadNetworkImage(selection.copy(file = file, streamUri = file.uri.toString()))
+            return
+        }
+        // Every per-file indicator has to follow the file, or paging leaves the previous one's
+        // favourite state on screen.
+        checkFavoriteState(sourceId = "local", filePath = file.uri.toString())
+        val set = playbackSetManager.currentSet.value
+        _uiState.update {
+            it.copy(
+                mediaFile = file,
+                currentIndex = set?.index ?: it.currentIndex,
+                totalCount = set?.files?.size ?: it.totalCount
+            )
+        }
+    }
+
     fun toggleFavorite() {
         val selected = selectedMediaManager.getSelectedFileById(fileId)
         val sourceId = if (selected?.isNetworkSource == true) "network" else "local"

@@ -414,6 +414,14 @@ class CameraCaptureActivity :
             binding.cameraZoomSlider.visibility = View.VISIBLE
             binding.cameraZoomSlider.value = flowManager.liveLinearZoom.coerceIn(0f, 1f)
             binding.cameraZoomValue.visibility = View.VISIBLE
+        } else if (!capabilities.isFront && capabilities.rearLensEquivalentFloors.size > 1) {
+            // S1675: this lens has no range of its own, so the preset row would be empty and used to
+            // disappear with it - leaving the wide lens without a marked way back. It carries one pill
+            // per rear lens instead. Slider and readout stay hidden: min == max, nothing to drag.
+            binding.cameraZoomPresetGroup.visibility = View.VISIBLE
+            zoomControlsManager.configureLensPills(capabilities)
+            binding.cameraZoomSlider.visibility = View.GONE
+            binding.cameraZoomValue.visibility = View.GONE
         } else {
             binding.cameraZoomPresetGroup.visibility = View.GONE
             binding.cameraZoomPresetGroup.removeAllViews()

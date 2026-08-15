@@ -2824,4 +2824,13 @@
     <string name="network_monitor_ip_addresses_label">indirizzi IP</string>
     <string name="network_monitor_permission_grant">Autorizzazione non concessa. Tocca per concederla.</string>
     <string name="network_monitor_permission_open_settings">L\'autorizzazione è bloccata. Tocca per aprire le impostazioni dell\'app.</string>
+    <string name="cast_cropping_stereo">Preparazione della copia per un solo occhio..</string>
+    <string name="cast_crop_skipped_long">Il video è troppo lungo per essere ritagliato. Trasmissione del fotogramma intero.</string>
+    <string name="launcher_settings_taskbar_placement_title">Posizione della barra delle applicazioni</string>
+    <string name="launcher_settings_taskbar_placement_bottom">In basso</string>
+    <string name="launcher_settings_taskbar_placement_top">In alto</string>
+    <string name="camera_aspect_full_screen">Schermo intero</string>
+    <string name="wear_sync_no_ack">Nessuna conferma dallo smartwatch. Potrebbe essere spento o fuori portata.</string>
+    <string name="browse_empty_type_gated">%1$d file sono nascosti perché il loro tipo di media è disattivato.</string>
+    <string name="browse_empty_type_gated_hint">Riattiva quel tipo di media nelle impostazioni per vederli.</string>
 </resources>

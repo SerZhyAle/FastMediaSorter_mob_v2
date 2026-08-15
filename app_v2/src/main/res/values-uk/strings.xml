@@ -3240,4 +3240,7 @@
     <string name="launcher_settings_taskbar_placement_bottom">Знизу</string>
     <string name="launcher_settings_taskbar_placement_top">Зверху</string>
     <string name="camera_aspect_full_screen">На весь екран</string>
+    <string name="wear_sync_no_ack">Годинник не підтвердив отримання. Можливо, він вимкнений або поза зоною.</string>
+    <string name="browse_empty_type_gated">%1$d файлів приховано: їхній тип медіа вимкнено в налаштуваннях.</string>
+    <string name="browse_empty_type_gated_hint">Увімкніть цей тип медіа в налаштуваннях, щоб побачити їх.</string>
 </resources>

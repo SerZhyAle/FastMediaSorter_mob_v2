@@ -2825,4 +2825,13 @@
     <string name="network_monitor_ip_addresses_label">IP پتے</string>
     <string name="network_monitor_permission_grant">اجازت نہیں دی گئی۔ اسے دینے کے لیے تھپتھپائیں۔</string>
     <string name="network_monitor_permission_open_settings">اجازت مسدود ہے۔ ایپ کی ترتیبات کھولنے کے لیے تھپتھپائیں۔</string>
+    <string name="cast_cropping_stereo">ایک آنکھ کی نقل تیار کی جا رہی ہے..</string>
+    <string name="cast_crop_skipped_long">ویڈیو کاٹنے کے لیے بہت طویل ہے۔ پورا فریم کاسٹ کیا جا رہا ہے۔</string>
+    <string name="launcher_settings_taskbar_placement_title">ٹاسک بار کی جگہ</string>
+    <string name="launcher_settings_taskbar_placement_bottom">نیچے</string>
+    <string name="launcher_settings_taskbar_placement_top">اوپر</string>
+    <string name="camera_aspect_full_screen">پوری اسکرین</string>
+    <string name="wear_sync_no_ack">گھڑی نے تصدیق نہیں کی۔ ہو سکتا ہے وہ بند ہو یا حد سے باہر ہو۔</string>
+    <string name="browse_empty_type_gated">%1$d فائلیں چھپی ہوئی ہیں کیونکہ ان کی میڈیا قسم بند ہے۔</string>
+    <string name="browse_empty_type_gated_hint">انہیں دیکھنے کے لیے ترتیبات میں وہ میڈیا قسم دوبارہ چالو کریں۔</string>
 </resources>

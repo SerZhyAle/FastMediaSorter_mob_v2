@@ -71,6 +71,12 @@ data class CameraRuntimeCapabilities(
     val activeLensIsWidest: Boolean = false,
     /** S1189: the active lens is the dedicated close-focus lens, so the label reads "macro". */
     val activeLensIsMacro: Boolean = false,
+    /**
+     * S1675: display-rounded equivalent floor of each rear lens, ascending. Empty on a device with a
+     * single rear lens, which is what keeps a one-button row from appearing where there is nothing to
+     * switch between.
+     */
+    val rearLensEquivalentFloors: List<Float> = emptyList(),
 ) {
     /** A second lens to flip to exists. */
     val canSwitchLens: Boolean get() = availableLensFacings.size > 1
@@ -95,6 +101,9 @@ data class CameraRuntimeCapabilities(
 
     /** S1261: the floor pill's printed value - display-rounded equivalent (S1260 rule, 0.57 -> 0.5). */
     val crossLensFloorDisplay: Float get() = roundEquivalentForDisplay(minEquivalentZoomRatio)
+
+    /** The bound lens's own floor, printed by the same rule as the pills, so the two can be matched. */
+    val ownEquivalentFloorDisplay: Float get() = roundEquivalentForDisplay(ownEquivalentFloor)
 
     companion object {
         const val DEFAULT_ZOOM = 1f
@@ -168,6 +177,22 @@ data class CameraRuntimeCapabilities(
             }
             return byLabel.values.sorted()
         }
+
+        /**
+         * S1675: the printed floors of the rear lenses, for the row shown on a lens whose own zoom
+         * range is a single point and whose preset row would otherwise vanish. Input is one raw
+         * equivalent floor per rear lens (its `minZoomRatio * equivalentMultiplier`); two lenses whose
+         * labels collapse to the same value are one button to the user, so they collapse here too.
+         *
+         * Emptiness is deliberately NOT decided here - the caller drops a single-lens device, because
+         * "one rear lens" is a fact about the device rather than about the rounding rule.
+         */
+        fun buildRearLensFloors(nativeFloors: List<Float>): List<Float> =
+            nativeFloors
+                .filter { it > 0f }
+                .map(::roundEquivalentForDisplay)
+                .distinct()
+                .sorted()
 
         /**
          * S1189: presets are shown to one decimal, so anything comparing a preset against a lens

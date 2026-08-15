@@ -4,11 +4,13 @@ import timber.log.Timber
 import java.io.File
 
 /**
- * Bounds the SMB playback temp-file cache (S0902) - Wear players download each SMB file to a
+ * Bounds the network playback temp-file cache (S0902) - Wear players download each remote file to a
  * per-type cache dir before ExoPlayer can stream it (no direct InputStream playback), and the
  * dir previously had no size cap or eviction, growing without bound on watch storage.
+ *
+ * S1687 widened it from SMB to every supported protocol, which is what the name now says.
  */
-object SmbCacheEvictor {
+object MediaCacheEvictor {
 
     /**
      * Deletes the oldest files (by [File.lastModified]) in [cacheDir] until its total size is
@@ -30,7 +32,7 @@ object SmbCacheEvictor {
             if (file.delete()) {
                 totalBytes -= size
             } else {
-                Timber.w("SmbCacheEvictor: failed to delete ${file.name}")
+                Timber.w("MediaCacheEvictor: failed to delete ${file.name}")
             }
         }
     }

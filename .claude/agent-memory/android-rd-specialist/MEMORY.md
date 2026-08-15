@@ -13,6 +13,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps it.
 ## Devices & release
 - [Devices](reference_test_device_galaxy_s21.md) - phones + Galaxy Watch 7 (Wi-Fi only) · [adb CLI](reference_adb_swiss_army.md) + [.debug pkg](reference_adb_and_debug_package.md)
 - [No system roles on owner phones](feedback_never_grant_system_roles_on_owner_phone.md) · [test media](reference_setup_test_media.md) · [gh CLI](reference_gh_cli_location.md)
+- [Old release's mapping](reference_play_console_mapping_recovery.md) - Play never returns it; unzip the AAB
 - [am start refused for non-exported](feedback_am_start_refused_for_non_exported.md) - drive the real trigger
 - [logcat -d wraps in ~2 min](feedback_logcat_dump_wraps_before_you_read_it.md) - stream to a file
 - Second-level index: [release, Play Console, store listings](INDEX_release.md) - open it only in a release flow.
@@ -23,6 +24,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps it.
 - [Stylus overlay eats typed text](feedback_stylus_overlay_eats_typed_text.md) - tree lies
 - [Maestro needs ru app locale](feedback_maestro_suite_needs_ru_app_locale.md) - log mojibake is display-only + [flow traps](feedback_maestro_flow_authoring_traps.md) - ASCII-only inputText
 - [Acceptance ceiling](feedback_emulator_acceptance_ceiling.md) · [False negatives](feedback_avd_evidence_traps_width_and_logs.md)
+- [Settings shots are black](feedback_settings_screenshots_black_flag_secure.md) - FLAG_SECURE; verify on an AVD, not the owner's phone
 - [Onboarding](feedback_onboarding_device_test_gotchas.md) · [Widget-only](reference_trigger_widget_only_features_on_emulator.md) · [Too fast for transfer UI](feedback_emulator_too_fast_for_transfer_ui.md)
 - [Reset settings, keep onboarding](feedback_reset_appsettings_without_onboarding.md)
 - [Launcher desktop](feedback_launcher_desktop_device_test_setup.md) - enabledComponents; am start needs no HOME role · [Theme switch](feedback_color_theme_device_switch.md)
@@ -31,6 +33,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps it.
 ## Build, flavors, gates
 - [Not your CODE.LOCK](feedback_code_lock_release_ownership.md) · [No concurrent gradle](feedback_no_concurrent_gradle_invocations.md)
 - [Don't idle on a lock](feedback_do_not_idle_on_a_lock.md) · [Lock per step, not ticket](feedback_code_lock_is_per_step_not_per_ticket.md)
+- [Never batch the lock with the edit](feedback_never_batch_code_lock_with_the_edit.md) - exit 4 refuses, the edit lands anyway
 - [Lock denial doesn't stop the batch](feedback_code_lock_denial_does_not_stop_the_batch.md)
 - [agent-lock has no CLI](project_agent_lock_release_lies.md) - use `exit-code-lock.ps1`
 - [No redundant flavor compile](feedback_no_redundant_flavor_compile.md) · [BuildConfig names lie](feedback_dont_infer_from_buildconfig_names.md) · [Lowest flavor wins](feedback_push_features_to_lowest_flavor.md)
@@ -40,6 +43,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps it.
 - [screenCapture ships in standard too](project_screencapture_nolegal_only.md) - filename lies · [gates gesture](project_screencapture_gates_gesture_capability.md)
 - [manifest.srcFile wins](project_agp_manifest_srcfile_overrides_flavor_manifest.md) · [MSAL hash per keystore](project_msal_signing_hash_per_keystore.md)
 - [material-icons stays](project_material_icons_extended_not_removable.md) · [Phantom unresolved ref](project_incremental_build_phantom_unresolved.md)
+- [R8 mapping is 174 MB](project_r8_mapping_is_174mb.md) - stream it, never Get-Content it into an array
 - [Build gotchas](project_build_gotchas.md) + [no redirect in pwsh tool](feedback_build_output_pipe_truncation.md) + [a.ps1](feedback_aps1_launcher_pwsh_cwd.md)
 - [Gradle via PowerShell](feedback_gradle_via_powershell_not_bash.md)
 - [Unmask kapt NPE](project_kapt_npe_unmask.md) + [subagent claims](feedback_verify_subagent_build_failures.md) · [Remove dead config](feedback_remove_dead_applications_too.md)
@@ -136,6 +140,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps it.
 - [Welcome consolidation](feedback_welcome_process_consolidation.md) · [5h limit](feedback_workflow_session_limit_budget.md) · [Don't stop on a guess](feedback_dont_stop_loop_on_context_guess.md)
 - [ScheduleWakeup is /loop-only](feedback_schedulewakeup_loop_mode_only.md) · [Never style-edit a spec](feedback_no_ellipsis_edits_in_verbatim_code_spans.md) · [Edit splice](feedback_edit_line_delete_splice.md)
 - [An invariant is a claim](feedback_documented_invariant_is_a_claim.md) · [Resolved may be inference](feedback_resolved_research_item_may_be_inference.md) - re-measure before planning
+- [Visibility != action](feedback_visibility_condition_is_not_the_action.md) - read the handler before describing what a control does
 - [Audit the fixes too](feedback_audit_fixes_need_their_own_round.md)
 - [javap the android.jar](feedback_verify_platform_api_with_javap.md) · [Verify owner's mechanism](feedback_verify_owner_proposed_remedy_mechanism.md)
 - [Signed-off needs widget check](feedback_owner_signed_values_still_need_widget_validation.md) · [Never pass inference as owner's](feedback_never_attribute_agent_inference_to_owner.md)
