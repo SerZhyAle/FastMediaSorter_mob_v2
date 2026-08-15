@@ -91,14 +91,30 @@ $safeDesc = $Description -replace '\|', '\|'
 # entry. Compare the semantic signature (file | target | desc), ignoring the
 # timestamp and branch tag, against the most recent entries. Observed failure:
 # three identical S1181 rows within 6 min from repeated post-change runs.
-$signature = "``$safeFile`` | ``$safeTarget`` | $safeDesc "
+#
+# S1622: the `[set of N: ..]` tail is written by post-change.ps1, not by the caller, and
+# it is the one part of the description that CHANGES between two runs of the same closure -
+# fixing what an advisory named usually regenerates a file, which then joins the set. So it
+# is normalised out of both sides: it may not identify the change. Everything the caller
+# actually wrote still does. Measured 2026-08-13: since the tail appeared on 2026-08-08 the
+# guard caught every exact repeat, and the only two rows that escaped it were of this shape.
+#
+# The signature closes on the `[branch:` marker that follows the description in every row,
+# so it matches a whole description and not a prefix of one - before this, a row described
+# as "Fix A" counted as a duplicate of a row described as "Fix A and B".
+$setSuffixInDesc = '\s*\[set of \d+:[^\]]*\]\s*$'
+# In a written row the tail sits immediately before the branch tag; anchoring there keeps a
+# `[set of ..]` a caller typed inside its own prose out of it.
+$setSuffixInRow  = '\s*\[set of \d+:[^\]]*\](?=\s*\[branch:)'
+$coreDesc = $safeDesc -replace $setSuffixInDesc, ''
+$signature = "``$safeFile`` | ``$safeTarget`` | $coreDesc [branch:"
 if (-not $AllowDuplicate) {
     $dataRows = @(Get-Content -Path $logFile -Encoding UTF8 | Where-Object { $_ -match '^\|\s\d{4}-\d{2}-\d{2}' })
     if ($dataRows.Count -gt 0) {
         $windowStart = [Math]::Max(0, $dataRows.Count - 8)
         $recent = $dataRows[$windowStart..($dataRows.Count - 1)]
         foreach ($row in $recent) {
-            if ($row.Contains($signature)) {
+            if (($row -replace $setSuffixInRow, '').Contains($signature)) {
                 Write-Host "[DEV_LOG] SKIP duplicate (identical to a recent entry): $safeFile | $safeTarget | $safeDesc" -ForegroundColor Yellow
                 exit 0
             }

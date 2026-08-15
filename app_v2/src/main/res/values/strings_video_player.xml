@@ -45,7 +45,6 @@
     <string name="playback_settings_3d_vr180">VR180</string>
     <string name="playback_speed">Playback Speed</string>
     <string name="player_3d_detected_toast">3D video detected. Use File Info to open it in an external VR player.</string>
-    <string name="player_audio_track">Audio track language</string>
     <string name="player_command_panel_mode_playerViewPanel_resize_mode">fit</string>
     <string name="player_credentials_missing">Saved credentials are missing. Update them and try again.</string>
     <string name="player_file_moved">File moved.</string>
@@ -68,11 +67,6 @@
     <string name="player_page_not_ready">That page isn\'t ready yet. Try again.</string>
     <string name="player_play_symbol">▶</string>
     <string name="player_previous_symbol">◀</string>
-    <string name="player_repeat_video">Repeat playback</string>
-    <string name="player_settings_title">Player Settings</string>
-    <string name="player_show_subtitles">Show subtitles</string>
-    <string name="player_speed">Playback Speed</string>
-    <string name="player_subtitle_language">Subtitle language</string>
     <string name="player_volume_down_symbol">−</string>
     <string name="player_volume_up_symbol">+</string>
     <string name="player_webview_unavailable">Couldn\'t access the reading view. Try again.</string>

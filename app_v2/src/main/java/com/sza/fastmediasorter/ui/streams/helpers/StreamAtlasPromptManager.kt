@@ -91,7 +91,6 @@ class StreamAtlasPromptManager(
                     text + "\n\n" + context.getString(R.string.streams_atlas_prompt_size, megabytes.toInt())
                 }
             }
-            Timber.d("S1483: offering %s, status=%s, size=%s MB", set, status, megabytes)
             var accepted = false
             MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.streams_atlas_prompt_title)

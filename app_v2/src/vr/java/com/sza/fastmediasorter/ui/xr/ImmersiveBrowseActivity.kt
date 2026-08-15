@@ -220,7 +220,6 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun onCellSelected(cell: ImmersiveBrowseCell) {
-        Timber.d("S1132: browser cell selected index=${cell.index} folder=${cell.isFolder}")
         hapticBridge.triggerClickFeedback()
         if (cell.isFolder) {
             cell.folderPath?.let { path ->
@@ -327,7 +326,6 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
         // The XR runtime is a process singleton, so the browser must assert its own HUD quad size or
         // it inherits whatever the previous mode left (the tiny banner) - the "micro-browser" (S1116).
         runtime.setHudQuadSize(BROWSE_QUAD_WIDTH_M, BROWSE_QUAD_HEIGHT_M, BROWSE_QUAD_OFFSET_Y_M)
-        Timber.d("S1116: browse HUD quad ${BROWSE_QUAD_WIDTH_M}x${BROWSE_QUAD_HEIGHT_M}m")
         if (state == BrowseState.BROWSE) drawAndPushGrid()
     }
 
@@ -353,6 +351,11 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
         playbackController.stop()
         thumbnailDecoder.release()
         renderThread?.requestExit()
+        // S1640: unsubscribe at the terminal boundary, never in surfaceDestroyed - the surface is
+        // recreated while the activity lives, and removing there would leave it without callbacks.
+        if (::surfaceView.isInitialized) {
+            surfaceView.holder.removeCallback(this)
+        }
         super.onDestroy()
     }
 

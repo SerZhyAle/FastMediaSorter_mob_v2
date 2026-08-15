@@ -24,6 +24,8 @@
     { "field": "cameraGeotagEnabled", "reason": "consent - writing location into photos is the user's decision" },
     { "field": "recordGnssTrack", "reason": "consent - recording a satellite track changes the Play Data Safety answer, so only the user turns it on (S1433)" },
 
+    { "field": "cameraLensSettings", "reason": "session state - opaque per-lens capture memory keyed by lens ids that exist only on this device (S1658)" },
+
     { "field": "scheduledOperationsPaused", "reason": "session state - reflects a running queue, not a preference" },
     { "field": "isCacheSizeUserModified", "reason": "session state - records that the user overrode the cache budget" },
     { "field": "isPrimaryMediaPlayer", "reason": "session state - derived from the role this install holds on the device" },

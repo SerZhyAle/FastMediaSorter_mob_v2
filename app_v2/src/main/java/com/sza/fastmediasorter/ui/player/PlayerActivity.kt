@@ -31,7 +31,6 @@ import com.sza.fastmediasorter.core.network.NetworkStateMonitor
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.SelfManagedScreenOrientation
-import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
@@ -50,7 +49,6 @@ import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.commands.FullscreenCommandOverride
 import com.sza.fastmediasorter.ui.player.commands.SaveFrameCommandOverride
 import com.sza.fastmediasorter.ui.player.commands.SystemUiCommandOverride
@@ -77,6 +75,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import timber.log.Timber
 import java.util.Optional
 import javax.inject.Inject
 
@@ -384,8 +383,6 @@ class PlayerActivity :
 
     @Inject lateinit var castControllerFactory: com.sza.fastmediasorter.core.cast.CastControllerFactory
 
-    @Inject lateinit var startVrPlaybackUseCase: StartVrPlaybackUseCase
-
     @Inject lateinit var vrLaunchPayloadHolder: com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 
     @Inject internal lateinit var dropboxClientLazy: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>
@@ -403,14 +400,7 @@ class PlayerActivity :
     // S0459: unified «Send to..» menu manager; accessed by PlayerCommandPanelCallbackImpl.
     @Inject internal lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
 
-    @Inject internal lateinit var credentialsRepositoryLazy: Lazy<NetworkCredentialsRepository>
-
-    @Inject lateinit var settingsRepository: SettingsRepository
-
-    @Inject lateinit var resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository
-
-    @Inject lateinit var playbackPositionRepository:
-        com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+    @Inject lateinit var playerHostFactory: PlayerHostFactory
 
     // S1382: forwarded into NowPlayingManager so the background-playback bar can resolve a stream's
     // own favicon from the atlas sidecar.
@@ -419,10 +409,6 @@ class PlayerActivity :
     // S0473: usage-statistics sink, forwarded into the manually-constructed player managers
     // (video/image/pdf) via PlayerViewerFactory and PlayerManagerInitializer.
     @Inject lateinit var statsSink: com.sza.fastmediasorter.domain.stats.StatsSink
-
-    // S1144 (ADR-6): per-channel track preference, forwarded into VideoPlayerManager the same way.
-    @Inject lateinit var streamTrackPreferenceUseCase:
-        com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 
     // S0207 Phase 01: passed to VideoPlayerManager via PlayerViewerFactory for PRE_PLAY / AFTER_STATE_READY probes.
     @Inject lateinit var memoryProbe: com.sza.fastmediasorter.core.memory.MemoryProbe
@@ -452,34 +438,14 @@ class PlayerActivity :
         get() = memoryAlertShownInSession
         set(value) { memoryAlertShownInSession = value }
 
-    @Inject lateinit var rotateImageUseCase: com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
-
-    @Inject lateinit var searchAudioCoverUseCase: com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
+    @Inject lateinit var imageEditFactory: ImageEditFactory
 
     @Inject lateinit var deliveredAudioVisualizationSource:
         com.sza.fastmediasorter.data.delivery.DeliveredAudioVisualizationSource
 
-    @Inject lateinit var flipImageUseCase: com.sza.fastmediasorter.domain.usecase.FlipImageUseCase
-
-    @Inject lateinit var networkImageEditUseCase: com.sza.fastmediasorter.domain.usecase.NetworkImageEditUseCase
-
-    @Inject lateinit var applyImageFilterUseCase: com.sza.fastmediasorter.domain.usecase.ApplyImageFilterUseCase
-
-    @Inject lateinit var adjustImageUseCase: com.sza.fastmediasorter.domain.usecase.AdjustImageUseCase
-
-    @Inject lateinit var extractGifFramesUseCase: com.sza.fastmediasorter.domain.usecase.ExtractGifFramesUseCase
-
-    @Inject lateinit var saveGifFirstFrameUseCase: com.sza.fastmediasorter.domain.usecase.SaveGifFirstFrameUseCase
-
-    @Inject lateinit var changeGifSpeedUseCase: com.sza.fastmediasorter.domain.usecase.ChangeGifSpeedUseCase
-
-    @Inject lateinit var downloadNetworkFileUseCase: com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase
-
     @Inject lateinit var localDestinationClassifier: LocalDestinationClassifier
 
     @Inject lateinit var localDestinationWriter: LocalDestinationWriter
-
-    @Inject lateinit var searchLyricsUseCase: com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
 
     @Inject internal lateinit var unifiedCacheLazy: Lazy<com.sza.fastmediasorter.core.cache.UnifiedFileCache>
 
@@ -505,8 +471,6 @@ class PlayerActivity :
 
     @Inject lateinit var pathNormalizer: com.sza.fastmediasorter.domain.path.PathNormalizer
 
-    @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
-
     @Inject lateinit var imageClipboardWriter: com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
 
     @Inject lateinit var saveFallbackNotifier: com.sza.fastmediasorter.core.save.SaveFallbackNotifier
@@ -521,9 +485,6 @@ class PlayerActivity :
     @Inject internal lateinit var audioBackgroundPhotosManagerLazy:
         Lazy<com.sza.fastmediasorter.ui.player.helpers.AudioBackgroundPhotosManager>
 
-    @Inject lateinit var audioMetadataCacheRepository:
-        com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
-
     @Inject lateinit var okHttpClient: okhttp3.OkHttpClient
 
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
@@ -534,7 +495,8 @@ class PlayerActivity :
     internal val googleDriveClient: GoogleDriveRestClient get() = googleDriveClientLazy.get()
     internal val dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient get() = dropboxClientLazy.get()
     internal val oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient get() = oneDriveClientLazy.get()
-    internal val credentialsRepository: NetworkCredentialsRepository get() = credentialsRepositoryLazy.get()
+    internal val credentialsRepository: NetworkCredentialsRepository
+        get() = playerHostFactory.credentialsRepository.get()
     internal val unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache get() = unifiedCacheLazy.get()
     internal val smbFileOperationHandler: com.sza.fastmediasorter.data.network.SmbFileOperationHandler get() = smbFileOperationHandlerLazy.get()
     internal val sftpFileOperationHandler: com.sza.fastmediasorter.data.network.SftpFileOperationHandler get() = sftpFileOperationHandlerLazy.get()
@@ -849,7 +811,13 @@ class PlayerActivity :
     internal fun castCurrentMedia() {
         castMediaManager.showCastDialog(this)
         val currentFile = viewModel.state.value.currentFile ?: return
-        if (castMediaManager.isCasting) castMediaManager.sendCurrentMedia(currentFile)
+        // S1558: read the crop off the backing field, never the lazy getter - casting an image must
+        // not be what instantiates VideoPlayerManager.
+        if (castMediaManager.isCasting) {
+            val panelCrop = _videoPlayerManager?.currentPanelStereoCrop
+            Timber.d("S1558: cast requested for ${currentFile.name} with panel crop $panelCrop")
+            castMediaManager.sendCurrentMedia(currentFile, panelCrop)
+        }
     }
 
     internal fun hideLyricsViewer() = lyricsManager.hideLyricsViewer()
@@ -875,8 +843,6 @@ class PlayerActivity :
 
     /** True once imageDrawOverlayManager has been constructed (Phase 02 init). */
     internal val isDrawOverlayManagerReady: Boolean get() = ::imageDrawOverlayManager.isInitialized
-
-    @Inject lateinit var mergeDrawOverlayUseCase: com.sza.fastmediasorter.domain.usecase.MergeDrawOverlayUseCase
 
     // S0189: registry for deferred new-note creations (consulted by TextViewerManager on load/cancel)
     @Inject lateinit var textNoteStagingRegistry: com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry

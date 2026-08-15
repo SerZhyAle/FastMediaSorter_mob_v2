@@ -110,7 +110,6 @@ class StreamFrameSnapshotManager(
         if (!hasNetwork()) {
             if (!offlineGateEngaged) {
                 offlineGateEngaged = true
-                Timber.d("S1469: snapshot sweep gated at request() - no network")
                 Timber.i("Stream snapshot: no network - capture sweep gated")
             }
             return

@@ -31,7 +31,12 @@ class AddStreamSourceUseCaseTest {
     val dbRule = InMemoryRoomRule { RuntimeEnvironment.getApplication() }
 
     private val dao get() = dbRule.db.streamSourceDao()
-    private val repo get() = StreamSourceRepository(dbRule.db, dao, dbRule.db.streamPlayOutcomeDao())
+    private val repo get() = StreamSourceRepository(
+        dbRule.db,
+        dao,
+        dbRule.db.streamPlayOutcomeDao(),
+        dbRule.db.streamQualityMemoryDao(),
+    )
     private val stats = RecordingStatsSink()
     private val useCase get() = AddStreamSourceUseCase(repo, StreamMediaKindClassifier(), stats)
 

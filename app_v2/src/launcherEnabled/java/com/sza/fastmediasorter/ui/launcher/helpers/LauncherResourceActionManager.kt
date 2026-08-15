@@ -157,7 +157,6 @@ class LauncherResourceActionManager(
      * the share sheet after it hands the file to somebody else.
      */
     private fun confirmExport(resource: MediaResource) {
-        Timber.d("S1456: launcher resource-action dialog bound to host")
         if (activity.isFinishing || activity.isDestroyed) return
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.resource_share_export_title)

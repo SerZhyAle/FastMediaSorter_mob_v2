@@ -143,8 +143,41 @@ if (-not $adb) {
 $script:result.adbPath = $adb
 Write-Line "OK adb: $adb" 'Green'
 
+# Generous on purpose: a cold `adb start-server` on a loaded machine takes seconds, and this
+# bound exists to stop an indefinite hang, not to police a slow start.
+$script:AdbServerStartTimeoutMs = 20000
+
+function Start-AdbServerDetached([string]$AdbPath) {
+    # S1633: `adb devices` auto-starts the `adb fork-server` daemon when none is running, and
+    # that daemon INHERITS this process's stdout pipe and then never exits. The capture below
+    # waits for EOF on a pipe whose write end the daemon holds open for its whole life, so the
+    # adb client exits in milliseconds while the caller hangs - observed 2613 s with not one
+    # byte of output, which read as "the agent went silent" rather than as an error.
+    # Starting the server through Start-Process hands the daemon file handles instead of our
+    # pipe, so every later capture sees EOF and returns. Already-running server: a no-op.
+    $outFile = [System.IO.Path]::GetTempFileName()
+    $errFile = [System.IO.Path]::GetTempFileName()
+    try {
+        $proc = Start-Process -FilePath $AdbPath -ArgumentList 'start-server' -NoNewWindow -PassThru `
+            -RedirectStandardOutput $outFile -RedirectStandardError $errFile
+        if (-not $proc.WaitForExit($script:AdbServerStartTimeoutMs)) {
+            try { $proc.Kill() } catch { <# already gone between the timeout and the kill #> }
+        }
+    }
+    catch {
+        # Deliberately non-fatal: this call only removes a hazard. If it cannot run, the probe
+        # below still succeeds whenever a server is already up, which is the common case, and
+        # the caller's own timeout covers the rest.
+        Write-Line "adb start-server could not be pre-started: $($_.Exception.Message)" 'DarkYellow'
+    }
+    finally {
+        Remove-Item -LiteralPath $outFile, $errFile -Force -ErrorAction SilentlyContinue
+    }
+}
+
 # ---------- step 2: devices ----------
 
+Start-AdbServerDetached -AdbPath $adb
 $raw = & $adb devices 2>$null
 if ($LASTEXITCODE -ne 0) { Stop-NotReady 1 'no-adb' "adb devices returned exit $LASTEXITCODE" }
 

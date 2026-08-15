@@ -33,7 +33,6 @@ class BackgroundOperationBarAttachManager(
                 Gravity.BOTTOM,
             ),
         )
-        Timber.d("S1398: bar attached to ${activity::class.simpleName}")
         activity.collectOnLifecycle(trackManager.barState()) { barView.render(it) }
     }
 }

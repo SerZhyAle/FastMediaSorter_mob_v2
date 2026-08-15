@@ -92,7 +92,6 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
             sectionMode -> sectionOptions()
             else -> categoryOptions()
         }
-        Timber.d("S1413: cell content picker gadgetMode=%s columns=%d", gadgetMode, currentColumnCount())
         SearchableOptionPickerController.attach(
             binding = binding,
             options = options,
@@ -172,7 +171,6 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         @DrawableRes iconRes: Int,
     ): Option? = category(id, labelRes, iconRes)
         .takeIf { contactActionAvailability.isAvailable(action) }
-        .also { Timber.d("S0428: category %s available=%b", action.name, it != null) }
 
     private fun gadgetOptions(): List<Option> = gadgetRegistry.available().map { gadget ->
         Option(

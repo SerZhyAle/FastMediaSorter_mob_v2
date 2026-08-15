@@ -228,6 +228,7 @@ class SettingsRepositoryImpl @Inject constructor(
             booleanPreferencesKey("launcher_replace_system_status_area")
         private val KEY_LAUNCHER_TOP_STATUS_STRIP_MODE =
             booleanPreferencesKey("launcher_top_status_strip_mode")
+        private val KEY_LAUNCHER_TASKBAR_PLACEMENT = stringPreferencesKey("launcher_taskbar_placement")
         private val KEY_LAUNCHER_ROTATION_HINT_SHOWN = booleanPreferencesKey("launcher_rotation_hint_shown")
         private val KEY_LAUNCHER_DESKTOP_LOCKED = booleanPreferencesKey("launcher_desktop_locked")
         private val KEY_LAUNCHER_WALLPAPER_MODE = stringPreferencesKey("launcher_wallpaper_mode")
@@ -467,6 +468,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     cameraCaptureCopyToClipboard = capture.cameraCaptureCopyToClipboard,
                     cameraGeotagEnabled = capture.cameraGeotagEnabled,
                     cameraAspectRatio = capture.cameraAspectRatio,
+                    cameraLensSettings = capture.cameraLensSettings,
                     disableVideoCapture = preferences[KEY_DISABLE_VIDEO_CAPTURE] ?: false,
                     videoCaptureOpenInPlayer = preferences[KEY_VIDEO_CAPTURE_OPEN_IN_PLAYER] ?: false,
                     videoRecordingDestinationResourceId = preferences[KEY_VIDEO_RECORDING_DESTINATION_RESOURCE_ID],
@@ -597,6 +599,10 @@ class SettingsRepositoryImpl @Inject constructor(
                         preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] ?: false,
                     launcherTopStatusStripMode =
                         preferences[KEY_LAUNCHER_TOP_STATUS_STRIP_MODE] ?: false,
+                    // S1643: an unknown token (older/newer build, corrupted value) degrades to the bottom edge.
+                    launcherTaskbarPlacement = preferences[KEY_LAUNCHER_TASKBAR_PLACEMENT]
+                        ?.takeIf { it in AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS }
+                        ?: AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM,
                     launcherRotationHintShown = preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] ?: false,
                     launcherDesktopLocked = preferences[KEY_LAUNCHER_DESKTOP_LOCKED] ?: false,
                     // S1101: an unknown token (older/newer build, corrupted value) degrades to the branded default.
@@ -832,6 +838,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_LAUNCHER_TRAY_SHOW_BATTERY] = settings.launcherTrayShowBattery
             preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] = settings.launcherReplaceSystemStatusArea
             preferences[KEY_LAUNCHER_TOP_STATUS_STRIP_MODE] = settings.launcherTopStatusStripMode
+            preferences[KEY_LAUNCHER_TASKBAR_PLACEMENT] = settings.launcherTaskbarPlacement
             preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] = settings.launcherRotationHintShown
             preferences[KEY_LAUNCHER_DESKTOP_LOCKED] = settings.launcherDesktopLocked
             preferences[KEY_LAUNCHER_WALLPAPER_MODE] = settings.launcherWallpaperMode
@@ -944,7 +951,6 @@ class SettingsRepositoryImpl @Inject constructor(
      */
     private suspend fun decryptPassword(encryptedPassword: String?): String = withContext(Dispatchers.IO) {
         if (encryptedPassword.isNullOrEmpty()) return@withContext ""
-        Timber.d("S1517: decrypting default password on thread=%s", Thread.currentThread().name)
         val isEncrypted = runCatching {
             android.util.Base64.decode(encryptedPassword, android.util.Base64.NO_WRAP)
         }.isSuccess

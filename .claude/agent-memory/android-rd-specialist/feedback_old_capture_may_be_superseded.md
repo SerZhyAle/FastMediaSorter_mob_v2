@@ -1,6 +1,6 @@
 ---
 name: old-capture-may-be-superseded
-description: Before speccing an aged /spec-draft capture, check whether a later ticket already shipped a variant of it - the request can be half-done in a shape nobody recorded against the original.
+description: Verify a /spec-draft capture's factual claims against the tree before speccing it - an aged one may already be half-shipped, and even a same-day one can simply be wrong.
 metadata:
   type: feedback
 ---
@@ -20,7 +20,16 @@ the preselected one. The gap was only visible from a KDoc line in the page holde
 
 **How to apply.**
 
-- The tell is a skeleton spec with an old `Захвачено:` date. Fresh captures cannot have been superseded yet.
+- **Age is not the tell, and a fresh capture is not a trusted one.** A capture states evidence as fact
+  ("neither model carries `@SerializedName`", "no keep rule covers it"); re-check each such claim against the
+  tree before it becomes §1, whatever the date. S1638 was captured and worked the same day, yet its central
+  claim was false: both models had been fully annotated a month earlier by S0957, which also shipped a JVM
+  guard test and a minified R8 proof. Accepting the capture would have "fixed" what was already fixed and
+  closed a priority-90 ticket as a no-op. What was genuinely open sat one line below, in the capture's second
+  bullet, and matched S0957's own recorded residual verbatim - so the capture was worth keeping, just not
+  worth believing.
+- An old skeleton adds the second failure mode on top: later work may have shipped a variant nobody recorded
+  against the original ticket.
 - Read the code path the request names *before* writing §1. A KDoc citing a ticket id is the cheapest
   evidence that something already landed there; `temp/done/` holds archived specs when the id is not in
   `PLAN/`.

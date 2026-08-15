@@ -30,7 +30,6 @@ class WelcomeRotationManager(
         if (newConfig.orientation == lastOrientation) return
         lastOrientation = newConfig.orientation
         val page = currentPageProvider()
-        Timber.d("S1377: welcome rotation rebuild orientation=%d page=%d", newConfig.orientation, page)
         onOrientationChanged(page)
     }
 

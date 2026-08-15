@@ -2,11 +2,13 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
 import android.os.Build
+import android.os.SystemClock
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsAnimationCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
@@ -22,6 +24,11 @@ class StandaloneFullscreenManager(private val activity: Activity) {
     // can tell "the user swiped the bars back" from any other inset dispatch.
     private var fullscreenActive = false
 
+    // Uptime of the last enterFullscreen() call, and whether the system-bars animation currently
+    // running was started by that call rather than by the user. See setupTransientBarsExitCallback.
+    private var fullscreenEnteredAtMs = 0L
+    private var selfInitiatedBarsAnimation = false
+
     fun toggleFullscreen() {
         val decorView = activity.window.decorView
         val insets = WindowInsetsCompat.toWindowInsetsCompat(decorView.rootWindowInsets, decorView)
@@ -34,6 +41,7 @@ class StandaloneFullscreenManager(private val activity: Activity) {
 
     fun enterFullscreen() {
         try {
+            fullscreenEnteredAtMs = SystemClock.uptimeMillis()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 activity.window.insetsController?.let { controller ->
                     controller.hide(WindowInsets.Type.systemBars())
@@ -91,16 +99,40 @@ class StandaloneFullscreenManager(private val activity: Activity) {
     }
 
     /**
-     * Wires a listener so that when transient system bars appear (edge-swipe in immersive mode)
-     * while the command panel is hidden, fullscreen is exited and the panel is restored.
+     * Wires the signals that mean "the system bars came back" while the command panel is hidden, so
+     * fullscreen can be left and the panel restored.
      *
-     * S1115: this asks the real window insets, not the legacy systemUiVisibility flags. The API 30+
-     * hide path goes through WindowInsetsController, which never sets `SYSTEM_UI_FLAG_FULLSCREEN`,
-     * so a flag-based check reads as "bars visible" unconditionally and fired the instant fullscreen
-     * was entered - the standalone video host could therefore never stay in panel-hidden fullscreen.
+     * S1115: a flag-based check on `SYSTEM_UI_FLAG_FULLSCREEN` is wrong on API 30+, because the hide
+     * path goes through WindowInsetsController and never sets that flag, so the check read as "bars
+     * visible" unconditionally and fired the instant fullscreen was entered.
+     *
+     * S1202, measured on a real device (Galaxy S21, API 35): the insets listener alone is not enough
+     * either. Under BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE the swipe-revealed bars are drawn over the
+     * content without affecting layout, and the platform reports them to the app as *not* visible -
+     * `isVisible(systemBars())` stayed false and no inset dispatch arrived at all while the bars were
+     * on screen. What does arrive is a system-bars inset *animation*, so that is the real signal.
+     *
+     * The animation alone would misfire, because this manager's own hide() animates the same types.
+     * The two are told apart by when the animation begins: the self-initiated one starts 19 ms after
+     * enterFullscreen(), a user swipe arbitrarily later, so anything inside the guard window is ours.
+     *
+     * The insets listener is kept as the second trigger: it does not see transient bars, but it does
+     * see the bars becoming genuinely visible (for example when the window stops being fullscreen),
+     * which the animation guard would otherwise ignore. Both callers are idempotent, so a double
+     * trigger is harmless.
      *
      * The listener sits on the content view rather than the decor view, so it never displaces the
      * decor's own inset handling, and it returns the insets unconsumed so child listeners still run.
+     *
+     * S1652: below API 30 neither signal exists, and no version branch can supply one. AndroidX maps
+     * BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE onto SYSTEM_UI_FLAG_IMMERSIVE_STICKY there
+     * (WindowInsetsControllerCompat.Impl20.setSystemBarsBehavior), and under sticky immersive the
+     * platform shows the swipe-revealed bars without clearing a single flag and without calling the
+     * system-UI visibility callback - so setOnSystemUiVisibilityChangeListener, the obvious candidate
+     * for the flag world, never fires. The animation callback cannot fire either: on API 21..29 it is
+     * emulated by a proxy OnApplyWindowInsetsListener (WindowInsetsAnimationCompat.Impl21), and sticky
+     * transient bars dispatch no insets to diff. The exit button from S1115 is version-independent and
+     * stays the only way out below API 30. Do not add a branch here expecting one of these to work.
      */
     fun setupTransientBarsExitCallback(onBarsAppeared: () -> Unit) {
         val content = activity.findViewById<View>(android.R.id.content) ?: return
@@ -110,5 +142,36 @@ class StandaloneFullscreenManager(private val activity: Activity) {
             }
             insets
         }
+        ViewCompat.setWindowInsetsAnimationCallback(
+            content,
+            object : WindowInsetsAnimationCompat.Callback(DISPATCH_MODE_CONTINUE_ON_SUBTREE) {
+                override fun onPrepare(animation: WindowInsetsAnimationCompat) {
+                    if (!animation.affectsSystemBars()) return
+                    selfInitiatedBarsAnimation =
+                        SystemClock.uptimeMillis() - fullscreenEnteredAtMs < SELF_HIDE_GUARD_MS
+                }
+
+                override fun onProgress(
+                    insets: WindowInsetsCompat,
+                    runningAnimations: MutableList<WindowInsetsAnimationCompat>
+                ): WindowInsetsCompat = insets
+
+                override fun onEnd(animation: WindowInsetsAnimationCompat) {
+                    if (!animation.affectsSystemBars()) return
+                    if (fullscreenActive && !selfInitiatedBarsAnimation) {
+                        onBarsAppeared()
+                    }
+                }
+            }
+        )
+    }
+
+    private fun WindowInsetsAnimationCompat.affectsSystemBars(): Boolean =
+        typeMask and WindowInsetsCompat.Type.systemBars() != 0
+
+    private companion object {
+        // Generous margin over the 19 ms measured between enterFullscreen() and its own hide
+        // animation; a user cannot meaningfully swipe the bars back inside this window anyway.
+        const val SELF_HIDE_GUARD_MS = 500L
     }
 }

@@ -20,7 +20,6 @@ class StorageVolumeRepositoryImpl @Inject constructor(
 ) : StorageVolumeRepository {
 
     override suspend fun getVolumes(): List<StorageVolumeInfo> = withContext(Dispatchers.IO) {
-        Timber.d("S1378: enumerating storage volumes")
         source.listVolumes()
     }
 

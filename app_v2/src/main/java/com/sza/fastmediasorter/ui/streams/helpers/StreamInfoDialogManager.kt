@@ -33,7 +33,6 @@ class StreamInfoDialogManager(
         dismiss()
         val inline = inlineAudio()
         val engine = if (inline?.playingId == source.id) inline.playingEngine else null
-        Timber.d("S1474: card menu opens the window, borrowed engine = %s", engine != null)
         dialog = StreamInfoDialog(context, source, source.url, engine, playOutcome(source)).also { it.show() }
     }
 

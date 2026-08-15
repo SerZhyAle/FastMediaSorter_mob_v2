@@ -1,10 +1,10 @@
 ---
-description: "Use when archiving one or more specs - move files to temp/done/ and set status Archived. Triggers: 'archive spec Sxxxx', 'retire these tickets'."
+description: "Use when archiving one or more specs - move files to PLAN/archive/ and set status Archived. Triggers: 'archive spec Sxxxx', 'retire these tickets'."
 ---
 
 # Spec Arc - Archive a Specification
 
-Move spec files to `temp/done/` (git-ignored) and mark journal records `Archived`. Accepts one or several ids. Works from any non-`Archived` status. No tactical folder required.
+Move spec files to `PLAN/archive/` (version-controlled) and mark journal records `Archived`. Accepts one or several ids. Works from any non-`Archived` status. No tactical folder required.
 
 ## Usage
 
@@ -43,10 +43,14 @@ pwsh -NoProfile -File scripts/spec_catalog/archive.ps1 -Id <Sxxxx>
 ```
 
 `archive.ps1`:
-- Creates `temp/done/` if absent.
-- Moves `PLAN/Sxxxx_<slug>.md` -> `temp/done/Sxxxx_<slug>.md`.
-- Moves `PLAN/Sxxxx_<slug>/` -> `temp/done/Sxxxx_<slug>/` (if tactical folder exists).
-- Sets journal `status = Archived`, `priority = 0`.
+- Creates `PLAN/archive/` if absent.
+- Moves `PLAN/Sxxxx_<slug>.md` -> `PLAN/archive/Sxxxx_<slug>.md`.
+- Moves `PLAN/Sxxxx_<slug>/` -> `PLAN/archive/Sxxxx_<slug>/` (if tactical folder exists).
+- Sets journal `status = Archived`, `priority = 0`, and re-points `file` at the new path.
+
+Unlike the working `PLAN/` workspace, the archive **is** under version control (S1620): it is
+the only durable record of why a closed decision was made, so it must survive a `temp/` sweep
+and reach other machines. Archiving therefore now produces a committable change.
 
 Record per-id exit code. Non-zero exit drops that id to `failed` in summary; continue with rest.
 
@@ -63,7 +67,7 @@ pwsh -NoProfile -File scripts/spec_catalog/close-and-log.ps1 `
     -Id <Sxxxx> `
     -Status Archived `
     -StatusOnly `
-    -DevLogs '[{"file":"PLAN/Sxxxx_<slug>.md","target":"spec-arc","desc":"Archive Sxxxx (<name>) -> temp/done/"}]' `
+    -DevLogs '[{"file":"PLAN/Sxxxx_<slug>.md","target":"spec-arc","desc":"Archive Sxxxx (<name>) -> PLAN/archive/"}]' `
     # -DevLogs is ONE JSON-array string - append one {file,target,desc} object per .kt that lost
     # a Timber.d("Sxxxx: ...") tag in step 3. Never a PowerShell array literal @('{..}','{..}'):
     # pwsh -File binds only its first element and close-and-log.ps1 rejects the leftovers (S1063).
@@ -85,12 +89,12 @@ One block, dry:
 
 ```
 Archived N of M:
-  Sxxxx -> temp/done/Sxxxx_<slug>.md [+ Sxxxx_<slug>/]
-  Syyyy -> temp/done/Syyyy_<slug>.md
+  Sxxxx -> PLAN/archive/Sxxxx_<slug>.md [+ Sxxxx_<slug>/]
+  Syyyy -> PLAN/archive/Syyyy_<slug>.md
 Skipped: Szzzz (already archived)
 Not found: Swwww
 Failed: Svvvv (archive.ps1 exit <code>)
-Find later: temp/done/Sxxxx_* or select.ps1 -Id Sxxxx -Format json (records stay in journal).
+Find later: PLAN/archive/Sxxxx_* or select.ps1 -Id Sxxxx -Format json (records stay in journal).
 ```
 
 Omit empty lines (no skips -> no "Skipped:" line).
@@ -98,7 +102,7 @@ Omit empty lines (no skips -> no "Skipped:" line).
 ## Lifting an archived spec
 
 Findable two ways:
-- **File:** `temp/done/Sxxxx_<slug>.md` (and `temp/done/Sxxxx_<slug>/` for tactical).
+- **File:** `PLAN/archive/Sxxxx_<slug>.md` (and `PLAN/archive/Sxxxx_<slug>/` for tactical).
 - **Journal:** `select.ps1 -Id Sxxxx -Format json` - record remains, `status: Archived`.
 
 To restore: move files back to `PLAN/`, then `update.ps1 -Id Sxxxx -Status Draft` (or appropriate status).

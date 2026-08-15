@@ -90,8 +90,14 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             // concurrent placements that both saw the same square free would otherwise both land on it.
             db.withTransaction {
                 val anchor = findFreeAnchor(candidate, columns) ?: return@withTransaction null
-                Timber.d("S1170: free slot %d,%d of %d columns", anchor.row, anchor.col, columns)
                 Timber.i("Launcher desktop: placing new cell at %d,%d", anchor.row, anchor.col)
+                Timber.d(
+                    "S1642: free-slot anchor kind=%s row=%d col=%d spanW=%d",
+                    candidate.kind.name,
+                    anchor.row,
+                    anchor.col,
+                    candidate.spanW,
+                )
                 cellDao.upsert(candidate.copy(rowIndex = anchor.row, colIndex = anchor.col).toEntity())
             }
         }
@@ -116,12 +122,19 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         // actually occupies here - the stored span would make the column range below empty and place
         // nothing at all.
         val scanSpanW = candidate.spanW.coerceAtMost(columns)
+        // S1642: a header is stored at column 0 of its own row - the pin [normalized] applies on every
+        // other write path, and this scan is the one that bypasses it, because it writes the anchor it
+        // found rather than the normalized column. Probing column 0 alone restores the pin, and with it the
+        // rule that one row carries at most one header: a second header can only land on column 0, where
+        // the first already sits, so findOverlapping refuses it. Two headers on one row would hand two
+        // sections the same boundary, and membership is keyed on the row alone.
+        val lastCol = if (candidate.kind == LauncherCellKind.SECTION) 0 else columns - scanSpanW
         for (row in 0..lastRow) {
             // S1428: a row a gadget may not straddle is skipped rather than refused, so a tall gadget
             // still lands further down instead of becoming unplaceable because the first free anchor
             // happened to sit just above a header.
             if (LauncherSectionMembership.coversHeaderRow(row, candidate.spanH, headerRows)) continue
-            for (col in 0..columns - scanSpanW) {
+            for (col in 0..lastCol) {
                 val blocker = cellDao.findOverlapping(
                     orientation = candidate.orientation.name,
                     rowIndex = row,
@@ -165,7 +178,6 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         spanH = spanH,
         headerRows = headerRowsFor(kindName, spanH, orientationName),
     ).also { covers ->
-        if (covers) Timber.d("S1428: refused %s at row %d - it would cover a header row", kindName, rowIndex)
     }
 
     /**
@@ -182,6 +194,16 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
 
     override suspend fun removeCell(id: Long) = withContext(Dispatchers.IO) {
         cellDao.deleteById(id)
+    }
+
+    override suspend fun normalizeSectionSpans() {
+        withContext(Dispatchers.IO) {
+            val narrowed = cellDao.narrowSectionSpans(SECTION_KIND, LauncherSectionMembership.HEADER_SPAN_W)
+            Timber.d("S1642: section-span normalization ran, narrowed %d header(s)", narrowed)
+            if (narrowed > 0) {
+                Timber.i("Launcher desktop: narrowed %d section header(s) to the compact span", narrowed)
+            }
+        }
     }
 
     override suspend fun resizeCell(id: Long, spanW: Int, spanH: Int): Boolean =
@@ -342,17 +364,18 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
      * Negative indices split the same two views apart the same way. The grid's right edge is deliberately
      * NOT enforced here: the column count belongs to the current screen, not to the stored desktop.
      *
-     * S1428: a section header is forced to column 0 at the full stored width for that same reason. The
-     * renderer draws it across the live column count wherever it was stored, so any other anchor or span
-     * leaves squares free in the table that are covered on screen - and a cell dropped on one of them
-     * lands underneath the header.
+     * S1642: a section header is forced to column 0 of its own row at exactly
+     * [LauncherSectionMembership.HEADER_SPAN_W] columns. The span is pinned because one number has to
+     * describe a header everywhere - the renderer, the free-square sweep and this table - and the column
+     * because a header opens its row: the section's own content fills the squares to its right (strategic
+     * §2.2), and a header sitting anywhere else would leave a gap ahead of it that belongs to no one.
      */
     private fun LauncherCell.normalized(): LauncherCell {
         val isHeader = kind == LauncherCellKind.SECTION
         return copy(
             rowIndex = rowIndex.coerceAtLeast(0),
             colIndex = if (isHeader) 0 else colIndex.coerceAtLeast(0),
-            spanW = if (isHeader) LauncherSectionMembership.HEADER_STORED_SPAN_W else spanW.coerceAtLeast(MIN_SPAN),
+            spanW = if (isHeader) LauncherSectionMembership.HEADER_SPAN_W else spanW.coerceAtLeast(MIN_SPAN),
             spanH = spanH.coerceAtLeast(MIN_SPAN),
         )
     }

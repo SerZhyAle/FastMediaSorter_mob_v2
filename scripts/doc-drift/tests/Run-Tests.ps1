@@ -31,16 +31,18 @@ try {
     New-Item -ItemType Directory -Path (Join-Path $tempRoot 'docs') -Force | Out-Null
     New-Item -ItemType Directory -Path (Join-Path $tempRoot 'dev') -Force | Out-Null
     Copy-Item (Join-Path $repoRoot 'docs\TECH_STACK.md') (Join-Path $tempRoot 'docs\TECH_STACK.md')
+    Copy-Item (Join-Path $repoRoot 'docs\DEV_OPS.md') (Join-Path $tempRoot 'docs\DEV_OPS.md')
     Copy-Item (Join-Path $repoRoot 'dev\TECH_REQUIREMENTS.md') (Join-Path $tempRoot 'dev\TECH_REQUIREMENTS.md')
 
     $manifest = Import-PowerShellDataFile (Join-Path $driftDir 'pins.psd1')
     $pins = @($manifest.Pins | Where-Object { $_.name -in @('compile-sdk', 'target-sdk', 'room-schema-version') })
     $testManifest = @{ Pins = $pins }
+    $roomSchemaPin = @($pins | Where-Object { $_.name -eq 'room-schema-version' })[0]
     $gradlePins = Get-GradlePins -RepoRoot $repoRoot
 
     function Get-ScenarioRecords {
         $mentions = Get-DocMentions -Manifest $testManifest -RepoRoot $tempRoot
-        return Compare-PinsToDocs -GradlePins $gradlePins -DocMentions $mentions
+        return @(Compare-PinsToDocs -GradlePins $gradlePins -DocMentions $mentions)
     }
 
     Assert-Scenario 'baseline' {
@@ -63,14 +65,24 @@ try {
     }
     Set-Content -LiteralPath $requirementsPath -Value $requirementsText
 
-    Set-Content -LiteralPath $requirementsPath -Value ($requirementsText -replace '(?m)^(\| Room DB version\s+\| )44', '${1}43')
+    Set-Content -LiteralPath $requirementsPath -Value ($requirementsText -replace '(?m)^(\| Room DB version\s+\| )50', '${1}49')
     Assert-Scenario 'room-schema-version-mismatch' {
         @(Get-ScenarioRecords | Where-Object { $_.Pin -eq 'room-schema-version' -and $_.Status -eq 'FAIL' }).Count -eq 1
     }
     Set-Content -LiteralPath $requirementsPath -Value $requirementsText
 
+    $devOpsPath = Join-Path $tempRoot 'docs\DEV_OPS.md'
+    $devOpsText = Get-Content -LiteralPath $devOpsPath -Raw
+    Set-Content -LiteralPath $devOpsPath -Value ($devOpsText -replace 'Room schema version: 50', 'Room schema version: 49')
+    Assert-Scenario 'room-schema-version-dev-ops-mismatch' {
+        @(Get-ScenarioRecords | Where-Object { $_.Pin -eq 'room-schema-version' -and $_.Status -eq 'FAIL' }).Count -eq 1
+    }
+    Set-Content -LiteralPath $devOpsPath -Value $devOpsText
+
     Assert-Scenario 'room-schema-history-excluded' {
-        @(Get-ScenarioRecords | Where-Object { $_.Pin -eq 'room-schema-version' -and $_.Status -eq 'PASS' }).Count -eq 1
+        $roomSchemaPin.docs.Keys.Count -eq 2 -and
+            $roomSchemaPin.docs.ContainsKey('dev/TECH_REQUIREMENTS.md') -and
+            $roomSchemaPin.docs.ContainsKey('docs/DEV_OPS.md')
     }
 
     Write-Output 'doc-drift tests: PASS'

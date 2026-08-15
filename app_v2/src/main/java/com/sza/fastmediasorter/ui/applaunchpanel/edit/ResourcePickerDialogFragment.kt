@@ -82,7 +82,6 @@ class ResourcePickerDialogFragment : DialogFragment() {
         binding.tvOptionPickerTitle.text = getString(R.string.app_launch_panel_picker_resource_title)
         binding.tvOptionPickerTitle.isVisible = true
         val columns = SearchableOptionPickerWindow.columnsFor(resources.displayMetrics)
-        Timber.d("S1413: resource picker attached with %d columns", columns)
         collectOnLifecycle(flow { emit(buildOptions()) }) { options ->
             SearchableOptionPickerController.attach(
                 binding = binding,

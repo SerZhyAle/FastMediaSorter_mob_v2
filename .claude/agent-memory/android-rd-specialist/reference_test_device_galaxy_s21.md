@@ -1,6 +1,6 @@
 ---
 name: test-device-galaxy-s21
-description: Owner's physical Android devices - S21+ (SM-G996U1) blanket-authorized test device, S20 FE lent per-test, personal phone is Galaxy S25 FE (2026-07-28); check the serial before acting
+description: Owner's physical Android devices - S21+ (SM-G996U1) blanket-authorized test device, S20 FE lent per-test, personal phone Galaxy S25 FE, and a real Wear target Galaxy Watch 7 (SM-L310, 2026-08-15); check the serial before acting
 metadata:
   type: reference
 ---
@@ -9,13 +9,14 @@ metadata:
 
 - **SM-G996U1 / RFCR110NBQJ - Galaxy S21+, Android 15.** Dedicated test device, blanket "do anything" authorization (details below).
 - **SM-G781B / RFCRA133MXB - Galaxy S20 FE, Android 13 (SDK 33), 1080x2400.** A **working phone** of the owner, attached 2026-07-26 for one specific ticket. No blanket authorization: it carries his Telegram, his launcher layout, his lock screen (secure - adb cannot unlock it, ask him). Treat every change as borrowed: restore what you touch, and never grant a system role or change a default app on it. See [[never-grant-system-roles-on-owner-phone]].
+- **SM-L310 - Galaxy Watch 7, Wear OS on Android 16 (SDK 36), round 480x480 @ 340dpi, `ro.build.characteristics=nosdcard,watch`.** First real Wear target, attached 2026-08-15; the `wear` module (minSdk 28) installs and launches on it. **No cable exists** - Samsung watches charge inductively, so adb reaches it only over wireless debugging, and the adb id is a service name, not a serial: `adb-RFGL1148CRZ-7Fo2T4._adb-tls-connect._tcp`. Pass it to `-s` exactly as `adb devices` prints it. `scripts/devtest/adb.ps1` cannot target it for app verbs - its `-Flavor` set has no `wear` value, so use raw adb for install/launch on the watch. Since S1681 (2026-08-15) the debug package is **`com.sza.fastmediasorter.debug`** - the same id as the phone debug build, deliberately, see [[wear-data-layer-applicationid-mismatch]]. Launcher component is therefore `com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.MainActivity` - the package lost its `.wear`, the activity kept it. Exported, so `am start` works. A fresh install asks for media access; grant `READ_MEDIA_AUDIO/VIDEO/IMAGES` with `pm grant` instead of tapping the watch dialog.
 - **Galaxy S25 FE - the owner's personal phone as of 2026-07-28** (stated in chat for S1261: sub-1x zoom values missing there; never attached over adb so far). Multi-lens Samsung, system camera offers 0.5x. Same borrowed-phone caution as the S20 FE if it ever appears on adb; camera tickets S1260/S1261/S1262 are acceptance-tested on it by the owner himself.
 
 The owner has a dedicated physical test device for FastMediaSorter and authorized doing ANYTHING on it (install/uninstall, grant any permission incl. All-Files-Access + draw-over-apps, change settings, screen-capture, factory-style resets of app data). Confirmed 2026-06-27. **That authorization is device-specific - it does not transfer to whatever phone happens to be plugged in.**
 
 - Device: Samsung Galaxy S21+ 5G, model **SM-G996U1**, adb serial **RFCR110NBQJ**, **Android 15 (SDK 35)**, **1080x2400 @ 450dpi** (true tall phone aspect 2.22).
 - Ideal for: aspect-sensitive layout verification (S0670 compactness needs exactly this tall aspect - the local AVD is near-square 2076x2152), Android-15 specialUse/visible-overlay FGS (S0672/S0724), real-device draw/crop (S0676/S0679), real-storage MOVE/delete (S0710).
-- NOT a Wear device - S0725/S0715 Wear LeakCanary still needs separate Wear hardware.
+- NOT a Wear device. **Wear hardware now exists separately** - see the Galaxy Watch 7 entry below, which unblocks the Wear tickets that were waiting on real hardware (S0725/S0715 Wear LeakCanary among them; re-read their status before assuming they are still blocked).
 - The **release** package `com.sza.fastmediasorter` (Play build) is installed alongside; the debug build is `com.sza.fastmediasorter.debug` (separate package, no conflict).
 
 **Why:** owner connected it mid-session and said "do anything on it", removing the usual device-state caution.

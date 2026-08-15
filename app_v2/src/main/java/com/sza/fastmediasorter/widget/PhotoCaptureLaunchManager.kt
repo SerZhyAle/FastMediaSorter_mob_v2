@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLocationProvider
 import com.sza.fastmediasorter.ui.cameracapture.helpers.HeadlessPhotoCapturer
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraAspectSelection
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -62,9 +63,9 @@ class PhotoCaptureLaunchManager(
     // S0766: geotag is opt-in; resolved once from settings in start() and read on the capture path.
     private var geotagEnabled = false
 
-    // S1478: the stored photo aspect ratio, resolved with the geotag flag and handed to the capture so
+    // S1478: the stored photo frame shape, resolved with the geotag flag and handed to the capture so
     // a headless shot ends up with the same proportions the camera screen would have produced.
-    private var aspectRatio = 0
+    private var aspectSelection = CameraAspectSelection.DEFAULT
 
     /** Entry point from the trampoline's onCreate. */
     fun start() {
@@ -72,7 +73,7 @@ class PhotoCaptureLaunchManager(
             val settings = settingsRepository.getSettings().first()
             val photoAvailable = !settings.disableCameraCapture && mediaCapabilities.supportsImages
             geotagEnabled = settings.cameraGeotagEnabled
-            aspectRatio = settings.cameraAspectRatio
+            aspectSelection = CameraAspectSelection.fromStored(settings.cameraAspectRatio)
             withContext(Dispatchers.Main) {
                 // S0766: warm the location source early (opt-in + permission held) so a cached fix is
                 // ready by the shutter; a headless shot never blocks waiting for a fresh fix.
@@ -117,7 +118,7 @@ class PhotoCaptureLaunchManager(
         capturer.capture(
             outputFile = captured,
             location = location,
-            aspectRatio = aspectRatio,
+            selection = aspectSelection,
             onSaved = { onCaptured(captured) },
             onError = { error ->
                 Timber.e(error, "PhotoCaptureLaunchManager: headless capture failed")

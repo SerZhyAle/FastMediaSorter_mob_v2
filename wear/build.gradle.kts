@@ -36,7 +36,14 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.sza.fastmediasorter.wear"
+        // S1681: MUST stay identical to app_v2's applicationId. Play Services routes Data Layer
+        // traffic by an AppKey of (package name, signing certificate) and drops anything whose
+        // package name differs across the two devices, inside WearableService and below the app -
+        // so a mismatch is invisible to both sides: the watch logs a sent message and the phone app
+        // is simply never called. While this read "com.sza.fastmediasorter.wear", no payload was
+        // ever deliverable in either direction. The code namespace above deliberately keeps the
+        // .wear segment - only the install identity has to match.
+        applicationId = "com.sza.fastmediasorter"
         // CRITICAL: Do not change - minimum Wear OS 2.0+ (API 28) support
         minSdk = 28  // Wear OS 2.0+ support
         // CRITICAL: Do not change - required for Wear OS Play Store compliance
@@ -112,6 +119,16 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+
+            // S1679: mirrors the S0385 exclusion set from app_v2/build.gradle.kts. BouncyCastle
+            // arrives transitively through com.hierynomus:smbj and carries the post-quantum PICNIC
+            // data tables, which no code path here reaches - SMB, FTP and SFTP use only classical
+            // crypto. R8 shrinks code but never java resources inside a jar, so these survived
+            // minification and were 1,214,815 bytes, 10.1 % of the 12,031,273-byte release APK,
+            // stored uncompressed. Keep this set equal to app_v2's: the two drifted apart silently
+            // once already, which is the whole reason this ticket exists.
+            excludes += "org/bouncycastle/pqc/crypto/picnic/**"
+            excludes += "org/bouncycastle/x509/CertPathReviewerMessages_de.properties"
         }
     }
 }

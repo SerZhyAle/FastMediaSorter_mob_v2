@@ -155,4 +155,43 @@ class CameraRuntimeCapabilitiesTest {
         assertTrue(caps.showsCrossLensFloor)
         assertEquals(3f, caps.ownEquivalentFloor)
     }
+
+    // S1675: rear-lens floors for the pill row shown where the bound lens has no range of its own.
+
+    @Test
+    fun `rear lens floors are display-rounded and ascending`() {
+        // Raw floors as the lenses report them: ultra-wide 0.57, main 1.0, tele 3.1.
+        val floors = CameraRuntimeCapabilities.buildRearLensFloors(listOf(1f, 0.57f, 3.1f))
+        assertEquals(listOf(0.5f, 1f, 3f), floors)
+    }
+
+    @Test
+    fun `floors that round to the same label collapse to one entry`() {
+        // Two lenses a hair apart print the same button - the user must not see it twice.
+        val floors = CameraRuntimeCapabilities.buildRearLensFloors(listOf(0.55f, 0.57f, 1f))
+        assertEquals(listOf(0.5f, 1f), floors)
+    }
+
+    @Test
+    fun `a non-positive floor is dropped`() {
+        val floors = CameraRuntimeCapabilities.buildRearLensFloors(listOf(0f, -1f, 1f))
+        assertEquals(listOf(1f), floors)
+    }
+
+    @Test
+    fun `no rear lens yields no floors`() {
+        assertTrue(CameraRuntimeCapabilities.buildRearLensFloors(emptyList()).isEmpty())
+    }
+
+    @Test
+    fun `a single floor is returned so the caller decides emptiness`() {
+        // The builder must not silently swallow the single-lens case - that is the caller's rule.
+        assertEquals(listOf(1f), CameraRuntimeCapabilities.buildRearLensFloors(listOf(1f)))
+    }
+
+    @Test
+    fun `the bound lens floor prints by the same rule as the pills`() {
+        val caps = CameraRuntimeCapabilities(minZoomRatio = 1f, maxZoomRatio = 1f, zoomMultiplier = 0.57f)
+        assertEquals(0.5f, caps.ownEquivalentFloorDisplay)
+    }
 }

@@ -123,7 +123,6 @@ class WelcomePermissionsManager @Inject constructor(
 
     /** Render the adaptive permission rows + grant-all affordance into the page. */
     fun bind(binding: PageWelcomePermissionsBinding) {
-        Timber.d("S1436: onboarding permissions page bound")
         this.binding = binding
         binding.rvPermissions.apply {
             layoutManager = LinearLayoutManager(binding.root.context)

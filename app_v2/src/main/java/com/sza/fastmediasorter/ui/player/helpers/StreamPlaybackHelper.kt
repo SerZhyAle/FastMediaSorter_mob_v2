@@ -23,8 +23,10 @@ import com.sza.fastmediasorter.core.playback.resilience.StreamFailureClass
 import com.sza.fastmediasorter.core.playback.resilience.StreamVideoFailure
 import com.sza.fastmediasorter.core.playback.resilience.StreamVideoRetryDecision
 import com.sza.fastmediasorter.core.playback.resilience.StreamVideoRetryPolicy
+import com.sza.fastmediasorter.di.StreamQualityMemoryEntryPoint
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -102,7 +104,6 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
                 .setDataSourceFactory(dataSourceFactory)
                 .setLoadErrorHandlingPolicy(RadioStreamBufferConfig.createLoadErrorHandlingPolicy(context))
         )
-        Timber.d("S1512: http(s) video session built with the shared loader policy")
         trackSelector?.let { builder.setTrackSelector(it) }
     }
 
@@ -128,7 +129,7 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
     // releaseStreamDiagnostics, so it lives exactly as long as the listener above and can never tick
     // against a released player. The bandwidth meter and the player are read through this closure
     // rather than stored as fields - they are already session-scoped by being captured here.
-    activeStreamStatsSampler = startStreamStatsSampler(player, analyticsListener, bandwidthMeter)
+    activeStreamStatsSampler = startStreamStatsSampler(player, analyticsListener, bandwidthMeter, path)
     currentPlayerView?.player = player
 
     if (isRtsp) {
@@ -154,6 +155,12 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
     // track selection already honours them; null leaves the global default in charge. This function is
     // already suspending, so the DAO read needs no extra scope.
     trackSelectionManager.channelPreference = streamTrackPreferenceUseCase.read(path)
+    // S1511: the ceiling this channel settled on last time. Read here, where suspending is free, because
+    // the only place it can be applied - the rendition inventory - runs inside a Media3 callback. RTSP has
+    // no ladder, so it has nothing to remember.
+    activeStreamMemoryPath = if (isRtsp) null else path
+    activeStreamQualityMemory = if (isRtsp) null else readStreamQualityMemory(path)
+    Timber.d("S1511: session start memory read - remembered=%s path=%s", activeStreamQualityMemory, path)
     // S1144 (phase 04): stream-wide defaults sit under the per-channel pick and over the generic
     // player settings, so both are seated together and cleared together in playVideo.
     val streamSettings = settingsRepository.getSettings().first()
@@ -161,18 +168,43 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
         audioIso = streamSettings.streamsDefaultAudioLanguage.isoCodeOrNull(),
         subtitleIso = streamSettings.streamsDefaultSubtitleLanguage.isoCodeOrNull()
     )
-    Timber.d(
-        "S1144: seated channel=%s defaults=%s",
-        trackSelectionManager.channelPreference,
-        trackSelectionManager.streamDefaults
-    )
-
     // S1127: open the time-to-first-frame window exactly at prepare, so TTFF excludes setup work above.
     diagnostics.onPrepared()
     player.prepare()
     player.playWhenReady = playWhenReady
     Timber.i("VideoPlayerManager.playStreamVideo: prepared %s (rtsp=%s)", path, isRtsp)
 }
+
+/**
+ * S1511: the quality-memory dependencies, resolved from the Hilt graph rather than handed down from the
+ * host. `VideoPlayerManager` is constructed by hand, and the bundle route its other stream dependency
+ * takes ends in `PlayerActivity` - where a new domain-layer field injection is what CLAUDE.md Rule 3
+ * forbids. Resolution is a map lookup on the singleton component, and the callers here run once per
+ * session or once per five-second tick.
+ */
+private fun VideoPlayerManager.streamQualityMemoryEntryPoint(): StreamQualityMemoryEntryPoint =
+    EntryPointAccessors.fromApplication(
+        context.applicationContext,
+        StreamQualityMemoryEntryPoint::class.java,
+    )
+
+/**
+ * S1511: the stored rung for [path], translated into the shape the policy speaks. Null when the channel
+ * has never settled anywhere, which leaves the ceiling at the top exactly as before this ticket.
+ */
+private suspend fun VideoPlayerManager.readStreamQualityMemory(
+    path: String,
+): StreamQualityStepDownController.Memory? =
+    streamQualityMemoryEntryPoint().getStreamQualityMemoryUseCase()(path)?.let { stored ->
+        StreamQualityStepDownController.Memory(
+            rung = StreamQualityStepDownController.Rendition(
+                widthPx = stored.ceilingWidthPx,
+                heightPx = stored.ceilingHeightPx,
+                bitrateBps = stored.rungBitrateBps,
+            ),
+            probeFailures = stored.probeFailureCount,
+        )
+    }
 
 /** Cancels and rearms the one-shot frame capture owned by the current stream session. */
 internal fun VideoPlayerManager.resetStreamFrameCapture() {
@@ -193,10 +225,14 @@ private fun VideoPlayerManager.startStreamStatsSampler(
     player: ExoPlayer,
     analyticsListener: StreamDiagnosticsAnalyticsListener,
     bandwidthMeter: DefaultBandwidthMeter,
+    path: String,
 ): StreamStatsSampler = StreamStatsSampler(
     scope = managerScope,
     intervalMs = StreamStatsSampler.SAMPLE_INTERVAL_MS,
     readSample = {
+        // S1511 (ADR-3): the probe schedule rides this tick instead of arming a timer of its own - the
+        // tick already starts and stops on the stream session's own boundaries.
+        evaluateStreamQualityProbe(path)
         val format = player.videoFormat
         StreamStatsSample(
             atMs = android.os.SystemClock.elapsedRealtime(),
@@ -229,6 +265,9 @@ internal fun VideoPlayerManager.releaseStreamDiagnostics(player: ExoPlayer) {
     // teardown just drops the references alongside the diagnostics they share a lifecycle with.
     activeStreamTrackSelector = null
     activeStreamStepDownController = null
+    // S1511: the session's copy of the memory goes with them; the persisted row is what carries forward.
+    activeStreamQualityMemory = null
+    activeStreamMemoryPath = null
 }
 
 /**
@@ -255,13 +294,47 @@ private fun VideoPlayerManager.inventoryStreamRenditions(tracks: Tracks, path: S
         }
     }
     if (renditions.isEmpty()) return
-    controller.setRenditions(renditions)
+    // S1511: the remembered rung is consumed here, the single moment the ladder is known (strategic Q1).
+    val remembered = activeStreamQualityMemory
+    val adopted = controller.setRenditions(renditions, remembered)
     Timber.i(
         "Stream quality: renditions=%d single=%b path=%s",
         controller.renditionCount,
         controller.isSingleQuality,
         path,
     )
+    logStreamQualityRestore(remembered, adopted, path)
+    Timber.d("S1511: ceiling restored at inventory - adopted=%s remembered=%s", adopted, remembered)
+}
+
+/**
+ * S1511: says which of the three restore outcomes happened, in three distinguishable lines. A remembered
+ * rung that this ladder no longer offers and one that was adopted verbatim must not read alike in an
+ * archive, because the first means the source re-encoded and the second means the memory did its job.
+ */
+private fun logStreamQualityRestore(
+    remembered: StreamQualityStepDownController.Memory?,
+    adopted: StreamQualityStepDownController.Rendition?,
+    path: String,
+) {
+    if (remembered == null || adopted == null) return
+    val rung = remembered.rung
+    val message = when {
+        adopted.bitrateBps == rung.bitrateBps ->
+            "Stream quality: adopted remembered rung %dx%d @%dbps (failures=%d) path=%s"
+        else ->
+            "Stream quality: remembered rung %dx%d @%dbps is not on this ladder (failures=%d) path=%s"
+    }
+    Timber.i(message, rung.widthPx, rung.heightPx, rung.bitrateBps, remembered.probeFailures, path)
+    if (adopted.bitrateBps != rung.bitrateBps) {
+        Timber.i(
+            "Stream quality: ceiling fell back to %dx%d @%dbps path=%s",
+            adopted.widthPx,
+            adopted.heightPx,
+            adopted.bitrateBps,
+            path,
+        )
+    }
 }
 
 /**
@@ -279,30 +352,159 @@ private fun VideoPlayerManager.applyStreamQualityStepDown(path: String) {
     // is needed for it - the fourth candidate in the ticket asked whether onTracksChanged already carried
     // the signal, and the answer turned out to be simpler still: ExoPlayer reports the current video
     // format directly, in one call, with no subscription to keep in sync.
-    val playingFormat = exoPlayer?.videoFormat
-    val playing = playingFormat?.takeIf { it.width > 0 && it.height > 0 }?.let {
-        StreamQualityStepDownController.Rendition(it.width, it.height, it.bitrate)
-    }
-    val cap = activeStreamStepDownController?.registerStall(SystemClock.elapsedRealtime(), playing) ?: return
-    activeStreamTrackSelector?.let { selector ->
-        selector.setParameters(
-            selector.buildUponParameters()
-                .setMaxVideoSize(cap.maxWidthPx, cap.maxHeightPx)
-                .setMaxVideoBitrate(cap.maxBitrateBps)
-                .build(),
-        )
-    }
+    val playing = playingStreamRendition()
+    val controller = activeStreamStepDownController ?: return
+    // S1511: a stall arriving while a probe is open is that probe's verdict, and the controller answers
+    // by restoring the ceiling rather than stepping below it. Which of the two happened is unreadable
+    // afterwards, so it is captured before the call.
+    val failedProbe = controller.isProbeOpen
+    val cap = controller.registerStall(SystemClock.elapsedRealtime(), playing) ?: return
+    applyStreamQualityCap(cap)
     // S1514: both numbers, because they are different numbers. The line used to print the ceiling alone,
     // so a step that changed nothing read exactly like one that did - the failure mode the source
     // document calls out as the worst kind of log.
+    val message = if (failedProbe) {
+        "Stream quality: probe failed - ceiling restored to <=%dx%d @%dbps from playing=%s path=%s"
+    } else {
+        "Stream quality: stepped down to <=%dx%d @%dbps from playing=%s path=%s"
+    }
     Timber.i(
-        "Stream quality: stepped down to <=%dx%d @%dbps from playing=%s path=%s",
+        message,
         cap.maxWidthPx,
         cap.maxHeightPx,
         cap.maxBitrateBps,
-        playing?.let { "${it.widthPx}x${it.heightPx}" } ?: "unknown",
+        playing.describe(),
         path,
     )
+    persistStreamQualityMemory(controller)
+}
+
+/**
+ * S1511: write what the session has learned so far, so the next open starts where this one ended.
+ *
+ * The snapshot is taken on the calling thread and only values travel into the coroutine: by the time the
+ * write runs, the session may have been torn down and the controller nulled, and an outcome decided
+ * moments before the user leaves the channel is exactly the one worth keeping. That is also why it runs on
+ * the application scope rather than the manager's - the manager's dies with the session that decided it.
+ */
+@UnstableApi
+private fun VideoPlayerManager.persistStreamQualityMemory(controller: StreamQualityStepDownController) {
+    val memory = controller.memory ?: return
+    val url = activeStreamMemoryPath ?: return
+    val entryPoint = streamQualityMemoryEntryPoint()
+    val useCase = entryPoint.recordStreamQualityMemoryUseCase()
+    val atMillis = System.currentTimeMillis()
+    Timber.d("S1511: persisting memory - rung=%s failures=%d", memory.rung, memory.probeFailures)
+    entryPoint.applicationScope().launch {
+        useCase(
+            url = url,
+            rungBitrateBps = memory.rung.bitrateBps,
+            ceilingWidthPx = memory.rung.widthPx,
+            ceilingHeightPx = memory.rung.heightPx,
+            probeFailures = memory.probeFailures,
+            atMillis = atMillis,
+        )
+    }
+}
+
+/**
+ * S1514: the rendition the engine actually settled on, read straight off the player. No new listener is
+ * needed for it - ExoPlayer reports the current video format directly, in one call, with no subscription
+ * to keep in sync.
+ *
+ * S1511: the probe verdict reads it through this same function, so "what actually played" cannot come to
+ * mean two different things on the two paths that judge it.
+ */
+@UnstableApi
+private fun VideoPlayerManager.playingStreamRendition(): StreamQualityStepDownController.Rendition? =
+    exoPlayer?.videoFormat?.takeIf { it.width > 0 && it.height > 0 }?.let {
+        StreamQualityStepDownController.Rendition(it.width, it.height, it.bitrate)
+    }
+
+/** A rung as it appears in a log line, or `unknown` when the player reported no usable format. */
+private fun StreamQualityStepDownController.Rendition?.describe(): String =
+    this?.let { "${it.widthPx}x${it.heightPx}" } ?: "unknown"
+
+/**
+ * S1511: the one place a [StreamQualityStepDownController.Cap] becomes a track-selector parameter, shared
+ * by the step-down and the probe (ADR-4). Both directions are the same live `setParameters` call, which is
+ * what lets the probe raise the ceiling without re-preparing the media.
+ */
+@UnstableApi
+private fun VideoPlayerManager.applyStreamQualityCap(cap: StreamQualityStepDownController.Cap) {
+    val selector = activeStreamTrackSelector ?: return
+    selector.setParameters(
+        selector.buildUponParameters()
+            .setMaxVideoSize(cap.maxWidthPx, cap.maxHeightPx)
+            .setMaxVideoBitrate(cap.maxBitrateBps)
+            .build(),
+    )
+}
+
+/**
+ * S1511: the probe half of the stats tick. Asks the policy whether the rung above the ceiling is worth
+ * trying again and, when it is, performs the switch. Everything about *when* lives in the controller; what
+ * lives here is only the part that needs a player.
+ */
+@UnstableApi
+private fun VideoPlayerManager.evaluateStreamQualityProbe(path: String) {
+    val controller = activeStreamStepDownController ?: return
+    val nowMs = SystemClock.elapsedRealtime()
+    if (controller.isProbeOpen) {
+        closeStreamQualityProbe(controller, path, nowMs)
+    } else if (controller.isProbeDue(nowMs)) {
+        startStreamQualityProbe(controller, path, nowMs)
+    }
+}
+
+/**
+ * Close an open probe once it has outlived its observation window. The controller refuses to call it a
+ * success unless what actually played reached the probed rung - strategic section 7 names the case where a
+ * probe survives its window while the engine never climbed, which would remember a rung that rendered no
+ * frame. Nothing happens here on failure: a stall is what fails a probe, and that arrives on the
+ * step-down path.
+ */
+@UnstableApi
+private fun VideoPlayerManager.closeStreamQualityProbe(
+    controller: StreamQualityStepDownController,
+    path: String,
+    nowMs: Long,
+) {
+    // Read before closing: a successful close drops the probe, and with it the ceiling this names.
+    val probed = controller.memory?.rung
+    val playing = playingStreamRendition()
+    val survived = controller.closeProbeIfSurvived(nowMs, playing)
+    Timber.d("S1511: probe verdict - survived=%b probed=%s playing=%s", survived, probed, playing)
+    if (!survived) return
+    Timber.i(
+        "Stream quality: probe succeeded - probed=%s playing=%s path=%s",
+        probed.describe(),
+        playing.describe(),
+        path,
+    )
+    persistStreamQualityMemory(controller)
+}
+
+/** Raise the ceiling one rung and say which rung it is reaching for. */
+@UnstableApi
+private fun VideoPlayerManager.startStreamQualityProbe(
+    controller: StreamQualityStepDownController,
+    path: String,
+    nowMs: Long,
+) {
+    val cap = controller.startProbe(nowMs) ?: return
+    applyStreamQualityCap(cap)
+    // The probed rung is the ceiling now, so its true bitrate is readable even when the cap carries the
+    // size-only sentinel a rung with no declared bandwidth produces.
+    val probed = controller.memory?.rung
+    Timber.i(
+        "Stream quality: probing up to %dx%d @%dbps path=%s",
+        cap.maxWidthPx,
+        cap.maxHeightPx,
+        probed?.bitrateBps ?: cap.maxBitrateBps,
+        path,
+    )
+    Timber.d("S1511: probe opened - target=%s", probed)
 }
 
 /**

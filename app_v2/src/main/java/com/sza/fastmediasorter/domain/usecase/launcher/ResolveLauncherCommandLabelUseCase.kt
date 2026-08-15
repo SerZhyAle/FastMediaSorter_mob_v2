@@ -299,7 +299,6 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
     private suspend fun resourceVisual(resourceId: Long): LauncherCommandVisual? {
         val resource = resourceRepository.getResourceById(resourceId) ?: return null
         val icon = resourceIconProvider.iconFor(resource)
-        Timber.d("S1289: composed launcher icon for resource %s, key=%s", resource.name, icon.key)
         // S1414: on the desktop the caption is the only thing telling two cells with the same picture
         // apart, so a resource saved without a name falls back to the folder it points at rather than
         // to an empty caption.

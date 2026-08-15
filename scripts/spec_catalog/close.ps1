@@ -40,6 +40,11 @@ if ($oldStatus -match '^Block') {
     exit 1
 }
 
+# Closing gates run here, before anything is written. This is the path /spec-check uses
+# (close-and-log.ps1 -> close.ps1), so a gate wired only into update.ps1 would never fire
+# on the way tickets are actually closed. Archived is filtered out inside the function.
+Assert-ClosingGates -Id $Id -OldStatus $oldStatus -NewStatus $Status
+
 $today = Get-Today
 $now   = Get-Now
 

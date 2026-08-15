@@ -21,13 +21,11 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.core.content.ContextCompat
-import com.sza.fastmediasorter.core.util.XrDeviceProbe
 import com.sza.fastmediasorter.domain.model.EdgeGestureAxis
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionCatalog
-import timber.log.Timber
 import kotlin.math.atan2
 import kotlin.math.roundToInt
 
@@ -104,7 +102,6 @@ class ScreenGestureOverlayManager(
         this.zoneActions = zoneActions
         registerScreenStateReceiver()
         val screenOn = isScreenLit()
-        Timber.d("S1167: overlay show requested, zones=${enabledZones.size} screenOn=$screenOn")
         if (screenOn) {
             addBands()
         }
@@ -125,7 +122,6 @@ class ScreenGestureOverlayManager(
         edgeAlignedGuideZones = requestedZones.filterTo(linkedSetOf()) { zone ->
             geom.isBandOnPhysicalEdge(zone)
         }
-        Timber.d("S1188: bands axis=${geom.axis} l=${geom.safeLeft} r=${geom.safeRight}")
         for (zone in requestedZones) {
             addBand(zone, geom)
         }
@@ -189,7 +185,6 @@ class ScreenGestureOverlayManager(
         }
         windowManager.addView(view, params)
         hintView = view
-        Timber.d("S1162: hint shown for zone=${zone.name} rows=${rows.size}")
     }
 
     private fun hideHint() {
@@ -241,7 +236,6 @@ class ScreenGestureOverlayManager(
                     Intent.ACTION_SCREEN_OFF -> removeBands()
                     else -> return
                 }
-                Timber.d("S1167: $action handled, bands=${bandViews.size}")
             }
         }
         val filter = IntentFilter().apply {
@@ -285,7 +279,6 @@ class ScreenGestureOverlayManager(
         edgeAlignedGuideZones = bandViews.keys.filterTo(linkedSetOf()) { zone ->
             geom.isBandOnPhysicalEdge(zone)
         }
-        Timber.d("S1188: relayout axis=${geom.axis} bands=${bandViews.size}")
         bandViews.forEach { (zone, view) ->
             val params = view.layoutParams as? WindowManager.LayoutParams ?: return@forEach
             val frame = bandFrame(zone, geom)
@@ -370,20 +363,7 @@ class ScreenGestureOverlayManager(
             }
         }
         runCatching { windowManager.addView(view, params) }
-            .onSuccess {
-                Timber.d(
-                    "S1236: band added zone=%s xrDevice=%b type=%d frame=%dx%d at %d,%d",
-                    zone.name,
-                    XrDeviceProbe.isXrDevice(overlayContext),
-                    overlayWindowType,
-                    frame.width,
-                    frame.height,
-                    frame.x,
-                    frame.y
-                )
-            }
             .onFailure { error ->
-                Timber.d("S1236: band REJECTED zone=%s type=%d - %s", zone.name, overlayWindowType, error)
                 return
             }
         applyGestureExclusion(view, frame)
@@ -435,7 +415,6 @@ class ScreenGestureOverlayManager(
                 downX = event.rawX
                 downY = event.rawY
                 selection = null
-                Timber.d("S1236: band TOUCHED zone=%s at %.0f,%.0f", zone.name, event.rawX, event.rawY)
                 showHint(zone)
                 return true
             }
@@ -451,7 +430,6 @@ class ScreenGestureOverlayManager(
 
             MotionEvent.ACTION_UP -> {
                 val chosen = selection
-                Timber.d("S1210: lift zone=${zone.name} selection=${chosen?.name ?: "cancel"}")
                 hideHint()
                 selection = null
                 if (chosen == null) return false
@@ -527,10 +505,6 @@ class ScreenGestureOverlayManager(
             // an empty physical edge.
             val visible = windowMetrics.windowInsets.getInsets(types)
             val reserved = windowMetrics.windowInsets.getInsetsIgnoringVisibility(types)
-            Timber.d(
-                "S1358: insets visible=${visible.top}/${visible.bottom}/${visible.left}/${visible.right} " +
-                    "reserved=${reserved.top}/${reserved.bottom}/${reserved.left}/${reserved.right}"
-            )
             return Geometry(
                 safeTop = visible.top,
                 safeBottom = visible.bottom,

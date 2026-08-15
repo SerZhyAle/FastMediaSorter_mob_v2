@@ -109,7 +109,6 @@ class AppPickerDialogFragment : DialogFragment() {
         if (_binding == null) return
         SearchableOptionPickerWindow.apply(dialog, binding)
         val columns = currentColumnCount()
-        Timber.d("S1095: app picker re-flowed to $columns columns on configuration change")
         SearchableOptionPickerController.reflowColumns(binding, columns)
     }
 

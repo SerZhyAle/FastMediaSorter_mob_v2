@@ -225,7 +225,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
     // restored after host recreation must still find a listener for its key.
     private fun listenForLanguagePick(requestKey: String, isSource: Boolean) {
         childFragmentManager.setFragmentResultListener(requestKey, viewLifecycleOwner) { _, bundle ->
-            Timber.d("S1214: translation language result key=$requestKey")
             val code = bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)
                 ?: return@setFragmentResultListener
             val current = viewModel.settings.value

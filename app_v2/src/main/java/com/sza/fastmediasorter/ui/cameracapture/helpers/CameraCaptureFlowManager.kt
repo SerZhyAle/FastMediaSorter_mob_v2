@@ -85,6 +85,77 @@ class CameraCaptureFlowManager(
     /** S1262: the profile the capture screen shows as active. NORMAL on every entry into photo mode. */
     val activeProfile: PhotoProfile get() = profiles.activeProfile
 
+    /**
+     * S1658: what each lens remembers. Seeded from settings by the host and handed back to it after
+     * every change, which is what makes the sets survive a restart.
+     */
+    private var lensMemory = CameraLensSettingsMemory()
+
+    /** S1658: the set the entered lens asked for, applied to the profile once the rebind reports back. */
+    private var pendingRestoredProfile: PhotoProfile? = null
+
+    /** S1658: invoked with the encoded memory whenever a lens's set changes, so the host can persist it. */
+    var onLensMemoryChanged: ((String) -> Unit)? = null
+
+    /**
+     * S1658: until the host has read the stored sets back, nothing may be saved or pruned - a write
+     * from a switch made before that read would persist an empty memory over the real one.
+     */
+    private var lensMemorySeeded = false
+
+    private var lensMemoryPruned = false
+
+    /** S1658: replaces the in-memory sets with the ones the host read back from settings. */
+    fun seedLensMemory(encoded: String) {
+        lensMemory = CameraLensSettingsMemory.decode(encoded)
+        lensMemorySeeded = true
+    }
+
+    /** S1658: forgets every set saved for a lens the current enumeration no longer offers. */
+    fun retainLensMemory(lensIds: Set<String>) {
+        lensMemory.retainOnly(lensIds)
+        onLensMemoryChanged?.invoke(lensMemory.encode())
+    }
+
+    /**
+     * S1658: true while a profile is moving the lens itself (SELFIE and its undo). Such a move is the
+     * profile's own business at both ends: the lens being left must not be recorded as carrying the
+     * profile that caused the move, and the lens being entered must not have its own set restored
+     * over that profile.
+     */
+    private var profileDrivenSwitch = false
+
+    /** S1658: saves the set the lens being left was carrying. */
+    fun onLensLeaving(lensId: String) {
+        if (profileDrivenSwitch) return
+        rememberFor(lensId)
+    }
+
+    /**
+     * S1658: writes the entered lens's remembered set onto the session before its bind, and parks the
+     * profile so [onCapabilitiesChanged] can mark it active once that bind has reported.
+     */
+    fun onLensEntering(lensId: String) {
+        val saved = lensMemory.recall(lensId) ?: return
+        session.restorePerLensState(saved)
+        pendingRestoredProfile = saved.profile
+    }
+
+    private fun rememberFor(lensId: String) {
+        if (!lensMemorySeeded) return
+        lensMemory.remember(lensId, currentLensSettings())
+        onLensMemoryChanged?.invoke(lensMemory.encode())
+    }
+
+    private fun currentLensSettings(): CameraLensSettingsMemory.LensSettings =
+        CameraLensSettingsMemory.LensSettings(
+            profile = profiles.activeProfile,
+            whiteBalanceMode = session.currentWhiteBalanceMode,
+            manualIso = session.currentManualIso,
+            manualShutterNs = session.currentManualShutterNs,
+            exposureCompensationIndex = session.currentExposureCompensationIndex,
+        )
+
     /** S0754: UI-only self-timer delay, applied by the host before shutter/record start. */
     var selfTimerSeconds: Int = 0
         private set
@@ -202,8 +273,20 @@ class CameraCaptureFlowManager(
             capabilities.maxZoomRatio,
         )
         liveLinearZoom = capabilities.currentLinearZoom
+        // S1658: once the enumeration is known, forget the sets of lenses this device no longer
+        // offers. Once per session: the offered set only changes when a lens refuses to bind, and
+        // that lens is dropped from the memory by the next save anyway.
+        if (lensMemorySeeded && !lensMemoryPruned) {
+            lensMemoryPruned = true
+            retainLensMemory(session.offeredLensIds)
+        }
+        // S1658: the entered lens's remembered profile becomes active now that its bind has reported.
+        // The session wrote the matching intents before that bind, so this only syncs the menu.
+        pendingRestoredProfile?.let { profiles.restore(it) }
+        pendingRestoredProfile = null
         // S1262: the new lens may not honour the active profile; drop it before the UI renders the
-        // menu, so a ticked entry never survives onto optics that cannot deliver it.
+        // menu, so a ticked entry never survives onto optics that cannot deliver it - which also
+        // covers a restored profile the entered optics turn out not to support.
         profiles.reconcile(capabilities)
         host.renderCapabilities(capabilities)
     }
@@ -222,15 +305,15 @@ class CameraCaptureFlowManager(
     /** S1262: applies a menu choice; re-picking the active entry returns the camera to NORMAL. */
     fun onProfileSelected(profile: PhotoProfile) {
         profiles.apply(profile)
+        // S1658: an explicit choice outranks whatever the lens remembered and becomes its new stored
+        // value. Read after apply, because a profile that moves the lens (SELFIE) stores against the
+        // lens it landed on.
+        session.boundLensId?.let(::rememberFor)
     }
 
     /** Flips to the next lens; capabilities (and control visibility) refresh via the bind callback. */
     fun onLensSwitch() {
         if (!currentCapabilities.canSwitchLens) return
-        // ADR-2: an explicit lens choice outranks the profile. The session clears its own intents on
-        // the rebind, so the profile is released rather than un-applied - un-applying here would
-        // rebind once more and fight the switch the user just asked for.
-        profiles.releaseWithoutClearing("manual lens switch")
         session.switchCamera()
     }
 
@@ -240,10 +323,14 @@ class CameraCaptureFlowManager(
      * re-read after the switch because the rebind reset them before the zoom landed.
      */
     fun onCrossLensFloorSelected(equivalent: Float) {
-        if (!currentCapabilities.showsCrossLensFloor) return
-        Timber.d("S1261: floor pill tap eq=%.2f", equivalent)
-        // S1262/ADR-2: the pill is an explicit lens choice, same as the switch button.
-        profiles.releaseWithoutClearing("cross-lens floor pill")
+        // Two callers own a pill that lands here: the cross-lens floor pill on a lens that shows one
+        // (S1261), and the rear-lens pills S1675 puts on a lens with no range of its own - where
+        // showsCrossLensFloor is false by its own definition, so guarding on it alone would make every
+        // tap from that row a no-op. The front camera owns neither pill.
+        val fromLensPillRow = !currentCapabilities.supportsZoom
+        if (currentCapabilities.isFront) return
+        if (!currentCapabilities.showsCrossLensFloor && !fromLensPillRow) return
+        Timber.d("S1675: lens pill tap - equivalent=$equivalent fromLensPillRow=$fromLensPillRow")
         session.switchCamera(targetEquivalentFloor = equivalent)
         liveZoomRatio = session.currentZoomRatio()
         liveLinearZoom = session.currentLinearZoom()
@@ -370,11 +457,18 @@ class CameraCaptureFlowManager(
         }
 
         override fun switchToFrontLens() {
-            session.switchToFacing(CameraSelector.LENS_FACING_FRONT)
+            // S1658: profile-driven, so neither end of the move touches the memory - the front lens's
+            // own set would otherwise overwrite the SELFIE the user just picked.
+            profileDrivenSwitch = true
+            session.switchToFacing(CameraSelector.LENS_FACING_FRONT, restoreSaved = false)
+            profileDrivenSwitch = false
         }
 
         override fun switchToMainBackLens() {
-            session.switchToFacing(CameraSelector.LENS_FACING_BACK)
+            // S1658: the profile is undoing its own lens move, so the same rule applies.
+            profileDrivenSwitch = true
+            session.switchToFacing(CameraSelector.LENS_FACING_BACK, restoreSaved = false)
+            profileDrivenSwitch = false
         }
     }
 

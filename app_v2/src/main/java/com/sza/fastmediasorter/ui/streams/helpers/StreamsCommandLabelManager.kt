@@ -37,7 +37,6 @@ class StreamsCommandLabelManager(
         toolbar.inflateMenu(menuRes)
         val flags = if (isLandscape) ALWAYS_WITH_TEXT else MenuItem.SHOW_AS_ACTION_ALWAYS
         labelledItemIds.forEach { id -> toolbar.menu.findItem(id)?.setShowAsAction(flags) }
-        Timber.d("S1473: command row rebuilt, landscape=%b (labels %s)", isLandscape, if (isLandscape) "on" else "off")
         reapplyFixups()
     }
 

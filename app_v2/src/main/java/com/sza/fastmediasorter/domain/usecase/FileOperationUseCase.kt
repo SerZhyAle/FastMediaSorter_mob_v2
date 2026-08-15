@@ -261,7 +261,6 @@ class FileOperationUseCase @Inject constructor(
                     is FileOperation.Delete -> operation.files.any { it.isNetworkPath(protocol) }
                     is FileOperation.Rename -> operation.file.isNetworkPath(protocol)
                 }
-                Timber.d("S1028: network-path classified proto=$protocol net=$result")
                 return result
             }
 
@@ -284,7 +283,6 @@ class FileOperationUseCase @Inject constructor(
                 val reachable = hostReachabilityChecker.isReachable(
                     endpoint.host, endpoint.port, DESTINATION_PROBE_TIMEOUT_MS,
                 )
-                Timber.d("S1025: preflight destination probe host=${endpoint.host} reachable=$reachable")
                 if (!reachable) {
                     return FileOperationResult.Failure(
                         error = context.getString(R.string.transfer_destination_unreachable),

@@ -129,7 +129,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         supportFragmentManager.setFragmentResultListener(NetworkDiscoveryDialog.RESULT_KEY, this) { _, bundle ->
             val hostIp = bundle.getString(NetworkDiscoveryDialog.RESULT_HOST_IP)
                 ?: return@setFragmentResultListener
-            Timber.d("S1331: discovery result received ip=%s", hostIp)
             binding.etSmbServer.setText(hostIp)
             viewModel.scanShares(
                 hostIp,
@@ -450,7 +449,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
      * fired and the shortcut appearing is the confirmation.
      */
     private fun routeResourcesAdded(createdResourceIds: List<Long>) {
-        Timber.d("S1423: created=%d pinRequested=%b", createdResourceIds.size, pinShortcutOnCreate)
         if (!pinShortcutOnCreate) {
             finish()
             return

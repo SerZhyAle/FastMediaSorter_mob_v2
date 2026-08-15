@@ -327,7 +327,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun proceedWithInitialization() {
-        Timber.d("S0989: proceedWithInitialization - wiring stereo/banner/decoder/playback/return helpers")
         // 1. Initialize VR HUD Canvas buffers and helpers (Step 03.2)
         hudRenderer = HudCanvasRenderer()
         hapticBridge = HudHapticBridge(runtime)
@@ -385,12 +384,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 hapticBridge.triggerHoverFeedback()
             }
             override fun onAudioTrackCycle(step: Int) {
-                Timber.d("S0964: audio track cycle step=$step")
                 hapticBridge.triggerClickFeedback()
                 trackController.cycleAudio(step) { refreshTrackRowsAndRepaint() }
             }
             override fun onSubtitleTrackCycle(step: Int) {
-                Timber.d("S0964: subtitle track cycle step=$step")
                 hapticBridge.triggerClickFeedback()
                 trackController.cycleSubtitle(step) { refreshTrackRowsAndRepaint() }
             }
@@ -404,7 +401,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             }
 
             override fun onSeekCommit(fraction: Float) {
-                Timber.d("S1239: seek committed at fraction=%.3f", fraction)
                 isScrubbingSeek = false
                 hapticBridge.triggerClickFeedback()
                 playbackController.seekToFraction(fraction)
@@ -412,7 +408,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             }
 
             override fun onHideClick() {
-                Timber.d("S1232: HUD hide button pressed")
                 hapticBridge.triggerClickFeedback()
                 // S1232: the quad stops drawing and stops reacting natively. Nothing is repainted -
                 // there is no pill to leave behind, and the trigger is what brings it back.
@@ -422,12 +417,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 seekTicker.stop()
             }
             override fun onHelpClick() {
-                Timber.d("S1223: HUD help button pressed")
                 hapticBridge.triggerClickFeedback()
                 showLegend()
             }
             override fun onExitClick() {
-                Timber.d("S1232: HUD exit button pressed")
                 hapticBridge.triggerClickFeedback()
                 // S1232: must go through the render thread, not straight to the return dispatcher.
                 // Finishing the Activity while the native session still runs skips the EGL/OpenXR
@@ -632,9 +625,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         // A list whose launched entry vanished (deleted between launch and here) would start playback
         // on an unrelated file, which is worse than not navigating at all.
         val usable = launchedIndex >= 0 && items.size >= MIN_NAVIGABLE_PLAYLIST_SIZE
-        if (usable) {
-            Timber.d("S1233: playlist resolved size=${items.size} index=$launchedIndex")
-        } else {
+        if (!usable) {
             Timber.w("Carried playlist unusable (resolved=${items.size}, launchedIndex=$launchedIndex)")
         }
         return if (usable) items to launchedIndex else null
@@ -770,7 +761,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         val bytes = reusablePanelHudBytes?.takeIf { it.size == buf.remaining() }
             ?: ByteArray(buf.remaining()).also { reusablePanelHudBytes = it }
         buf.get(bytes)
-        Timber.d("S0964: panel HUD queued file=${hudRenderer.currentFilename}")
         runtime.queueHud(bytes, HudCanvasRenderer.WIDTH, HudCanvasRenderer.HEIGHT)
     }
 
@@ -780,10 +770,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         hudRenderer.subtitleTrackLabel = trackController.subtitleLabel(hudSubsOffLabel, hudNoTracksLabel)
         hudRenderer.audioRowEnabled = trackController.hasMultipleAudioTracks()
         hudRenderer.subsRowEnabled = trackController.hasSubtitleTracks()
-        Timber.d(
-            "S1238: hud rows audio=${hudRenderer.audioRowEnabled}" +
-                " subs=${hudRenderer.subsRowEnabled} depth=${hudRenderer.depthRowVisible}"
-        )
     }
 
     private fun refreshTrackRowsAndRepaint() {
@@ -806,9 +792,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         // granularity, so this also spares a live source - whose duration never resolves - a
         // 3.7 MB texture upload every second for a band that stays hidden.
         if (visible == hudRenderer.seekRowVisible && label == hudRenderer.timeLabel) return
-        if (visible != hudRenderer.seekRowVisible) {
-            Timber.d("S1239: seek band visible=%b label=%s", visible, label)
-        }
         hudRenderer.seekRowVisible = visible
         hudRenderer.timeLabel = label
         hudRenderer.seekProgress =
@@ -930,8 +913,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private fun loadCurrentMediaItem() {
         val item = mediaPlaylist[currentPlaylistIndex]
         val file = item.file
-        Timber.d("S0989: loadCurrentMediaItem index=$currentPlaylistIndex file=${file.name}")
-        Timber.d("S1233: nav $currentPlaylistIndex/${mediaPlaylist.size} type=${item.mediaType}")
         Timber.d("Loading media item at index $currentPlaylistIndex: ${file.name}")
 
         hudRenderer.currentFilename = file.name
@@ -958,7 +939,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // S0960 graceful path: a null decode keeps the previous slide instead of crashing.
             lifecycleScope.launch(Dispatchers.IO) {
                 val decoded = textureDecoder.decodeFile(file)
-                Timber.d("S1221: decode ${file.name} -> ${if (decoded != null) "ok" else "failed"}")
                 if (decoded != null) {
                     runtime.queueFrame(decoded.bytes, decoded.width, decoded.height)
                     Timber.d("Loaded and queued image: ${file.name} at ${decoded.width}x${decoded.height}")
@@ -1002,7 +982,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // valid with an empty playlist - navigation is not - and gating it on media would make
             // a hidden HUD unrecoverable in exactly the state where the user needs to reach exit.
             if (eventType == INPUT_EVENT_HUD_SUMMON) {
-                Timber.d("S1232: trigger summon while HUD hidden")
                 runtime.setHudVisible(true)
                 hudVisible = true
                 // S1239: the bar is stale by however long the strip was hidden - refresh before
@@ -1015,12 +994,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // the way stepping between files is.
             when (eventType) {
                 INPUT_EVENT_SEEK_FORWARD -> {
-                    Timber.d("S1240: stick seek forward")
                     playbackController.seekBy(SEEK_STEP_MS)
                     return@runOnUiThread
                 }
                 INPUT_EVENT_SEEK_BACK -> {
-                    Timber.d("S1240: stick seek back")
                     playbackController.seekBy(-SEEK_STEP_MS)
                     return@runOnUiThread
                 }
@@ -1139,6 +1116,11 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         legendController = null
         reusablePanelHudBuffer = null
         reusablePanelHudBytes = null
+        // S1640: unsubscribe at the terminal boundary, never in surfaceDestroyed - the surface is
+        // recreated while the activity lives, and removing there would leave it without callbacks.
+        if (::surfaceView.isInitialized) {
+            surfaceView.holder.removeCallback(this)
+        }
         super.onDestroy()
     }
 
@@ -1176,7 +1158,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         runOnUiThread {
             if (!isFinishing && !isDestroyed) {
                 // S0295 Phase 02 step 02.4: render-thread exit from an OpenXR session that ran to its end (user dismissed via input handler after viewing) is the natural "completed" path. CancelledByUser remains the result for the explicit back-press shortcut in onBackPressedDispatcher above.
-                Timber.d("S0989: render-thread exit -> returnDispatcher")
                 Timber.d("render thread done; returning to panel target")
                 returnDispatcher.deliverReturnAndFinish(VrLaunchResult.CompletedNormally)
             }
@@ -1186,7 +1167,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private fun onRenderThreadSessionReady() {
         runOnUiThread {
             if (isFinishing || isDestroyed) return@runOnUiThread
-            Timber.d("S0989: session ready - re-queue banner + (re)start playback")
             // S0382 Phase 04: immersive session is ready and the first frame renders now -
             // remove the 2D loading indicator.
             dismissInitialLoadingOverlay()
@@ -1208,7 +1188,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // process, so EVERY mode must (re)assert its own size here - a diagnostic launch after
             // a VR Cinema one would otherwise stretch the banner onto the panel-sized quad.
             if (isPanelHudMode()) {
-                Timber.d("S1228: panel quad ${PANEL_QUAD_WIDTH_M}x${PANEL_QUAD_HEIGHT_M}m dy=$PANEL_QUAD_OFFSET_Y_M")
                 runtime.setHudQuadSize(PANEL_QUAD_WIDTH_M, PANEL_QUAD_HEIGHT_M, PANEL_QUAD_OFFSET_Y_M)
             } else {
                 runtime.setHudQuadSize(BANNER_QUAD_WIDTH_M, BANNER_QUAD_HEIGHT_M, BANNER_QUAD_OFFSET_Y_M)
@@ -1238,7 +1217,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private fun maybeShowLegendOnFirstEntry() {
         lifecycleScope.launch {
             if (legendPreferences.isShown()) return@launch
-            Timber.d("S1223: legend shown on first immersive entry")
             showLegend()
             legendPreferences.markShown()
         }

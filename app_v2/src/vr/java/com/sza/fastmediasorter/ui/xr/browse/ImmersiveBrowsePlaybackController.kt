@@ -37,6 +37,15 @@ class ImmersiveBrowsePlaybackController @Inject constructor(
 
     private var exoPlayer: ExoPlayer? = null
 
+    // S1640: held as a field rather than passed as an anonymous expression, so the registration has an
+    // addressee to remove in stop(). The listener never outlived the player it was added to, but a
+    // registration the check cannot see paired is a form the check stops seeing anywhere.
+    private val playerListener = object : Player.Listener {
+        override fun onPlayerError(error: PlaybackException) {
+            Timber.e(error, "ImmersiveBrowsePlaybackController: playback error %s", error.errorCodeName)
+        }
+    }
+
     @Volatile private var reusableBuffer: ByteBuffer? = null
 
     // S1222: the browser used to classify stereo for the grid badge only, so every file opened here
@@ -84,11 +93,7 @@ class ImmersiveBrowsePlaybackController @Inject constructor(
         exoPlayer = vrPlayer.apply {
             setVideoSurface(surface)
             repeatMode = Player.REPEAT_MODE_ALL
-            addListener(object : Player.Listener {
-                override fun onPlayerError(error: PlaybackException) {
-                    Timber.e(error, "ImmersiveBrowsePlaybackController: playback error %s", error.errorCodeName)
-                }
-            })
+            addListener(playerListener)
             playWhenReady = true
             setMediaItem(MediaItem.fromUri(uri))
             prepare()
@@ -103,6 +108,7 @@ class ImmersiveBrowsePlaybackController @Inject constructor(
         exoPlayer?.apply {
             clearVideoSurface()
             stop()
+            removeListener(playerListener)
             release()
         }
         exoPlayer = null
@@ -114,7 +120,6 @@ class ImmersiveBrowsePlaybackController @Inject constructor(
 
     private fun applyRenderConfig(displayName: String) {
         val config = stereoConfigResolver.resolve(displayName)
-        Timber.d("S1222: browse applies $displayName -> ${config.projection}/${config.layout}")
         runtime.setRenderConfig(config.projection.value, config.layout.value)
     }
 

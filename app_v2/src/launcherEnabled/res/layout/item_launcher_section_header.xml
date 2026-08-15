@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S1428: a titled section header on the launcher desktop. It owns every cell below it down to the
-     next header, so it is drawn full-width rather than as a square cell. The underline carries the same
-     distinction as the bold caption: strategic §3.2 forbids marking membership by colour alone.
+<!-- S1428: a titled section header on the launcher desktop. It owns every cell below it down to the next
+     header. S1642 narrows it to two grid cells by one, so this layout has to read inside a small box: the
+     caption takes one ellipsized line and the underline stops at the header's own edge instead of ruling
+     the whole row. The underline carries the same distinction as the bold caption - strategic §3.2 forbids
+     marking membership by colour alone.
 
      The root is a FrameLayout because the binder's edit-mode decoration bails on anything else, and
      strategic §11.14 requires the header to be removable in edit mode like any other cell.
 
-     Orientation-neutral - the header spans the current column count in both layouts, so there is
-     deliberately no layout-land counterpart. -->
+     Orientation-neutral - strategic §6.1 rules one 2x1 geometry for both orientations, so a layout-land
+     counterpart would be a second rule for the same header and there is deliberately none. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/sectionHeaderRoot"
     android:layout_width="match_parent"
@@ -17,8 +20,8 @@
     android:clickable="true"
     android:focusable="true"
     android:minHeight="48dp"
-    android:paddingStart="8dp"
-    android:paddingEnd="8dp">
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -26,20 +29,43 @@
         android:layout_gravity="center_vertical"
         android:orientation="vertical">
 
-        <!-- The grid measures every cell exactly at its cell size, so this floor never fights the
-             layout; it states the 48dp target strategic §3.2 requires. -->
-        <TextView
-            android:id="@+id/sectionTitle"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:gravity="center_vertical"
-            android:maxLines="1"
-            android:minHeight="48dp"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
-            android:textColor="?attr/colorOnSurface"
-            android:textStyle="bold"
-            tools:text="App functions" />
+            android:orientation="horizontal">
+
+            <!-- S1664: the folded state used to reach the user through the state description alone, so a
+                 collapsed section looked exactly like an empty one and its content read as lost. The
+                 chevron, its drawable and its rotation are taken from CollapsibleSectionHeader rather
+                 than invented here, so the desktop answers the gesture the same way every other
+                 collapsible section in the app does. Not announced: the header root already carries the
+                 spoken state, and a second source would read it out twice. -->
+            <ImageView
+                android:id="@+id/sectionChevron"
+                android:layout_width="@dimen/settings_help_icon_size"
+                android:layout_height="@dimen/settings_help_icon_size"
+                android:layout_gravity="center_vertical"
+                android:importantForAccessibility="no"
+                app:srcCompat="@drawable/ic_arrow_drop_down"
+                app:tint="?attr/colorOnSurfaceVariant" />
+
+            <!-- The grid measures every cell exactly at its cell size, so this floor never fights the
+                 layout; it states the 48dp target strategic §3.2 requires. -->
+            <TextView
+                android:id="@+id/sectionTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:maxLines="1"
+                android:minHeight="48dp"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold"
+                tools:text="App functions" />
+
+        </LinearLayout>
 
         <View
             android:layout_width="match_parent"

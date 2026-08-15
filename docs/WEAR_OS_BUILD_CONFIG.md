@@ -76,7 +76,12 @@ BUILD SUCCESSFUL in 11s
 40 actionable tasks: 14 executed, 26 up-to-date
 ```
 
-**APK Generated**: `wear/build/outputs/apk/debug/wear-debug.apk` (7.04 MB)
+**APK Generated**: `wear/build/outputs/apk/debug/wear-debug.apk`
+
+Size, measured 2026-08-15 (S1679). Compare a new build against the **release** number - the debug one is not minified and is misleading by a factor of seven:
+
+- release: 10,808,958 bytes (~10.3 MB), of which ~83 % is dex
+- debug: 75,774,884 bytes (~72 MB), almost entirely un-minified bytecode
 
 ## How to Use
 
@@ -123,10 +128,11 @@ wear/
 
 ### Key Configurations
 
-- **API Level**: 30+ (Wear OS 3.0)
-- **Target SDK**: 35
-- **Min SDK**: 30 (Wear OS 3.0)
-- **Package**: `com.sza.fastmediasorter.wear`
+- **Compile SDK**: 36
+- **Target SDK**: 36
+- **Min SDK**: 28 (Wear OS 2.0+)
+- **Install package (`applicationId`)**: `com.sza.fastmediasorter` - identical to the phone app on purpose; Play Services drops Data Layer traffic unless the package name and the signing certificate both match across the two devices (S1681)
+- **Code namespace**: `com.sza.fastmediasorter.wear` - keeps the `.wear` segment, so class names are unaffected by the line above
 - **Main Activity**: `com.sza.fastmediasorter.wear.MainActivity`
 
 ## Verification Checklist
@@ -147,10 +153,11 @@ wear/
 | Metric | Value |
 |---|---|
 | **Build Time** | ~11s (first build), ~2s (incremental) |
-| **APK Size** | 7.04 MB |
-| **Min API** | 30 (Wear OS 3.0) |
-| **Target API** | 35 |
-| **Compile SDK** | 35 |
+| **APK Size (release)** | 10,808,958 bytes, measured 2026-08-15 |
+| **APK Size (debug)** | 75,774,884 bytes - not minified, do not compare against it |
+| **Min API** | 28 (Wear OS 2.0) |
+| **Target API** | 36 |
+| **Compile SDK** | 36 |
 
 ## Next Steps
 

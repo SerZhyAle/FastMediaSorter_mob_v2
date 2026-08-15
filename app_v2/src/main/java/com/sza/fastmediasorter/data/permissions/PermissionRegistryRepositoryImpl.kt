@@ -288,10 +288,12 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             minSdk = 23,
             buildGates = setOf("SUPPORT_LAUNCHER"),
         ),
-        // S1179: same shape as the row above - dangerous, declared only by `src/launcherEnabled`, asked
-        // for when the user adds the steps gadget. `buildGates` is the load-bearing field: without it the
-        // row appears in lite, photos and legacy, whose merged manifest never declares the permission, and
-        // PermissionRegistryManifestParityTest fails those variants as a release blocker.
+        // S1623: the gate names the declaration site, not the feature. S1179 put this row on
+        // SUPPORT_LAUNCHER while `src/launcherEnabled` declared the permission; S1614 moved the
+        // declaration into `src/noLegal/AndroidManifest.xml` because Play treats ACTIVITY_RECOGNITION as
+        // a health feature, and the gate stayed behind - standard then offered a row for a permission its
+        // merged manifest does not carry. IS_NO_LEGAL_FLAVOR mirrors that file exactly, the way the
+        // request_install_packages row above does. Move the declaration back and this gate moves with it.
         PermissionEntry(
             id = "activity_recognition",
             manifestName = Manifest.permission.ACTIVITY_RECOGNITION,
@@ -300,7 +302,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor() : PermissionRegistr
             group = PermissionGroup.SYSTEM,
             optional = true,
             minSdk = 29,
-            buildGates = setOf("SUPPORT_LAUNCHER"),
+            buildGates = setOf("IS_NO_LEGAL_FLAVOR"),
             rationaleRes = R.string.perm_rationale_activity_recognition,
         ),
         // S0429: the manifest name is a label here, not a request. BIND_NOTIFICATION_LISTENER_SERVICE is

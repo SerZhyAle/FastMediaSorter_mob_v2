@@ -39,6 +39,10 @@ This is a long-standing, consistent project convention - not an accident, and no
 
 Implication for new code: importing a concrete `data.*` type from a use case is acceptable and matches precedent. Add a domain-owned abstraction only when it earns a real seam (testing, DI, or flavor isolation via `src/<flavor>/`) - never solely to satisfy layer purity.
 
+### Rule 3 is mechanically enforced (S1329)
+
+An Activity may not declare an `@Inject` field of a repository, use case, data source, DAO or database type. The count is held down by `scripts/quality/assert-activity-logic-not-growing.ps1` against a committed baseline, so a new violation fails the gate rather than joining the lint baseline unnoticed. The remaining debt is 32 violations, all inside `PlayerActivity` and `PhotoVideoStandaloneActivity`, which carry a shared image-edit cluster and are being cleared by a follow-up ticket. Two fixes are sanctioned: move the dependency into the host's ViewModel and expose behaviour rather than the injected type, or - when the host only forwards the object into a manager it builds by hand - put it in an `@Inject constructor` factory that builds that manager, as `app_v2/src/main/java/com/sza/fastmediasorter/widget/PhotoCaptureLaunchManagerFactory.kt` does. A screen that merely reads settings needs neither: `BaseActivity.appSettings` is the inherited stream, and reaching for `SettingsRepository` in a subclass is the mistake it exists to prevent.
+
 ## Key Patterns
 - **ViewModels**: `@HiltViewModel`. `StateFlow` (state), `SharedFlow` (events).
 - **UseCases**: Single-responsibility `VerbNounUseCase`.
@@ -200,6 +204,18 @@ Rules:
 - Exempt by design (do not migrate to this family): player/media `ImageButton` borderless controls, reserved ExoPlayer `@id/exo_*` controls, and the intentionally dark camera/viewfinder surfaces.
 - A new role that none of the five covers is added as a new `Widget.FastMediaSorter.Button.*` style here, not as an ad-hoc layout style.
 
+## Compose Island Theming (MANDATORY)
+
+Every `ComposeView.setContent { .. }` in `app_v2` wraps its content in `FastMediaSorterComposeTheme` (`ui/common/compose/`). The app is View-based and its colours live in a View theme - `Theme.FastMediaSorter.App` plus whichever `ThemeOverlay.FastMediaSorter.*` accent the user picked (S0569). Compose reads none of that: an unthemed `setContent`, and equally a bare `MaterialTheme { .. }` with no `colorScheme` argument, falls back to the Material3 baseline palette and renders in stock purple no matter which accent is active. The island then looks foreign next to the Views around it, and an `AndroidView` hosted inside it - which does inherit the View theme - disagrees with its own container.
+
+The wrapper resolves the M3 colour attributes off the host `Context` at composition time and hands them to `MaterialTheme` as a `ColorScheme`, so an island follows the accent overlay and the day/night variant without a second source of colour. Light-vs-dark is decided from the resolved surface luminance rather than the system night mode, because the accent overlays set brightness independently of it.
+
+Rules:
+
+- Never call `setContent` without the wrapper, and never re-introduce a bare `MaterialTheme { .. }` as the outermost layer.
+- Read colours inside a Composable from `MaterialTheme.colorScheme`, never as a literal `Color(0xFF..)` - the literal is the Compose equivalent of the hardcoded layout hex Rule 19 already forbids.
+- A role the wrapper cannot resolve falls back to the Compose baseline for that role. When a new role starts mattering on screen, add the matching `?attr/` to the theme and the accent overlays rather than hardcoding it in the Composable.
+
 ## Dialog Result Delivery (MANDATORY)
 
 A `DialogFragment` never holds its result callback in a field. `FragmentManager` rebuilds a restored dialog through the no-argument constructor, so any handler the caller assigned after construction is null on the rebuilt instance - the user confirms, nothing happens, and nothing is logged. The recreation does not need a rotation to happen: a theme change, a language change, a font-size change, "don't keep activities" and process death all trigger it, and most hosts here declare `configChanges` for orientation, so rotation is in fact the one trigger that does NOT reproduce it.
@@ -257,6 +273,14 @@ Dedicated screen for internet audio/video/RTSP sources. Architectural boundaries
 - **Catalog import**: `ImportStreamCatalogUseCase` enforces a connect+read timeout; fails fast on dead/slow-trickle host instead of blocking indefinitely.
 - **Flavor scope**: standard/legacy/noLegal/vr - HLS, DASH VOD, RTSP, progressive HTTP/ICY (`SUPPORT_STREAMS=true`); lite/photos - feature absent, no entry point (`SUPPORT_STREAMS=false`, lite hidden by S0575).
 - **Public cleartext**: `android:usesCleartextTraffic` allowed for internet radio (most streams are http://).
+
+## Cast (Chromecast) Path
+
+Casting is a flavor-scoped seam: `CastController` lives in `src/main`, its Google Cast implementation in `src/castEnabled`, and the `vr` flavor mounts `src/castDisabled` instead. Local files reach the receiver through `LocalCastProxyServer`, which used to serve bytes unchanged.
+
+- **Single-eye crop (S1558)**: a stereo file cast while the single-eye panel option is on is served as a half-frame copy, not as the original. The player resolves the crop - `CastStereoCrop` carries the decision the panel already made across the seam, so the Cast path never re-detects the stereo mode and cannot disagree with the screen. The geometry mirrors `PanelStereoCropApplier`: the right half for side-by-side modes, the bottom half for over-under.
+- **Where the bytes change**: `CastStereoCropTranscoder` (castEnabled only) writes the cropped copy into the cache and the proxy serves that copy, so the proxy itself still transforms nothing. Above `CastStereoCropTranscoder.MAX_CROP_DURATION_MS` the crop is skipped and the original is cast whole - the same "refuse loudly, keep casting" behaviour the rest of the path uses.
+- **Out of scope by construction**: a live URL returns early as a direct Cast decision, so streams never enter the transcode path.
 
 ## Desktop Companion Config (`.fmscfg`) Subsystem
 

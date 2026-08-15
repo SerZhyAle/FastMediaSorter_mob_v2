@@ -39,7 +39,7 @@ layer - see `07_entrypoints_and_gating.md`). A `lite`/`photos` build still ships
 
 ## 2. `stream_sources` table
 
-### 2.1 Current schema (Room-exported, schema version 41 = current `AppDatabase.version`) **[CONTRACT for on-device state; the bank itself is CSV, see 01/03]**
+### 2.1 Schema version 41 snapshot (Room-exported baseline) **[CONTRACT for on-device state; the bank itself is CSV, see 01/03]**
 
 Source of truth: `app_v2/schemas/com.sza.fastmediasorter.data.local.db.AppDatabase/41.json:1453-1557`
 (Room's own schema-validation export, gated by `exportSchema = true` in `AppDatabase.kt:39`).

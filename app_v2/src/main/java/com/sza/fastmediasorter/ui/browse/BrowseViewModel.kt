@@ -634,6 +634,13 @@ class BrowseViewModel @Inject constructor(
     /** True if scheduled operations are enabled in user settings (runtime flag). */
     val scheduledOperationsEnabled: Boolean get() = lifecycleSetupManager.scheduledOperationsEnabled
 
+    /**
+     * S1329: the answer the row adapter needs - "may this resource offer a move/copy target" - rather than
+     * the use case that computes it, so the host asks a question instead of holding a domain dependency.
+     */
+    suspend fun hasDestinationsExcluding(resourceId: Long): Boolean =
+        fileMutation.getDestinationsUseCase.getDestinationsExcluding(resourceId).isNotEmpty()
+
     fun cancelBackgroundThumbnailLoading() = shutdownCoordinator.cancelBackgroundThumbnailLoading()
 
     /** Toggle inline playback - delegates to BrowseInlineAudioManager. */

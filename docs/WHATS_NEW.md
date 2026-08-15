@@ -6,7 +6,43 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.8122.034** (August 2026)
+**Current release: 2.60.8151.948** (August 2026)
+
+> Changes since version 2.60.8122.034
+
+---
+
+## What's New
+
+- **Immersive VR browser** - aim with a ray, start playback in the headset.
+- **Cast stereo video** - one eye sent to the TV, correctly cropped.
+- **Subtitle styling** - font, size and colour in the panel player.
+- **Viewfinder aspect** - 4:3, 16:9 or full screen, and the shot matches.
+- **Per-lens camera memory** - zoom and scenario remembered for each lens.
+- **Command bar overflow** - extra actions move into the three-dots menu.
+- **Edge swipe in fullscreen** - brings the player controls back.
+- **Send to other apps** - now for cloud and direct web files.
+- **Adaptive stream quality** - remembered per channel, and probed back up.
+- **Taskbar on either edge** - top or bottom, your choice.
+- **Compact section headers** on the launcher desktop.
+
+## What's Fixed
+
+- Pinned shortcuts survive a launcher reset.
+- Resource-type tabs always fit the screen.
+- The settings search button stays reachable in landscape.
+- The steps permission row appears only where it works.
+- Zoom presets are hidden for a lens without zoom.
+- Settings, transfers and file flags survive app updates.
+- The Google account stays connected after an update.
+- An unreachable SFTP server is not retried on every thumbnail.
+- Startup no longer blocks on preferences or image setup.
+- Rotating while saving an account no longer crashes.
+- An immersive playback error shuts down cleanly.
+
+---
+
+## Previous Release: 2.60.8122.034 (August 2026)
 
 > Changes since version 2.60.8042.332
 

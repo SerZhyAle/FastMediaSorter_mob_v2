@@ -85,18 +85,23 @@ object LauncherGridGeometry {
     }
 
     /**
-     * S1428: the width a cell is actually drawn at. A section header always spans the whole row,
-     * whatever span it was stored with: [footprint]'s clamp only ever narrows a span, so a header
-     * saved on a three-column grid would keep a strip of empty space to its right once the density
-     * factor or a rotation widened the grid (strategic §5.1.2).
+     * The width a cell is actually drawn at.
      *
-     * Every caller that positions a cell or counts occupied squares must go through this. If the
-     * renderer widened the header while the empty-slot sweep still used the stored span, edit mode
-     * would draw "tap to add" squares on top of a live header - the exact failure [footprint]'s own
-     * KDoc describes.
+     * S1642: a section header is normalised to [LauncherSectionMembership.HEADER_SPAN_W] rather than to the
+     * column count. Normalised, not merely read: a desktop written by an S1428 build stored its headers at
+     * the widest grid there is, and drawing one of those at its stored span would cover a strip of squares
+     * the table has since freed. Reading the constant here narrows them on sight, without a write.
+     *
+     * Every caller that positions a cell or counts occupied squares goes through this. If the renderer and
+     * the empty-slot sweep read different spans, edit mode draws "tap to add" squares on top of a live
+     * header - the failure [footprint]'s own KDoc describes.
      */
     fun renderSpanW(cell: LauncherCell, columns: Int): Int =
-        if (cell.kind == LauncherCellKind.SECTION) columns.coerceAtLeast(1) else cell.spanW
+        if (cell.kind == LauncherCellKind.SECTION) {
+            LauncherSectionMembership.HEADER_SPAN_W.coerceIn(1, columns.coerceAtLeast(1))
+        } else {
+            cell.spanW
+        }
 
     fun footprintOf(cell: LauncherCell, columns: Int): CellFootprint =
         footprint(cell.rowIndex, cell.colIndex, renderSpanW(cell, columns), cell.spanH, columns)
@@ -127,8 +132,12 @@ object LauncherGridGeometry {
             .map { it.rowIndex.coerceAtLeast(0) }
             .toSet()
         return cells.mapNotNull { item ->
-            LauncherSectionMembership.renderRowFor(item.cell.rowIndex, headerRows, collapsedHeaderRows)
-                ?.let { RenderedCell(item, it) }
+            LauncherSectionMembership.renderRowFor(
+                row = item.cell.rowIndex,
+                isHeader = item.cell.kind == LauncherCellKind.SECTION,
+                headerRows = headerRows,
+                collapsedHeaderRows = collapsedHeaderRows,
+            )?.let { RenderedCell(item, it) }
         }
     }
 

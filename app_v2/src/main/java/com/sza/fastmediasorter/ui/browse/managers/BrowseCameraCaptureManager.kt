@@ -569,7 +569,6 @@ class BrowseCameraCaptureManager(
      */
     private suspend fun localVideoFallbackTarget(): CameraCaptureTarget.Resource {
         val moviesDir = withContext(Dispatchers.IO) {
-            Timber.d("S1609: localVideoFallbackTarget mkdirs on thread=%s", Thread.currentThread().name)
             CaptureDestinationPolicy.resolveVideoDestination(null).also { it.mkdirs() }
         }
         return CameraCaptureTarget.Resource(
@@ -613,7 +612,6 @@ class BrowseCameraCaptureManager(
      * bookkeeping themselves, so the file reference is snapshotted before a new capture can start.
      */
     private fun deleteTempAsync(file: File) {
-        Timber.d("S1608: deleteTempAsync offloading temp delete")
         coroutineScope.launch(Dispatchers.IO + NonCancellable) { file.delete() }
     }
 
@@ -623,7 +621,6 @@ class BrowseCameraCaptureManager(
      * [File.createNewFile] writes an inode, both of which are StrictMode disk writes.
      */
     private suspend fun createTemp(timestamp: String, ext: String): File? = withContext(Dispatchers.IO) {
-        Timber.d("S1609: createTemp on thread=%s", Thread.currentThread().name)
         try {
             val dir = activity.getExternalFilesDir(
                 if (ext == ".mp4") Environment.DIRECTORY_MOVIES else Environment.DIRECTORY_PICTURES

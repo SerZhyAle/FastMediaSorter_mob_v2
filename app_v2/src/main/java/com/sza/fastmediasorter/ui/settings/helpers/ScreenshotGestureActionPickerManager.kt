@@ -48,7 +48,6 @@ class ScreenshotGestureActionPickerManager(
         onPicked: (ScreenshotGestureAction) -> Unit
     ) {
         val rows = buildRows()
-        Timber.d("S1166: gesture picker opened, rows=${rows.size}, current=$current")
         GesturePickerDialog(
             context = context,
             title = context.getString(R.string.setting_screenshot_gesture_action_dialog_title),

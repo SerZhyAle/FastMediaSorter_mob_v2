@@ -154,12 +154,14 @@ class LauncherGridGeometryTest {
     // --- header widening ---------------------------------------------------------------------
 
     @Test
-    fun `a section header is drawn across the whole row whatever span it was stored with`() {
-        // The stored span belongs to whatever grid was current when it was placed; footprint only ever
-        // narrows, so without this the header would keep empty space to its right on a wider grid.
-        val header = cell(row = 0, col = 0, spanW = 3, kind = LauncherCellKind.SECTION)
+    fun `a section header is drawn two cells wide whatever span it was stored with`() {
+        // S1642: a desktop written by an S1428 build stored its headers at the widest grid there is, so
+        // drawing one at its stored span would cover squares the table has since freed.
+        val legacy = cell(row = 0, col = 0, spanW = 12, kind = LauncherCellKind.SECTION)
+        val current = cell(row = 0, col = 0, spanW = 2, kind = LauncherCellKind.SECTION)
 
-        assertEquals(8, LauncherGridGeometry.renderSpanW(header, columns = 8))
+        assertEquals(2, LauncherGridGeometry.renderSpanW(legacy, columns = 8))
+        assertEquals(2, LauncherGridGeometry.renderSpanW(current, columns = 8))
     }
 
     @Test
@@ -170,14 +172,15 @@ class LauncherGridGeometryTest {
     }
 
     @Test
-    fun `the widened header reaches the empty-slot sweep through footprintOf`() {
-        // The sweep and the renderer must agree, or edit mode draws "tap to add" on top of a live header.
-        val header = cell(row = 1, col = 0, spanW = 3, kind = LauncherCellKind.SECTION)
+    fun `the normalized header span reaches the empty-slot sweep through footprintOf`() {
+        // The sweep and the renderer must agree, or edit mode draws "tap to add" on top of a live header -
+        // and, since S1642, leaves the squares beside a header unofferable when it disagrees the other way.
+        val header = cell(row = 1, col = 0, spanW = 12, kind = LauncherCellKind.SECTION)
 
         val footprint = LauncherGridGeometry.footprintOf(header, columns = 6)
 
         assertEquals(0, footprint.col)
-        assertEquals(6, footprint.spanW)
+        assertEquals(2, footprint.spanW)
     }
 
     // --- collapsed-section projection ---------------------------------------------------------

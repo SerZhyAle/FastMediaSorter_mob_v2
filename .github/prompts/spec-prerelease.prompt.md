@@ -245,6 +245,13 @@ into the report's verdict breakdown and into the FAIL-branch `/spec-draft` triag
 emulator-only benign cluster that recurs every sweep is a candidate for the audit's benign
 allowlist, not a ticket. Include the audit JSON path in the evidence pack.
 
+A framework error the app already handled is suppressed **conditionally**, never by tag alone (S1700):
+the thumbnail chain `FrameDecoder err -1004` / `StagefrightMetadataRetriever` / `MetadataRetrieverClient` /
+`MediaMetadataRetrieverJNI` counts as benign in both the verdict and the audit only while the same capture
+carries the app's own `NetworkVideoFrameDecoder` timeout marker. The JNI shim runs inside the app process,
+so `-AppOnly` attributes it to us; without the paired marker the same chain means local decoding broke and
+still fails the gate.
+
 **On PASS:** only after the audit is clean (or its findings are triaged/parked) print the report
 path and propose `/skill-release` as the next step. **Do not auto-run it** - the release starts
 only on explicit owner confirmation (ADR-1). State this in the final line.

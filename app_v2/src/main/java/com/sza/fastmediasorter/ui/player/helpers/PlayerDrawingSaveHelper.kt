@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.usecase.MergeDrawOverlayUseCase
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.util.showBoundTo
@@ -32,13 +33,16 @@ enum class DrawSaveMode { SAVE, SAVE_AND_CLOSE, SAVE_AND_SHARE }
  * Helper class that handles draw overlay actions and saving logic extracted from PlayerActivity.
  * Reduced PlayerActivity size by consolidating image drawing, merging, and file persistency routines.
  */
-class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
+class PlayerDrawingSaveHelper(
+    private val activity: PlayerActivity,
+    private val mergeDrawOverlayUseCase: MergeDrawOverlayUseCase,
+) {
 
     private val saveDrawingUseCase by lazy {
         com.sza.fastmediasorter.domain.usecase.SaveDrawingUseCase(
-            fileOperationUseCase = activity.fileOperationUseCase,
+            fileOperationUseCase = activity.playerHostFactory.fileOperation,
             stagingRegistry = activity.textNoteStagingRegistry,
-            resourceRepository = activity.resourceRepository,
+            resourceRepository = activity.playerHostFactory.resourceRepository,
             statsSink = activity.statsSink,
         )
     }
@@ -227,7 +231,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
 
     // S0679 - wire the draw-editor crop tool to the compositor + working-image swap.
     fun setupDrawCropCallback() {
-        val compositor = DrawCropCompositor(activity.imageCropManager, activity.mergeDrawOverlayUseCase)
+        val compositor = DrawCropCompositor(activity.imageCropManager, mergeDrawOverlayUseCase)
         imageDrawOverlayManager.cropApplyCallback = { normalizedRect, viewW, viewH ->
             applyDrawCrop(compositor, normalizedRect, viewW, viewH)
         }
@@ -321,7 +325,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
             targetW = baseBitmap.width,
             targetH = baseBitmap.height,
         )
-        val mergeResult = activity.mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
+        val mergeResult = mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
         return mergeResult.getOrElse { error ->
             Timber.e(error, "draw overlay merge failed")
             withContext(Dispatchers.Main) {
@@ -509,7 +513,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
                         val croppedOverlay = cropOverlayToImage(
                             overlayBitmap, displayRect, baseBitmap.width, baseBitmap.height
                         )
-                        val mergeResult = activity.mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
+                        val mergeResult = mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
                         val bytes = mergeResult.getOrElse { e ->
                             Timber.e(e, "Draw overlay merge failed (in-place save)")
                             withContext(Dispatchers.Main) {
@@ -594,7 +598,7 @@ class PlayerDrawingSaveHelper(private val activity: PlayerActivity) {
                     activity.lifecycleScope.launch {
                         // Crop overlay to image region and scale to base bitmap dimensions
                         val croppedOverlay = cropOverlayToImage(overlayBitmap, displayRect, baseBitmap.width, baseBitmap.height)
-                        val result = activity.mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
+                        val result = mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
                         result.onFailure { e ->
                             Timber.e(e, "overlay merge failed")
                             withContext(Dispatchers.Main) {

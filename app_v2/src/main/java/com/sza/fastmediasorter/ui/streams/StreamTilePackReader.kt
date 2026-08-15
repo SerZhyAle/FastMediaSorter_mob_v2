@@ -89,7 +89,6 @@ class StreamTilePackReader(
     private fun logFirstDecode(index: Int, elapsedMs: Long) {
         if (decodeProbeLogged) return
         decodeProbeLogged = true
-        Timber.d("S1445: tile pack first decode index=$index in ${elapsedMs}ms")
     }
 
     /** Closes the container and drops every cached tile, so the next [tile] re-reads the provider. */
@@ -115,7 +114,7 @@ class StreamTilePackReader(
     }
 
     private fun openArchive(file: File): ZipFile? = try {
-        ZipFile(file).also { Timber.d("S1445: tile pack opened ${file.name} with ${it.size()} entries") }
+        ZipFile(file)
     } catch (e: IOException) {
         Timber.i(e, "Stream tile pack could not open ${file.name}")
         null

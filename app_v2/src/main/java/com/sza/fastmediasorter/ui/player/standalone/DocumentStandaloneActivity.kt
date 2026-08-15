@@ -24,29 +24,14 @@ import androidx.lifecycle.lifecycleScope
 import com.github.chrisbanes.photoview.OnSingleFlingListener
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.share.SharePrintHost
 import com.sza.fastmediasorter.core.ui.BaseActivity
-import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
-import com.sza.fastmediasorter.data.cloud.DropboxClient
-import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
-import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
-import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
-import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
-import com.sza.fastmediasorter.data.network.SmbClient
-import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
-import com.sza.fastmediasorter.data.remote.ftp.FtpClient
-import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityStandaloneDocumentBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
 import com.sza.fastmediasorter.ui.player.DefaultPlayerProbe
 import com.sza.fastmediasorter.ui.player.StandalonePlayerViewModel
 import com.sza.fastmediasorter.ui.player.helpers.DocumentPrintHost
@@ -66,9 +51,7 @@ import com.sza.fastmediasorter.ui.player.helpers.StandaloneFileOperationsHandler
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -122,49 +105,22 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
         }
     }
 
-    @Inject lateinit var smbClient: Lazy<SmbClient>
-    @Inject lateinit var sftpClient: Lazy<SftpClient>
-    @Inject lateinit var ftpClient: Lazy<FtpClient>
-    @Inject lateinit var googleDriveClient: Lazy<GoogleDriveRestClient>
-    @Inject lateinit var dropboxClient: Lazy<DropboxClient>
-    @Inject lateinit var oneDriveClient: Lazy<OneDriveRestClient>
-    @Inject lateinit var credentialsRepository: Lazy<NetworkCredentialsRepository>
-    @Inject lateinit var smbFileOperationHandler: Lazy<SmbFileOperationHandler>
-    @Inject lateinit var sftpFileOperationHandler: Lazy<SftpFileOperationHandler>
-    @Inject lateinit var ftpFileOperationHandler: Lazy<FtpFileOperationHandler>
-    @Inject lateinit var cloudFileOperationHandler: Lazy<CloudFileOperationHandler>
-    @Inject lateinit var unifiedCache: Lazy<UnifiedFileCache>
-    @Inject lateinit var settingsRepository: SettingsRepository
-    @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
+    // S1329: the domain types this host used to field-inject - the six repositories and use cases plus
+    // the network collaborators it only forwarded - now live behind the factory, which builds each
+    // manager itself. The host names no data-layer type of its own (Rule 3).
+    @Inject lateinit var standaloneHostFactory: StandaloneHostFactory
     // S0473: usage-statistics sink, forwarded into the standalone PdfViewerManager.
     @Inject lateinit var statsSink: com.sza.fastmediasorter.domain.stats.StatsSink
-    @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
-    @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
     @Inject lateinit var capabilityAvailability: CapabilityAvailability
     @Inject lateinit var mediaCapabilities: MediaCapabilities
-    @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
-    // S0612: global destination list (no resource context) for the Copy/Move bottom panels.
-    @Inject lateinit var getDestinationsUseCase: com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 
     // S0393 U4/U5: keyboard / D-pad handler (pdf/epub keys + paging).
     private lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
 
     private val networkFileManager: NetworkFileManager by lazy {
-        NetworkFileManager(
+        standaloneHostFactory.createNetworkFileManager(
             context = this,
-            smbClient = smbClient,
-            sftpClient = sftpClient,
-            ftpClient = ftpClient,
-            googleDriveClient = googleDriveClient,
-            dropboxClient = dropboxClient,
-            oneDriveClient = oneDriveClient,
-            credentialsRepository = credentialsRepository,
-            smbFileOperationHandler = smbFileOperationHandler,
-            sftpFileOperationHandler = sftpFileOperationHandler,
-            ftpFileOperationHandler = ftpFileOperationHandler,
-            cloudFileOperationHandler = cloudFileOperationHandler,
-            unifiedCache = unifiedCache,
             callback = object : NetworkFileManager.NetworkFileCallback {
                 override fun getCurrentResource() = null
                 override fun showError(message: String) = showToastError(message)
@@ -174,9 +130,8 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
 
     // S0872: explicit Lazy so onDestroy can release it only when it was actually created.
     private val translationManagerDelegate = lazy {
-        TranslationManager(
+        standaloneHostFactory.createTranslationManager(
             context = this,
-            settingsRepository = settingsRepository,
             callback = object : TranslationManager.TranslationCallback {
                 override fun showError(message: String) = showToastError(message)
                 // S0393 wave-C: real download prompt so first-use translation doesn't silently no-op.
@@ -200,33 +155,29 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     private val translationManager: TranslationManager by translationManagerDelegate
 
     private val fileOperations: StandaloneFileOperationsHandler by lazy {
-        StandaloneFileOperationsHandler(
+        standaloneHostFactory.createFileOperationsHandler(
             activity = this,
             root = binding.root,
-            getCurrentMediaFile = { viewModel.state.value.mediaFile },
-            resolveOpenInFmsTarget = resolveOpenInFmsTargetUseCase,
-            onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
-            updateAudioMediaItem = { /* no audio in document activity */ },
-            batchDeleteLauncher = batchDeleteLauncher,
-            recoverableDeleteLauncher = recoverableDeleteLauncher,
-            sendToMenuManager = sendToMenuManager,
-            getCurrentSettings = { settingsRepository.getSettings().first() },
-            fileOperationUseCase = fileOperationUseCase,
-            getDestinationsUseCase = getDestinationsUseCase,
-            onPickCustomFolderForCopy = {
-                pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
-                customPathPickerLauncher.launch(null)
-            },
+            callbacks = StandaloneFileOpsCallbacks(
+                getCurrentMediaFile = { viewModel.state.value.mediaFile },
+                onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
+                updateAudioMediaItem = { /* no audio in document activity */ },
+                batchDeleteLauncher = batchDeleteLauncher,
+                recoverableDeleteLauncher = recoverableDeleteLauncher,
+                onPickCustomFolderForCopy = {
+                    pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
+                    customPathPickerLauncher.launch(null)
+                },
+            ),
         )
     }
 
     // S0612: Copy/Move destination panels, reusing the shared in-app manager bound to this layout root.
-    // No resource context: getCurrentResourceId returns -1 so the global destination list is shown intact.
+    // The factory supplies the global destination list - there is no resource context here, so
+    // getCurrentResourceId returns -1 and that list is shown intact.
     private val destinationButtonsManager: com.sza.fastmediasorter.ui.player.DestinationButtonsManager by lazy {
-        com.sza.fastmediasorter.ui.player.DestinationButtonsManager(
+        standaloneHostFactory.createDestinationButtons(
             root = binding.root,
-            settingsRepository = settingsRepository,
-            getDestinationsUseCase = getDestinationsUseCase,
             lifecycleScope = lifecycleScope,
             callback = object : com.sza.fastmediasorter.ui.player.DestinationButtonsManager.DestinationButtonsCallback {
                 override fun onCopyClicked(destination: MediaResource) = fileOperations.copyCurrentFileTo(destination)
@@ -271,10 +222,9 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     // S0873: explicit Lazy so releaseActiveViewer()/onDestroy can release it when initialized - a
     // mixed-type folder page (PDF -> EPUB) with an in-flight load can resurrect an off-type viewer.
     private val pdfViewerManagerDelegate = lazy {
-        PdfViewerManager(
+        standaloneHostFactory.createPdfViewerManager(
             root = binding.root,
             networkFileManager = networkFileManager,
-            settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,
             callback = object : PdfViewerManager.PdfViewerCallback {
                 override fun showError(message: String) = showToastError(message)
@@ -302,7 +252,6 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                 }
             },
             translationManager = translationManager,
-            playbackPositionRepository = playbackPositionRepository,
             statsSink = statsSink
         )
     }
@@ -315,10 +264,9 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
 
     // S0873: explicit Lazy (see pdf) so an initialized EPUB viewer is released on teardown/type-switch.
     private val epubViewerManagerDelegate = lazy {
-        EpubViewerManager(
+        standaloneHostFactory.createEpubViewerManager(
             root = binding.root,
             networkFileManager = networkFileManager,
-            settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,
             callback = object : EpubViewerManager.EpubViewerCallback {
                 override fun showError(message: String) = showToastError(message)
@@ -332,7 +280,6 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                     setDestinationPanelsSuppressed(false)
                 }
             },
-            playbackPositionRepository = playbackPositionRepository,
             translationManager = translationManager
         )
     }
@@ -504,7 +451,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     private var cachedTranslationEnabled = false
 
     private fun observeTranslationSettings() {
-        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+        collectOnLifecycle(appSettings) { settings ->
             cachedTranslationEnabled = settings.enableTranslation
             updateEpubTranslatorVisibility()
         }
@@ -701,18 +648,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     private fun showFileInfo() {
         val file = viewModel.state.value.mediaFile ?: return
         if (isFinishing || isDestroyed) return
-        FileInfoDialog(
-            this,
-            file,
-            smbClient.get(),
-            sftpClient.get(),
-            ftpClient.get(),
-            credentialsRepository.get(),
-            unifiedCache.get(),
-            downloadNetworkFileUseCase = null,
-            audioMetadataLoader = null,
-            audioMetadataCacheRepository = null
-        ).show()
+        standaloneHostFactory.createFileInfoDialog(context = this, mediaFile = file).show()
     }
 
     private fun parseIncomingIntent() {

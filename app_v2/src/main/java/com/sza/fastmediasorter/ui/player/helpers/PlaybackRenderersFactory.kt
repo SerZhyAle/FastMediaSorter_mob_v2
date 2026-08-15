@@ -30,7 +30,6 @@ fun createPlaybackRenderersFactory(context: Context): DefaultRenderersFactory {
     // every format it claims, so it intercepted AAC/HE-AAC radio streams and failed fatally mid-stream -
     // runtime decode errors bypass setEnableDecoderFallback (that only covers decoder init). _ON keeps
     // MediaCodec first for AAC/MP3/etc and falls through to FFmpeg only for formats the platform can't do.
-    Timber.d("S1137: playback renderers factory - extension mode=ON (MediaCodec preferred for AAC)")
     return DefaultRenderersFactory(context)
         .setEnableDecoderFallback(true)
         .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)

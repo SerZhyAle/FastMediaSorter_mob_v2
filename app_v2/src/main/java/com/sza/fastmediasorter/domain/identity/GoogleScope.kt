@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.domain.identity
 
+import com.google.gson.annotations.SerializedName
+
 /**
  * Strongly-typed wrapper for a Google OAuth 2.0 scope URI.
  *
@@ -20,7 +22,11 @@ package com.sza.fastmediasorter.domain.identity
  * @see <a href="https://developers.google.com/identity/protocols/oauth2/scopes">Google OAuth 2.0 Scopes</a>
  * @see <a href="https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification">Restricted scope verification (CASA trigger wording)</a>
  */
-@JvmInline value class GoogleScope(val value: String) {
+// S1657: a scope reaches Gson boxed, as an element of PrimaryGoogleAccount.grantedScopes, so what is written
+// to the encrypted preferences is this class's backing field and not the scope URI on its own. The field name
+// is an ordinary identifier that R8 renames, which would desync the stored binding across an app update -
+// pinning it is the same fix as on the enclosing model, applied where the name actually travels.
+@JvmInline value class GoogleScope(@SerializedName("value") val value: String) {
     companion object {
         /** Full read-write access to user's Drive. RESTRICTED scope (per Google): subject to restricted-scope OAuth App Verification. CASA does not apply - client-only data flow, see class KDoc. */
         val DRIVE = GoogleScope("https://www.googleapis.com/auth/drive")

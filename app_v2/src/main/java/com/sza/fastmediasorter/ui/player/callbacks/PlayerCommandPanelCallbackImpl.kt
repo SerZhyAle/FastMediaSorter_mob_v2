@@ -386,7 +386,6 @@ class PlayerCommandPanelCallbackImpl(
     override fun onRotateContent90Clicked() {
         viewModel.rotateSession90()
         val newAngle = viewModel.state.value.sessionRotationAngle
-        Timber.d("S0995: internal rotate90 tap -> $newAngle")
         activity.applyContentRotation(newAngle)
     }
 

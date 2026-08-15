@@ -272,6 +272,14 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // the shared first-frame/deferred-worker gate so cold start stays off the critical path.
         startupInitializer.get().initialize()
 
+        // S1650: build Glide off the main thread. Deliberately NOT gated on firstFrameSignal, unlike
+        // every launch below it - the first image load can happen on the very first screen, and that
+        // load is exactly what this warm-up has to beat. It waits internally for the cache-size mirror
+        // write started by initialize() above.
+        applicationScope.launch(Dispatchers.IO) {
+            startupInitializer.get().warmGlide()
+        }
+
         applicationScope.launch(Dispatchers.IO) {
             firstFrameSignal.await(timeoutMs = 60_000)
             com.sza.fastmediasorter.core.cache.TranslationCacheManager.clearAll()

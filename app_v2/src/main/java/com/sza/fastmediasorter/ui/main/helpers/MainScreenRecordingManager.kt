@@ -132,7 +132,6 @@ class MainScreenRecordingManager(
     // S1436: one message used to name the microphone and notifications together, so a denial never said
     // which of the two was refused. Each denial now explains its own permission, in the registry's words.
     private fun showPermissionDenied(permission: String) {
-        Timber.d("S1436: screen recording denial names $permission")
         Snackbar.make(
             activity.window.decorView.rootView,
             activity.permissionRationale(permission, PermissionTask.SCREEN_RECORDING),

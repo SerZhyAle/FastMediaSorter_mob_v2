@@ -64,6 +64,9 @@ function Resolve-TypoTool {
 $typoExitCode = 0
 $lintExitCode = 0
 $activityWarnings = 0
+# S1656: "no typo tool installed" used to leave the summary saying `Typo exit code: 0`, which reads
+# as a pass. A stage that did not run must not look like a stage that found nothing.
+$typoStatus = "not run"
 
 Write-Report "FastMediaSorter v2 - Typo/Lint/Activity report"
 Write-Report "Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
@@ -88,19 +91,25 @@ try {
                 $typoExitCode = $LASTEXITCODE
             }
             default {
-                Write-Host "No typo tool found (typos/cspell). Skipping typo check." -ForegroundColor DarkYellow
-                Write-Report "Typo check skipped: no typos/cspell command found"
+                Write-Host "No typo tool found (typos/cspell) - the typo stage did NOT run." -ForegroundColor DarkYellow
+                Write-Host "  Install one to make this stage mean something: cargo install typos-cli" -ForegroundColor DarkYellow
+                Write-Report "Typo check SKIPPED: no typos/cspell command found"
                 $typoExitCode = 0
+                $typoStatus = "SKIPPED - no typos/cspell on PATH"
             }
         }
 
-        if ($typoExitCode -ne 0) {
-            Write-Host "Typo check failed with exit code: $typoExitCode" -ForegroundColor Red
-            Write-Report "Typo check: FAILED ($typoExitCode)"
-        }
-        else {
-            Write-Host "Typo check completed." -ForegroundColor Green
-            Write-Report "Typo check: OK"
+        if ($resolvedTool -ne "none") {
+            if ($typoExitCode -ne 0) {
+                Write-Host "Typo check failed with exit code: $typoExitCode" -ForegroundColor Red
+                Write-Report "Typo check: FAILED ($typoExitCode)"
+                $typoStatus = "FAILED ($typoExitCode) via $resolvedTool"
+            }
+            else {
+                Write-Host "Typo check completed." -ForegroundColor Green
+                Write-Report "Typo check: OK"
+                $typoStatus = "OK via $resolvedTool"
+            }
         }
     }
 
@@ -240,7 +249,7 @@ finally {
 
 Write-Section "SUMMARY"
 Write-Host "Report: $reportPath" -ForegroundColor DarkGray
-Write-Host "Typo exit code: $typoExitCode" -ForegroundColor Gray
+Write-Host "Typo stage: $typoStatus" -ForegroundColor Gray
 Write-Host "Lint exit code: $lintExitCode" -ForegroundColor Gray
 Write-Host "Code quality warnings (Total): $activityWarnings" -ForegroundColor Gray
 

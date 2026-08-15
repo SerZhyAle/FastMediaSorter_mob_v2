@@ -63,7 +63,6 @@ class BrowseShutdownCoordinator(
         val resourceKey = buildNetworkResourceKey()
         CoroutineScope(ioDispatcher + NonCancellable).launch {
             if (hasActiveTransfer()) {
-                Timber.d("S1362: shutdown throttle cleanup skipped during active transfer")
                 Timber.i("BrowseShutdownCoordinator: skipped throttle cleanup during active transfer")
             } else {
                 resourceKey?.let {
@@ -87,7 +86,6 @@ class BrowseShutdownCoordinator(
             runCatching { cleanupTrash(resource) }
                 .onFailure { Timber.w(it, "BrowseShutdownCoordinator: trash cleanup failed") }
             if (hasActiveTransfer()) {
-                Timber.d("S1362: shutdown cache cleanup skipped during active transfer")
                 Timber.i("BrowseShutdownCoordinator: skipped cache cleanup during active transfer")
             } else {
                 runCatching { unifiedCache.clearAll() }

@@ -105,7 +105,6 @@ internal class PlayerVrLaunchManager(
 
     // S1114: VR entry from the transport controls row (reachable in fullscreen video).
     fun launchFromControlsRow() {
-        Timber.d("S1114: main-host VR launch from controls row")
         launch(VrLaunchPoint.CONTROLS_ROW)
     }
 

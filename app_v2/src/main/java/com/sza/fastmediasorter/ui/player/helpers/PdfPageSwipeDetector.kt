@@ -101,8 +101,6 @@ class PdfPageSwipeDetector(
             )
             if ((firstDy < 0f) == (secondDy < 0f) && travel > pagingSlop && travel > drift) {
                 // S1274: the zoomed-in page turn.
-                Timber.d("S1273: two-finger page turn, next=${firstDy < 0f}")
-                Timber.d("S1274: two-finger page turn, next=${firstDy < 0f}")
                 claim(next = firstDy < 0f)
             }
         }
@@ -116,8 +114,6 @@ class PdfPageSwipeDetector(
         val dx = event.getX(index) - firstDownX
         if (abs(dy) > pagingSlop && abs(dy) > abs(dx)) {
             // S1274: the slow unzoomed drag, with no velocity requirement.
-            Timber.d("S1273: one-finger page turn, next=${dy < 0f}")
-            Timber.d("S1274: one-finger page turn, next=${dy < 0f}")
             claim(next = dy < 0f)
         }
     }

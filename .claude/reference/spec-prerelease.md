@@ -136,6 +136,8 @@ A working stream that still throws a red toast (e.g. FTP active-mode fallback NP
 
 An emulator-only benign cluster recurring every sweep is a candidate for audit's benign allowlist, not a ticket.
 
+A framework error the app already handled is suppressed **conditionally**, never by tag alone (S1700): the thumbnail chain `FrameDecoder err -1004` / `StagefrightMetadataRetriever` / `MetadataRetrieverClient` / `MediaMetadataRetrieverJNI` counts as benign in both the verdict and the audit only while the same capture carries the app's own `NetworkVideoFrameDecoder` timeout marker. The JNI shim runs inside the app process, so `-AppOnly` attributes it to us; without the paired marker the same chain means local decoding broke and still fails the gate.
+
 ## Final report segments
 
 Appended to the one-line verdict, verbatim shapes:

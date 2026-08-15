@@ -92,7 +92,7 @@ if ($orphans.Count -gt 0) {
 }
 
 # 5. Journal -> filesystem: every record should point at an existing file.
-#    - Archived            : skipped - soft-deleted, file is expected to live under temp/done/.
+#    - Archived            : skipped - soft-deleted, file is expected to live under PLAN/archive/.
 #    - Verified / Implemented : strategic spec already consumed by /spec-tech & /spec-dev; a
 #                            missing .md is recoverable hygiene debt, not a blocker -> WARN.
 #    - any other (in-flight) status : the spec is being worked on right now and MUST exist -> FAIL.
@@ -124,7 +124,10 @@ if ($missingActive.Count -eq 0 -and $missingDone.Count -eq 0) {
 $bad = New-Object System.Collections.Generic.List[string]
 foreach ($r in $records) {
     $fp = ($r.file -replace '\\','/')
-    if ($fp -notmatch '^PLAN/S\d{4}_' -or $fp -match '^PLAN/S\d{4}_spec_') {
+    # Reuse the shared pattern rather than restating it: this check carried its own copy
+    # and silently disagreed with Assert-Record when PLAN/archive/ was introduced (S1620) -
+    # the mutators accepted a path the validator then called invalid.
+    if ($fp -notmatch $script:FilePattern -or $fp -match '^PLAN/(archive/)?S\d{4}_spec_') {
         $bad.Add(('{0} -> {1}' -f $r.id, $r.file))
     }
 }

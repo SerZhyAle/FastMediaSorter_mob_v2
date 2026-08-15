@@ -5,7 +5,6 @@ import android.content.Context
 import android.hardware.camera2.CameraMetadata
 import android.os.Bundle
 import android.util.Size
-import androidx.camera.core.AspectRatio
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Lifecycle
@@ -17,6 +16,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogCameraSettingsBinding
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraSettingsDialogRotationManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraUseCaseFactory
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraAspectSelection
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
 import kotlinx.coroutines.Job
@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.util.Locale
 import kotlin.math.exp
 import kotlin.math.ln
@@ -74,7 +73,8 @@ class CameraSettingsDialogFragment : DialogFragment() {
     data class CameraSettingsState(
         val selfTimerSeconds: Int,
         val gridEnabled: Boolean,
-        val aspectRatio: Int?,
+        val aspect: CameraAspectSelection?,
+        val videoMode: Boolean,
         val resolution: Size?,
         val exposureCompensationIndex: Int,
         val whiteBalanceMode: Int,
@@ -164,20 +164,27 @@ class CameraSettingsDialogFragment : DialogFragment() {
             draft = draft.copy(selfTimerSeconds = TIMER_OPTIONS[index])
         }
 
-        val aspectLabels = capabilities.availableAspectRatios.map(::aspectRatioLabel)
-        binding.rowCameraAspect.isVisible = aspectLabels.isNotEmpty()
-        if (aspectLabels.isNotEmpty()) {
-            val selectedAspect = capabilities.availableAspectRatios.indexOf(draft.aspectRatio).coerceAtLeast(0)
-            bindDropdown(binding.rowCameraAspect, aspectLabels, selectedAspect) { index ->
-                draft = draft.copy(aspectRatio = capabilities.availableAspectRatios[index])
+        // S1658: full screen is a photo-only option - the video pipeline builds through Recorder,
+        // which offers the two standard ratios and no place to crop after encoding.
+        val aspectOptions = CameraAspectSelection.photoOptions(capabilities.availableAspectRatios)
+            .filterNot { draft.videoMode && it.cropsToScreen }
+        binding.rowCameraAspect.isVisible = aspectOptions.isNotEmpty()
+        if (aspectOptions.isNotEmpty()) {
+            val selectedAspect = aspectOptions
+                .indexOf(draft.aspect ?: CameraAspectSelection.DEFAULT)
+                .coerceAtLeast(0)
+            bindDropdown(binding.rowCameraAspect, aspectOptions.map(::aspectLabel), selectedAspect) { index ->
+                draft = draft.copy(aspect = aspectOptions[index])
             }
         }
 
-        // S1457: the photo pipeline pins the 4:3 sensor stream, and CameraUseCaseFactory silently
-        // drops any resolution that does not match it - offering one offered a value the capture
-        // would ignore, so the saved file came back at a size the user never chose.
+        // S1457/S1658: CameraUseCaseFactory silently drops any resolution that does not match the
+        // requested stream - offering one offered a value the capture would ignore, so the saved file
+        // came back at a size the user never chose. The stream now follows the picked shape, so the
+        // filter follows it too rather than a pinned ratio.
+        val aspectForResolutions = (draft.aspect ?: CameraAspectSelection.DEFAULT).forMode(draft.videoMode)
         val resolutions = capabilities.photoResolutions.filter {
-            CameraUseCaseFactory.resolutionMatchesAspect(it, CameraUseCaseFactory.PHOTO_ASPECT_RATIO)
+            CameraUseCaseFactory.resolutionMatchesAspect(it, aspectForResolutions)
         }
         val resolutionLabels = resolutions.map(::resolutionLabel)
         binding.rowCameraResolution.isVisible = resolutionLabels.isNotEmpty()
@@ -270,7 +277,6 @@ class CameraSettingsDialogFragment : DialogFragment() {
         binding.rowCameraManualSensor.setOnCheckedChangeListener { checked ->
             binding.layoutCameraIsoControls.isVisible = checked
             binding.layoutCameraShutterControls.isVisible = checked
-            Timber.d("S1590: manual sensor toggled to $checked, iso/shutter rows now in scroll region")
             draft = draft.copy(
                 manualSensorEnabled = checked,
                 manualIso = binding.sliderCameraIso.value.toInt(),
@@ -342,9 +348,10 @@ class CameraSettingsDialogFragment : DialogFragment() {
         row.setOnItemSelectedListener(onSelected)
     }
 
-    private fun aspectRatioLabel(value: Int): String = when (value) {
-        AspectRatio.RATIO_16_9 -> "16:9"
-        else -> "4:3"
+    private fun aspectLabel(selection: CameraAspectSelection): String = when (selection) {
+        CameraAspectSelection.RATIO_4_3 -> "4:3"
+        CameraAspectSelection.RATIO_16_9 -> "16:9"
+        CameraAspectSelection.FULL_SCREEN -> getString(R.string.camera_aspect_full_screen)
     }
 
     private fun resolutionLabel(size: Size): String = "${size.width} x ${size.height}"

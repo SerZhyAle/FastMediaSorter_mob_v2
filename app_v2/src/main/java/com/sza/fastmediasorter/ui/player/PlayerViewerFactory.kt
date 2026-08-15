@@ -44,9 +44,9 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                 dropboxClient = activity.dropboxClient,
             ),
             storeDependencies = VideoPlayerStoreDependencies(
-                playbackPositionRepository = activity.playbackPositionRepository,
-                settingsRepository = activity.settingsRepository,
-                streamTrackPreferenceUseCase = activity.streamTrackPreferenceUseCase,
+                playbackPositionRepository = activity.playerHostFactory.playbackPositionRepository,
+                settingsRepository = activity.playerHostFactory.settingsRepository,
+                streamTrackPreferenceUseCase = activity.playerHostFactory.streamTrackPreference,
             ),
         ).also {
             it.onPositionSaved = { activity.viewModel.saveResumeState() }
@@ -59,7 +59,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
         return PdfViewerManager(
             root = activity.activityBinding.root,
             networkFileManager = activity.networkFileManager,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
             coroutineScope = activity.lifecycleScope,
             callback = object : PdfViewerManager.PdfViewerCallback {
                 override fun showError(message: String) { activity.showError(message) }
@@ -99,7 +99,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                 }
             },
             translationManager = activity.translationManager,
-            playbackPositionRepository = activity.playbackPositionRepository,
+            playbackPositionRepository = activity.playerHostFactory.playbackPositionRepository,
             statsSink = activity.statsSink
         )
     }
@@ -108,7 +108,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
         return EpubViewerManager(
             root = activity.activityBinding.root,
             networkFileManager = activity.networkFileManager,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
             coroutineScope = activity.lifecycleScope,
             callback = object : EpubViewerManager.EpubViewerCallback {
                 override fun showError(message: String) { activity.showError(message) }
@@ -127,7 +127,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                     activity.systemBarsManager.exitFullscreenMode()
                 }
             },
-            playbackPositionRepository = activity.playbackPositionRepository,
+            playbackPositionRepository = activity.playerHostFactory.playbackPositionRepository,
             translationManager = activity.translationManager,
             loadingIndicatorCoordinator = activity.loadingIndicatorCoordinator,
         )
@@ -143,7 +143,7 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
             context = activity,
             root = activity.activityBinding.root,
             networkFileManager = activity.networkFileManager,
-            settingsRepository = activity.settingsRepository,
+            settingsRepository = activity.playerHostFactory.settingsRepository,
             coroutineScope = activity.lifecycleScope,
             callback = object : TextViewerManager.TextViewerCallback {
                 override fun showError(message: String) { activity.showError(message) }

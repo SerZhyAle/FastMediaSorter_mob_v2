@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.domain.usecase.DeleteDirectoriesUseCase
 import com.sza.fastmediasorter.domain.usecase.ExtractArchiveUseCase
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
@@ -103,10 +104,15 @@ class BrowseContentAuthoringUseCases @Inject constructor(
     val addResourceAsDestinationUseCase: AddResourceAsDestinationUseCase,
 )
 
-/** File-mutation infrastructure - unified operation handler, mutation journal, path normalizer. */
+/**
+ * File-mutation infrastructure - unified operation handler, mutation journal, path normalizer, and the
+ * lookup that answers where a mutation may be sent (S1329: the browse host asked that question directly
+ * before, holding the use case itself).
+ */
 class BrowseFileMutationDependencies @Inject constructor(
     val settingsRepository: SettingsRepository,
     val unifiedFileOperationHandler: UnifiedFileOperationHandler,
     val mutationJournal: MutationJournal,
     val pathNormalizer: PathNormalizer,
+    val getDestinationsUseCase: GetDestinationsUseCase,
 )

@@ -8,6 +8,7 @@ import android.provider.OpenableColumns
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ContextThemeWrapper
@@ -20,7 +21,6 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.util.LocaleHelper
@@ -31,23 +31,18 @@ import com.sza.fastmediasorter.data.browser.GoogleDomainMatcher
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResource
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.domain.model.FileOperationType
-import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
-import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
-import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import com.sza.fastmediasorter.ui.share.helpers.AccountSelectionManager
+import com.sza.fastmediasorter.ui.share.helpers.ReceiveShareUiFactory
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.worker.LinkDownloadProgressCodec
 import com.sza.fastmediasorter.worker.LinkDownloadWorker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -67,10 +62,11 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ReceiveShareActivity : AppCompatActivity() {
 
-    @Inject lateinit var fileOperationUseCase: FileOperationUseCase
-    @Inject lateinit var getDestinationsUseCase: GetDestinationsUseCase
-    @Inject lateinit var settingsRepository: SettingsRepository
-    @Inject lateinit var authSessionRepository: AuthSessionRepository
+    // S1329: the auth-offer decisions this screen makes now live on the ViewModel, and the two
+    // collaborators it only ever forwarded come from the factory - no domain type is named here (Rule 3).
+    private val viewModel: ReceiveShareViewModel by viewModels()
+
+    @Inject lateinit var receiveShareUiFactory: ReceiveShareUiFactory
     @Inject lateinit var resultPresenter: LinkAutoDownloadResultPresenter
     @Inject lateinit var googleDomainBrowserLauncher: GoogleDomainBrowserLauncher
     @Inject lateinit var cctChecker: CctAvailabilityChecker
@@ -155,7 +151,7 @@ class ReceiveShareActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        accountSelectionManager = AccountSelectionManager(authSessionRepository)
+        accountSelectionManager = receiveShareUiFactory.createAccountSelectionManager()
 
         // S0161: re-auth flow initiated from the worker's "Sign in" notification action.
         // The user tapped "Sign in" after a download failed with SocialPreviewOnly.
@@ -188,8 +184,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                 if (streams.isEmpty()) {
                     val text = intent.getStringExtra(Intent.EXTRA_TEXT)
                     val urls = UrlInTextDetector.httpUrls(text)
-                    val settings = settingsRepository.getSettings().first()
-                    if (urls.isNotEmpty() && settings.linkAutoDownloadEnabled) {
+                    if (urls.isNotEmpty() && viewModel.isLinkAutoDownloadEnabled()) {
                         loadingDialog.dismiss()
                         if (urls.size == 1) {
                             routeSingleLinkAutoDownload(urls.first())
@@ -255,7 +250,7 @@ class ReceiveShareActivity : AppCompatActivity() {
         }
         val resource = KnownAuthResources.matchHost(host)
         lifecycleScope.launch {
-            if (authSessionRepository.isDismissedForHost(host)) {
+            if (viewModel.isHostDismissed(host)) {
                 Timber.i("rejection record found for host, skipping auth dialog: host=%s", host)
                 processLinkAutoDownload(url, accountId = null)
                 return@launch
@@ -315,11 +310,7 @@ class ReceiveShareActivity : AppCompatActivity() {
         // with a named-account title when found. Falls back to the generic offer wording
         // when no record exists for the host.
         lifecycleScope.launch {
-            val existing = runCatching {
-                authSessionRepository.listAccountsForHost(host)
-                    .filter { !it.isDismissed && it.cookieCount > 0 }
-                    .maxByOrNull { it.lastUsedAt ?: java.time.Instant.MIN }
-            }.getOrNull()
+            val existing = runCatching { viewModel.namedAccountForOffer(host) }.getOrNull()
             val resolvedName = existing?.displayName?.trim()?.takeIf { it.isNotBlank() }
             Timber.d(
                 "ReceiveShareActivity.offerAuthThenDownload resolvedName=%s host=%s",
@@ -375,7 +366,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                     // S0170 BUG-1: await markDismissed before re-running the pipeline - otherwise the
                     // escalation block can read a stale isDismissedForHost() and loop once.
                     lifecycleScope.launch {
-                        authSessionRepository.markDismissed(host)
+                        viewModel.dismissHost(host)
                         processLinkAutoDownload(url, accountId = null, isAuthRetry = true)
                     }
                 }
@@ -392,12 +383,7 @@ class ReceiveShareActivity : AppCompatActivity() {
         val host = Uri.parse(url).host.orEmpty()
         lifecycleScope.launch {
             val accountId = if (host.isNotBlank()) {
-                runCatching {
-                    authSessionRepository.listAccountsForHost(host)
-                        .filter { !it.isDismissed }
-                        .maxByOrNull { it.lastUsedAt ?: java.time.Instant.MIN }
-                        ?.accountId
-                }.getOrNull()
+                runCatching { viewModel.accountIdForDownload(host) }.getOrNull()
             } else null
             processLinkAutoDownload(url, accountId)
         }
@@ -422,7 +408,7 @@ class ReceiveShareActivity : AppCompatActivity() {
             return
         }
         lifecycleScope.launch {
-            val dismissed = host.isNotBlank() && authSessionRepository.isDismissedForHost(host)
+            val dismissed = host.isNotBlank() && viewModel.isHostDismissed(host)
             if (dismissed) {
                 // User previously said “don’t ask” - respect that, just re-enqueue.
                 processLinkAutoDownload(url, accountId = null)
@@ -547,10 +533,8 @@ class ReceiveShareActivity : AppCompatActivity() {
             return
         }
         lifecycleScope.launch {
-            val dismissed = runCatching { authSessionRepository.isDismissedForHost(hostForEscalation) }.getOrDefault(false)
-            val hasActiveSession = runCatching {
-                authSessionRepository.listAccountsForHost(hostForEscalation).any { !it.isDismissed }
-            }.getOrDefault(false)
+            val dismissed = runCatching { viewModel.isHostDismissed(hostForEscalation) }.getOrDefault(false)
+            val hasActiveSession = runCatching { viewModel.hasUsableAccount(hostForEscalation) }.getOrDefault(false)
             if (!dismissed && !hasActiveSession) {
                 Timber.i("unknown host NoMediaFound, escalating to auth offer: host=%s", hostForEscalation)
                 offerAuthThenDownload(url, hostForEscalation, resource = null, dialogType = "initial")
@@ -624,18 +608,10 @@ class ReceiveShareActivity : AppCompatActivity() {
     // ── Destination dialog ───────────────────────────────────────────────────
 
     private fun showDestinationDialog() {
-        FileOperationDestinationDialog(
+        receiveShareUiFactory.createDestinationDialog(
             context = dialogContext,
-            operationType = FileOperationType.COPY,
             sourceFiles = cachedFiles,
             sourceFolderName = getString(R.string.receive_share_source_name),
-            currentResourceId = -1L,
-            currentBrowsePath = null,
-            sourceCredentialsId = null,
-            fileOperationUseCase = fileOperationUseCase,
-            getDestinationsUseCase = getDestinationsUseCase,
-            overwriteFiles = false,
-            showDetailedErrors = BuildConfig.DEBUG,
             onComplete = { cleanupAndFinish() },
             onSelectFolderClicked = { _, _, _ ->
                 folderPickerActive = true
@@ -643,7 +619,7 @@ class ReceiveShareActivity : AppCompatActivity() {
             },
             onOperationRequested = { destination ->
                 enqueueBackgroundCopy(destination.path, destination.name)
-            }
+            },
         ).apply {
             setOnDismissListener {
                 // Guard: when "Select Folder" was clicked, the picker is active - skip cleanup here.
@@ -688,7 +664,6 @@ class ReceiveShareActivity : AppCompatActivity() {
             sourcesOwnedByOperation = true,
             stagingDirectoryPath = tempDir.absolutePath,
         )
-        Timber.d("S1370: share copy ordered to %s files=%d", destinationName, files.size)
         backgroundOrderInFlight = true
         // Claimed before the enqueue, not after it: Back during the in-flight window reaches onDestroy,
         // whose best-effort cleanup would otherwise delete the sources the accepted work is about to read.
@@ -730,7 +705,6 @@ class ReceiveShareActivity : AppCompatActivity() {
     // ── SAF folder copy ──────────────────────────────────────────────────────
 
     private fun copyToSafFolder(treeUri: Uri) {
-        Timber.d("S1370: picked-folder branch entered")
         lifecycleScope.launch {
             // Taking the persistable grant and resolving the tree are binder + provider calls, so they
             // stay off the main thread even though the copy itself has moved to the worker.
@@ -790,16 +764,17 @@ class ReceiveShareActivity : AppCompatActivity() {
      * empty check keeps the lazy `tempDir` from creating a directory just to delete it.
      */
     private fun deleteCachedFilesAsync(reason: String) {
+        // Logged before the hand-off guard below: which of the three terminal paths asked for the
+        // cleanup, and whether it actually ran, is the whole diagnostic when staged files linger.
+        Timber.d("ReceiveShareActivity.deleteCachedFilesAsync reason=%s handedOff=%s", reason, stagedSourcesHandedOff)
         // S1370: once the transfer work owns the staged files, deleting them here would pull the
         // sources out from under a copy that is still running.
         if (stagedSourcesHandedOff) {
-            Timber.d("S1324: share temp cleanup skipped reason=%s - owned by transfer work", reason)
             return
         }
         val files = cachedFiles
         if (files.isEmpty()) return
         val dir = tempDir
-        Timber.d("S1324: share temp cleanup reason=%s files=%d", reason, files.size)
         applicationScope.launch(Dispatchers.IO) {
             files.forEach { it.delete() }
             dir.delete()

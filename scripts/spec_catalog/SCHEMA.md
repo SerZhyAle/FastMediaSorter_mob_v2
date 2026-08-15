@@ -48,6 +48,8 @@ Terminal:
 
 - `Archived` - soft-deleted; record stays forever, id never reused.
 
+Closing gates: a transition INTO `Implemented` or `Verified` runs `check-evidence-durable.ps1` (a closed spec must not cite evidence under disposable `temp/`, S1606) and `check-open-items-carried.ps1` (a closed spec must not strand an open research item without a `Carrier: Sxxxx`, S1607). Both are invoked from `Assert-ClosingGates` in `_lib.ps1`, which `update.ps1`, `close.ps1` and `bulk-update.ps1` all call, so no status-change path bypasses them. `Archived` is deliberately not gated. The research-section parse behind the second gate lives in `_research-items.ps1`, a leaf file `_lib.ps1` and `preview.ps1` both dot-source, so `preview.ps1`'s `research_open_count` / `research_uncarried_count` report exactly what the gate will enforce rather than a second opinion about it (S1621).
+
 State transitions:
 
 ```text

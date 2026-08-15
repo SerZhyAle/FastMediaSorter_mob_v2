@@ -48,10 +48,8 @@ class CheckPermissionStatusUseCase @Inject constructor(
             // same question lives in src/launcherEnabled, which src/main cannot see, and this is one call.
             Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE ->
                 if (appContext.packageName in NotificationManagerCompat.getEnabledListenerPackages(appContext)) {
-                    Timber.d("S0429: permission registry reports notification access GRANTED")
                     PermissionStatus.GRANTED
                 } else {
-                    Timber.d("S0429: permission registry reports notification access DENIED")
                     PermissionStatus.DENIED
                 }
             // S1436: like the overlay below, an appop the generic arm cannot read. The SDK guard is for

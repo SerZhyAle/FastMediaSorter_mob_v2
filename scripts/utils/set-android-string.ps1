@@ -157,6 +157,7 @@ $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot '..\quality\lib\android-string-format.ps1')
 . (Join-Path $PSScriptRoot '..\quality\lib\android-string-liveness.ps1')
+. (Join-Path $PSScriptRoot '..\quality\lib\house-text-style.ps1')
 
 # Capture at script scope: $PSBoundParameters inside a function refers to the function, not the script.
 $valueBound = $PSBoundParameters.ContainsKey('Value')
@@ -208,6 +209,34 @@ $optionalLocales = @(
 
 # Every locale that actually has a directory on disk - the sweep set for read and delete actions.
 $allLocales = @($locales + $optionalLocales)
+
+# S1544: the house text style is applied here, on the mandatory write path, rather than by a gate
+# over the result - strategic ADR-1. Correcting rather than refusing is ADR-2: a lost format token
+# crashes the app and is rejected below, a stray dash does not and is simply fixed.
+function Resolve-HouseStyleValue {
+    param([string]$Tag, [AllowEmptyString()][string]$Text)
+    # The yo rule is Russian-only. The script it replaced applied it to Ukrainian too, where the
+    # letter does not exist and every hit would have been a corruption.
+    $rules = if ($Tag -ieq 'ru') { @('ellipsis', 'long-dash', 'yo') } else { @('ellipsis', 'long-dash') }
+    $styled = Convert-HouseStyleText -Text $Text -Area ResourceValue -Rules $rules
+    if ($styled.Changed) {
+        Write-Host ("[{0}] house style {1}: '{2}' -> '{3}' [{4}]" -f
+            $Tag.ToUpperInvariant(), $Key, $Text, $styled.Text,
+            (($styled.RulesFired | Sort-Object) -join ', ')) -ForegroundColor DarkCyan
+    }
+    return $styled.Text
+}
+
+# Values only. An action that writes none - get, list, remove, rename - binds neither, so nothing
+# here fires for it.
+foreach ($loc in $allLocales) {
+    if (-not [string]::IsNullOrEmpty($loc.Value)) {
+        $loc.Value = Resolve-HouseStyleValue -Tag $loc.Code -Text $loc.Value
+    }
+}
+if ($valueBound -and -not [string]::IsNullOrEmpty($Value)) {
+    $Value = Resolve-HouseStyleValue -Tag $Locale -Text $Value
+}
 
 $localeDirByTag = @{}
 foreach ($tag in $declaredLocaleTags) { $localeDirByTag[$tag] = Get-LocaleResourceDir -Tag $tag }
@@ -724,6 +753,22 @@ switch ($Action) {
                 Write-Host "  $line"
             }
             else { Save-File $target $newContent; Write-Host "[$($loc.Tag)] added to $File" -ForegroundColor Green }
+        }
+        # S1627: name the locales this call left empty. The silence was the gap - the parameter for
+        # them already existed, so a key reached the release in three languages without anything
+        # saying so. This is a hint, not an obligation: the refusal lives at the pre-release stage,
+        # where one bulk round trip covers every key of the release at once.
+        $missingOptional = @($optionalLocales | Where-Object { -not $_.Value })
+        if ($missingOptional.Count -gt 0) {
+            $missingCodes = @($missingOptional | ForEach-Object { $_.Code })
+            # Keys are quoted because a tag carrying a hyphen (zh-Hans) is not a bare hashtable key,
+            # and the call operator is shown because pwsh -File cannot pass a hashtable at all - it
+            # arrives as the literal string "System.Collections.Hashtable" and the call fails.
+            $fragment = '-Translations @{ ' + (($missingCodes | ForEach-Object { "'$_'='<text>'" }) -join '; ') + ' }'
+            Write-Host ''
+            Write-Host "Not supplied for $($missingOptional.Count) of $($declaredLocaleTags.Count) declared locales: $($missingCodes -join ', ')" -ForegroundColor Yellow
+            Write-Host 'The pre-release stage translates these in bulk (S1627). Fill them here only if the values are already known:' -ForegroundColor DarkGray
+            Write-Host "  & $($MyInvocation.MyCommand.Path) -Action add -Key $Key .. $fragment"
         }
         if (-not $DryRun) {
             Write-Host ''

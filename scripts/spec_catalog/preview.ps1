@@ -36,7 +36,10 @@
 #                                         # sourced from a **Depends on:** line, else from every
 #                                         # `Blocker:` / `Блокер:` token in section 10 and in the
 #                                         # catalog statusNote. Section 10 prose is NOT scraped (S1482)
-#     "research_open_count": 5
+#     "research_open_count": 5,      # items whose status line says Open - the closing
+#                                    # gate's own definition, shared code (S1621)
+#     "research_uncarried_count": 5   # of those, the ones naming no `Carrier: Sxxxx`;
+#                                    # exactly what check-open-items-carried.ps1 refuses
 #   }
 
 [CmdletBinding()]
@@ -60,57 +63,12 @@ $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
     'pwsh'
 }
 
-function Get-SectionBodyByHeading {
-    param(
-        [string]$Text,
-        [string[]]$HeadingPatterns
-    )
-
-    foreach ($match in [regex]::Matches($Text, '(?ms)^##\s+([^\r\n]+)\r?\n(.*?)(?=^\s*##\s+|\z)')) {
-        $heading = $match.Groups[1].Value.Trim()
-        foreach ($pattern in $HeadingPatterns) {
-            if ($heading -match $pattern) {
-                return $match.Groups[2].Value
-            }
-        }
-    }
-
-    return $null
-}
-
-function Get-UnresolvedResearchItemCount {
-    param([string]$Text)
-
-    $researchBody = Get-SectionBodyByHeading -Text $Text -HeadingPatterns @(
-        '(?i)\bResearch\s+items?\b',
-        '(?i)\bOpen\s+Questions?\b',
-        '(?i)Открытые\s+вопрос'
-    )
-    if (-not $researchBody) {
-        return 0
-    }
-
-    $explicitOpenCount = [regex]::Matches(
-        $researchBody,
-        '(?im)^\s*[-*]\s+\*\*(?:Статус|Status):\*\*\s*Open\b|^\s*[-*]\s*(?:Статус|Status):\s*Open\b'
-    ).Count
-    if ($explicitOpenCount -gt 0) {
-        return $explicitOpenCount
-    }
-
-    $itemMatches = [regex]::Matches($researchBody, '(?ms)^(?:[-*]|\d+\.)\s+.*?(?=^(?:[-*]|\d+\.)\s+|\z)')
-    $fallbackCount = 0
-    foreach ($item in $itemMatches) {
-        $block = $item.Value
-        $hasQuestionMarker = $block -match '(?im)\*\*(?:Вопрос|Question):\*\*' -or $block -match '\?'
-        $isResolved = $block -match '(?im)(?:\*\*(?:Статус|Status):\*\*\s*Resolved\b|\bStatus:\s*Resolved\b)'
-        if ($hasQuestionMarker -and -not $isResolved) {
-            $fallbackCount++
-        }
-    }
-
-    return $fallbackCount
-}
+# S1621: the research-section parse is shared with the closing gate
+# (check-open-items-carried.ps1) through this leaf file, so the number printed here is
+# the number that gate will enforce. Deliberately NOT `_lib.ps1`: that library sets
+# Set-StrictMode -Version Latest, under which the `$rec.statusNote` read below throws
+# on every record without a note - on the /spec-next hot path, for every candidate.
+. (Join-Path $PSScriptRoot '_research-items.ps1')
 
 # 1. Resolve catalog record
 $selectPath = Join-Path $PSScriptRoot 'select.ps1'
@@ -240,8 +198,18 @@ foreach ($dep in $depIds) {
     }
 }
 
-# 9. Research item count (heading-based, section-number agnostic; unresolved only)
-$researchOpenCount = Get-UnresolvedResearchItemCount -Text $specText
+# 9. Research item counts, by the closing gate's definition (S1621).
+#
+# An item counts as open iff its status line says so - heading found by text, never by
+# the number 6. The old private counter also had a fallback that called any item holding
+# a question mark unresolved: it answered a different question, and it disagreed with the
+# gate on 160 of 1601 spec files. Dropped rather than kept beside the real count, because
+# two similarly named numbers with different definitions are the divergence, not a cure.
+$researchItems = @(Get-ResearchItems -Path $specPath)
+$openItems = @($researchItems | Where-Object { $_.IsOpen })
+$researchOpenCount = $openItems.Count
+# The subset that would REFUSE a close: open, and naming no carrier ticket (S1607).
+$researchUncarriedCount = @($openItems | Where-Object { -not $_.Carrier }).Count
 
 # 10. Owner-gate detection
 $ownerGate = $false
@@ -289,9 +257,11 @@ elseif ($rec.status -eq 'BlockByOtherTask') {
 }
 # NB: no 'research-heavy' auto-skip. /spec-next drives every Draft/Approved forward
 # until it reaches readiness or hits a REAL human blocker (BlockQuestions/BlockExternal
-# set by /spec-all). research_open_count stays informational only - a heavy research
-# section is not a reason to pre-emptively skip; /spec-all resolves what it can from the
-# codebase and blocks only on genuinely human-gated questions.
+# set by /spec-all). Both research counts stay informational for auto-skip - a heavy
+# research section is not a reason to pre-emptively skip; /spec-all resolves what it can
+# from the codebase and blocks only on genuinely human-gated questions. They are not
+# merely advisory to a human reader, though: since S1621 they are the closing gate's own
+# numbers, so research_uncarried_count > 0 predicts a refused Implemented/Verified flip.
 
 # 12. Compose result
 $result = [PSCustomObject]@{
@@ -310,6 +280,7 @@ $result = [PSCustomObject]@{
     timber_tags_kt      = $timberCount
     depends_on          = $dependsOn
     research_open_count = $researchOpenCount
+    research_uncarried_count = $researchUncarriedCount
     owner_gate          = $ownerGate
     auto_skip           = $autoSkip
     auto_skip_reason    = $autoSkipReason
@@ -328,7 +299,8 @@ else {
         $depStr = ($result.depends_on | ForEach-Object { "$($_.id)($($_.status))" }) -join ', '
         Write-Host "  depends_on: $depStr" -ForegroundColor DarkGray
     }
-    Write-Host "  sections: $($result.sections.Count) (research_open=$($result.research_open_count), owner_gate=$($result.owner_gate))" -ForegroundColor DarkGray
+    Write-Host ("  sections: $($result.sections.Count) (research_open=$($result.research_open_count)" +
+        ", uncarried=$($result.research_uncarried_count), owner_gate=$($result.owner_gate))") -ForegroundColor DarkGray
     if ($result.auto_skip) {
         Write-Host "  AUTO-SKIP: $($result.auto_skip) - $($result.auto_skip_reason)" -ForegroundColor Yellow
     }

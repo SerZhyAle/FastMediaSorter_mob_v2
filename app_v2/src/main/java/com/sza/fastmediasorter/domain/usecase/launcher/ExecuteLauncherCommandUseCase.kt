@@ -40,7 +40,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
 ) {
 
     suspend fun launch(command: LauncherCellCommand): Boolean {
-        Timber.d("S1435: launcher command funnel entered, command=%s", command)
         val started = when (command) {
             is LauncherCellCommand.App -> launchPackage(command.packageName)
             is LauncherCellCommand.Feature -> launchFeature(command.routeKey)
@@ -72,9 +71,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
     private suspend fun launchFeature(routeKey: String): Boolean {
         val route = InternalRouteCatalog.byKey(routeKey) ?: return false
         val availability = resolveRouteAvailability(routeKey)
-        if (routeKey == InternalRouteCatalog.KEY_NETWORK_MONITOR) {
-            Timber.d("S1433: launch Network Monitor from launcher, enabled=%s", availability.isLaunchable)
-        }
         return when {
             availability.isLaunchable -> startIntent(route.intent(context))
             // Compiled in but switched off: open the setting that controls it rather than dead-launch.
@@ -106,7 +102,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             Timber.i("Launcher: stream %s is no longer in the catalog", streamId)
             return false
         }
-        Timber.d("S1471: launcher stream tile hands off to the trampoline")
         // S1471: the trampoline, not the Streams screen - this one command backs both the launcher
         // desktop tile and the Streams gadget row, so both surfaces get the screen-less start.
         return startIntent(StreamPlayLaunchActivity.createIntent(context, source.url))
@@ -155,7 +150,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             return false
         }
         val started = startIntent(intent)
-        Timber.d("S1176: run action=%s started=%b", target.action.name, started)
         return started
     }
 
@@ -189,7 +183,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
     }
 
     private fun favoriteFileIntent(command: LauncherCellCommand.FavoriteFile): Intent {
-        Timber.d("S1170: favourite row opens resource %d", command.resourceId)
         return PlayerActivity.createPanelIntent(
             context = context,
             resourceId = command.resourceId,
@@ -206,12 +199,7 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
         appShortcutDataSource.start(command.packageName, command.shortcutId, sourceBounds = null)
 
     /** Uses only documented Maps URLs and intents; no Maps-internal activity names are relied upon. */
-    private fun geographicIntent(command: LauncherCellCommand.Geographic): Intent {
-        Timber.d("S1175: geographic cell tapped, action=%s", command.action)
-        return geographicIntentFor(command)
-    }
-
-    private fun geographicIntentFor(command: LauncherCellCommand.Geographic): Intent = when (command.action) {
+    private fun geographicIntent(command: LauncherCellCommand.Geographic): Intent = when (command.action) {
         LauncherGeographicAction.DIRECTIONS -> Intent(
             Intent.ACTION_VIEW,
             Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${Uri.encode(command.query)}"),
@@ -222,10 +210,24 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             Uri.parse("google.navigation:q=${Uri.encode(command.query)}"),
         ).setPackage(GOOGLE_MAPS_PACKAGE)
 
-        LauncherGeographicAction.SHOW_PLACE -> Intent(
-            Intent.ACTION_VIEW,
-            Uri.parse("geo:0,0?q=${Uri.encode(command.query)}"),
-        )
+        LauncherGeographicAction.SHOW_PLACE -> showPlaceIntent(command)
+    }
+
+    /**
+     * S1616: a stored link is opened as a link, a stored place name as a search.
+     *
+     * `geo:0,0?q=` means "look this text up", so the link a share keeps when it cannot be resolved to
+     * coordinates (S1585 §6.1) used to open a search for its own URL. Maps parses its own links; when
+     * Maps is absent the same view intent still reaches a browser instead of failing to start.
+     */
+    private fun showPlaceIntent(command: LauncherCellCommand.Geographic): Intent {
+        Timber.d("S1616: show place, query is a link: ${command.isWebLinkQuery}")
+        if (!command.isWebLinkQuery) {
+            return Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=${Uri.encode(command.query)}"))
+        }
+        val viaMaps = Intent(Intent.ACTION_VIEW, Uri.parse(command.query)).setPackage(GOOGLE_MAPS_PACKAGE)
+        val mapsHandles = context.packageManager.resolveActivityCompat(viaMaps) != null
+        return if (mapsHandles) viaMaps else Intent(Intent.ACTION_VIEW, Uri.parse(command.query))
     }
 
     private fun launchPackage(packageName: String): Boolean {

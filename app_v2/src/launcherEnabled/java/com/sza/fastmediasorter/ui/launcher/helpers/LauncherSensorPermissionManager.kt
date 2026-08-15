@@ -49,7 +49,6 @@ class LauncherSensorPermissionManager(private val activity: FragmentActivity) {
      */
     fun placeAfterAsking(gadgetKey: String, place: () -> Unit) {
         val permission = PERMISSIONS[gadgetKey]?.takeIf { isRequestable(it) }
-        Timber.d("S1179: placing %s, permission=%s", gadgetKey, permission)
         if (permission == null || isGranted(permission)) {
             place()
             return

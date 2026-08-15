@@ -115,7 +115,7 @@ class PlayerImageTranslationManager(
 
         translationJob = activity.lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val settings = activity.settingsRepository.getSettings().first()
+                val settings = activity.playerHostFactory.settingsRepository.getSettings().first()
                 val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
                 val targetLang = TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)
                 val useLensStyle = settings.translationLensStyle

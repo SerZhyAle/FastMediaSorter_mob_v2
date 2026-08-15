@@ -423,15 +423,20 @@
 
         <!-- Resource Type Tabs. S0914-R1: no accent (form's colorSurface, theme-default tab colours) -
              owner decision 2026-07-03; programs/streams panels keep their accent, filter does not. -->
+        <!-- S1659: the S1037 leading anchor is a margin, not a padding. In tabMode=fixed TabLayout sizes
+             its tab strip to the widget's full measured width and ignores the horizontal padding, so a
+             paddingStart pushed the strip's tail that far past the right edge and clipped the last tab
+             (Cloud). A margin narrows the widget itself, so the five equal tabs end where the widget
+             does. The 56dp band keeps colorSurface because AppBarLayout paints the same attribute. -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabResourceTypes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/main_top_panel_leading_anchor"
             android:background="?attr/colorSurface"
             android:focusable="true"
             android:nextFocusUp="@id/btnStartPlayer"
             android:nextFocusDown="@id/rvResources"
-            android:paddingStart="@dimen/main_top_panel_leading_anchor"
             app:tabMode="fixed"
             app:tabGravity="fill"
             app:tabIndicatorFullWidth="false"

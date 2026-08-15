@@ -161,6 +161,14 @@ if ($PSBoundParameters.ContainsKey('Status') -and $Status -eq 'Approved' -and $o
     }
 }
 
+# Closing gates: any transition INTO a closed status runs the durable-evidence contract
+# (S1606) and the carried-open-item contract (S1607). Both live in Assert-ClosingGates so
+# this path and close.ps1 enforce the same set - a second copy here is what let close.ps1
+# drift into enforcing nothing at all.
+if ($PSBoundParameters.ContainsKey('Status')) {
+    Assert-ClosingGates -Id $Id -OldStatus $oldStatus -NewStatus $Status
+}
+
 $updated.updated = Get-Now
 
 Assert-Record -Record $updated

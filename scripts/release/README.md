@@ -13,6 +13,8 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
 | `publish-play-release.ps1` | Publish the standard AAB to Google Play Console: attach the bundle if its versionCode is already in the library else upload it, fetch generated Fastlane changelogs for that versionCode, update specified track (internal/alpha/beta/production) as draft/completed, and commit edit. |
 | `extract-release-notes.ps1` | Helper used by `publish-github-release.ps1`. Emits the section from `docs/WHATS_NEW.md` for a given `-Version`. Exit 0 on match, 2 if not found. |
 | `expected-signing-fingerprint.txt` | (Phase 04) Pinned SHA-256 of the release signing key. Aborts the publisher on mismatch. |
+| `retain-deobfuscation.ps1` | **Invoked automatically by the release builds - do not call it by hand as a release step.** Stores one variant's R8 mapping and native symbols under `<archive>\<versionCode>\<variant>-deobfuscation.zip`. `a.ps1 r` calls it with `-Bundle` (the shipped `.aab`, the strongest provenance); `build-release-spectrum.ps1` calls it with `-Mapping` for the APK-only flavors. A hand call with `-Mapping` for a variant that has a bundle would replace bundle-grade evidence with a weaker record. Legitimate manual use is repair, when the pre-release gate reports a miss - it prints the exact command. |
+| `fetch-deobfuscation.ps1` | Recover a retained payload by `-VersionCode`, `-VersionName` or `-Latest`, or list the archive with `-List`. Prints the extracted `mapping.txt` path as its last line. `-Verify` reads a stored payload back and rechecks its SHA-256 without extracting; this is the mode `scripts/quality/assert-deobfuscation-retained.ps1` consumes. |
 
 ---
 
@@ -49,6 +51,10 @@ pwsh -NoProfile -File scripts/release/publish-github-release.ps1
 # 4. Publish Google Play standard_release in the same release window.
 # (Track defaults to "production", Status defaults to "completed" - automated rollout).
 pwsh -NoProfile -File scripts/release/publish-play-release.ps1
+
+# Deobfuscation retention has no step here on purpose: step 2 already performed it.
+# Confirm rather than repeat, and only repair if this reports a miss.
+pwsh -NoProfile -File scripts/quality/assert-deobfuscation-retained.ps1
 ```
 
 ---
@@ -79,6 +85,28 @@ pwsh -NoProfile -File scripts/release/publish-play-release.ps1
 |------|--------|
 | `-Track <name>` | Target track in Google Play. Default: `production`. Supported: `internal`, `alpha`, `beta`, `production`. |
 | `-Status <status>` | Rollout status. Default: `completed`. Supported: `completed` (fully rolled out to track), `draft` (requires manual review in Play Console). |
+
+### `retain-deobfuscation.ps1`
+
+| Flag | Effect |
+|------|--------|
+| `-VersionCode <int>` | Archive key. Required. |
+| `-Variant <name>` | Which published variant this payload belongs to. Required. |
+| `-Bundle <path>` | Extract from a shipped `.aab`. Preferred source wherever a bundle exists. |
+| `-Mapping <path>` | Extract from a loose `mapping.txt`, for the flavors that ship as an APK only. |
+| `-NativeSymbols <path>` | Symbols accompanying `-Mapping`: a directory of `<abi>/<lib>.so.dbg`, or an AGP `native-debug-symbols.zip`. A path that does not exist warns rather than storing a silently symbol-free payload. |
+| `-Force` | Overwrite a stored payload whose mapping differs. Without it that case exits 1 - a stored release is never replaced silently. |
+| `-DryRun` | Report what would be stored and where. Writes nothing, creates no directories. |
+
+### `fetch-deobfuscation.ps1`
+
+| Flag | Effect |
+|------|--------|
+| `-VersionCode <int>` / `-VersionName <str>` / `-Latest` | Select the release. Exactly one; two at once exits 2 rather than guessing. |
+| `-Variant <name>` | Which variant to fetch. Default `standard`. |
+| `-List` | Print every retained release and exit. An empty archive is an answer, exit 0. |
+| `-Verify` | Read the payload back and recheck its SHA-256. Extracts nothing. |
+| `-Destination <path>` | Extraction root. Default `temp/deobfuscation`. |
 
 ---
 

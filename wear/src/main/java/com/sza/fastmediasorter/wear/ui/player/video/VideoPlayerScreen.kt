@@ -41,6 +41,8 @@ import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerScaffold
+import com.sza.fastmediasorter.wear.ui.player.common.playerOverlayInsets
 import timber.log.Timber
 
 /**
@@ -60,13 +62,8 @@ fun VideoPlayerScreen(
     }
 
     Timber.d("VideoPlayerScreen composing, isPlaying: ${uiState.isPlaying}")
-    
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black),
-        contentAlignment = Alignment.Center
-    ) {
+
+    PlayerScaffold {
         when {
             uiState.showBatteryWarning -> {
                 BatteryWarningDialog(
@@ -210,7 +207,9 @@ private fun VideoControls(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.5f))
-            .padding(8.dp),
+            // The scrim stays full-bleed; only the controls are inset, so nothing lands where a
+            // round screen has already curved away.
+            .padding(playerOverlayInsets()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

@@ -29,7 +29,7 @@ class RecognitionBackend(
     private val capabilityRepository: DeliverableCapabilityRepository,
     private val libraryLoader: DeliveredNativeLibraryLoader,
     private val statsSink: StatsSink,
-) : TextRecognizationFacade {
+) : TextRecognitionFacade {
 
     // Languages that use Cyrillic script.
     private val cyrillicLanguages = setOf("ru", "uk", "bg", "be", "mk")

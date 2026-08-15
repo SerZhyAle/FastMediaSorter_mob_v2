@@ -74,7 +74,6 @@ class StreamsFilterDialogManager(
         val fragmentManager = activity.supportFragmentManager
         fragmentManager.setFragmentResultListener(KEY_CATEGORY, activity) { _, bundle ->
             category = bundle.getString(SearchableOptionPickerDialog.RESULT_OPTION_ID)
-            Timber.d("S1331: streams filter category result=%s", category)
             applyFilters()
         }
         fragmentManager.setFragmentResultListener(KEY_TOPIC, activity) { _, bundle ->

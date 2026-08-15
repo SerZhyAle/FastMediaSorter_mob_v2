@@ -34,6 +34,11 @@ class CameraCaptureHelperFactory @Inject constructor(
         settingsRepository.updateSettings { it.copy(cameraAspectRatio = ratio) }
     }
 
+    /** S1658: persist the encoded per-lens capture memory so the sets survive a restart. */
+    suspend fun rememberLensSettings(encoded: String) {
+        settingsRepository.updateSettings { it.copy(cameraLensSettings = encoded) }
+    }
+
     @Suppress("LongParameterList") // Mirrors the manager's host-supplied surface one-to-one.
     fun createResultManager(
         activity: FragmentActivity,

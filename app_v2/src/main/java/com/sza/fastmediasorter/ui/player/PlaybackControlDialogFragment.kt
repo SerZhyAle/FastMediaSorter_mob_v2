@@ -103,7 +103,6 @@ class PlaybackControlDialogFragment : DialogFragment() {
     private fun rememberStreamTrackPick(write: suspend (String) -> Unit) {
         if (!sourceIsStream) return
         val url = host().currentMediaFile.value?.path ?: return
-        Timber.d("S1144: remembering track pick for channel $url")
         viewLifecycleOwner.lifecycleScope.launch { write(url) }
     }
 

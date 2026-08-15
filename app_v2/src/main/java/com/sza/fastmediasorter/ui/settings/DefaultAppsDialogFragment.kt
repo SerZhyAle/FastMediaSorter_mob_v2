@@ -78,7 +78,6 @@ class DefaultAppsDialogFragment : DialogFragment() {
         super.onConfigurationChanged(newConfig)
         val hostDialog = dialog ?: return
         if (newConfig.orientation == inflatedOrientation) return
-        Timber.d("S1333: default-apps dialog re-inflate, orientation=${newConfig.orientation}")
 
         _binding = DialogDefaultAppsBinding.inflate(LayoutInflater.from(requireContext()))
         inflatedOrientation = newConfig.orientation

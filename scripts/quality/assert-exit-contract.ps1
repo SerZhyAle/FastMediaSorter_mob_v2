@@ -18,10 +18,21 @@
     mechanical gate.
 
     A site is reported only when all three hold, so legitimate code is left alone:
-      1. the file sets $ErrorActionPreference = 'Stop' (otherwise Write-Error is
-         non-terminating already and the exit line is reached);
+      1. the file runs under $ErrorActionPreference = 'Stop' - it either assigns the mode
+         itself, or dot-sources a library that does (otherwise Write-Error is non-terminating
+         already and the exit line is reached);
       2. a `Write-Error` carries no explicit -ErrorAction;
       3. an `exit N` with N != 1 sits on the same line or within the next few.
+
+    S1547 corrected condition 1. It used to read the scanned file's own lines only - true for a
+    file with no dot-sources, wrong for one with them. The 21 scripts sourcing
+    scripts/spec_catalog/_lib.ps1 - the whole spec-catalog toolchain, the path every status
+    transition takes - inherit Stop from it, so rule A skipped them all while the summary printed
+    PASS. Found on a live example: check-owner-inputs.ps1 documented exit 2 and delivered 1.
+    The resolver reads ONE level and only a literal path spelled from $PSScriptRoot; a path built
+    from a variable is left unresolved, because its value is not statically known and a guess
+    would carry the mode into files that may never run under it. Rules B and C were never
+    affected - both run before this condition.
     N = 1 is excluded deliberately: the collapse also produces 1, so such a site is
     already delivering its intended code and rewriting it would be noise.
 
@@ -124,6 +135,50 @@ $lookahead = 3
 $reasonLookback = 4
 $reasonBaselineFile = Join-Path $PSScriptRoot 'exit-reason-baseline.txt'
 
+# --- Condition 1, S1547: the terminating mode can be inherited ---------------------------------
+# One predicate for both uses - the scanned file and any library it sources - so the two can never
+# drift apart and let a mode through on one side that the other would refuse.
+function Test-SetsStopMode([string[]]$lines) {
+    foreach ($l in $lines) {
+        # A commented-out assignment sets nothing. This matters most on the library side: a doc
+        # comment in one shared file would otherwise hand the mode to every script sourcing it.
+        if ($l -match '^\s*#') { continue }
+        if ($l -match '\$ErrorActionPreference\s*=\s*[''"]Stop[''"]') { return $true }
+    }
+    return $false
+}
+
+# Literal, one level, anchored at $PSScriptRoot - the two forms actually written in this tree.
+# `. $someVar` is deliberately not resolved; see the header note.
+function Get-DotSourcedPaths([string[]]$lines, [string]$dir) {
+    $paths = @()
+    foreach ($l in $lines) {
+        if ($l -match '^\s*#') { continue }
+        if ($l -notmatch '^\s*\.\s') { continue }
+        $m = [regex]::Match($l, 'Join-Path\s+\$PSScriptRoot\s+[''"]([^''"]+)[''"]')
+        if ($m.Success) { $paths += (Join-Path $dir $m.Groups[1].Value); continue }
+        $m = [regex]::Match($l, '^\s*\.\s+"?\$PSScriptRoot[\\/]([^"'']+?)"?\s*$')
+        if ($m.Success) { $paths += (Join-Path $dir $m.Groups[1].Value) }
+    }
+    return $paths
+}
+
+# One shared library serves 21 callers here, so its verdict is memoised: the gate sits in the fast
+# static battery and must not read the same file once per caller.
+$script:stopModeMemo = @{}
+function Test-LibrarySetsStop([string]$path) {
+    if (-not $path) { return $false }
+    $key = $path.ToLowerInvariant()
+    if ($script:stopModeMemo.ContainsKey($key)) { return $script:stopModeMemo[$key] }
+    $verdict = $false
+    if (Test-Path -LiteralPath $path -PathType Leaf) {
+        $libLines = Get-Content -LiteralPath $path -ErrorAction SilentlyContinue
+        if ($libLines) { $verdict = Test-SetsStopMode $libLines }
+    }
+    $script:stopModeMemo[$key] = $verdict
+    return $verdict
+}
+
 $files = @(foreach ($root in $scanRoots) {
     if (Test-Path $root -PathType Leaf) {
         Get-Item -LiteralPath $root
@@ -202,10 +257,18 @@ foreach ($f in $files) {
         }
     }
 
-    # Condition 1: the file runs under Stop. Without it Write-Error does not terminate.
-    $underStop = $false
-    foreach ($l in $lines) {
-        if ($l -match '\$ErrorActionPreference\s*=\s*[''"]Stop[''"]') { $underStop = $true; break }
+    # Condition 1: the file runs under Stop. Without it Write-Error does not terminate. The mode
+    # counts whether the file assigns it or inherits it from a library it sources (S1547).
+    $inheritedFrom = $null
+    $underStop = Test-SetsStopMode $lines
+    if (-not $underStop) {
+        foreach ($lib in (Get-DotSourcedPaths $lines $f.DirectoryName)) {
+            if (Test-LibrarySetsStop $lib) {
+                $underStop = $true
+                $inheritedFrom = $lib.Replace($repoRoot + [IO.Path]::DirectorySeparatorChar, '')
+                break
+            }
+        }
     }
     if (-not $underStop) { continue }
 
@@ -225,6 +288,7 @@ foreach ($f in $files) {
                     Line = $i + 1
                     Code = [int]$Matches[1]
                     Text = $line.Trim()
+                    Inherited = $inheritedFrom
                 }
                 break
             }
@@ -235,6 +299,11 @@ foreach ($f in $files) {
 if (-not $Quiet) {
     foreach ($x in $findings) {
         Write-Host ("  {0}:{1}  exit {2} unreachable - Write-Error terminates first" -f $x.File, $x.Line, $x.Code) -ForegroundColor Red
+        # Without this line the file looks innocent: it carries no assignment of its own, and the
+        # reader has no way to see why the rule applied to it at all.
+        if ($x.Inherited) {
+            Write-Host ("      runs under Stop inherited from {0}" -f $x.Inherited) -ForegroundColor DarkGray
+        }
         Write-Host ("      {0}" -f $x.Text) -ForegroundColor DarkGray
     }
     if ($findings.Count -gt 0) {

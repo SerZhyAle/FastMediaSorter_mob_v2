@@ -208,6 +208,7 @@
 "screenshotGestureRightBottomRight","","","","","","","","","","",""
 "screenshotGestureRightBottomUp","","","","","","","","","","",""
 "launcherDensityFactor","","1.0","1.25","1.25","","1.25","","","","1.25",""
+"launcherTaskbarPlacement","","","","TOP","","","","","","",""
 "launcherTaskbarShowRecents","","","","FALSE","","FALSE","","","","",""
 "launcherTaskbarShowPinned","","","","","","","","","","",""
 "launcherTaskbarShowTray","","","","TRUE","","FALSE","","","","",""

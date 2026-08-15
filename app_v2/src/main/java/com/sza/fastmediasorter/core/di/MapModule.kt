@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.di
 
 import com.sza.fastmediasorter.data.location.PlatformDeviceLocationSource
+import com.sza.fastmediasorter.data.map.HttpMapsShortLinkResolver
 import com.sza.fastmediasorter.data.map.MAP_TILE_CLIENT
 import com.sza.fastmediasorter.data.map.MapRepositoryImpl
 import com.sza.fastmediasorter.data.map.OsmMapTileProvider
@@ -9,6 +10,7 @@ import com.sza.fastmediasorter.data.map.TileUserAgent
 import com.sza.fastmediasorter.domain.location.DeviceLocationSource
 import com.sza.fastmediasorter.domain.map.MapPlaceLabelProvider
 import com.sza.fastmediasorter.domain.map.MapTileProvider
+import com.sza.fastmediasorter.domain.map.MapsShortLinkResolver
 import com.sza.fastmediasorter.domain.repository.MapRepository
 import dagger.Binds
 import dagger.Module
@@ -42,6 +44,10 @@ abstract class MapModule {
     @Binds
     @Singleton
     abstract fun bindMapRepository(impl: MapRepositoryImpl): MapRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMapsShortLinkResolver(impl: HttpMapsShortLinkResolver): MapsShortLinkResolver
 }
 
 /**

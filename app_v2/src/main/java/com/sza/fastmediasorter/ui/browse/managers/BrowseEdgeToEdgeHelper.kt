@@ -89,7 +89,6 @@ object BrowseEdgeToEdgeHelper {
                 view.updatePadding(bottom = target)
             }
         }
-        Timber.d("S1227: strip insets nav=%d indicatorShown=%b", navBottom, binding.tvTransferIndicator.isVisible)
     }
 
     /**

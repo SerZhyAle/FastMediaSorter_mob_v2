@@ -344,7 +344,7 @@
     <string name="hint_server_path">Шлях на сервері (необов’язково)</string>
     <string name="hint_cloud_folder_id">ID хмарної папки</string>
     <string name="hint_comment">Коментар (необов’язково)</string>
-    <string name="hint_access_pin">PIN-код (4–6 цифр)</string>
+    <string name="hint_access_pin">PIN-код (4-6 цифр)</string>
     <string name="hint_slideshow_interval">Інтервал слайдшоу (секунди)</string>
     <string name="label_media_types">Типи медіа</string>
     <string name="label_scanning_settings">Умови сканування вмісту</string>
@@ -1213,14 +1213,6 @@
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Будь ласка, зачекайте..</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Завантаження..</string>
-    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed1_text">1x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed2_text">2x</string>    <!-- Speed option: no translation needed -->
-    <string name="dialog_slideshow_settings_tvIntervalValue_text">5с</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">Макс (МБ)</string>
     <string name="fragment_settings_audio_tilAudioSizeMin_hint">Мін (МБ)</string>
     <string name="fragment_settings_images_tilImageSizeMax_hint">Макс (КБ)</string>
@@ -1463,8 +1455,6 @@
     <string name="cb_cloud_read_only_mode_desc">Забороняє операції з файлами (копіювання, переміщення, видалення)</string>
     <string name="cb_cloud_picker_add_as_destination_desc">Позначити цю хмарну папку як призначення для швидкого сортування</string>
     <string name="cb_cloud_picker_scan_subdirectories_desc">Шукати медіафайли в усіх вкладених підпапках</string>
-    <string name="cb_repeat_video_desc">Безперервне повторення поточного відео</string>
-    <string name="cb_show_subtitles_desc">Показувати субтитри за наявності</string>
 
     <!-- Settings descriptions -->
     <string name="save_audio_metadata_locally">Зберігати завантажені медіадані локально</string>
@@ -3065,7 +3055,6 @@
     <string name="network_monitor_status_unknown">Відкрийте, щоб перевірити</string>
     <string name="network_monitor_active_title">Активне підключення</string>
     <string name="network_monitor_active_none">Нічого не підключено. Увімкніть Wi-Fi або мобільні дані, щоб вийти в мережу.</string>
-    <string name="network_monitor_local_ip_label">Локальна IP</string>
     <string name="network_monitor_value_unknown">Невідомо</string>
     <string name="network_monitor_internet_ok">Інтернет працює</string>
     <string name="network_monitor_internet_captive">Ця мережа вимагає входу</string>
@@ -3244,4 +3233,14 @@
     <string name="network_monitor_ip_addresses_label">IP-адреси</string>
     <string name="network_monitor_permission_grant">Дозвіл не надано. Натисніть, щоб надати його.</string>
     <string name="network_monitor_permission_open_settings">Дозвіл заблоковано. Натисніть, щоб відкрити налаштування програми.</string>
+    <string name="cast_cropping_stereo">Готуємо копію для одного ока..</string>
+    <string name="cast_crop_skipped_long">Відео задовге для обрізання. Транслюємо весь кадр.</string>
+    <string name="dialog_slideshow_settings_tvIntervalValue_text">5s</string>
+    <string name="launcher_settings_taskbar_placement_title">Розташування панелі задач</string>
+    <string name="launcher_settings_taskbar_placement_bottom">Знизу</string>
+    <string name="launcher_settings_taskbar_placement_top">Зверху</string>
+    <string name="camera_aspect_full_screen">На весь екран</string>
+    <string name="wear_sync_no_ack">Годинник не підтвердив отримання. Можливо, він вимкнений або поза зоною.</string>
+    <string name="browse_empty_type_gated">%1$d файлів приховано: їхній тип медіа вимкнено в налаштуваннях.</string>
+    <string name="browse_empty_type_gated_hint">Увімкніть цей тип медіа в налаштуваннях, щоб побачити їх.</string>
 </resources>

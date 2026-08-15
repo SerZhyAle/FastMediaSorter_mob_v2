@@ -15,6 +15,8 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.ByteArrayOutputStream
+import java.util.zip.GZIPOutputStream
 
 /**
  * Exercises the GZIP+Gson round-trip and patch logic of [CachedFileListRepository].
@@ -68,6 +70,25 @@ class CachedFileListRepositoryTest {
     fun `getCachedFiles returns null on corrupt blob`() = runTest {
         coEvery { dao.getByResourceId(1L) } returns entity(byteArrayOf(0, 1, 2, 3), 1)
         assertNull(repo.getCachedFiles(1L))
+    }
+
+    @Test
+    fun `getCachedFiles discards a snapshot whose entry misses a required field`() = runTest {
+        coEvery { dao.getByResourceId(1L) } returns entity(gzip(SNAPSHOT_WITHOUT_PATH), 1)
+
+        assertNull(repo.getCachedFiles(1L))
+
+        coVerify { dao.deleteByResourceId(1L) }
+    }
+
+    @Test
+    fun `patching a snapshot with a missing required field never re-saves it`() = runTest {
+        coEvery { dao.getByResourceId(1L) } returns entity(gzip(SNAPSHOT_WITHOUT_PATH), 1)
+
+        repo.deleteFile(1L, "/a.jpg")
+
+        coVerify(exactly = 0) { dao.insertOrReplace(any()) }
+        coVerify { dao.deleteByResourceId(1L) }
     }
 
     @Test
@@ -141,6 +162,13 @@ class CachedFileListRepositoryTest {
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
+    /** Reproduces an R8 mapping mismatch: Gson parses the blob fine but leaves a required field unset. */
+    private fun gzip(text: String): ByteArray {
+        val baos = ByteArrayOutputStream()
+        GZIPOutputStream(baos).use { it.write(text.toByteArray(Charsets.UTF_8)) }
+        return baos.toByteArray()
+    }
+
     private fun entity(data: ByteArray, count: Int) = CachedFileListEntity(
         id = 1L,
         resourceId = 1L,
@@ -162,4 +190,9 @@ class CachedFileListRepositoryTest {
             override val size: Int = 1_000_001
             override fun get(index: Int) = createMediaFile()
         }
+
+    private companion object {
+        const val SNAPSHOT_WITHOUT_PATH =
+            """[{"name":"a.jpg","type":"IMAGE","size":1024,"createdDate":0}]"""
+    }
 }

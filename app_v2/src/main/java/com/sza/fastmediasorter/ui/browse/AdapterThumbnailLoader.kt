@@ -340,7 +340,6 @@ class AdapterThumbnailLoader(
             // S1569: no exists() probe - it ran on the main thread during bind (the same defect the
             // image and video branches were already cleared of). The .error placeholder below is the
             // same bitmap the removed else-branch painted, chosen by Glide off the main thread.
-            Timber.d("S1569: epub bind %s", file.name)
             Glide.with(context)
                 .asBitmap()
                 .load(File(file.path))
@@ -419,7 +418,6 @@ class AdapterThumbnailLoader(
             // S1569: no exists() probe - it cost 18 ms on the main thread during bind. Both arms of
             // the removed else-branch painted the PDF extension bitmap, which is exactly what
             // .error(generatedPlaceholder) paints, so a missing file still shows the same tile.
-            Timber.d("S1569: pdf bind %s", file.name)
             Glide.with(context)
                 .asBitmap()
                 .load(File(file.path))
@@ -564,7 +562,6 @@ class AdapterThumbnailLoader(
                             if (isVideoPriorityThumbnailSuspension(e)) {
                                 Timber.v("Network image load suspended by video priority: ${file.name}")
                             } else if (isDecodeCapabilityFailure(e)) {
-                                Timber.d("S1317: skip failed-thumb mark for ${file.name}")
                                 Timber.w("Network image load failed due to decode capability: ${file.name}")
                             } else if (e != null) {
                                 Timber.w("Network image load failed: ${file.name}, ${e.message}")

@@ -44,7 +44,15 @@ class BrowseFileTransferCoordinator @Inject constructor(
     }
 
     private val workManager = WorkManager.getInstance(context)
-    private val prefs = context.getSharedPreferences("browse_file_transfer", Context.MODE_PRIVATE)
+
+    // S1663: opened on first use, not in the constructor. This is a @Singleton that the graph builds
+    // while MainActivity is being injected, so the constructor runs on the main thread during startup -
+    // and opening a preferences file there measured a 258 ms StrictMode DiskReadViolation, the longest
+    // in the whole cold start. The three readers below all belong to terminal-event bookkeeping, which
+    // cannot happen before a transfer runs, so a session that never transfers a file now pays nothing.
+    private val prefs by lazy {
+        context.getSharedPreferences("browse_file_transfer", Context.MODE_PRIVATE)
+    }
     private val _terminalEvents = MutableSharedFlow<BrowseFileTransferTerminalEvent>(
         replay = 1,
         extraBufferCapacity = 2,

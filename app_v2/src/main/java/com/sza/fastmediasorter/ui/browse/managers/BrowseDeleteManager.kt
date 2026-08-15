@@ -113,7 +113,6 @@ class BrowseDeleteManager(
                     sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.browse_transfer_already_running)))
                 }
                 is BrowseFileTransferCoordinator.EnqueueResult.Enqueued -> {
-                    Timber.d("S1369: enqueued persistent Browse bulk delete count=%s", selectedPaths.size)
                     if (selectedSet.size > 10) {
                         sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.deleting_n_files, selectedSet.size)))
                     }

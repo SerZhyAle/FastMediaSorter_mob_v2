@@ -254,6 +254,8 @@ cd P:/ANDROID/FastMediaSorter_mob_v2
 
 `a.ps1 r` always builds standard AAB regardless of `$FLAVORS`, and the version must not be bumped between here and Step 12a. Worktree sync, artifact copy-back and `-ReuseVersion`: read `.claude/reference/skill-release.md` section 4 if an artifact is missing or the stamped version looks wrong.
 
+**Deobfuscation retention happens here, unattended (S1695).** `a.ps1 r` calls `scripts/release/retain-deobfuscation.ps1`, which extracts `mapping.txt` and the native `.so.dbg` files out of the bundle it just built and stores them under `<archive>\$NEW_VERSION_CODE\standard-deobfuscation.zip`; Step 12a does the same for every other published flavor. Recovery is `scripts/release/fetch-deobfuscation.ps1 -VersionCode <code>`. There is no manual retention step and none should be added - a step an operator can forget is indistinguishable from having no retention. A `deobfuscation retention failed` warning in the build output does **not** abort the release, because the bundle is already built and good, but it must be resolved before the next release: `/spec-prerelease` step 0.6 is gating and will refuse to pass with the previous release unretained.
+
 ---
 
 ### Step 12a - Publish store channels
@@ -346,6 +348,8 @@ Record the `ARCHIVED: N` count as `$ARCHIVED_COUNT` for the final report.
 ### Step 13 - Final report
 
 After all steps complete, output single structured summary in the exact literal format given in `.claude/reference/skill-release.md` section 10 - read it before writing the report.
+
+Add one line naming the retained `versionCode` and the archive path it was stored under, plus any variant whose retention warned - that warning is the only place the miss is visible until the next release's gating check.
 
 No missed entries → omit "Manual follow-ups" block. No other prose.
 

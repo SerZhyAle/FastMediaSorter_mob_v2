@@ -227,7 +227,6 @@ class BrowseFileOperationsManager(
      */
     fun reattachTransferDialog() {
         val operationType = activeOperationType
-        Timber.d("S1227: strip tapped, activeType=%s", operationType)
         if (operationType == null) return
         hideTransferIndicator()
         showTransferDialog(operationType, showImmediately = true)
@@ -264,7 +263,6 @@ class BrowseFileOperationsManager(
         )
         if (label != lastIndicatorLabel) {
             lastIndicatorLabel = label
-            Timber.d("S1227: strip shows '%s'", label)
             callbacks.onBackgroundTransferProgress(label)
         }
     }

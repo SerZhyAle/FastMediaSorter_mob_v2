@@ -691,6 +691,7 @@ scripts/devtest/adb.ps1
     -Latest           [SwitchParameter]
     -Json             [SwitchParameter]
     -Yes              [SwitchParameter]
+  Exit: 0 - OK; 1 - adb not found, or bad arguments; 2 - no online device; 3 - multiple online devices and -DeviceId not supplied (for verbs needing a device); 4 - target package not installed (for app verbs); 5 - a destructive verb was refused: `clear` (removed), or `wipe-data`/`uninstall` without -Yes.
 ```
 
 ### device-ready.ps1
@@ -1358,6 +1359,15 @@ scripts/metrics/agent-cost-report.ps1
     -Json                   [SwitchParameter]
 ```
 
+## scripts\post-change.tests
+
+### Run-Tests.ps1
+
+```
+scripts/post-change.tests/Run-Tests.ps1
+  (no param block)
+```
+
 ## scripts\quality
 
 ### assert-16kb-alignment.ps1
@@ -1370,6 +1380,17 @@ scripts/quality/assert-16kb-alignment.ps1
     -MinAlign         [Int32] = 16384
     -Gate             [SwitchParameter]
   Exit: 0 - all checked 64-bit .so have every LOAD segment aligned >= 16 KB, OR nothing
+```
+
+### assert-activity-logic-not-growing.ps1
+
+```
+scripts/quality/assert-activity-logic-not-growing.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -ChangedFiles           [String[]]
 ```
 
 ### assert-allfeatures-sync.ps1
@@ -1402,6 +1423,19 @@ scripts/quality/assert-ctor-arg-slots.ps1
     -WarnAt         [Int32] = 20
     -Quiet          [SwitchParameter]
   Exit: 0 - every parsed constructor is under the ceiling (or over it without -Gate).; 1 - at least one constructor exceeds the ceiling, and -Gate was passed.; 2 - could not verify: no source root was readable, so nothing was measured.
+```
+
+### assert-deobfuscation-retained.ps1
+
+```
+scripts/quality/assert-deobfuscation-retained.ps1
+  Params:
+    -ArchiveRoot         [String] = 'c:\GD\WORK\FastMediaSorter\deobfuscation'
+    -VersionName         [String]
+    -Quiet               [SwitchParameter]
+    -Json                [SwitchParameter]
+    -Help                [SwitchParameter]
+  Exit: 0 - the judged release is retained and verified, or it predates the
 ```
 
 ### assert-deprecated-pm-flags.ps1
@@ -1441,6 +1475,7 @@ scripts/quality/assert-detekt.ps1
     -ChangedFiles           [String[]]
     -TimeoutSeconds         [Int32] = 600
     -NoCache                [SwitchParameter]
+  Exit: 0 PASS - no new findings, or none in -ChangedFiles, or non-gate mode.; 1 FAIL - -Gate and detekt reported a new finding (in -ChangedFiles when diff-scoped).; 2 Cannot verify - gradlew.bat missing, or -ChangedFiles given but a run module's
 ```
 
 ### assert-device-profile-matrix.ps1
@@ -1501,6 +1536,17 @@ scripts/quality/assert-empty-catch.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+```
+
+### assert-enum-persistence-contract.ps1
+
+```
+scripts/quality/assert-enum-persistence-contract.ps1
+  Params:
+    -Mapping         [String]
+    -Gate            [SwitchParameter]
+    -Quiet           [SwitchParameter]
+  Exit: 0 - every durable enum-name path has a matching base rule (and, with -Mapping, kept its name).; 1 - a durable enum-name path is unpinned, or the mapping shows a renamed member.; 2 - source, the base ProGuard file or the named mapping could not be inspected.
 ```
 
 ### assert-exit-contract.ps1
@@ -1590,6 +1636,32 @@ scripts/quality/assert-globalscope.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-gson-persistence-contract.ps1
+S1639: inventory every Gson serialization point, classify whether its JSON outlives the process, and judge whether the model behind each durable point has its wire names pinned.
+
+```
+scripts/quality/assert-gson-persistence-contract.ps1
+  S1639: inventory every Gson serialization point, classify whether its JSON outlives the process, and judge whether the model behind each durable point has its wire names pinned.
+  Params:
+    -Module               [String] = 'all'  {app_v2|wear|all}
+    -Format               [String] = 'text'  {text|json}
+    -ChangedFiles         [String]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+```
+
+### assert-guide-coverage.ps1
+
+```
+scripts/quality/assert-guide-coverage.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -Json                   [SwitchParameter]
+    -Quiet                  [SwitchParameter]
+  Exit: 0 - clean, or audit mode (no -Gate).; 1 - -Gate and at least one uncovered id is not in the baseline.; 2 - the gate cannot run: the inventory, the registry, or the guide set is missing.
+```
+
 ### assert-hook-inventory.ps1
 
 ```
@@ -1668,6 +1740,16 @@ scripts/quality/assert-listener-symmetry.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-maestro-oracle.ps1
+
+```
+scripts/quality/assert-maestro-oracle.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - clean: no violation found.; 1 - substantive failure: at least one violation remains.; 2 - the gate itself cannot run (no scan root exists / a file is unreadable).
+```
+
 ### assert-memory-budget.ps1
 
 ```
@@ -1689,6 +1771,19 @@ scripts/quality/assert-neuroslop.ps1
   Params:
     -Gate                 [SwitchParameter]
     -ChangedFiles         [String[]]
+```
+
+### assert-new-lexemes-translated.ps1
+
+```
+scripts/quality/assert-new-lexemes-translated.ps1
+  Params:
+    -Module               [String] = 'app_v2'
+    -SourceSet            [String[]] = @('main', 'vr', 'noLegal')
+    -BaselinePath         [String]
+    -OutDir               [String]
+    -Quiet                [SwitchParameter]
+  Exit: 0 - every string reaches all thirteen declared locales, or its gap predates the rule.; 1 - new untranslated strings exist; the release is blocked until they are translated.; 2 - the gate cannot verify: the producer or the baseline is missing.
 ```
 
 ### assert-no-ticket-logs.ps1
@@ -1754,6 +1849,16 @@ scripts/quality/assert-oss-notices.ps1
   Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: generator, parser or manifest missing or unreadable
 ```
 
+### assert-packaging-excludes-parity.ps1
+
+```
+scripts/quality/assert-packaging-excludes-parity.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - clean, every module carrying a shared library repeats its payload exclusions; 1 - a module is missing an exclusion, or an unknown payload prefix appeared; 2 - cannot verify: a build file is missing, or has no packaging/resources block to read
+```
+
 ### assert-public-mutable-flow.ps1
 
 ```
@@ -1794,6 +1899,16 @@ scripts/quality/assert-rtl-layout-attrs.ps1
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
   Exit: 0 - pass (count at or below baseline, or a non-gate mode).; 1 - fail: the count rose above the baseline, or a changed file carries an occurrence.; 2 - cannot verify: the scan root is missing, or a named changed file does not exist.
+```
+
+### assert-rule-digest-sync.ps1
+
+```
+scripts/quality/assert-rule-digest-sync.ps1
+  Params:
+    -Gate             [SwitchParameter]
+    -RepoRoot         [String]
+  Exit: 0 - every full digest cites every rule and every pointer is reachable, or audit mode.; 1 - substantive failure: a rule is uncited or a pointer is a dead end (-Gate only).; 2 - the gate itself cannot run: a declared file is missing, or the authority
 ```
 
 ### assert-script-cheatsheet-sync.ps1
@@ -2193,6 +2308,16 @@ scripts/quality/assert-hook-inventory.tests/run-tests.ps1
   Exit: 0 every case passed; 1 at least one case failed
 ```
 
+## scripts\quality\assert-listener-symmetry.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-listener-symmetry.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
 ## scripts\quality\assert-shared-test-flavor-scope.tests
 
 ### Run-Tests.ps1
@@ -2243,6 +2368,15 @@ scripts/quality/detekt-scoped.tests/Run-Tests.ps1
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
+## scripts\quality\doc-icon-gate-routing.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/doc-icon-gate-routing.tests/Run-Tests.ps1
+  (no param block)
+```
+
 ## scripts\quality\lib
 
 ### android-string-format.ps1
@@ -2282,10 +2416,31 @@ scripts/quality/lib/detekt-report.ps1
   (no param block)
 ```
 
+### doc-icon-gate-routing.ps1
+
+```
+scripts/quality/lib/doc-icon-gate-routing.ps1
+  (no param block)
+```
+
 ### flavor-source-map.ps1
 
 ```
 scripts/quality/lib/flavor-source-map.ps1
+  (no param block)
+```
+
+### house-text-style.ps1
+
+```
+scripts/quality/lib/house-text-style.ps1
+  (no param block)
+```
+
+### listener-symmetry-count.ps1
+
+```
+scripts/quality/lib/listener-symmetry-count.ps1
   (no param block)
 ```
 
@@ -2307,6 +2462,15 @@ scripts/quality/lib/source-scan.ps1
 
 ```
 scripts/quality/lib/ticket-acceptance-probes.ps1
+  (no param block)
+```
+
+## scripts\quality\source-matchers.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/source-matchers.tests/Run-Tests.ps1
   (no param block)
 ```
 
@@ -2357,6 +2521,24 @@ scripts/release/extract-release-notes.ps1
   Exit: 0 - match found, stdout contains the block (non-empty).; 2 - no matching marker for the supplied version.
 ```
 
+### fetch-deobfuscation.ps1
+
+```
+scripts/release/fetch-deobfuscation.ps1
+  Params:
+    -VersionCode         [Int32]
+    -VersionName         [String]
+    -Latest              [SwitchParameter]
+    -Variant             [String] = 'standard'  {standard|lite|photos|legacy|vr|noLegal|wear}
+    -Destination         [String] = 'temp/deobfuscation'
+    -List                [SwitchParameter]
+    -Verify              [SwitchParameter]
+    -Json                [SwitchParameter]
+    -ArchiveRoot         [String] = 'c:\GD\WORK\FastMediaSorter\deobfuscation'
+    -Help                [SwitchParameter]
+  Exit: 0 - request answered: payload extracted, verification passed, or -List
+```
+
 ### gen_fastlane_changelog.ps1
 
 ```
@@ -2395,6 +2577,24 @@ scripts/release/publish-play-release.ps1
   Params:
     -Track          [String] = "production"
     -Status         [String] = "completed"
+```
+
+### retain-deobfuscation.ps1
+
+```
+scripts/release/retain-deobfuscation.ps1
+  Params:
+    -VersionCode    (req)  [Int32]
+    -VersionName           [String]
+    -Variant        (req)  [String]  {standard|lite|photos|legacy|vr|noLegal|wear}
+    -Bundle                [String]
+    -Mapping               [String]
+    -NativeSymbols         [String]
+    -ArchiveRoot           [String] = 'c:\GD\WORK\FastMediaSorter\deobfuscation'
+    -Force                 [SwitchParameter]
+    -DryRun                [SwitchParameter]
+    -Help                  [SwitchParameter]
+  Exit: 0 - payload stored, or already present with an identical mapping.; 1 - retention failed: the source could not be read, the bundle carries no
 ```
 
 ### standard-release-gate.ps1
@@ -2458,6 +2658,13 @@ scripts/spec_catalog/_lib.ps1
   (no param block)
 ```
 
+### _research-items.ps1
+
+```
+scripts/spec_catalog/_research-items.ps1
+  (no param block)
+```
+
 ### archive.ps1
 
 ```
@@ -2474,6 +2681,31 @@ scripts/spec_catalog/bulk-update.ps1
     -Id        (req)  [String[]]
     -Status           [String]  {Draft|Approved|Tactical|In Progress|Implemented|Verified|Partial|Broken|BlockByOtherTask|BlockNeedUserTest|BlockQuestions|BlockExternal|Archived}
     -Priority         [Int32] = -1  {range 0..100}
+```
+
+### check-capability-recorded.ps1
+
+```
+scripts/spec_catalog/check-capability-recorded.ps1
+  Params:
+    -Id  (req)  [String]
+  Exit: 0 - nothing to say, or the reminder was printed. Both are a successful run.; 2 - cannot verify: the spec file or the inventory is unreadable. Distinct from 0 so a caller can tell
+```
+
+### check-evidence-durable.ps1
+
+```
+scripts/spec_catalog/check-evidence-durable.ps1
+  Params:
+    -Id  (req)  [String]
+```
+
+### check-open-items-carried.ps1
+
+```
+scripts/spec_catalog/check-open-items-carried.ps1
+  Params:
+    -Id  (req)  [String]
 ```
 
 ### check-owner-inputs.ps1
@@ -2542,7 +2774,7 @@ scripts/spec_catalog/drift-check.ps1
   Params:
     -Id      (req)  [String]
     -Format         [String] = 'table'  {table|json}
-  Exit: 0 - no drift detected (CLEAN or COMMIT_ONLY); 1 - drift detected (inline markers found post-spec-creation); 2 - usage / resolution error
+  Exit: 0 - no drift detected (CLEAN); 1 - drift detected (inline markers found post-spec-creation); 2 - usage / resolution error
 ```
 
 ### insert.ps1
@@ -2576,6 +2808,15 @@ scripts/spec_catalog/list-blockneedusertest.ps1
 ```
 scripts/spec_catalog/migrate-archive-split.ps1
   (no param block)
+```
+
+### migrate-archive-to-plan.ps1
+
+```
+scripts/spec_catalog/migrate-archive-to-plan.ps1
+  Params:
+    -Apply         [SwitchParameter]
+    -Help          [SwitchParameter]
 ```
 
 ### next-id.ps1
@@ -2615,6 +2856,7 @@ scripts/spec_catalog/plan-tick.ps1
     -Note             [String] = ''
     -Log              [String] = ''
     -Json             [SwitchParameter]
+  Exit: 0 - every listed step was rewritten.; 1 - a listed step was not found, or a file could not be written.; 2 - usage error, or the plan folder or phase file does not exist.; 3 - INDEX.md and the phase file disagreed before the write; nothing was written at all.; 4 - a -Checkbox fragment matched no bullet, or matched more than one.
 ```
 
 ### preview.ps1
@@ -2657,6 +2899,7 @@ scripts/spec_catalog/release-queue.ps1
     -Validate           [SwitchParameter]
     -List               [SwitchParameter]
     -Ready              [SwitchParameter]
+    -WithLeases         [SwitchParameter]
     -SetCurrent  (req)  [Int32]
     -Ship        (req)  [SwitchParameter]
     -Release     (req)  [String] = ''
@@ -2727,14 +2970,15 @@ scripts/spec_catalog/select.ps1
 ```
 scripts/spec_catalog/session-bootstrap.ps1
   Params:
-    -Resume             [SwitchParameter]
-    -SkipDevice         [SwitchParameter]
-    -Claim              [SwitchParameter]
-    -Exclude            [String[]] = @()
-    -Threshold          [Int32] = 0
-    -Reason             [String] = 'session-bootstrap'
-    -Format             [String] = 'json'  {json|table}
-  Exit: 0 - every requested block succeeded.; 1 - at least one block failed.; 2 - usage error, or a component script is missing.
+    -Resume                   [SwitchParameter]
+    -SkipDevice               [SwitchParameter]
+    -Claim                    [SwitchParameter]
+    -Exclude                  [String[]] = @()
+    -DeviceTimeoutSec         [Int32] = 90  {range 5..600}
+    -Threshold                [Int32] = 0
+    -Reason                   [String] = 'session-bootstrap'
+    -Format                   [String] = 'json'  {json|table}
+  Exit: 0 - every requested block succeeded.; 1 - at least one block failed.; 2 - usage error, or a component script is missing.; 3 - a candidate was selected but the claim was lost to a live sibling session.
 ```
 
 ### skip-cache.ps1
@@ -2863,6 +3107,15 @@ scripts/spec_catalog/plan-tick.tests/Run-Tests.ps1
 scripts/spec_catalog/preview.tests/Run-Tests.ps1
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\spec_catalog\release-queue.tests
+
+### Run-Tests.ps1
+
+```
+scripts/spec_catalog/release-queue.tests/Run-Tests.ps1
+  (no param block)
 ```
 
 ## scripts\spec_catalog\session-bootstrap.tests
@@ -3004,6 +3257,7 @@ scripts/utils/archive-vscode-cruft.ps1
     -ClaudeOlderThanDays             [Int32] = 30
     -DryRun                          [SwitchParameter]
     -Force                           [SwitchParameter]
+  Exit: 0 - completed (or dry run completed); 1 - one or more entries could not be removed or moved; 2 - could not verify: no VSCode data directory found, or every installation is
 ```
 
 ### audit-unreferenced-strings.ps1
@@ -3129,55 +3383,18 @@ scripts/utils/extract-device-logs.ps1
     -PackageName         [String] = "com.sza.fastmediasorter"
 ```
 
-### fix-ellipsis-docs.ps1
+### fix-house-style.ps1
+S1544: applies the house text style to documentation prose and string resource values.
 
 ```
-scripts/utils/fix-ellipsis-docs.ps1
+scripts/utils/fix-house-style.ps1
+  S1544: applies the house text style to documentation prose and string resource values.
   Params:
-    -Dirs           [String[]] = @("docs")
-    -DryRun         [SwitchParameter]
-```
-
-### fix-ellipsis-strings.ps1
-
-```
-scripts/utils/fix-ellipsis-strings.ps1
-  Params:
-    -Files          [String[]] = @(
-        "app_v2\src\main\res\values\strings.xml",
-        "app_v2\src\main\res\values-ru\strings.xml",
-        "app_v2\src\main\res\values-uk\strings.xml"
-    )
-    -DryRun         [SwitchParameter]
-```
-
-### fix-ellipsis.ps1
-
-```
-scripts/utils/fix-ellipsis.ps1
-  Params:
-    -File            [String] = ""
-    -Apply           [SwitchParameter]
-    -Verbose         [SwitchParameter]
-```
-
-### fix-yo-letter.ps1
-
-```
-scripts/utils/fix-yo-letter.ps1
-  Params:
-    -Paths          [String[]] = @()
-    -DryRun         [SwitchParameter]
-```
-
-### fix-yo.ps1
-
-```
-scripts/utils/fix-yo.ps1
-  Params:
-    -File            [String] = ""
-    -Apply           [SwitchParameter]
-    -Verbose         [SwitchParameter]
+    -Area          [String] = 'Both'  {Prose|ResourceValue|Both}
+    -Path          [String[]]
+    -Rules         [String[]]
+    -Apply         [SwitchParameter]
+  Exit: 0 - nothing needed changing, or -Apply completed and every file was written.; 1 - unusable input: an explicit -Path does not exist, or a file could not be written.; 3 - dry run only: changes are pending. Re-run with -Apply to write them.
 ```
 
 ### generate-changelog.ps1
@@ -3246,6 +3463,52 @@ scripts/utils/Install_release_on_adb_connected_device.ps1
     -Launch            [SwitchParameter]
     -NoReplace         [SwitchParameter]
     -Flavor            [String] = "standard"
+```
+
+### list-new-lexemes.ps1
+
+```
+scripts/utils/list-new-lexemes.ps1
+  Params:
+    -Module               [String] = 'app_v2'
+    -SourceSet            [String[]] = @('main', 'vr', 'noLegal')
+    -BaselinePath         [String]
+    -OutDir               [String]
+    -Quiet                [SwitchParameter]
+  Exit: 0 - every unit reaches all thirteen locales, or the only gaps are baselined.; 1 - unusable input: the export failed, or its sidecar could not be read.; 3 - new untranslated text exists; the produced files name it.
+```
+
+### locale-bulk-export.ps1
+S1420: exports the English UI corpus as one plain line per phrase, for an external translator.
+
+```
+scripts/utils/locale-bulk-export.ps1
+  S1420: exports the English UI corpus as one plain line per phrase, for an external translator.
+  Params:
+    -Module                  [String] = 'app_v2'
+    -SourceSet               [String[]] = @('main')
+    -ReferenceLocale         [String] = 'de'
+    -All                     [SwitchParameter]
+    -SourceFile              [String]
+    -OutDir                  [String]
+    -MinLetterRun            [Int32] = 3
+  Exit: 0 - both files written.; 1 - unusable input: no named source set has res/values or a match for -SourceFile, or the
+```
+
+### locale-bulk-import.ps1
+S1420: imports one locale's translated line file back into its string resources.
+
+```
+scripts/utils/locale-bulk-import.ps1
+  S1420: imports one locale's translated line file back into its string resources.
+  Params:
+    -TextPath   (req)  [String]
+    -Locale            [String]
+    -IndexPath         [String]
+    -Module            [String] = 'app_v2'
+    -SourceSet         [String] = 'main'
+    -DryRun            [SwitchParameter]
+  Exit: 0 - every locale file written, nothing rejected.; 1 - unusable input: file or sidecar missing or unreadable, locale not declared or the default
 ```
 
 ### locale-set.ps1
@@ -3388,6 +3651,7 @@ scripts/utils/seed-locale-tranche.ps1
     -Merge              [SwitchParameter]
     -DumpSource         [SwitchParameter]
     -DryRun             [SwitchParameter]
+  Exit: 0 - the locale file was written, or planned under -DryRun. An empty map writes an empty
 ```
 
 ### set-android-string.ps1
@@ -3414,6 +3678,7 @@ scripts/utils/set-android-string.ps1
     -CreateIfMissing          [SwitchParameter]
     -DryRun                   [SwitchParameter]
     -Force                    [SwitchParameter]
+  Exit: 0 - the requested action completed.; 1 - invalid arguments, a lockstep/parity precondition failed, or the value carries markup this
 ```
 
 ### set-android-strings.ps1
@@ -3491,5 +3756,19 @@ scripts/utils/wait-for-lock-turn.ps1
     -WaitTimeoutSeconds         [Int32] = 3600
     -PollSeconds                [Int32] = 5
   Exit: 0 - granted: it is this session's turn, ticket left in place for the caller.; 2 - timed out: nothing was acquired, ticket removed.; 3 - evicted: the ticket was dropped while waiting (session judged gone), ticket removed.; 4 - could not enqueue.
+```
+
+### wait-for-ticket-work.ps1
+
+```
+scripts/utils/wait-for-ticket-work.ps1
+  Params:
+    -Exclude              [String[]] = @()
+    -MaxMinutes           [Int32] = 30
+    -PollSeconds          [Int32] = 120
+    -DeviceOnline         [SwitchParameter]
+    -Reason               [String] = ''
+    -MarkerPath           [String] = ''
+  Exit: 0 - work is available now; the marker names the kind (impl / device-drain) and the ticket.; 2 - the wait window expired with the queue still idle.; 3 - every poll in the window failed to read the eligible set (preflight missing or broken).; 4 - usage error.
 ```
 

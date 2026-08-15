@@ -32,7 +32,6 @@ class PlaceHomeWidgetOnLauncherDesktopUseCase @Inject constructor(
         orientation: LauncherOrientation,
         addedAt: Long,
     ): Long? {
-        Timber.d("S1170: place %s on %s desktop", entry.gadgetKey, orientation.name)
         val state = desktopRepository.state()
         val columns = when (orientation) {
             LauncherOrientation.PORTRAIT -> state.columnsPortrait

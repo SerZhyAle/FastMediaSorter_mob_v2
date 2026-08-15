@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.core.launcher.LauncherStarterSets.StarterResource
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.data.model.DeviceProfileType
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import org.junit.Assert.assertEquals
@@ -305,9 +306,9 @@ class LauncherStarterSetsTest {
     }
 
     @Test
-    fun `a full-width header stays overlap-free at every supported column count`() {
-        // S1428 step 05.3: a header is the first starter item as wide as the grid itself, so it is the
-        // case most likely to collide with whatever the packer places next - the narrow grid worst of all.
+    fun `a compact header stays overlap-free at every supported column count`() {
+        // S1642: the header is the first starter item and the one the packer immediately fills the rest of
+        // the row beside, so it is the case most likely to collide - the narrow grid worst of all.
         val items = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(recentId = 1, allAudioId = 2, allImagesId = 3),
@@ -319,22 +320,89 @@ class LauncherStarterSetsTest {
             assertNoOverlap(placed)
             placed.forEach { assertTrue("cell past right edge at $columns", it.colIndex + it.spanW <= columns) }
             placed.filter { it.item.kind == LauncherCellKind.SECTION }.forEach {
-                assertEquals("header not full width at $columns", columns, it.spanW)
+                assertEquals(
+                    "header not at the compact span at $columns",
+                    LauncherSectionMembership.HEADER_SPAN_W,
+                    it.spanW,
+                )
                 assertEquals("header not at column 0 at $columns", 0, it.colIndex)
             }
         }
     }
 
     @Test
-    fun `a header persists the widest span while the packed one fits the grid it is seeded on`() {
+    fun `imported shortcuts stay overlap-free at every supported column count`() {
+        val imported = importedPins()
+        assertTrue(imported.all { it.target.startsWith(LauncherCellCommand.PREFIX_PIN) })
+        val items = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1, allAudioId = 2, allImagesId = 3),
+            allPaddingAvailable,
+            emptySet(),
+            importedShortcuts = imported,
+        )
+        columnCounts.forEach { columns ->
+            val placed = LauncherStarterSets.place(items, columns)
+            assertNoOverlap(placed)
+            placed.forEach { assertTrue("cell past right edge at $columns", it.colIndex + it.spanW <= columns) }
+        }
+    }
+
+    @Test
+    fun `imported shortcuts sit in the content section, never the app-functions section`() {
+        val imported = importedPins()
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1),
+            allPaddingAvailable,
+            emptySet(),
+            importedShortcuts = imported,
+        ).map { it.target }
+        val contentHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_EVERYTHING_ELSE))
+        val actionsHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_APP_FUNCTIONS))
+        imported.forEach { item ->
+            val index = targets.indexOf(item.target)
+            assertTrue("imported target absent: ${item.target}", index > contentHeaderIndex)
+            assertTrue("imported target under the app-functions header: ${item.target}", index < actionsHeaderIndex)
+        }
+    }
+
+    @Test
+    fun `a header is packed at the one span it is stored at`() {
+        // S1642: the packer's clamp to the seeded width used to narrow a header, which is why the seed
+        // carried a second span. The compact span fits every grid, so the clamp is now a no-op on it.
         val items = LauncherStarterSets.itemsFor(DeviceProfileType.OTHER, StarterResources(), emptyMap(), emptySet())
         val placed = LauncherStarterSets.place(items, columns = 4)
         val header = placed.first { it.item.kind == LauncherCellKind.SECTION }
-        assertEquals(4, header.spanW)
-        assertEquals(LauncherSectionMembership.HEADER_STORED_SPAN_W, header.storedSpanW)
-        // Every other kind persists exactly what it was packed at, edge clamp included.
-        val shortcut = placed.first { it.item.kind == LauncherCellKind.SHORTCUT }
-        assertEquals(shortcut.spanW, shortcut.storedSpanW)
+        assertEquals(LauncherSectionMembership.HEADER_SPAN_W, header.spanW)
+    }
+
+    @Test
+    fun `a seeded header lands on a row nothing already reaches into`() {
+        // S1642: once a header stops filling its row, the packer must still give it a row of its own -
+        // otherwise the two-row gadget packed after the first header runs straight through the row the
+        // second header lands on, and that gadget belongs to neither section.
+        val items = listOf(
+            header(LauncherCellCommand.SECTION_EVERYTHING_ELSE),
+            LauncherStarterSets.StarterItem(LauncherCellKind.GADGET, "clock", spanW = 4, spanH = 2),
+            header(LauncherCellCommand.SECTION_APP_FUNCTIONS),
+            LauncherStarterSets.StarterItem(LauncherCellKind.SHORTCUT, "fn:favorites"),
+        )
+        val placed = LauncherStarterSets.place(items, columns = 8)
+        assertNoOverlap(placed)
+        placed.forEachIndexed { index, header ->
+            if (header.item.kind != LauncherCellKind.SECTION) return@forEachIndexed
+            assertEquals("header not at column 0", 0, header.colIndex)
+            placed.forEach { other ->
+                val straddles = other.rowIndex < header.rowIndex &&
+                    header.rowIndex < other.rowIndex + other.spanH
+                assertFalse("cell straddles the header row ${header.rowIndex}", straddles)
+            }
+            placed.take(index).forEach { earlier ->
+                val endsAbove = earlier.rowIndex + earlier.spanH <= header.rowIndex
+                assertTrue("cell placed before the header still occupies its row", endsAbove)
+            }
+        }
     }
 
     @Test
@@ -454,6 +522,23 @@ class LauncherStarterSetsTest {
         )
         addAll(commonTail)
     }
+
+    /** S1613: pinned-shortcut items shaped exactly as the seed encodes what the platform hands back. */
+    private fun importedPins(): List<LauncherStarterSets.StarterItem> =
+        listOf("alpha", "beta", "gamma").map { shortcutId ->
+            LauncherStarterSets.StarterItem(
+                kind = LauncherCellKind.SHORTCUT,
+                target = LauncherCellCommand.PinnedShortcut("com.example.publisher", shortcutId, shortcutId).encode(),
+            )
+        }
+
+    private fun sectionTarget(sectionKey: String): String = LauncherCellCommand.Section(sectionKey).encode()
+
+    private fun header(sectionKey: String) = LauncherStarterSets.StarterItem(
+        LauncherCellKind.SECTION,
+        sectionTarget(sectionKey),
+        spanW = LauncherSectionMembership.HEADER_SPAN_W,
+    )
 
     private fun assertNoOverlap(placed: List<LauncherStarterSets.PlacedStarterItem>) {
         val occupied = mutableSetOf<Pair<Int, Int>>()

@@ -158,17 +158,7 @@ object LauncherStarterSets {
         val colIndex: Int,
         val spanW: Int,
         val spanH: Int,
-    ) {
-        /**
-         * S1428: the span to persist, which for a section is not the packed one. [place] clamps every
-         * span to the grid it packs on, and that clamp must not reach the database for a header:
-         * `findOverlapping` reads the stored span while the renderer widens a header to the live column
-         * count, so a header stored narrow leaves the rest of its row free in the table while covering
-         * it on screen.
-         */
-        val storedSpanW: Int
-            get() = if (item.kind == LauncherCellKind.SECTION) item.spanW else spanW
-    }
+    )
 
     /** Resolved ids the seed hands in; each null id is skipped so the desktop never gets a dead cell. */
     data class StarterResources(
@@ -196,12 +186,16 @@ object LauncherStarterSets {
      *
      * S1428: the second header is what ends the first section. Membership is positional and the last
      * section on the desktop has no lower bound, so a single header would own every cell below it.
+     *
+     * S1613: [importedShortcuts] land at the tail of the content section, never inside the app-functions
+     * section, and any whose target the starter set already placed is dropped.
      */
     fun itemsFor(
         profile: DeviceProfileType,
         resources: StarterResources,
         routeAvailableInBuild: Map<String, Boolean>,
         installedPackages: Set<String>,
+        importedShortcuts: List<StarterItem> = emptyList(),
     ): List<StarterItem> {
         val streamsAvailable = routeAvailableInBuild[InternalRouteCatalog.KEY_STREAMS] == true
         val items = mutableListOf(section(LauncherCellCommand.SECTION_EVERYTHING_ELSE))
@@ -214,6 +208,8 @@ object LauncherStarterSets {
         items += profileItems(profile, resources, streamsAvailable, installedPackages)
         items += commonFeatures(routeAvailableInBuild)
         items += commonThirdPartyApps(installedPackages)
+        val placedTargets = items.mapTo(mutableSetOf()) { it.target }
+        items += importedShortcuts.filterNot { it.target in placedTargets }
         items += section(LauncherCellCommand.SECTION_APP_FUNCTIONS)
         items += launcherActions(profile)
         items += commonTail()
@@ -335,6 +331,10 @@ object LauncherStarterSets {
      * gap a shorter group left behind - and since membership is positional (see
      * [LauncherSectionMembership][com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership]),
      * an item that lands above its own header belongs to the section before it and collapses with it.
+     *
+     * S1642: a header opens a row nothing else reaches into - see [firstEmptyRow]. The items that follow it
+     * still pack into the rest of that row, which is what puts the first shortcuts beside the header
+     * instead of a line below it.
      */
     fun place(items: List<StarterItem>, columns: Int): List<PlacedStarterItem> {
         val cols = columns.coerceAtLeast(1)
@@ -343,11 +343,16 @@ object LauncherStarterSets {
         return items.map { item ->
             val spanW = item.spanW.coerceIn(1, cols)
             val spanH = item.spanH.coerceAtLeast(1)
-            val (row, col) = firstFreeAnchor(occupied, cols, spanW, spanH, sectionFloor)
+            val isSection = item.kind == LauncherCellKind.SECTION
+            val (row, col) = if (isSection) {
+                firstEmptyRow(occupied, cols, sectionFloor) to 0
+            } else {
+                firstFreeAnchor(occupied, cols, spanW, spanH, sectionFloor)
+            }
             for (r in row until row + spanH) {
                 for (c in col until col + spanW) occupied += cellKey(r, c)
             }
-            if (item.kind == LauncherCellKind.SECTION) sectionFloor = row
+            if (isSection) sectionFloor = row
             PlacedStarterItem(item, row, col, spanW, spanH)
         }
     }
@@ -371,15 +376,14 @@ object LauncherStarterSets {
         shortcut(LauncherCellCommand.Resource(id, mode))
 
     /**
-     * S1428: a header is stored at the widest grid it can ever be drawn on rather than at the one being
-     * seeded - see [LauncherSectionMembership.HEADER_STORED_SPAN_W]. [place] still packs it at the seeded
-     * width, because the occupancy grid is only as wide as the screen; [PlacedStarterItem.storedSpanW]
-     * is what carries the full span into the entity.
+     * S1642: a header is seeded at [LauncherSectionMembership.HEADER_SPAN_W], the one span it is stored and
+     * drawn at. [place] packs it at that width unchanged - the value is below the narrowest grid the
+     * desktop resolves, so the packer's clamp to the seeded width can never narrow it.
      */
     private fun section(key: String) = StarterItem(
         LauncherCellKind.SECTION,
         LauncherCellCommand.Section(key).encode(),
-        spanW = LauncherSectionMembership.HEADER_STORED_SPAN_W,
+        spanW = LauncherSectionMembership.HEADER_SPAN_W,
     )
 
     /**
@@ -430,6 +434,22 @@ object LauncherStarterSets {
             }
             row++
         }
+    }
+
+    /**
+     * The first row at or below [floor] that no cell reaches into.
+     *
+     * S1642: a section header takes a whole row rather than the first free rectangle in one. Narrowed to
+     * two columns it would otherwise be seated beside a cell already standing there, and when that cell is
+     * several rows tall it would end up straddling the boundary the header just drew - the placement
+     * strategic §6.11 refuses everywhere else.
+     */
+    private fun firstEmptyRow(occupied: Set<Long>, cols: Int, floor: Int): Int {
+        var row = floor
+        while (!fits(occupied, row, 0, cols, 1)) {
+            row++
+        }
+        return row
     }
 
     private fun fits(occupied: Set<Long>, row: Int, col: Int, spanW: Int, spanH: Int): Boolean {

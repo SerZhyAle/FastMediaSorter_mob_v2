@@ -69,6 +69,7 @@ class PhoneWearListenerService : WearableListenerService() {
                     envelope.data.decodeToString(),
                     WearPlaybackStatePayload::class.java
                 )
+                Timber.d("S1631: playback state read from watch, schemaVersion=${envelope.schemaVersion}")
                 WearSyncEvents.emitWatchPlaybackState(payload)
             } catch (e: Exception) {
                 Timber.e(e, "Failed to deserialize playback state payload")

@@ -106,12 +106,10 @@ class LauncherStatusStripManager @Inject constructor(
             applyStripMode(enabled)
             val clockPinned = stripClock?.root?.parent != null
             val indicatorsPinned = stripIndicators?.root?.parent != null
-            Timber.d("S1431: top strip mode=%s clock=%s indicators=%s", enabled, clockPinned, indicatorsPinned)
         }
         lifecycleOwner.collectOnLifecycle(replaceSystemStatusArea) { replace ->
             // The band exists only while the launcher owns the status area; with the Android bar left in
             // place there is no freed space to draw in.
-            Timber.d("S1421: status strip visible=%s", replace)
             this.binding?.root?.isVisible = replace
             // The inset the band must respect moves with the bar, so a stale one leaves either a gap or
             // content under the cutout (Rule 17). Re-dispatch rather than re-applying the padding helper,
@@ -119,7 +117,6 @@ class LauncherStatusStripManager @Inject constructor(
             this.binding?.root?.let(ViewCompat::requestApplyInsets)
         }
         lifecycleOwner.collectOnLifecycle(signalRegistry.observe()) { current ->
-            Timber.d("S1421: signals=%d kinds=%s", current.size, current.map { it.kind })
             _signals.value = current
             this.binding?.launcherSignalRow?.submit(
                 signals = current,
@@ -128,7 +125,6 @@ class LauncherStatusStripManager @Inject constructor(
             )
         }
         lifecycleOwner.collectOnLifecycle(cutoutBounds) { bounds ->
-            Timber.d("S1421: cutout bounds=%s", bounds)
             this.binding?.launcherSignalRow?.setCutoutBounds(bounds)
         }
     }
@@ -264,7 +260,6 @@ class LauncherStatusStripManager @Inject constructor(
      * to open a signal rather than two.
      */
     private fun showSignalList() {
-        Timber.d("S1421: overflow tapped, listing %d signal(s)", _signals.value.size)
         val manager = fragmentManager ?: return
         if (manager.findFragmentByTag(SIGNAL_LIST_TAG) != null) {
             return
@@ -281,7 +276,6 @@ class LauncherStatusStripManager @Inject constructor(
      * build no longer exports - and a home surface must not die because one chip pointed at nothing.
      */
     private fun openSignal(signal: LauncherSignal) {
-        Timber.d("S1421: signal tapped id=%s kind=%s", signal.id, signal.kind)
         val target = signalRegistry.open(signal) ?: return
         val host = binding?.root?.context ?: return
         runCatching { host.startActivity(target) }

@@ -70,6 +70,18 @@
             android:paddingEnd="@dimen/margin_small"
             android:paddingBottom="@dimen/margin_small">
 
+            <!-- S1643: which edge the whole bar is anchored to. First in the section because the
+                 placement is the precondition for the composition switches below it. -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowLauncherTaskbarPlacement"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:sdr_inline="true"
+                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                app:sdr_title="@string/launcher_settings_taskbar_placement_title" />
+
             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                 android:id="@+id/rowLauncherShowRecents"
                 android:layout_width="match_parent"

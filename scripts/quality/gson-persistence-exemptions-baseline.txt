@@ -1,0 +1,30 @@
+# S1639 - Gson persistence contract: exemption registry.
+#
+# One entry per line: <fully qualified name> :: <justification>
+# The name is either a model or enum the gate judges, or a repo-relative source path when the finding is
+# a serialization point whose type the gate cannot resolve statically.
+#
+# An entry with no justification is refused with exit 2. A registry that accepts a bare name degenerates
+# into a list nobody rereads, which is the failure strategic S1639 section 7 names as the main threat to
+# this gate's value.
+#
+# The file is a ratchet, like the other count baselines in this repository: removing an entry is always
+# accepted, adding one is a deliberate act that shows up in review.
+#
+# A justification opening with `Ticket: Sxxxx` records a live defect owned by that ticket rather than
+# excusing it. Those are counted separately in the verdict line, so a green run states out loud how many
+# known defects it is still carrying.
+
+# --- Live defects, owned and tracked -----------------------------------------------------------------
+# (none)
+
+# --- Points whose type the gate cannot resolve, with what they actually write -------------------------
+app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveBrowserAuthManager.kt :: writes StoredCredential through the model's own toJson() method, so the type is the receiver rather than an argument the gate reads.
+app_v2/src/main/java/com/sza/fastmediasorter/data/repository/CachedFileListRepository.kt :: the read passes a named TypeToken field declared elsewhere in the file; the writes in the same file resolve to MediaFile, which is judged and kept by rule.
+app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/BaseFileOperationHandler.kt :: writes TrashMetadata through the model's own toJson() method; TrashMetadata is judged and kept by rule.
+app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupToGoogleDriveUseCase.kt :: the payload is the result of a use case invocation, so its type is declared in another file; BackupPayload is judged through its other points and kept by rule.
+app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExportSettingsUseCase.kt :: same use case invocation as the Drive backup path, therefore the same BackupPayload.
+app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/RestoreDeletedUseCase.kt :: reads TrashMetadata through the model's own fromJson() factory; TrashMetadata is judged and kept by rule.
+wear/src/main/java/com/sza/fastmediasorter/wear/data/preferences/NetworkSourceRepositoryImpl.kt :: writes List<NetworkSource>, but the identifier's first declaration in the file takes its type from a function result; NetworkSource is kept by the wear package rule.
+wear/src/main/java/com/sza/fastmediasorter/wear/data/repository/WearFavoritesRepositoryImpl.kt :: writes the delta list, given once as a call type argument and once through a local chain; WearFavoriteDeltaItem is kept by the wear package rule.
+wear/src/main/java/com/sza/fastmediasorter/wear/data/wear/WatchWearListenerService.kt :: reads a bare String and rebuilds the command with valueOf, so the value at risk is the constant name of the watch's own WearPlaybackCommand, kept by the wear package rule.

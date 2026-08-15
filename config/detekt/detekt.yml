@@ -18,9 +18,17 @@ formatting:
 # set. This restores detekt's intended default to the paths its pattern misses; it is not a
 # threshold relaxation. Listing the rest of the default list is required because a declared
 # 'excludes' replaces the default rather than adding to it.
+#
+# ignoreAnnotated Composable: a @Composable function returning Unit is PascalCase by the Compose
+# naming convention, which Android Studio and the Compose lint checks enforce in the opposite
+# direction - detekt's camelCase pattern can never be satisfied without breaking the platform rule.
+# Every existing Composable in app_v2 was absorbed into baseline-app_v2.xml one entry at a time
+# instead, so each new one silently demanded another baseline row. Exempting the annotation stops
+# that; the four now-unmatched baseline rows are inert and are left for the next baseline regen.
 naming:
   FunctionNaming:
     excludes: ['**/test*/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
+    ignoreAnnotated: ['Composable']
 
 style:
   MagicNumber:

@@ -76,6 +76,21 @@ $expectedFallbacks = @(
     'isn''t requested by package'                              # Maestro grants a permission the app does not declare
 ) -join '|'
 
+# S1700: the framework-emitted thumbnail-failure chain. mediaserver and the MediaMetadataRetriever
+# JNI shim log these at E after a remote-thumbnail extraction fails; the JNI shim runs INSIDE the
+# app process, so `-AppOnly` attributes its line to us and one slow remote video was enough to end
+# a run at pass=false naming nothing the app can fix (2026-08-15 sweep: 21/21 Maestro, no toast,
+# no crash). Unlike the entries above these are NOT unconditionally expected - they are suppressed
+# only when the app's own handled-timeout marker is present in the same capture, so a genuine
+# local-decode regression (which logs no NetworkVideoFrameDecoder timeout) still fails the gate.
+$handledThumbnailTimeoutPattern = 'NetworkVideoFrameDecoder.*(Extraction TIMEOUT|getFrameAtTime returned null)'
+$guardedThumbnailFallbacks = @(
+    'getFrameAtTime: videoFrame is a NULL pointer',
+    'failed to capture a video frame',
+    'all codecs failed to extract frame',
+    'failed to get video frame \(err -\d+\)'
+) -join '|'
+
 function Invoke-SearchLog {
     param([string[]]$ExtraArgs)
     $a = @('-NoProfile', '-File', $SearchLog, '-LogFile', $LogFile)
@@ -94,8 +109,13 @@ function Get-Count {
 }
 
 # ---------- log signal (step 04.1) ----------
+# Grep the file directly for the S1700 guard marker instead of spawning another search-log pass -
+# the log is ~300k lines and each pass costs minutes; the count is never loaded into agent context.
+$thumbnailHandled = @(Select-String -Path $LogFile -Pattern $handledThumbnailTimeoutPattern -List -ErrorAction SilentlyContinue).Count -gt 0
+$expectedPattern  = if ($thumbnailHandled) { "$expectedFallbacks|$guardedThumbnailFallbacks" } else { $expectedFallbacks }
+
 $allErrors      = Get-Count -ExtraArgs @('-Errors', '-AppOnly', '-Unique')
-$expectedErrors = Get-Count -ExtraArgs @('-Errors', '-AppOnly', '-Unique', '-Pattern', $expectedFallbacks)
+$expectedErrors = Get-Count -ExtraArgs @('-Errors', '-AppOnly', '-Unique', '-Pattern', $expectedPattern)
 $netErrors      = [Math]::Max(0, $allErrors - $expectedErrors)
 
 # Strict fatal markers only, matched on raw lines. A full *:V capture carries benign
@@ -126,7 +146,7 @@ $crashBlocks = ($crashCount -gt 0)
 $priorCrash = (Get-Count -ExtraArgs @('-AppOnly', '-Pattern', 'PREVIOUS SESSION ENDED WITH A CRASH')) -gt 0
 
 $logPass = ($netErrors -eq 0) -and (-not $crashBlocks) -and (-not $priorCrash)
-$logBreakdown = [ordered]@{ pass = [bool]$logPass; actionableErrors = $netErrors; crashBlocks = [bool]$crashBlocks; priorCrash = [bool]$priorCrash }
+$logBreakdown = [ordered]@{ pass = [bool]$logPass; actionableErrors = $netErrors; crashBlocks = [bool]$crashBlocks; priorCrash = [bool]$priorCrash; thumbnailTimeoutHandled = [bool]$thumbnailHandled }
 
 # ---------- perf + maestro + screenshot signals (step 04.2) ----------
 # perf: every measure record in MetricsFile must have pass=true. Missing file = no perf data

@@ -389,8 +389,10 @@
              owner decision 2026-07-03; programs/streams panels keep their accent, filter does not. -->
         <!-- S1068 (portrait): no paddingStart - the first tab ("All") sits flush at x=0 like the command
              bar's Exit and the panels' leading controls. tabMaxWidth is raised to the first-tab accent
-             width so MainResourceTabsManager can pin tab 0 to 108dp (225%) and the rest to 96dp (200%);
-             land/wide keep the anchored paddingStart in their own activity_main.xml copies. -->
+             width; land/wide keep the anchored paddingStart in their own activity_main.xml copies. -->
+        <!-- S1659: MainResourceTabsManager pins each tab to a width divided out of the strip width, so
+             five tabs fit the screen. These two dimens are the upper bound of that division, not the
+             widths themselves - a wide screen lands back on them, a phone portrait comes out below. -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabResourceTypes"
             android:layout_width="match_parent"

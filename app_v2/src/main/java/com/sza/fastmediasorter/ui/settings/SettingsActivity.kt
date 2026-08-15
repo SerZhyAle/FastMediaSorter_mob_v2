@@ -401,18 +401,40 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private fun applyWindowInsets(insets: androidx.core.view.WindowInsetsCompat) {
         statusBarInsetPx = insets.getStatusBarHeightSafe(resources)
         val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+        // S1619: in landscape the navigation bar - and on some devices the cutout - sits on a SIDE.
+        // The toolbar spans the full width with the search button flush against the trailing edge, so
+        // without a side inset the system owns those pixels and a tap on the button reaches its Back
+        // instead. Padding the containers rather than the root keeps their backgrounds edge to edge.
+        val sideBars = insets.getInsets(
+            androidx.core.view.WindowInsetsCompat.Type.systemBars() or
+                androidx.core.view.WindowInsetsCompat.Type.displayCutout()
+        )
 
-        // Toolbar container below status bar
+        // Toolbar container below status bar, clear of the side bars
         binding.toolbarContainer.setPadding(
-            binding.toolbarContainer.paddingLeft, statusBarInsetPx,
-            binding.toolbarContainer.paddingRight, binding.toolbarContainer.paddingBottom
+            sideBars.left,
+            statusBarInsetPx,
+            sideBars.right,
+            binding.toolbarContainer.paddingBottom
         )
 
         // ViewPager above nav bar only; adjustPan handles keyboard avoidance via window panning.
         // IME insets are unreliable on API<30 and cause content clipping when keyboard is hidden.
         binding.viewPager.setPadding(
-            binding.viewPager.paddingLeft, binding.viewPager.paddingTop,
-            binding.viewPager.paddingRight, navBar.bottom
+            sideBars.left,
+            binding.viewPager.paddingTop,
+            sideBars.right,
+            navBar.bottom
+        )
+
+        // The search overlay covers the pager, so it needs the same clearance - its own XML padding
+        // plus the insets, or the close button lands under the side bar the same way.
+        val overlayPadding = resources.getDimensionPixelSize(R.dimen.settings_padding)
+        binding.searchOverlay.setPadding(
+            overlayPadding + sideBars.left,
+            overlayPadding,
+            overlayPadding + sideBars.right,
+            overlayPadding + navBar.bottom
         )
 
         // Re-apply compact toolbar height now that the inset is known

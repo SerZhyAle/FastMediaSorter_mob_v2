@@ -21,11 +21,18 @@
              and this source set is minSdk 26 so the native autosize is always there.
              tools:ignore - autosize needs layout_height to be free, which is exactly what 0dp+weight
              gives it here; the lint check does not model the weighted parent. -->
+        <!-- S1610: time and date each own a fixed share of the card height instead of the date
+             measuring first at its full size and leaving time the remainder. Four fifths to time,
+             one fifth to the date, and each autosizes inside its own share - so shrinking the card
+             to its 2x1 minimum scales both continuously instead of squeezing the time into what the
+             date did not take. The date's fifth is sized so its 9sp..16sp range always fits: at the
+             seeded 4x2 it reaches the 16sp cap, at the minimum it settles near 9sp. No new signal is
+             needed - a gadget only ever learns the pixel bounds the grid measured for it. -->
         <TextClock
             android:id="@+id/gadgetClockTime"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_weight="4"
             android:autoSizeMaxTextSize="96sp"
             android:autoSizeMinTextSize="14sp"
             android:autoSizeTextType="uniform"
@@ -42,12 +49,16 @@
         <TextClock
             android:id="@+id/gadgetClockDate"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:autoSizeMaxTextSize="16sp"
+            android:autoSizeMinTextSize="9sp"
+            android:autoSizeTextType="uniform"
             android:ellipsize="end"
             android:gravity="center"
             android:maxLines="1"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="13sp"
+            tools:ignore="UnusedAttribute"
             tools:text="Fri, 17 Jul" />
 
     </LinearLayout>

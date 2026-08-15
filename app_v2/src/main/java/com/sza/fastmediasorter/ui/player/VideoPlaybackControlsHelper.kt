@@ -7,7 +7,6 @@ import androidx.media3.common.Player
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
-import com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog
 import com.sza.fastmediasorter.ui.player.helpers.PanelStereoCropApplier
 import com.sza.fastmediasorter.ui.player.helpers.applyConfiguredVideoEffects
 import com.sza.fastmediasorter.ui.player.helpers.brightnessAdjustmentToProgress
@@ -127,7 +126,7 @@ internal class VideoPlaybackControlsHelper(
         playbackControlPrefs.edit().putFloat(PlaybackControlPreferences.KEY_SPEED, speed).apply()
     }
 
-    fun applyPlayerSettings(settings: PlayerSettingsDialog.PlayerSettings, appLanguage: String) {
+    fun applyPlayerSettings(settings: PlayerSettings, appLanguage: String) {
         val player = manager.exoPlayer ?: return
         val savedSpeed = playbackControlPrefs.getFloat(PlaybackControlPreferences.KEY_SPEED, -1f)
         val speedToApply = if (savedSpeed > 0f) savedSpeed else settings.playbackSpeed

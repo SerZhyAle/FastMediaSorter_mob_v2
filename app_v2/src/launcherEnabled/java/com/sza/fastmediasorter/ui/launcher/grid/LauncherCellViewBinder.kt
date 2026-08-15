@@ -98,15 +98,6 @@ class LauncherCellViewBinder(
         val key = RenderKey(cells, columns, editMode, rows, foldedSections)
         if (lastKey == key) return
         lastKey = key
-        Timber.d("S1173: desktop render cells=%d editMode=%b", cells.size, editMode)
-        Timber.d("S1288: desktop rows=%d viewportRows=%d editMode=%b", rows, viewportRows, editMode)
-        Timber.d(
-            "S1428: render folded=%d drawn=%d of %d cells editMode=%b",
-            foldedSections.size,
-            plan.size,
-            cells.size,
-            editMode,
-        )
         container.removeAllViews()
         container.columns = columns
         container.rows = rows
@@ -128,9 +119,8 @@ class LauncherCellViewBinder(
                     // folded section without rewriting a single position (strategic §5.1.6).
                     row = rendered.renderRow,
                     col = item.cell.colIndex,
-                    // S1428: not the stored span - a section header is widened to the live column
-                    // count here, by the same helper the empty-slot sweep uses, so layout and
-                    // occupancy cannot disagree about which squares the header covers.
+                    // S1428: the span the same helper reports to the empty-slot sweep, so layout and
+                    // occupancy can never disagree about which squares a header covers.
                     spanW = LauncherGridGeometry.renderSpanW(item.cell, columns),
                     spanH = item.cell.spanH,
                 ),
@@ -311,11 +301,6 @@ class LauncherCellViewBinder(
                 binding.cellIcon.setImageResource(visual.iconRes ?: R.drawable.ic_launcher_mode)
             }
         }
-        Timber.d(
-            "S1414: shortcut caption '%s' at %.1fpx",
-            binding.cellLabel.text,
-            binding.cellLabel.textSize,
-        )
         bindMonogram(binding, visual?.monogramSeed)
         bindModeBadge(binding, item.modeBadge)
         binding.root.contentDescription = describe(binding, item)
@@ -367,6 +352,18 @@ class LauncherCellViewBinder(
         val title = item.visual?.label
             ?: container.context.getString(R.string.launcher_home_cell_unavailable)
         binding.sectionTitle.text = title
+        // S1664: set, never animated. [bind] rebuilds every cell view on each emission, so there is no
+        // previous chevron to turn - it is inflated fresh and simply arrives already at its state. An
+        // animation here would play on a view the user has not seen yet, on every unrelated rebind.
+        binding.sectionChevron.rotation =
+            if (collapsed) COLLAPSED_CHEVRON_ROTATION else EXPANDED_CHEVRON_ROTATION
+        Timber.d(
+            "S1642: section header drawn row=%d col=%d storedSpanW=%d collapsed=%b",
+            item.cell.rowIndex,
+            item.cell.colIndex,
+            item.cell.spanW,
+            collapsed,
+        )
         ViewCompat.setAccessibilityHeading(binding.root, true)
         binding.root.setOnClickListener { onSectionClick(item) }
         announceSectionState(binding.root, title, collapsed)
@@ -473,6 +470,15 @@ class LauncherCellViewBinder(
 
         /** Room to grow while editing - the desktop scrolls, so this is not a ceiling. */
         private const val SPARE_EDIT_ROWS = 2
+
+        /**
+         * S1664: the same two angles [CollapsibleSectionHeader] turns its chevron between, so a folded
+         * desktop section and a folded settings group read identically. Duplicated rather than imported
+         * because that view is a `src/main` widget with its own private constants, and the desktop
+         * header is not built on it - see the layout's own note.
+         */
+        private const val EXPANDED_CHEVRON_ROTATION = 0f
+        private const val COLLAPSED_CHEVRON_ROTATION = -90f
 
         /** A 2x2 gadget is the largest footprint, so it covers at most this many squares - a capacity hint. */
         private const val MAX_FOOTPRINT_SQUARES = 4

@@ -28,7 +28,6 @@ import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.common.ActivityMouseDispatchHelper
 import com.sza.fastmediasorter.ui.common.backgroundop.BackgroundOperationBarAttachManager
 import com.sza.fastmediasorter.ui.common.backgroundop.BackgroundOperationTrackManager
@@ -37,6 +36,7 @@ import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import kotlinx.coroutines.flow.Flow
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -61,13 +61,19 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
     // S0438: field-injected to drive the keep-screen-on flag from persisted settings.
     // Distinct name avoids hiding subclasses' own `settingsRepository` injections.
+    // S1329: the repository itself moved behind this manager - a host must not reference the
+    // data layer directly (Rule 3). Subclasses read the stream through `appSettings` below.
     @Inject
-    lateinit var keepScreenSettingsRepository: SettingsRepository
+    lateinit var keepScreenAwakeManager: KeepScreenAwakeManager
 
     // S1398: field-injected for the same reason as tvKeyRouter - the base class cannot take
     // constructor parameters, and every screen inherits the background-operation bar from here.
     @Inject
     lateinit var backgroundOperationTrackManager: BackgroundOperationTrackManager
+
+    // S1329: the one settings stream every subclass may read. Exposed here so a screen that only
+    // needs a settings snapshot inherits it instead of injecting SettingsRepository of its own.
+    protected val appSettings: Flow<AppSettings> get() = keepScreenAwakeManager.settings
 
     private var _binding: VB? = null
     protected val binding: VB
@@ -148,7 +154,7 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         
         // Apply keep screen awake from the cached decision, then keep it in sync with settings.
         applyKeepScreenAwake()
-        collectOnLifecycle(keepScreenSettingsRepository.getSettings()) { settings ->
+        collectOnLifecycle(appSettings) { settings ->
             keepScreenAwakeDecision = keepScreenAwakeFor(settings)
             applyKeepScreenAwake()
             // S1045: drive the secure flag from the same settings stream (initial + reactive apply).
@@ -175,7 +181,6 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
             }
             observeData()
             if (showsBackgroundOperationBar()) {
-                Timber.d("S1398: hosting background-operation bar on ${this::class.simpleName}")
                 BackgroundOperationBarAttachManager(this, backgroundOperationTrackManager).attach()
             }
             viewsReady = true

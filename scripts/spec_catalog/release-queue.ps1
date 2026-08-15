@@ -14,7 +14,8 @@
 # Actions:
 #   -Reconcile            Force a sync against the catalog now (the automatic path, on demand).
 #   -Validate             Report drift: unknown tickets, duplicates, status mismatches.
-#   -List [-Release N]    Print the queue, optionally one release block.
+#   -List [-Release N] [-WithLeases]
+#                         Print the queue, optionally one release block and its live leases.
 #   -SetCurrent N         Point the "current-release:" marker at package N.
 #   -Ship -Release N      Move block N into PLAN/RELEASE_QUEUE_DONE.md and advance the marker.
 #         [-Version X]    Stamp the shipped block with the released version name.
@@ -23,6 +24,7 @@
 # Usage:
 #   pwsh -NoProfile -File scripts/spec_catalog/release-queue.ps1 -Reconcile
 #   pwsh -NoProfile -File scripts/spec_catalog/release-queue.ps1 -List -Release 30
+#   pwsh -NoProfile -File scripts/spec_catalog/release-queue.ps1 -List -Release 30 -WithLeases
 #   pwsh -NoProfile -File scripts/spec_catalog/release-queue.ps1 -Ship -Release 30 -Version 2.60.7300.900
 #
 # Exit codes:
@@ -36,6 +38,8 @@ param(
     [Parameter(ParameterSetName = 'List')][switch] $List,
     # List the finished side (PLAN/RELEASE_READY.md) instead of the work-remaining queue.
     [Parameter(ParameterSetName = 'List')][switch] $Ready,
+    # Append a read-only projection of active ticket leases to the selected queue rows.
+    [Parameter(ParameterSetName = 'List')][switch] $WithLeases,
     [Parameter(ParameterSetName = 'SetCurrent', Mandatory = $true)][int] $SetCurrent,
     [Parameter(ParameterSetName = 'Ship', Mandatory = $true)][switch] $Ship,
     [Parameter(ParameterSetName = 'Ship', Mandatory = $true)]
@@ -62,6 +66,30 @@ if (-not (Test-Path $queuePath)) {
 function Get-QueueTickets {
     param([Parameter(Mandatory)][AllowEmptyCollection()] $Lines)
     return @($Lines | Where-Object { $_.Kind -eq 'ticket' })
+}
+
+function Get-ActiveTicketLeases {
+    $leaseScript = Join-Path $PSScriptRoot 'ticket-lease.ps1'
+    $fixturePath = $env:FMS_TICKET_LEASE_STATUS_FIXTURE
+    if (-not [string]::IsNullOrWhiteSpace($fixturePath)) {
+        if (-not (Test-Path -LiteralPath $fixturePath)) {
+            throw "Ticket lease fixture not found: $fixturePath"
+        }
+        $raw = Get-Content -LiteralPath $fixturePath -Raw -Encoding utf8
+        if (-not $raw) { return @() }
+        return @($raw | ConvertFrom-Json)
+    }
+    $pwsh = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
+        "$env:ProgramFiles\PowerShell\7\pwsh.exe"
+    } else {
+        'pwsh'
+    }
+    $raw = & $pwsh -NoProfile -File $leaseScript -Verb Status -Json
+    if ($LASTEXITCODE -ne 0) {
+        throw "ticket-lease Status failed with exit code $LASTEXITCODE"
+    }
+    if (-not $raw) { return @() }
+    return @($raw | ConvertFrom-Json)
 }
 
 switch ($PSCmdlet.ParameterSetName) {
@@ -220,6 +248,20 @@ switch ($PSCmdlet.ParameterSetName) {
             Write-Output (Format-ReleaseQueueLine -Release $t.Release -Ticket $t.Ticket -Changed $t.Changed -Status $t.Status)
         }
         Write-Output ("--- {0} ticket(s); current release: {1}" -f $tickets.Count, (Get-CurrentRelease))
+        if ($WithLeases) {
+            $visibleIds = @{}
+            foreach ($ticket in $tickets) { $visibleIds[$ticket.Id] = $true }
+            $leases = @(Get-ActiveTicketLeases | Where-Object { $visibleIds.ContainsKey([string] $_.id) })
+            Write-Output '--- active ticket leases'
+            if ($leases.Count -eq 0) {
+                Write-Output '(none)'
+            } else {
+                foreach ($lease in $leases) {
+                    Write-Output ("[lease] {0} session={1} age={2}m liveness={3} reason={4}" -f `
+                            $lease.id, $lease.sessionId, $lease.ageMinutes, $lease.liveness, $lease.reason)
+                }
+            }
+        }
         exit 0
     }
 }

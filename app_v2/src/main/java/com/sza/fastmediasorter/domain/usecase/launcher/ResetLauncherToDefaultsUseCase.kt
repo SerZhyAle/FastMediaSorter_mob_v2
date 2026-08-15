@@ -34,6 +34,11 @@ import javax.inject.Inject
  * system HOME role, and the cached list of installed apps (a rebuildable mirror of the device, not
  * launcher state).
  *
+ * S1613: also outside it, and this one must stay outside - the platform's record of which shortcuts other
+ * apps pinned to this launcher. That record is precisely what the desktop seed reads back to restore them
+ * after this reset, so releasing the pins here would delete the restore silently instead of failing
+ * visibly. Clearing our own cells is the whole job; the pins are not ours to drop.
+ *
  * Re-seeding the starter desktop is NOT done here (strategic ADR-2, rewritten 2026-08-06). Only the
  * launcher knows the real grid geometry: the widths persisted in the desktop state cover just the
  * orientation that has actually been rendered, so a device that never rotated stores zero for the
@@ -52,8 +57,6 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
     /** Returns whether the reset completed, so the caller can tell the user it did not happen. */
     suspend operator fun invoke(): Boolean = withContext(Dispatchers.IO) {
         runCatching {
-            Timber.d("S1400: launcher reset started")
-
             desktop.clearAll()
             pins.clearPins()
             journal.clearJournal()
@@ -82,6 +85,7 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
                 launcherTaskbarShowTray = defaults.launcherTaskbarShowTray,
                 launcherReplaceSystemStatusArea = defaults.launcherReplaceSystemStatusArea,
                 launcherTopStatusStripMode = defaults.launcherTopStatusStripMode,
+                launcherTaskbarPlacement = defaults.launcherTaskbarPlacement,
                 launcherTrayShowClock = defaults.launcherTrayShowClock,
                 launcherTrayShowBluetooth = defaults.launcherTrayShowBluetooth,
                 launcherTrayShowSim1 = defaults.launcherTrayShowSim1,

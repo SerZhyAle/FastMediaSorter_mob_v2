@@ -282,7 +282,6 @@ class SafOperationStrategy @Inject constructor(
         destination: String,
         progressCallback: ((Int, Int, String) -> Unit)?
     ): Result<Int> = withContext(Dispatchers.IO) {
-        Timber.d("S1378: document-tree directory copy")
         val progress = TreeProgress(progressCallback)
         try {
             val sourceRoot = requireDirectory(source)

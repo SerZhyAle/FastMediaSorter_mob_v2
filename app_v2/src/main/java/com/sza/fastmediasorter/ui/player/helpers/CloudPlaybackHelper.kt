@@ -68,7 +68,6 @@ internal suspend fun VideoPlayerManager.playCloudVideo(path: String, playWhenRea
     // before this call overwrites the field.
     releaseIfRacedPlayer()
 
-    Timber.d("S1056: CLOUD renderers factory applied")
     exoPlayer = ExoPlayer.Builder(context)
         .setRenderersFactory(createPlaybackRenderersFactory(context))
         .setMediaSourceFactory(

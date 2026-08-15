@@ -25,7 +25,6 @@ object StreamRemoveConfirmation {
         // The dialog outlives the tap that asked for it, so a host already tearing down must not
         // attach a window.
         if (activity.isFinishing || activity.isDestroyed) return
-        Timber.d("S1456: stream removal confirmation bound to host")
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.streams_remove)
             .setMessage(title)

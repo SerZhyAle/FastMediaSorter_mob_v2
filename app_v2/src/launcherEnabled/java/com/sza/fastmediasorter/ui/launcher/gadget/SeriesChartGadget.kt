@@ -88,7 +88,6 @@ private class SeriesChartGadgetView(
     init {
         binding.gadgetChartSeries.showSecondary = gadget.secondaryShown
         binding.gadgetChartReset.setOnClickListener {
-            Timber.d("S1179: chart reset tapped for %s", gadget.seriesId)
             activeScope?.launch { gadget.resetSeries(gadget.seriesId) }
         }
     }
@@ -96,7 +95,6 @@ private class SeriesChartGadgetView(
     override suspend fun CoroutineScope.onActive() {
         activeScope = this
         try {
-            Timber.d("S1179: chart tile active for %s, granted=%b", gadget.seriesId, hasLocationPermission())
             launch { gadget.observeSeries(gadget.seriesId).collect { render(it) } }
             if (hasLocationPermission() && gadget.claimRecording()) {
                 try {

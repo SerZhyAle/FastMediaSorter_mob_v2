@@ -209,7 +209,7 @@ try {
     Write-Host 'Gate: violation and non-violation shapes over a synthetic repository' -ForegroundColor Yellow
 
     $gateRoot = New-FixtureRepo -Gradle $gateGradle -Suffix 'gate' `
-        -SourceDirs @('main/java', 'test/java/com/x', 'test/java/com/y', 'sharedOne/java/com/x', 'standard/java/com/x', 'lite/java/com/x')
+        -SourceDirs @('main/java/com/x', 'test/java/com/x', 'test/java/com/y', 'testStandard/java/com/x', 'testStandard/java/com/y', 'sharedOne/java/com/x', 'standard/java/com/x', 'lite/java/com/x')
     $fixtures += $gateRoot
 
     Set-Content -LiteralPath (Join-Path $gateRoot 'app_v2/src/sharedOne/java/com/x/StreamProbe.kt') `
@@ -217,6 +217,8 @@ try {
     # A flavor-scoped name deliberately colliding with a platform type's simple name.
     Set-Content -LiteralPath (Join-Path $gateRoot 'app_v2/src/sharedOne/java/com/x/KeyEvent.kt') `
         -Value "package com.x`n`nclass KeyEvent" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $gateRoot 'app_v2/src/main/java/com/x/MainProbe.kt') `
+        -Value "package com.x`n`nclass MainProbe" -Encoding UTF8
     # The S1455 shape: one FQCN with a copy in every flavor, so every flavor can see it.
     foreach ($flavor in @('standard', 'lite')) {
         Set-Content -LiteralPath (Join-Path $gateRoot "app_v2/src/$flavor/java/com/x/EveryFlavorCatalog.kt") `
@@ -228,6 +230,9 @@ try {
         @{ Name = 'G2 shared test naming a same-package flavor-scoped type fails'; Path = 'test/java/com/x/SamePackageTest.kt'; Body = "package com.x`n`nclass SamePackageTest {`n    val probe = StreamProbe()`n}"; Expected = 1 }
         @{ Name = 'G3 type with a copy in every flavor passes'; Path = 'test/java/com/y/EveryFlavorTest.kt'; Body = "package com.y`n`nimport com.x.EveryFlavorCatalog`n`nclass EveryFlavorTest"; Expected = 0 }
         @{ Name = 'G4 platform type colliding on simple name passes'; Path = 'test/java/com/y/PlatformTest.kt'; Body = "package com.y`n`nimport android.view.KeyEvent`n`nclass PlatformTest"; Expected = 0 }
+        @{ Name = 'G5 narrow test home for a main subject fails'; Path = 'testStandard/java/com/y/MainProbeTest.kt'; Body = "package com.y`n`nimport com.x.MainProbe`n`nclass MainProbeTest"; Expected = 1 }
+        @{ Name = 'G6 narrow test home matching its single-flavor subject passes'; Path = 'testStandard/java/com/y/StreamProbeTest.kt'; Body = "package com.y`n`nimport com.x.StreamProbe`n`nclass StreamProbeTest"; Expected = 0 }
+        @{ Name = 'G7 same-package scoped subject overrides a misleading test file name'; Path = 'testStandard/java/com/x/MainProbeTest.kt'; Body = "package com.x`n`nclass MainProbeTest { val probe = StreamProbe() }"; Expected = 0 }
     )
 
     foreach ($case in $gateCases) {

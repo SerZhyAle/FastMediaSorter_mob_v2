@@ -1,0 +1,83 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: the usage-statistics dashboard opens from its settings row and renders its list.
+# Oracle: rvStatistics is present - the dashboard activity actually inflated its content, not just
+#   that a row was tapped.
+#
+# S1612 note, measured 2026-08-13: StatisticsActivity is NOT exported, so `am start` cannot reach
+# it - the settings row is the only entry point. And that row's visibility tracks
+# AppSettings.enableStatistics reactively (GeneralSettingsViewSetupHelper.setupStatisticsRow), so
+# on a device with collection off the row is absent from the view tree entirely. This flow therefore
+# enables collection first and only then reaches for the row; reaching for it directly would be a
+# red flow that says nothing about the product.
+
+- launchApp
+- runFlow: ../../_shared/permissions.yaml
+- runFlow: ../../_shared/go_home.yaml
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- runFlow: ../../_shared/dismiss_settings_dialogs.yaml
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/titleText"
+    timeout: 10000
+- runFlow: ../../_shared/settings_select_general_tab.yaml
+
+# The opt-in toggle lives inside the COLLAPSIBLE "System" section (headerSystem in
+# fragment_settings_general.xml), which ships collapsed. While it is collapsed the row is absent
+# from the view tree entirely, so scrolling for it can never find it - measured 2026-08-13, the
+# first version of this flow failed exactly there. Expand the section first, guarded so an
+# already-expanded section is not toggled shut.
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/headerSystem"
+    timeout: 15000
+    visibilityPercentage: 30
+    centerElement: true
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/rowEnableStatistics"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/csh_headerRow"
+          childOf:
+            id: "com.sza.fastmediasorter.debug:id/headerSystem"
+      - waitForAnimationToEnd
+
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/rowEnableStatistics"
+    timeout: 15000
+    visibilityPercentage: 30
+    centerElement: true
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/rowOpenStatistics"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/rowEnableStatistics"
+      - waitForAnimationToEnd
+
+# The row appearing is itself proof that the opt-in drives the navigation affordance.
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rowOpenStatistics"
+    timeout: 8000
+
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/rowOpenStatistics"
+
+# THE PROOF: the dashboard inflated its list. Never optional.
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/rvStatistics"
+    timeout: 10000
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/rvStatistics"
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/statisticsActionBar"
+
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

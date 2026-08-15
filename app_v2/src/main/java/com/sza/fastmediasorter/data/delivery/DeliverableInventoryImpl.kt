@@ -267,7 +267,6 @@ class DeliverableInventoryImpl @Inject constructor(
     private suspend fun isStale(set: DeliverableSet): Boolean {
         val expected = expectedStamp(set) ?: return false
         val stale = repository.isStale(set, expected)
-        Timber.d("S1483: staleness for %s -> %b (expected stamp %s)", set, stale, expected.take(STAMP_LOG_CHARS))
         return stale
     }
 

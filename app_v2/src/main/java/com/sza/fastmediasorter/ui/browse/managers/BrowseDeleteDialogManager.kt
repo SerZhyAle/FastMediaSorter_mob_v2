@@ -64,7 +64,6 @@ internal class BrowseDeleteDialogManager(
             else -> activity.getString(R.string.confirm_delete_message, fileCount)
         }
 
-        Timber.d("S1456: browse delete confirmation bound to host")
         MaterialAlertDialogBuilder(
             activity,
             R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive
@@ -116,7 +115,6 @@ internal class BrowseDeleteDialogManager(
         tvResourceInfo.text = "$resourceName\n${resource.path}"
         cbDontShowAgain.text = activity.getString(R.string.dont_show_again_for_resource)
 
-        Timber.d("S1456: browse network delete confirmation bound to host")
         MaterialAlertDialogBuilder(
             activity,
             R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive

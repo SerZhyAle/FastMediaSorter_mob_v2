@@ -13,6 +13,7 @@ import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
@@ -33,6 +34,7 @@ import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraOverlayRotationMan
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraProfilePresentation
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraSettingsCallbackHandler
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraZoomControlsManager
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraAspectSelection
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraScenario
@@ -217,8 +219,14 @@ class CameraCaptureActivity :
             if (geotagEnabled && PermissionHelper.hasLocationPermission(this@CameraCaptureActivity)) {
                 locationProvider.start(this@CameraCaptureActivity)
             }
-            sessionManager.setAspectRatioAndResolution(settings.cameraAspectRatio, sessionManager.currentResolution)
-            renderResultFrame()
+            // S1658: seeded before anything can save, so a switch never persists an empty memory
+            // over the stored one - the flow manager refuses to write until this has run.
+            flowManager.seedLensMemory(settings.cameraLensSettings)
+            sessionManager.setAspectRatioAndResolution(
+                CameraAspectSelection.fromStored(settings.cameraAspectRatio),
+                sessionManager.currentResolution,
+            )
+            applyPreviewScaleType()
         }
     }
 
@@ -348,6 +356,13 @@ class CameraCaptureActivity :
 
     override fun bindCamera() {
         sessionManager.onCapabilitiesChanged = { flowManager.onCapabilitiesChanged(it) }
+        // S1658: the session reports both ends of a lens switch; the flow manager owns what each lens
+        // remembers, and the encoded result goes straight back to settings so it outlives the screen.
+        sessionManager.onLensLeaving = { flowManager.onLensLeaving(it) }
+        sessionManager.onLensEntering = { flowManager.onLensEntering(it) }
+        flowManager.onLensMemoryChanged = { encoded ->
+            lifecycleScope.launch { helperFactory.rememberLensSettings(encoded) }
+        }
         sessionManager.bind(
             previewView = binding.previewViewCamera,
             onReady = {
@@ -399,6 +414,14 @@ class CameraCaptureActivity :
             binding.cameraZoomSlider.visibility = View.VISIBLE
             binding.cameraZoomSlider.value = flowManager.liveLinearZoom.coerceIn(0f, 1f)
             binding.cameraZoomValue.visibility = View.VISIBLE
+        } else if (!capabilities.isFront && capabilities.rearLensEquivalentFloors.size > 1) {
+            // S1675: this lens has no range of its own, so the preset row would be empty and used to
+            // disappear with it - leaving the wide lens without a marked way back. It carries one pill
+            // per rear lens instead. Slider and readout stay hidden: min == max, nothing to drag.
+            binding.cameraZoomPresetGroup.visibility = View.VISIBLE
+            zoomControlsManager.configureLensPills(capabilities)
+            binding.cameraZoomSlider.visibility = View.GONE
+            binding.cameraZoomValue.visibility = View.GONE
         } else {
             binding.cameraZoomPresetGroup.visibility = View.GONE
             binding.cameraZoomPresetGroup.removeAllViews()
@@ -406,7 +429,7 @@ class CameraCaptureActivity :
             binding.cameraZoomValue.visibility = View.GONE
         }
         rotationManager.reapply()
-        renderResultFrame()
+        applyPreviewScaleType()
     }
 
     // endregion
@@ -418,7 +441,6 @@ class CameraCaptureActivity :
      */
     private fun renderProfileButton() {
         val offered = flowManager.availableProfiles().size > 1 && !flowManager.isVideoMode
-        Timber.d("S1262: button offered=%b available=%s", offered, flowManager.availableProfiles())
         binding.btnCameraProfile.visibility = if (offered) View.VISIBLE else View.GONE
         val profile = flowManager.activeProfile
         val manual = CameraProfilePresentation.isManual(
@@ -426,7 +448,6 @@ class CameraCaptureActivity :
             sessionManager.currentExposureCompensationIndex,
             sessionManager.currentWhiteBalanceMode,
         )
-        Timber.d("S1418: profile=%s manual=%b offered=%b", profile, manual, offered)
         if (offered) {
             val description = getString(
                 R.string.camera_profile_button,
@@ -449,15 +470,6 @@ class CameraCaptureActivity :
     /** S1262: the anchored profile menu - one checkable row per profile the bound lens can honour. */
     private fun showProfileMenu() {
         val profiles = flowManager.availableProfiles()
-        val caps = flowManager.currentCapabilities
-        Timber.d(
-            "S1417: menu=%s manualSensor=%b iso=%s shutter=%s lensFacing=%d",
-            profiles,
-            caps.supportsManualSensor,
-            caps.isoRange,
-            caps.shutterRangeNs,
-            caps.activeLensFacing,
-        )
         val popup = PopupMenu(this, binding.btnCameraProfile)
         profiles.forEachIndexed { index, profile ->
             popup.menu.add(PROFILE_MENU_GROUP, index, index, CameraProfilePresentation.labelRes(profile))
@@ -475,7 +487,6 @@ class CameraCaptureActivity :
     }
 
     private fun applyProfile(profile: PhotoProfile) {
-        Timber.d("S1262: picked=%s active=%s", profile, flowManager.activeProfile)
         flowManager.onProfileSelected(profile)
         // The sport recipe trades light for a frozen frame; say so once, not on every re-pick.
         if (flowManager.activeProfile == PhotoProfile.SPORT && !sportNoticeShown) {
@@ -517,8 +528,6 @@ class CameraCaptureActivity :
         )
         gestureManager = CameraCaptureGestureManager(binding.previewViewCamera, gestureCallbackHandler)
         gestureManager.attach()
-        // S1066: scale the result frame together with the preview under the soft digital zoom.
-        sessionManager.previewScaleLinkedViews = listOf(binding.resultFrameOverlay)
     }
 
     /**
@@ -562,7 +571,7 @@ class CameraCaptureActivity :
             applyCaptureModeUi()
             renderModeTabs()
             saveDestinationLabelManager.refresh()
-            renderResultFrame()
+            applyPreviewScaleType()
         }
     }
 
@@ -784,19 +793,23 @@ class CameraCaptureActivity :
     }
 
     /**
-     * S1066: shows the result frame only when the session reports a selected ratio narrower than the
-     * shown sensor frame (photo mode, 16:9 inside 4:3); hidden at 4:3 and in video mode, where the
-     * preview already equals the file. Re-run on bind, mode switch and format apply.
+     * S1658: the full-screen selection fills the screen and is saved cropped to it; the other two show
+     * the whole requested frame. Re-run on bind, mode switch and format apply, so switching the option
+     * re-shapes the preview without leaving the screen.
      */
-    private fun renderResultFrame() {
-        binding.resultFrameOverlay.visibility =
-            if (sessionManager.shouldShowResultFrame()) View.VISIBLE else View.GONE
+    private fun applyPreviewScaleType() {
+        binding.previewViewCamera.scaleType =
+            if (sessionManager.currentAspect?.cropsToScreen == true) {
+                PreviewView.ScaleType.FILL_CENTER
+            } else {
+                PreviewView.ScaleType.FIT_CENTER
+            }
     }
 
-    /** S1066: after the settings dialog applies a ratio, rebuild the result frame and remember the choice. */
+    /** S1658: after the settings dialog applies a shape, re-scale the preview and remember the choice. */
     private fun handleAspectRatioApplied() {
-        renderResultFrame()
-        val value = sessionManager.currentAspectRatio ?: 0
+        applyPreviewScaleType()
+        val value = (sessionManager.currentAspect ?: CameraAspectSelection.DEFAULT).storedValue
         lifecycleScope.launch { helperFactory.rememberAspectRatio(value) }
     }
 }

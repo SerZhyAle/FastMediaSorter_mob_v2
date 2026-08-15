@@ -31,11 +31,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +44,7 @@ import androidx.core.content.getSystemService
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
 import com.sza.fastmediasorter.ui.settings.WearSyncUiState
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -58,10 +59,12 @@ class BeamAnimationDialog : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val composeView = ComposeView(requireContext()).apply {
             setContent {
-                BeamDialogContent(
-                    viewModel = viewModel,
-                    onDismiss = { dismissAllowingStateLoss() }
-                )
+                FastMediaSorterComposeTheme {
+                    BeamDialogContent(
+                        viewModel = viewModel,
+                        onDismiss = { dismissAllowingStateLoss() }
+                    )
+                }
             }
         }
         return Dialog(requireContext()).apply {

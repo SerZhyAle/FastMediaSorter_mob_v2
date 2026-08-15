@@ -1,39 +1,35 @@
 package com.sza.fastmediasorter.wear.ui.player.audio
 
-import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
+import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
+import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
+import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.SendFavoritesDeltaUseCase
-import com.sza.fastmediasorter.wear.util.SmbCacheEvictor
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.File
-import java.io.FileOutputStream
 import javax.inject.Inject
 
 /**
@@ -44,29 +40,31 @@ import javax.inject.Inject
 class AudioPlayerViewModel @Inject constructor(
     private val mediaRepository: WearMediaRepository,
     private val selectedMediaManager: SelectedMediaManager,
-    private val smbDataSource: SmbDataSource,
+    private val playbackSetManager: PlaybackSetManager,
+    private val downloadNetworkFile: DownloadNetworkFileUseCase,
     private val exoPlayer: ExoPlayer,
     private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
     private val favoritesRepository: WearFavoritesRepository,
     private val sendFavoritesDeltaUseCase: SendFavoritesDeltaUseCase,
-    savedStateHandle: SavedStateHandle,
-    @ApplicationContext private val context: Context
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
-    companion object {
-        private const val SMB_AUDIO_CACHE_CAP_BYTES = 100L * 1024 * 1024
-    }
 
     private val _uiState = MutableStateFlow(AudioPlayerUiState())
     val uiState: StateFlow<AudioPlayerUiState> = _uiState.asStateFlow()
 
     private val _isFavorite = MutableStateFlow(false)
     val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
-    
+
     private val fileId: Long = savedStateHandle.get<Long>("fileId") ?: -1L
-    
+
     private var progressUpdateJob: Job? = null
-    
+
+    /**
+     * S1683: the selection this screen was opened with, kept only when it is a network one, so paging
+     * re-enters the download path with the same source id instead of a bare uri.
+     */
+    private var networkSelection: SelectedMedia? = null
+
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _uiState.update { it.copy(isPlaying = isPlaying) }
@@ -104,13 +102,17 @@ class AudioPlayerViewModel @Inject constructor(
             }
         }
     }
-    
+
     init {
         Timber.d("AudioPlayerViewModel initialized with fileId: $fileId")
         exoPlayer.addListener(playerListener)
 
         // Auto-load if fileId is valid (from SavedStateHandle)
         if (fileId != -1L) {
+            // S1683: navigation carries the id alone, so the shared set has to be pointed at it here
+            // before any paging call can answer - same as the image viewer does.
+            playbackSetManager.moveTo(fileId)
+            syncSetPosition()
             loadAudioFile()
         }
 
@@ -126,109 +128,116 @@ class AudioPlayerViewModel @Inject constructor(
             }
         }
     }
-    
+
     private fun loadAudioFile() {
         Timber.d("Loading audio file with fileId: $fileId")
         loadMediaFile()
     }
-    
+
+    /**
+     * S1683: move to the neighbouring file of the same browsed set without returning to the list.
+     * A set that cannot answer leaves the current file playing rather than stopping on nothing.
+     */
+    fun skipToNext() {
+        val next = playbackSetManager.next() ?: return
+        playFile(next)
+    }
+
+    fun skipToPrevious() {
+        val previous = playbackSetManager.previous() ?: return
+        playFile(previous)
+    }
+
+    /**
+     * S1683: plays a file the set moved to through the same two branches first open uses - a network
+     * file re-enters the download path carrying the source id its selection held, a local one goes
+     * straight to its MediaStore uri. Reusing the branches is what keeps paging and first open from
+     * drifting apart.
+     */
+    private fun playFile(file: WearMediaFile) {
+        exoPlayer.stop()
+        exoPlayer.clearMediaItems()
+        _uiState.update {
+            it.copy(mediaFile = file, currentPositionMs = 0, durationMs = 0, error = null)
+        }
+        val selection = networkSelection
+        if (selection != null) {
+            viewModelScope.launch {
+                loadNetworkAudio(selection.copy(file = file, streamUri = file.uri.toString()))
+            }
+        } else {
+            playLocalFile(file)
+        }
+        syncSetPosition()
+    }
+
+    /** S1683: keeps the position marker in step with the set on first open and on every page. */
+    private fun syncSetPosition() {
+        val set = playbackSetManager.currentSet.value ?: return
+        _uiState.update { it.copy(setIndex = set.index, setSize = set.files.size) }
+    }
+
+    private fun playLocalFile(file: WearMediaFile) {
+        exoPlayer.setMediaItem(MediaItem.fromUri(file.uri))
+        exoPlayer.prepare()
+        exoPlayer.playWhenReady = true
+    }
+
     private fun loadMediaFile() {
         viewModelScope.launch {
-            // First, check if we have a selected file from SelectedMediaManager (SMB source)
+            // First, check if we have a selected file from SelectedMediaManager (network source)
             val selectedMedia = selectedMediaManager.getSelectedFileById(fileId)
-            
+
             if (selectedMedia != null && selectedMedia.isNetworkSource) {
-                // SMB file - need to download first for ExoPlayer
-                Timber.d("Loading SMB audio: ${selectedMedia.file.name}")
-                loadSmbAudio(selectedMedia.streamUri, selectedMedia.file.name)
+                // S1684: publish the file into ui state before downloading. The screen renders
+                // `mediaFile?.name ?: "Unknown"`, and this branch used to pass the name onwards
+                // without ever storing it, so every network track was titled "Unknown" while a
+                // local one showed its name. SelectedMediaManager carries this object precisely
+                // because MediaStore cannot answer for network sources.
+                _uiState.update { it.copy(mediaFile = selectedMedia.file) }
+                // S1683: remembered so paging can re-enter the download path with the same source id.
+                networkSelection = selectedMedia
+                Timber.d("Loading network audio: ${selectedMedia.file.name}")
+                loadNetworkAudio(selectedMedia)
             } else {
                 // Local file - use MediaStore
                 val file = mediaRepository.getMediaFileById(fileId, MediaType.MUSIC)
                 if (file != null) {
                     _uiState.update { it.copy(mediaFile = file) }
                     checkFavoriteState(sourceId = "local", filePath = file.uri.toString())
-                    val mediaItem = MediaItem.fromUri(file.uri)
-                    exoPlayer.setMediaItem(mediaItem)
-                    exoPlayer.prepare()
-                    exoPlayer.playWhenReady = true
+                    playLocalFile(file)
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = "File not found") }
                 }
             }
         }
     }
-    
+
     /**
-     * Load SMB audio file by downloading it to cache and playing from there.
+     * Play a network audio file from its cached copy - ExoPlayer cannot read a remote InputStream
+     * directly. S1687: which protocol that download speaks is the use case's decision, not this
+     * screen's; this view model used to call SMB unconditionally and broke every other source.
      */
-    private suspend fun loadSmbAudio(filePath: String, fileName: String) {
+    private suspend fun loadNetworkAudio(selected: SelectedMedia) {
+        Timber.d("S1687: network audio entry sourceId=${selected.sourceId} uri=${selected.streamUri}")
         _uiState.update { it.copy(isLoading = true) }
-        
-        withContext(Dispatchers.IO) {
-            try {
-                Timber.d("Downloading SMB audio: $filePath")
-                
-                // Get file stream from SMB
-                val streamResult = smbDataSource.getFileStream(filePath)
-                
-                streamResult.fold(
-                    onSuccess = { inputStream ->
-                        // Create temp file in cache directory
-                        val cacheDir = File(context.cacheDir, "smb_audio")
-                        cacheDir.mkdirs()
-                        
-                        // Use hash of file path for unique filename
-                        val tempFileName = "${filePath.hashCode()}_$fileName"
-                        val tempFile = File(cacheDir, tempFileName)
-                        
-                        Timber.d("Saving to temp file: ${tempFile.absolutePath}")
-                        
-                        // Copy stream to file
-                        inputStream.use { input ->
-                            FileOutputStream(tempFile).use { output ->
-                                input.copyTo(output)
-                            }
-                        }
-                        
-                        Timber.d("SMB audio downloaded, size: ${tempFile.length()} bytes")
 
-                        // S0902: bound unbounded cache growth - each distinct SMB file adds a
-                        // new temp file that was never deleted before this fix.
-                        SmbCacheEvictor.evictOldestUntilUnderCap(
-                            cacheDir = cacheDir,
-                            keep = tempFile,
-                            capBytes = SMB_AUDIO_CACHE_CAP_BYTES
-                        )
-
-                        // Play from temp file on main thread
-                        withContext(Dispatchers.Main) {
-                            val mediaItem = MediaItem.fromUri(android.net.Uri.fromFile(tempFile))
-                            exoPlayer.setMediaItem(mediaItem)
-                            exoPlayer.prepare()
-                            _uiState.update { it.copy(isLoading = false) }
-                            exoPlayer.playWhenReady = true
-                        }
-                    },
-                    onFailure = { e ->
-                        Timber.e(e, "Failed to download SMB audio")
-                        withContext(Dispatchers.Main) {
-                            _uiState.update { 
-                                it.copy(isLoading = false, error = "Failed to load: ${e.message}") 
-                            }
-                        }
-                    }
-                )
-            } catch (e: Exception) {
-                Timber.e(e, "Exception loading SMB audio")
-                withContext(Dispatchers.Main) {
-                    _uiState.update { 
-                        it.copy(isLoading = false, error = "Error: ${e.message}") 
-                    }
+        downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.AUDIO).fold(
+            onSuccess = { cachedFile ->
+                val mediaItem = MediaItem.fromUri(Uri.fromFile(cachedFile))
+                exoPlayer.setMediaItem(mediaItem)
+                exoPlayer.prepare()
+                _uiState.update { it.copy(isLoading = false) }
+                exoPlayer.playWhenReady = true
+            },
+            onFailure = { e ->
+                _uiState.update {
+                    it.copy(isLoading = false, error = "Failed to load: ${e.message}")
                 }
             }
-        }
+        )
     }
-    
+
     fun togglePlayPause() {
         if (exoPlayer.isPlaying) {
             exoPlayer.pause()
@@ -250,29 +259,29 @@ class AudioPlayerViewModel @Inject constructor(
         exoPlayer.seekTo(positionMs)
         _uiState.update { it.copy(currentPositionMs = positionMs) }
     }
-    
+
     fun seekForward() {
         val newPosition = (exoPlayer.currentPosition + 10_000).coerceAtMost(exoPlayer.duration)
         seekTo(newPosition)
     }
-    
+
     fun seekBackward() {
         val newPosition = (exoPlayer.currentPosition - 10_000).coerceAtLeast(0)
         seekTo(newPosition)
     }
-    
+
     private fun startProgressUpdates() {
         progressUpdateJob?.cancel()
         progressUpdateJob = viewModelScope.launch {
             while (isActive && exoPlayer.isPlaying) {
-                _uiState.update { 
-                    it.copy(currentPositionMs = exoPlayer.currentPosition.coerceAtLeast(0)) 
+                _uiState.update {
+                    it.copy(currentPositionMs = exoPlayer.currentPosition.coerceAtLeast(0))
                 }
                 delay(500)
             }
         }
     }
-    
+
     private fun stopProgressUpdates() {
         progressUpdateJob?.cancel()
         progressUpdateJob = null

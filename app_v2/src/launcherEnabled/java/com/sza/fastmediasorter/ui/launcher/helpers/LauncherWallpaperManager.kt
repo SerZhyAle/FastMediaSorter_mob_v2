@@ -58,7 +58,6 @@ class LauncherWallpaperManager(
     }
 
     private fun render(wallpaper: LauncherWallpaper) {
-        Timber.d("S1101: wallpaper render %s", wallpaper)
         when (wallpaper) {
             is LauncherWallpaper.None -> {
                 clearImage()

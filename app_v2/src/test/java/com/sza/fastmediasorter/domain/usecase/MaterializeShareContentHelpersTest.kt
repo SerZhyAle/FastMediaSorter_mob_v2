@@ -18,10 +18,19 @@ class MaterializeShareContentHelpersTest {
     }
 
     @Test
-    fun `http and local are not downloadable in this iteration`() {
-        assertFalse(MaterializeShareContentUseCase.isDownloadableScheme("https://x/y"))
-        assertFalse(MaterializeShareContentUseCase.isDownloadableScheme("http://x/y"))
+    fun `direct http and https are downloadable, local paths are not`() {
+        assertTrue(MaterializeShareContentUseCase.isDownloadableScheme("https://x/y"))
+        assertTrue(MaterializeShareContentUseCase.isDownloadableScheme("http://x/y"))
         assertFalse(MaterializeShareContentUseCase.isDownloadableScheme("/local/path"))
+    }
+
+    @Test
+    fun `streaming manifests stay on the failure path`() {
+        assertFalse(MaterializeShareContentUseCase.isDownloadableScheme("https://x/live.m3u8"))
+        assertFalse(MaterializeShareContentUseCase.isDownloadableScheme("https://x/stream.mpd"))
+        assertFalse(MaterializeShareContentUseCase.isDownloadableScheme("http://x/smooth.ism"))
+        assertFalse(MaterializeShareContentUseCase.isDownloadableScheme("https://x/LIVE.M3U8?token=1"))
+        assertTrue(MaterializeShareContentUseCase.isDownloadableScheme("https://x/clip.mp4?m3u8=no"))
     }
 
     @Test

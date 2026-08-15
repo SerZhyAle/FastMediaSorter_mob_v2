@@ -3,6 +3,17 @@
 #
 # Element matching: prefer the Android resource-id entry name (id: "btnNext" matches
 # ...:id/btnNext) or visible text. Source handles from mobile_list_elements_on_screen.
+#
+# ORACLE CONVENTION - three prohibitions, enforced by scripts/quality/assert-maestro-oracle.ps1.
+# Authoritative text: maestro/WRITING_TESTS.md, section "Oracle convention".
+#   1. No `optional: true` on an assertion that proves the behaviour. It is allowed on a
+#      navigation tap whose target genuinely varies (a permission dialog, a skippable
+#      onboarding page) - never on assertVisible/assertNotVisible that is the point of the test.
+#   2. No regex in a selector (`id: ".*next.*"`). Maestro does not reliably match it, so the
+#      step silently never fires. Use the exact id entry name or exact visible text.
+#   3. No coordinate tap (`point: "50%,50%"`) standing in for a real assertion.
+# A flow that breaks these can be green while proving nothing - that is how the earlier
+# generation of flows became fictitious.
 appId: com.sza.fastmediasorter.debug
 ---
 # Deterministic start: reset app data so the flow does not depend on prior state.
@@ -33,6 +44,14 @@ appId: com.sza.fastmediasorter.debug
 #       - tapOn:
 #           id: "REPLACE_next_id"
 
-# Final assertion - the success state of the scenario.
+# Final assertion - the success state of the scenario. This is the proof: never optional,
+# never a regex. Prefer extendedWaitUntil when the operation needs time to settle.
 - assertVisible:
     id: "REPLACE_success_marker_id"
+
+# Crash guard - mandatory last step (oracle rule 3). Proves the scenario did not end in a crash.
+# This exact string is the house standard used by every flow in maestro/ - the system crash
+# prompt on a ru-locale device. Do not invent an English equivalent: it would never match, and
+# the guard would silently pass on a real crash.
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"

@@ -269,7 +269,6 @@ class ScreenVideoRecordingService : Service() {
     // recovers to a "not saved" state with a correct-level log, so a broad catch here is intentional.
     @Suppress("TooGenericExceptionCaught")
     private suspend fun saveRecording(tempFile: File) {
-        Timber.d("S1354: screen recording local destination save")
         var savedName: String? = null
         try {
             val settings = settingsRepository.get().getSettings().first()
@@ -408,7 +407,6 @@ class ScreenVideoRecordingService : Service() {
 
     /** Rebuilt (not re-started) on every pause/resume toggle so the action label tracks live state. */
     private fun buildNotification(paused: Boolean): Notification {
-        Timber.d("S1399: screen video-recording notification built with the branded status-bar icon")
         val stopPending = servicePendingIntent(ACTION_STOP, requestCode = 0)
         val pauseResumeAction = if (paused) {
             NotificationCompat.Action(

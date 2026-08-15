@@ -142,7 +142,6 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
     private suspend fun osIconRes(target: OsShortcutCatalog.Target): Int {
         val radio = target.radio ?: return target.iconRes
         val isOn = radioControl.state(radio).first()
-        Timber.d("S1441: panel tile %s resolved with state=%s", target.key, isOn)
         return when {
             isOn != false -> target.iconRes
             radio == RadioKind.WIFI -> R.drawable.ic_wifi_off

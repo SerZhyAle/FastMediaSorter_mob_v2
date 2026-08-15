@@ -14,4 +14,5 @@ metadata:
 - Build the batch as a ForEach loop with try/catch around each call: `try { & 'dev/CATALOG/scripts/set.ps1' ... } catch { Write-Warning "Skipped: $($_.Exception.Message)" }` - one missing path then skips instead of aborting the rest.
 - Pass `-Path` in the catalog's relative form starting from the Kotlin package root (`com/sza/fastmediasorter/...`), NOT the repo-root form (`app_v2/src/main/java/com/sza/...`) - the wrong form throws the same "No record found" error.
 - `-Status` is a closed enum: `new,tested,legacy,todo,unknown`. Words like `active` fail validation.
-- Confirmed S0002 Wave 47 (2026-05-17).
+- There is **no `-Class` parameter**. The record is selected by `-Path` alone, so a file declaring several classes has all of its records updated together - you cannot set a role for one class in a multi-class file.
+- Confirmed S0002 Wave 47 (2026-05-17); `-Class` absence re-confirmed S1651 (2026-08-14).

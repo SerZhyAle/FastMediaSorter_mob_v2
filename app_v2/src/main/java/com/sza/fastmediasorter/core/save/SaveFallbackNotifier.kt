@@ -57,7 +57,6 @@ class SaveFallbackNotifier @Inject constructor(
     fun notifyBackground(folderLabel: String, resourceName: String) {
         val text = context.getString(R.string.save_fallback_resource_unavailable, folderLabel, resourceName)
         ensureChannel()
-        Timber.d("S1399: save-fallback notification built with the branded status-bar icon")
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentText(text)

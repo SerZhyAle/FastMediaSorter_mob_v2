@@ -185,7 +185,6 @@ internal class AddResourceConnectionManager(
     }
 
     private fun showGoogleDriveSignedInOptions(accountEmail: String) {
-        Timber.d("S1456: add-resource connection dialog bound to host")
         AlertDialog.Builder(activity)
             .setTitle(R.string.google_drive)
             .setMessage(R.string.msg_already_authenticated)

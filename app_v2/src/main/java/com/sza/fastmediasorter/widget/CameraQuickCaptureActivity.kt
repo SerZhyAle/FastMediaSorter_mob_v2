@@ -6,9 +6,6 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.data.capture.CameraCaptureSaver
-import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -27,9 +24,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class CameraQuickCaptureActivity : AppCompatActivity() {
 
-    @Inject lateinit var settingsRepository: SettingsRepository
-    @Inject lateinit var cameraCaptureSaver: CameraCaptureSaver
-    @Inject lateinit var fileOperationHandler: UnifiedFileOperationHandler
+    @Inject lateinit var launchManagerFactory: CameraQuickCaptureLaunchManagerFactory
 
     private lateinit var launchManager: CameraQuickCaptureLaunchManager
 
@@ -50,12 +45,9 @@ class CameraQuickCaptureActivity : AppCompatActivity() {
             finish()
             return
         }
-        launchManager = CameraQuickCaptureLaunchManager(
+        launchManager = launchManagerFactory.create(
             activity = this,
             appWidgetId = appWidgetId,
-            settingsRepository = settingsRepository,
-            cameraCaptureSaver = cameraCaptureSaver,
-            fileOperationHandler = fileOperationHandler,
             coroutineScope = lifecycleScope,
             requestPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },
             launchCapture = { intent -> captureLauncher.launch(intent) },

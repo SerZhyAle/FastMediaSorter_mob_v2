@@ -14,6 +14,9 @@ data class BrowseState(
     // S1584: files that exist but the active size filter removed. Lets the empty state say why the
     // list is empty instead of asserting the folder was checked and holds nothing.
     val filteredOutCount: Int = 0,
+    // S1696: files that exist but a globally switched-off media type removed. The resource still has
+    // the type checked, so without this the empty state could not point at the setting responsible.
+    val typeGatedOutCount: Int = 0,
     val selectedFiles: Set<String> = emptySet(),
     val lastSelectedPath: String? = null,
     val sortMode: SortMode = SortMode.NAME_ASC,

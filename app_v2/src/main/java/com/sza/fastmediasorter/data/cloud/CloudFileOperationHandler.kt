@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.transfer.AtomicFileOperationStrategy
 import com.sza.fastmediasorter.data.transfer.BaseFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
-import com.sza.fastmediasorter.data.transfer.adaptCloudProgress
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.data.transfer.strategy.CloudOperationStrategy
@@ -26,7 +25,6 @@ import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
-import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -68,6 +66,19 @@ class CloudFileOperationHandler @Inject constructor(
 
     private val pathUtils = CloudFileOperationPathUtils(cloudPathParser)
     private val cloudToCloud = CloudToCloudTransferHelper(context, cloudPathParser, cloudAuthHelper)
+
+    // Built here rather than injected: every collaborator it needs is already a parameter above, and the
+    // constructor is long enough that widening it again buys nothing. The class is stateless, so the
+    // instance Hilt hands to share materialization and this one are interchangeable (S0494).
+    private val cloudDownloadUseCase = CloudDownloadUseCase(
+        context = context,
+        smbClient = smbClient,
+        sftpClient = sftpClient,
+        ftpClient = ftpClient,
+        cloudPathParser = cloudPathParser,
+        networkCredentialsResolver = networkCredentialsResolver,
+        cloudAuthHelper = cloudAuthHelper
+    )
 
     private val cloudStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
         CloudOperationStrategy(context, googleDriveClient, dropboxClient, oneDriveClient, stagingDir, stagingRegistry, destinationClassifier, destinationWriter),
@@ -180,7 +191,7 @@ class CloudFileOperationHandler @Inject constructor(
                 // S0266: announce current file to progress UI before the blocking download starts.
                 progressCallback?.onFileStarted(index + 1, fileName, operation.sources.size)
 
-                val success = downloadFromCloudTo(
+                val success = cloudDownloadUseCase.downloadToPublic(
                     cloudPath = source.path,
                     destPath = destinationPath,
                     fileName = fileName,
@@ -325,7 +336,7 @@ class CloudFileOperationHandler @Inject constructor(
                 progressCallback?.onFileStarted(index + 1, fileName, operation.sources.size)
 
                 // 1. Download
-                val success = downloadFromCloudTo(
+                val success = cloudDownloadUseCase.downloadToPublic(
                     cloudPath = source.path,
                     destPath = destinationPath,
                     fileName = fileName,
@@ -462,298 +473,12 @@ class CloudFileOperationHandler @Inject constructor(
         cloudPath: String,
         destPath: String,
         fileName: String,
-    ): Boolean = downloadFromCloudTo(
+    ): Boolean = cloudDownloadUseCase.downloadToPublic(
         cloudPath = cloudPath,
         destPath = destPath,
         fileName = fileName,
         progressCallback = null,
     )
-
-    /** Universal cloud->any download. [destPath] may be local, smb://, sftp://, or ftp://. */
-    private suspend fun downloadFromCloudTo(
-        cloudPath: String,
-        destPath: String,
-        fileName: String,
-        progressCallback: ByteProgressCallback? = null
-    ): Boolean {
-        val normalizedDestPath = normalizeNetworkPath(destPath)
-        Timber.d("downloadFromCloudTo: $cloudPath → $normalizedDestPath (orig: $destPath)")
-        // S0266: build a scope bound to the current suspend context so the cloud progress adapter
-        // can launch onProgress emissions concurrently with the download stream.
-        val downloadScope = kotlinx.coroutines.CoroutineScope(kotlin.coroutines.coroutineContext)
-        val cloudProgressEmitter = adaptCloudProgress(progressCallback, downloadScope)
-
-        val pathInfo = cloudPathParser.parseCloudPath(cloudPath)
-        if (pathInfo == null) {
-            Timber.e("downloadFromCloudTo: Failed to parse cloud path: $cloudPath")
-            return false
-        }
-
-        // S0266: defensive metadata fetch. If the caller passed a bare fileId (no extension, fits the cloud-id charset), look up the real display-name from the provider so the final file lands with the correct name and MIME-derivable extension.
-        val bareIdPattern = Regex("^[A-Za-z0-9_-]{20,}$")
-        val resolvedFileName = if (bareIdPattern.matches(fileName)) {
-            val metadataResult = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
-                client.getFileMetadata(pathInfo.fileId)
-            }
-            when (metadataResult) {
-                is CloudResult.Success -> metadataResult.data.name.takeIf { it.isNotBlank() } ?: fileName
-                else -> {
-                    fileName
-                }
-            }
-        } else {
-            fileName
-        }
-
-        // Download to temp file first
-        val tempFile = File.createTempFile("cloud_download_", ".tmp", context.cacheDir)
-        try {
-            val downloadResult = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
-                val resourceKey = "cloud://${pathInfo.provider}"
-                val bufferSize = ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
-
-                // Use BufferedOutputStream for performance
-                val outputStream = java.io.BufferedOutputStream(tempFile.outputStream(), bufferSize)
-                val result = client.downloadFile(pathInfo.fileId, outputStream, cloudProgressEmitter)
-                outputStream.close()
-                result
-            }
-
-            if (downloadResult !is CloudResult.Success) {
-                val errorMsg = (downloadResult as? CloudResult.Error)?.message ?: "Re-authentication failed"
-                Timber.e("downloadFromCloudTo: Download failed - $errorMsg")
-                return false
-            }
-
-            // Determine destination type and write
-            val destType = getResourceType(normalizedDestPath)
-            return when (destType) {
-                    ResourceType.LOCAL -> {
-                        // Move temp file to local destination
-                        if (!tempFile.exists()) {
-                            Timber.w("downloadFromCloudTo: downloaded temp copy vanished before cloud->local transfer")
-                            return false
-                        }
-                        val localFile = File(normalizedDestPath, resolvedFileName)
-                        localFile.parentFile?.mkdirs()
-                        // Move (rename) instead of copy so only one full copy ever exists on the volume:
-                        // copying held the temp and the destination simultaneously, doubling the peak
-                        // footprint and filling the cache volume when large cloud APKs are classified.
-                        // renameTo is atomic and same-volume only; fall back to copy across volumes.
-                        if (localFile.exists()) {
-                            localFile.delete()
-                        }
-                        if (!tempFile.renameTo(localFile)) {
-                            try {
-                                tempFile.copyTo(localFile, overwrite = true)
-                            } catch (e: java.io.IOException) {
-                                Timber.w(e, "downloadFromCloudTo: cloud->local transfer failed")
-                                // Drop any partially written destination so a truncated file is not
-                                // left behind or later mistaken for a valid copy.
-                                localFile.delete()
-                                return false
-                            }
-                        }
-                        Timber.i("downloadFromCloudTo: SUCCESS - wrote to local ${localFile.absolutePath}")
-                        MediaStoreNotifier.notifyFile(context, localFile.absolutePath, "cloud-download")
-                        true
-                    }
-                    ResourceType.SMB -> {
-                        // Upload to SMB
-                        if (!tempFile.exists()) {
-                            Timber.w("downloadFromCloudTo: downloaded temp copy vanished before cloud->SMB transfer")
-                            return false
-                        }
-                        val credentials = networkCredentialsResolver.getCredentials(normalizedDestPath)
-                        if (credentials == null) {
-                            Timber.e("downloadFromCloudTo: No credentials for SMB path $normalizedDestPath")
-                            return false
-                        }
-                        val prefix = "smb://${credentials.server}/${credentials.shareName}"
-                        val remotePath = normalizedDestPath.removePrefix(prefix).removePrefix("/")
-                        val remoteFilePath = if (remotePath.isEmpty()) resolvedFileName else "$remotePath/$resolvedFileName"
-
-                        val uploadResult = try {
-                            smbClient.uploadFile(
-                                networkCredentialsResolver.run { credentials.toSmbConnectionInfo() },
-                                remoteFilePath,
-                                tempFile.inputStream(),
-                                tempFile.length(),
-                                progressCallback
-                            )
-                        } catch (e: java.io.IOException) {
-                            Timber.w(e, "downloadFromCloudTo: cloud->SMB transfer failed")
-                            return false
-                        }
-
-                    when (uploadResult) {
-                        is SmbResult.Success -> {
-                            Timber.i("downloadFromCloudTo: SUCCESS - uploaded to SMB $remoteFilePath")
-                            true
-                        }
-                        is SmbResult.Error -> {
-                            Timber.e("downloadFromCloudTo: SMB upload failed - ${uploadResult.message}")
-                            false
-                        }
-                    }
-                }
-                ResourceType.SFTP -> {
-                    // Upload to SFTP
-                    if (!tempFile.exists()) {
-                        Timber.w("downloadFromCloudTo: downloaded temp copy vanished before cloud->SFTP transfer")
-                        return false
-                    }
-                    val credentials = networkCredentialsResolver.getCredentials(normalizedDestPath)
-                    if (credentials == null) {
-                        Timber.e("downloadFromCloudTo: No credentials for SFTP path $normalizedDestPath")
-                        return false
-                    }
-                    val remotePath = extractSftpRemotePath(normalizedDestPath, credentials)
-                    val remoteFilePath = if (remotePath.isEmpty() || remotePath == "/") resolvedFileName else "$remotePath/$resolvedFileName"
-
-                    val uploadResult = try {
-                        sftpClient.uploadFile(
-                            networkCredentialsResolver.run { credentials.toSftpConnectionInfo() },
-                            remoteFilePath,
-                            tempFile.inputStream(),
-                            tempFile.length()
-                        )
-                    } catch (e: java.io.IOException) {
-                        Timber.w(e, "downloadFromCloudTo: cloud->SFTP transfer failed")
-                        return false
-                    }
-
-                    uploadResult.fold(
-                        onSuccess = {
-                            Timber.i("downloadFromCloudTo: SUCCESS - uploaded to SFTP $remoteFilePath")
-                            true
-                        },
-                        onFailure = { e ->
-                            Timber.e("downloadFromCloudTo: SFTP upload failed - ${e.message}")
-                            false
-                        }
-                    )
-                }
-                ResourceType.FTP -> {
-                    // Upload to FTP
-                    if (!tempFile.exists()) {
-                        Timber.w("downloadFromCloudTo: downloaded temp copy vanished before cloud->FTP transfer")
-                        return false
-                    }
-                    val credentials = networkCredentialsResolver.getCredentials(normalizedDestPath)
-                    if (credentials == null) {
-                        Timber.e("downloadFromCloudTo: No credentials for FTP path $normalizedDestPath")
-                        return false
-                    }
-
-                    // Connect to FTP
-                    val connectResult = ftpClient.connect(
-                        host = credentials.server,
-                        port = credentials.port,
-                        username = credentials.username,
-                        password = credentials.password
-                    )
-
-                    if (connectResult.isFailure) {
-                        Timber.e("downloadFromCloudTo: FTP connection failed - ${connectResult.exceptionOrNull()?.message}")
-                        return false
-                    }
-
-                    try {
-                        val remotePath = extractFtpRemotePath(normalizedDestPath, credentials)
-                        val remoteFilePath = if (remotePath.isEmpty() || remotePath == "/") resolvedFileName else "$remotePath/$resolvedFileName"
-
-                        val uploadResult = try {
-                            ftpClient.uploadFile(
-                                remoteFilePath,
-                                tempFile.inputStream(),
-                                tempFile.length(),
-                                progressCallback
-                            )
-                        } catch (e: java.io.IOException) {
-                            Timber.w(e, "downloadFromCloudTo: cloud->FTP transfer failed")
-                            return false
-                        }
-
-                        if (uploadResult.isSuccess) {
-                            Timber.i("downloadFromCloudTo: SUCCESS - uploaded to FTP $remoteFilePath")
-                            true
-                        } else {
-                            Timber.e("downloadFromCloudTo: FTP upload failed - ${uploadResult.exceptionOrNull()?.message}")
-                            false
-                        }
-                    } finally {
-                        ftpClient.disconnect()
-                    }
-                }
-                ResourceType.CLOUD -> {
-                    Timber.e("downloadFromCloudTo: Cannot download cloud to cloud, use copyCloudToCloud")
-                    false
-                }
-                ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
-                    throw IllegalArgumentException("Cannot download to an internet stream destination: $destType")
-            }
-        } finally {
-            tempFile.delete()
-        }
-    }
-
-    /** Download cloud file to a local [localFile]. */
-    private suspend fun downloadFromCloud(
-        cloudPath: String,
-        localFile: File,
-        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
-    ): File? {
-        Timber.d("downloadFromCloud: $cloudPath → ${localFile.absolutePath}")
-
-        val pathInfo = cloudPathParser.parseCloudPath(cloudPath)
-        if (pathInfo == null) {
-            Timber.e("downloadFromCloud: Failed to parse cloud path: $cloudPath")
-            return null
-        }
-
-        val tempFile = File.createTempFile("cloud_download_", ".tmp", context.cacheDir)
-
-        return try {
-            val result = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
-                val resourceKey = "cloud://${pathInfo.provider}"
-                val bufferSize = ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
-
-                val outputStream = java.io.BufferedOutputStream(tempFile.outputStream(), bufferSize)
-                val downloadResult = client.downloadFile(pathInfo.fileId, outputStream, null)
-                outputStream.close()
-                downloadResult
-            }
-
-            when (result) {
-                is CloudResult.Success -> {
-                    if (!tempFile.exists()) {
-                        Timber.w("downloadFromCloud: downloaded temp copy vanished before local transfer")
-                        return null
-                    }
-                    localFile.parentFile?.mkdirs()
-                    try {
-                        tempFile.copyTo(localFile, overwrite = true)
-                    } catch (e: java.io.IOException) {
-                        Timber.w(e, "downloadFromCloud: local transfer failed")
-                        return null
-                    }
-                    Timber.i("downloadFromCloud: SUCCESS - ${tempFile.length()} bytes written to ${localFile.name}")
-                    localFile
-                }
-                is CloudResult.Error -> {
-                    Timber.e("downloadFromCloud: FAILED - ${result.message}")
-                    null
-                }
-                null -> {
-                    Timber.e("downloadFromCloud: Re-authentication failed or cancelled")
-                    null
-                }
-            }
-        } finally {
-            tempFile.delete()
-        }
-    }
 
     /** Universal any->cloud upload via temp file (OOM-safe). [sourcePath] may be local, smb://, sftp://, ftp://. */
     private suspend fun uploadToCloudFromPath(
@@ -975,7 +700,6 @@ class CloudFileOperationHandler @Inject constructor(
                         )
                     }
                 }
-                Timber.d("S1361: upload attempt $attempt of $UPLOAD_MAX_ATTEMPTS for $fileName")
                 if (!isRetriableUploadFailure(result) || attempt == UPLOAD_MAX_ATTEMPTS) break
                 Timber.w("uploadToCloudFromPath: attempt $attempt/$UPLOAD_MAX_ATTEMPTS failed for $fileName, retrying")
                 delay(UPLOAD_RETRY_DELAYS_MS[attempt - 1])

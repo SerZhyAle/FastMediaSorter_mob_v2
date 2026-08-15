@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.welcome
 
 import android.content.res.ColorStateList
-import android.content.res.Configuration
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,7 +29,6 @@ import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.welcome.holders.FunctionalityPageViewHolder
 import com.sza.fastmediasorter.ui.welcome.holders.PermissionsPageViewHolder
 import com.sza.fastmediasorter.ui.welcome.holders.ProfilesPageViewHolder
-import timber.log.Timber
 
 class WelcomePagerAdapter(
     private val pages: List<WelcomePage>,
@@ -182,14 +180,6 @@ class WelcomePagerAdapter(
             binding.tvHint?.text = HtmlCompat.fromHtml(
                 binding.root.context.getString(com.sza.fastmediasorter.R.string.welcome_default_player_hint),
                 HtmlCompat.FROM_HTML_MODE_LEGACY
-            )
-
-            val res = binding.root.context.resources
-            Timber.d(
-                "S1237: default player page bound, swDp=%d, landscape=%b, capPx=%d",
-                res.configuration.smallestScreenWidthDp,
-                res.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE,
-                res.getDimensionPixelSize(R.dimen.welcome_content_max_width)
             )
 
             animateEntrance(binding.ivIcon, 0L)

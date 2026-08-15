@@ -64,7 +64,6 @@ class HudLegendController(
      */
     fun dismiss(): Boolean {
         if (!isVisible) return false
-        Timber.d("S1223: legend dismissed by controller input")
         isVisible = false
         releaseBuffers()
         onDismissed()

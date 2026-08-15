@@ -84,7 +84,6 @@ class HudPlaybackController(
             val player = exoPlayer ?: return@post
             val duration = player.duration
             if (duration == C.TIME_UNSET || duration <= 0L) {
-                Timber.d("S1240: seek skipped, duration unknown")
                 return@post
             }
             player.seekTo(resolve(player, duration).coerceIn(0L, duration))

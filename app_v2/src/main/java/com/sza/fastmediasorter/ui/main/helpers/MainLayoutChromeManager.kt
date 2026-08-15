@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
@@ -25,97 +26,185 @@ class MainLayoutChromeManager(
     private val activity: AppCompatActivity,
     private val binding: ActivityMainBinding,
     private val isResourceGridMode: () -> Boolean,
-    private val onControlBarFreeWidth: (Int) -> Unit = {}
+    private val onControlBarFreeWidth: (Int) -> Unit = {},
+    private val onOverflowChanged: () -> Unit = {}
 ) {
 
     private var gridSpacingDecoration: RecyclerView.ItemDecoration? = null
     private var compactElementsEnabled = false
 
-    // S1443: a chip relocated into the bar is a passenger, not a command - counting it in the fit
-    // sum would let it push btnStartPlayer out, which is the S0972 rule's decision alone to make.
-    private val inlineChipIds = setOf(
-        R.id.chipProgramsCollapsed,
-        R.id.chipStreamsCollapsed,
-        R.id.chipFilterCollapsed
-    )
+    /** Command ids the last plan pushed off the bar and into the "⋮" menu. */
+    private var overflowedIds: Set<Int> = emptySet()
+
+    /** Commands a feature toggle has switched off; never candidates, never shown. */
+    private val ineligibleCommandIds = mutableSetOf<Int>()
+
+    fun isOverflowed(viewId: Int): Boolean = viewId in overflowedIds
+
+    fun hasOverflow(): Boolean = overflowedIds.isNotEmpty()
+
+    /** Command id to label resource, in bar order - the "⋮" menu builds its entries from this list. */
+    val commandLabels: List<Pair<Int, Int>>
+        get() = commandCells.map { (button, labelRes) -> button.id to labelRes }
+
+    /**
+     * S1672: report whether a command is switched on at all (Favorites has a settings toggle).
+     * Eligibility is held here rather than read back from view visibility, because this class's own
+     * eviction writes the same GONE and would otherwise be mistaken for a feature gate - the Browse
+     * bar learned that in S0374. Recomputes only when the answer actually changes.
+     */
+    fun setCommandEligible(viewId: Int, eligible: Boolean) {
+        val changed = if (eligible) {
+            ineligibleCommandIds.remove(viewId)
+        } else {
+            ineligibleCommandIds.add(viewId)
+        }
+        if (changed) applyControlBarOverflow()
+    }
 
     /** Show or hide text labels on toolbar buttons depending on orientation. */
     fun updateToolbarButtonLabels(config: Configuration) {
         val isWide = config.isWideLayout()
         Timber.d("updateToolbarButtonLabels: isWide=$isWide")
-
-        if (isWide) {
-            binding.btnExit.text = activity.getString(R.string.exit)
-            binding.btnAddResource.text = activity.getString(R.string.add)
-            binding.btnFilter.text = activity.getString(R.string.search)
-            binding.btnRefresh.text = activity.getString(R.string.refresh)
-            binding.btnSettings.text = activity.getString(R.string.settings)
-            binding.btnToggleView.text = activity.getString(R.string.toggle_view)
-            binding.btnFavorites.text = activity.getString(R.string.favorites)
-            binding.btnStartPlayer.text = activity.getString(R.string.slideshow)
-        } else {
-            binding.btnExit.text = null
-            binding.btnAddResource.text = null
-            binding.btnFilter.text = null
-            binding.btnRefresh.text = null
-            binding.btnSettings.text = null
-            binding.btnToggleView.text = null
-            binding.btnFavorites.text = null
-            binding.btnStartPlayer.text = null
-        }
+        applyLabels(isWide)
         applyControlBarOverflow()
     }
 
     /**
-     * S0972: the control bar is a non-wrapping horizontal row; on a narrow screen (or in label mode)
-     * the buttons can overflow and the last one is clipped. Owner directive 2026-07-06: when the full
-     * set does not fit, sacrifice the last button (Start Player) so the rest stay reachable. Measured
-     * (not a static width bucket) because the visible-button count varies (Menu/Toggle can be GONE).
-     * Restored to VISIBLE and re-measured whenever labels/compact change (setup + rotation).
+     * S0972 / S1672: the control bar is a non-wrapping horizontal row, so a button that does not fit
+     * is simply clipped by the parent. The fit is measured rather than bucketed by width, because the
+     * visible-button count varies (Menu/Toggle can be GONE) and the wide layout turns every label on
+     * at once, which is the widest the row ever gets.
      *
-     * S1443: collapsed-panel chips relocated into the bar are excluded from the fit sum, and the
-     * width left after every command has fitted is reported through [onControlBarFreeWidth]. A bar
-     * that overflows reports zero free width, so no chip can move in while a command is being cut.
+     * S1672 replaced the 2026-07-06 rule of sacrificing one named button: labels come off the whole
+     * row first, and only if icon-only still does not fit are commands evicted from the right edge,
+     * as many as the shortfall requires. Every evicted command stays reachable in the "⋮" menu, whose
+     * anchor is therefore reserved out of the budget instead of competing for it.
+     *
+     * S1443: collapsed-panel chips are passengers, not commands, so they are not candidates and never
+     * enter the fit sum; the width left over is reported through [onControlBarFreeWidth], and a bar
+     * that evicted anything reports zero, so no chip moves in while a command is being cut.
      */
     fun applyControlBarOverflow() {
         val bar = binding.layoutControlButtons
         bar.doOnLayout {
             val available = bar.width - bar.paddingStart - bar.paddingEnd
-            if (available <= 0) return@doOnLayout
-            // Reset first so the fit decision is made against the full button set, not a prior GONE.
-            binding.btnStartPlayer.visibility = View.VISIBLE
-            val widthSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-            val heightSpec = View.MeasureSpec.makeMeasureSpec(bar.height, View.MeasureSpec.AT_MOST)
-            var needed = 0
+            if (available > 0) applyControlBarPlan(bar, available)
+        }
+    }
+
+    private fun applyControlBarPlan(bar: ViewGroup, availableWidthPx: Int) {
+        val cells = commandCells.filterNot { (button, _) -> button.id in ineligibleCommandIds }
+        // Reset first so the fit decision is made against the full eligible set, not a prior eviction.
+        commandCells.forEach { (button, _) ->
+            button.visibility = if (button.id in ineligibleCommandIds) View.GONE else View.VISIBLE
+        }
+        val labelsPreferred = activity.resources.configuration.isWideLayout()
+        val candidates = measureCandidates(bar, cells, labelsPreferred)
+        // The anchor is measured even while GONE: an eviction can summon it at any moment, and a
+        // reserved slot that goes unused only leaves the row wider than it had to be.
+        val reservedPx = measuredWidthOf(binding.layoutMainDropdownMenu, bar)
+        val plan = MainCommandBarPlanner.plan(
+            availableWidthPx = availableWidthPx,
+            reservedWidthPx = reservedPx,
+            labelsPreferred = labelsPreferred,
+            candidates = candidates
+        )
+        applyLabels(plan.labelsVisible)
+        cells.forEach { (button, _) ->
+            button.visibility = if (button.id in plan.visibleIds) View.VISIBLE else View.GONE
+        }
+        reportFreeWidth(availableWidthPx - reservedPx, candidates, plan)
+        publishOverflow(plan)
+        healProbeMeasurements(bar)
+        restitchControlBarFocusChain()
+    }
+
+    /** The evictable commands in bar order; the "⋮" wrapper between Refresh and Settings is the anchor. */
+    private val commandCells: List<Pair<MaterialButton, Int>> by lazy {
+        listOf(
+            binding.btnExit to R.string.exit,
+            binding.btnAddResource to R.string.add,
+            binding.btnFilter to R.string.search,
+            binding.btnRefresh to R.string.refresh,
+            binding.btnSettings to R.string.settings,
+            binding.btnToggleView to R.string.toggle_view,
+            binding.btnFavorites to R.string.favorites,
+            binding.btnStartPlayer to R.string.slideshow
+        )
+    }
+
+    private fun applyLabels(visible: Boolean) {
+        commandCells.forEach { (button, labelRes) ->
+            button.text = if (visible) activity.getString(labelRes) else null
+        }
+    }
+
+    /**
+     * Both label modes are measured in one pass: the planner cannot choose the icon-only rollback
+     * without knowing what the row costs without its labels.
+     */
+    private fun measureCandidates(
+        bar: ViewGroup,
+        cells: List<Pair<MaterialButton, Int>>,
+        labelsPreferred: Boolean
+    ): List<CommandCandidate> {
+        applyLabels(labelsPreferred)
+        val labelled = cells.map { (button, _) -> measuredWidthOf(button, bar) }
+        val iconOnly = if (labelsPreferred) {
+            applyLabels(false)
+            cells.map { (button, _) -> measuredWidthOf(button, bar) }
+        } else {
+            labelled
+        }
+        return cells.mapIndexed { index, (button, _) ->
+            CommandCandidate(button.id, labelled[index], iconOnly[index])
+        }
+    }
+
+    private fun measuredWidthOf(view: View, bar: ViewGroup): Int {
+        view.measure(
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            View.MeasureSpec.makeMeasureSpec(bar.height, View.MeasureSpec.AT_MOST)
+        )
+        val lp = view.layoutParams as? ViewGroup.MarginLayoutParams
+        return view.measuredWidth + (lp?.marginStart ?: 0) + (lp?.marginEnd ?: 0)
+    }
+
+    private fun reportFreeWidth(
+        budgetPx: Int,
+        candidates: List<CommandCandidate>,
+        plan: CommandBarPlan
+    ) {
+        val consumed = candidates.filter { it.viewId in plan.visibleIds }
+            .sumOf { if (plan.labelsVisible) it.labelledWidthPx else it.iconOnlyWidthPx }
+        onControlBarFreeWidth(if (plan.overflowIds.isEmpty()) budgetPx - consumed else 0)
+    }
+
+    private fun publishOverflow(plan: CommandBarPlan) {
+        val next = plan.overflowIds.toSet()
+        if (next != overflowedIds) {
+            overflowedIds = next
+            onOverflowChanged()
+        }
+    }
+
+    /**
+     * S1258: the probe measure() above overwrites each child's measured size with its preferred one.
+     * TextView centers TEXT against getMeasuredHeight() while compound-drawable ICONS center against
+     * the real height, so a stale probe leaves labels riding (height-measuredHeight)/2 px high (4px
+     * at 48dp, 8px at 56dp buttons). Heal via post: this block can run inside a layout pass
+     * (doOnLayout), where an inline requestLayout gets superseded by later re-probes; a posted
+     * forceLayout+requestLayout runs after the frame settles and the follow-up pass re-measures with
+     * true specs (proven on-device: measuredHeight 40->56). S1672 measures twice, which doubles the
+     * exposure this heal covers.
+     */
+    private fun healProbeMeasurements(bar: ViewGroup) {
+        bar.post {
             for (i in 0 until bar.childCount) {
-                val child = bar.getChildAt(i)
-                if (child.visibility == View.GONE || child.id in inlineChipIds) continue
-                child.measure(widthSpec, heightSpec)
-                val lp = child.layoutParams as? ViewGroup.MarginLayoutParams
-                needed += child.measuredWidth + (lp?.marginStart ?: 0) + (lp?.marginEnd ?: 0)
+                bar.getChildAt(i).forceLayout()
             }
-            val overflow = needed > available
-            if (overflow) {
-                binding.btnStartPlayer.visibility = View.GONE
-            }
-            val freeWidth = if (overflow) 0 else available - needed
-            Timber.d("S1443: control bar measured available=$available needed=$needed free=$freeWidth")
-            onControlBarFreeWidth(freeWidth)
-            // S1258: the probe measure() above overwrites each child's measured size with its
-            // preferred one. TextView centers TEXT against getMeasuredHeight() while
-            // compound-drawable ICONS center against the real height, so a stale probe leaves
-            // labels riding (height-measuredHeight)/2 px high (4px at 48dp, 8px at 56dp
-            // buttons). Heal via post: this block can run inside a layout pass (doOnLayout),
-            // where an inline requestLayout gets superseded by later re-probes; a posted
-            // forceLayout+requestLayout runs after the frame settles and the follow-up pass
-            // re-measures with true specs (proven on-device: measuredHeight 40->56).
-            bar.post {
-                for (i in 0 until bar.childCount) {
-                    bar.getChildAt(i).forceLayout()
-                }
-                bar.requestLayout()
-            }
-            restitchControlBarFocusChain()
+            bar.requestLayout()
         }
     }
 
@@ -163,7 +252,10 @@ class MainLayoutChromeManager(
         val btnH = res.getDimensionPixelSize(
             if (compact) R.dimen.control_button_size_compact else R.dimen.control_button_size
         )
-        binding.layoutControlButtons.setPadding(0, barPad, 0, barPad)
+        // S1672: horizontal padding carries the system-bar insets (see applyEdgeToEdgeInsets), so
+        // compact mode changes the vertical padding only and must not zero the sides.
+        val bar = binding.layoutControlButtons
+        bar.setPadding(bar.paddingLeft, barPad, bar.paddingRight, barPad)
         for (i in 0 until binding.layoutControlButtons.childCount) {
             val child = binding.layoutControlButtons.getChildAt(i)
             val lp = child.layoutParams
@@ -248,6 +340,21 @@ class MainLayoutChromeManager(
      * so it re-requests insets after the initial dispatch was already missed.
      */
     fun applyEdgeToEdgeInsets() {
+        // S1672: the app draws edge to edge, so the bar's own width runs under the landscape
+        // navigation bar - the row then measures as fitting while its last label sits behind the
+        // system strip. Padding the bar by the horizontal bars + cutout insets is what makes
+        // "available width" mean usable width, and the planner is re-run because that budget changed.
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.layoutControlButtons) { view, insets ->
+            val safe = insets.getInsets(
+                androidx.core.view.WindowInsetsCompat.Type.systemBars() or
+                    androidx.core.view.WindowInsetsCompat.Type.displayCutout()
+            )
+            view.setPadding(safe.left, view.paddingTop, safe.right, view.paddingBottom)
+            applyControlBarOverflow()
+            insets
+        }
+        androidx.core.view.ViewCompat.requestApplyInsets(binding.layoutControlButtons)
+
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.rvResources) { view, insets ->
             val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
             view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, navBar.bottom)

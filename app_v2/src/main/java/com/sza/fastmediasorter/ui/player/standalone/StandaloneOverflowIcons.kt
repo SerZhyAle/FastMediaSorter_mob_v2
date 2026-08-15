@@ -19,7 +19,6 @@ private const val OVERFLOW_ICON_TINT = Color.DKGRAY
 fun PopupMenu.applyStandaloneOverflowIcons() {
     setForceShowIcon(true)
     tintMenuIcons(menu)
-    timber.log.Timber.d("S1407: standalone overflow icons enabled, ${menu.size()} top-level items")
 }
 
 private fun tintMenuIcons(menu: android.view.Menu) {

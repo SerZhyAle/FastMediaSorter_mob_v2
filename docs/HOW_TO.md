@@ -31,6 +31,9 @@ Some features are only available in specific flavors. The table below is derived
 | EPUB reader | ✓ | ✗ | ✗ | ✓ | ✓ |
 | Translation & OCR | ✓ | ✗ | ✗ | ✓ | ✓ |
 | Image editing | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Home-screen (launcher) mode | ✓ | ✗ | ✗ | ✗ | ✓ |
+
+Home-screen mode is the one row where the combined last column splits: it ships in the **noLegal** sideload build but not in the VR/XR build, where the headset provides its own home environment.
 
 Two rows for audio, because these are two separate build decisions: **Lite plays local audio files** including lyrics, but stops when the app leaves the foreground - it has no background playback service. Lite has no Internet Streams screen at all, so radio and HLS/DASH/RTSP are not merely limited there, they are absent.
 
@@ -89,6 +92,9 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 34. [Find and Delete Duplicate Files](#how-to-find-and-delete-duplicate-files)
 35. [View Your Usage Statistics](#how-to-view-your-usage-statistics)
 36. [Use an SD Card or Connected Drive](#how-to-use-an-sd-card-or-connected-drive)
+37. [Use the App as Your Home Screen](#how-to-use-the-app-as-your-home-screen)
+38. [Choose Where Captures and Downloads Are Saved](#how-to-choose-where-captures-and-downloads-are-saved)
+39. [Receive Files Shared from Another App](#how-to-receive-files-shared-from-another-app)
 
 ---
 
@@ -156,18 +162,18 @@ These sections are intentionally more varied than the core reference blocks belo
 
 ## OpenXR VR Immersive Cinema
 
-**Available in:** Standard, Lite, Legacy, `vr`, noLegal (single-eye 3D); `noLegal` only (full headset immersion - the `vr` build ships the VR source set but declares `SUPPORT_VR_PLAYER = false`, so it does not enter the immersive view yet)
+**Available in:** Standard, Lite, Legacy, `vr`, noLegal (single-eye 3D); `vr` and noLegal (full headset immersion - both builds ship the immersive view, and it opens when the app detects an OpenXR headset and the VR master switch is on)
 
 **Quick Path - enable, configure, watch 3D**
 
 1. **Single-eye 3D (every flavor, nothing to enable):** open any SBS/OU/180°/360° file - it's auto-detected and cropped to one eye so it looks right on a normal flat screen. This is controlled by **Settings > Playback > "Show 3D content from one eye"** (default ON). To force a specific format instead of relying on auto-detect, open the player's Control dialog on a `vr`/XR-noLegal build and pick a mode from the 3D tab - **Auto-detect**, **Side-by-Side (SBS)**, **Over-Under (OU)**, or **Mono (Disabled)**; the choice is remembered for that file.
-2. **Full immersion on a Quest (XR/noLegal sideload build only):** with the headset on, tap the VR badge in the player while a 3D file is open, choose **Open in VR Cinema** from a file's overflow menu in Browse, or open **Settings > Media** and tap **Test Immersive** to try a sample. Any of the three opens a per-eye OpenXR view of that content.
+2. **Full immersion on a Quest (`vr` or XR/noLegal build):** with the headset on, tap the VR badge in the player while a 3D file is open, choose **Open in VR Cinema** from a file's overflow menu in Browse, or open **Settings > Media** and tap **Test Immersive** to try a sample. Any of the three opens a per-eye OpenXR view of that content.
 3. **Watch:** inside the immersive view a HUD strip carries the controls - a position bar you drag with the controller ray to seek (elapsed and total time beside it), plus the pickers that apply to this file: audio track only when there is more than one, subtitles only when the file has them, stereo depth only for stereo content. **HIDE** and **EXIT** sit at opposite ends of the strip; hiding it removes it completely and a trigger pull brings it back without activating whatever is underneath. The thumbstick seeks 10 seconds a step; hold **grip** while pushing it to step between files instead - next and previous walk the whole resource list, not just the file you opened. On the first immersive entry after install a legend lists every controller binding; any press closes it, and the **HELP** button on the strip brings it back at any time.
 
 **Scenario Walkthrough**
 
 - Single-eye 3D needs no headset at all - it's the easiest way to revisit old SBS/OU footage on a phone or tablet.
-- Full immersion needs the XR/noLegal sideload build (see the [VR Sideloading Guide](VR_SIDELOAD.md)) and a Quest or other OpenXR headset - the Meta Horizon Store / Google Play `vr` build does not have it wired up yet.
+- Full immersion needs a Quest or other OpenXR headset and a build that ships it - the `vr` build or the XR/noLegal sideload build (see the [VR Sideloading Guide](VR_SIDELOAD.md)).
 - 360°/180° photos and video render as a sphere/hemisphere around you once inside the immersive view; flat 2D files just play flat.
 
 **When It Helps**
@@ -867,6 +873,8 @@ When subfolders are shown as separate items in the list, a folder row behaves li
 
 **Cancelling:** a folder transfer shows progress and can be stopped. Whatever was already written stays at the destination - check the folder before starting again. A move deletes each source item only after its copy succeeded, so nothing is lost in between.
 
+**Sending it to the background:** you do not have to sit and watch the progress dialog. Dismiss it and the transfer keeps running, staying visible in Browse as a strip along the bottom showing the operation, the percentage and the file it is on right now. Tap that strip to bring the full progress dialog back, cancel included.
+
 ---
 
 ## How to Empty Trash
@@ -962,6 +970,7 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
   - **Double-tap:** Reset zoom.
   - **Zoom carries over:** The next page opens at the zoom and position you were reading at; double-tap brings the whole page back.
 - **Pan:** Drag to move around when zoomed in.
+- **Select text by long-pressing (Android 15+):** press and hold a word to select it straight from the page's own text layer - no OCR pass, no waiting. If the same word appears several times on the page, the one under your finger is selected, not the first one. Drag the handles to extend the selection, then copy or translate it.
 
 ---
 
@@ -1121,6 +1130,45 @@ Automatically translate text from images, PDF, and text files using a **Hybrid O
 
 ---
 
+## How to Use the App as Your Home Screen
+
+FastMediaSorter can replace your device's home screen with its own desktop - shortcuts to your resources, gadgets, an app grid and a taskbar. This is launcher mode, and it is available in the **Standard** and **noLegal** builds only.
+
+**Turning it on:**
+
+1. Open **Settings → General** and turn on **Make this app the home screen**. On a brand-new install you can also flip **Use as home screen** on the welcome screen instead.
+2. Android asks which home screen to use. Pick FastMediaSorter and tap **Always**, or **Just once** if you want to try it first.
+3. Press Home. The app's desktop appears, already seeded with roughly a dozen useful shortcuts so it is not an empty grid on day one.
+
+**What lives on the desktop:**
+
+| Cell type | What it does |
+|-----------|--------------|
+| Resource shortcut | Opens a folder you added - and you choose whether it opens in browse, slideshow or play mode |
+| Gadget | Clock with seconds (tap for alarms), weather for a place you name, and others |
+| App shortcut | Starts any installed app; long-press lists that app's own quick actions |
+| Contact cell | Opens a person's card, calls them, sends an SMS, or opens their messenger conversation |
+| App widget | The same widgets the app offers for the Android home screen, placed here instead |
+
+**Arranging it:**
+
+- Long-press empty desktop space to enter edit mode. If you share the device, a lock in launcher settings disables that gesture so the layout cannot be rearranged by accident.
+- In edit mode, drag a gadget's handle to resize it, from its seed size up to the full screen.
+- The desktop scrolls when the shortcuts run past the bottom of the screen, with a scrollbar down the right edge.
+- **Settings → General → System launcher settings** holds the rest: grid density, the taskbar at the bottom (recent and pinned apps), the top bar, and the wallpaper - the branded animation, a static striped frame, an empty surface, or your own image.
+- The launcher can also replace the Android status bar with its own clock, network and battery indicators, if you prefer to keep everything in one place.
+
+**Tips:**
+
+- Other apps can pin their own shortcuts to this desktop, exactly as they would to any other launcher.
+- Launcher settings carry a reset button that returns the desktop, taskbar and top bar to the as-installed state without touching the rest of your settings.
+
+**Going back:**
+
+Choose **Exit launcher mode** from the launcher menu, or turn the setting off. Android restores your previous home screen. Your desktop layout is kept, so turning the mode on again brings it back as you left it.
+
+---
+
 ## How to Use FMS on Android TV Box
 
 FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, generic Android boxes). No touchscreen required - the app is fully operable via TV remote or Bluetooth keyboard.
@@ -1211,8 +1259,9 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 1. In Browse, open the toolbar or overflow menu and tap **Capture with camera** (photo) or **Record video**.
 2. Switch between **Photo** and **Video** right on the camera screen if you change your mind.
 3. Set your zoom with a preset chip (0.5x/1x/2x..) or the slider underneath - both stay in sync.
-4. Tap the shooting-scenario button to pick how the shot is taken - normal, night, portrait, selfie, macro or sport. Macro jumps to the dedicated close-focus lens, selfie flips to the front camera, sport keeps the exposure short so motion freezes. Only the scenarios your device can actually deliver are listed, the active one is named on the button, and changing the lens by hand returns the camera to normal.
-5. Tap the shutter (or the record button) to capture. The result saves straight to the resource - local or network - you were browsing.
+4. Tap the aspect button to shape the frame - **4:3**, **16:9** or **Full screen**. The viewfinder itself changes, so what you see is what the saved photo will be, and the choice is remembered next time you open the camera (16:9 until you change it).
+5. Tap the shooting-scenario button to pick how the shot is taken - normal, night, portrait, selfie, macro or sport. Macro jumps to the dedicated close-focus lens, selfie flips to the front camera, sport keeps the exposure short so motion freezes. Only the scenarios your device can actually deliver are listed, the active one is named on the button, and changing the lens by hand returns the camera to normal.
+6. Tap the shutter (or the record button) to capture. The result saves straight to the resource - local or network - you were browsing.
 
 **Tips:**
 
@@ -1284,6 +1333,39 @@ A memory card or a USB drive the phone has mounted holds resources exactly like 
 **When the medium is ejected:** its resources are marked unavailable rather than removed. Connect the card again and they work without being set up a second time.
 
 **On Android 6:** the system does not report mounted volumes to apps, so the removable section stays empty on those devices.
+
+---
+
+## How to Choose Where Captures and Downloads Are Saved
+
+Photos from the in-app camera, screenshots, snapshots and auto-downloaded files each write to a folder you pick, and that folder does not have to be one of your resources.
+
+**Steps:**
+
+1. Open the setting for what you are saving - capture, screenshot, snapshot or auto-download.
+2. Choose the destination folder. The system folder browser opens, so you can point at any local folder, including one you have never added to the app.
+3. That folder becomes the write destination for that setting only. It stays out of your general resource list, so picking a scratch folder for screenshots does not clutter the main screen.
+
+**Tips:**
+
+- Each of the four settings has its own destination - screenshots and camera photos can land in completely different places.
+- Pointing several of them at one folder is fine if you would rather have everything in a single spot.
+
+---
+
+## How to Receive Files Shared from Another App
+
+Any app's share sheet can send files to FastMediaSorter, which then copies them where you want.
+
+**Steps:**
+
+1. In the other app, share the file or files and pick **FastMediaSorter**.
+2. Choose the destination folder in the receive screen.
+3. Start the copy.
+
+**You do not have to wait for it.** The copy keeps running after the receive screen closes, with a notification showing progress while it works and a result notification when it finishes. Leave the app, lock the device, carry on - the transfer is not tied to that screen staying open.
+
+Available in the Standard, Lite, Photos and Legacy builds.
 
 ---
 

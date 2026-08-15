@@ -56,7 +56,6 @@ class MainCollapsedChipsPlacementManager(
         }
         collapsedRow.isVisible = rowNeeded
         lastInlineIds = inlineIds
-        Timber.d("S1443: placement wide=$wideLayout free=$freeWidthPx inline=$inlineIds row=$rowNeeded")
         if (moved) {
             onPlacementChanged()
         }

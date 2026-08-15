@@ -26,29 +26,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.ui.BaseActivity
-import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
-import com.sza.fastmediasorter.data.cloud.DropboxClient
-import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
-import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
-import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
-import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
-import com.sza.fastmediasorter.data.network.SmbClient
-import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
-import com.sza.fastmediasorter.data.remote.ftp.FtpClient
-import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
-import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
-import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
 import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
@@ -75,14 +60,14 @@ import com.sza.fastmediasorter.ui.player.helpers.btnEpubToc
 import com.sza.fastmediasorter.ui.player.helpers.btnPdfHome
 import com.sza.fastmediasorter.ui.player.helpers.btnPdfNextPage
 import com.sza.fastmediasorter.ui.player.helpers.btnPdfPrevPage
+import com.sza.fastmediasorter.ui.player.standalone.StandaloneFileOpsCallbacks
+import com.sza.fastmediasorter.ui.player.standalone.StandaloneHostFactory
 import com.sza.fastmediasorter.ui.player.standalone.applyStandaloneOverflowIcons
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -139,50 +124,32 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     }
 
     private val fileOperations: StandaloneFileOperationsHandler by lazy {
-        StandaloneFileOperationsHandler(
+        standaloneHostFactory.createFileOperationsHandler(
             activity = this,
             root = binding.root,
-            getCurrentMediaFile = { viewModel.state.value.mediaFile },
-            resolveOpenInFmsTarget = resolveOpenInFmsTargetUseCase,
-            onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
-            updateAudioMediaItem = { newUri -> viewManager.updateAudioMediaItem(newUri) },
-            batchDeleteLauncher = batchDeleteLauncher,
-            recoverableDeleteLauncher = recoverableDeleteLauncher,
-            sendToMenuManager = sendToMenuManager,
-            getCurrentSettings = { settingsRepository.getSettings().first() },
-            fileOperationUseCase = fileOperationUseCase,
-            getDestinationsUseCase = getDestinationsUseCase,
-            onPickCustomFolderForCopy = {
-                pendingCopyToCustomFolder = true
-                customPathPickerLauncher.launch(null)
-            },
+            callbacks = StandaloneFileOpsCallbacks(
+                getCurrentMediaFile = { viewModel.state.value.mediaFile },
+                onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
+                updateAudioMediaItem = { newUri -> viewManager.updateAudioMediaItem(newUri) },
+                batchDeleteLauncher = batchDeleteLauncher,
+                recoverableDeleteLauncher = recoverableDeleteLauncher,
+                onPickCustomFolderForCopy = {
+                    pendingCopyToCustomFolder = true
+                    customPathPickerLauncher.launch(null)
+                },
+            ),
         )
     }
 
-    // Standalone opens local/content URIs far more often than network paths, so these heavy
-    // collaborators stay behind dagger.Lazy until a network-only flow actually needs them.
-    @Inject lateinit var smbClient: Lazy<SmbClient>
-    @Inject lateinit var sftpClient: Lazy<SftpClient>
-    @Inject lateinit var ftpClient: Lazy<FtpClient>
-    @Inject lateinit var googleDriveClient: Lazy<GoogleDriveRestClient>
-    @Inject lateinit var dropboxClient: Lazy<DropboxClient>
-    @Inject lateinit var oneDriveClient: Lazy<OneDriveRestClient>
-    @Inject lateinit var credentialsRepository: Lazy<NetworkCredentialsRepository>
-    @Inject lateinit var smbFileOperationHandler: Lazy<SmbFileOperationHandler>
-    @Inject lateinit var sftpFileOperationHandler: Lazy<SftpFileOperationHandler>
-    @Inject lateinit var ftpFileOperationHandler: Lazy<FtpFileOperationHandler>
-    @Inject lateinit var cloudFileOperationHandler: Lazy<CloudFileOperationHandler>
-    @Inject lateinit var unifiedCache: Lazy<UnifiedFileCache>
-    @Inject lateinit var settingsRepository: SettingsRepository
-    @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
+    // S1329: the repositories, use cases and network collaborators this host used to field-inject now
+    // live behind the factory, which builds each manager itself (Rule 3). The lazy-instantiation
+    // property the old block documented survives inside it: `StandaloneNetworkClients` still holds every
+    // heavy client as `dagger.Lazy`, so a local/content URI still pays for none of them.
+    @Inject lateinit var standaloneHostFactory: StandaloneHostFactory
 
     // S0391: compile-tier capability flags; supplies the cloud-support flag to the debug logger.
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
-    @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
-    @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
-    @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
-    @Inject lateinit var getDestinationsUseCase: com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 
     // S1114: VR-immersive launch from the transport controls row, mirroring the specialized standalone
     // host so the extended StandaloneVideoControlsCallback contract is satisfied for this host too.
@@ -204,7 +171,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
     // S0667: single decision point mapping device orientation to fullscreen/command-panel mode.
     private val orientationModeManager = PlayerOrientationModeManager()
-    /** Cached from settingsRepository; updated by observeTranslationSettings(). */
+
+    /** Cached from the inherited app settings stream; updated by observeTranslationSettings(). */
     private var cachedTranslationEnabled = true
 
     /** S0763: cached 3D/VR master-toggle state; updated by observeTranslationSettings(). */
@@ -272,26 +240,12 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         }
 
         val viewManagerT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
-        viewManager = StandaloneViewManager(
+        viewManager = standaloneHostFactory.createViewManager(
             activity = this,
-            root = binding.root,
-            lifecycleScope = lifecycleScope,
-            smbClient = smbClient,
-            sftpClient = sftpClient,
-            ftpClient = ftpClient,
-            googleDriveClient = googleDriveClient,
-            dropboxClient = dropboxClient,
-            oneDriveClient = oneDriveClient,
-            credentialsRepository = credentialsRepository,
-            smbFileOperationHandler = smbFileOperationHandler,
-            sftpFileOperationHandler = sftpFileOperationHandler,
-            ftpFileOperationHandler = ftpFileOperationHandler,
-            cloudFileOperationHandler = cloudFileOperationHandler,
-            unifiedCache = unifiedCache,
-            settingsRepository = settingsRepository,
             // S0380: StandaloneViewManager is fully root-based now (document viewers decoupled),
             // so only the layout root is needed - the binding param was removed.
-            playbackPositionRepository = playbackPositionRepository
+            root = binding.root,
+            lifecycleScope = lifecycleScope
         )
         if (BuildConfig.DEBUG) Timber.d("StandalonePlayer[debug]: StandaloneViewManager() constructor done in ${SystemClock.uptimeMillis() - viewManagerT0}ms")
 
@@ -822,18 +776,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     private fun showFileInfo() {
         val file = viewModel.state.value.mediaFile ?: return
         if (isFinishing || isDestroyed) return
-        FileInfoDialog(
-            this,
-            file,
-            smbClient.get(),
-            sftpClient.get(),
-            ftpClient.get(),
-            credentialsRepository.get(),
-            unifiedCache.get(),
-            downloadNetworkFileUseCase = null,
-            audioMetadataLoader = null,
-            audioMetadataCacheRepository = null
-        ).show()
+        standaloneHostFactory.createFileInfoDialog(context = this, mediaFile = file).show()
     }
 
     // ── Delete ────────────────────────────────────────────────────────────
@@ -864,7 +807,6 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                 override fun showPlaybackControlDialog() = this@StandalonePlayerActivity.showPlaybackControlDialog()
                 // S1114: this host has no VR badge, so the transport-row button is its only VR entry point.
                 override fun onVrLaunchClicked() {
-                    Timber.d("S1114: StandalonePlayerActivity VR launch from controls row")
                     viewModel.state.value.mediaFile?.let { vrCinemaLaunchManager.launch(it) }
                 }
                 override fun isVrEntryAvailable(): Boolean =
@@ -889,10 +831,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         )
         standaloneTrackSelectionManager = trackManager
 
-        val settingsManager = StandalonePlayerSettingsManager(
+        val settingsManager = standaloneHostFactory.createSettingsManager(
             activity = this,
             playerView = pv,
-            settingsRepository = settingsRepository,
             trackSelectionManager = trackManager,
             lifecycleScope = lifecycleScope
         )
@@ -1029,9 +970,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             BuildConfig.ENABLE_TRANSLATION && cachedTranslationEnabled && isLandscape && viewManager.isEpubActive()
     }
 
-    /** Keeps [cachedTranslationEnabled] and [cached3dVrEnabled] in sync with the settings repository. */
+    /** Keeps [cachedTranslationEnabled] and [cached3dVrEnabled] in sync with the app settings stream. */
     private fun observeTranslationSettings() {
-        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+        collectOnLifecycle(appSettings) { settings ->
             cachedTranslationEnabled = settings.enableTranslation
             cached3dVrEnabled = !settings.disable3dVr
             // Re-evaluate EPUB button whenever settings change
@@ -1040,7 +981,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     }
 
     private fun observePipSettings() {
-        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+        collectOnLifecycle(appSettings) { settings ->
             val isAudio = viewModel.state.value.mediaType == MediaType.AUDIO
             pipManager?.setupPipButton(settings.enablePictureInPicture, isAudio)
         }

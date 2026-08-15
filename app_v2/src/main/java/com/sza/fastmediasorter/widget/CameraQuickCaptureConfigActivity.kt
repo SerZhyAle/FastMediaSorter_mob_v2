@@ -46,10 +46,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.databinding.ActivityCameraQuickCaptureWidgetConfigBinding
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
@@ -114,7 +115,7 @@ class CameraQuickCaptureConfigActivity : BaseActivity<ActivityCameraQuickCapture
         // Rule 18: keep the picker inside system-bar + cutout safe bounds in both orientations.
         binding.cameraWidgetConfigComposeView.applySystemBarInsetPadding()
         binding.cameraWidgetConfigComposeView.setContent {
-            MaterialTheme {
+            FastMediaSorterComposeTheme {
                 val entryPoint = EntryPointAccessors.fromApplication(
                     applicationContext,
                     CameraQuickCaptureWidgetEntryPoint::class.java

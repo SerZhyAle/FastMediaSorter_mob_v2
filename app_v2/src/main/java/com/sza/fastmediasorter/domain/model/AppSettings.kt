@@ -191,8 +191,12 @@ data class AppSettings(
     val cameraCaptureOpenForEditing: Boolean = false, // Open the captured photo in the drawing editor after saving
     val cameraCaptureCopyToClipboard: Boolean = false, // Also place a captured photo on the system clipboard (S0469)
     val cameraGeotagEnabled: Boolean = false, // S0766: opt-in GPS geotag of in-app camera photos (default off)
-    // S1066: remembered in-app camera aspect ratio (CameraX AspectRatio: 0 = 4:3 default, 1 = 16:9).
-    val cameraAspectRatio: Int = 0,
+    // S1658: remembered in-app camera frame shape - 0 = 4:3, 1 = 16:9 (default), 2 = full screen.
+    // Decoded by CameraAspectSelection, which owns what each value asks the capture pipeline for.
+    val cameraAspectRatio: Int = 1,
+    // S1658: opaque per-lens capture memory (profile plus manual values), encoded by
+    // CameraLensSettingsMemory. Not a user-editable setting - it has no settings row and gets none.
+    val cameraLensSettings: String = "",
     // S0371: video recording to resource. disableVideoCapture mirrors disableCameraCapture's inverted
     // persistence (master toggle stored as a negative flag); videoCaptureOpenInPlayer is opt-in
     // (default OFF) - after a recording is saved it optionally opens in the player, never the editor.
@@ -360,6 +364,12 @@ data class AppSettings(
     // because head units and TV boxes report unreliable densities. Desktop content itself lives in
     // Room, not here - a device profile seeds it once and never re-applies (ADR-4).
     val launcherDensityFactor: Float = 1.0f,
+    // S1643: which screen edge the whole taskbar composition is anchored to, one of
+    // [LAUNCHER_TASKBAR_PLACEMENT_OPTIONS]. Stored as a token (like [launcherWallpaperMode]) so an
+    // unknown value from a newer build degrades to the bottom edge. Defaults to the bottom edge
+    // because an update must not move an existing user's bar before the user asks for it (ADR-2);
+    // the car head unit profile overrides it to the top edge through the preset CSV.
+    val launcherTaskbarPlacement: String = LAUNCHER_TASKBAR_PLACEMENT_BOTTOM,
     val launcherTaskbarShowRecents: Boolean = true,
     val launcherTaskbarShowPinned: Boolean = true,
     val launcherTaskbarShowTray: Boolean = true,
@@ -398,6 +408,18 @@ data class AppSettings(
     companion object {
         /** S0404: selectable launcher grid densities (see [launcherDensityFactor]). */
         val LAUNCHER_DENSITY_OPTIONS = listOf(0.75f, 1.0f, 1.25f, 1.5f)
+
+        /** S1643: taskbar anchored to the bottom screen edge - the pre-S1643 layout and the default. */
+        const val LAUNCHER_TASKBAR_PLACEMENT_BOTTOM = "BOTTOM"
+
+        /** S1643: taskbar anchored to the top screen edge, below the launcher's own status strip. */
+        const val LAUNCHER_TASKBAR_PLACEMENT_TOP = "TOP"
+
+        /** S1643: placement tokens in the order the settings row offers them. */
+        val LAUNCHER_TASKBAR_PLACEMENT_OPTIONS = listOf(
+            LAUNCHER_TASKBAR_PLACEMENT_BOTTOM,
+            LAUNCHER_TASKBAR_PLACEMENT_TOP,
+        )
 
         /** S1101: branded procedural waves-and-particles animation - the default desktop wallpaper. */
         const val LAUNCHER_WALLPAPER_BRANDED = "BRANDED"

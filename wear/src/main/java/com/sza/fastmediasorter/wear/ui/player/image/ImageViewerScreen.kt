@@ -37,6 +37,8 @@ import androidx.wear.compose.material.Text
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerScaffold
+import com.sza.fastmediasorter.wear.ui.player.common.playerOverlayInsets
 import timber.log.Timber
 import kotlin.math.abs
 
@@ -55,12 +57,7 @@ fun ImageViewerScreen(
 
     Timber.d("ImageViewerScreen composing, index: ${uiState.currentIndex}")
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black),
-        contentAlignment = Alignment.Center
-    ) {
+    PlayerScaffold {
         when {
             uiState.error != null -> {
                 ErrorContent(message = uiState.error!!)
@@ -147,7 +144,9 @@ private fun ImageViewerContent(
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .background(Color.Black.copy(alpha = 0.6f))
-                .padding(8.dp),
+                // The scrim stays full-bleed; only its content is inset, so the labels at the ends
+                // of the row keep clear of the curve at the bottom of a round screen.
+                .padding(playerOverlayInsets()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // File name

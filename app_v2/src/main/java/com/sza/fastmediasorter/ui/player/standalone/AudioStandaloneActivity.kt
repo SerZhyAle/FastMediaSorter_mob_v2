@@ -17,28 +17,13 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.ui.BaseActivity
-import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
-import com.sza.fastmediasorter.data.cloud.DropboxClient
-import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
-import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
-import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
-import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
-import com.sza.fastmediasorter.data.network.SmbClient
-import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
-import com.sza.fastmediasorter.data.remote.ftp.FtpClient
-import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityStandaloneAudioBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
-import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
 import com.sza.fastmediasorter.ui.player.DefaultPlayerProbe
 import com.sza.fastmediasorter.ui.player.PlaybackControlDialogFragment
 import com.sza.fastmediasorter.ui.player.StandalonePlayerViewModel
@@ -51,11 +36,9 @@ import com.sza.fastmediasorter.ui.player.helpers.StandaloneKeyboardManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -108,53 +91,23 @@ class AudioStandaloneActivity :
         }
     }
 
-    // Standalone opens local/content URIs far more often than network paths, so these heavy
-    // collaborators stay behind dagger.Lazy until a network-only flow actually needs them.
-    @Inject lateinit var smbClient: Lazy<SmbClient>
-    @Inject lateinit var sftpClient: Lazy<SftpClient>
-    @Inject lateinit var ftpClient: Lazy<FtpClient>
-    @Inject lateinit var googleDriveClient: Lazy<GoogleDriveRestClient>
-    @Inject lateinit var dropboxClient: Lazy<DropboxClient>
-    @Inject lateinit var oneDriveClient: Lazy<OneDriveRestClient>
-    @Inject lateinit var credentialsRepository: Lazy<NetworkCredentialsRepository>
-    @Inject lateinit var smbFileOperationHandler: Lazy<SmbFileOperationHandler>
-    @Inject lateinit var sftpFileOperationHandler: Lazy<SftpFileOperationHandler>
-    @Inject lateinit var ftpFileOperationHandler: Lazy<FtpFileOperationHandler>
-    @Inject lateinit var cloudFileOperationHandler: Lazy<CloudFileOperationHandler>
-    @Inject lateinit var unifiedCache: Lazy<UnifiedFileCache>
-    @Inject lateinit var settingsRepository: SettingsRepository
-    @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
-    @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
+    // S1329: the repositories, use cases and network collaborators this host used to field-inject now live
+    // behind the factory, which builds each manager itself (Rule 3). The lazy-instantiation property the old
+    // block documented survives inside it: `StandaloneNetworkClients` still holds every heavy client as
+    // `dagger.Lazy`, so a local/content URI still pays for none of them. The lyrics lookup was the one field
+    // this host actually called, so it moved to the ViewModel instead.
+    @Inject lateinit var standaloneHostFactory: StandaloneHostFactory
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
-    @Inject lateinit var searchLyricsUseCase: com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
-    @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
-    @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
-    // S0612: global destination list (no resource context) for the Copy/Move bottom panels.
-    @Inject lateinit var getDestinationsUseCase: com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 
     // S0393 U4/U5: keyboard / D-pad layer (audio transport + paging), ported from legacy host.
     private lateinit var keyboardHandler: PlayerKeyboardHandler
 
     private val viewManager: StandaloneViewManager by lazy {
-        StandaloneViewManager(
+        // binding intentionally omitted: this trimmed layout never opens document viewers.
+        standaloneHostFactory.createViewManager(
             activity = this,
             root = binding.root,
-            lifecycleScope = lifecycleScope,
-            smbClient = smbClient,
-            sftpClient = sftpClient,
-            ftpClient = ftpClient,
-            googleDriveClient = googleDriveClient,
-            dropboxClient = dropboxClient,
-            oneDriveClient = oneDriveClient,
-            credentialsRepository = credentialsRepository,
-            smbFileOperationHandler = smbFileOperationHandler,
-            sftpFileOperationHandler = sftpFileOperationHandler,
-            ftpFileOperationHandler = ftpFileOperationHandler,
-            cloudFileOperationHandler = cloudFileOperationHandler,
-            unifiedCache = unifiedCache,
-            settingsRepository = settingsRepository,
-            playbackPositionRepository = playbackPositionRepository
-            // binding intentionally omitted: this trimmed layout never opens document viewers.
+            lifecycleScope = lifecycleScope
         )
     }
 
@@ -175,34 +128,30 @@ class AudioStandaloneActivity :
     private var folderPagingEnabled = false
 
     private val fileOperations: StandaloneFileOperationsHandler by lazy {
-        StandaloneFileOperationsHandler(
+        standaloneHostFactory.createFileOperationsHandler(
             activity = this,
             root = binding.root,
-            getCurrentMediaFile = { viewModel.state.value.mediaFile },
-            resolveOpenInFmsTarget = resolveOpenInFmsTargetUseCase,
-            onRenameComplete = ::handleRenameComplete,
-            // A SAF rename must keep the background-service playback uninterrupted.
-            updateAudioMediaItem = { newUri -> viewManager.updateAudioMediaItem(newUri) },
-            batchDeleteLauncher = batchDeleteLauncher,
-            recoverableDeleteLauncher = recoverableDeleteLauncher,
-            sendToMenuManager = sendToMenuManager,
-            getCurrentSettings = { settingsRepository.getSettings().first() },
-            fileOperationUseCase = fileOperationUseCase,
-            getDestinationsUseCase = getDestinationsUseCase,
-            onPickCustomFolderForCopy = {
-                pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
-                customPathPickerLauncher.launch(null)
-            },
+            callbacks = StandaloneFileOpsCallbacks(
+                getCurrentMediaFile = { viewModel.state.value.mediaFile },
+                onRenameComplete = ::handleRenameComplete,
+                // A SAF rename must keep the background-service playback uninterrupted.
+                updateAudioMediaItem = { newUri -> viewManager.updateAudioMediaItem(newUri) },
+                batchDeleteLauncher = batchDeleteLauncher,
+                recoverableDeleteLauncher = recoverableDeleteLauncher,
+                onPickCustomFolderForCopy = {
+                    pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
+                    customPathPickerLauncher.launch(null)
+                },
+            ),
         )
     }
 
     // S0612: Copy/Move destination panels, reusing the shared in-app manager bound to this layout root.
-    // No resource context: getCurrentResourceId returns -1 so the global destination list is shown intact.
+    // The factory supplies the global destination list - there is no resource context here, so
+    // getCurrentResourceId returns -1 and that list is shown intact.
     private val destinationButtonsManager: com.sza.fastmediasorter.ui.player.DestinationButtonsManager by lazy {
-        com.sza.fastmediasorter.ui.player.DestinationButtonsManager(
+        standaloneHostFactory.createDestinationButtons(
             root = binding.root,
-            settingsRepository = settingsRepository,
-            getDestinationsUseCase = getDestinationsUseCase,
             lifecycleScope = lifecycleScope,
             callback = object : com.sza.fastmediasorter.ui.player.DestinationButtonsManager.DestinationButtonsCallback {
                 override fun onCopyClicked(destination: MediaResource) = fileOperations.copyCurrentFileTo(destination)
@@ -280,7 +229,7 @@ class AudioStandaloneActivity :
     private fun showLyrics() {
         val file = viewModel.state.value.mediaFile ?: return
         lifecycleScope.launch {
-            val text = searchLyricsUseCase.execute(file).getOrNull()
+            val text = viewModel.findLyricsFor(file).getOrNull()
             if (!text.isNullOrBlank()) {
                 com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
                     this@AudioStandaloneActivity, title = getString(R.string.lyrics), message = text)
@@ -458,18 +407,7 @@ class AudioStandaloneActivity :
     private fun showFileInfo() {
         val file = viewModel.state.value.mediaFile ?: return
         if (isFinishing || isDestroyed) return
-        FileInfoDialog(
-            this,
-            file,
-            smbClient.get(),
-            sftpClient.get(),
-            ftpClient.get(),
-            credentialsRepository.get(),
-            unifiedCache.get(),
-            downloadNetworkFileUseCase = null,
-            audioMetadataLoader = null,
-            audioMetadataCacheRepository = null
-        ).show()
+        standaloneHostFactory.createFileInfoDialog(context = this, mediaFile = file).show()
     }
 
     private fun parseIncomingIntent() {

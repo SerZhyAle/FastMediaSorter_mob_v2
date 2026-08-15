@@ -72,8 +72,11 @@ $idAfter = New-CatalogId
 if ($idAfter -ne $idBefore) {
     Write-ArchiveCatalog -Records ([object[]]$archiveBefore)
     Exit-CatalogLock
-    Write-Error ("Aborted: purging would move the next id from $idBefore to $idAfter, " +
-        "handing a burned id back to a future ticket. Archive restored unchanged.") -ErrorAction Continue
+    # Built into a variable first so -ErrorAction stays on the Write-Error line: assert-exit-contract
+    # scans line by line, and a switch on a continuation line reads to it as a bare Write-Error (S1547).
+    $abortMsg = "Aborted: purging would move the next id from $idBefore to $idAfter, " +
+        "handing a burned id back to a future ticket. Archive restored unchanged."
+    Write-Error $abortMsg -ErrorAction Continue
     exit 3
 }
 

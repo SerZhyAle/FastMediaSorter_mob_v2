@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.domain.model.launcher
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -83,4 +85,27 @@ class LauncherCellCommandTest {
     fun `geographic command with a blank query decodes to null`() {
         assertNull(LauncherCellCommand.decode("geo:DIRECTIONS::Budapest"))
     }
+
+    /**
+     * S1616: the query a share keeps when its Maps link could not be resolved is a link, and opening
+     * it as a search term is what showed a search for the URL text instead of the place.
+     */
+    @Test
+    fun `geographic command recognises a link query`() {
+        assertTrue(showPlace("https://maps.app.goo.gl/Ep9BAYWhvoDUL7BN6").isWebLinkQuery)
+        assertTrue(showPlace("HTTP://goo.gl/maps/abc").isWebLinkQuery)
+    }
+
+    @Test
+    fun `geographic command does not mistake a place for a link`() {
+        assertFalse(showPlace("47.4979,19.0402").isWebLinkQuery)
+        assertFalse(showPlace("Lviv Opera").isWebLinkQuery)
+        assertFalse(showPlace("https-street 4").isWebLinkQuery)
+    }
+
+    private fun showPlace(query: String) = LauncherCellCommand.Geographic(
+        action = LauncherGeographicAction.SHOW_PLACE,
+        query = query,
+        label = "",
+    )
 }

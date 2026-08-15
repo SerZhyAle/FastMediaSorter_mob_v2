@@ -1,0 +1,96 @@
+# Спецификация (compact bugfix): S0859 - StandaloneViewManager - дыры release-контракта (Glide, swap видео, AudioServiceController на трек)
+
+**Ticket:** S0859
+**Status:** Archived
+**Priority:** 65
+**Date:** 2026-07-02
+**Tier:** 3 - Moderate (ad-hoc)
+
+---
+
+## 0. Захваченный материал (inbox)
+
+**Захвачено:** 2026-07-02
+
+**Текст:**
+
+Source: mass code audit 2026-07-02 (CODE_AUDIT_PROTOCOL dimensions + player-host release-contract fan-out, workflow wf_34a4d99d-fbf). Findings below are verbatim agent output (static review, evidence = quoted live code).
+
+Verification status: CONFIRMED P1, all 4 findings (2026-07-02, dedicated skeptic; findings at :380/:381 are ONE defect). Key confirmed mechanics: (a) Glide - showImage/reloadImage/showGif use Glide.with(applicationContext).into(photoView) (ApplicationLifecycle RequestManager); release() and PhotoVideoStandaloneActivity.onDestroy contain NO Glide.clear - while ImageLoadingManager.kt:211/254 and DualSurfaceStaticImageRenderer.kt:163/179 prove clear(target) is the project's working pattern for the same setup; leaked TargetTracker entry retains the destroyed activity's PhotoView. (b) playVideo() (:374-412) unconditionally builds a new ExoPlayer and new AudioFocusManager without releasing prior ones (releaseFocus() is the only abandon path and is never called on swap); trigger chain pageNext/pagePrevious/pageRandom + slideshow -> observeData path!=lastShownPath -> show() with no pre-release; playWhenReady=true so the orphan keeps playing audio behind the next photo; zero removeListener calls exist in PhotoVideoStandaloneActivity.kt. Rename re-show also triggers (path changes -> re-show same video). Legacy StandalonePlayerActivity immune via contentLoaded gate (:942/:951). (c) playAudio() (:439-456) news an AudioServiceController per shown file, overwriting the field; release() (:325-327) reaches only the current one - each orphaned controller keeps a bound ServiceConnection to AudioPlaybackService until force-unbind at activity destroy.
+
+- **[P1] app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt:343** - Glide loads bind the app-lifetime RequestManager to the activity's photoView and are never cleared, so the tracked target (and its activity context) outlives host destroy
+  - Evidence: All three image paths load via the application-context RequestManager into the host activity's ImageView: showImage() lines 343-345 'Glide.with(activity.applicationContext).load(mediaFile.path.toUri()).into(safeViews.photoView)', reloadImage() lines 355-360 and showGif() lines 366-369 (same pattern). Grep over the unit confirms no Glide.clear()/RequestManager.clear() exists anywhere: neither release() (lines 293-334) nor PhotoVideoStandaloneActivity.onDestroy() (lines 1013-1024) clears the target. An application-context RequestManager is bound to ApplicationLifecycle, so its requests are not cancelled and its TargetTracker entries are not released when the activity is destroyed - the last ViewTarget for photoView stays tracked for the process lifetime, strongly holding the destroyed activity's ImageView (and through View.mContext the activity), and an in-flight full-size decode continues after back-press. Violates contract item 9 (Glide targets in the unit cleared on detach) and the protocol Layer 3 Glide rule ('clear(target) on detach; do not bind Glide.with(activity) to a long-lived target' - here inverted: a long-lived manager bound to an activity view, the documented leak pattern). Concrete path: open any image/gif standalone -> press back -> activity destroyed while the app-scoped RequestManager still tracks its photoView; repeated opens accumulate one retained view hierarchy each. Matches the P0 retained-View pattern; kept at P1 because retention proof requires the LeakCanary rung, which a read-only audit cannot run.
+  - Fix hint: Use Glide.with(activity) (lifecycle-aware, auto-clears on destroy) for photoView loads, or add Glide.with(activity.applicationContext).clear(safeViews.photoView) to StandaloneViewManager.release().
+- **[P1] app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt:380** - playVideo() orphans the previous ExoPlayer and its AudioFocusManager on every file swap (folder paging / slideshow)
+  - Evidence: playVideo() unconditionally creates and overwrites without any teardown of the previous instance: line 380-381 `val player = ExoPlayer.Builder(activity).build()` / `exoPlayer = player`, line 384 `player.addListener(createPlayerErrorListener())`, line 385 `audioFocusManager = AudioFocusManager(activity) { isPermanent -> .. }` - the old exoPlayer is never stop()/release()d and the old AudioFocusManager never gets releaseFocus() (its AudioFocusRequest built at AudioFocusManager.kt:81-86 stays registered with AudioManager, whose listener registry retains the old player + activity). show() (line 259-277) only calls hidePhotoAndPlayerViews() (line 686-690, visibility toggles only); the only release site is release() (line 317-322), which releases solely the CURRENT exoPlayer. Concrete runtime path: PhotoVideoStandaloneActivity supports folder paging - observeData() line 814-817 `if (file.path != lastShownPath) { .. viewManager.show(file, type, onVideoReady) }` fires on every viewModel.pageNext()/pagePrevious()/pageRandom() (StandalonePlayerViewModel.kt:241-251) and on slideshow auto-advance (StandalonePlayerViewModel.kt:282-289, `while (isActive) { delay(intervalMillis); .. publishCurrentFile(next) }`), with VIDEO in hostSupportedTypes (PhotoVideoStandaloneActivity.kt:789). So paging video->video in a folder with 2+ videos orphans one fully-prepared ExoPlayer per step: its internal playback thread stays alive until release() (never called), keeping the registered error listener -> StandaloneViewManager -> `activity` reachable after host onDestroy (retained Activity); its audio keeps playing (playerView.player = newPlayer only detaches the surface) until the NEW focus request asynchronously delivers AUDIOFOCUS_LOSS to the old lambda. Paging video->image is worse: showImage() requests no focus, so the old video's audio keeps playing behind the image with focus and player held indefinitely. onDestroy releases only the last instance; all earlier orphans survive host teardown unreleased. Violates contract items 1 (orphan creation path), 4 (orphaned players' listeners never removed), 5 (old focus request not abandoned on swap) and 7 (swap-to-next-file path does not release).
+  - Fix hint: At the top of playVideo() (or in show() before routing) tear down the previous media path: stopPositionAutoSave(); audioFocusManager?.releaseFocus(); old exoPlayer -> setVideoEffects(emptyList()), clearVideoSurface(), stop(), release() (reuse the existing release() drain block, extracted to a releaseVideoPlayer() helper); alternatively reuse one ExoPlayer instance via setMediaItem(). Also stop the video lane when routing to a non-video type.
+- **[P1] app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt:381** - Swap-to-next-file never releases the previous ExoPlayer: every paged/renamed video orphans a live player (and its AudioFocusManager) that survives host teardown
+  - Evidence: playVideo() unconditionally builds a new player and overwrites the owner field without releasing the previous instance: lines 380-381 'val player = ExoPlayer.Builder(activity).build(); exoPlayer = player', and lines 385-388 overwrite 'audioFocusManager = AudioFocusManager(activity) {..}; audioFocusManager?.requestFocus()' without calling releaseFocus() on the old one. show() (lines 259-277) and hidePhotoAndPlayerViews() (lines 686-690, visibility toggles only) never stop/release the player when the next file is IMAGE/GIF, and the old player still has playWhenReady=true from line 392, so paging video->image leaves the previous video's audio playing behind the photo. release() (lines 317-323) tears down only the CURRENT 'exoPlayer' - all previously orphaned instances are unreachable to it and are never released (an unreleased ExoPlayer keeps its internal playback HandlerThread alive; release() is the only call that quits it). Reachable from the unit host on every file swap: PhotoVideoStandaloneActivity.observeData() lines 814-818 'if (file.path != lastShownPath) { .. viewManager.show(file, type, onVideoReady); lastShownPath = file.path }', driven by pageNext/pagePrevious/pageRandom/slideshow (StandalonePlayerViewModel.publishCurrentFile swaps state.mediaFile; VIDEO is host-supported via setHostSupportedTypes(IMAGE,GIF,VIDEO), activity line 789) and by rename (onRenameComplete rewrites mediaFile.path -> re-show of the same video with a new URI while the old player keeps playing). Each orphaned player also permanently retains activity-referencing listeners that are never removed (contract item 4): the error listener added at line 384 'player.addListener(createPlayerErrorListener())' (anonymous inner of the manager, which holds 'activity'), plus the anonymous tracks listener added per video in PhotoVideoStandaloneActivity.setupVideoControls() lines 970-977 'viewManager.getExoPlayer()?.addListener(object : Player.Listener {..})' with no removeListener anywhere. Violates contract items 1 (duplicate/orphan creation path), 7 (swap-to-next-file path does not release) and 4 (listeners on orphaned instances never removed). The unified host is immune only because it shows content once ('if (!contentLoaded)', StandalonePlayerActivity line 942) - this per-type host added paging on top of show-once glue, the exact family divergence the unit note warns about. Escalates toward P0 retained-Activity (orphaned player -> live playback thread -> listeners -> activity) pending LeakCanary confirmation per the evidence ladder.
+  - Fix hint: Extract a releaseCurrentVideoPlayer() that mirrors the release() block (setVideoEffects(emptyList()), clearVideoSurface(), stop(), release(), audioFocusManager?.releaseFocus()) and call it at the top of playVideo() and in show() before the IMAGE/GIF/other branches; also stop position auto-save for the old file there.
+- **[P1] app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt:444** - playAudio() creates a new AudioServiceController per audio file, orphaning the previous connected MediaController on every folder-paging step
+  - alt wording: playAudio() creates a new AudioServiceController per track and orphans the previous one - connected MediaController (bound ServiceConnection to AudioPlaybackService) is never released on swap-to-next-file
+  - alt wording: playAudio() creates a new AudioServiceController per shown file without releasing the previous one - leaked connected MediaController per audio paging step
+  - Evidence: StandaloneViewManager.kt:444-445 inside playAudio(): `val controller = AudioServiceController(activity)` / `audioServiceController = controller` - the field is overwritten with no release of the previous instance, and each controller immediately connects (`controller.playAudioWithMetadata(..)` line 452 -> connect() -> MediaController.Builder(activity, token).buildAsync(), a bound service connection to AudioPlaybackService created with the Activity context). The only release is StandaloneViewManager.release() line 325-327 (`audioServiceController?.player?.stop(); audioServiceController?.release(); audioServiceController = null`), which runs once on Activity onDestroy (AudioStandaloneActivity.kt:554-557 `viewManager.release()`) and only touches the LAST controller. Runtime path: AudioStandaloneActivity collects state and calls `viewManager.show(file, MediaType.AUDIO)` whenever `file.path != lastShownPath` (AudioStandaloneActivity.kt:519-521), and the screen supports folder paging (`pagingControls.applyState(state.supportsFolderPaging, ..)` line 525) - so every NEXT/PREV press dispatches show() -> playAudio() (StandaloneViewManager.kt:266) -> a fresh AudioServiceController, while the previous connected MediaController (holding controllerFuture, mediaController, and its bound ServiceConnection) is dropped without MediaController.releaseFuture()/release() ever being called on it. hidePhotoAndPlayerViews() (686-690) only toggles visibility. Result: unbounded accumulation of unreleased MediaController connections over an audio browsing session (one per paged file), each keeping AudioPlaybackService bound; Android force-unbinds and logs 'ServiceConnection leaked' only at Activity destroy. Violates contract items 1 (duplicate/orphan creation path) and 7 (swap-to-next-file does not release).
+  - Fix hint: In playAudio(), reuse the existing audioServiceController if non-null (it is idempotent via its isConnected guard), or call audioServiceController?.release() before assigning the new instance.
+
+Full recovered dataset: see attachments of the audit follow-up ticket (audit-mass-2026-07-02-followup).
+
+---
+
+## 1. Проблема / симптом
+
+StandaloneViewManager - дыры release-контракта (Glide, swap видео, AudioServiceController на трек). Детали и точные строки кода - в §0 (вербатим-находки аудита).
+
+---
+
+## 2. Корневая причина
+
+`StandaloneViewManager` поддерживает постраничную навигацию (paging/slideshow/rename) внутри одной активности, но её release-контракт был написан в расчёте на однократный показ (`show()` вызывается один раз за время жизни хоста). Четыре независимых дыры вокруг этого несоответствия:
+
+1. `showImage`/`reloadImage`/`showGif` грузят через `Glide.with(activity.applicationContext)` - RequestManager, привязанный к `ApplicationLifecycle`, а не к жизненному циклу активности. Ни `release()`, ни `onDestroy()` хоста никогда не вызывали `clear()` на отслеживаемом `photoView` - последний `Target` остаётся в `TargetTracker` на весь процесс, транзитивно удерживая уничтоженную активность через `View.mContext`.
+2. `playVideo()` безусловно создаёт новый `ExoPlayer` и новый `AudioFocusManager`, перезаписывая поля без остановки/освобождения предыдущих экземпляров. `release()` освобождает только ТЕКУЩИЙ `exoPlayer` - каждый шаг постраничной навигации (video->video или video->image/gif) осиротяет предыдущий проигрыватель: он продолжает воспроизводить звук позади нового контента, держит `MediaCodec` и зарегистрированный `AudioFocusRequest` до уничтожения хоста.
+3. То же самое разбито на два дублирующих finding-а в аудите (:380/:381) - одна причина: отсутствие teardown предыдущего видео-состояния перед `show()`/`playVideo()`.
+4. `playAudio()` создаёт новый `AudioServiceController` на каждый показанный аудиофайл, перезаписывая поле без освобождения предыдущего подключённого `MediaController`. `release()` останавливает/освобождает только ТЕКУЩИЙ контроллер - каждый шаг постраничной навигации по аудио оставляет осиротевший bound `ServiceConnection` к `AudioPlaybackService`, накапливающийся за сессию просмотра.
+
+Объединяющая причина всех четырёх - `show()` никогда не освобождал состояние ПРЕДЫДУЩЕГО показа перед диспетчеризацией на следующий тип медиа; `release()` (единственная точка очистки) срабатывает лишь однократно на уничтожение хоста и видит только последний, а не все промежуточные, экземпляр.
+
+---
+
+## 3. Исправление
+
+1. `show()`: в начале функции, до диспетчеризации по `mediaType`, добавлены безусловные вызовы `releaseVideoPlayer()` и `releaseAudioController()` - каждый показ теперь сначала освобождает состояние предыдущего показа независимо от типа перехода (video->video, video->image, audio->audio и т.д.). Оба метода приватны и вызываются только из `playVideo()`/`playAudio()`, которые в свою очередь достижимы только через `show()` - гонок с другими путями входа нет.
+2. Извлечён приватный метод `releaseVideoPlayer()` - зеркалирует видео-часть существующего `release()` (`stopPositionAutoSave()`, `audioFocusManager?.releaseFocus()`, drain-порядок `setVideoEffects(emptyList())`/`clearVideoSurface()`/`stop()`/`release()` для ExoPlayer, обнуление обоих полей). `release()` теперь тоже вызывает этот метод вместо дублирования блока.
+3. Извлечён приватный метод `releaseAudioController()` - зеркалирует аудио-часть `release()` (`player.stop()`, `controller.release()`, обнуление поля). `release()` вызывает и его.
+4. `release()`: добавлен `Glide.with(activity.applicationContext).clear(safeViews.photoView)` - явно освобождает `Target`, отслеживаемый app-scoped `RequestManager`'ом, вместо того чтобы полагаться на никогда не срабатывающую авто-очистку по жизненному циклу активности.
+
+### 3.3 Owner inputs (Approval gate)
+
+- **Related tickets:** none
+- Внутренняя механика (release-контракт при постраничной навигации), без изменений UI/строк/flavor/schema - доп. owner-инпутов не требуется.
+
+---
+
+## 4. Проверка
+
+- `.\a.ps1 fk` - компиляция Kotlin (standard) - PASS.
+- Статический ре-обзор: `show()` вызывает `releaseVideoPlayer()`+`releaseAudioController()` перед диспетчеризацией; оба метода переиспользуются в `release()` вместо дублирования; `release()` явно очищает Glide-target.
+- Ручная device-проверка (BlockNeedUserTest, опционально): открыть standalone-просмотрщик с папкой из 3+ видео, пролистать вперёд/назад несколько раз подряд - ожидание: не более одного звучащего видео единовременно, отсутствие двойного звука. То же для папки аудиофайлов - ожидание: не более одного подключённого `MediaController`. Открыть/закрыть несколько изображений подряд, затем проверить память (Android Studio Profiler/`adb shell dumpsys meminfo`) - ожидание: отсутствие накопления удержанных `PhotoView`/Activity инстансов между открытиями.
+
+---
+
+## Last Audit
+
+**Date:** 2026-07-02
+**Mode:** full
+**Flags:** -
+**Outcome:** Verified
+**Counts:** PASS 8 · WARN 0 · FAIL 0 · MANUAL 1 · EXEMPT 0
+
+Checks: (1) `show()` calls `releaseVideoPlayer()`+`releaseAudioController()` before `when (mediaType)` dispatch - PASS, file:line StandaloneViewManager.kt show(). (2) `releaseVideoPlayer()` reproduces the release() drain order (`stopPositionAutoSave`, `audioFocusManager?.releaseFocus()`, `setVideoEffects(emptyList())`/`clearVideoSurface()`/`stop()`/`release()`, both fields nulled) - PASS. (3) `releaseAudioController()` stops+releases the controller and nulls the field - PASS. (4) `release()` now delegates to both extracted helpers instead of duplicating the block - PASS. (5) `release()` adds `Glide.with(activity.applicationContext).clear(safeViews.photoView)` - PASS. (6) `playVideo()`/`playAudio()` confirmed private, reachable only via `show()` (grep, no other call sites) - PASS. (7) `.\a.ps1 fk` compile - PASS, BUILD SUCCESSFUL. (8) `post-change.ps1 -ScopeToFile` - PASS (dev-log, catalog-sync, ticket-log-audit, flavor-flag, neuroslop, fgs-notification, deprecated-pm-flags, detekt all PASS; listener-symmetry SKIP as project-wide advisory, not attributed to this file). MANUAL: on-device paging/slideshow/audio-swap verification deferred (no device online this session).
+
+### Manual / on-device
+
+- [ ] Standalone video paging (3+ videos, forward/back repeatedly) - no more than one video audible at a time, no double audio.
+- [ ] Standalone audio paging - no more than one connected MediaController (no lingering playback from a previous track).
+- [ ] Standalone image open/close repeatedly - no growth in retained PhotoView/Activity instances (profiler/dumpsys meminfo).
+

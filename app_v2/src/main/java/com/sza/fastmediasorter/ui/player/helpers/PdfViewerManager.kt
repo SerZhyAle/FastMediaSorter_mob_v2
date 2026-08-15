@@ -143,7 +143,6 @@ class PdfViewerManager(
                 // Re-read the applied matrix: setDisplayMatrix clamps it to the new frame through
                 // checkMatrixBounds, so the stored carry must be the effective one, not the request.
                 photoView.getSuppMatrix(carriedPageMatrix)
-                Timber.d("S1355: rotation carry restored scale=${photoView.scale}")
             }
         }
 
@@ -1162,4 +1161,3 @@ class PdfViewerManager(
         private const val PDF_SWIPE_VELOCITY_THRESHOLD = 100
     }
 }
-

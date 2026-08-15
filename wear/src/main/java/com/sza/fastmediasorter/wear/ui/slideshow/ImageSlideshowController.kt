@@ -63,35 +63,20 @@ class ImageSlideshowController(
         }
     }
     
-    override fun next() {
-        Timber.d("Manual next")
-        advanceToNext()
-        
-        // Restart timer if active and not paused
+    override fun onManualNavigation(index: Int) {
+        Timber.d("Host navigated to $index")
+        _currentIndex.value = index
+
+        // Deliberately no onIndexChanged call: the host has already moved to this index and is only
+        // telling the controller to follow. The previous next()/previous() pair did fire it, which
+        // navigated a second time - and because _currentIndex was never seeded with the file the
+        // user opened, that second hop always landed on index 1 (S1683).
         if (_isActive.value && !isPaused) {
             timerJob?.cancel()
             startTimer()
         }
     }
-    
-    override fun previous() {
-        Timber.d("Manual previous")
-        val newIndex = if (_currentIndex.value > 0) {
-            _currentIndex.value - 1
-        } else {
-            totalItems - 1 // Loop to end
-        }
-        
-        _currentIndex.value = newIndex
-        onIndexChanged(newIndex)
-        
-        // Restart timer if active and not paused
-        if (_isActive.value && !isPaused) {
-            timerJob?.cancel()
-            startTimer()
-        }
-    }
-    
+
     private fun startTimer() {
         timerJob = scope.launch {
             delay(intervalSeconds * 1000L)
@@ -111,15 +96,5 @@ class ImageSlideshowController(
         
         _currentIndex.value = newIndex
         onIndexChanged(newIndex)
-    }
-    
-    /**
-     * Update total items count (when media list changes).
-     */
-    fun updateTotalItems(count: Int) {
-        // Stop if current index is out of bounds
-        if (_currentIndex.value >= count) {
-            stop()
-        }
     }
 }

@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.AppPickerDialogFragment
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.InternalRoutePickerDialogFragment
@@ -54,6 +55,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSensorPermissionManag
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherStatusStripManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherStreamActionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarPlacementManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTrayManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperManager
 import com.sza.fastmediasorter.ui.launcher.menu.LauncherAllAppsFragment
@@ -73,7 +75,6 @@ import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
@@ -155,6 +156,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     )
 
     private lateinit var taskbarManager: LauncherTaskbarManager
+
+    private lateinit var placementManager: LauncherTaskbarPlacementManager
 
     private lateinit var editModeManager: LauncherEditModeManager
 
@@ -295,6 +298,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             onRemovePin = { viewModel.removePin(it) },
             onRecentsCapacity = { viewModel.recentsCapacity = it },
         )
+        placementManager = LauncherTaskbarPlacementManager(
+            lifecycleOwner = this,
+            root = binding.launcherRoot,
+        )
         editModeManager = LauncherEditModeManager(
             lifecycleOwner = this,
             desktop = binding.launcherDesktop,
@@ -306,7 +313,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             onAddCellClick = { openContentPicker(NO_SLOT, NO_SLOT) },
         )
         editModeManager.attach()
-        Timber.d("S1412: edit-done button bound from the taskbar layout")
         wallpaperManager = LauncherWallpaperManager(
             lifecycleOwner = this,
             imageLayer = binding.launcherWallpaperImage,
@@ -441,6 +447,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             pinned = viewModel.pinnedIcons,
             composition = viewModel.taskbarComposition,
         )
+        placementManager.bind(viewModel.taskbarAtTop)
         collectOnLifecycle(viewModel.cells) { cells ->
             renderDesktop()
             // S1400: an empty desktop is the only signal this surface gets when a reset wipes the
@@ -548,7 +555,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
      */
     private fun showCellActions(view: View, cellUi: LauncherCellUi): Boolean {
         if (viewModel.editMode.value) return false
-        Timber.d("S1424: cell menu target=%s", cellUi.cell.target)
         return when (val command = LauncherCellCommand.decode(cellUi.cell.target)) {
             is LauncherCellCommand.App -> {
                 shortcutMenuManager.show(view, command.packageName)
@@ -604,7 +610,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
      * bar, and a stale one leaves either a gap or content under the cutout (Rule 17).
      */
     private fun applyStatusBarPolicy(replaceSystemStatusArea: Boolean) {
-        Timber.d("S1087: status bar policy replace=%s", replaceSystemStatusArea)
         val controller = statusBarController()
         if (replaceSystemStatusArea) {
             // S1409: the default behaviour hands the bar back permanently once the user swipes it into
@@ -613,7 +618,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             // its own. Set before hide - the behaviour applies to the hidden types.
             controller.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            Timber.d("S1409: status bar hidden with transient-by-swipe behavior")
             controller.hide(WindowInsetsCompat.Type.statusBars())
         } else {
             controller.show(WindowInsetsCompat.Type.statusBars())
@@ -703,7 +707,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // The desktop stays touchable behind the screen, so the button and the gesture must not each
         // open their own instance - the same guard the Start menu carries.
         if (supportFragmentManager.findFragmentByTag(LauncherAllAppsFragment.TAG) != null) return
-        Timber.d("S1401: all-apps screen opened from the home surface")
         LauncherAllAppsFragment().show(supportFragmentManager, LauncherAllAppsFragment.TAG)
     }
 
@@ -747,9 +750,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     /**
      * S1428: two levels again, because two preset sections exist - the second pass says which one.
      *
-     * The header goes down the ordinary placement route with its overlap check intact, and the full span
-     * is what makes it reserve the whole row: the renderer widens a header to the live column count, so
-     * storing it narrower would leave the rest of its row free in the database.
+     * The header goes down the ordinary placement route with its overlap check intact, at the one span it
+     * is stored and drawn at (S1642) - the repository pins both that span and column 0 anyway, and passing
+     * the same constant here keeps the request and the stored result describing the same rectangle.
      */
     private fun onSectionChosen(sectionKey: String?) {
         if (sectionKey == null) {
@@ -759,11 +762,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             )
             return
         }
-        Timber.d("S1428: restoring section '%s' at %d,%d", sectionKey, pendingRow, pendingCol)
         placeAtPendingSlot(
             kind = LauncherCellKind.SECTION,
             target = LauncherCellCommand.Section(sectionKey).encode(),
-            spanW = LauncherGridGeometry.MAX_COLUMNS,
+            spanW = LauncherSectionMembership.HEADER_SPAN_W,
             spanH = 1,
         )
     }
@@ -830,7 +832,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         spanH: Int,
         rememberFileListResourceId: Long? = null,
     ) {
-        Timber.d("S1209: placing cell, slotless=%s", pendingRow == NO_SLOT)
         if (pendingRow == NO_SLOT) {
             viewModel.addCellInFirstFreeSlot(
                 columns = currentColumns(),

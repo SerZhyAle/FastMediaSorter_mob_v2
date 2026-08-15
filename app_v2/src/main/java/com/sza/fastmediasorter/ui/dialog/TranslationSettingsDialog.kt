@@ -226,7 +226,6 @@ object TranslationSettingsDialog {
         if (manager.findFragmentByTag(tag) != null) return
         val requestKey = "$REQ_SETTINGS_LANGUAGE_PREFIX${mode.name}"
         manager.setFragmentResultListener(requestKey, fragmentActivity) { _, bundle ->
-            Timber.d("S1214: translation-dialog language result key=$requestKey")
             bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)?.let(onSelected)
         }
         SearchableLanguagePickerDialog.newInstance(

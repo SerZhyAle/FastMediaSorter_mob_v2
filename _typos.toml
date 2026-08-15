@@ -1,0 +1,62 @@
+# typos (crate-ci/typos) configuration - S1656.
+#
+# Why this file exists: the typo dictionary is an English one, and it was being run over a tree
+# that carries user-facing strings in thirteen languages. Every foreign word then read as a
+# misspelling - "foto" in the Italian resources, "Titel" and "Ressource" in the German ones - so
+# `.\a.ps1 ch` was red on every run and its exit code stopped carrying information. A check that
+# is always red is the same as no check, except it also poisons the target it lives in.
+#
+# Verifying a change here: run `typos app_v2 scripts docs` from the repository root, or
+# `.\a.ps1 ch` for the full typo + lint pass. The tool is not part of the checkout - install it
+# (`cargo install typos-cli`, or the release binary) or the stage silently reports nothing.
+
+[files]
+extend-exclude = [
+    # Translated string resources. Every locale directory is by definition not English, and the
+    # only English one, values/, stays in scope so real typos in authored copy are still caught.
+    "app_v2/src/main/res/values-*/**",
+    "app_v2/src/*/res/values-*/**",
+    "wear/src/main/res/values-*/**",
+    "wear/src/*/res/values-*/**",
+    # Test-resource fixture: connection values, not prose. Its identifiers are passwords and host
+    # names, which no dictionary can judge. Its presence in a shipped source set is a separate
+    # defect tracked as S1666 - excluding it here is about the spell checker, not about that.
+    "app_v2/src/main/res/xml/sza_resources.xml",
+    # Generated or vendored text nobody authors by hand. Each of these was a live noise source in
+    # the 2026-08-14 run, not a precaution: lint-baseline.xml quotes whole localized strings back
+    # inside XML attributes, so excluding values-*/ alone left German, Spanish, Italian, Portuguese
+    # and French copy in the report; node_modules ships its own translated locale tables.
+    "**/node_modules/**",
+    "**/lint-baseline.xml",
+    "**/detekt-baseline.xml",
+    "**/build/**",
+    "docs/SCRIPT_CHEATSHEET.md",
+    "docs/DOCS_MAP.md",
+    "**/THIRD-PARTY-NOTICES.txt",
+]
+
+[default]
+# The checker splits identifiers into words, so a correct word can be flagged because of the
+# characters glued to it. Two shapes hit this repository:
+#   ERRORs  -> "ERRO" + "Rs"   (a plural of an all-caps token in a comment)
+#   SerZhyA -> "Ser" + "Zhy"   (the author's handle inside identifiers and fixture values)
+# Ignoring short all-letter fragments removes both without weakening the check on real words:
+# an English typo worth catching is longer than four letters in practice.
+extend-ignore-words-re = ["^[A-Za-z]{1,4}$"]
+
+[default.extend-words]
+# Accepted as written. Each survived the 2026-08-14 pass and was judged individually - this list is
+# the difference between "the check is quiet" and "the check is right", so nothing goes in without
+# a reason on its own line.
+Unparseable = "Unparseable"
+# Media-domain jargon. "Seek" is the platform's own verb for moving the playhead, so the past tense
+# reads correctly to anyone working on a player, while the dictionary's "sought" would not.
+seeked = "seeked"
+# British spelling, used in prose written that way on purpose.
+uncatalogued = "uncatalogued"
+# PDF stream filter name (FlateDecode), not the adjective "flat".
+Flate = "Flate"
+# Data token from a stream-topic map, not English prose - it is a key the upstream catalogue uses.
+bizzare = "bizzare"
+# Split of "DELETEd" in a sentence about a deleted record; the word itself is spelled correctly.
+DELET = "DELET"

@@ -97,6 +97,7 @@ Manual spot-checks on the release artifact for seams the launch smoke does not r
 - Baseline diagnostics = the existing in-app crash/log export path (`core/logging/LogExportHelper.kt`, `CrashReportPromptManager`, `SupportIntentFactory`). An external crash sink is out of scope for this gate.
 - The release build emits the deobfuscation artifacts automatically: R8 `mapping.txt` (from `isMinifyEnabled`) and native symbols (`ndk.debugSymbolLevel = "FULL"`).
 - **Required:** `mapping.txt` and the native symbols are retained and keyed by `versionCode` for every production release (uploaded to Play Console / archived). Missing retention = operational loss (post-release triage capability).
+- **Implemented since S1695.** The release build does the retaining: `scripts/release/retain-deobfuscation.ps1` extracts `proguard.map` and the `.so.dbg` files out of the bundle it just produced - the bundle rather than `build/outputs`, so the archived payload cannot drift from what shipped - and stores them at `c:\GD\WORK\FastMediaSorter\deobfuscation\<versionCode>\<variant>-deobfuscation.zip` beside a `manifest.json`. Recovery is one command, `scripts/release/fetch-deobfuscation.ps1 -VersionCode <code>`. Enforcement is `scripts/quality/assert-deobfuscation-retained.ps1`, wired as the gating step 0.6 of `/spec-prerelease`, which reads the stored mapping back and recomputes its hash rather than accepting the file's presence. Measured cost, 2026-08-15: 1.7 s and 21.02 MB per release. Releases published before versionCode 260815000 predate the scheme and remain recoverable only from Play Console's copy of the bundle.
 
 ### Release logging privacy line (research/03)
 
@@ -163,7 +164,7 @@ Required artifacts and where they live:
 - Play Console Pre-launch report link.
 - Data Safety review note (reviewed for this release).
 - Signing fingerprint confirmation - release upload key matches the production registration.
-- Deobfuscation: `mapping.txt` + native symbols, keyed by `versionCode`, uploaded to Play Console / archived (research/02).
+- Deobfuscation: `mapping.txt` + native symbols, keyed by `versionCode`, uploaded to Play Console / archived (research/02). Produced without operator action by the release build and proven by `/spec-prerelease` step 0.6; the evidence is that gate's PASS line, not a manual copy.
 - Waiver file - `store_assets/release_waivers/<versionName>.md` for any waiver-eligible gap.
 
 Operator checklist: `store_assets/PLAY_CONSOLE_CHECKLIST.md` is the Play-side operator slice of this gate (listing texts, graphics, category, monitoring). Waivers live in `store_assets/release_waivers/` (see its `README.md`).

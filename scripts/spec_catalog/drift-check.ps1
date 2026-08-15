@@ -12,21 +12,22 @@
 #
 # Output (table):
 #   S0235 drift-check (since 2026-05-17 01:52)
-#     git commits with Sxxxx marker:  2  (most recent: ace216c4 2026-05-17 05:17)
+#     commit history: not consulted (S1634)
 #     code lines with // Sxxxx::      3  in 2 files
 #     verdict: DRIFT - fix likely in code, spec stale
 #
 # Output (json):
-#   {"id":"S0235","verdict":"DRIFT","commits":[...],"code_markers":[...]}
+#   {"id":"S0235","verdict":"DRIFT","commits":[],"code_markers":[...]}
 #
-# Verdicts (S1429):
-#   CLEAN       - no commit carries the id and no inline marker does.
-#   COMMIT_ONLY - a commit carries the id, no inline marker does. Expected of any ticket that has
-#                 been worked on; nothing unaccounted sits in the tree, so it does not park it.
+# Verdicts (S1429, narrowed by S1634):
+#   CLEAN       - no inline marker carries the id.
 #   DRIFT       - inline `// Sxxxx:` markers exist: work is in the tree that nothing accounts for.
+#   COMMIT_ONLY - retired. Kept in the contract so an older caller still parses, never returned.
+#                 It reported that a commit mentioned the id, which in a one-developer,
+#                 one-branch, commit-the-whole-tree repository was true of nearly every ticket.
 #
 # Exit codes:
-#   0 - no drift detected (CLEAN or COMMIT_ONLY)
+#   0 - no drift detected (CLEAN)
 #   1 - drift detected (inline markers found post-spec-creation)
 #   2 - usage / resolution error
 
@@ -65,35 +66,29 @@ $created = $rec.created
 $updated = $rec.updated
 $specFile = Join-Path $root $rec.file
 
-# git log -S works best with an iso-style date; fall back to "created" if "updated" malformed
+# Retained for the JSON contract only - it is no longer a git window, just the earlier of the two
+# catalog dates, reported so a reader can see how old the ticket is.
 $gitSince = $created
 if ($updated -match '^\d{4}-\d{2}-\d{2}') {
-    # Prefer the earliest of created/updated so we don't miss in-flight commits.
     $gitSince = ($created, $updated | Sort-Object | Select-Object -First 1)
 }
 
 Push-Location $root
 try {
-    # 1. git commits whose patch contains the spec id marker.
-    # Exclude chronicle/meta paths: dev/CHANGELOG.md logs "Scaffold strategic spec skeleton
-    # Sxxxx" for every new draft, and .claude/ memory+skill files cite ids as examples -
-    # both flagged fresh Drafts as DRIFT with zero code changed (false positive, 2026-07-03).
-    $rawCommits = git log --since="$gitSince" -S "$Id" --pretty=format:"%H|%ai|%s" -- `
-        '.' ':(exclude)dev/CHANGELOG.md' ':(exclude).claude' ':(exclude)PLAN' `
-        ':(exclude)AGENTS.md' ':(exclude)CLAUDE.md' 2>$null
+    # 1. S1634: this check no longer asks git anything.
+    #
+    # It used to run `git log -S "<id>"` and report every commit whose patch mentioned the id. That
+    # answer was never usable here: this repository has one developer on one branch who commits the
+    # whole tree under a timestamp subject, so a routine snapshot carries dozens of ticket ids and
+    # dates later than every tactical plan. The one consumer of the result - the freshness proof in
+    # spec-next-preflight.ps1 - then declared every in-flight plan stale at once, and on 2026-08-14
+    # deferred the two top tickets of the release package in consecutive rounds, both false, both
+    # provable false by reading the tree.
+    #
+    # The working tree is the truth (CLAUDE.md "Working tree = truth"), and the tree already carries
+    # the fact this check exists for: an inline `// Sxxxx:` marker is work sitting in the source that
+    # nothing has accounted for. That is measured below, without a subprocess and without history.
     $commits = @()
-    if ($rawCommits) {
-        $commits = @($rawCommits | ForEach-Object {
-                $parts = $_ -split '\|', 3
-                if ($parts.Count -eq 3) {
-                    [PSCustomObject]@{
-                        sha     = $parts[0].Substring(0, [Math]::Min(8, $parts[0].Length))
-                        date    = $parts[1]
-                        subject = $parts[2]
-                    }
-                }
-            } | Where-Object { $_ })
-    }
 
     # 2. inline code markers across .kt / .py / .xml / .md (excluding PLAN/ to avoid spec itself)
     $markers = @()
@@ -139,15 +134,11 @@ try {
     }
 
     # 3. Verdict
-    # S1429: markers and commits are different facts and used to share one verdict. An inline
-    # `// Sxxxx:` marker is work sitting in the tree that nothing has accounted for - the risk this
-    # check exists for. A commit carrying the id is expected of any ticket that has been worked on
-    # at all, and on its own says nothing about the tree, so it gets its own verdict instead of
-    # parking the ticket. Six of the skip-cache entries standing on 2026-08-09 are that shape, each
-    # explaining in its own words that the finding was false.
-    $verdict = if ($markers.Count -gt 0) { 'DRIFT' }
-    elseif ($commits.Count -gt 0) { 'COMMIT_ONLY' }
-    else { 'CLEAN' }
+    # S1429 split markers from commits so that a commit carrying the id could not park a ticket on
+    # its own. S1634 finished the job: the commit half is gone, so only the tree can produce a
+    # verdict. COMMIT_ONLY is kept in the contract as a value that is never returned any more -
+    # a caller that still branches on it keeps working, it just never takes that branch.
+    $verdict = if ($markers.Count -gt 0) { 'DRIFT' } else { 'CLEAN' }
 
     if ($Format -eq 'json') {
         $result = [PSCustomObject]@{
@@ -166,18 +157,9 @@ try {
         $result | ConvertTo-Json -Depth 6 -Compress
     }
     else {
-        Write-Host "$Id drift-check (since $gitSince, status=$($rec.status))" -ForegroundColor Cyan
+        Write-Host "$Id drift-check (spec dated $gitSince, status=$($rec.status))" -ForegroundColor Cyan
         Write-Host "  spec file: $($rec.file)" -ForegroundColor DarkGray
-        $cColor = if ($commits.Count -gt 0) { 'Yellow' } else { 'DarkGray' }
-        Write-Host "  git commits with Sxxxx marker: $($commits.Count)" -ForegroundColor $cColor
-        if ($commits.Count -gt 0) {
-            $commits | Select-Object -First 3 | ForEach-Object {
-                Write-Host "    $($_.sha) $($_.date) $($_.subject)" -ForegroundColor DarkGray
-            }
-            if ($commits.Count -gt 3) {
-                Write-Host "    .. ($($commits.Count - 3) more)" -ForegroundColor DarkGray
-            }
-        }
+        Write-Host "  commit history: not consulted (S1634)" -ForegroundColor DarkGray
         $mColor = if ($markers.Count -gt 0) { 'Yellow' } else { 'DarkGray' }
         $files = ($markers | Select-Object -ExpandProperty file -Unique).Count
         Write-Host "  code markers ($Id`:): $($markers.Count) in $files file(s)" -ForegroundColor $mColor
@@ -189,13 +171,10 @@ try {
                 Write-Host "    .. ($($markers.Count - 3) more)" -ForegroundColor DarkGray
             }
         }
-        $vColor = if ($verdict -eq 'DRIFT') { 'Yellow' } elseif ($verdict -eq 'COMMIT_ONLY') { 'DarkCyan' } else { 'Green' }
+        $vColor = if ($verdict -eq 'DRIFT') { 'Yellow' } else { 'Green' }
         Write-Host "  verdict: $verdict" -ForegroundColor $vColor
         if ($verdict -eq 'DRIFT') {
             Write-Host "  -> /spec-all may be partly/fully redundant; consider review-only audit + BlockNeedUserTest." -ForegroundColor DarkYellow
-        }
-        elseif ($verdict -eq 'COMMIT_ONLY') {
-            Write-Host "  -> a commit carries the id but no inline marker does; nothing unaccounted sits in the tree." -ForegroundColor DarkGray
         }
     }
 

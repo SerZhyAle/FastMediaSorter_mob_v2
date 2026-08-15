@@ -79,7 +79,6 @@ class MainStoragePermissionsHelper(
             Manifest.permission.READ_EXTERNAL_STORAGE
         }
         val message = activity.permissionRationale(permission)
-        Timber.d("S1436: storage rationale shown for $permission")
         rationaleDialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.permissions_required_title)
             .setMessage(message)

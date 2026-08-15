@@ -67,6 +67,12 @@ This document outlines the current technical constraints, functional limitations
 - **Limited Scope:** The Wear OS companion app currently supports **local media only**. Network and cloud resources are not accessible from the watch.
 - **Performance:** Image and video processing on watches is significantly slower than on phones.
 
+### Home-Screen (Launcher) Mode
+
+- **Standard and noLegal only:** the Lite, Photos, Legacy and VR builds have no launcher mode at all. On a headset the home environment belongs to the system.
+- **Android decides, not the app:** turning the setting on cannot make the app your home screen by itself - Android shows its own chooser and you have to confirm there. Cancelling that chooser leaves the mode off.
+- **Contact cells are snapshots:** a pinned contact keeps the details as they were when you picked the person. Editing that contact later in your address book does not update the cell, because the app never reads your contacts again.
+
 ### VR Edition
 
 - **Hardware:** Runs only on Meta Quest 2/3/Pro and Android XR headsets (`arm64-v8a` + OpenXR runtime). On a phone without an XR runtime, the app shows a fallback screen and does not start playback.

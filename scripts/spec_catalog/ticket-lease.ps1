@@ -81,9 +81,7 @@ if (-not (Test-Path -LiteralPath $leaseDir)) {
 }
 
 function Get-SessionId {
-    $sid = $env:CLAUDE_CODE_SESSION_ID
-    if ([string]::IsNullOrWhiteSpace($sid)) { return "pid-$PID" }
-    return $sid
+    return Get-AgentSessionId
 }
 
 function Get-LeasePath {

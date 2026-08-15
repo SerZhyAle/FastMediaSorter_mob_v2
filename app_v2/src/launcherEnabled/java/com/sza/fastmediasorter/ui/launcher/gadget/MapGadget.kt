@@ -68,7 +68,6 @@ private class MapGadgetView(
     override suspend fun CoroutineScope.onActive() {
         while (isActive) {
             val result = getMap()
-            Timber.d("S1175: map gadget state %s", result::class.simpleName)
             when (result) {
                 is MapResult.Fresh -> showSnapshot(result.snapshot, stale = false)
                 is MapResult.Stale -> showSnapshot(result.snapshot, stale = true)

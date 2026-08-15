@@ -118,7 +118,7 @@ if (-not (Test-Path $tempDir)) {
 # ticket duplication, which the ticket lease now prevents properly.
 # No session id in the environment -> same pid- fallback agent-lock.ps1 uses, so the path always
 # resolves. The legacy single-file state is adopted on first Init/Resume, never orphaned.
-$sessionKey = if ([string]::IsNullOrWhiteSpace($env:CLAUDE_CODE_SESSION_ID)) { "pid-$PID" } else { $env:CLAUDE_CODE_SESSION_ID }
+$sessionKey = Get-AgentSessionId
 $statePath = Join-Path $tempDir "spec-next-session.$sessionKey.json"
 $legacyStatePath = Join-Path $tempDir 'spec-next-session.json'
 
@@ -194,7 +194,7 @@ function Get-SessionTranscript([string]$SessionId) {
 function New-OwnerStamp {
     $now = (Get-Date).ToString('s')
     return [PSCustomObject]@{
-        sessionId  = $env:CLAUDE_CODE_SESSION_ID
+        sessionId  = Get-AgentSessionId
         host       = $env:COMPUTERNAME
         pid        = $PID
         stampedAt  = $now
@@ -278,7 +278,7 @@ function Get-ContextCheck([int]$ThresholdOverride, [bool]$ThresholdExplicit) {
     # context. Never sums across records (a single API response repeats the same
     # usage object across several JSONL lines - only the latest value matters here,
     # not a total), so no requestId dedup is needed, unlike cost-mining aggregation.
-    $sessionId = $env:CLAUDE_CODE_SESSION_ID
+    $sessionId = Get-AgentSessionId
     if (-not $sessionId) {
         return [PSCustomObject]@{ ok = $false; reason = 'no session id in environment (CLAUDE_CODE_SESSION_ID)' }
     }
@@ -506,12 +506,26 @@ switch ($Verb) {
         # Never a percentage (S1338 package B finding) - absolute tokens only.
         $ctx = Get-ContextCheck -ThresholdOverride $state.threshold -ThresholdExplicit $true
         Write-Output 'Why it stopped:'
-        if ($ctx.ok) {
-            Write-Output "  context $($ctx.tokens) tokens >= threshold $($ctx.threshold) tokens"
-        }
-        else {
+        if (-not $ctx.ok) {
             Write-Output "  context: unavailable ($($ctx.reason))"
         }
+        # S1394: this line used to print `>= threshold` unconditionally, so a handoff requested
+        # while the session was well under the threshold announced a crossing that had not
+        # happened - 289806 >= 300000 in the observed case, a comparison its own two numbers
+        # refute. The handoff is the artifact `/spec-next` shows the operator verbatim as the
+        # deterministic account of why the session ended, so a fixed sentence there is worse than
+        # no sentence: it is a wrong answer in the one place built to be trusted. Refusing a
+        # not-crossed handoff was considered and rejected - `/spec-do` and a manual call both
+        # produce one legitimately; the fix is to say which of the two this is.
+        elseif ($ctx.crossed) {
+            Write-Output "  context $($ctx.tokens) tokens >= threshold $($ctx.threshold) tokens - the round-boundary threshold was crossed"
+        }
+        else {
+            Write-Output "  context $($ctx.tokens) tokens < threshold $($ctx.threshold) tokens - the threshold was NOT crossed; this handoff was requested, not triggered"
+        }
+        # Measured now, at handoff time. It will read slightly higher than the -Verb CheckContext
+        # value printed moments earlier in the same round, because the transcript grew in between -
+        # the two numbers are consecutive samples, not a disagreement (S1394).
         Write-Output ''
 
         Write-Output 'What is next in the queue:'

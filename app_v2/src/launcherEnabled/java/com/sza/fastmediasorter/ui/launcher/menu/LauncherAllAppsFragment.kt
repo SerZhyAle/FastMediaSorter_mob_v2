@@ -23,7 +23,6 @@ import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppActionMenuManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * S1401: the full-screen list of every installed app - search, order picker, grid, action menu.
@@ -97,12 +96,6 @@ class LauncherAllAppsFragment : DialogFragment() {
         binding.allAppsSort.setOnClickListener { showOrderMenu(it) }
 
         collectOnLifecycle(viewModel.apps) { apps ->
-            Timber.d(
-                "S1401: all-apps list rendered, apps=%d order=%s descending=%b",
-                apps.size,
-                viewModel.order.value,
-                viewModel.descending.value,
-            )
             appsAdapter.submitApps(
                 apps.map { app ->
                     LauncherAppGridAdapter.AppItem(

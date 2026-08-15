@@ -78,22 +78,34 @@ Each test should validate ONE specific feature or user flow.
 # Too many unrelated actions
 ```
 
-### 2. Make Tests Resilient
+### 2. Make Tests Resilient - Without Weakening the Oracle
 
-Use `optional: true` for elements that may not always appear:
+`optional: true` is for genuinely variable UI only: a system permission dialog that may or may
+not appear because a prior run already granted it.
 
 ```yaml
-# Permission dialogs may not appear if already granted
+# Correct use: the dialog is genuinely absent when permission is already granted.
 - tapOn:
     text: "Allow"
   optional: true
-
-# Network-dependent content
-- assertVisible:
-    text: "Connected"
-  optional: true
-  timeout: 10000
 ```
+
+Never put `optional: true` on the assertion that proves the feature. An optional proof passes
+whether or not the behaviour happened, which is the definition of a fictitious test:
+
+```yaml
+# WRONG - passes even when playback never started.
+- assertVisible:
+    id: "playerView"
+  optional: true
+
+# RIGHT - the flow fails when playback did not start.
+- assertVisible:
+    id: "playerView"
+```
+
+Resilience comes from waiting longer, not from asserting less. Use `extendedWaitUntil` when an
+operation is slow.
 
 ### 3. Wait for UI to Stabilize
 
@@ -134,12 +146,10 @@ appId: com.sza.fastmediasorter.debug
 - tapOn:
     text: "Settings"
 
+# The proof assertion - an element that exists only on the Settings screen.
+# Never assert the label you just tapped: it is visible either way.
 - assertVisible:
-    text: "Settings"
-
-- assertVisible:
-    text: "Dark Mode"
-  optional: true
+    id: "settingsRoot"
 ```
 
 ### Pattern 2: Action + Verification
@@ -147,7 +157,7 @@ appId: com.sza.fastmediasorter.debug
 ```yaml
 appId: com.sza.fastmediasorter.debug
 ---
-# Test: Toggle dark mode
+# Test: Toggle a setting
 
 - launchApp
 - tapOn:
@@ -156,15 +166,12 @@ appId: com.sza.fastmediasorter.debug
 
 # Action
 - tapOn:
-    text: "Dark Mode"
+    id: "switchDarkMode"
 
-# Verification (wait for UI change)
-- waitForAnimationToEnd
-
-# Optional: Verify theme changed
+# Verification - assert the state that only exists after the toggle applied.
 - assertVisible:
-    id: ".*dark.*"
-  optional: true
+    id: "switchDarkMode"
+    enabled: true
 ```
 
 ### Pattern 3: Form Input
@@ -173,37 +180,83 @@ appId: com.sza.fastmediasorter.debug
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: Add SMB connection
+# Every field is addressed by its exact resource-id entry name.
 
 - launchApp
 - tapOn:
-    id: ".*add.*"
+    id: "fabAddResource"
 
 - tapOn:
     text: "SMB"
 
 # Input fields
 - tapOn:
-    id: ".*host.*"
+    id: "etHost"
 - inputText: "192.168.1.100"
 
 - tapOn:
-    id: ".*username.*"
+    id: "etUsername"
 - inputText: "user"
 
 - tapOn:
-    id: ".*password.*"
+    id: "etPassword"
 - inputText: "pass"
 
 # Submit
 - tapOn:
     text: "Connect"
 
-# Verify
-- waitForAnimationToEnd
-- assertVisible:
-    text: "192.168.1.100"
-  timeout: 10000
+# Proof: the saved resource appears in the list. Not optional.
+- extendedWaitUntil:
+    visible:
+      text: "192.168.1.100"
+    timeout: 10000
 ```
+
+### Pattern 3a: Expand a collapsible settings section first
+
+A settings row inside a **collapsed** section is not merely off-screen - it is absent from the view
+tree, so `scrollUntilVisible` can never find it however long the timeout. The settings screen uses
+collapsible headers (`csh_headerRow` inside `headerSystem`, `headerAppData`, ..), and sections
+differ in whether they ship expanded.
+
+```yaml
+# Guard on the TARGET row, not on the header: tapping an already-expanded header collapses it.
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/headerSystem"
+    timeout: 15000
+    visibilityPercentage: 30
+    centerElement: true
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/rowEnableStatistics"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/csh_headerRow"
+          childOf:
+            id: "com.sza.fastmediasorter.debug:id/headerSystem"
+      - waitForAnimationToEnd
+```
+
+### Pattern 3b: `inputText` is ASCII-only
+
+Maestro cannot type non-ASCII text (`mobile-dev-inc/maestro#146`): a Cyrillic `inputText` aborts
+the run with `Unicode character input is not supported`, it does not merely match nothing. This
+matters here because the app under test runs in Russian.
+
+```yaml
+# WRONG - aborts the flow on a ru-locale device.
+- inputText: "Язык"
+
+# RIGHT - an ASCII substring that the target still matches.
+- inputText: "Lang"
+```
+
+Matching (`tapOn`, `assertVisible`) handles Cyrillic fine - only **typing** is restricted. When no
+ASCII substring exists, drive the field another way (a preset value, a picker) rather than
+weakening the assertion.
 
 ### Pattern 4: List Scrolling
 
@@ -226,8 +279,9 @@ appId: com.sza.fastmediasorter.debug
 - tapOn:
     text: "Downloads"
 
+# Proof: an element of the opened folder, not the folder label itself.
 - assertVisible:
-    text: "Downloads"
+    id: "rvMediaFiles"
 ```
 
 ### Pattern 5: Long Press Action
@@ -240,20 +294,17 @@ appId: com.sza.fastmediasorter.debug
 - launchApp
 - waitForAnimationToEnd
 
-# Long press file
+# Long press a file that the seeded test media guarantees exists.
 - longPressOn:
-    text: "photo.jpg"
+    text: "IMG_001.jpg"
   duration: 1000
-  optional: true
 
-# Verify context menu
+# Verify context menu - these assertions are the point of the test, so none is optional.
 - assertVisible:
     text: "Copy"
-  optional: true
 
 - assertVisible:
     text: "Delete"
-  optional: true
 ```
 
 ## Element Selectors
@@ -264,16 +315,11 @@ appId: com.sza.fastmediasorter.debug
     text: "Settings"
 ```
 
-### By Resource ID
+### By Resource ID (preferred)
 ```yaml
+# The entry name alone is enough - it matches ...:id/button_add.
 - tapOn:
-    id: "com.sza.fastmediasorter:id/button_add"
-```
-
-### By Coordinates
-```yaml
-- tapOn:
-    point: "50%, 80%"  # x%, y%
+    id: "button_add"
 ```
 
 ### By Index (Position in List)
@@ -282,16 +328,15 @@ appId: com.sza.fastmediasorter.debug
     index: 0  # First element
 ```
 
-### Regex Patterns
-```yaml
-# Match any image file
-- tapOn:
-    text: ".*\\.(jpg|png|gif)$"
+### Not available: coordinates and regex
 
-# Match any text containing "Dark"
-- tapOn:
-    text: ".*[Dd]ark.*"
-```
+Coordinate taps (`point: "50%, 80%"`) and regex selectors (`id: ".*add.*"`,
+`text: ".*\\.(jpg|png)$"`) are **forbidden** by the Oracle convention at the top of this file.
+Maestro does not reliably match regex selectors, so the step silently never fires; a coordinate
+tap proves nothing about which element was hit and breaks on the next layout change.
+
+Where no stable id exists, use exact visible text and fix the run locale. Where neither exists,
+add an id to the layout - that is cheaper than a flow nobody can trust.
 
 ### Relative Selectors
 ```yaml
@@ -323,12 +368,22 @@ appId: com.sza.fastmediasorter.debug
     text: "Loading..."
 ```
 
-### Optional Assertion
+### Optional Assertion - permission dialogs only
 ```yaml
-# Don't fail if element not found
-- assertVisible:
-    text: "Optional Element"
+# Legitimate: the dialog is genuinely absent once permission was granted.
+- tapOn:
+    text: "Allow"
   optional: true
+```
+
+Anywhere else, `optional: true` turns the step into a no-op that passes silently. See the
+Oracle convention at the top of this file.
+
+### Crash Guard (required)
+```yaml
+# Third oracle rule: prove the action did not crash the app.
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
 ```
 
 ## Waits and Timing
@@ -380,8 +435,13 @@ Each test should:
 ```
 
 ### 5. Handle Multiple Scenarios
+
+`optional: true` is allowed on a **navigation tap** whose target genuinely varies by prior
+state - an onboarding page a returning user never sees. It stays forbidden on the assertion
+that proves the feature.
+
 ```yaml
-# Handle both new user and returning user
+# Handle both new user and returning user.
 - tapOn:
     text: "Skip Tutorial"
   optional: true
@@ -389,6 +449,10 @@ Each test should:
 - tapOn:
     text: "Next"
   optional: true
+
+# The proof assertion that follows is never optional.
+- assertVisible:
+    id: "rvResources"
 ```
 
 ## Common Mistakes to Avoid
@@ -407,16 +471,16 @@ Each test should:
 - assertVisible: { text: "Preferences" }
 ```
 
-### ❌ Don't: Use absolute coordinates
+### ❌ Don't: Tap coordinates at all
 ```yaml
 - tapOn:
-    point: "200, 400"  # Breaks on different screens
+    point: "50%, 50%"  # Proves nothing about which element was hit
 ```
 
-### ✅ Do: Use relative coordinates
+### ✅ Do: Tap the element
 ```yaml
 - tapOn:
-    point: "50%, 50%"  # Works on all screens
+    id: "btnPlayPause"
 ```
 
 ### ❌ Don't: Hard-code delays
@@ -433,18 +497,18 @@ Each test should:
     timeout: 10000  # Wait up to 10s
 ```
 
-### ❌ Don't: Make tests brittle
+### ❌ Don't: Match on long, editable prose
 ```yaml
-# Exact text match may break with updates
+# A whole sentence changes with any copy edit
 - tapOn:
     text: "Click here to continue to the next screen"
 ```
 
-### ✅ Do: Use flexible selectors
+### ✅ Do: Match on the element's id
 ```yaml
-# Partial match
+# Stable across copy edits and locales. A regex is NOT the answer here.
 - tapOn:
-    text: ".*continue.*"
+    id: "btnContinue"
 ```
 
 ## Debugging Your Tests
@@ -522,71 +586,43 @@ Here's a complete test with all best practices:
 ```yaml
 appId: com.sza.fastmediasorter.debug
 ---
-# Test: Add file to favorites
-# Description: Validates that users can mark files as favorites
-# Duration: ~30 seconds
-# Prerequisites: At least one file in Browse view
+# Test: Open an image in the player
+# Description: Proves an image from the seeded DCIM resource renders in the viewer.
+# Prerequisites: setup_test_media.ps1 has seeded DCIM; DCIM registered as a LOCAL resource.
 
-# Setup: Launch and navigate
-- launchApp
-- waitForAnimationToEnd
+# Deterministic start.
+- launchApp:
+    clearState: true
 
-# Handle any permission dialogs
-- tapOn:
-    text: "Allow"
-  optional: true
+# Permission dialogs are genuinely variable - the one legitimate use of optional.
+- runFlow: ../_shared/permissions.yaml
 
-# Navigate to Browse tab
-- tapOn:
-    text: "Browse"
-- waitForAnimationToEnd
-
-# Action: Find and open a file
-- scrollUntilVisible:
-    element:
-      text: ".*\\.(jpg|png|mp4)$"
-  timeout: 10000
-  optional: true
-
-- tapOn:
-    text: ".*\\.(jpg|png|mp4)$"
-  optional: true
-
-- waitForAnimationToEnd
-
-# Action: Add to favorites
-- tapOn:
-    id: ".*favorite.*"
-  optional: true
-
-# Or via menu
-- tapOn:
-    id: ".*menu.*"
-  optional: true
-
-- tapOn:
-    text: "Add to Favorites"
-  optional: true
-
-# Wait for action to complete
-- waitForAnimationToEnd
-
-# Verification: Check favorites tab
-- backPress
-- waitForAnimationToEnd
-
-- tapOn:
-    text: "Favorites"
-
-- waitForAnimationToEnd
-
-# Verify file appears in favorites
+# Entry-screen assertion before acting.
 - assertVisible:
-    text: ".*\\.(jpg|png|mp4)$"
-  optional: true
-  timeout: 5000
+    id: "rvResources"
 
-# Cleanup not needed - favorites can remain
+- tapOn:
+    text: "DCIM"
+
+# Wait for the listing to finish - the browse layer has a stable completion marker.
+- extendedWaitUntil:
+    visible:
+      id: "rvMediaFiles"
+    timeout: 15000
+
+# Act on a file the seeded media guarantees by exact name.
+- tapOn:
+    text: "IMG_001.jpg"
+
+# THE PROOF. Exact id, never optional: this assertion is the point of the test.
+- extendedWaitUntil:
+    visible:
+      id: "photoView"
+    timeout: 10000
+
+# Crash guard - third oracle rule.
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
 ```
 
 ## Next Steps

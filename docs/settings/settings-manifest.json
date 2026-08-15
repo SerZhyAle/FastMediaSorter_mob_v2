@@ -2171,6 +2171,16 @@
       "titleUk": "Показувати трей статусу"
     },
     {
+      "key": "rowLauncherTaskbarPlacement",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Taskbar position",
+      "titleRu": "Расположение панели задач",
+      "titleUk": "Розташування панелі задач"
+    },
+    {
       "key": "rowLauncherTopStatusStrip",
       "sectionId": "launcher",
       "destination": "GENERAL",

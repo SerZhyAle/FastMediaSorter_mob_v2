@@ -8,7 +8,6 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
-import androidx.media3.common.VideoSize
 import androidx.media3.common.text.CueGroup
 import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.ExoPlayer
@@ -45,6 +44,10 @@ class VrDiagnosticPlaybackController(
     var player: ExoPlayer? = null
         private set
 
+    // S1640: the listener closes over the file being started, so it is built per start rather than once
+    // for the class; the field exists only to give the paired removal in release() an addressee.
+    private var playerListener: Player.Listener? = null
+
     fun start(file: File): Boolean {
         release()
         val videoSurface = runtime.getVideoSurface()
@@ -64,12 +67,13 @@ class VrDiagnosticPlaybackController(
             setVideoSurface(videoSurface)
             repeatMode = Player.REPEAT_MODE_ALL
 
-            addListener(object : Player.Listener {
-                // S1113: confirm the 7K immersive decoder produces an output size (and thus frames).
-                override fun onVideoSizeChanged(videoSize: VideoSize) {
-                    Timber.d("S1113: video size ${videoSize.width}x${videoSize.height} file=${file.name}")
-                }
-
+            // S1640: declared inside this apply block on purpose - the object literal's enclosing
+            // receiver stays the player, so the unqualified release() call further down keeps binding
+            // to the player exactly as before.
+            // S1662: that binding was the defect, and it is now fixed at the call site with an explicit
+            // receiver rather than by moving this declaration - keeping it here preserves the closure
+            // over `file` that S1640's per-start construction depends on.
+            val listener = object : Player.Listener {
                 override fun onPlayerError(error: PlaybackException) {
                     val cause = error.cause
                     val stage = when {
@@ -118,7 +122,13 @@ class VrDiagnosticPlaybackController(
                                 Toast.LENGTH_LONG
                             ).show()
 
-                            release()
+                            // S1662: the receiver is spelled out because the nearest implicit one here
+                            // is the ExoPlayer of the enclosing apply, not this controller. Unqualified,
+                            // this call released the player alone and skipped the rest of the teardown:
+                            // the native video surface stayed enabled, the HUD kept mirroring a dead
+                            // player, and the field still pointed at the released instance, so the next
+                            // start() reached into it.
+                            this@VrDiagnosticPlaybackController.release()
                         }
                     }
                 }
@@ -137,7 +147,9 @@ class VrDiagnosticPlaybackController(
                 override fun onCues(cueGroup: CueGroup) {
                     onCues(cueGroup)
                 }
-            })
+            }
+            playerListener = listener
+            addListener(listener)
 
             if (snapshot != null) {
                 seekTo(snapshot.videoPositionMs)
@@ -164,8 +176,10 @@ class VrDiagnosticPlaybackController(
         runtime.setVideoSurfaceEnabled(false)
         player?.clearVideoSurface()
         player?.stop()
+        playerListener?.let { player?.removeListener(it) }
         player?.release()
         player = null
+        playerListener = null
         // S0986: the host mirrors null into HudPlaybackController and drops any stale cue so the
         // subtitle quad hides when playback stops or media switches.
         onPlayerChanged(null)

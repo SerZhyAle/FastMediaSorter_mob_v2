@@ -48,10 +48,6 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
-import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.ui.dialog.FileInfoDialog
 import com.sza.fastmediasorter.ui.player.DefaultPlayerProbe
 import com.sza.fastmediasorter.ui.player.PlaybackControlDialogFragment
 import com.sza.fastmediasorter.ui.player.StandalonePlayerViewModel
@@ -146,34 +142,25 @@ class PhotoVideoStandaloneActivity :
     @Inject lateinit var googleDriveClient: Lazy<GoogleDriveRestClient>
     @Inject lateinit var dropboxClient: Lazy<DropboxClient>
     @Inject lateinit var oneDriveClient: Lazy<OneDriveRestClient>
-    @Inject lateinit var credentialsRepository: Lazy<NetworkCredentialsRepository>
     @Inject lateinit var smbFileOperationHandler: Lazy<SmbFileOperationHandler>
     @Inject lateinit var sftpFileOperationHandler: Lazy<SftpFileOperationHandler>
     @Inject lateinit var ftpFileOperationHandler: Lazy<FtpFileOperationHandler>
     @Inject lateinit var cloudFileOperationHandler: Lazy<CloudFileOperationHandler>
     @Inject lateinit var unifiedCache: Lazy<UnifiedFileCache>
-    @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var imageClipboardWriter: com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
-    @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
 
     // S1114: standalone VR entry (this host has no VR badge; the transport-row button uses this).
     @Inject lateinit var vrCinemaLaunchManager: com.sza.fastmediasorter.ui.player.helpers.StandaloneVrCinemaLaunchManager
-    @Inject lateinit var resolveOpenInFmsTargetUseCase: com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
     @Inject lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
-    @Inject lateinit var fileOperationUseCase: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
-    // S0610: global destination list (no resource context) for the Copy/Move bottom panels.
-    @Inject lateinit var getDestinationsUseCase: com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
-    // S0393 wave-C: image edit dialog (rotate/flip/filters/adjust) use-cases.
-    @Inject lateinit var rotateImageUseCase: com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
-    @Inject lateinit var flipImageUseCase: com.sza.fastmediasorter.domain.usecase.FlipImageUseCase
-    @Inject lateinit var networkImageEditUseCase: com.sza.fastmediasorter.domain.usecase.NetworkImageEditUseCase
-    @Inject lateinit var applyImageFilterUseCase: com.sza.fastmediasorter.domain.usecase.ApplyImageFilterUseCase
-    @Inject lateinit var adjustImageUseCase: com.sza.fastmediasorter.domain.usecase.AdjustImageUseCase
+
+    @Inject lateinit var imageEditFactory: com.sza.fastmediasorter.ui.player.ImageEditFactory
+
+    @Inject lateinit var standaloneHostFactory: StandaloneHostFactory
+
     @Inject lateinit var capabilityAvailability: CapabilityAvailability
     // S0410: draw overlay collaborators (shared with the in-app player).
     @Inject lateinit var drawKeepExportHelper: com.sza.fastmediasorter.ui.player.helpers.DrawKeepExportHelper
-    @Inject lateinit var mergeDrawOverlayUseCase: com.sza.fastmediasorter.domain.usecase.MergeDrawOverlayUseCase
 
     // S0390: screen-rotation toggle for the Group A rotate button; capability hidden without a sensor.
     private val screenRotationManager = ScreenRotationManager()
@@ -190,8 +177,8 @@ class PhotoVideoStandaloneActivity :
             screenRotationManager = screenRotationManager,
             hasAccelerometer = hasAccelerometer,
             keepExportHelper = drawKeepExportHelper,
-            mergeDrawOverlayUseCase = mergeDrawOverlayUseCase,
-            imageCropManager = ImageCropManager(this, lifecycleScope, fileOperationUseCase),
+            mergeDrawOverlayUseCase = imageEditFactory.mergeDrawOverlay,
+            imageCropManager = ImageCropManager(this, lifecycleScope, standaloneHostFactory.fileOperationUseCase),
             lifecycleScope = lifecycleScope,
             getCurrentFile = { viewModel.state.value.mediaFile },
             getDisplayedBitmap = { binding.photoView.drawable?.toBitmap() },
@@ -244,30 +231,16 @@ class PhotoVideoStandaloneActivity :
     private val cropDelegate: PlayerCropDelegate by lazy {
         PlayerCropDelegate(
             host = this,
-            imageCropManager = ImageCropManager(this, lifecycleScope, fileOperationUseCase),
+            imageCropManager = ImageCropManager(this, lifecycleScope, standaloneHostFactory.fileOperationUseCase),
         )
     }
 
+    // The factory omits `binding` exactly as this host did: the trimmed layout never opens document viewers.
     private val viewManager: StandaloneViewManager by lazy {
-        StandaloneViewManager(
+        standaloneHostFactory.createViewManager(
             activity = this,
             root = binding.root,
             lifecycleScope = lifecycleScope,
-            smbClient = smbClient,
-            sftpClient = sftpClient,
-            ftpClient = ftpClient,
-            googleDriveClient = googleDriveClient,
-            dropboxClient = dropboxClient,
-            oneDriveClient = oneDriveClient,
-            credentialsRepository = credentialsRepository,
-            smbFileOperationHandler = smbFileOperationHandler,
-            sftpFileOperationHandler = sftpFileOperationHandler,
-            ftpFileOperationHandler = ftpFileOperationHandler,
-            cloudFileOperationHandler = cloudFileOperationHandler,
-            unifiedCache = unifiedCache,
-            settingsRepository = settingsRepository,
-            playbackPositionRepository = playbackPositionRepository
-            // binding intentionally omitted: this trimmed layout never opens document viewers.
         )
     }
 
@@ -293,9 +266,8 @@ class PhotoVideoStandaloneActivity :
 
     // S0393 wave-C: TranslationManager only for its OCR recognition facade (extractTextOnly).
     private val ocrTranslationManager by lazy {
-        com.sza.fastmediasorter.ui.player.helpers.TranslationManager(
+        standaloneHostFactory.createTranslationManager(
             context = this,
-            settingsRepository = settingsRepository,
             callback = object : com.sza.fastmediasorter.ui.player.helpers.TranslationManager.TranslationCallback {
                 override fun showError(message: String) = runOnUiThread {
                     Toast.makeText(this@PhotoVideoStandaloneActivity, message, Toast.LENGTH_SHORT).show()
@@ -322,7 +294,7 @@ class PhotoVideoStandaloneActivity :
             return
         }
         lifecycleScope.launch {
-            val settings = settingsRepository.getSettings().first()
+            val settings = standaloneHostFactory.settingsRepository.getSettings().first()
             val sourceLang = com.sza.fastmediasorter.ui.player.helpers.TranslationManager
                 .languageCodeToMLKit(settings.translationSourceLanguage)
             val text = withContext(Dispatchers.IO) { ocrTranslationManager.extractTextOnly(bitmap, sourceLang) }
@@ -346,7 +318,7 @@ class PhotoVideoStandaloneActivity :
             Toast.makeText(this, R.string.ocr_extract_image_failed, Toast.LENGTH_SHORT).show(); return
         }
         lifecycleScope.launch {
-            val settings = settingsRepository.getSettings().first()
+            val settings = standaloneHostFactory.settingsRepository.getSettings().first()
             val src = com.sza.fastmediasorter.ui.player.helpers.TranslationManager
                 .languageCodeToMLKit(settings.translationSourceLanguage)
             val tgt = com.sza.fastmediasorter.ui.player.helpers.TranslationManager
@@ -433,7 +405,8 @@ class PhotoVideoStandaloneActivity :
             }.getOrDefault(false)
             // S0470: when enabled, also place the extracted frame on the system clipboard. This host has
             // the live bitmap (no encoded temp file), so copy it as a lossless PNG via the shared role.
-            val copiedToClipboard = if (settingsRepository.getSettings().first().videoFrameCopyToClipboard) {
+            val settings = standaloneHostFactory.settingsRepository.getSettings().first()
+            val copiedToClipboard = if (settings.videoFrameCopyToClipboard) {
                 imageClipboardWriter.copyBitmap(bitmap)
             } else false
             withContext(Dispatchers.Main) {
@@ -513,33 +486,28 @@ class PhotoVideoStandaloneActivity :
     private var folderPagingEnabled = false
 
     private val fileOperations: StandaloneFileOperationsHandler by lazy {
-        StandaloneFileOperationsHandler(
+        standaloneHostFactory.createFileOperationsHandler(
             activity = this,
             root = binding.root,
-            getCurrentMediaFile = { viewModel.state.value.mediaFile },
-            resolveOpenInFmsTarget = resolveOpenInFmsTargetUseCase,
-            onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
-            updateAudioMediaItem = { /* audio is a separate lane - never handled here */ },
-            batchDeleteLauncher = batchDeleteLauncher,
-            recoverableDeleteLauncher = recoverableDeleteLauncher,
-            sendToMenuManager = sendToMenuManager,
-            getCurrentSettings = { settingsRepository.getSettings().first() },
-            fileOperationUseCase = fileOperationUseCase,
-            getDestinationsUseCase = getDestinationsUseCase,
-            onPickCustomFolderForCopy = {
-                pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
-                customPathPickerLauncher.launch(null)
-            },
+            callbacks = StandaloneFileOpsCallbacks(
+                getCurrentMediaFile = { viewModel.state.value.mediaFile },
+                onRenameComplete = { newUri, newName -> viewModel.onRenameComplete(newUri, newName) },
+                updateAudioMediaItem = { /* audio is a separate lane - never handled here */ },
+                batchDeleteLauncher = batchDeleteLauncher,
+                recoverableDeleteLauncher = recoverableDeleteLauncher,
+                onPickCustomFolderForCopy = {
+                    pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
+                    customPathPickerLauncher.launch(null)
+                },
+            ),
         )
     }
 
     // S0610: Copy/Move destination panels, reusing the shared in-app manager bound to this layout root.
     // No resource context: getCurrentResourceId returns -1 so the global destination list is shown intact.
     private val destinationButtonsManager: com.sza.fastmediasorter.ui.player.DestinationButtonsManager by lazy {
-        com.sza.fastmediasorter.ui.player.DestinationButtonsManager(
+        standaloneHostFactory.createDestinationButtons(
             root = binding.root,
-            settingsRepository = settingsRepository,
-            getDestinationsUseCase = getDestinationsUseCase,
             lifecycleScope = lifecycleScope,
             callback = object : com.sza.fastmediasorter.ui.player.DestinationButtonsManager.DestinationButtonsCallback {
                 override fun onCopyClicked(destination: MediaResource) = fileOperations.copyCurrentFileTo(destination)
@@ -753,7 +721,7 @@ class PhotoVideoStandaloneActivity :
                         com.sza.fastmediasorter.ui.dialog.TranslationSettingsDialog.show(
                             context = this,
                             lifecycleOwner = this,
-                            settingsRepository = settingsRepository,
+                            settingsRepository = standaloneHostFactory.settingsRepository,
                         )
                         true
                     }
@@ -769,12 +737,10 @@ class PhotoVideoStandaloneActivity :
                     R.id.menu_rotate_content_standalone -> {
                         viewModel.rotateSession90()
                         val newAngle = viewModel.state.value.sessionRotationAngle
-                        Timber.d("S0995: standalone rotate90 tap -> $newAngle")
                         photoVideoHandle.setContentRotationDegrees(newAngle)
                         true
                     }
                     R.id.menu_rotate_content_ccw_standalone -> {
-                        Timber.d("S1364: standalone rotate -90 tap")
                         viewModel.rotateSessionCounter90()
                         photoVideoHandle.setContentRotationDegrees(viewModel.state.value.sessionRotationAngle)
                         true
@@ -850,18 +816,9 @@ class PhotoVideoStandaloneActivity :
     private fun showFileInfo() {
         val file = viewModel.state.value.mediaFile ?: return
         if (isFinishing || isDestroyed) return
-        FileInfoDialog(
-            this,
-            file,
-            smbClient.get(),
-            sftpClient.get(),
-            ftpClient.get(),
-            credentialsRepository.get(),
-            unifiedCache.get(),
-            downloadNetworkFileUseCase = null,
-            audioMetadataLoader = null,
-            audioMetadataCacheRepository = null
-        ).show()
+        // The factory leaves the three audio/download parameters at their null defaults, which is
+        // what this host passed explicitly - it has no audio lane and no network download path.
+        standaloneHostFactory.createFileInfoDialog(context = this, mediaFile = file).show()
     }
 
     /** Runs the one-shot [EXTRA_AUTO_ACTION] requested at launch (draw / translate), once, for images only. */
@@ -1008,7 +965,7 @@ class PhotoVideoStandaloneActivity :
             )
         }
         // S0763: keep the 3D/VR master-toggle snapshot current for the playback control dialog.
-        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+        collectOnLifecycle(standaloneHostFactory.settingsRepository.getSettings()) { settings ->
             cached3dVrEnabled = !settings.disable3dVr
         }
     }
@@ -1025,11 +982,11 @@ class PhotoVideoStandaloneActivity :
         com.sza.fastmediasorter.ui.dialog.ImageEditDialog(
             context = this,
             imagePath = file.path,
-            rotateImageUseCase = rotateImageUseCase,
-            flipImageUseCase = flipImageUseCase,
-            networkImageEditUseCase = networkImageEditUseCase,
-            applyImageFilterUseCase = applyImageFilterUseCase,
-            adjustImageUseCase = adjustImageUseCase,
+            rotateImageUseCase = imageEditFactory.rotateImage,
+            flipImageUseCase = imageEditFactory.flipImage,
+            networkImageEditUseCase = imageEditFactory.networkImageEdit,
+            applyImageFilterUseCase = imageEditFactory.applyImageFilter,
+            adjustImageUseCase = imageEditFactory.adjustImage,
             onEditComplete = { viewModel.state.value.mediaFile?.let { viewManager.reloadImage(it) } },
         ).show()
     }
@@ -1059,7 +1016,7 @@ class PhotoVideoStandaloneActivity :
             isVideoPlaying = { viewManager.getExoPlayer()?.isPlaying == true },
         )
         pipManager = manager
-        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+        collectOnLifecycle(standaloneHostFactory.settingsRepository.getSettings()) { settings ->
             manager.setupPipButton(settings.enablePictureInPicture, isAudio = false)
         }
     }
@@ -1119,16 +1076,21 @@ class PhotoVideoStandaloneActivity :
         // panel stays the single source of truth for "in fullscreen"; when off, keep both visible
         // (commands mode). An edge-swipe restores the panel via setupTransientBarsExitCallback below.
         lifecycleScope.launch {
-            val openFullscreen = settingsRepository.getSettings().first().openVideoInFullscreen
+            val openFullscreen = standaloneHostFactory.settingsRepository.getSettings().first().openVideoInFullscreen
             if (openFullscreen) {
                 fsManager.enterFullscreenWithPanel(binding.topCommandPanel) {
                     updateFullscreenExitButtonVisibility()
                 }
             }
         }
+        // S1202: take the same path as btnFullscreenExit above, so the swipe leaves fullscreen instead
+        // of restoring the panel while the window stays immersive and the manager still reads active.
         fsManager.setupTransientBarsExitCallback {
-            if (!binding.topCommandPanel.isVisible) binding.topCommandPanel.isVisible = true
-            updateFullscreenExitButtonVisibility()
+            if (!binding.topCommandPanel.isVisible) {
+                fsManager.exitFullscreenWithPanel(binding.topCommandPanel) {
+                    updateFullscreenExitButtonVisibility()
+                }
+            }
         }
 
         val trackManager = VideoTrackSelectionManager(
@@ -1137,12 +1099,11 @@ class PhotoVideoStandaloneActivity :
         )
         trackSelectionManager = trackManager
 
-        playerSettingsManager = StandalonePlayerSettingsManager(
+        playerSettingsManager = standaloneHostFactory.createSettingsManager(
             activity = this,
             playerView = pv,
-            settingsRepository = settingsRepository,
             trackSelectionManager = trackManager,
-            lifecycleScope = lifecycleScope
+            lifecycleScope = lifecycleScope,
         )
 
         val tracksListener = object : Player.Listener {

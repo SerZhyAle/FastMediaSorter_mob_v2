@@ -1,0 +1,23 @@
+# blockneedusertest-probe-baseline.txt (S1290)
+#
+# Allow-list for the reverse direction of the debug-probe invariant, read by
+# scripts/quality/assert-no-ticket-logs.ps1.
+#
+# CLAUDE.md Rule 2 states the invariant as "probe exists in .kt if and only if the ticket is in
+# BlockNeedUserTest". Measured 2026-08-14, the literal form is too strong in one direction: a ticket
+# that changes tooling, scripts or documentation and touches no Kotlin has nowhere to put a probe,
+# yet still needs a human to verify it on the real thing. Those tickets are excused here, by id,
+# with the reason - never by a bare counter, so the number can only move with an explanation
+# (strategic S1290 ADR-1).
+#
+# Format: one record per line, "Sxxxx  <reason>". Lines starting with # are comments.
+# An entry stops being read the moment its ticket leaves BlockNeedUserTest, so stale rows are inert
+# rather than harmful - but delete them when you notice them.
+#
+# NOT a place to park a ticket that genuinely should carry a probe. If the ticket changed Kotlin,
+# add the probe instead.
+
+S1606  Durable-evidence closing gate - script-only change, no .kt touched (per its own status note).
+S1620  Archived-spec relocation - tooling-only change, no .kt touched (per its own status note).
+S1183  adb.ps1 verb output made pipeable - script-only change; the piped files and command output are the evidence.
+S1520  devtest screenshot gate on secure screens - script-only change; the SHOT/TREE output is the evidence.

@@ -9,10 +9,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,7 +18,7 @@ import javax.inject.Inject
 class ScreenCaptureConsentActivity : AppCompatActivity() {
 
     @Inject
-    lateinit var settingsRepository: SettingsRepository
+    lateinit var consentManager: ScreenCaptureConsentManager
 
     private var gestureDirection: String? = null
     private var gestureZone: String? = null
@@ -55,8 +53,7 @@ class ScreenCaptureConsentActivity : AppCompatActivity() {
     }
 
     private suspend fun maybeStartConsentFlow() {
-        val settings = settingsRepository.getSettings().first()
-        if (settings.screenCaptureDisclosureAccepted) {
+        if (consentManager.isDisclosureAccepted()) {
             launchSystemConsent()
         } else {
             showDisclosureDialog()
@@ -78,8 +75,7 @@ class ScreenCaptureConsentActivity : AppCompatActivity() {
     }
 
     private suspend fun acceptDisclosureAndLaunchConsent() {
-        val current = settingsRepository.getSettings().first()
-        settingsRepository.updateSettings(current.copy(screenCaptureDisclosureAccepted = true))
+        consentManager.markDisclosureAccepted()
         launchSystemConsent()
     }
 

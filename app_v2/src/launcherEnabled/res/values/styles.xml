@@ -23,4 +23,25 @@
         <item name="android:windowBackground">?attr/colorSurface</item>
     </style>
 
+    <!-- S1643: the Start panel travels from the top taskbar's own edge, the direction the owner ruled
+         for the top placement (strategic §6 item 3). The bottom placement keeps the Material bottom
+         sheet and never resolves this style. -->
+    <style name="Animation.FastMediaSorter.Launcher.TopPanel" parent="">
+        <item name="android:windowEnterAnimation">@anim/launcher_top_panel_enter</item>
+        <item name="android:windowExitAnimation">@anim/launcher_top_panel_exit</item>
+    </style>
+
+    <!-- S1643: host window for the Start panel under the top taskbar placement. Floating so the panel
+         wraps its rows and can be pushed below the bar by y offset. The background is opaque because
+         fragment_launcher_start_menu declares none of its own and borrows the bottom sheet's today - a
+         transparent window would show the desktop through the rows. -->
+    <style name="Theme.FastMediaSorter.Launcher.TopPanel" parent="Theme.FastMediaSorter">
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowBackground">?attr/colorSurface</item>
+        <item name="android:windowAnimationStyle">@style/Animation.FastMediaSorter.Launcher.TopPanel</item>
+    </style>
+
 </resources>

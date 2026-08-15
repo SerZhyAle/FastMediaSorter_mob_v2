@@ -62,6 +62,26 @@ operation resources and the file-operation menu is known tappable on that device
 - `player_resume.yaml` - resume-position affordance.
 - `player_info_dialog.yaml` - metadata dialog with audio section.
 
+`features/settings/` (S1612 additions):
+
+- `settings_search_navigates.yaml` - a query that MUST match returns results and jumping to one
+  lands on the setting it named. Complements `settings_search.yaml`, which proves only the
+  negative half: an index returning nothing for every input passes the empty-state test.
+
+`features/statistics/` (S1612):
+
+- `statistics_open.yaml` - the usage dashboard opens from its settings row and inflates its list.
+  The flow enables collection first on purpose: the navigation row's visibility tracks
+  `AppSettings.enableStatistics`, so on a build with collection off the row is absent entirely.
+  `StatisticsActivity` is not exported, so this row is the only way in - `am start` is refused.
+
+`features/text/` (S1612):
+
+- `text_viewer_renders.yaml` - a `.txt` file renders in the dedicated text viewer.
+  `player_documents.yaml` also opens `readme.txt` but asserts `mediaContentArea`, the generic
+  player container that is visible for any media type; this flow asserts `textViewerContainer` and
+  `tvTextContent`, so a regression routing text to the wrong viewer fails here.
+
 `features/slideshow/`:
 
 - `slideshow_basic.yaml` - slideshow start on a large image.
@@ -109,13 +129,48 @@ not use `clearState`, because that would wipe registered resources.
 Network/cloud capability flows are intentionally not in the active suite yet; they require
 external reachability and are covered by later, environment-specific work.
 
+## Preconditions - the suite assumes a ru-locale app
+
+Many flows and every `_shared/` fragment address elements by their **Russian** visible text
+(`"Общие"`, `"Оставить текущий"`, `"Отправить отчёт о сбое?"`) because those controls carry no
+stable view id. If the app renders in another language, the tap simply finds nothing and the flow
+fails with `Element not found` - a red result that says nothing about the product.
+
+The app language follows the per-app locale, not only the device locale. Check and set it before
+a run:
+
+```powershell
+pwsh -NoProfile -File scripts/devtest/adb.ps1 shell -Cmd "cmd locale get-app-locales com.sza.fastmediasorter.debug"
+pwsh -NoProfile -File scripts/devtest/adb.ps1 shell -Cmd "cmd locale set-app-locales com.sza.fastmediasorter.debug --locales ru-RU"
+```
+
+Observed 2026-08-13 (S1612): an empty per-app locale on a device whose system locale is `en-US`
+rendered the app in English and failed `_shared/settings_select_general_tab.yaml` on the very first
+tap. Note that the console and the trace log render Cyrillic as `?????` on a Windows host even when
+matching succeeds - a garbled log line is **not** evidence of an encoding failure, so diagnose from
+the UI hierarchy, never from the log's rendering of the label.
+
+## Preconditions - run in portrait
+
+The suite is written and verified in **portrait**. Orientation is not cosmetic here: on
+2026-08-13 (S1612) the settings search button was found to **dismiss `SettingsActivity`** instead
+of opening the search overlay when the device is in landscape, which fails
+`features/settings/settings_search.yaml` and `settings_search_navigates.yaml` on a step that has
+nothing to do with search. That defect is tracked as **S1619**; until it closes, a landscape run
+reports red for a reason the flow cannot express.
+
+```powershell
+pwsh -NoProfile -File scripts/devtest/adb.ps1 shell -Cmd "settings put system accelerometer_rotation 0; settings put system user_rotation 0"
+```
+
 ## Oracle Convention
 
-A green flow must prove behavior, not only "did not crash":
+A green flow must prove behavior, not only "did not crash". The rules are stated once, in
+`WRITING_TESTS.md` section "Oracle convention" - that text is authoritative and is not
+restated here, because the earlier second copy drifted from it.
 
-- assert the expected post-action element is visible;
-- use a stable completion log marker where the app already has one;
-- assert that the crash-report prompt is not visible after risky opens;
-- avoid coordinate taps and regex catch-all locators for proof assertions.
+Since S1612 the convention is enforced mechanically by
+`scripts/quality/assert-maestro-oracle.ps1`, which runs inside the fast static gate batch
+(`.\a.ps1 fg`). A flow breaking the convention fails the gate before it ever reaches a device.
 
-See `WRITING_TESTS.md` for authoring rules and `config.yaml` for shared timeout values.
+See `config.yaml` for shared timeout values.

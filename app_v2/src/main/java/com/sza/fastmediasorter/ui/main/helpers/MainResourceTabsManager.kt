@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
-import android.content.res.Configuration
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -26,7 +25,6 @@ import kotlinx.coroutines.CoroutineScope
 class MainResourceTabsManager(
     private val tabLayout: TabLayout,
     private val collapsedStrip: View,
-    private val configuration: Configuration,
     private val gate: RemoteSourceAvailabilityGate,
     private val settingsRepository: SettingsRepository,
     private val scope: CoroutineScope,
@@ -75,11 +73,15 @@ class MainResourceTabsManager(
         tabLayout.getTabAt(getTabIndexForResourceTab(getActiveTab()))?.select()
 
         // S1049: the portrait-only fixed-grid bucket (main_resource_tabs_fixed_grid) always goes scrollable +
-        // start-aligned so app:tabMinWidth/tabMaxWidth (main_panel_tab_min_width, 2x the shared item module)
-        // are respected exactly instead of being overridden by fill-stretch. Landscape/w600dp leave this bool
+        // start-aligned so the explicit per-tab widths below are respected instead of being overridden by
+        // fill-stretch. S1659: those widths are now computed from the strip width rather than taken from
+        // app:tabMinWidth/tabMaxWidth, which stay as the upper bound. Landscape/w600dp leave this bool
         // false and keep the pre-existing width-aware fixed/fill split below, unchanged.
         val fixedGrid = tabLayout.resources.getBoolean(R.bool.main_resource_tabs_fixed_grid)
-        val screenWidthDp = configuration.screenWidthDp
+        // S1659: read the width at use time, never from a Configuration captured at construction. Measured
+        // on device: after a landscape-to-portrait turn a captured instance still reported the landscape
+        // width, so the division sized the tabs for 853dp and the row overflowed the 384dp portrait again.
+        val screenWidthDp = tabLayout.resources.configuration.screenWidthDp
         if (fixedGrid || screenWidthDp < NARROW_TAB_LAYOUT_MAX_WIDTH_DP) {
             tabLayout.tabMode = TabLayout.MODE_SCROLLABLE
             tabLayout.tabGravity = TabLayout.GRAVITY_START
@@ -94,39 +96,83 @@ class MainResourceTabsManager(
     }
 
     /**
-     * S1068: in the portrait fixed-grid bucket the first tab ("All") is the accented leading cell -
-     * one base module (48dp) wider than the 2-module (96dp) tab, i.e. 108dp = 225% - so its right edge
-     * lands on the same grid boundary as the command bar and panels while the strip starts flush at x=0.
-     * The remaining tabs stay a uniform 96dp. Outside portrait (fixed/fill mode) the explicit widths are
-     * cleared back to WRAP_CONTENT so the tabs stretch to full width as before (S1049); MainActivity uses
-     * android:configChanges (no re-inflate on rotation) so this reset must run to undo a prior portrait pin.
+     * S1659: in the portrait fixed-grid bucket the tab widths are a quotient of the strip's own width,
+     * not constants. Five tabs at the S1068 defaults (108dp + 4x96dp = 492dp) overflow every phone
+     * portrait (360-411dp), so the last tab - Cloud - was pushed off-screen and read as a removed
+     * feature. The row now divides the available width by the tab count and keeps the S1068 leading-cell
+     * accent as a ratio, so a sixth tab needs no new constant. Outside portrait (fixed/fill mode) the
+     * explicit widths are cleared back to WRAP_CONTENT so the tabs stretch to full width as before
+     * (S1049); MainActivity uses android:configChanges (no re-inflate on rotation) so this reset must run
+     * to undo a prior portrait pin.
      */
     private fun applyLeadingCellAccent(fixedGrid: Boolean) {
         val strip = tabLayout.getChildAt(0) as? ViewGroup ?: return
-        val firstWidth = tabLayout.resources.getDimensionPixelSize(R.dimen.main_panel_first_tab_width)
-        val restWidth = tabLayout.resources.getDimensionPixelSize(R.dimen.main_panel_tab_min_width)
+        if (!fixedGrid) {
+            clearPinnedTabWidths(strip)
+            return
+        }
+        val restWidth = resolveRestTabWidth(strip.childCount)
+        val maxFirstWidth = tabLayout.resources.getDimensionPixelSize(R.dimen.main_panel_first_tab_width)
+        val firstWidth = (restWidth * firstTabAccentRatio()).toInt().coerceAtMost(maxFirstWidth)
         for (i in 0 until strip.childCount) {
             val tabView = strip.getChildAt(i)
-            if (fixedGrid) {
-                val target = if (i == 0) firstWidth else restWidth
-                val lp = tabView.layoutParams
-                if (lp.width != target) {
-                    lp.width = target
-                    tabView.layoutParams = lp
-                }
-                tabView.minimumWidth = target
-            } else {
-                // Land/wide: normally the mode switch to FIXED already reset each tab LP to width=0
-                // (fill/stretch), so leave that untouched. Only undo a leftover portrait pin (width>0),
-                // which survives the rare rotate-into-narrow-landscape path where the mode stays
-                // SCROLLABLE (MainActivity reuses this view across rotations via configChanges).
-                val lp = tabView.layoutParams
-                if (lp.width > 0) {
-                    lp.width = ViewGroup.LayoutParams.WRAP_CONTENT
-                    tabView.layoutParams = lp
-                }
-                tabView.minimumWidth = 0
+            val target = if (i == 0) firstWidth else restWidth
+            val lp = tabView.layoutParams
+            if (lp.width != target) {
+                lp.width = target
+                tabView.layoutParams = lp
             }
+            tabView.minimumWidth = target
+        }
+    }
+
+    /**
+     * S1659: the available width divided by the tab count, clamped between the shared 48dp touch module
+     * and the S1068 two-module default. The upper clamp keeps a wide screen on the shared grid instead of
+     * stretching a tab past its module. The lower clamp is unreachable on any supported screen - five tabs
+     * stay above it down to 246dp and the narrowest supported portrait is 320dp (strategic 6.1) - and
+     * exists so an unforeseen width degrades to the pre-existing scrollable strip rather than to a tab too
+     * narrow to hit.
+     */
+    private fun resolveRestTabWidth(tabCount: Int): Int {
+        val resources = tabLayout.resources
+        val maxWidth = resources.getDimensionPixelSize(R.dimen.main_panel_tab_min_width)
+        if (tabCount <= 0) {
+            return maxWidth
+        }
+        val available = resources.configuration.screenWidthDp * resources.displayMetrics.density -
+            tabLayout.paddingStart - tabLayout.paddingEnd
+        val share = available / (tabCount - 1 + firstTabAccentRatio())
+        val minWidth = resources.getDimensionPixelSize(R.dimen.main_panel_item_min_width)
+        return share.toInt().coerceIn(minWidth, maxWidth)
+    }
+
+    /**
+     * S1068's leading-cell accent expressed as a ratio (108/96) rather than a fixed +12dp, so it survives
+     * the S1659 division: the first tab stays that multiple of the others at any width, and on a screen
+     * wide enough for the defaults both widths land back on the dimens the other top panels align to.
+     */
+    private fun firstTabAccentRatio(): Float {
+        val resources = tabLayout.resources
+        return resources.getDimensionPixelSize(R.dimen.main_panel_first_tab_width).toFloat() /
+            resources.getDimensionPixelSize(R.dimen.main_panel_tab_min_width)
+    }
+
+    /**
+     * Land/wide: normally the mode switch to FIXED already reset each tab LP to width=0 (fill/stretch), so
+     * leave that untouched. Only undo a leftover portrait pin (width>0), which survives the rare
+     * rotate-into-narrow-landscape path where the mode stays SCROLLABLE (MainActivity reuses this view
+     * across rotations via configChanges).
+     */
+    private fun clearPinnedTabWidths(strip: ViewGroup) {
+        for (i in 0 until strip.childCount) {
+            val tabView = strip.getChildAt(i)
+            val lp = tabView.layoutParams
+            if (lp.width > 0) {
+                lp.width = ViewGroup.LayoutParams.WRAP_CONTENT
+                tabView.layoutParams = lp
+            }
+            tabView.minimumWidth = 0
         }
     }
 

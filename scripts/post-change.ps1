@@ -338,6 +338,9 @@ function Get-FirstChangedFileMatch([string]$Pattern) {
     return $null
 }
 
+$docIconRoutingFile = Join-Path $root 'scripts/quality/lib/doc-icon-gate-routing.ps1'
+. $docIconRoutingFile
+
 $hasJvmSource = Test-AnyChangedFile '(^|/)src/.*\.(kt|java)$'
 $hasXmlResource = Test-AnyChangedFile '(^|/)src/.*\.xml$'
 $hasStringResource = Test-AnyChangedFile 'src/[^/]+/res/values[^/]*/strings.*\.xml$'
@@ -357,15 +360,11 @@ $runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling'
 # S1075: same trigger as doc-pins-sync - drift enters via a Gradle bump (Config) or a
 # hand edit to dev/TECH_REQUIREMENTS.md (Doc). Checks the doc pins the generator does not own.
 $runsDocPinDrift = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling')
-$runsFlavorFlagGate = $isCodeChange
 # S0383 neuroslop ratchet gate. Covers Kotlin (trivial comments / swallowing catch /
 # unsafe Flow collects) and Xml (hardcoded layout colors, build-invisible string-resource
 # quotes). Baselines only ratchet DOWN. The live set is whatever source-matchers.ps1
 # registers - the umbrella forwards unfiltered, so a new rule needs no wiring here.
 $runsNeuroslopGate = $isCodeChange -or $isResourceChange
-# S1031 public-mutable-reactive-state ratchet gate. Bans a public (non-private) val/var of
-# Mutable(StateFlow|LiveData|SharedFlow). Kotlin/Mixed only. Baseline ratchets DOWN.
-$runsPublicMutableFlowGate = $isCodeChange
 # S0720 detekt + ktlint static-analysis gate. Runs :app_v2:detekt :wear:detekt over a
 # committed per-module baseline (only NEW findings fail). It invokes gradle, so it is scoped to
 # a changed Kotlin/Java source file rather than the caller's label.
@@ -383,9 +382,6 @@ $runsBaselineAbsorptionGate = @($changedFiles | Where-Object {
 # crash class: ?attr-tinted notification small icons (A) and foreground-service paths that
 # build a notification without ensuring their channel (B). Covers Kotlin + Xml (drawables).
 $runsFgsGate = $isCodeChange -or $isResourceChange
-# S0467 deprecated-PackageManager-flags gate. Keeps src/main at zero raw-int getPackageInfo /
-# getApplicationInfo / queryIntentActivities / resolveActivity overloads (deprecated since API 33).
-$runsPmFlagsGate = $isCodeChange
 # S0507 focus-highlight ratchet gate. Layout-only concern: interactive views without a visible
 # focus indication (Rule 16) must never grow. Covers Xml + Mixed (layout edits). Baseline ratchets DOWN.
 $runsFocusHighlightGate = $isResourceChange
@@ -428,6 +424,13 @@ $runsIconInventoryGate = (
         (Test-AnyChangedFile 'app_v2/src/main/res/values[^/]*/strings.*\.xml$')
     )
 )
+# S1548 rule-digest gate. Fires when a file holding one of the four mirroring roles is in the
+# changed set: the authority (CLAUDE.md), a full digest (AGENTS.md, .github/copilot-instructions.md)
+# or the pointer (GEMINI.md). Editing any of them is exactly when a digest can fall behind, and the
+# check is pure text over four markdown files, so it costs nothing on the fast path.
+# Roles and their obligations: dev/RULE_AND_SKILL_AUTHORING.md "Rule mirroring contract".
+$runsRuleDigestGate = Test-AnyChangedFile '^(CLAUDE\.md|AGENTS\.md|GEMINI\.md|\.github/copilot-instructions\.md)$'
+$runsDocIconGate = Test-DocIconGateRoute -ChangedFiles $normChangedFiles
 # S0684 dialog-cancel-style gate. Fires only when a dialog / bottom-sheet layout is touched -
 # a cancel/negative action button in such a pair must use Widget.FastMediaSorter.Button.DialogCancel,
 # never a one-off cancel style. Baseline ratchets DOWN. Narrow trigger keeps it cheap.
@@ -443,6 +446,11 @@ $runsListenerSymmetryGate = $isCodeChange
 # activity that pins screenOrientation implies a required screen.* hardware feature,
 # which shrinks Google Play device reach unless src/main declares it not-required.
 $runsOrientationFeatureGate = Test-AnyChangedFile 'AndroidManifest\.xml$'
+# S1639 Gson persistence contract gate. Fires on a Kotlin source or an obfuscation rules file, the two
+# halves of the invariant: a model whose JSON outlives the process must have its field names pinned, and
+# either half can break it alone - a new model, or a keep rule that stopped covering an old one. The
+# defect class reached users six times before anything tied the two facts together.
+$runsGsonContractGate = (Test-AnyChangedFile '\.kt$') -or (Test-AnyChangedFile 'proguard-.*\.pro$')
 # Script-cheatsheet drift gate. Fires when a repo PowerShell script (under the
 # cheatsheet's discovery roots scripts/ and dev/CATALOG/scripts/) or the generated
 # doc itself is touched - a changed param() block staleens docs/SCRIPT_CHEATSHEET.md
@@ -515,6 +523,19 @@ if ($runsStringsAudit) {
 }
 else {
     Skip-Step "strings-audit" "not applicable for ChangeType $resolvedChangeType"
+}
+
+# S1627: name the strings that do not yet reach all thirteen declared locales. Advisory on purpose -
+# the refusal lives at the pre-release stage, where one bulk round trip clears every key of the
+# release at once, so failing a ticket's close here would demand ten translations per key for no
+# shipping benefit. Silence is what let 1887 keys accumulate, so the count is printed either way.
+if ($runsStringFormatGate) {
+    Invoke-AdvisoryStep "new-lexeme-count" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/utils/list-new-lexemes.ps1") -Module $Module
+    } "advisory (new strings not yet in every locale; the pre-release stage translates them in bulk)"
+}
+else {
+    Skip-Step "new-lexeme-count" "not applicable - no changed file is a strings resource file"
 }
 
 if ($runsStringFormatGate) {
@@ -654,20 +675,6 @@ if ($runsDetektGate -and -not $detektPreflightFailed) {
 
 try {
 
-if ($runsFlavorFlagGate) {
-    # S0848 Phase 04: under -ScopeToFile this gate now judges a real delta on the changed file
-    # (growth vs HEAD) rather than an advisory full scan, so it stays FATAL - a NEW flavor flag in
-    # this change fails, while other tickets' pre-existing reads no longer trip it.
-    Invoke-Gate "flavor-flag-gate" {
-        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-flavor-flags-not-growing.ps1"), '-Gate')
-        if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
-        & $pwsh @a
-    }
-}
-else {
-    Skip-Step "flavor-flag-gate" "not applicable for ChangeType $resolvedChangeType"
-}
-
 if ($runsNeuroslopGate) {
     # S0850: under -ScopeToFile every child judges a real delta on the changed file (growth vs
     # HEAD) and the gate stays FATAL - a NEW violation in this change fails, while other
@@ -680,20 +687,6 @@ if ($runsNeuroslopGate) {
 }
 else {
     Skip-Step "neuroslop-gate" "not applicable for ChangeType $resolvedChangeType"
-}
-
-if ($runsPublicMutableFlowGate) {
-    # S1031: under -ScopeToFile the gate judges a real delta on the changed file (growth vs HEAD)
-    # and stays FATAL - a NEW public mutable reactive-state declaration in this change fails,
-    # while other tickets' pre-existing findings no longer trip it (mirrors neuroslop).
-    Invoke-Gate "public-mutable-flow-gate" {
-        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-public-mutable-flow.ps1"), '-Gate')
-        if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
-        & $pwsh @a
-    }
-}
-else {
-    Skip-Step "public-mutable-flow-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
 if ($runsOrientationFeatureGate) {
@@ -712,20 +705,6 @@ if ($runsFgsGate) {
 }
 else {
     Skip-Step "fgs-notification-gate" "not applicable for ChangeType $resolvedChangeType"
-}
-
-if ($runsPmFlagsGate) {
-    # S0848 Phase 04: real delta on the changed file under -ScopeToFile (growth vs HEAD), so this
-    # gate stays FATAL - a NEW raw-int PackageManager overload in this change fails, unrelated
-    # pre-existing ones in other files do not.
-    Invoke-Gate "deprecated-pm-flags-gate" {
-        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-deprecated-pm-flags.ps1"), '-Gate')
-        if ($ScopeToFile) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
-        & $pwsh @a
-    }
-}
-else {
-    Skip-Step "deprecated-pm-flags-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
 if ($runsFocusHighlightGate) {
@@ -817,6 +796,15 @@ else {
     Skip-Step "icon-inventory-sync-gate" "not applicable - no changed file is icon docs or a settings icon/title source"
 }
 
+if ($runsDocIconGate) {
+    Invoke-Gate "doc-icons-sync-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-doc-icons-sync.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "doc-icons-sync-gate" "not applicable - no changed file is a document-icon gate input"
+}
+
 if ($runsScriptCheatsheetGate) {
     # Advisory under -ScopeToFile: the check regenerates from every script, so
     # unrelated script-param WIP on a dirty tree could read as cheatsheet drift
@@ -850,6 +838,15 @@ if ($runsOssNoticesGate) {
 }
 else {
     Skip-Step "oss-notices-gate" "not applicable - no changed file is a build file, the licence manifest, the notice pipeline, or a rendered notice page"
+}
+
+if ($runsRuleDigestGate) {
+    Invoke-Gate "rule-digest-sync-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-rule-digest-sync.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "rule-digest-sync-gate" "not applicable - no changed file is the rule authority, a full digest or the pointer"
 }
 
 # S1338 phase 05: the document-registry trigger. Reads docs/DOCUMENT_REGISTRY.jsonl and reports
@@ -945,6 +942,25 @@ else {
 # them, so another ticket's WIP cannot make it fail unless that WIP is itself the defect.
 Invoke-Gate "launcher-reset-coverage-gate" {
     & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-launcher-reset-coverage.ps1") -Gate -Quiet
+}
+
+# S1639: FATAL rather than advisory. The registry beside the gate already carries every finding the tree
+# holds today, so a failure here is new by construction and belongs to the change being closed.
+if ($runsGsonContractGate) {
+    Invoke-Gate "gson-persistence-contract-gate" {
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-gson-persistence-contract.ps1"), '-Gate')
+        # A changed keep rule can unpin any model in its module, so a rules edit is judged project-wide.
+        # Only a pure Kotlin change may be scoped, and then to its Kotlin files alone - scoping to a set
+        # that holds no source would collect no serialization point at all and report green for nothing.
+        $kotlinChanged = @($changedFiles | Where-Object { $_ -match '\.kt$' })
+        if ($ScopeToFile -and $kotlinChanged.Count -gt 0 -and -not (Test-AnyChangedFile 'proguard-.*\.pro$')) {
+            $a += @('-ChangedFiles', ($kotlinChanged -join ','))
+        }
+        & $pwsh @a
+    }
+}
+else {
+    Skip-Step "gson-persistence-contract-gate" "not applicable - no changed file is a Kotlin source or an obfuscation rules file"
 }
 
 # S0848 Phase 02: join the detekt job started before the lexical gates. Preserves the old

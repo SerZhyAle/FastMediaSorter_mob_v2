@@ -18,12 +18,14 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.video.Recorder
 import androidx.camera.video.VideoCapture
 import androidx.camera.view.PreviewView
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraAspectSelection
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraLensEntry
+import timber.log.Timber
 
 /** Builds the CameraX use-case group while keeping output geometry in one place. */
 internal class CameraUseCaseFactory(
     private val videoMode: Boolean,
-    private val selectedAspectRatio: Int?,
+    private val selection: CameraAspectSelection?,
     private val selectedResolution: Size?,
     private val targetRotation: Int,
     /**
@@ -98,6 +100,7 @@ internal class CameraUseCaseFactory(
 
     private fun buildResolutionSelector(allowHighResolution: Boolean): ResolutionSelector {
         val aspect = effectiveAspectRatioInt()
+        Timber.d("S1658: stream aspect selection=${selection ?: CameraAspectSelection.DEFAULT} cameraX=$aspect")
         val builder = ResolutionSelector.Builder()
             .setAspectRatioStrategy(
                 AspectRatioStrategy(aspect, AspectRatioStrategy.FALLBACK_RULE_AUTO),
@@ -114,22 +117,12 @@ internal class CameraUseCaseFactory(
     }
 
     private fun effectiveAspectRatioInt(): Int =
-        if (videoMode) selectedAspectRatio ?: AspectRatio.RATIO_4_3 else PHOTO_ASPECT_RATIO
+        (selection ?: CameraAspectSelection.DEFAULT).forMode(videoMode).cameraXAspectRatio
 
     private fun effectiveAspectRational(): Rational =
         if (effectiveAspectRatioInt() == AspectRatio.RATIO_16_9) RATIONAL_16_9 else RATIONAL_4_3
 
     companion object {
-
-        /**
-         * S1066: photo capture always requests the full 4:3 sensor stream - a 16:9 selection is
-         * realised by the result-frame overlay plus a post-capture crop, not by a narrower stream.
-         *
-         * S1457: public so the settings dialog can offer only resolutions this pipeline will honour.
-         * It used to hardcode its own list, and every mismatched pick was dropped by
-         * [resolutionMatchesAspect] below with nothing shown to the user.
-         */
-        val PHOTO_ASPECT_RATIO = AspectRatio.RATIO_4_3
 
         /** True when [size] is close enough to [aspect] that the resolution strategy will apply it. */
         fun resolutionMatchesAspect(size: Size, aspect: Int): Boolean {
@@ -138,6 +131,14 @@ internal class CameraUseCaseFactory(
             val target = if (aspect == AspectRatio.RATIO_16_9) SIXTEEN_NINE else FOUR_THREE
             return kotlin.math.abs(ratio - target) < ASPECT_MATCH_EPSILON
         }
+
+        /**
+         * S1457: the settings dialog offers only resolutions this pipeline will honour - a mismatched
+         * pick is dropped by the resolution strategy with nothing shown to the user. S1658 lets it ask
+         * in the terms it holds, a selection, instead of the CameraX constant behind it.
+         */
+        fun resolutionMatchesAspect(size: Size, selection: CameraAspectSelection): Boolean =
+            resolutionMatchesAspect(size, selection.cameraXAspectRatio)
 
         fun selectorFor(info: CameraInfo): CameraSelector =
             CameraSelector.Builder()

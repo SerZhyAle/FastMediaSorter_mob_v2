@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.data.repository
 import androidx.room.withTransaction
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.StreamPlayOutcomeDao
+import com.sza.fastmediasorter.data.local.db.StreamQualityMemoryDao
+import com.sza.fastmediasorter.data.local.db.StreamQualityMemoryEntity
 import com.sza.fastmediasorter.data.local.db.StreamSourceDao
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +20,8 @@ import javax.inject.Singleton
 class StreamSourceRepository @Inject constructor(
     private val db: AppDatabase,
     private val dao: StreamSourceDao,
-    private val streamPlayOutcomeDao: StreamPlayOutcomeDao
+    private val streamPlayOutcomeDao: StreamPlayOutcomeDao,
+    private val streamQualityMemoryDao: StreamQualityMemoryDao
 ) {
 
     fun observeSources(): Flow<List<StreamSourceEntity>> = dao.observeAll()
@@ -100,6 +103,40 @@ class StreamSourceRepository @Inject constructor(
 
     /** S0659: clear all OK/FAIL status bullets without removing any channel. */
     suspend fun clearPlayOutcomes() = streamPlayOutcomeDao.clearAllPlayOutcomes()
+
+    /**
+     * S1511: the rung this channel last settled on, keyed by normalized address so it survives the catalog
+     * re-import that reissues the row id (strategic ADR-5). The caller normalizes; this only reads.
+     */
+    suspend fun learnedRung(normalizedUrl: String): StreamQualityMemoryEntity? =
+        streamQualityMemoryDao.learnedRungFor(normalizedUrl)
+
+    /** S1511: persist what the session learned about one rung of one channel. */
+    suspend fun rememberRung(
+        normalizedUrl: String,
+        bitrateBps: Int,
+        widthPx: Int,
+        heightPx: Int,
+        failures: Int,
+        atMillis: Long
+    ) = streamQualityMemoryDao.rememberRung(
+        url = normalizedUrl,
+        bitrateBps = bitrateBps,
+        widthPx = widthPx,
+        heightPx = heightPx,
+        failures = failures,
+        atMillis = atMillis
+    )
+
+    /**
+     * S1511: age the memory out and bound it, in one transaction so a kill between the two prunes cannot
+     * leave the table trimmed by age but still over its channel budget.
+     */
+    suspend fun pruneQualityMemory(olderThanMillis: Long, keepNewestChannels: Int) =
+        db.withTransaction {
+            streamQualityMemoryDao.pruneOlderThan(olderThanMillis)
+            streamQualityMemoryDao.pruneToNewestChannels(keepNewestChannels)
+        }
 
     /** S0654: stored media kind (RTSP/VIDEO/AUDIO) behind a source id, for the stream-played metric. */
     suspend fun getMediaKind(id: String): String? = dao.getMediaKindById(id)

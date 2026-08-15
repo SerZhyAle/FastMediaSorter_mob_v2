@@ -1,14 +1,19 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: 3D SBS Video - Basic Playback & Auto-Detection
-# Feature: 3D Video Support (SBS), v2.63
+# Feature: 3D Video Support (SBS)
 # Duration: ~45 seconds
-# Precondition: A test SBS video (aspect ratio ~32:9, e.g. 3840x1080)
-#               must be present on the device at:
-#               /sdcard/TestMedia/3D-SBS-Test.mkv
-# Setup: run scripts/utils/setup_test_media.ps1 before this test.
+# Precondition 1: A test SBS video (aspect ratio ~32:9, e.g. 3840x1080) must be present at
+#                 /sdcard/TestMedia/3D-SBS-Test.mkv - run scripts/utils/setup_test_media.ps1 first.
+# Precondition 2: a build whose playback-control dialog offers the 3D section. That section is gated
+#                 by supportsVrMediaControls and by the user's 3D/VR master toggle, so install the
+#                 noLegal debug build (.\a.ps1 ivn) and leave the toggle on.
+#
+# S1618: this flow used to drive a "Playback Settings" dialog no code could open, through regex
+# selectors that silently never fired. The 3D choice lives in the playback-control dialog, opened by
+# btnPlaybackControl, and the steps below name its real ids. No tap is needed to reveal the player
+# controls: the unified player sets an effectively infinite show timeout and hide_on_touch=false.
 
-# Launch app
 - launchApp
 - waitForAnimationToEnd
 
@@ -21,7 +26,7 @@ appId: com.sza.fastmediasorter.debug
     optional: true
 - waitForAnimationToEnd
 
-# Navigate into TestMedia folder
+# Navigate into the TestMedia folder
 - tapOn:
     text: "TestMedia"
     optional: true
@@ -32,30 +37,19 @@ appId: com.sza.fastmediasorter.debug
     text: "3D-SBS-Test"
 - waitForAnimationToEnd
 
-# Enter fullscreen
+# Open the playback-control dialog
 - tapOn:
-    id: ".*fullscreen.*"
-    optional: true
+    id: "btnPlaybackControl"
 - waitForAnimationToEnd
 
-# Tap the screen to reveal controls
+# Open its 3D section
 - tapOn:
-    point: "50%, 50%"
+    id: "btnSectionStereo"
 - waitForAnimationToEnd
 
-# Open Playback Settings dialog
-- tapOn:
-    id: ".*settings.*"
-    optional: true
-- waitForAnimationToEnd
-
-# The dialog should be visible
+# The flat 3D formats must all be offered, and the section must name what it overrides.
 - assertVisible:
-    text: "Playback Settings"
-
-# Verify the 3D section is present with the real labels used by the dialog.
-- assertVisible:
-    text: "3D Video"
+    text: "Override format type"
 - assertVisible:
     text: "Auto-detect"
 - assertVisible:
@@ -65,7 +59,7 @@ appId: com.sza.fastmediasorter.debug
 
 # Close the dialog
 - tapOn:
-    text: "Close"
+    id: "btnClosePlaybackControl"
 - waitForAnimationToEnd
 
 # Verify the player is still running (no crash)
@@ -74,7 +68,7 @@ appId: com.sza.fastmediasorter.debug
 - assertNotVisible:
     text: "Unfortunately"
 
-# Verify no error message is shown
+# Verify no error message is shown. This is a proof assertion, so it is not optional:
+# an optional crash/error guard passes whether or not the error was there.
 - assertNotVisible:
     text: "Error"
-    optional: true

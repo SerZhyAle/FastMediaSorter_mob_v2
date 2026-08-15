@@ -526,7 +526,6 @@ class BrowseManagerInitializer(
                 // S1323: sole owner of the failure-cache reset. The refresh button and the
                 // pull-to-refresh gesture both land here, and only an explicit gesture means
                 // "re-check the files that failed" - an observer-driven reload does not.
-                Timber.d("S1323: refresh gesture - resetting video failure caches")
                 VideoPlaybackFailureSessionCache.clearAll()
                 NetworkFileDataFetcher.clearFailedVideoCache()
                 mediaFileAdapter.incrementRefreshVersion(); viewModel.reloadFiles()

@@ -55,7 +55,6 @@ class LiveContactDataSource @Inject constructor(
     suspend fun read(lookupKey: String): LiveContactDetails? {
         val details = if (lookupKey.isBlank() || !isGranted()) null else cached(lookupKey).details
         val photo = details?.photoUri != null
-        Timber.d("S1206: live contact read answered=%s photo=%s", details != null, photo)
         return details
     }
 

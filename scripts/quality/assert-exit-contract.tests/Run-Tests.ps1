@@ -181,6 +181,50 @@ exit 0
     $swallowedExit = $LASTEXITCODE
     Assert-That 'J2 gate exits 1 when the pipeline tail is Out-Null' ($swallowedExit -eq 1) "expected 1, got $swallowedExit"
 
+    # --- K (S1547): the terminating mode can arrive through a dot-source. Condition 1 used to read
+    # the scanned file's own lines only, so the 21 scripts sourcing scripts/spec_catalog/_lib.ps1 -
+    # the whole spec-catalog toolchain, the path every status transition takes - were skipped by
+    # rule A while the summary printed PASS. Found live: check-owner-inputs.ps1 documented exit 2
+    # and delivered 1. Each fixture is scanned alone so one cannot mask another. ---
+    Write-Host 'K: Stop inherited from a dot-sourced library is honoured, a computed path is not' -ForegroundColor Yellow
+    $inheritDir = Join-Path $sandbox 'inherit'
+    New-Item -ItemType Directory -Path $inheritDir -Force | Out-Null
+    [System.IO.File]::WriteAllText((Join-Path $inheritDir '_lib.ps1'), @'
+$ErrorActionPreference = 'Stop'
+function Get-Nothing { $null }
+'@)
+    $inheritBad = Join-Path $inheritDir 'bad.ps1'
+    [System.IO.File]::WriteAllText($inheritBad, @'
+. (Join-Path $PSScriptRoot '_lib.ps1')
+Write-Error "bad argument"
+exit 2
+'@)
+    $inheritCured = Join-Path $inheritDir 'cured.ps1'
+    [System.IO.File]::WriteAllText($inheritCured, @'
+. (Join-Path $PSScriptRoot '_lib.ps1')
+Write-Error "bad argument" -ErrorAction Continue
+exit 2
+'@)
+    $inheritQuoted = Join-Path $inheritDir 'quoted.ps1'
+    [System.IO.File]::WriteAllText($inheritQuoted, @'
+. "$PSScriptRoot\_lib.ps1"
+Write-Error "bad argument"
+exit 2
+'@)
+    # A path assembled at run time has no statically known value. Resolving it anyway would carry
+    # the mode into files that may never run under it - an over-block the gate refuses to risk.
+    $inheritVar = Join-Path $inheritDir 'viavar.ps1'
+    [System.IO.File]::WriteAllText($inheritVar, @'
+$lib = Join-Path $PSScriptRoot '_lib.ps1'
+. $lib
+Write-Error "bad argument"
+exit 2
+'@)
+    Assert-That 'K1 gate exits 1 when Stop comes from a Join-Path dot-source' ((Invoke-Gate $inheritBad) -eq 1) 'expected 1'
+    Assert-That 'K2 gate exits 0 for the cured shape under inherited Stop' ((Invoke-Gate $inheritCured) -eq 0) 'expected 0'
+    Assert-That 'K3 gate exits 1 when Stop comes from a quoted $PSScriptRoot dot-source' ((Invoke-Gate $inheritQuoted) -eq 1) 'expected 1'
+    Assert-That 'K4 gate exits 0 when the dot-source path is computed at run time' ((Invoke-Gate $inheritVar) -eq 0) 'expected 0'
+
     # --- H: live regression - the real tree stays clean (all 18 S1070 sites cured). ---
     Write-Host 'H: the repository scripts/ tree has no unreachable exit site' -ForegroundColor Yellow
     & $pwshExe -NoProfile -File $gate -Gate -Quiet *> $null

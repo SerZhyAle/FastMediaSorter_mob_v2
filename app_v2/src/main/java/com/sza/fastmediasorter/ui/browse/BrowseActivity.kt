@@ -42,12 +42,10 @@ import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
-import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.browse.managers.BrowseApkTileBadgeBinder
 import com.sza.fastmediasorter.ui.browse.managers.BrowseBinaryFileMenuAction
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager
+import com.sza.fastmediasorter.ui.browse.managers.BrowseHostFactory
 import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherCallbacks
 import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowseManagerInitializer
@@ -129,16 +127,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject lateinit var browseFileOverflowMenuManager: com.sza.fastmediasorter.ui.browse.helpers.BrowseFileOverflowMenuManager
     @Inject lateinit var dropboxClient: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>
     @Inject lateinit var oneDriveClient: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>
-    @Inject lateinit var fileOperationUseCase: FileOperationUseCase
-    @Inject lateinit var getDestinationsUseCase: GetDestinationsUseCase
-    @Inject lateinit var settingsRepository: SettingsRepository
-    // S0367: resolves a configured capture-destination resource id to a MediaResource for the
-    // camera-photos / mic-recording destination override.
-    @Inject lateinit var resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository
+
+    @Inject lateinit var browseHostFactory: BrowseHostFactory
     @Inject lateinit var smbClient: Lazy<SmbClient>
     @Inject lateinit var sftpClient: Lazy<SftpClient>
     @Inject lateinit var ftpClient: Lazy<FtpClient>
-    @Inject lateinit var credentialsRepository: Lazy<com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository>
     @Inject lateinit var unifiedFileOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
     @Inject lateinit var audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader
     @Inject lateinit var unifiedFileCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache
@@ -261,10 +254,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 }
             }
         })
-        cameraCaptureManager = BrowseCameraCaptureManager(
+        // S0367: the capture-destination override resolves a configured resource id to a MediaResource;
+        // BrowseHostFactory owns that lookup now.
+        cameraCaptureManager = browseHostFactory.createCameraCaptureManager(
             activity = this,
-            settingsRepository = settingsRepository,
-            resourceRepository = resourceRepository,
             coroutineScope = lifecycleScope,
             cameraCaptureSaver = cameraCaptureSaver,
             onFileSaved = { fileName -> onCapturedFileSaved(fileName) },
@@ -296,9 +289,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             }
         }
 
-        micRecordingManager = BrowseMicRecordingManager(
+        micRecordingManager = browseHostFactory.createMicRecordingManager(
             activity = this,
-            settingsRepository = settingsRepository,
             coroutineScope = lifecycleScope,
             appScope = applicationScope,
             onFileSaved = { fileName -> onCapturedFileSaved(fileName) },
@@ -391,22 +383,18 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         passwordManager = ResourcePasswordManager(context = this, layoutInflater = layoutInflater)
         Timber.d("showVideoThumbnails initialized: $showVideoThumbnails")
 
-        initializer = BrowseManagerInitializer(
+        initializer = browseHostFactory.createManagerInitializer(
             activity = this,
             binding = binding,
             viewModel = viewModel,
             lifecycleScope = lifecycleScope,
             passwordManager = passwordManager,
-            fileOperationUseCase = fileOperationUseCase,
-            getDestinationsUseCase = getDestinationsUseCase,
-            settingsRepository = settingsRepository,
             smbClient = smbClient,
             sftpClient = sftpClient,
             ftpClient = ftpClient,
             googleDriveClient = googleDriveClient,
             dropboxClient = dropboxClient,
             oneDriveClient = oneDriveClient,
-            credentialsRepository = credentialsRepository,
             unifiedFileOperationHandler = unifiedFileOperationHandler,
             audioMetadataLoader = audioMetadataLoader,
             unifiedFileCache = unifiedFileCache,
@@ -523,7 +511,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 initializer.mediaFileAdapter.setCredentialsId(resource.credentialsId)
                 initializer.mediaFileAdapter.setDisableThumbnails(resource.disableThumbnails)
                 lifecycleScope.launch {
-                    val hasDestinations = getDestinationsUseCase.getDestinationsExcluding(resource.id).isNotEmpty()
+                    val hasDestinations = viewModel.hasDestinationsExcluding(resource.id)
                     initializer.mediaFileAdapter.setResourcePermissions(
                         hasDestinations = hasDestinations,
                         isWritable = resource.allowsWriteOperations() // S1019: shared write-policy resolver

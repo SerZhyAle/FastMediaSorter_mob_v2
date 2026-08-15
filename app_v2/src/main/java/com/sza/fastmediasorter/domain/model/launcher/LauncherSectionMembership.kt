@@ -14,23 +14,27 @@ package com.sza.fastmediasorter.domain.model.launcher
  * [LauncherDesktopRepositoryImpl][com.sza.fastmediasorter.data.repository.LauncherDesktopRepositoryImpl]
  * and the collapse geometry of the renderer call this one definition rather than each re-deriving it.
  *
- * Rows are what this reasons about, never columns: a header is drawn across the full width of its row,
- * so a section boundary is a horizontal line and a cell's column has no bearing on which section owns it.
+ * Rows are what this reasons about, never columns: a section boundary is a horizontal line, so a cell's
+ * column has no bearing on which section owns it. S1642 keeps that true while narrowing the header to two
+ * columns - the cells sharing the header's row belong to the section it opens, exactly as the rows below
+ * it do. The one place the distinction surfaces is [renderRowFor], where a fold removes a header's row
+ * around the header rather than whole.
  */
 object LauncherSectionMembership {
 
     /**
-     * The span every header is stored with, mirroring `LauncherGridGeometry.MAX_COLUMNS`: that object
-     * lives in `src/launcherEnabled` and cannot be imported here, the same constraint that makes
-     * [LauncherStarterSets][com.sza.fastmediasorter.core.launcher.LauncherStarterSets] duplicate the
-     * gadget keys. `LauncherStarterSetsParityTest` fails the moment this copy drifts.
+     * S1642: the span every header is stored and drawn at - two columns by one row (strategic §9 ADR-1).
      *
-     * A header is drawn at the live column count whatever it was stored with, so storing it at the
-     * current one leaves the rest of its row free in the database while covered on screen - and a cell
-     * dropped there lands under the header. Storing it at the widest grid it can ever be drawn on closes
-     * that gap from the storage side, as [coversHeaderRow] closes it from the placement side.
+     * One number for both, deliberately. S1428 stored a header at the widest grid there is and widened it
+     * again at render time, because a header covered its whole row and the two numbers could not be the
+     * same; the value of that arrangement was that no square past the header stayed free in the table while
+     * covered on screen. Two columns removes the need for it - the header covers exactly what it stores, so
+     * the free-square sweep and the renderer read one span and cannot disagree.
+     *
+     * Kept below `LauncherGridGeometry.MIN_COLUMNS`, so a header fits the narrowest grid the desktop can
+     * resolve; `LauncherStarterSetsParityTest` fails the moment that stops holding.
      */
-    const val HEADER_STORED_SPAN_W = 12
+    const val HEADER_SPAN_W = 2
 
     /**
      * The rows carrying a header, ascending and without duplicates.
@@ -81,9 +85,12 @@ object LauncherSectionMembership {
      * header that does not own it - and hide it behind one, which §7 rates a foreign cell vanishing
      * until the section above is expanded again.
      *
-     * The header's own row is never folded away: it is the only thing left to tap to expand.
+     * The header itself is never folded away: it is the only thing left to tap to expand. Everything else
+     * standing on that same row is folded, because S1642 gives the header two columns and hands the rest of
+     * its row to its own section - leaving those cells drawn would show a section's content beside the
+     * header that claims to have hidden it.
      */
-    fun renderRowFor(row: Int, headerRows: List<Int>, collapsedHeaderRows: Set<Int>): Int? {
+    fun renderRowFor(row: Int, isHeader: Boolean, headerRows: List<Int>, collapsedHeaderRows: Set<Int>): Int? {
         val top = row.coerceAtLeast(0)
         var lift = 0
         for (headerRow in headerRows) {
@@ -92,7 +99,12 @@ object LauncherSectionMembership {
             // Null means the section runs to the bottom of the desktop, so everything under its header
             // is folded and nothing below it is left to lift.
             val end = sectionEndExclusive(headerRow, headerRows)
-            if (top >= firstFolded && (end == null || top < end)) return null
+            val hidden = if (top == headerRow) {
+                !isHeader
+            } else {
+                top >= firstFolded && (end == null || top < end)
+            }
+            if (hidden) return null
             if (end != null && top >= end) lift += end - firstFolded
         }
         return top - lift

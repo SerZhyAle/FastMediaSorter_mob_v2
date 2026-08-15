@@ -160,6 +160,11 @@ class ImageDrawOverlayManager(
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
 
         toolbarRoot?.visibility = View.VISIBLE
+        // S1648: deferred from bindToolbar - by this point the same preferences file has already been
+        // read for the last colour above, so the swatch costs nothing extra, and the overlay is only
+        // now becoming visible.
+        toolbarRoot?.findViewById<View>(com.sza.fastmediasorter.R.id.color_custom)?.backgroundTintList =
+            android.content.res.ColorStateList.valueOf(DrawEditorPrefs.getCustomColor(activity))
         canvas.markClean()
         updateToolbarDirtyState()
     }
@@ -266,6 +271,7 @@ class ImageDrawOverlayManager(
      *       Undo all / Settings / Send to Google Keep)
      */
     fun bindToolbar(root: View) {
+        Timber.d("S1648: draw toolbar bound without reading the custom colour")
         toolbarRoot = root
 
         // S0368: keep the draw toolbar inside the system-bar / display-cutout safe area.
@@ -331,9 +337,10 @@ class ImageDrawOverlayManager(
         }
         val customSwatch = root.findViewById<View>(com.sza.fastmediasorter.R.id.color_custom)
         customSwatch?.apply {
-            backgroundTintList = android.content.res.ColorStateList.valueOf(
-                DrawEditorPrefs.getCustomColor(activity)
-            )
+            // S1648: the tint is applied in enterDrawMode instead of here. bindToolbar runs
+            // unconditionally from PlayerActivity.onCreate, including when a video is opened and the
+            // draw overlay is never shown, and reading the custom colour there was the first touch of
+            // this preferences file - a blocking disk read of ~73 ms on the player's hot open path.
             setOnClickListener {
                 DrawColorGridDialog(
                     activity = activity,

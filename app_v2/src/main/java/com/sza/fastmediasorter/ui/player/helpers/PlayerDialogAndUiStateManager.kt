@@ -609,7 +609,6 @@ class PlayerDialogAndUiStateManager(
             val source = viewModel.streamSourceByUrl(url)
             val engine = activity._videoPlayerManager?.getPlayer()
             val outcome = source?.let { viewModel.streamPlayOutcome(it.id) }
-            Timber.d("S1474: player menu opens the window, in list = %s, engine = %s", source != null, engine != null)
             com.sza.fastmediasorter.ui.dialog.StreamInfoDialog(activity, source, url, engine, outcome).show()
         }
     }

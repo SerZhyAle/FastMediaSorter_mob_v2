@@ -183,7 +183,6 @@ class StreamsViewModel @Inject constructor(
         }
             .flowOn(defaultDispatcher)
             .onEach { newState ->
-                Timber.d("S1502: filtered catalog state emitted, ${newState.sources.size} rows")
                 _state.update { newState.copy(isImporting = it.isImporting, displayMode = it.displayMode) }
             }
             .launchIn(viewModelScope)

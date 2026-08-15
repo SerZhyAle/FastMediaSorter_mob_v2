@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.identity
 
+import com.google.gson.annotations.SerializedName
 import java.time.Instant
 
 /**
@@ -14,10 +15,17 @@ import java.time.Instant
  * @property grantedScopes scopes the user consented to at sign-in (or after a successful [GoogleIdentityRepository.requestAdditionalScopes]).
  * @property boundAt UTC instant when this binding was established or last refreshed.
  */
+// S1657: this envelope is Gson field-reflection persisted into the `primary_google_account_v1` encrypted
+// preferences, which survive an app update. Release builds are minified, so the build that reads the blob can
+// carry a different R8 mapping than the build that wrote it: unpinned field names get renamed and the stored
+// keys stop matching. The read degrades to "no account bound" at best (silent re-login) and to a half-built
+// object with nulls under non-null properties at worst, because Gson has no no-arg constructor to call here.
+// Pinning every persisted field to its own name keeps obfuscation on while making the wire format
+// R8-independent, and keeps already-stored bindings parseable because the wire names do not change.
 data class PrimaryGoogleAccount(
-    val email: String,
-    val displayName: String?,
-    val photoUrl: String?,
-    val grantedScopes: Set<GoogleScope>,
-    val boundAt: Instant
+    @SerializedName("email") val email: String,
+    @SerializedName("displayName") val displayName: String?,
+    @SerializedName("photoUrl") val photoUrl: String?,
+    @SerializedName("grantedScopes") val grantedScopes: Set<GoogleScope>,
+    @SerializedName("boundAt") val boundAt: Instant
 )

@@ -11,6 +11,12 @@
 -keep class com.sza.fastmediasorter.data.model.TrashMetadata { *; }
 -keep class com.sza.fastmediasorter.domain.game.** { *; }
 
+# Cached file lists persist MediaFile JSON across app updates. Keep its field names stable so a
+# release mapping change cannot turn an existing cache blob into an incomplete object.
+-keep,allowoptimization class com.sza.fastmediasorter.domain.model.MediaFile {
+    <fields>;
+}
+
 # The startup settings dump reflects every AppSettings field for support diagnostics. Keep the
 # reflective fields, then retain only their names; the class name remains obfuscatable.
 -keep,allowoptimization,allowobfuscation class com.sza.fastmediasorter.domain.model.AppSettings {
@@ -302,4 +308,39 @@
 -keep class com.sza.fastmediasorter.vr.openxr.OpenXrNative { *; }
 -keepclassmembers class com.sza.fastmediasorter.vr.openxr.OpenXrNative {
     native <methods>;
+}
+# S1674: these enum member names are persisted by Room, DataStore, or SharedPreferences and
+# must remain readable after an update built with a different R8 mapping.
+-keepclassmembernames enum com.sza.fastmediasorter.data.cloud.CloudProvider {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.DisplayMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.MediaType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ResourceType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ScreenType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.SortMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.dialog.Mode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.streams.SortMode {
+    <fields>;
 }

@@ -4,10 +4,8 @@ import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.core.init.AppStartupInitializer
 import com.sza.fastmediasorter.core.init.DefaultPlayerStateBootstrapper
-import com.sza.fastmediasorter.core.util.CacheStatusHelper
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.transfer.TempFileManager
 import com.sza.fastmediasorter.domain.usecase.BackfillSmbCredentialShareNameUseCase
@@ -51,16 +49,9 @@ class DeferredStartupWorker @AssistedInject constructor(
         runTask("default-player-state-bootstrap") {
             DefaultPlayerStateBootstrapper.apply(applicationContext, settingsRepository.get())
         }
-        runTask("log-glide-disk-cache-status") {
-            CacheStatusHelper.logGlideDiskCacheStatus(applicationContext)
-        }
-        // S1480: Glide builds itself lazily, and its applyOptions() reads SharedPreferences and creates
-        // the cache directory ON THE CALLING THREAD - so whichever screen loads the first image pays
-        // tens of milliseconds of disk work on the main thread. Warmed here, after the status log above
-        // so S1322's observation of the pre-Glide directory state still measures what it claims to.
-        runTask("warm-glide") {
-            Glide.get(applicationContext)
-        }
+        // S1650: the cache-status log and the Glide warm-up moved to AppStartupInitializer.warmGlide(),
+        // launched from Application.onCreate. S1480 put them here, but this worker starts thirty seconds
+        // after launch, so the first thumbnail grid always built Glide on the main thread first.
         runTask("run-app-startup-initializer-deferred-tasks") {
             appStartupInitializer.get().runDeferredStartupTasks()
         }

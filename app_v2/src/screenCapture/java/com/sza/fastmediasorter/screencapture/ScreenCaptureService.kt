@@ -304,7 +304,6 @@ class ScreenCaptureService : Service() {
 
     private fun startForegroundCompat() {
         createChannel()
-        Timber.d("S1399: screen-capture service notification built with the branded status-bar icon")
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentTitle(getString(R.string.screen_capture_service_notification_title))

@@ -230,4 +230,91 @@ if ($missing.Count -gt 0) {
     throw "Release spectrum incomplete - missing APK for: $($missing -join ', ')"
 }
 
+# ----------------------------------------------------------------------
+# Retain the deobfuscation payload for every variant this run published (S1695).
+# Scope follows $selected rather than a hardcoded list, so the set of channels
+# can change without editing this code.
+#
+# 'standard' is deliberately excluded: `a.ps1 r` already retained it straight out
+# of the bundle, which is stronger provenance than the loose mapping this script
+# could offer, and re-storing it here would only downgrade the record.
+#
+# Nothing here is fatal. The APKs are built and good; a retention problem is
+# reported and left for the pre-release gate to refuse before the next release.
+# ----------------------------------------------------------------------
+$retainScript = Join-Path $projectRoot 'scripts\release\retain-deobfuscation.ps1'
+
+# Native symbols are variant-keyed under native_debug_metadata, which is the very
+# input AGP packs into BUNDLE-METADATA/debugsymbols. It covers every native library
+# in the variant, CMake-built and prebuilt alike - so the vr flavor's own OpenXR
+# runtime (fms_diagnostic_xr), which exists in no bundle, is captured here too.
+# The CMake configure output under .cxx/ is keyed by a build-type hash rather than
+# by variant and cannot be resolved from a flavor name, so it is not used.
+function Resolve-NativeSymbolsDir {
+    param([Parameter(Mandatory)] [string] $Variant)
+
+    $variantRoot = Join-Path $projectRoot "app_v2\build\intermediates\native_debug_metadata\$Variant"
+    if (-not (Test-Path -LiteralPath $variantRoot)) { return $null }
+
+    # The task-name segment (extract<Variant>NativeDebugMetadata) is resolved by
+    # wildcard rather than reconstructed, so a change in AGP's naming does not
+    # silently strip the symbols out of the archive.
+    $out = Get-ChildItem -LiteralPath $variantRoot -Directory -ErrorAction SilentlyContinue |
+        ForEach-Object { Join-Path $_.FullName 'out' } |
+        Where-Object { Test-Path -LiteralPath $_ } |
+        Select-Object -First 1
+
+    return $out
+}
+
+$mappingRoots = [ordered]@{
+    vr      = 'app_v2\build\outputs\mapping\vrRelease\mapping.txt'
+    lite    = 'app_v2\build\outputs\mapping\liteRelease\mapping.txt'
+    photos  = 'app_v2\build\outputs\mapping\photosRelease\mapping.txt'
+    legacy  = 'app_v2\build\outputs\mapping\legacyRelease\mapping.txt'
+    noLegal = 'app_v2\build\outputs\mapping\noLegalRelease\mapping.txt'
+    wear    = 'wear\build\outputs\mapping\release\mapping.txt'
+}
+
+if (Test-Path -LiteralPath $retainScript) {
+    Write-Host "`nRetaining deobfuscation artifacts:" -ForegroundColor Cyan
+    foreach ($flavor in $mappingRoots.Keys) {
+        if ($flavor -notin $selected) { continue }
+
+        $mappingPath = Join-Path $projectRoot $mappingRoots[$flavor]
+        if (-not (Test-Path -LiteralPath $mappingPath)) {
+            Write-Host "  $flavor : no mapping at $mappingPath - not retained" -ForegroundColor Yellow
+            continue
+        }
+
+        # wear carries the 8-digit yyMMddHH code by design; app_v2 carries 9 digits.
+        $codeForFlavor = if ($flavor -eq 'wear') { $wearVersionCode } else { $appVersionCode }
+
+        $retainArgs = @(
+            '-Variant', $flavor
+            '-VersionCode', $codeForFlavor
+            '-VersionName', $versionName
+            '-Mapping', $mappingPath
+        )
+
+        # wear declares no ndk block, so it ships no native code and needs no symbols.
+        if ($flavor -ne 'wear') {
+            $variantName = "$($flavor)Release"
+            $symbolsDir = Resolve-NativeSymbolsDir -Variant $variantName
+            if ($symbolsDir) {
+                $retainArgs += @('-NativeSymbols', $symbolsDir)
+            } else {
+                Write-Host "  $flavor : no native symbols under intermediates\native_debug_metadata\$variantName - mapping retained without them" -ForegroundColor Yellow
+            }
+        }
+
+        & $retainScript @retainArgs
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "  $flavor : retention failed (exit $LASTEXITCODE)" -ForegroundColor Yellow
+        }
+    }
+} else {
+    Write-Host "`nNote: retention script not found at $retainScript - deobfuscation artifacts not retained." -ForegroundColor DarkGray
+}
+
 Write-Host "`nNext: scripts/release/publish-github-release.ps1 -Flavors $($selected -join ',') - publishes the selected assets under v$versionName." -ForegroundColor Yellow

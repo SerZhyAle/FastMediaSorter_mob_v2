@@ -37,7 +37,6 @@ class BluetoothSnapshotDataSource @Inject constructor(
         val radio = adapter ?: return MonitorSection.absent(SectionAvailability.NoHardware)
         return when {
             !hasBluetoothAccess(context) -> {
-                Timber.d("S1515: bluetooth read refused, required=%s", requiredBluetoothPermission())
                 MonitorSection.absent(SectionAvailability.NoPermission(requiredBluetoothPermission()))
             }
 

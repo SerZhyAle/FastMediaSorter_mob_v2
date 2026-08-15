@@ -83,7 +83,6 @@ class LauncherStreamActionManager(
      * of StreamsActivity.
      */
     private fun edit(source: StreamSourceEntity) {
-        Timber.d("S1500: desktop edit dialog requested for ${source.title}")
         StreamEditDialog.show(
             activity = activity,
             source = source,

@@ -35,7 +35,6 @@ class ImportStreamCatalogUseCase @Inject constructor(
     suspend operator fun invoke(): CatalogImportResult = withContext(Dispatchers.IO) {
         Timber.i("Stream catalog import: starting")
         if (!networkContextAnalyzer.hasAnyNetwork()) {
-            Timber.d("S1469: catalog import gated before download - no network")
             Timber.w("Stream catalog import failed: %s", "no network")
             return@withContext CatalogImportResult.Failure("no network")
         }
@@ -102,7 +101,6 @@ class ImportStreamCatalogUseCase @Inject constructor(
             )
         }
 
-        Timber.d("S1117: stream catalog geo-tagged rows in batch=%d", sources.count { it.access == "geo" })
         val merge = try {
             repository.mergeCatalog(sources)
         } catch (e: Exception) {

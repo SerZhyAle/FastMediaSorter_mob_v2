@@ -37,7 +37,6 @@ class SearchGadget @Inject constructor(
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View {
-        Timber.d("S1566: search gadget view created on the desktop")
         return SearchGadgetView(container.context, webSearch.get())
     }
 }
@@ -66,7 +65,6 @@ private class SearchGadgetView(
     private fun submit() {
         val query = binding.gadgetSearchInput.text?.toString().orEmpty()
         if (query.isBlank()) return
-        Timber.d("S1566: search submitted from the desktop cell, length ${query.length}")
         if (webSearch.launch(context, query)) {
             binding.gadgetSearchInput.text?.clear()
             binding.gadgetSearchMessage.isVisible = false

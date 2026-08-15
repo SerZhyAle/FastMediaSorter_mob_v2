@@ -18,7 +18,10 @@ class SendPlaybackCommandUseCase @Inject constructor(
         val envelope = WearEventEnvelope(
             eventType = WearDataLayerPaths.EVENT_PLAYBACK_CMD,
             sentAt = System.currentTimeMillis(),
-            data = gson.toJson(command.name).toByteArray()
+            // S1661: the enum itself, not its `name`. Both write the same JSON string today, but only this
+            // form goes through Gson's enum adapter, which is the only reader of the @SerializedName pins on
+            // WearPlaybackCommand - `name` would hand the watch whatever the field is called at runtime.
+            data = gson.toJson(command).toByteArray()
         )
         val envelopeBytes = gson.toJson(envelope).toByteArray()
         for (node in nodes) {

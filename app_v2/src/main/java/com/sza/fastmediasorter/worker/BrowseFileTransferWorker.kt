@@ -110,7 +110,6 @@ class BrowseFileTransferWorker @AssistedInject constructor(
      * without an owner, because the requester has already finished by then.
      */
     private suspend fun purgeStagedSources(request: BrowseFileTransferRequest) {
-        Timber.d("S1370: staged purge check owned=%s", request.sourcesOwnedByOperation)
         if (!request.sourcesOwnedByOperation) return
         val stagingPath = request.stagingDirectoryPath
         if (stagingPath.isNullOrBlank()) {
@@ -297,7 +296,6 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         val directorySources = request.sources.filter { it.isDirectory }
         if (directorySources.isEmpty()) return DirectoryOutcome()
 
-        Timber.d("S1325: worker folder ops count=%s", directorySources.size)
         var succeeded = 0
         var entriesProcessed = 0
         val errors = mutableListOf<String>()
@@ -365,7 +363,6 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             minimumPublishIntervalMs = PROGRESS_MIN_INTERVAL_MS,
         )
         if (!publishReport.shouldPublish) return
-        Timber.d("S1225: dir publish entry=%s", entryName)
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(
@@ -490,7 +487,6 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         contentText: String,
         progressPercent: Int?,
     ): Notification {
-        Timber.d("S1399: browse file-transfer progress notification built with the branded status-bar icon")
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentTitle(notificationTitle(request?.operationType))
@@ -571,7 +567,6 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                 val reason = event.message.ifBlank {
                     context.getString(R.string.browse_transfer_notif_text_failed)
                 }
-                Timber.d("S1321: failure notification reason='%s'", reason)
                 builder.setContentText(reason)
                 // A reason can exceed one collapsed line; without BigTextStyle it is truncated
                 // exactly where the actionable part usually sits.
@@ -629,7 +624,6 @@ class BrowseFileTransferWorker @AssistedInject constructor(
 
     private fun buildProgressText(snapshot: BrowseFileTransferProgressSnapshot): String {
         val percent = snapshot.percentOrNull()
-        Timber.d("S1225: byte publish speed=%s B/s", snapshot.speedBytesPerSecond)
         return if (percent != null) {
             context.getString(R.string.browse_transfer_notif_text_progress, percent, snapshot.currentFile)
         } else {

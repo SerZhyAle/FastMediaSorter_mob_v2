@@ -405,7 +405,6 @@ class MainViewModel @Inject constructor(
      * (CompanionQrShareActivity). [includePassword] mirrors [shareSftpResourceConfig].
      */
     fun shareSftpResourceConfigAsQr(resource: MediaResource, includePassword: Boolean) {
-        Timber.d("S1039: QR share requested (includePassword=$includePassword)")
         viewModelScope.launch {
             exportCompanionConfigUseCase.exportQrPayload(resource, includePassword).fold(
                 onSuccess = { export ->

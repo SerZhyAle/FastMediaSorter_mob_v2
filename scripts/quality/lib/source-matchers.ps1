@@ -49,6 +49,9 @@ function Test-TrivialCommentLine([string]$line) {
 }
 
 $script:LaunchRx = [regex]'lifecycleScope\.launch\s*\{'
+$script:CollectRx = [regex]'\.collect\b'
+$script:RepeatOnLifecycleRx = [regex]'repeatOnLifecycle\s*\([^)]*\)\s*\{'
+$script:FlowWithLifecycleRx = [regex]'\.flowWithLifecycle\s*\('
 
 $script:MutableFlowRx = [regex]'Mutable(StateFlow|LiveData|SharedFlow)\b'
 
@@ -69,19 +72,40 @@ function Measure-PublicMutableFlowText([string]$Text) {
 # Brace-match the launch body rather than bounding a regex, so an operator chain carrying
 # its own lambda braces (`.filter { .. }.collect`) cannot evade detection. Braces inside
 # comments and strings are a known and accepted approximation.
-function Test-UnsafeLaunchBody([string]$text, [int]$openBrace) {
+function Find-MatchingBrace([string]$text, [int]$openBrace) {
     $depth = 0
-    $end = -1
     for ($i = $openBrace; $i -lt $text.Length; $i++) {
         $c = $text[$i]
         if ($c -eq '{') { $depth++ }
-        elseif ($c -eq '}') { $depth--; if ($depth -eq 0) { $end = $i; break } }
+        elseif ($c -eq '}') {
+            $depth--
+            if ($depth -eq 0) { return $i }
+        }
     }
+    return -1
+}
+
+function Test-CollectIsLifecycleAware([string]$body, [int]$collectIndex) {
+    foreach ($repeatMatch in $script:RepeatOnLifecycleRx.Matches($body)) {
+        $openBrace = $repeatMatch.Index + $repeatMatch.Length - 1
+        $end = Find-MatchingBrace $body $openBrace
+        if ($end -ge 0 -and $collectIndex -gt $openBrace -and $collectIndex -lt $end) {
+            return $true
+        }
+    }
+    $statementStart = [Math]::Max($body.LastIndexOf("`n", $collectIndex), $body.LastIndexOf(';', $collectIndex))
+    $prefix = $body.Substring($statementStart + 1, $collectIndex - $statementStart - 1)
+    return $script:FlowWithLifecycleRx.IsMatch($prefix)
+}
+
+function Test-UnsafeLaunchBody([string]$text, [int]$openBrace) {
+    $end = Find-MatchingBrace $text $openBrace
     if ($end -lt 0) { return $false }
     $body = $text.Substring($openBrace + 1, $end - $openBrace - 1)
-    if ($body -notmatch '\.collect') { return $false }
-    if ($body -match '(repeatOnLifecycle|flowWithLifecycle)') { return $false }
-    return $true
+    foreach ($collectMatch in $script:CollectRx.Matches($body)) {
+        if (-not (Test-CollectIsLifecycleAware $body $collectMatch.Index)) { return $true }
+    }
+    return $false
 }
 
 $script:InsetsListenerRx = [regex]'ViewCompat\.setOnApplyWindowInsetsListener\s*\('
@@ -631,4 +655,3 @@ function ConvertTo-SourceMatchers {
         New-SourceMatcher @args
     }
 }
-

@@ -1,26 +1,33 @@
 package com.sza.fastmediasorter.domain.model
 
+import com.google.gson.annotations.SerializedName
+
 // ── JSON serialization data classes for favorites export/import ──────────────
 
+// S1632: the export file is meant to travel between devices and app versions, so every key is pinned
+// with @SerializedName. Without it R8 renames the fields and a release build writes {"a":..,"b":..},
+// which no other build - and no human - can read back. The annotation also survives a property rename
+// in code, which a keep rule would not.
+
 data class FavoritesExportFile(
-    val version: String = "1.0",
-    val exportDate: String,
-    val appVersion: String,
-    val deviceName: String,
-    val totalCount: Int,
-    val favorites: List<ExportedFavorite>
+    @SerializedName("version") val version: String = "1.0",
+    @SerializedName("exportDate") val exportDate: String,
+    @SerializedName("appVersion") val appVersion: String,
+    @SerializedName("deviceName") val deviceName: String,
+    @SerializedName("totalCount") val totalCount: Int,
+    @SerializedName("favorites") val favorites: List<ExportedFavorite>
 )
 
 data class ExportedFavorite(
-    val uri: String,
-    val resourceId: Long,
-    val resourceName: String,
-    val resourcePath: String,
-    val displayName: String,
-    val mediaType: Int,
-    val size: Long,
-    val dateModified: Long,
-    val addedTimestamp: Long
+    @SerializedName("uri") val uri: String,
+    @SerializedName("resourceId") val resourceId: Long,
+    @SerializedName("resourceName") val resourceName: String,
+    @SerializedName("resourcePath") val resourcePath: String,
+    @SerializedName("displayName") val displayName: String,
+    @SerializedName("mediaType") val mediaType: Int,
+    @SerializedName("size") val size: Long,
+    @SerializedName("dateModified") val dateModified: Long,
+    @SerializedName("addedTimestamp") val addedTimestamp: Long
 )
 
 // ── Import result types ───────────────────────────────────────────────────────

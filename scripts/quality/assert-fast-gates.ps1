@@ -10,21 +10,27 @@
 
     Gates (in order):
       - assert-no-ticket-logs        (Sxxxx probe / permanent-log invariant)
-      - assert-flavor-flags-not-growing
-      - assert-neuroslop             (umbrella over the ratchet detectors)
-      - assert-deprecated-pm-flags
+      - assert-source-gates          (S1338: every lexical ratchet rule over ONE walk of the
+                                      tree - the nine neuroslop rules plus flavor-flags,
+                                      deprecated-pm-flags, public-mutable-flow, window-insets,
+                                      swallowed-cancellation, activity-logic (S1329),
+                                      untracked-dialog and the two string-resource rules)
       - assert-listener-symmetry
       - assert-qualifier-shadowing   (values-land key a smallestWidth bucket always outranks)
       - assert-tactical-step-form    (S1343 Why-field ratchet over PLAN/*/PHASE_*.md)
       - assert-flavor-matrix-docs    (S1392 doc flavor tables vs the generated capability snapshot)
 - assert-sdk-pin-claims        (S1438 SDK pins stated in prose vs the build files)
       - assert-ctor-arg-slots        (S1470 primary constructors near the 255 argument-slot ceiling)
+      - assert-packaging-excludes-parity (S1679 shared-library payload stripped in one module only)
       - assert-retired-dependency-names (S1489 prose naming a dependency the project replaced)
       - assert-notification-small-icon (S1399 a small-icon setter handed a drawable literal)
       - assert-backup-rules-consistent (S1552 API 31+ extraction rules vs the pre-31 backup rules)
       - assert-launcher-reset-coverage (S1540 launcher settings vs the launcher reset's field list)
       - assert-unreferenced-strings   (S1568 string keys nothing under <module>/src references)
+      - assert-maestro-oracle        (S1612 Maestro flows that are green without proving anything)
       - assert-hook-inventory        (S1604 registered Claude Code hooks vs docs/AGENT_HOOKS.md)
+      - assert-rule-digest-sync      (S1548 CLAUDE.md numbered rules vs the two full digests)
+      - assert-gson-persistence-contract (S1639 a durable Gson model whose wire names nothing pins)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
@@ -74,6 +80,11 @@ $gates = [ordered]@{
     # one paid for again by every locale tranche. Baseline is an allowlist of NAMES, not a count, so
     # a new dead key cannot hide behind a deleted one.
     'assert-unreferenced-strings.ps1'           = @('-Quiet')
+    # S1612: Maestro flow YAML vs the oracle convention. A flow that carries optional: true on its
+    # proof assertion, a regex selector Maestro never matches, or a coordinate tap standing in for
+    # an assertion is GREEN while proving nothing - that is how the previous generation of flows
+    # became fictitious. Static YAML scan of two directories, no device and no gradle daemon.
+    'assert-maestro-oracle.ps1'                 = @('-Quiet')
     # S1070: guards the tooling itself rather than app sources - a bare Write-Error under
     # EAP=Stop makes the following `exit N` unreachable, so a script's documented code
     # collapses to 1. Cheap (scans scripts/*.ps1 only) and the class has regrown 3 times.
@@ -81,6 +92,12 @@ $gates = [ordered]@{
     # S1075: dev/TECH_REQUIREMENTS.md pins vs Gradle truth. Static parse of build files
     # + one doc; no gradle daemon. Catches a dependency bump that forgot the doc.
     'assert-doc-pin-drift.ps1'                  = @('-Quiet')
+    # S1679: a packaging exclusion for a SHARED transitive library present in app_v2 but not in wear.
+    # The pin gate above compares versions against docs and cannot express "both modules must strip
+    # the same dead payload". S0385 excluded BouncyCastle's post-quantum tables in app_v2 only, and
+    # wear shipped them for months - 1.2 MB, 10 % of its release APK, on a watch. Parses the two
+    # build files by brace balance, no gradle daemon.
+    'assert-packaging-excludes-parity.ps1'      = @('-Quiet')
     # S1438: SDK pins stated in ORDINARY PROSE, which the managed-block gate above cannot see -
     # an index line, an architecture bullet, an agent definition, agent memory. Eight copies said
     # compileSdk 35 while Gradle compiled against 36, and an agent reading one concludes an API is
@@ -167,6 +184,22 @@ $gates = [ordered]@{
     # agent refused by an undocumented guard cannot find out what refused it. Compares the two
     # settings files against docs/AGENT_HOOKS.md as text, no gradle daemon.
     'assert-hook-inventory.ps1'                 = @()
+    # S1548: the two full digests of CLAUDE.md's numbered rules are written by hand and nothing
+    # compared them, so copilot-instructions.md silently lacked five rules - including four whose
+    # violation a hook refuses outright. Reads four markdown files as text, no gradle daemon.
+    'assert-rule-digest-sync.ps1'               = @()
+    # S1639: a model whose Gson JSON outlives the process, with neither @SerializedName on its fields
+    # nor a keep rule holding their names. R8 renames them per build, so the writer and the reader are
+    # two different mappings and the record read after an update is wrong or half-null. The class
+    # reached users six times (S0719, S0737, S1630, S1631, S1632, S1638) and was fixed one model at a
+    # time because nothing tied "this goes to storage" to "its names are pinned" - the two facts live
+    # in different files and usually different modules. Parses both source trees and the two
+    # proguard-rules.pro files, no gradle daemon.
+    'assert-gson-persistence-contract.ps1'      = @('-Quiet')
+    # S1674: Room, DataStore and SharedPreferences can persist enum `name` values across an
+    # update. R8 must keep the matching enum fields stable or a later version cannot `valueOf`
+    # the earlier value. The gate inventories those boundaries against base release rules.
+    'assert-enum-persistence-contract.ps1'      = @('-Quiet')
 }
 
 # S1338: these five accept -ChangedFiles and used to be invoked with no arguments at
@@ -176,7 +209,8 @@ $gates = [ordered]@{
 # or CI run keeps the strict project-wide judgement.
 $changedFilesAware = @(
     'assert-source-gates.ps1',
-    'assert-listener-symmetry.ps1'
+    'assert-listener-symmetry.ps1',
+    'assert-gson-persistence-contract.ps1'
 )
 
 $results = [System.Collections.Generic.List[object]]::new()

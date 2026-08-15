@@ -498,13 +498,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             when (item.itemId) {
                 R.id.action_stream_add -> { showSourceDialog(isImport = false); true }
                 R.id.action_stream_import_catalog -> {
-                    Timber.d("S1473: overflow entry - update FastMediaSorter catalog")
                     cancelHealthProbe()
                     viewModel.onImportCatalog()
                     true
                 }
                 R.id.action_stream_import_url -> {
-                    Timber.d("S1473: overflow entry - import from URL")
                     cancelHealthProbe()
                     showSourceDialog(isImport = true)
                     true
@@ -532,7 +530,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             videoButton = binding.btnMediaKindVideo,
             audioButton = binding.btnMediaKindAudio,
             onKindSelected = { kind ->
-                Timber.d("S1473: inline media-kind trigger -> %s", kind)
                 cancelHealthProbe()
                 viewModel.onMediaKindFilter(kind)
             },
@@ -620,7 +617,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 reached++
             }
         }
-        Timber.d("S1503: artwork repaint reached $reached section adapters")
     }
 
     /**
@@ -756,7 +752,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // S1502: the status bullet travels beside the list, not inside it - a finished probe repaints
         // the affected rows only, instead of re-emitting the catalog through the filter/sort pass.
         collectOnLifecycle(viewModel.playOutcomes) { outcomes ->
-            Timber.d("S1502: play-outcome side channel emitted ${outcomes.size} entries")
             adapter.playOutcomes = outcomes
             pinnedAdapter.playOutcomes = outcomes
             gridAdapter.playOutcomes = outcomes

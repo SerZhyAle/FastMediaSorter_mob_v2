@@ -10,7 +10,7 @@ description: "Use to run the end-to-end pre-release emulator sweep that gates /s
 > 3. Terse report: one line - verdict + report path.
 > 4. Never auto-run release: PASS proposes `/skill-release`, owner confirms (ADR-1, S0484).
 
-Automates `dev/PRE_RELEASE_MANUAL_TESTS.md` as one gated sweep on emulator: refresh the mutable content a release carries (0 / 0.5 non-gating, 0.7 **gating**) → prepare clean standard-debug install → configure resources + settings → Maestro capability suite → perf → machine PASS/FAIL verdict. PASS proposes `/skill-release`; FAIL parks deduped `/spec-draft` tickets and routes pending-test tickets through `/spec-check`.
+Automates `dev/PRE_RELEASE_MANUAL_TESTS.md` as one gated sweep on emulator: refresh the mutable content a release carries (0 / 0.5 non-gating, 0.6 / 0.7 / 0.8 **gating**) → prepare clean standard-debug install → configure resources + settings → Maestro capability suite → perf → machine PASS/FAIL verdict. PASS proposes `/skill-release`; FAIL parks deduped `/spec-draft` tickets and routes pending-test tickets through `/spec-check`.
 
 Composes existing scripts only and adds **no** app runtime code (S0484 ADR-2); long-form overview and the full tool inventory in `.claude/reference/spec-prerelease.md` - read it when you need which script owns which stage.
 
@@ -82,6 +82,22 @@ Build red on the new pin (pip resolve / Chaquopy sdist fetch) → revert to the 
 
 Read `.claude/reference/spec-prerelease.md` §"0.5 - Dependency pins" before editing any pin - Tier A bump procedure and the Tier B check-only policy live there.
 
+### 0.6 - Confirm the previous release's deobfuscation artifacts are retained (content, no device, GATING)
+
+**Mandatory, unconditional - not "if the last release looked fine".** `docs/RELEASE_READINESS_STANDARD.md` declares retention REQUIRED for every production release, and for a long time nothing enforced it: the miss surfaced only when S1156 sat in `BlockExternal` for three weeks because three obfuscated symbols from a shipped release could not be resolved. This step is where that becomes visible one release later instead of three weeks later. Needs no device, no gradle. On `--dry-run`, list the plan and run nothing.
+
+```powershell
+pwsh -NoProfile -File scripts/quality/assert-deobfuscation-retained.ps1
+```
+
+The check reads the stored mapping back through the archive and recomputes its SHA-256; presence alone is deliberately not accepted, because a cloud folder mid-sync presents a correctly sized placeholder. Branch on the exit code:
+
+- **0** - the previous release is retained and verified, or it predates the retention baseline and is out of scope. Continue.
+- **1** - the previous release is **not** retained, or a stored payload failed verification. **Hard release blocker.** The gate prints the exact `retain-deobfuscation.ps1` command per failed variant; run it against that release's shipped artifact, then re-run this step. Shipping now would leave the previous release permanently undecodable, which is the whole failure this scheme exists to end.
+- **2** - the archive root is unreachable, or no release tag could be resolved. **Also blocking.** An archive that cannot be read is not evidence that anything was retained - "cannot verify" must never pass as "verified", since the failure mode being guarded is retention succeeding into the void.
+
+Carry the outcome into the step 4 verdict on its own report line, naming the failed variants.
+
 ### 0.7 - Reindex settings search + navigation (content, no device, GATING)
 
 **Mandatory, unconditional - not "if a setting changed".** Regenerate-then-verify here so the release always carries a fresh index. Needs no device; runs before step 1 prepare (both build, `temp/BUILD.LOCK` admits one gradle invocation at a time). On `--dry-run`, list the plan and run nothing.
@@ -100,6 +116,36 @@ Unlike steps 0 / 0.5, this step **gates** the sweep - branch on its exit code:
 Carry the reindex outcome into the step 4 verdict: exit 2 (uncommitted fresh mirror) or exit 3 (unfixed inconsistency) blocks a clean PASS just as a red log audit does.
 
 On exit 3, read `.claude/reference/spec-prerelease.md` §"0.7" - it names the artefact the shipped index is actually built from.
+
+### 0.8 - Produce and clear the new-lexeme list (content, no device, GATING)
+
+**Mandatory, unconditional - not "if strings changed".** The app declares thirteen interface locales; three are authored, ten are machine-translated in bulk. This is the step where the ten catch up, so the release ships no English caption to a user who chose another language. Needs no device, no gradle. On `--dry-run`, list the plan and run nothing.
+
+```powershell
+pwsh -NoProfile -File scripts/quality/assert-new-lexemes-translated.ps1
+```
+
+Branch on its exit code:
+
+- **0** - every string reaches all thirteen locales, or its gap predates the rule. Continue.
+- **1** - new untranslated strings exist. **Hard release blocker**, and the fix is a task of this stage, not of the ticket that added the strings: hand `temp/S1627/new_lexemes_en.txt` (written by the gate's own run) to the external translation service, import each returned file with `scripts/utils/locale-bulk-import.ps1 -TextPath <returned file>`, then re-run this step until it is 0. When the values are already known, `set-android-string.ps1 -Action set -Key <key> -Locale <tag>` fills them directly instead. Do not proceed to step 1 on exit 1.
+- **2** - the gate cannot verify: its producer or `scripts/quality/locale-untranslated-baseline.txt` is missing. Treat as sweep abort (exit 2 in step 4), same as any infrastructure failure - never as a pass.
+
+Carry the outcome into the step 4 verdict the way 0.7's is carried: exit 1 blocks a clean PASS, exit 2 aborts the sweep.
+
+### 0.9 - Report capabilities no user guide mentions (content, no device, ADVISORY)
+
+Needs no device, no gradle. Sits here rather than in `post-change.ps1` because a capability record is written when the code lands, while its guide text is written at release time - failing the authoring call would block a feature ticket on documentation that is not yet due. On `--dry-run`, list the plan and run nothing.
+
+```powershell
+pwsh -NoProfile -File scripts/quality/assert-guide-coverage.ps1 -Gate
+```
+
+Branch on its exit code:
+
+- **0** - every capability outside the baseline is mentioned in at least one English guide. Continue.
+- **1** - a capability shipped that no guide mentions. **Advisory, not a release blocker**: name each id in the step 4 verdict and hand them to the guide-writing step of the release campaign. Silencing one by adding it to `scripts/quality/guide-coverage-baseline.txt` is allowed only with a stated reason - the baseline is the accumulated debt this gate exists to shrink (S1395 let it grow across several releases unseen).
+- **2** - the gate cannot verify: the inventory, the document registry, or the guide set is missing. Treat as sweep abort, same as any infrastructure failure - never as a pass.
 
 ### 1 - Pre-flight: single device, prepare, hard-grant permissions
 
@@ -172,7 +218,7 @@ pwsh -NoProfile -File scripts/devtest/prerelease-verdict.ps1 `
     -Json
 ```
 
-Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write timestamped report to `temp/S0484/prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence paths). Aggregate verdict is `reindex AND log AND perf AND maestro`; screenshots evidence-only. A step-0.7 exit 2 (fresh settings mirror not yet committed) or exit 3 (unfixed catalog/annotation/HOW_TO inconsistency) forces a non-PASS just as a red log audit does - record it on the reindex report line.
+Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write timestamped report to `temp/S0484/prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence paths). Aggregate verdict is `reindex AND log AND perf AND maestro`; screenshots evidence-only. A step-0.7 exit 2 (fresh settings mirror not yet committed) or exit 3 (unfixed catalog/annotation/HOW_TO inconsistency) forces a non-PASS just as a red log audit does - record it on the reindex report line. A step-0.8 exit 1 (new strings still untranslated) forces a non-PASS the same way; record it on its own report line, naming the key count.
 
 Always run detailed log audit below before trusting a PASS - the verdict is a coarse gate; why it never proves a clean run is in `.claude/reference/spec-prerelease.md` §"4".
 

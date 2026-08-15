@@ -134,6 +134,18 @@ sealed interface LauncherCellCommand {
         val query: String,
         val label: String,
     ) : LauncherCellCommand {
+        /**
+         * S1616: whether [query] is a link to follow rather than a place name to look up.
+         *
+         * A share whose Maps link never resolved to coordinates keeps the link itself as the query
+         * (S1585 §6.1), and handing that to a map application as a search term searches for the URL
+         * text. The distinction lives here, next to the query whose contract already allows all three
+         * forms, so the launch path stays free of URL parsing and this stays testable without a device.
+         */
+        val isWebLinkQuery: Boolean
+            get() = query.startsWith("http://", ignoreCase = true) ||
+                query.startsWith("https://", ignoreCase = true)
+
         override fun encode(): String = PREFIX_GEOGRAPHIC + listOf(action.name, query, label)
             .joinToString(SEPARATOR) { encodeField(it) }
     }

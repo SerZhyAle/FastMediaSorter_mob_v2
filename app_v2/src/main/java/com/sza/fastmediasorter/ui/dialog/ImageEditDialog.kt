@@ -54,7 +54,6 @@ class ImageEditDialog(
         val screenWidth = context.resources.displayMetrics.widthPixels
         val dialogWidth = (screenWidth * WIDTH_FRACTION_OF_SCREEN).toInt()
         window?.setLayout(dialogWidth, ViewGroup.LayoutParams.WRAP_CONTENT)
-        Timber.d("S1366: ImageEditDialog width=${dialogWidth}px of screen ${screenWidth}px")
 
         setupUI()
     }
@@ -302,7 +301,7 @@ class ImageEditDialog(
 
     private companion object {
         // A plain Dialog with no explicit window width falls back to the narrow platform dialog width,
-        // which clipped the button labels. 0.9 matches the sibling PlayerSettingsDialog in this package.
+        // which clipped the button labels.
         const val WIDTH_FRACTION_OF_SCREEN = 0.9
     }
 }

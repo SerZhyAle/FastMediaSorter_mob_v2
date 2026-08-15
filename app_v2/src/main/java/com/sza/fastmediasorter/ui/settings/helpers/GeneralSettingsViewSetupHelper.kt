@@ -87,7 +87,6 @@ class GeneralSettingsViewSetupHelper(
             SearchableLanguagePickerDialog.RESULT_KEY,
             fragment.viewLifecycleOwner
         ) { _, bundle ->
-            Timber.d("S1214: settings ui-language result received")
             val code = bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)
                 ?: return@setFragmentResultListener
             if (code != currentLanguageSelectionCode()) {
@@ -664,7 +663,6 @@ class GeneralSettingsViewSetupHelper(
         val context = fragment.requireContext().applicationContext
         binding.rowDebugLogMirror.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
-            Timber.d("S1357: log mirror toggle -> $isChecked")
             DebugLogMirrorPrefs.setEnabled(context, isChecked)
             if (!isChecked) {
                 LoggingHelper.clearDebugMirrorTarget()
@@ -699,7 +697,6 @@ class GeneralSettingsViewSetupHelper(
     // S1190: an install from Play carries only the locales the device asked for, so a language the
     // user never had has to arrive before it is applied - applying first restarts into the old strings.
     private fun applyLanguageWhenAvailable(newLanguageCode: String) {
-        Timber.d("S1190: settings language switch confirmed, resolving availability")
         // The sentinel names no split: whatever the system is set to is a locale the install already has.
         if (newLanguageCode == LocaleHelper.FOLLOW_SYSTEM_LANGUAGE) {
             applyLanguage(newLanguageCode)

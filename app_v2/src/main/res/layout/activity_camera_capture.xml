@@ -8,6 +8,8 @@
     android:keepScreenOn="true"
     tools:context=".ui.cameracapture.CameraCaptureActivity">
 
+    <!-- S1658: scaleType here is only the pre-selection default; the host overrides it per selected
+         frame shape (fill for full screen, fit for 4:3 and 16:9). -->
     <androidx.camera.view.PreviewView
         android:id="@+id/previewViewCamera"
         android:layout_width="0dp"
@@ -18,20 +20,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:scaleType="fitCenter" />
-
-    <!-- S1066: result frame - marks the saved-file bounds inside the full-frame preview (photo, 16:9). -->
-    <com.sza.fastmediasorter.ui.cameracapture.ResultFrameOverlayView
-        android:id="@+id/resultFrameOverlay"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:clickable="false"
-        android:focusable="false"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/previewViewCamera"
-        app:layout_constraintEnd_toEndOf="@id/previewViewCamera"
-        app:layout_constraintStart_toStartOf="@id/previewViewCamera"
-        app:layout_constraintTop_toTopOf="@id/previewViewCamera"
-        tools:visibility="visible" />
 
     <com.sza.fastmediasorter.ui.cameracapture.FocusRingOverlayView
         android:id="@+id/focusRingOverlay"

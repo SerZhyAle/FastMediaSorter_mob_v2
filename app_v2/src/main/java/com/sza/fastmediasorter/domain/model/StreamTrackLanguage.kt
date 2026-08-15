@@ -2,7 +2,7 @@ package com.sza.fastmediasorter.domain.model
 
 /**
  * S1144: global default audio / subtitle language for stream playback. [DEFAULT] means "follow the app
- * language", mirroring `PlayerSettingsDialog.LanguageOption` so the two surfaces name the same thing the
+ * language", mirroring `PlayerSettings.LanguageOption` so the two surfaces name the same thing the
  * same way. A per-channel preference (ADR-4) overrides this for its own channel only.
  */
 enum class StreamTrackLanguage {

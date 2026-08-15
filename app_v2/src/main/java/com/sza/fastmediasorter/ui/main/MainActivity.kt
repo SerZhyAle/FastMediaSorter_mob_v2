@@ -44,11 +44,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
-import com.sza.fastmediasorter.domain.repository.ResourceRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsSink
-import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
-import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorAprilFoolsPrankManager
@@ -61,7 +57,9 @@ import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCollapsedChipsPlacementManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCommandBarTooltipManager
+import com.sza.fastmediasorter.ui.main.helpers.MainCommandOverflowMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainExitButtonManager
+import com.sza.fastmediasorter.ui.main.helpers.MainHelperFactory
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadManager
 import com.sza.fastmediasorter.ui.main.helpers.MainLinkDownloadMenuManager
@@ -120,6 +118,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var bannerManager: MainChromeOsBannerManager
     private lateinit var tabsManager: MainResourceTabsManager
     private lateinit var layoutChrome: MainLayoutChromeManager
+    private lateinit var commandOverflowMenuManager: MainCommandOverflowMenuManager
     private lateinit var miniGameMenuManager: MainMiniGameMenuManager
     private lateinit var streamsMenuManager: MainStreamsMenuManager
     private lateinit var voiceCaptureManager: MainVoiceCaptureManager
@@ -205,26 +204,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     // S0043: settings-permission launcher removed - Manage Storage intent is now launched via SettingsIntentLauncher (which carries setLaunchBounds for XR / freeform / foldable). Result is delivered through onActivityResult below and forwarded to permissionsHelper.
 
     @Inject
-    lateinit var settingsRepository: SettingsRepository
+    lateinit var mainHelperFactory: MainHelperFactory
 
     @Inject
     lateinit var smbClient: SmbClient
 
     @Inject
     lateinit var unifiedCache: UnifiedFileCache
-
-    @Inject
-    lateinit var getResumeStateUseCase: GetResumeStateUseCase
-
-    @Inject
-    lateinit var clearResumeStateUseCase: ClearResumeStateUseCase
-
-    // S1152: last-active-stream store, read by the resume helper to resume a stream on cold start.
-    @Inject
-    lateinit var streamResumeStateRepository: com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
-
-    @Inject
-    lateinit var resourceRepository: ResourceRepository
 
     @Inject
     lateinit var mediaCapabilities: MediaCapabilities
@@ -381,14 +367,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
 
         // Initialize helpers (binding is already available - set by BaseActivity.onCreate)
-        resumeHelper = MainResumePlaybackHelper(
+        resumeHelper = mainHelperFactory.createResumePlaybackHelper(
             activity = this,
             binding = binding,
-            settingsRepository = settingsRepository,
-            resourceRepository = resourceRepository,
-            getResumeStateUseCase = getResumeStateUseCase,
-            clearResumeStateUseCase = clearResumeStateUseCase,
-            streamResumeStateRepository = streamResumeStateRepository
         )
         permissionsHelper = MainStoragePermissionsHelper(
             activity = this,
@@ -414,8 +395,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onControlBarFreeWidth = { freeWidthPx ->
                 controlBarFreeWidthPx = freeWidthPx
                 collapsedChipsPlacement.apply(freeWidthPx, isWideLayout())
-            }
+            },
+            // S1672: an eviction summons the "⋮" button that now hosts the evicted command, and a
+            // row that fits again dismisses it.
+            onOverflowChanged = { refreshMainWindowDropdownMenuVisibility() }
         )
+        commandOverflowMenuManager = MainCommandOverflowMenuManager(binding, layoutChrome)
 
         // Resume playback logic - only for standard launcher start with killed process
         if (resumeHelper.shouldAttemptResume(intent)) {
@@ -441,7 +426,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         if (intent?.action == ACTION_CAMERA_OCR_TRANSLATE) {
             lifecycleScope.launch {
-                val enabled = settingsRepository.getSettings().first().cameraOcrTranslationEnabled
+                val enabled = appSettings.first().cameraOcrTranslationEnabled
                 if (enabled) {
                     startActivity(com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this@MainActivity))
                 } else if (isTaskRoot) {
@@ -524,7 +509,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             this
         ) { _, bundle ->
             val sortModeName = bundle.getString(FilterResourceDialog.RESULT_SORT_MODE)
-            Timber.d("S1331: filter result received sort=%s", sortModeName)
             viewModel.setSortMode(
                 sortModeName?.let { runCatching { enumValueOf<SortMode>(it) }.getOrNull() }
                     ?: SortMode.MANUAL
@@ -560,7 +544,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         if (intent.action == ACTION_CAMERA_OCR_TRANSLATE) {
             lifecycleScope.launch {
-                val enabled = settingsRepository.getSettings().first().cameraOcrTranslationEnabled
+                val enabled = appSettings.first().cameraOcrTranslationEnabled
                 if (enabled) {
                     startActivity(com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(this@MainActivity))
                 } else if (isTaskRoot) {
@@ -732,7 +716,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private fun refreshMainWindowDropdownMenuVisibility() {
         // S0755: when the programs panel replaces the menu on the main window, hide the three-dots button.
-        val shouldShowMenuButton = !isProgramsPanelEnabled && getMainWindowDropdownMenuItemCount() > 0
+        // S1672: an evicted command lives in this menu, so it must appear even then - otherwise the
+        // command would be unreachable exactly when the bar is too narrow to show it.
+        val shouldShowMenuButton = (!isProgramsPanelEnabled && getMainWindowDropdownMenuItemCount() > 0) ||
+            (::layoutChrome.isInitialized && layoutChrome.hasOverflow())
         val visibilityChanged = binding.layoutMainDropdownMenu.isVisible != shouldShowMenuButton ||
             binding.btnMainDropdownMenu.isVisible != shouldShowMenuButton
         if (visibilityChanged) {
@@ -779,7 +766,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private fun showMainWindowDropdownMenu() {
         val popup = PopupMenu(this, binding.btnMainDropdownMenu)
-        val itemCount = populateMainWindowDropdownMenu(popup)
+        // S1672: the programs block is built first because it clears the menu; the evicted commands
+        // are appended after it and sort above it on their own order.
+        val programsCount = if (isProgramsPanelEnabled) 0 else populateMainWindowDropdownMenu(popup)
+        val itemCount = programsCount + commandOverflowMenuManager.populate(popup)
         if (itemCount <= 0) {
             refreshMainWindowDropdownMenuVisibility()
             return
@@ -792,7 +782,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     /** S0755: shared click routing for both the dropdown popup and the programs panel buttons. */
     private fun handleMainWindowMenuItem(itemId: Int): Boolean =
-        programsMenuCoordinator.handleMenuItem(itemId)
+        commandOverflowMenuManager.handleMenuItem(itemId) || programsMenuCoordinator.handleMenuItem(itemId)
 
     // S0756: excludeStreams drops the "Streams" item (the programs panel hides it when the streams
     // panel is visible, to avoid duplicating that entry point). The dropdown menu always passes false.
@@ -862,9 +852,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         )
         // S0831/S0770: per-item panel actions (new-window launch + Remove/Disable confirms). Constructed
         // before the coordinator/menu-actions below, which delegate to it.
-        panelItemActions = MainPanelItemActionsManager(
+        panelItemActions = mainHelperFactory.createPanelItemActionsManager(
             activity = this,
-            settingsRepository = settingsRepository,
             unpinStreamSource = viewModel::unpinStreamSource,
             currentSettings = { latestSettings },
             resourceVrCinema = resourceVrCinemaLaunchManager,
@@ -887,7 +876,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             ),
         )
         // S0755: programs panel renders the same menu the dropdown builds (single source of order/gates).
-        programsPanelManager = MainProgramsPanelManager(
+        programsPanelManager = mainHelperFactory.createProgramsPanelManager(
             panel = binding.mainProgramsPanel,
             populateMenu = { popup, excludeStreams -> populateMainWindowDropdownMenu(popup, excludeStreams) },
             onItemSelected = { itemId -> handleMainWindowMenuItem(itemId) },
@@ -898,7 +887,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onConfigure = { startActivity(SettingsActivity.openProgramsSectionIntent(this)) },
             // S0807: "Hide panel" drops the panel; the collector restores the top command-bar three-dots.
             onHidePanel = { panelItemActions.hideProgramsPanelFromPanel() },
-            settingsRepository = settingsRepository,
             scope = lifecycleScope,
             // S0809: collapsed chip lives in the shared collapsed-panels row (activity layout).
             collapsedChip = binding.chipProgramsCollapsed,
@@ -909,7 +897,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // S0756/S0777: streams panel - entry button + pinned channels. An AUDIO channel tap plays inline
         // in the home window (the panel owns the now-playing mini-control); a VIDEO/RTSP tap falls back to
         // the Streams screen.
-        streamsPanelManager = MainStreamsPanelManager(
+        streamsPanelManager = mainHelperFactory.createStreamsPanelManager(
             panel = binding.mainStreamsPanel,
             lifecycleOwner = this,
             scope = lifecycleScope,
@@ -946,8 +934,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 isFavoritesEnabled = { latestSettings?.enableFavorites == true },
                 isChannelFavorite = { channel -> viewModel.favoriteStreamUrls.value.contains(channel.url) },
             ),
-            // S0808: persist the streams-panel collapsed-strip state (mirror of the programs panel).
-            settingsRepository = settingsRepository,
             // S0809: collapsed chip lives in the shared collapsed-panels row (activity layout).
             collapsedChip = binding.chipStreamsCollapsed,
             onChipVisibilityChanged = ::reapplyCollapsedChipPlacement,
@@ -1169,7 +1155,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 binding.btnToggleView.setIconResource(R.drawable.ic_view_grid)
             }
 
-            binding.btnToggleView.isVisible = true
+            // S1672: routed through the chrome manager - a bare isVisible = true here would undo an
+            // eviction on the next state emission and put the bar back over the screen edge.
+            layoutChrome.setCommandEligible(R.id.btnToggleView, true)
             layoutChrome.restitchControlBarFocusChain()
 
             // Enable Play button if any resources exist (auto-selects last used or first)
@@ -1215,11 +1203,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         }
 
-        val eventHandler = com.sza.fastmediasorter.ui.main.helpers.MainEventHandler(
+        val eventHandler = mainHelperFactory.createEventHandler(
             activity = this,
             binding = binding,
             viewModel = viewModel,
-            settingsRepository = settingsRepository,
             passwordManager = passwordManager,
             onOpenSettings = ::openSettings,
             onRecordLastPlayed = ::recordLastPlayedResource,
@@ -1231,7 +1218,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             tabsManager.createTabs()
         }
         // Observe settings to show/hide Favorites button
-        collectOnLifecycle(settingsRepository.getSettings()) { settings ->
+        collectOnLifecycle(appSettings) { settings ->
             latestSettings = settings // S0770: keep the freshest snapshot for the panel item menus.
             val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
             val networkMonitorNowEnabled =
@@ -1267,11 +1254,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             isProgramsPanelEnabled = settings.showProgramsPanelInMainWindow
             isStreamsPanelEnabled = settings.showStreamsPanelInMainWindow
             isScreenRecordingEnabled = screenRecordingNowEnabled
-            binding.btnFavorites.visibility = if (settings.enableFavorites) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
+            // S1672: the toggle reports eligibility instead of writing visibility, so the overflow
+            // planner can tell "switched off" from "evicted for width" (both would be GONE).
+            layoutChrome.setCommandEligible(R.id.btnFavorites, settings.enableFavorites)
             resourceAdapter.setUseCompactElements(settings.useCompactElements)
             resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
             // S0727: apply the persisted allowSeparateWindow preference off-Main here (OR runtime
@@ -1329,7 +1314,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     /** S1443: re-place the collapsed chips against the width the command bar last reported. */
     private fun reapplyCollapsedChipPlacement() {
         if (!::collapsedChipsPlacement.isInitialized) return
-        Timber.d("S1443: re-place collapsed chips free=$controlBarFreeWidthPx wide=${isWideLayout()}")
         collapsedChipsPlacement.apply(controlBarFreeWidthPx, isWideLayout())
     }
 
@@ -1397,13 +1381,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun setupResourceTypeTabs() {
-        tabsManager = MainResourceTabsManager(
+        tabsManager = mainHelperFactory.createResourceTabsManager(
             tabLayout = binding.tabResourceTypes,
             // S0809: the filter's collapsed representation is now the shared-row chip, not an in-place strip.
             collapsedStrip = binding.chipFilterCollapsed,
-            configuration = resources.configuration,
             gate = remoteSourceGate,
-            settingsRepository = settingsRepository,
             scope = lifecycleScope,
             onTabSelected = { tab -> viewModel.setActiveTab(tab) },
             onFavoritesReselected = { viewModel.openFavorites() },

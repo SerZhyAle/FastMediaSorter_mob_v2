@@ -239,7 +239,6 @@ class EdgeGestureConfigManager(
             setOnClickListener {
                 // Render from the copy just written: the settings flow has not emitted it yet, so
                 // viewModel.settings.value would still carry the package being cleared.
-                Timber.d("S1036: app choice cleared for slot %s/%s", zone, direction)
                 val cleared = applyPayload(viewModel.settings.value, zone, direction, "")
                 viewModel.updateSettings(cleared)
                 renderAppRow(cleared, zone, direction)

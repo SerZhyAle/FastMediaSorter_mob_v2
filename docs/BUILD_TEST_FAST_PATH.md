@@ -43,12 +43,15 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 | `detekt-scoped.ps1 -ChangedFiles <1 file>` | 2.1 s | foreground |
 | `detekt-scoped.ps1 -ChangedFiles <2 files>` | 3.3 s | foreground |
 | `detekt-preflight` step inside `post-change.ps1` | 3.1 s | foreground |
+| `assert-doc-icons-sync.ps1 -Gate` | 0.36 s | foreground |
 | `a.ps1 fk` | 14.1 s | foreground |
 | `a.ps1 fc` | 18.6 s | foreground |
 | `a.ps1 dq` | 18.4 s | foreground |
 | `a.ps1 d` / `dav` / `r` / `fu` | not measured | background |
 
 The three `detekt-scoped` rows were measured on 2026-08-12 (S1595). They are the only detekt rows here that do NOT take `BUILD.LOCK`: the scoped runner drives detekt's CLI directly rather than through gradle, so it never queues behind a sibling session's build - which is why its number stays honest under contention while the `assert-detekt` row above does not.
+
+`assert-doc-icons-sync.ps1 -Gate` was measured on 2026-08-14 (S1545) as a completed foreground run with no lock wait. The 0.36 s figure is the gate's own wall-clock duration, not time spent queued for a repository lock.
 
 Since that measurement `fg` gained one gate: `assert-shared-test-flavor-scope` (S1453) at 1.4-1.9 s, which puts the batch around 20 s and still an order of magnitude below the 120 s threshold. The row above is left at its 2026-08-01 value rather than restated, because the only re-run available on 2026-08-09 read 46.1 s wall with two sibling sessions holding `BUILD.LOCK` for gradle - a measurement of contention, not of the batch.
 
@@ -243,7 +246,21 @@ Use the dedicated noLegal wrappers, not the standard fast-check assumptions.
 
 Reason: the noLegal graph intentionally avoids configuration-cache reuse.
 
-### 12. KAPT stall recovery
+### 12. Change touching flavor-visible resources or flavor source sets
+
+Prove each affected flavor with the same fast check, selected by `-Flavor`. No dedicated letter exists or is needed.
+
+```powershell
+.\a.ps1 fc -Flavor Lite      # Standard | NoLegal | Lite | Photos | Legacy | Vr
+.\a.ps1 fc -Flavor Legacy    # the only path that compiles against minSdk 23
+.\a.ps1 fc -Flavor Vr        # the only path that compiles src/vr
+```
+
+`-Flavor` works on `fk` and `fr` too, and every call takes `BUILD.LOCK`, so a spec demanding proof on "every affected variant" is satisfiable without a direct `gradlew` call. Run them one at a time - Rule 23 allows a single gradle invocation at once. Measured on a warm daemon: roughly 1-2.5 min per flavor, since each one owns its own configuration-cache entry.
+
+Reason this is spelled out: the flag existed long before it was documented, and S1568 deferred its per-flavor validation on the assumption that no such command was available (S1589).
+
+### 13. KAPT stall recovery
 
 If a targeted Kotlin/unit task hangs around `kaptGenerateStubs...` or `kapt...Kotlin`, recover instead of wiping all caches.
 
@@ -279,6 +296,7 @@ Move upward only when needed:
 | Shared model / serializer / infra | `.\a.ps1 fu` | install/runtime behavior also changed |
 | Packaging/install concern | `.\a.ps1 d` | device-specific behavior matters |
 | Wear-only change | `:wear:assembleDebug` | shared app code also changed |
+| Flavor-visible resources / flavor source sets | `.\a.ps1 fc -Flavor <name>` per affected flavor | packaging proof needed on that flavor |
 
 ## Anti-patterns
 

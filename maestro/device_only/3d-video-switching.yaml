@@ -1,27 +1,32 @@
 appId: com.sza.fastmediasorter.debug
 ---
 # Test: 3D Mode Switching - Toggle between Auto / Force SBS / Mono
-# Feature: 3D Video Support (SBS), v2.63
+# Feature: 3D Video Support (SBS)
 # Duration: ~60 seconds
-# Precondition: A test SBS video (aspect ratio ~32:9, e.g. 3840x1080)
-#               must be present on the device at:
-#               /sdcard/TestMedia/3D-SBS-Test.mkv
-# Setup: run scripts/utils/setup_test_media.ps1 before this test.
+# Precondition 1: A test SBS video (aspect ratio ~32:9, e.g. 3840x1080) must be present at
+#                 /sdcard/TestMedia/3D-SBS-Test.mkv - run scripts/utils/setup_test_media.ps1 first.
+# Precondition 2: a build whose playback-control dialog offers the 3D section. That section is gated
+#                 by supportsVrMediaControls and by the user's 3D/VR master toggle, so install the
+#                 noLegal debug build (.\a.ps1 ivn) and leave the toggle on.
+#
+# S1618: this flow used to drive a "Playback Settings" dialog no code could open, through regex
+# selectors that silently never fired. The 3D choice lives in the playback-control dialog, opened by
+# btnPlaybackControl. Selecting a mode applies it immediately and leaves the dialog open, so all
+# three switches happen in one visit instead of reopening the dialog each time.
 
-# Launch app
 - launchApp
 - waitForAnimationToEnd
 
 - runFlow: ../_shared/permissions.yaml
 - waitForAnimationToEnd
 
-# Navigate to Local tab
+# Navigate to the Local tab
 - tapOn:
     text: "Local"
     optional: true
 - waitForAnimationToEnd
 
-# Navigate into TestMedia folder
+# Navigate into the TestMedia folder
 - tapOn:
     text: "TestMedia"
     optional: true
@@ -32,106 +37,56 @@ appId: com.sza.fastmediasorter.debug
     text: "3D-SBS-Test"
 - waitForAnimationToEnd
 
-# Enter fullscreen
+# Open the playback-control dialog on its 3D section
 - tapOn:
-    id: ".*fullscreen.*"
-    optional: true
+    id: "btnPlaybackControl"
+- waitForAnimationToEnd
+- tapOn:
+    id: "btnSectionStereo"
 - waitForAnimationToEnd
 
-# --- Switch to Force SBS mode ---
+# --- Force SBS ---
 
-# Tap to reveal controls
-- tapOn:
-    point: "50%, 50%"
-- waitForAnimationToEnd
-
-# Open Playback Settings
-- tapOn:
-    id: ".*settings.*"
-    optional: true
-- waitForAnimationToEnd
-
-# Verify 3D controls are really visible before switching
-- assertVisible:
-    text: "3D Video"
 - assertVisible:
     text: "Side-by-Side (SBS)"
+- tapOn:
+    id: "radio3DSbs"
 - waitForAnimationToEnd
 
-# Select SBS mode
-- tapOn:
+# The dialog stays open and keeps naming the chosen format.
+- assertVisible:
     text: "Side-by-Side (SBS)"
-- waitForAnimationToEnd
-
-# Close dialog
-- tapOn:
-    text: "Close"
-- waitForAnimationToEnd
-
-# Verify player still alive after mode switch
 - assertNotVisible:
     text: "has stopped"
 - assertNotVisible:
     text: "Unfortunately"
 
-# --- Switch to Mono mode ---
+# --- Force Mono ---
 
-# Tap to reveal controls again
-- tapOn:
-    point: "50%, 50%"
-- waitForAnimationToEnd
-
-# Open Playback Settings
-- tapOn:
-    id: ".*settings.*"
-    optional: true
-- waitForAnimationToEnd
-
-# Verify Mono option is visible
 - assertVisible:
     text: "Mono (Disabled)"
-- waitForAnimationToEnd
-
-# Select Mono
 - tapOn:
-    text: "Mono (Disabled)"
+    id: "radio3DMono"
 - waitForAnimationToEnd
 
-# Close dialog
-- tapOn:
-    text: "Close"
-- waitForAnimationToEnd
-
-# Verify player still alive after switch back to Mono
 - assertNotVisible:
     text: "has stopped"
 - assertNotVisible:
     text: "Unfortunately"
+# Proof assertion, so it is not optional: an optional error guard passes either way.
 - assertNotVisible:
     text: "Error"
-    optional: true
 
-# --- Switch back to Auto mode ---
-
-- tapOn:
-    point: "50%, 50%"
-- waitForAnimationToEnd
-
-- tapOn:
-    id: ".*settings.*"
-    optional: true
-- waitForAnimationToEnd
+# --- Back to Auto ---
 
 - assertVisible:
     text: "Auto-detect"
+- tapOn:
+    id: "radio3DAuto"
 - waitForAnimationToEnd
 
 - tapOn:
-    text: "Auto-detect"
-- waitForAnimationToEnd
-
-- tapOn:
-    text: "Close"
+    id: "btnClosePlaybackControl"
 - waitForAnimationToEnd
 
 # Final stability check

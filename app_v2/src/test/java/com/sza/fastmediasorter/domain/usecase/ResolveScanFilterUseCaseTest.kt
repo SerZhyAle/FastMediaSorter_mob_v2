@@ -160,7 +160,31 @@ class ResolveScanFilterUseCaseTest {
         assertEquals(base.mediaTypes, lifted.mediaTypes)
     }
 
+    @Test
+    fun `withoutGlobalTypeGate restores the type the global switch removed`() {
+        val gated = resource(types = setOf(MediaType.IMAGE), path = PLAIN_FOLDER_PATH)
+        val settings = AppSettings(supportImages = false)
+        val base = useCase()(gated, settings)
+
+        val ungated = useCase().withoutGlobalTypeGate(gated, base)
+
+        assertTrue(MediaType.IMAGE !in base.mediaTypes)
+        assertTrue(MediaType.IMAGE in ungated.mediaTypes)
+        assertEquals(base.sizeFilter, ungated.sizeFilter)
+    }
+
+    @Test
+    fun `withoutGlobalTypeGate offers nothing the resource itself does not declare`() {
+        val gated = resource(types = setOf(MediaType.IMAGE), path = PLAIN_FOLDER_PATH)
+        val settings = AppSettings(supportImages = false)
+
+        val ungated = useCase().withoutGlobalTypeGate(gated, useCase()(gated, settings))
+
+        assertEquals(setOf(MediaType.IMAGE), ungated.mediaTypes)
+    }
+
     private companion object {
         const val TEN_MEGABYTES = 10_485_760L
+        const val PLAIN_FOLDER_PATH = "/storage/emulated/0/Pictures"
     }
 }

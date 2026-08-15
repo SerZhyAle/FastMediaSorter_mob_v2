@@ -98,7 +98,6 @@ private class WeatherGadgetView(
         // pushed the message text into the middle of a first-run card; the name takes that role instead.
         binding.gadgetWeatherIcon.isVisible = hasReading
         binding.gadgetWeatherCaption.isVisible = !hasReading
-        Timber.d("S1587: weather card message state, hasReading=$hasReading")
     }
 
     private fun formatTemperature(snapshot: WeatherSnapshot): String {
