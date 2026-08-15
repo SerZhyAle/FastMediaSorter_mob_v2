@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-08-12*
+*Last updated: 2026-08-15*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -33,6 +33,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Every lens the device really has** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Capture offers each physical lens, its true zoom floor including sub-1x, a working macro mode, and the sensor's full resolution, while System info reports the whole camera layout so a problem can be diagnosed from the phone itself.
 - **Pick the shot before you take it** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: One button offers night, portrait, selfie, macro, and sport, listing only the scenarios your device can actually deliver and naming the active one.
 - **Send captures where you want them** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Assign any local folder as the write destination for captures, screenshots, snapshots, and auto-downloads, separately from your browsing sources.
+- **Frame the shot the way it will save** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Choose 4:3, 16:9, or full screen and the viewfinder itself changes, so the picture you see is the picture you get, and every lens keeps its own zoom and scenario for next time.
 
 ## 4. Replace a basic file viewer with a sorting workstation
 - **Instant sorting panel** `[Standard / VR]`: Keep up to 30 favorite destination folders in the player and sort the current file in one tap, with optional auto-advance to the next item.
@@ -49,6 +50,9 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Read PDFs by touch** `[Standard / Legacy / VR / noLegal]`: Turn pages with a swipe, long-press to select the page's own text without waiting for an OCR pass, and keep your zoom and framing through the turn.
 - **Animated WebP and APNG playback** `[Standard]`: Short WebP and APNG animations now play in the image viewer instead of showing a single frozen frame.
 - **Rotate and edit in the separate window** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Turn a picture either way and reach the editing commands from the standalone player window, not only from the main screen.
+- **Stereo video on the television** `[Standard / Lite / Photos / Legacy / noLegal]`: Cast a side-by-side or over-under file and the TV shows one eye at full width instead of a squashed double picture.
+- **Subtitles the way you read them** `[Standard / Lite / Legacy / VR / noLegal]`: Set the subtitle font, size, and colour in the windowed player instead of living with the default.
+- **Browse inside the headset** `[VR / noLegal]`: Walk the library on a virtual screen, point with the controller ray, and start playback without taking the headset off.
 
 ## 6. Replace OCR, translation, and note extraction tools
 - **Offline OCR and offline translation** `[Standard / VR]`: Extract text from images and PDFs, then translate it locally without sending content to a cloud OCR service.
@@ -84,6 +88,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Widgets and your own status area** `[Standard / noLegal]`: Place the app's home-screen widgets onto the launcher desktop, and choose whether Android's status bar stays or the launcher shows its own clock and indicators.
 - **Pin a person, not a permission** `[Standard / noLegal]`: A contact cell opens that person in the system contacts app without granting a contacts permission - grant it only if you want their name and photo on the cell.
 - **Everything you pinned, in one place** `[Standard / noLegal]`: Shortcuts other apps pin land on the launcher desktop, each with the full action menu behind a long press.
+- **Taskbar along the edge you prefer** `[Standard / noLegal]`: Keep the launcher taskbar at the bottom or move it to the top edge, and the desktop lays itself out around it.
 - **Technical and sensor gadgets** `[Standard / noLegal]`: Put clock, sensors, signal strength, and a current-position map straight on the desktop, alongside a Now Playing cell that follows whichever app is playing.
 - **Every installed app on one screen** `[Standard / noLegal]`: A full-screen list of everything installed, reachable from the desktop without a drawer hunt.
 - **Search the web and switch radios from the desktop** `[Standard / noLegal]`: Type a query and it opens in the browser, and the Wi-Fi and Bluetooth tiles turn the radios on or off in place.

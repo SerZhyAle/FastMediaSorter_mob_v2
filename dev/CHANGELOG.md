@@ -26421,3 +26421,4 @@ Format: | datetime | file | target | description |
 | 2026-08-15 19:41:59 | `.claude/reference/spec-prerelease.md` | `prerelease gates docs` | S1700: document the conditional suppression of the framework thumbnail chain in the sweep reference and its prompt mirror [set of 2: .github/prompts/spec-prerelease.prompt.md] [branch: DEBUG-v032] |
 | 2026-08-15 19:47:54 | `docs/HOW_TO.md` | `user guides` | S1658: document the camera viewfinder aspect selection in the EN/RU/UK how-to (spec-prerelease step 0.9 advisory) [set of 3: docs/HOW_TO_RU.md, docs/HOW_TO_UK.md] [branch: DEBUG-v032] |
 | 2026-08-15 19:50:57 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.8151.948 - plateau merge from DEBUG-v032 [branch: DEBUG-v032] |
+| 2026-08-15 20:01:25 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.8151.948 from ALL_FEATURES diff [branch: DEBUG-v033] |
