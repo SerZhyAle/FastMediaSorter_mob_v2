@@ -3,9 +3,11 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
+import com.googlecode.tesseract.android.ResultIterator
 import com.googlecode.tesseract.android.TessBaseAPI
-import com.sza.fastmediasorter.domain.ocr.OfflineOcrEngine
 import com.sza.fastmediasorter.domain.ocr.OcrTextBlock
+import com.sza.fastmediasorter.domain.ocr.OcrWord
+import com.sza.fastmediasorter.domain.ocr.OfflineOcrEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -230,30 +232,9 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
                     return@withContext null
                 }
                 
-                val blocks = mutableListOf<OcrTextBlock>()
-                
                 Timber.d("TRANSLATION_DEBUG: Tesseract iteration START")
-                var blockCount = 0
-                iterator.begin()
-                do {
-                    blockCount++
-                    // Use RIL_TEXTLINE for more precise text positioning (better than RIL_PARA)
-                    val text = iterator.getUTF8Text(TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE)
-                    Timber.d("TRANSLATION_DEBUG: Block $blockCount - text length=${text?.length}, isBlank=${text.isNullOrBlank()}")
-                    if (!text.isNullOrBlank()) {
-                        val box = iterator.getBoundingRect(TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE)
-                        val confidence = iterator.confidence(TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE)
-                        Timber.d("TRANSLATION_DEBUG: Block $blockCount - box=$box, confidence=$confidence")
-                        Timber.d("TRANSLATION_DEBUG: Block $blockCount - text='${text.take(50)}'")
-                        if (box != null) {
-                            blocks.add(OcrTextBlock(text, box, confidence))
-                        } else {
-                            Timber.d("TRANSLATION_DEBUG: Block $blockCount - box is NULL!")
-                        }
-                    }
-                } while (iterator.next(TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE))
-                
-                Timber.d("TRANSLATION_DEBUG: Tesseract iteration END - collected ${blocks.size} blocks from $blockCount iterations")
+                val blocks = collectLinesWithWords(iterator)
+                Timber.d("TRANSLATION_DEBUG: Tesseract iteration END - collected ${blocks.size} lines")
                 
                 // Filter duplicates and merge overlapping blocks
                 val filteredBlocks = filterDuplicateAndOverlappingBlocks(blocks)
@@ -303,6 +284,55 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
         }
     }
     
+    /**
+     * S1711: walk the result at word level and assemble one [OcrTextBlock] per text line, carrying the words
+     * that line is made of.
+     *
+     * The line-level text, box and confidence are read at `RIL_TEXTLINE` exactly as before, so what reaches
+     * the caller is unchanged apart from the added words. No second recognition pass is involved: the words
+     * are already computed inside the result this walk reads.
+     */
+    private fun collectLinesWithWords(iterator: ResultIterator): List<OcrTextBlock> {
+        Timber.d("S1711: Tesseract word-level line collection entered")
+        val blocks = mutableListOf<OcrTextBlock>()
+        val words = mutableListOf<OcrWord>()
+        iterator.begin()
+        do {
+            if (iterator.isAtBeginningOf(TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE)) {
+                words.clear()
+            }
+            val wordText = iterator.getUTF8Text(TessBaseAPI.PageIteratorLevel.RIL_WORD)
+            val wordBox = iterator.getBoundingRect(TessBaseAPI.PageIteratorLevel.RIL_WORD)
+            if (!wordText.isNullOrBlank() && wordBox != null) {
+                val wordConfidence = iterator.confidence(TessBaseAPI.PageIteratorLevel.RIL_WORD)
+                words.add(OcrWord(wordText.trim(), wordBox, wordConfidence))
+            }
+            val lineEnds = iterator.isAtFinalElement(
+                TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE,
+                TessBaseAPI.PageIteratorLevel.RIL_WORD
+            )
+            if (lineEnds) {
+                closeLine(iterator, words, blocks)
+            }
+        } while (iterator.next(TessBaseAPI.PageIteratorLevel.RIL_WORD))
+        return blocks
+    }
+
+    /** Emit the line the iterator currently sits in, with [words] as the words collected for it. */
+    private fun closeLine(
+        iterator: ResultIterator,
+        words: MutableList<OcrWord>,
+        blocks: MutableList<OcrTextBlock>,
+    ) {
+        val lineText = iterator.getUTF8Text(TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE)
+        val lineBox = iterator.getBoundingRect(TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE)
+        if (!lineText.isNullOrBlank() && lineBox != null) {
+            val lineConfidence = iterator.confidence(TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE)
+            blocks.add(OcrTextBlock(lineText, lineBox, lineConfidence, words.toList()))
+        }
+        words.clear()
+    }
+
     /**
      * Filter duplicate and overlapping text blocks.
      * Removes blocks with identical or very similar text that overlap significantly.

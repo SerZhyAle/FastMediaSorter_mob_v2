@@ -188,6 +188,14 @@ sealed interface LauncherCellCommand {
          */
         const val SECTION_EVERYTHING_ELSE = "everything_else"
 
+        /**
+         * S1644: the conditional section of installed Google applications, seeded only on a device that
+         * reports Google services. Named for its contents rather than its position, unlike
+         * [SECTION_EVERYTHING_ELSE], because the seed decides what goes in it and the user is not
+         * expected to refill it.
+         */
+        const val SECTION_GOOGLE = "google"
+
         private const val SEPARATOR = ":"
 
         // Field layout of a [Contact] target. These positions are a persistence format from the first

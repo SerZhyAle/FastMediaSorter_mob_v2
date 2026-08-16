@@ -65,6 +65,17 @@ object GmsAvailabilityChecker {
         return result
     }
 
+    /**
+     * S1644: a live answer that deliberately does NOT write [status].
+     *
+     * [check] returns early on an XR device and leaves the cache at [Status.OK]; [recheckFor] is live but
+     * publishes its verdict into the same cache that [com.sza.fastmediasorter.core.ui.BaseActivity] reads
+     * to raise its update prompt - so on a device without Play Services it would offer the user a CTA
+     * they cannot act on. A caller that needs the truth for its own branch, and no side effect on anyone
+     * else's prompt, asks here.
+     */
+    fun evaluateLive(context: Context): Status = evaluate(context, minApkVersion = 0)
+
     private fun evaluate(context: Context, minApkVersion: Int): Status {
         return try {
             val code = GoogleApiAvailability.getInstance()

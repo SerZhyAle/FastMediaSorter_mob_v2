@@ -80,7 +80,13 @@ class TranslationManager(
         val originalText: String,
         val translatedText: String,
         val boundingBox: Rect,
-        val confidence: Float
+        val confidence: Float,
+        /**
+         * S1711: type size of the source line in OCR-space pixels, taken from the median of its word
+         * heights. Null means the recogniser reported no words, and the drawing layer then keeps deriving
+         * the size from the box height exactly as it did before this rule existed.
+         */
+        val typeSizePx: Int? = null
     )
 
     /**

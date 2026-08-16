@@ -41,7 +41,9 @@ import java.io.File
  * Entry points are guarded by [persistentAudioCompiledIn].
  */
 class NowPlayingManager(
-    private val activityBinding: ActivityPlayerUnifiedBinding,
+    // S1549: var, not val - the host re-inflates the layout on rotation and re-points this manager
+    // via [rebind]; the instance survives because its player listener must not be re-registered.
+    private var activityBinding: ActivityPlayerUnifiedBinding,
     private val fragmentManager: FragmentManager,
     private val audioServiceController: AudioServiceController,
     // S1379: resolved by the host from the capability contract - shared code must not read the
@@ -55,7 +57,10 @@ class NowPlayingManager(
 
     // View Binding always returns a non-null binding for <include> tags; try/catch guards against
     // unexpected inflation failures on any API level.
-    private val miniBar: ViewMiniNowPlayingBinding? = try {
+    // S1549: var, not val - re-resolved from the fresh binding in [rebind] after a re-inflate.
+    private var miniBar: ViewMiniNowPlayingBinding? = resolveMiniBar()
+
+    private fun resolveMiniBar(): ViewMiniNowPlayingBinding? = try {
         activityBinding.miniNowPlayingBar
     } catch (e: Exception) {
         Timber.w(e, "NowPlayingManager: Failed to initialize miniBar binding during exception")
@@ -68,7 +73,8 @@ class NowPlayingManager(
 
     // S1382: one animator per bar, bound to the single artwork view. Re-creating it inside
     // populateBarContent() would restart the turn from zero on every track change.
-    private val noteAnimator: InlinePlaybackAnimator? =
+    // S1549: var, not val - re-bound to the fresh artwork view in [rebind] after a re-inflate.
+    private var noteAnimator: InlinePlaybackAnimator? =
         miniBar?.let { InlinePlaybackAnimator(it.miniArtwork, NOTE_TURN_MS) }
 
     // True while the artwork slot holds the fallback note rather than album art or a channel icon.
@@ -109,20 +115,36 @@ class NowPlayingManager(
     }
 
     init {
-        if (persistentAudioCompiledIn) {
-            if (miniBar != null) {
-                Timber.d("NowPlayingManager: Initializing mini now playing bar listeners")
-                miniBar.root.setOnClickListener { showBottomSheet() }
-                miniBar.miniPlayPause.setOnClickListener {
-                    audioServiceController.player?.let { player ->
-                        if (player.isPlaying) player.pause() else player.play()
-                        updateMiniPlayPauseIcon(player.isPlaying.not())
-                    }
+        attachMiniBarListeners()
+    }
+
+    private fun attachMiniBarListeners() {
+        if (!persistentAudioCompiledIn) return
+        val bar = miniBar
+        if (bar != null) {
+            Timber.d("NowPlayingManager: Initializing mini now playing bar listeners")
+            bar.root.setOnClickListener { showBottomSheet() }
+            bar.miniPlayPause.setOnClickListener {
+                audioServiceController.player?.let { player ->
+                    if (player.isPlaying) player.pause() else player.play()
+                    updateMiniPlayPauseIcon(player.isPlaying.not())
                 }
-            } else {
-                Timber.w("NowPlayingManager: miniBar binding is null - mini now playing bar will not be available")
             }
+        } else {
+            Timber.w("NowPlayingManager: miniBar binding is null - mini now playing bar will not be available")
         }
+    }
+
+    /**
+     * S1549: re-point at the freshly inflated binding after a layout re-inflate. The player
+     * listener and the observed-player reference survive; only the views move. Click listeners
+     * are re-attached because the old ones died with the discarded tree.
+     */
+    fun rebind(newBinding: ActivityPlayerUnifiedBinding) {
+        activityBinding = newBinding
+        miniBar = resolveMiniBar()
+        noteAnimator = miniBar?.let { InlinePlaybackAnimator(it.miniArtwork, NOTE_TURN_MS) }
+        attachMiniBarListeners()
     }
 
     /**
@@ -228,7 +250,7 @@ class NowPlayingManager(
                     return@post
                 }
                 // Service alive and playing - show, populate, and observe for live track changes
-                miniBar.root.isVisible = true
+                miniBar?.root?.isVisible = true
                 Timber.d("NowPlayingManager: updateBarVisibility - showing bar (playbackState=$state)")
                 attachListener(player)
                 populateBarContent(player)

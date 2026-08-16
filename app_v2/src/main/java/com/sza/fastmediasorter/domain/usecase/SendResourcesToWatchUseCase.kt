@@ -3,11 +3,12 @@ package com.sza.fastmediasorter.domain.usecase
 import android.os.Build
 import com.google.gson.Gson
 import com.sza.fastmediasorter.domain.model.ResourceType
-import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.model.WearNetworkSourcePayload
 import com.sza.fastmediasorter.domain.model.WearSyncPayload
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
+import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -70,7 +71,10 @@ class SendResourcesToWatchUseCase @Inject constructor(
                     shareName = creds.shareName,
                     basePath = resource.path,
                     domain = creds.domain,
-                    sshPrivateKey = creds.decryptedSshPrivateKey
+                    sshPrivateKey = creds.decryptedSshPrivateKey,
+                    // S1555: canonicalised here, never on the watch - an unparseable value becomes
+                    // null and stays permissive, exactly as the phone's own SFTP path treats it.
+                    hostKeyFingerprint = SshFingerprintNormalizer.canonical(resource.hostKeyFingerprint)
                 )
             )
             sent++

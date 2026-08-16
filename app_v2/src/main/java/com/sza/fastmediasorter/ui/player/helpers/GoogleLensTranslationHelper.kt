@@ -89,15 +89,7 @@ class GoogleLensTranslationHelper(
                     // Set source bitmap for color sampling (use original bitmap, not scaled)
                     translationOverlayView.setSourceBitmap(bitmap)
                     
-                    // Convert TranslatedTextBlock to TranslationOverlayView.TranslatedBlock
-                    val overlayBlocks = translatedBlocks.map { block ->
-                        TranslationOverlayView.TranslatedBlock(
-                            originalText = block.originalText,
-                            translatedText = block.translatedText,
-                            boundingBox = block.boundingBox,
-                            confidence = block.confidence
-                        )
-                    }
+                    val overlayBlocks = toOverlayBlocks(translatedBlocks)
                     
                     // Set scale factor for coordinate conversion
                     // If displayRect is provided (PhotoView zoom/pan), use it directly
@@ -150,6 +142,31 @@ class GoogleLensTranslationHelper(
         // GC will handle the small scaled copy.
     }
     
+    /** Convert the recognised, translated lines into the overlay's own block type. */
+    private fun toOverlayBlocks(
+        blocks: List<TranslationManager.TranslatedTextBlock>
+    ): List<TranslationOverlayView.TranslatedBlock> = blocks.map { block ->
+        logLineGeometry(block)
+        TranslationOverlayView.TranslatedBlock(
+            originalText = block.originalText,
+            translatedText = block.translatedText,
+            boundingBox = block.boundingBox,
+            confidence = block.confidence,
+            typeSizePx = block.typeSizePx
+        )
+    }
+
+    /**
+     * S1711: the box arrives already tightened and the type size already measured, so a plate that came out
+     * smaller than its source line is attributable to a dropped artifact word rather than a mystery.
+     */
+    private fun logLineGeometry(block: TranslationManager.TranslatedTextBlock) {
+        Timber.d(
+            "TRANSLATION_DEBUG: line geometry box=${block.boundingBox} typeSize=${block.typeSizePx} " +
+                "text='${block.originalText.take(LOG_TEXT_PREVIEW_CHARS)}'"
+        )
+    }
+
     /**
      * Hide the translation overlay
      */
@@ -162,4 +179,9 @@ class GoogleLensTranslationHelper(
      * Check if overlay is currently visible
      */
     fun isVisible(): Boolean = translationOverlayView.visibility == View.VISIBLE
+
+    private companion object {
+        /** How much of a line's source text the geometry log prints before truncating. */
+        const val LOG_TEXT_PREVIEW_CHARS = 24
+    }
 }

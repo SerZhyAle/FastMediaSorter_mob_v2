@@ -107,7 +107,10 @@ $presentCache = @{}
 function Get-PresentKeys([string]$Set, [string]$File, [string]$Tag) {
     <# Keys a locale's own copy of one resource file already carries. Absent file = nothing carried. #>
     $cacheKey = "$Set|$File|$Tag"
-    if ($presentCache.ContainsKey($cacheKey)) { return $presentCache[$cacheKey] }
+    # Comma operator, both here and below: PowerShell unrolls an enumerable on return, so a bare
+    # `return $keys` hands back $null for an empty set and the lone String for a one-key set - and
+    # .Contains() on a String is a substring test, so the caller was silently wrong before it crashed.
+    if ($presentCache.ContainsKey($cacheKey)) { return , $presentCache[$cacheKey] }
 
     $keys = [System.Collections.Generic.HashSet[string]]::new()
     $path = Join-Path $repoRoot "$Module/src/$Set/res/$(Get-LocaleResourceDir -Tag $Tag)/$File"
@@ -117,7 +120,7 @@ function Get-PresentKeys([string]$Set, [string]$File, [string]$Tag) {
         }
     }
     $presentCache[$cacheKey] = $keys
-    return $keys
+    return , $keys
 }
 
 $missingByIdentity = [ordered]@{}

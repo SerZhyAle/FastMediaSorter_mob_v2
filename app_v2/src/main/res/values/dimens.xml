@@ -50,6 +50,13 @@
     <dimen name="margin_minimal">2dp</dimen>
     <dimen name="stroke_width_normal">2dp</dimen>
     <dimen name="margin_medium">12dp</dimen>
+    <!-- S1549: the launcher grid's side padding was the only difference the duplicate landscape layout
+         carried, so it lives here with a values-land override instead of in a second layout file. -->
+    <dimen name="launcher_grid_side_padding">4dp</dimen>
+    <!-- S1549: the three values the streams landscape layout carried. StreamsActivity absorbs rotation to
+         keep inline stream audio alive, so it re-reads them in onConfigurationChanged. -->
+    <dimen name="streams_list_side_padding">0dp</dimen>
+    <dimen name="streams_mini_control_min_height">56dp</dimen>
     <!-- S1173: default contour width for OutlinedTextView/OutlinedImageView. Sized for large overlay
          labels; small captions must override it or the contour swallows the glyph. -->
     <dimen name="outline_text_stroke_width">2dp</dimen>
@@ -808,5 +815,34 @@
     <!-- S1201: a station logo fills its whole tile, so it needs a small inset to sit off the cell
          edges - far less than the 32 px favicon, which is inset to avoid being blown up. -->
     <dimen name="stream_grid_logo_padding">8dp</dimen>
+
+    <!-- S1549: BrowseActivity and MainActivity absorb the rotation (android:configChanges), so the
+         landscape command bars are produced in code. Every key below carries the PORTRAIT value here
+         and the landscape one in values-land + values-w600dp (w600dp outranks land, so a 600dp-wide
+         portrait tablet - which inflates layout-w600dp - needs the same override). The managers read
+         the key and never branch on a literal, so the qualifier stays the single decision point. -->
+    <dimen name="browse_cmd_button_padding_start">@dimen/activity_browse_btnDeselectAll_paddingStart</dimen>
+    <dimen name="browse_cmd_button_padding_end">@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd</dimen>
+    <dimen name="browse_cmd_button_inset_vertical">@dimen/dimension_zero</dimen>
+    <dimen name="browse_cmd_button_icon_padding">@dimen/spacing_none</dimen>
+    <dimen name="browse_controls_elevation">@dimen/dimension_zero</dimen>
+
+    <dimen name="main_cmd_first_min_width">@dimen/main_panel_first_item_width</dimen>
+    <dimen name="main_cmd_min_width">@dimen/main_panel_item_min_width</dimen>
+    <dimen name="main_cmd_menu_min_width">@dimen/main_programs_button_width_portrait</dimen>
+    <dimen name="main_cmd_first_padding_start">@dimen/dimension_zero</dimen>
+    <dimen name="main_cmd_first_padding_end">@dimen/main_panel_item_spacing</dimen>
+    <dimen name="main_cmd_padding_start">@dimen/main_panel_item_spacing</dimen>
+    <dimen name="main_cmd_padding_end">@dimen/main_panel_item_spacing</dimen>
+    <dimen name="main_cmd_menu_padding_start">@dimen/layout_spacing_small</dimen>
+    <dimen name="main_cmd_menu_padding_end">@dimen/layout_spacing_small</dimen>
+    <dimen name="main_cmd_first_icon_padding">@dimen/main_top_panel_leading_icon_spacing</dimen>
+    <dimen name="main_cmd_icon_padding">@dimen/activity_main_btnFilter_iconPadding</dimen>
+    <!-- Label size of Widget.Material3.Button.TextButton; portrait never shows a label, so this only
+         has to leave the button as the style inflated it. -->
+    <dimen name="main_cmd_text_size">14sp</dimen>
+    <!-- Zero means "no separators": the portrait bar has none, so the width doubles as the switch. -->
+    <dimen name="main_cmd_bar_separator_width">@dimen/dimension_zero</dimen>
+    <dimen name="main_tab_strip_leading_anchor">@dimen/dimension_zero</dimen>
 
 </resources>

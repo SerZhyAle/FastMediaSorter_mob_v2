@@ -2829,4 +2829,5 @@
     <string name="wear_sync_no_ack">घड़ी ने पुष्टि नहीं की। वह बंद हो सकती है या सीमा से बाहर हो सकती है।</string>
     <string name="browse_empty_type_gated">%1$d फ़ाइलें छिपी हैं क्योंकि उनका मीडिया प्रकार बंद है।</string>
     <string name="browse_empty_type_gated_hint">उन्हें देखने के लिए सेटिंग में वह मीडिया प्रकार फिर से चालू करें।</string>
+    <string name="launcher_section_google">GOOGLE</string>
 </resources>

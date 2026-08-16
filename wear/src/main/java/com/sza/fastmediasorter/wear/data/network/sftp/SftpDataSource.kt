@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.wear.data.network.sftp
 
 import android.net.Uri
-import android.webkit.MimeTypeMap
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.JSchException
@@ -9,6 +8,7 @@ import com.jcraft.jsch.Session
 import com.jcraft.jsch.SftpException
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.util.MediaMimeTypes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -41,7 +41,7 @@ class SftpDataSource @Inject constructor() {
                             id = index.toLong(),
                             name = entry.filename,
                             uri = Uri.parse("sftp://${source.server}:${source.port}$filePath"),
-                            mimeType = inferMimeType(entry.filename),
+                            mimeType = MediaMimeTypes.fromFileName(entry.filename),
                             size = entry.attrs.size,
                             dateModified = entry.attrs.mTime.toLong() * 1000L
                         )
@@ -102,9 +102,7 @@ class SftpDataSource @Inject constructor() {
         }
         val session = jsch.getSession(source.username, source.server, source.port)
         session.setPassword(source.password)
-        // The host-key policy is S1555's subject, not this method's - moving the call here keeps it
-        // verbatim rather than changing it.
-        session.setConfig("StrictHostKeyChecking", "no")
+        WearHostKeyPolicy.apply(session, source)
         session.connect(CONNECT_TIMEOUT_MS)
         return session
     }
@@ -129,11 +127,5 @@ class SftpDataSource @Inject constructor() {
                 runCatching { session.disconnect() }
             }
         }
-    }
-
-    private fun inferMimeType(fileName: String): String? {
-        val ext = fileName.substringAfterLast('.', "").lowercase()
-        if (ext.isEmpty()) return null
-        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
     }
 }

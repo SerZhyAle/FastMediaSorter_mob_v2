@@ -196,4 +196,9 @@
     <color name="color_media_other">#FFB0BEC5</color>     <!-- Blue Grey 200 -->
     <!-- S0997: splash-screen center content (app logo + wordmark) - dark on the light splash background, light in night mode. -->
     <color name="splash_content">#FFECEFF1</color>
+    <!-- S1706: splash logo gradient - same sampled blues as day; they carry on the dark splash background too. -->
+    <color name="splash_logo_gradient_start">#FFB8DEF6</color>
+    <color name="splash_logo_gradient_end">#FF1E90F0</color>
+    <!-- S1706: splash slogan - lightened for contrast against the dark splash background. -->
+    <color name="splash_slogan">#FF64B5F6</color>
 </resources>

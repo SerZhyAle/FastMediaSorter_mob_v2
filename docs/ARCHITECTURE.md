@@ -236,9 +236,23 @@ A bare `.show()` discards the returned `AlertDialog`, which leaves nothing able 
 
 Exempt: a `DialogFragment`, whose `FragmentManager` already dismisses it, and OS/system dialogs we do not own.
 
+## Landscape Layouts under `configChanges` (MANDATORY)
+
+An Activity that lists `orientation` in `android:configChanges` does not recreate on rotation, and an Activity that does not recreate never re-inflates its layout. Its `layout-land/` (or `layout-w600dp/`) variant therefore applies only when the screen is opened while already in that configuration - a file that looks live, is referenced by nothing, and drifts silently. S1549 found sixteen screens in this state.
+
+Owning a landscape layout and absorbing the rotation is the pair that must never coexist. Three resolutions count as fixed, and only the applied result matters, not the means (ADR-2a):
+
+- Stop absorbing - drop `orientation|screenSize` from the manifest entry, so the system re-inflates and resolves the variant itself. Requires that nothing is lost on recreation; state that would be lost goes through `onSaveInstanceState` first.
+- Re-apply in code - keep absorbing (a live media surface, an unfinished user action) and set the landscape values in the rotation handler. Every value comes from a qualified resource, never a literal, so the two orientations stay declared in `values/` and `values-land/`.
+- Delete the file - a landscape variant that encodes no difference is dead weight, not a fix to apply.
+
+Two traps worth knowing before touching this. **`values-w600dp` outranks `values-land`**, and it matches a tablet or an unfolded foldable held in *portrait*: a landscape-only override under a `layout-w600dp` variant re-applies portrait metrics over a wide-layout tree. **A partial re-inflate has no seam** - `BaseActivity` assigns its ViewBinding once and never reassigns it, so swapping a subtree leaves every binding field and every helper built from it pointing at discarded views, silently.
+
+Gate: `scripts/quality/assert-orientation-layout-pairing.ps1`, wired into `.\a.ps1 fg` and `post-change.ps1`. Exceptions live in `scripts/quality/orientation-layout-pairing-exceptions.txt`, and every entry carries a mandatory `#` reason naming both what the screen would lose on recreation and where its re-apply lives - a list without reasons is indistinguishable from a list of forgotten defects.
+
 ## Standalone Player Toolbar Order (MANDATORY)
 
-The four standalone hosts (`PhotoVideoStandaloneActivity`, `TextStandaloneActivity`, `DocumentStandaloneActivity`, `AudioStandaloneActivity`) share ONE top-toolbar button order so a file feels the same whichever host opened it (S0920). Each host declares its own `activity_standalone_*.xml` (portrait + `layout-land/`), so there is no single shared layout to enforce this - a new host or an edit must follow the order by hand.
+The four standalone hosts (`PhotoVideoStandaloneActivity`, `TextStandaloneActivity`, `DocumentStandaloneActivity`, `AudioStandaloneActivity`) share ONE top-toolbar button order so a file feels the same whichever host opened it (S0920). Each host declares its own `activity_standalone_*.xml`, so there is no single shared layout to enforce this - a new host or an edit must follow the order by hand.
 
 Canonical order: `Back -> [paging: Prev, Next, Random, Slideshow] -> Delete -> Favorite -> Share -> Info -> Rename -> [type-specific actions] -> Overflow`.
 
@@ -246,7 +260,7 @@ Rules:
 
 - Rename comes BEFORE the type-specific cluster (Crop/Rotate for image/video, Search/Translate/Copy/Edit for text, PDF/EPUB/Text tools for documents), never after it.
 - Type-specific buttons are the only per-host variation; everything before Rename and the trailing Overflow are fixed.
-- Keep `layout/` and `layout-land/` in the same order (Rule 11).
+- These four layouts have **no** `layout-land/` variant, and re-creating one is a defect (S1549). The landscape copies existed but were byte-identical to the portrait files, and the hosts declare `configChanges` for orientation - so Android never re-inflated them and the copies could not have applied even if they had differed. Rule 11 parity therefore has nothing to keep in sync here; a real landscape difference on these screens has to be applied by the orientation gate, not by a second file.
 
 ## Directory Operations Subsystem
 

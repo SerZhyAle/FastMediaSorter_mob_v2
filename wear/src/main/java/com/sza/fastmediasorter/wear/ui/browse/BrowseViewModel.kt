@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
-import android.webkit.MimeTypeMap
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +8,7 @@ import com.sza.fastmediasorter.wear.data.network.ftp.FtpDataSource
 import com.sza.fastmediasorter.wear.data.network.sftp.SftpDataSource
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.NetworkBasePath
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.util.MediaMimeTypes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -142,7 +143,14 @@ class BrowseViewModel @Inject constructor(
                     return@withContext
                 }
                 
-                val currentPath = "/"
+                // S1556: the source's own path, not the server root. The watch's SFTP connection
+                // test already asserts this path is reachable, so listing the root instead showed
+                // the user something other than what the same screen had just verified.
+                // Normalised again here, idempotently: a source stored before S1556's import fix
+                // still holds the phone's URL form, and no phone has to be nearby to correct it.
+                val currentPath = NetworkBasePath
+                    .normalize(source.basePath, source.type, source.shareName)
+                    .ifBlank { "/" }
                 Timber.d("Connecting to ${source.type} source: ${source.server}")
 
                 val mediaFiles: List<WearMediaFile> = when (source.type) {
@@ -170,7 +178,7 @@ class BrowseViewModel @Inject constructor(
                                 id = index.toLong(),
                                 name = fileName,
                                 uri = android.net.Uri.parse(fullPath),
-                                mimeType = getMimeTypeFromFileName(fileName),
+                                mimeType = MediaMimeTypes.fromFileName(fileName),
                                 size = 0,
                                 dateModified = 0,
                                 duration = 0
@@ -180,7 +188,9 @@ class BrowseViewModel @Inject constructor(
                     NetworkSourceType.FTP -> ftpDataSource.listDirectory(source, currentPath)
                     NetworkSourceType.SFTP -> sftpDataSource.listDirectory(source, currentPath)
                     NetworkSourceType.GOOGLE_DRIVE -> error("Google Drive not supported on Wear")
-                }.filter { isSupportedMediaFile(it.mimeType) }
+                }.filter { matchesMediaType(it.mimeType, mediaType) }
+                Timber.d("S1690: network kept ${mediaFiles.size} $mediaType file(s)")
+                Timber.d("S1556: listed $currentPath on ${source.type}")
 
                 Timber.d("Loaded ${mediaFiles.size} media files from ${source.type}")
                 withContext(Dispatchers.Main) {
@@ -259,51 +269,6 @@ class BrowseViewModel @Inject constructor(
     }
     
     /**
-     * Get MIME type from filename using file extension.
-     * Uses Android's MimeTypeMap with fallback for common media types.
-     */
-    private fun getMimeTypeFromFileName(fileName: String): String? {
-        val extension = fileName.substringAfterLast('.', "").lowercase()
-        if (extension.isEmpty()) return null
-        
-        // Use system MimeTypeMap first
-        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
-        if (mimeType != null) return mimeType
-        
-        // Fallback for common media types not in MimeTypeMap
-        return when (extension) {
-            // Images
-            "png" -> "image/png"
-            "jpg", "jpeg" -> "image/jpeg"
-            "gif" -> "image/gif"
-            "webp" -> "image/webp"
-            "bmp" -> "image/bmp"
-            "svg" -> "image/svg+xml"
-            "heic", "heif" -> "image/heic"
-            // Videos
-            "mp4", "m4v" -> "video/mp4"
-            "mkv" -> "video/x-matroska"
-            "webm" -> "video/webm"
-            "avi" -> "video/avi"
-            "mov" -> "video/quicktime"
-            "wmv" -> "video/x-ms-wmv"
-            "flv" -> "video/x-flv"
-            "3gp" -> "video/3gpp"
-            // Audio
-            "mp3" -> "audio/mpeg"
-            "m4a", "aac" -> "audio/aac"
-            "wav" -> "audio/wav"
-            "ogg", "oga" -> "audio/ogg"
-            "flac" -> "audio/flac"
-            "wma" -> "audio/x-ms-wma"
-            // Documents (for filtering)
-            "pdf" -> "application/pdf"
-            "epub" -> "application/epub+zip"
-            else -> null
-        }
-    }
-    
-    /**
      * Check if a MIME type matches the expected media type category.
      */
     private fun matchesMediaType(mimeType: String?, mediaType: MediaType): Boolean {
@@ -314,15 +279,5 @@ class BrowseViewModel @Inject constructor(
             MediaType.VIDEO -> mimeType.startsWith("video/")
             MediaType.MUSIC -> mimeType.startsWith("audio/")
         }
-    }
-    
-    /**
-     * Check if this is a supported media file (image, video, or audio).
-     */
-    private fun isSupportedMediaFile(mimeType: String?): Boolean {
-        if (mimeType == null) return false
-        return mimeType.startsWith("image/") ||
-               mimeType.startsWith("video/") ||
-               mimeType.startsWith("audio/")
     }
 }

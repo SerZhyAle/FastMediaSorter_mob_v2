@@ -1,11 +1,11 @@
 package com.sza.fastmediasorter.wear.ui.network
 
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -14,20 +14,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.ExportState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesUiState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesViewModel
@@ -59,52 +65,70 @@ fun NetworkSourcesScreen(
 
     Timber.d("NetworkSourcesScreen composing with state: $uiState, sync: $syncState")
 
-    when (val state = uiState) {
-        is NetworkSourcesUiState.Loading -> {
-            LoadingContent()
+    val listState = rememberScalingLazyListState()
+
+    WearScreenScaffold(
+        contentPadding = PaddingValues(0.dp),
+        // The sources list is the only branch whose length is unbounded, so it is the only one whose
+        // position is worth indicating.
+        positionIndicator = if (uiState is NetworkSourcesUiState.Success) {
+            { PositionIndicator(listState) }
+        } else {
+            null
         }
-        is NetworkSourcesUiState.Success -> {
-            SourcesListContent(
-                sources = state.sources,
-                syncState = syncState,
-                exportState = exportState,
-                onSourceClick = { sourceId, sourceName ->
-                    Timber.d("Source selected: $sourceName (ID: $sourceId)")
-                    navController.navigate("browse/music?sourceId=$sourceId&sourceName=$sourceName")
-                },
-                onAddClick = {
-                    navController.navigate("add_network_source")
-                },
-                onSyncClick = {
-                    viewModel.requestSyncFromPhone()
-                },
-                onExportClick = {
-                    viewModel.exportToPhone()
-                },
-                onDeleteClick = { source ->
-                    pendingDeleteSource = source
-                }
-            )
-        }
-        is NetworkSourcesUiState.Empty -> {
-            EmptyContent(
-                syncState = syncState,
-                onAddClick = {
-                    navController.navigate("add_network_source")
-                },
-                onSyncClick = {
-                    viewModel.requestSyncFromPhone()
-                }
-            )
-        }
-        is NetworkSourcesUiState.Error -> {
-            ErrorContent(
-                message = state.message,
-                onRetry = {
-                    Timber.d("Retrying network sources load")
-                    viewModel.retryLoad()
-                }
-            )
+    ) {
+        when (val state = uiState) {
+            is NetworkSourcesUiState.Loading -> {
+                LoadingContent()
+            }
+            is NetworkSourcesUiState.Success -> {
+                SourcesListContent(
+                    sources = state.sources,
+                    syncState = syncState,
+                    listState = listState,
+                    actions = NetworkSourcesActions(
+                        onSourceClick = { sourceId, sourceName ->
+                            Timber.d("Source selected: $sourceName (ID: $sourceId)")
+                            navController.navigate(
+                                "browse/music?sourceId=$sourceId&sourceName=$sourceName"
+                            )
+                        },
+                        onAddClick = {
+                            navController.navigate("add_network_source")
+                        },
+                        onSyncClick = {
+                            viewModel.requestSyncFromPhone()
+                        },
+                        onExportClick = {
+                            viewModel.exportToPhone()
+                        },
+                        onDeleteClick = { source ->
+                            pendingDeleteSource = source
+                        }
+                    ),
+                    exportState = exportState
+                )
+            }
+            is NetworkSourcesUiState.Empty -> {
+                EmptyContent(
+                    syncState = syncState,
+                    onAddClick = {
+                        navController.navigate("add_network_source")
+                    },
+                    onSyncClick = {
+                        viewModel.requestSyncFromPhone()
+                    }
+                )
+            }
+            is NetworkSourcesUiState.Error -> {
+                ErrorContent(
+                    message = state.message,
+                    onRetry = {
+                        Timber.d("Retrying network sources load")
+                        viewModel.retryLoad()
+                    }
+                )
+            }
         }
     }
 
@@ -142,7 +166,9 @@ fun NetworkSourcesScreen(
 @Composable
 private fun LoadingContent() {
     androidx.compose.foundation.layout.Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(wearScreenInsets()),
         contentAlignment = androidx.compose.ui.Alignment.Center
     ) {
         Text(
@@ -153,19 +179,27 @@ private fun LoadingContent() {
     }
 }
 
+/** The list's five callbacks, grouped so the composable stays inside the parameter-count limit. */
+private data class NetworkSourcesActions(
+    val onSourceClick: (String, String) -> Unit,
+    val onAddClick: () -> Unit,
+    val onSyncClick: () -> Unit,
+    val onExportClick: () -> Unit = {},
+    val onDeleteClick: (SourceItem) -> Unit = {}
+)
+
 @Composable
 private fun SourcesListContent(
     sources: List<SourceItem>,
     syncState: SyncState,
-    exportState: ExportState = ExportState.Idle,
-    onSourceClick: (String, String) -> Unit,
-    onAddClick: () -> Unit,
-    onSyncClick: () -> Unit,
-    onExportClick: () -> Unit = {},
-    onDeleteClick: (SourceItem) -> Unit = {}
+    listState: ScalingLazyListState,
+    actions: NetworkSourcesActions,
+    exportState: ExportState = ExportState.Idle
 ) {
     ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        state = listState,
+        contentPadding = wearScreenInsets()
     ) {
         item {
             Text(
@@ -180,7 +214,7 @@ private fun SourcesListContent(
 
         items(sources) { source ->
             Chip(
-                onClick = { onSourceClick(source.id, source.name) },
+                onClick = { actions.onSourceClick(source.id, source.name) },
                 label = {
                     Text(text = "${source.name}\n${source.server}")
                 },
@@ -193,18 +227,18 @@ private fun SourcesListContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .pointerInput(source.id) {
-                        detectTapGestures(onLongPress = { onDeleteClick(source) })
+                        detectTapGestures(onLongPress = { actions.onDeleteClick(source) })
                     },
                 colors = ChipDefaults.primaryChipColors()
             )
         }
 
         item {
-            SyncFromPhoneChip(syncState = syncState, onClick = onSyncClick)
+            SyncFromPhoneChip(syncState = syncState, onClick = actions.onSyncClick)
         }
 
         item {
-            ExportToPhoneChip(exportState = exportState, onClick = onExportClick)
+            ExportToPhoneChip(exportState = exportState, onClick = actions.onExportClick)
         }
 
         if (exportState is ExportState.Success) {
@@ -220,7 +254,7 @@ private fun SourcesListContent(
 
         item {
             Chip(
-                onClick = onAddClick,
+                onClick = actions.onAddClick,
                 label = {
                     Text(text = stringResource(R.string.add_network_source))
                 },
@@ -250,7 +284,8 @@ private fun EmptyContent(
     onSyncClick: () -> Unit
 ) {
     ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = wearScreenInsets()
     ) {
         item {
             Text(
@@ -349,7 +384,8 @@ private fun ErrorContent(
     onRetry: () -> Unit
 ) {
     ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = wearScreenInsets()
     ) {
         item {
             Text(

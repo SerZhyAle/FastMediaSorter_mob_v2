@@ -23,8 +23,22 @@ class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
 
     private lateinit var inputManager: CalculatorInputManager
 
+    // S1549: setupViews runs from a post inside BaseActivity.onCreate and takes no arguments, so the state
+    // the recreate handed back has to be held here until it runs.
+    private var pendingRestoreState: Bundle? = null
+
     override fun getViewBinding(): ActivityCalculatorBinding =
         ActivityCalculatorBinding.inflate(layoutInflater)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        pendingRestoreState = savedInstanceState
+        super.onCreate(savedInstanceState)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (::inputManager.isInitialized) inputManager.saveTo(outState)
+    }
 
     override fun keepScreenAwakeFor(settings: AppSettings): Boolean = false
 
@@ -42,7 +56,11 @@ class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
         )
         inputManager = CalculatorInputManager(binding, this).also {
             it.bind()
-            it.applyInitialInput(intent.getStringExtra(EXTRA_INITIAL_INPUT))
+            // A restored calculation outranks the intent's initial input: the intent is re-delivered on every
+            // recreate, so applying it again would wipe what the user was in the middle of typing.
+            val restored = it.restoreFrom(pendingRestoreState)
+            pendingRestoreState = null
+            if (!restored) it.applyInitialInput(intent.getStringExtra(EXTRA_INITIAL_INPUT))
         }
         binding.btnCalculatorOpenSettings.setOnClickListener { openSettings() }
     }

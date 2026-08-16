@@ -44,6 +44,7 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var slideshowIntervalSecondsValue = 5
     var slideshowWaitForFinishValue = false
     var downloadAlbumArtValue = false
+    var shuffleEnabledValue = false
 
     override val isAudioEnabled: Flow<Boolean> = MutableStateFlow(audioEnabled)
     override val isVideoEnabled: Flow<Boolean> = MutableStateFlow(videoEnabled)
@@ -52,6 +53,7 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val slideshowIntervalSeconds: Flow<Int> = MutableStateFlow(slideshowIntervalSecondsValue)
     override val slideshowWaitForFinish: Flow<Boolean> = MutableStateFlow(slideshowWaitForFinishValue)
     override val downloadAlbumArt: Flow<Boolean> = MutableStateFlow(downloadAlbumArtValue)
+    override val isShuffleEnabled: Flow<Boolean> = MutableStateFlow(shuffleEnabledValue)
 
     override suspend fun setAudioEnabled(enabled: Boolean) {
         audioEnabled = enabled
@@ -79,5 +81,9 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun setDownloadAlbumArt(enabled: Boolean) {
         downloadAlbumArtValue = enabled
+    }
+
+    override suspend fun setShuffleEnabled(enabled: Boolean) {
+        shuffleEnabledValue = enabled
     }
 }

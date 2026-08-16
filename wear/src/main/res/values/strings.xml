@@ -121,4 +121,15 @@
     <string name="wear_seek_backward">Back 10 seconds</string>
     <string name="wear_seek_forward">Forward 10 seconds</string>
     <string name="wear_video_continue">Continue</string>
+    <string name="phone_resource_title">Phone</string>
+    <string name="phone_resource_loading">Loading from your phone..</string>
+    <string name="phone_resource_retry">Retry</string>
+    <string name="phone_resource_empty">Your phone has nothing to show here. Open another folder or retry.</string>
+    <string name="phone_resource_unavailable">Your phone is out of reach. Reconnect it, then retry.</string>
+    <string name="phone_resource_access_denied">Your phone does not share this folder with the watch.</string>
+    <string name="phone_resource_unsupported">The watch cannot open this kind of file.</string>
+    <string name="phone_resource_transfer_rejected">This file is too large to send to the watch.</string>
+    <string name="wear_shuffle_on">Shuffle on</string>
+    <string name="wear_shuffle_off">Shuffle off</string>
+    <string name="wear_seek_drag">Drag to seek</string>
 </resources>

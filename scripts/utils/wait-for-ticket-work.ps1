@@ -12,25 +12,19 @@
     scripts/utils/wait-for-lock-turn.ps1, for the same reason.
 
     Polling is read-only. Each poll re-runs spec-next-preflight.ps1 -NoDrift with the caller's
-    exclusion set and reports the first poll that selects a ticket. Drift is skipped on purpose:
+    exclusion set and exits only when it selects a ticket. Drift is skipped on purpose:
     the loop's real Stage 1 call re-runs preflight WITH drift before anything is claimed, so a
-    poll only has to answer "is there a candidate at all". One poll costs ~5 s of CPU, so the
-    default interval keeps the idle duty cycle under 5%.
+    poll only has to answer "is there a candidate at all".
 
     The verdict travels in a marker file, never in the exit code: a background task reports the
     exit of the last command in its launch line, which has already turned a refused build into an
     apparently green one. Read the marker.
 
-    A poll that cannot read the eligible set does NOT end the wait - it is recorded and the window
-    keeps polling, because a broken tool must not turn an endless loop into a fast spin. Exit 3
-    is reserved for a window in which every poll failed.
+    A poll that cannot read the eligible set does NOT end the wait. The failure is recorded and
+    polling continues, because a broken tool must not turn an endless loop into a fast spin.
 
 .PARAMETER Exclude
     Ids the caller already processed this session. Passed straight to preflight.
-
-.PARAMETER MaxMinutes
-    Wait window. On expiry the script exits 2 so the caller prints one heartbeat line and calls
-    again. The script never decides on its own that waiting is over.
 
 .PARAMETER PollSeconds
     Interval between checks. Minimum 15.
@@ -47,8 +41,7 @@
 
 .EXIT CODES
     0 - work is available now; the marker names the kind (impl / device-drain) and the ticket.
-    2 - the wait window expired with the queue still idle.
-    3 - every poll in the window failed to read the eligible set (preflight missing or broken).
+    3 - required preflight script is missing.
     4 - usage error.
 
 .EXAMPLE
@@ -58,7 +51,6 @@
 [CmdletBinding(PositionalBinding = $false)]
 param(
     [string[]]$Exclude = @(),
-    [int]$MaxMinutes = 30,
     [int]$PollSeconds = 120,
     [switch]$DeviceOnline,
     [string]$Reason = '',
@@ -77,10 +69,6 @@ if ([string]::IsNullOrWhiteSpace($MarkerPath)) {
     $MarkerPath = Join-Path $tempDir "SPEC-DO.WORK-$sessionId.json"
 }
 
-if ($MaxMinutes -lt 1) {
-    Write-Error "wait-for-ticket-work: -MaxMinutes must be at least 1 (got $MaxMinutes)" -ErrorAction Continue
-    exit 4
-}
 if ($PollSeconds -lt 15) {
     Write-Error "wait-for-ticket-work: -PollSeconds must be at least 15 (got $PollSeconds)" -ErrorAction Continue
     exit 4
@@ -112,12 +100,6 @@ foreach ($raw in $Exclude) {
 }
 $excludeIds = @($excludeIds | Select-Object -Unique)
 
-$startedAt = Get-Date
-$deadline = $startedAt.AddMinutes($MaxMinutes)
-$polls = 0
-$failedPolls = 0
-$lastError = ''
-
 function Write-WorkMarker {
     param(
         [Parameter(Mandatory)][string]$Outcome,
@@ -133,21 +115,17 @@ function Write-WorkMarker {
         status        = if ($Ticket) { $Ticket.status } else { $null }
         name          = if ($Ticket) { $Ticket.name } else { $null }
         deviceBacklog = $DeviceBacklog
-        polls         = $polls
-        waitedSeconds = [int]((Get-Date) - $startedAt).TotalSeconds
         excluded      = $excludeIds
         reason        = $Reason
         detail        = $Detail
         sessionId     = $sessionId
-        startedAt     = $startedAt.ToString('s')
-        checkedAt     = (Get-Date).ToString('s')
     }
     try {
         $body | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $MarkerPath -Encoding UTF8
     }
     catch {
-        # A marker that cannot be written must not kill the wait - the exit code still carries the
-        # coarse verdict, and the caller re-checks the queue itself on the next round.
+        # A marker that cannot be written must not kill the wait: the caller still re-checks the
+        # queue when this waiter eventually wakes it for work.
         Write-Output "wait-for-ticket-work: marker write failed ($($_.Exception.Message))"
     }
 }
@@ -181,46 +159,30 @@ function Get-DeviceBacklogCount {
     return @($split.StdOut | ConvertFrom-Json).Count
 }
 
-Write-Output "wait-for-ticket-work: waiting up to $MaxMinutes min (poll ${PollSeconds}s, excluded $($excludeIds.Count), device=$([bool]$DeviceOnline)) - marker $MarkerPath"
+Write-Output "wait-for-ticket-work: waiting for work (device=$([bool]$DeviceOnline)) - marker $MarkerPath"
 Write-WorkMarker -Outcome 'waiting'
 
 while ($true) {
-    $polls++
     try {
         $payload = Invoke-Preflight
         if ($payload.selected) {
             Write-WorkMarker -Outcome 'work' -Kind 'impl' -Ticket $payload.selected
-            Write-Output "wait-for-ticket-work: work available - $($payload.selected.id) ($($payload.selected.status)) after $polls poll(s)"
+            Write-Output "wait-for-ticket-work: work available - $($payload.selected.id) ($($payload.selected.status))"
             exit 0
         }
         if ($DeviceOnline) {
             $backlog = Get-DeviceBacklogCount
             if ($backlog -gt 0) {
                 Write-WorkMarker -Outcome 'work' -Kind 'device-drain' -DeviceBacklog $backlog
-                Write-Output "wait-for-ticket-work: work available - $backlog BlockNeedUserTest ticket(s) to drain after $polls poll(s)"
+                Write-Output "wait-for-ticket-work: device backlog is available"
                 exit 0
             }
         }
         Write-WorkMarker -Outcome 'waiting' -Detail $payload.selected_none_reason
     }
     catch {
-        $failedPolls++
-        $lastError = $_.Exception.Message
-        Write-WorkMarker -Outcome 'waiting' -Detail "poll failed: $lastError"
+        Write-WorkMarker -Outcome 'waiting' -Detail "poll failed: $($_.Exception.Message)"
     }
 
-    $remaining = ($deadline - (Get-Date)).TotalSeconds
-    if ($remaining -le 0) { break }
-    Start-Sleep -Seconds ([Math]::Min($PollSeconds, [int][Math]::Ceiling($remaining)))
-    if ((Get-Date) -ge $deadline) { break }
+    Start-Sleep -Seconds $PollSeconds
 }
-
-if ($failedPolls -eq $polls) {
-    Write-WorkMarker -Outcome 'unverifiable' -Detail "every poll failed: $lastError"
-    Write-Error "wait-for-ticket-work: could not read the eligible set on any of $polls poll(s) - last error: $lastError" -ErrorAction Continue
-    exit 3
-}
-
-Write-WorkMarker -Outcome 'idle' -Detail "window expired after $polls poll(s), $failedPolls failed"
-Write-Output "wait-for-ticket-work: still idle after $MaxMinutes min ($polls polls, $failedPolls failed) - caller decides whether to wait again"
-exit 2

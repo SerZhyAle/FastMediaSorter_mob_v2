@@ -3,26 +3,35 @@ package com.sza.fastmediasorter.wear.data.network.ftp
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FtpConnectionTestTest {
 
+    /**
+     * S1554: the previous version of this test pinned the stub as the contract - it asserted that
+     * every call fails with UnsupportedOperationException. That is exactly what a real
+     * implementation must stop doing, so the assertion is inverted rather than deleted: a refused
+     * connection must report the refusal, not the absence of the feature.
+     */
     @Test
-    fun `testFtp returns unsupported failure on Wear`() = runTest {
-        val result = FtpConnectionTest().testFtp(makeSource())
+    fun `testFtp reports the connection failure rather than declaring FTP unsupported`() = runTest {
+        val result = FtpConnectionTest().testFtp(unreachableSource())
 
         assertTrue(result.isFailure)
-        val exception = result.exceptionOrNull()
-        assertTrue(exception is UnsupportedOperationException)
-        assertEquals("FTP connection test is not available on Wear OS", exception?.message)
+        assertFalse(
+            "FTP testing is implemented on Wear; a failure must describe the connection",
+            result.exceptionOrNull() is UnsupportedOperationException
+        )
     }
 
-    private fun makeSource() = NetworkSource(
+    /** Loopback with a port nothing listens on: refused immediately, with no DNS and no network. */
+    private fun unreachableSource() = NetworkSource(
         type = NetworkSourceType.FTP,
         name = "FTP",
-        server = "example.com",
+        server = "127.0.0.1",
+        port = 1,
         username = "user",
         password = "password"
     )

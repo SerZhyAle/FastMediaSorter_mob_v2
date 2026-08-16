@@ -21,7 +21,10 @@ data class WearNetworkSourcePayload(
     @SerializedName("shareName") val shareName: String? = null,  // SMB only
     @SerializedName("basePath") val basePath: String = "/",
     @SerializedName("domain") val domain: String = "",           // SMB domain
-    @SerializedName("sshPrivateKey") val sshPrivateKey: String? = null // SFTP key-auth
+    @SerializedName("sshPrivateKey") val sshPrivateKey: String? = null, // SFTP key-auth
+    // S1555: canonical SHA256 host-key pin (S0046), normalised here so the watch needs no parser.
+    // Null keeps the watch permissive, which is what every source saved before this field does.
+    @SerializedName("hostKeyFingerprint") val hostKeyFingerprint: String? = null
 )
 
 /**

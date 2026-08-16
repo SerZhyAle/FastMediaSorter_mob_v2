@@ -1,11 +1,17 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import android.content.res.Configuration
+import android.view.Gravity
 import android.view.MotionEvent
+import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
@@ -232,12 +238,19 @@ class BrowseButtonSetupHelper(
     }
 
     /**
-     * Show or hide text labels on toolbar buttons depending on orientation.
+     * Show or hide text labels on toolbar buttons depending on orientation, and re-apply the rest of
+     * the landscape command-bar delta.
+     *
+     * S1549: BrowseActivity declares android:configChanges, so layout-land/activity_browse.xml is
+     * inflated on a landscape cold start but never on a rotation - the wide bar has to be produced
+     * here as well. Labels alone left the icon-only metrics, the bar elevation, the scroll-button
+     * tints and the empty-state colours frozen at whatever the first inflation resolved.
      */
     fun updateToolbarButtonLabels(config: Configuration) {
         val isWide = config.isWideLayout()
         Timber.d("updateToolbarButtonLabels: isWide=$isWide")
         val ctx = binding.root.context
+        applyCommandBarMetrics(isWide)
 
         if (isWide) {
             binding.btnBack.text = ctx.getString(R.string.back)
@@ -263,5 +276,85 @@ class BrowseButtonSetupHelper(
             binding.btnCreateTextFile?.text = null
             binding.btnCreateDrawing?.text = null
         }
+    }
+
+    /**
+     * Commands that carry a label in the wide bar. btnPath stays icon-only in every variant (S1316)
+     * and btnDeselectAll keeps the icon style with its own width, so both are handled apart.
+     */
+    private val labelledCommandButtons: List<MaterialButton>
+        get() = listOfNotNull(
+            binding.btnBack, binding.btnFilter, binding.btnRefresh, binding.btnToggleView,
+            binding.btnSelectAll, binding.btnCreateFolder, binding.btnCreateTextFile,
+            binding.btnCreateDrawing, binding.btnResourceOps, binding.btnMicRecord,
+            binding.btnPlayRandom, binding.btnPlay
+        )
+
+    /**
+     * The individual attributes are written rather than the style swapped, because a View's style is
+     * read once at inflation and cannot be replaced afterwards. Metric values come from qualified
+     * dimens, so the resource bucket - not this code - decides which variant they belong to; only the
+     * two enum-valued attributes below branch on [isWide], the same predicate that picks the bucket.
+     */
+    private fun applyCommandBarMetrics(isWide: Boolean) {
+        val res = binding.root.resources
+        val paddingStart = res.getDimensionPixelSize(R.dimen.browse_cmd_button_padding_start)
+        val paddingEnd = res.getDimensionPixelSize(R.dimen.browse_cmd_button_padding_end)
+        val insetVertical = res.getDimensionPixelSize(R.dimen.browse_cmd_button_inset_vertical)
+        val iconPadding = res.getDimensionPixelSize(R.dimen.browse_cmd_button_icon_padding)
+        val textColor = AppCompatResources.getColorStateList(binding.root.context, R.color.command_button_text)
+        labelledCommandButtons.forEach { button ->
+            button.setPaddingRelative(paddingStart, button.paddingTop, paddingEnd, button.paddingBottom)
+            button.insetTop = insetVertical
+            button.insetBottom = insetVertical
+            button.iconPadding = iconPadding
+            button.iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
+            button.gravity = commandGravity(isWide)
+            textColor?.let(button::setTextColor)
+        }
+        applyDeselectAllMetrics(isWide, paddingStart, paddingEnd)
+        binding.layoutControls.elevation = res.getDimension(R.dimen.browse_controls_elevation)
+        applyScrollButtonTints()
+        applyEmptyStateColors()
+    }
+
+    /** Labels are left-aligned in the wide bar; the icon-only bar centres its single glyph. */
+    private fun commandGravity(isWide: Boolean): Int =
+        if (isWide) Gravity.START or Gravity.CENTER_VERTICAL else Gravity.CENTER
+
+    /** The only command whose declared width differs: a square cell in the wide bar, wrapped otherwise. */
+    private fun applyDeselectAllMetrics(isWide: Boolean, paddingStart: Int, paddingEnd: Int) {
+        val button = binding.btnDeselectAll
+        button.setPaddingRelative(paddingStart, button.paddingTop, paddingEnd, button.paddingBottom)
+        button.gravity = commandGravity(isWide)
+        val target = if (isWide) {
+            binding.root.resources.getDimensionPixelSize(R.dimen.browse_cmd_button_size)
+        } else {
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        }
+        val params = button.layoutParams
+        if (params.width != target) {
+            params.width = target
+            button.layoutParams = params
+        }
+    }
+
+    private fun applyScrollButtonTints() {
+        val tint = AppCompatResources.getColorStateList(binding.root.context, R.color.browse_scroll_button_tint)
+        listOf(
+            binding.fabScrollToTop,
+            binding.fabPageUp,
+            binding.fabPageDown,
+            binding.fabScrollToBottom
+        ).forEach { ImageViewCompat.setImageTintList(it, tint) }
+    }
+
+    private fun applyEmptyStateColors() {
+        val tint = AppCompatResources.getColorStateList(binding.root.context, R.color.browse_empty_state_tint)
+            ?: return
+        // The empty-state icon carries no id in any layout variant, so it is reached by position.
+        (binding.emptyStateView.getChildAt(0) as? ImageView)?.let { ImageViewCompat.setImageTintList(it, tint) }
+        binding.tvEmptyStateMessage.setTextColor(tint)
+        binding.tvEmptyStateHint.setTextColor(tint)
     }
 }

@@ -8,6 +8,8 @@ import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryLoader
 import com.sza.fastmediasorter.data.delivery.DeliveredPayloadCorruptException
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
+import com.sza.fastmediasorter.domain.ocr.OcrBlockFilter
+import com.sza.fastmediasorter.domain.ocr.OcrLineGeometry
 import com.sza.fastmediasorter.domain.ocr.OfflineOcrEngineProvider
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
@@ -154,22 +156,11 @@ class RecognitionBackend(
         val ocrBlocks = offlineOcrEngineProvider.recognizeTextBlocksWithFallback(settings, bitmap, sourceLang, tessLang, ocrEngine)
 
         if (!ocrBlocks.isNullOrEmpty()) {
-            val filteredBlocks = ocrBlocks.filter { block ->
-                if (block.confidence < 30f) return@filter false
-                if (block.text.trim().length < 3) return@filter false
+            // S1712: the four thresholds live in OcrBlockFilter now, so the reason a fragment was
+            // dropped survives the decision instead of collapsing into a boolean.
+            val filteredBlocks = ocrBlocks.filter { OcrBlockFilter.isAccepted(it) }
 
-                val letters = block.text.count { it.isLetter() }
-                val specialChars = block.text.count { !it.isLetterOrDigit() && !it.isWhitespace() }
-                val ratio = if (letters > 0) specialChars.toFloat() / letters else Float.MAX_VALUE
-                if (ratio > 0.5f) return@filter false
-
-                val boxWidth = block.boundingBox.width()
-                val boxHeight = block.boundingBox.height()
-                if (boxWidth < 20 || boxHeight < 10) return@filter false
-
-                true
-            }
-
+            Timber.d("S1711: applying word-level line geometry to the recognised blocks")
             val translatedBlocks = mutableListOf<TranslationManager.TranslatedTextBlock>()
             for (block in filteredBlocks) {
                 val translatedText = translation.translate(block.text, sourceLang, targetLang)
@@ -178,8 +169,12 @@ class RecognitionBackend(
                         TranslationManager.TranslatedTextBlock(
                             originalText = block.text,
                             translatedText = translatedText,
-                            boundingBox = block.boundingBox,
-                            confidence = block.confidence
+                            // S1711: the box drops the artifact words and the type size comes from the
+                            // median of the real ones - both together, because fixing either alone was
+                            // measured to make the overlay worse.
+                            boundingBox = OcrLineGeometry.tightenedBounds(block),
+                            confidence = block.confidence,
+                            typeSizePx = OcrLineGeometry.typeSizePx(block)
                         )
                     )
                 }
@@ -229,8 +224,9 @@ class RecognitionBackend(
                 TranslationManager.TranslatedTextBlock(
                     originalText = block.text,
                     translatedText = "",
-                    boundingBox = block.boundingBox,
-                    confidence = block.confidence
+                    boundingBox = OcrLineGeometry.tightenedBounds(block),
+                    confidence = block.confidence,
+                    typeSizePx = OcrLineGeometry.typeSizePx(block)
                 )
             )
         }

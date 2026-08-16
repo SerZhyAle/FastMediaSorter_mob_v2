@@ -289,6 +289,48 @@ class CalculatorEngine {
         return display
     }
 
+    /**
+     * S1549: everything the screen would lose if its views were rebuilt. `Operator` is private, so the
+     * snapshot carries the operators as their symbols - the same form [from] already parses.
+     */
+    data class State(
+        val display: String,
+        val operationHistory: String,
+        val completedHistory: List<String>,
+        val accumulator: String?,
+        val pendingOperatorSymbol: String?,
+        val repeatOperatorSymbol: String?,
+        val repeatOperand: String?,
+        val startNewInput: Boolean,
+        val memory: String,
+    )
+
+    fun snapshot(): State = State(
+        display = display,
+        operationHistory = operationHistory,
+        completedHistory = completedHistory.toList(),
+        accumulator = accumulator?.toPlainString(),
+        pendingOperatorSymbol = pendingOperator?.symbol,
+        repeatOperatorSymbol = repeatOperator?.symbol,
+        repeatOperand = repeatOperand?.toPlainString(),
+        startNewInput = startNewInput,
+        memory = memory.toPlainString(),
+    )
+
+    fun restore(state: State) {
+        display = state.display
+        operationHistory = state.operationHistory
+        completedHistory.clear()
+        completedHistory.addAll(state.completedHistory)
+        accumulator = state.accumulator?.let { BigDecimal(it) }
+        pendingOperator = state.pendingOperatorSymbol?.let { Operator.from(it) }
+        repeatOperator = state.repeatOperatorSymbol?.let { Operator.from(it) }
+        repeatOperand = state.repeatOperand?.let { BigDecimal(it) }
+        startNewInput = state.startNewInput
+        memory = BigDecimal(state.memory)
+        error = null
+    }
+
     fun clear(): String {
         accumulator = null
         pendingOperator = null

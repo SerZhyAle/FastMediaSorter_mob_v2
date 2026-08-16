@@ -21,3 +21,6 @@ S1606  Durable-evidence closing gate - script-only change, no .kt touched (per i
 S1620  Archived-spec relocation - tooling-only change, no .kt touched (per its own status note).
 S1183  adb.ps1 verb output made pipeable - script-only change; the piped files and command output are the evidence.
 S1520  devtest screenshot gate on secure screens - script-only change; the SHOT/TREE output is the evidence.
+S1673  Maestro launcher-mode false red - touches only maestro/run-tests.ps1 and maestro/_shared/go_home.yaml; the suite verdict and the runner's launcher-mode header line are the evidence (per its own status note).
+S1706  Startup splash - resources, generator and docs only, no .kt touched. The splash window is drawn by the system before the first line of app code runs, so no Timber line could observe it even if one existed; the evidence is a screen recording of a cold start (per its own status note).
+S1709  Wear audio-player CPU cost - the ticket is gated on a four-point measurement on a real Galaxy Watch before any fix is written, so no Kotlin has changed and no probe can exist yet; the evidence is the measurement itself (per its own status note). Delete this row when the measurement lands and the fix touches .kt.

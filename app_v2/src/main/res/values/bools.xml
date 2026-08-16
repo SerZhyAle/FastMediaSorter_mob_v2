@@ -10,4 +10,8 @@
     <!-- S1049: portrait resource tabs use a fixed two-item-module width (main_panel_tab_min_width),
          left-aligned, instead of stretching to fill the row. -->
     <bool name="main_resource_tabs_fixed_grid">true</bool>
+    <!-- S1549: the landscape control bar centres its children vertically; portrait leaves the
+         LinearLayout default. MainActivity absorbs the rotation, so the row's gravity is set from
+         this key instead of from android:gravity in the layout. -->
+    <bool name="main_cmd_bar_center_vertical">false</bool>
 </resources>

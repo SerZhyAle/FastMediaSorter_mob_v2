@@ -50,12 +50,18 @@ import java.io.File
 /** Facade between PlayerActivity and specialized managers. Routes media by type (image/video/audio/PDF/EPUB/text), coordinates visibility, loading state, and image reload. */
 class PlayerMediaLoaderManager(
     private val activity: PlayerActivity,
-    private val binding: ActivityPlayerUnifiedBinding,
+    // S1549: var, not val - the host re-inflates the layout on rotation and re-points this manager
+    // at the fresh binding via [rebind]; the instance survives because its audio-service player
+    // listener must not be re-registered.
+    private var binding: ActivityPlayerUnifiedBinding,
     private val viewModel: PlayerViewModel,
-    private val imageLoadingManager: ImageLoadingManager,
+    // S1549: vars, not vals - a re-inflate re-creates both helpers against the fresh binding and
+    // [rebind] re-points this manager at them, because the audio-service listener on this instance
+    // must survive while the view-bound helpers it drives are replaced.
+    private var imageLoadingManager: ImageLoadingManager,
     private val videoPlayerManager: VideoPlayerManager,
     private val textViewerManagerProvider: () -> TextViewerManager,
-    private val exoPlayerControlsManager: ExoPlayerControlsManager,
+    private var exoPlayerControlsManager: ExoPlayerControlsManager,
     private val lifecycleScope: LifecycleCoroutineScope,
     // S0704: retained for the audio-readiness feedback toast only; the spinner is owned by
     // activity.loadingIndicatorCoordinator.
@@ -137,6 +143,20 @@ class PlayerMediaLoaderManager(
         videoPlayerManager.onFirstFrameReady = { bitmap, isPlaceholder ->
             imageLoadingManager.triggerVideoBackground(bitmap, isPlaceholder)
         }
+    }
+
+    /**
+     * S1549: aim every `binding.` read at the freshly inflated hierarchy after a re-inflate, and
+     * re-point the two view-bound helpers that were re-created against the new binding.
+     */
+    fun rebind(
+        newBinding: ActivityPlayerUnifiedBinding,
+        newImageLoadingManager: ImageLoadingManager,
+        newExoPlayerControlsManager: ExoPlayerControlsManager,
+    ) {
+        binding = newBinding
+        imageLoadingManager = newImageLoadingManager
+        exoPlayerControlsManager = newExoPlayerControlsManager
     }
 
     companion object {

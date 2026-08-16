@@ -2830,4 +2830,5 @@
     <string name="wear_sync_no_ack">لم تؤكد الساعة. قد تكون مطفأة أو خارج النطاق.</string>
     <string name="browse_empty_type_gated">تم إخفاء %1$d ملفات لأن نوع الوسائط الخاص بها متوقف.</string>
     <string name="browse_empty_type_gated_hint">أعد تشغيل نوع الوسائط هذا في الإعدادات لرؤيتها.</string>
+    <string name="launcher_section_google">GOOGLE</string>
 </resources>

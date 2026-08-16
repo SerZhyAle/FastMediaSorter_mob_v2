@@ -1201,6 +1201,23 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             // follow the rotation only if the menu is rebuilt with it.
             commandLabels.applyForOrientation(landscape)
         }
+        applyOrientationDimensions()
+    }
+
+    /**
+     * S1549: the landscape arrangement of the list padding, the mini control height and the mini title's
+     * line count used to live in a landscape layout that never inflated, because this screen absorbs the
+     * configuration change to keep inline stream audio alive. Resources already resolve to the new
+     * orientation by the time this runs, so re-reading them here produces what the dead layout described.
+     */
+    private fun applyOrientationDimensions() {
+        val sidePadding = resources.getDimensionPixelSize(R.dimen.streams_list_side_padding)
+        listOf(binding.rvStreams, binding.rvStreamsPinned).forEach { list ->
+            list.setPaddingRelative(sidePadding, list.paddingTop, sidePadding, list.paddingBottom)
+        }
+        binding.streamMiniControl.minimumHeight =
+            resources.getDimensionPixelSize(R.dimen.streams_mini_control_min_height)
+        binding.tvMiniTitle.maxLines = resources.getInteger(R.integer.streams_mini_title_max_lines)
     }
 
     override fun onStart() {

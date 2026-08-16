@@ -2828,4 +2828,5 @@
     <string name="wear_sync_no_ack">手表未确认。可能已关机或不在范围内。</string>
     <string name="browse_empty_type_gated">已隐藏 %1$d 个文件，因为其媒体类型已关闭。</string>
     <string name="browse_empty_type_gated_hint">请在设置中重新开启该媒体类型以查看它们。</string>
+    <string name="launcher_section_google">GOOGLE</string>
 </resources>

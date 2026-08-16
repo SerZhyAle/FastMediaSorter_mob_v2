@@ -3294,4 +3294,10 @@
     <string name="wear_sync_no_ack">Watch did not confirm. It may be off or out of range.</string>
     <string name="browse_empty_type_gated">%1$d files are hidden because their media type is switched off.</string>
     <string name="browse_empty_type_gated_hint">Turn that media type back on in Settings to see them.</string>
+    <!-- S1706: splash slogan. Never shown as a string - scripts/utils/generate-splash-brand.ps1
+         bakes it into contours in ic_splash_app_brand.xml, because the system splash window
+         renders a picture and cannot render text. Keep every translation to roughly 18
+         characters: the splash mask circle clips anything wider and the generator refuses. -->
+    <string name="splash_slogan">..All mine, here!</string>
+    <string name="launcher_section_google">GOOGLE</string>
 </resources>

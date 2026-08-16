@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.network
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
@@ -11,11 +12,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import kotlinx.coroutines.delay
 
 /**
@@ -35,58 +40,67 @@ fun SyncResultScreen(
         }
     }
 
-    ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+    val listState = rememberScalingLazyListState()
+
+    WearScreenScaffold(
+        contentPadding = PaddingValues(0.dp),
+        positionIndicator = { PositionIndicator(listState) }
     ) {
-        item {
-            Text(
-                text = "✓",
-                style = MaterialTheme.typography.display3,
-                color = MaterialTheme.colors.primary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-        item {
-            Text(
-                text = stringResource(R.string.wear_sync_complete),
-                style = MaterialTheme.typography.title3,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-        item {
-            Text(
-                text = stringResource(R.string.wear_sync_stats, added, updated),
-                style = MaterialTheme.typography.body2,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-        item {
-            Chip(
-                onClick = {
-                    navController.navigate("network_sources") {
-                        popUpTo("sync_result/$added/$updated") { inclusive = true }
-                    }
-                },
-                label = { Text(stringResource(R.string.wear_sync_browse_now)) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ChipDefaults.primaryChipColors()
-            )
-        }
-        item {
-            Chip(
-                onClick = {
-                    navController.navigate("network_sources") {
-                        popUpTo("sync_result/$added/$updated") { inclusive = true }
-                    }
-                },
-                label = { Text(stringResource(R.string.done)) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ChipDefaults.secondaryChipColors()
-            )
+        ScalingLazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            contentPadding = wearScreenInsets(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            item {
+                Text(
+                    text = "✓",
+                    style = MaterialTheme.typography.display3,
+                    color = MaterialTheme.colors.primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                Text(
+                    text = stringResource(R.string.wear_sync_complete),
+                    style = MaterialTheme.typography.title3,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                Text(
+                    text = stringResource(R.string.wear_sync_stats, added, updated),
+                    style = MaterialTheme.typography.body2,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                Chip(
+                    onClick = {
+                        navController.navigate("network_sources") {
+                            popUpTo("sync_result/$added/$updated") { inclusive = true }
+                        }
+                    },
+                    label = { Text(stringResource(R.string.wear_sync_browse_now)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ChipDefaults.primaryChipColors()
+                )
+            }
+            item {
+                Chip(
+                    onClick = {
+                        navController.navigate("network_sources") {
+                            popUpTo("sync_result/$added/$updated") { inclusive = true }
+                        }
+                    },
+                    label = { Text(stringResource(R.string.done)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ChipDefaults.secondaryChipColors()
+                )
+            }
         }
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +17,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -27,7 +34,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -43,8 +49,8 @@ import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
-import com.sza.fastmediasorter.wear.ui.player.common.PlayerScaffold
-import com.sza.fastmediasorter.wear.ui.player.common.playerOverlayInsets
+import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import timber.log.Timber
 
@@ -66,7 +72,7 @@ fun VideoPlayerScreen(
 
     Timber.d("VideoPlayerScreen composing, isPlaying: ${uiState.isPlaying}")
 
-    PlayerScaffold {
+    WearScreenScaffold(contentPadding = PaddingValues(0.dp)) {
         when {
             uiState.showBatteryWarning -> {
                 BatteryWarningDialog(
@@ -225,10 +231,10 @@ private fun PlayPauseButton(
         modifier = Modifier.size(56.dp),
         colors = ButtonDefaults.primaryButtonColors()
     ) {
-        Text(
-            text = if (isPlaying) "⏸" else "▶️",
-            style = MaterialTheme.typography.title1,
-            modifier = Modifier.semantics { contentDescription = description }
+        Icon(
+            imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+            contentDescription = description,
+            modifier = Modifier.size(32.dp)
         )
     }
 }
@@ -252,7 +258,7 @@ private fun VideoControls(
             .background(Color.Black.copy(alpha = 0.5f))
             // The scrim stays full-bleed; only the controls are inset, so nothing lands where a
             // round screen has already curved away.
-            .padding(playerOverlayInsets()),
+            .padding(wearScreenInsets()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -266,10 +272,10 @@ private fun VideoControls(
                     modifier = Modifier.size(48.dp),
                     colors = ButtonDefaults.secondaryButtonColors()
                 ) {
-                    Text(
-                        text = "⏮",
-                        style = MaterialTheme.typography.body2,
-                        modifier = Modifier.semantics { contentDescription = previousDesc }
+                    Icon(
+                        imageVector = Icons.Filled.SkipPrevious,
+                        contentDescription = previousDesc,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
@@ -286,10 +292,10 @@ private fun VideoControls(
                     modifier = Modifier.size(48.dp),
                     colors = ButtonDefaults.secondaryButtonColors()
                 ) {
-                    Text(
-                        text = "⏭",
-                        style = MaterialTheme.typography.body2,
-                        modifier = Modifier.semantics { contentDescription = nextDesc }
+                    Icon(
+                        imageVector = Icons.Filled.SkipNext,
+                        contentDescription = nextDesc,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }

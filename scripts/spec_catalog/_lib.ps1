@@ -50,6 +50,10 @@ $script:ReleaseQueuePath     = Join-Path $repoRoot 'PLAN\RELEASE_QUEUE.md'
 $script:ReleaseReadyPath     = Join-Path $repoRoot 'PLAN\RELEASE_READY.md'
 $script:ReleaseQueueDonePath = Join-Path $repoRoot 'PLAN\RELEASE_QUEUE_DONE.md'
 $script:ReleaseQueueBacklog  = '--'
+# S1698: how many duplicate ticket lines the last Sync-ReleaseQueue collapsed. Reported by
+# release-queue.ps1 -Reconcile, because a silent repair of a line the owner can see is
+# indistinguishable from the reconcile having done nothing - which is what the defect looked like.
+$script:ReleaseQueueDuplicatesDropped = 0
 
 $script:RequiredFields = @('id', 'name', 'status', 'priority', 'file', 'created', 'updated')
 $script:StatusEnum = @(
@@ -302,6 +306,8 @@ function Get-ReleaseReadyPath { return $script:ReleaseReadyPath }
 
 function Get-ReleaseQueueDonePath { return $script:ReleaseQueueDonePath }
 
+function Get-ReleaseQueueDuplicatesDropped { return $script:ReleaseQueueDuplicatesDropped }
+
 function Get-TicketBaseName {
     # 'PLAN/S1291_slug.md' -> 'S1291_slug'. The queue shows the spec FILE name, so one column
     # carries both the id and the human-readable slug.
@@ -419,11 +425,15 @@ function Sync-ReleaseQueue {
     #   - updates the changed-date ONLY when the status actually moved,
     #   - a status change across the ready boundary moves the line to the other file,
     #   - drops a line whose ticket left the active journal (archived or deleted),
-    #   - never ADDS a ready ticket that is in neither file: it shipped in an earlier package.
+    #   - never ADDS a ready ticket that is in neither file: it shipped in an earlier package,
+    #   - keeps ONE line per ticket id across both files: the first occurrence wins its position
+    #     and its `rel` column, every later one is dropped (S1698).
     param([Parameter(Mandatory)][AllowEmptyCollection()][object[]] $Records)
 
     if ($env:FMS_SKIP_RELEASE_QUEUE) { return }
     if (-not (Test-Path $script:ReleaseQueuePath)) { return }
+
+    $script:ReleaseQueueDuplicatesDropped = 0
 
     $byId = @{}
     foreach ($r in $Records) { $byId[$r.id] = $r }
@@ -482,6 +492,15 @@ function Select-ReleaseLines {
 
     foreach ($line in (Read-ReleaseFile -Path $Path)) {
         if ($line.Kind -ne 'ticket') { $kept.Add($line); continue }
+        # S1698: one line per id, across BOTH files. $Seen is shared by the two passes, so this
+        # collapses a line duplicated inside one file and a ticket listed in queue AND ready
+        # alike. Dropping the later occurrence is what makes -Reconcile the remedy -Validate
+        # prints for "duplicate line": before this, both copies were refreshed and written back,
+        # so the validator kept failing however many times the operator ran the fix.
+        if ($Seen.ContainsKey($line.Id)) {
+            $script:ReleaseQueueDuplicatesDropped++
+            continue
+        }
         if (-not $ById.ContainsKey($line.Id)) { continue }   # archived / deleted
 
         $rec = $ById[$line.Id]
@@ -507,7 +526,18 @@ function Add-ReleaseLines {
         [Parameter(Mandatory)] $Target,
         [Parameter(Mandatory)] $Additions
     )
+    # S1698: an id already standing in the target file is never appended a second time. The
+    # Select pass makes this unreachable for well-formed input; it stays as the last barrier,
+    # because this is the only place a line is created rather than carried over.
+    $present = @{}
+    foreach ($t in $Target) { if ($t.Kind -eq 'ticket') { $present[$t.Id] = $true } }
+
     foreach ($add in $Additions) {
+        if ($present.ContainsKey($add.Id)) {
+            $script:ReleaseQueueDuplicatesDropped++
+            continue
+        }
+        $present[$add.Id] = $true
         $insertAt = -1
         for ($i = 0; $i -lt $Target.Count; $i++) {
             if ($Target[$i].Kind -eq 'ticket' -and $Target[$i].Release -eq $add.Release) { $insertAt = $i }

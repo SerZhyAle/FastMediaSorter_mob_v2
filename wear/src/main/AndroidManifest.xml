@@ -28,7 +28,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+            android:theme="@style/Theme.FastMediaSorterWear">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -40,9 +40,21 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <!-- S1697: the mirror of the phone-side filter. onMessageReceived handled the phone's
+                     playback command and onDataChanged the settings push, but neither action nor path
+                     was declared, so GMS delivered only the network-sources data item. -->
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
                 <data
                     android:host="*"
                     android:pathPrefix="/fms/network_sources"
+                    android:scheme="wear" />
+                <data
+                    android:host="*"
+                    android:pathPrefix="/fms/phone"
+                    android:scheme="wear" />
+                <data
+                    android:host="*"
+                    android:pathPrefix="/fms/wear"
                     android:scheme="wear" />
             </intent-filter>
         </service>

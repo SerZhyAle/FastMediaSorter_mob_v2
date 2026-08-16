@@ -182,9 +182,9 @@ re-derived here), **not applicable** with a reason.
 | The gate records what it rejected, through the same predicate | as-is | Nothing engine-specific. This is the highest-value single item in the whole exchange for us, because our four gates are all silent. |
 | Grouping by pitch, not by ink gap | not applicable, for now | We do no grouping: one text line is one plate. It becomes applicable the moment we group, and their bracket (36 px leading recognized as 14-17 px boxes with 19-22 px gaps) explains why a gap rule would be wrong when we get there. |
 | Reference pitch = image-wide median, same column, `<= 3` ink heights apart | not applicable, same reason | Depends on a clustering step we do not have. |
-| Type size = **median of word heights**, not line box height | **as-is, and it is a live defect** | See §6.1. `RIL_WORD` is available; nothing blocks it. |
-| Word dropped from the line box when it has no letter/digit **and** exceeds the median word height by `TypeSizeRatio` | **as-is, and it is a live defect** | See §6.2. Both conditions transfer together; their §16.3 states what each alone breaks. |
-| `TypeSizeRatio = 1.6` | form only | Bracketed on their corpus (1.42 widest legitimate spread, 1.86 narrowest legitimate step). We have no corpus. Adopt as a starting value, marked inherited. |
+| Type size = **median of word heights**, not line box height | **adopted, S1711** | `OcrLineGeometry.typeSizePx` - median of the line's word heights, the lower of the two middle values on an even count. A line whose engine reported no words falls back to the box height, which is the behaviour that shipped before. |
+| Word dropped from the line box when it has no letter/digit **and** exceeds the median word height by `TypeSizeRatio` | **adopted, S1711** | `OcrLineGeometry.isArtifactWord` joins both conditions with `&&`, and `tightenedBounds` rebuilds the box from the survivors. A line where every word is dropped keeps its original box. |
+| `TypeSizeRatio = 1.6` | form only, adopted as `2.0` | `OcrLineGeometry.DEFAULT_MAX_HEIGHT_RATIO`, marked in code as inherited and not derived. We still have no corpus; **S1717** owns deriving it. Their bracket (1.42 widest legitimate spread, 1.86 narrowest legitimate step) is the starting evidence. |
 | Coverage `0.52` **and** vertical line fill `0.72` to release an oversized plate | form only | The conjunction transfers as a shape. The numbers are bracketed against scenes we do not have and will never get - they state `accounts.jpg` will never ship. Also currently moot: a single Tesseract line rarely covers half a frame. |
 | The **area** version of line fill | not applicable, refuted at source | They measured it and it separates nothing (0.5891 defect against 0.4582 legitimate). Recorded so we do not re-invent it. |
 | Opaque backing on the plate rectangle, never a wrapper around the run | as-is | Their measurement: 17 % of source letters left visible against 93 % for the wrapper. We already draw the rectangle - but at 94 % alpha, which spends part of that win for nothing. Make it opaque. |
@@ -226,6 +226,13 @@ level plus a median. No constant moves.
 Severity here is different from theirs. They lost a protected drawing region. We inflate the translated
 text of the whole line to the height of the artifact, which is the most visible failure the overlay has.
 
+**Fixed by S1711 (2026-08-16).** `TesseractManager` now walks the result at `RIL_WORD`, assembling one line
+per `isAtFinalElement(RIL_TEXTLINE, RIL_WORD)` inside the pass that already ran - no second recognition. Each
+line carries its words to `OcrTextBlock.words`, the type size comes from `OcrLineGeometry.typeSizePx`, and
+`TranslationOverlayView.autoTextSizeSourcePx` uses it instead of the box height. The fallback described above
+is still the behaviour when a recogniser reports no words - it is now the exception rather than our only
+mode.
+
 ### 6.2 The same artifact stretches the box
 
 The plate rectangle is `getBoundingRect(RIL_TEXTLINE)`, artifact included
@@ -235,6 +242,11 @@ fixing the grouping alone **increased** their damage from 148 px to 160 px, beca
 then spanned both lines and inherited the stretched box. Type size and box are two quantities and both
 need the fix. Their two-condition test (no letter and no digit, **and** taller than the line's median word
 height by more than the ratio) transfers unchanged, including the reason each condition alone is harmful.
+
+**Fixed by S1711 (2026-08-16), together with §6.1 and for the reason stated there.** The plate rectangle is
+now `OcrLineGeometry.tightenedBounds`, the union of the words that survive the two-condition predicate, and
+the line keeps its original box when nothing survives. The ratio is `DEFAULT_MAX_HEIGHT_RATIO = 2.0`, marked
+inherited; S1717 owns deriving it on our own material.
 
 ### 6.3 Colour is sampled from the wrong image
 

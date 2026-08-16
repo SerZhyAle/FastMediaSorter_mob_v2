@@ -81,9 +81,39 @@ object LauncherStarterSets {
         "com.lge.fmradio",
     )
 
+    // S1644: the Google applications the conditional GOOGLE section may hold, in the owner's order
+    // (strategic §6.1). Every name was read off a GMS device rather than recalled, because a wrong
+    // package name is indistinguishable from an uninstalled app and silently yields no cell.
+    private const val PACKAGE_PLAY_STORE = "com.android.vending"
+    private const val PACKAGE_CHROME = "com.android.chrome"
+    private const val PACKAGE_GMAIL = "com.google.android.gm"
+    private const val PACKAGE_GOOGLE_SEARCH = "com.google.android.googlequicksearchbox"
+    private const val PACKAGE_PHOTOS = "com.google.android.apps.photos"
+    private const val PACKAGE_DRIVE = "com.google.android.apps.docs"
+    private const val PACKAGE_CALENDAR = "com.google.android.calendar"
+
+    /**
+     * S1644: the closed, ordered catalogue of strategic ADR-3 - membership is decided by this list and
+     * the package being installed, never by a popularity heuristic, a store rating or a category.
+     */
+    val GOOGLE_APP_PACKAGES: List<String> = listOf(
+        PACKAGE_PLAY_STORE,
+        PACKAGE_CHROME,
+        PACKAGE_GMAIL,
+        PACKAGE_GOOGLE_SEARCH,
+        PACKAGE_PHOTOS,
+        PACKAGE_DRIVE,
+        PACKAGE_MAPS,
+        PACKAGE_YOUTUBE,
+        PACKAGE_YOUTUBE_MUSIC,
+        PACKAGE_CALENDAR,
+    )
+
     /** Everything the seed must ask the package manager about, in one set. */
     val candidatePackages: Set<String> =
-        setOf(PACKAGE_YOUTUBE, PACKAGE_YOUTUBE_MUSIC, PACKAGE_MAPS) + FM_RADIO_CANDIDATES
+        setOf(PACKAGE_YOUTUBE, PACKAGE_YOUTUBE_MUSIC, PACKAGE_MAPS) +
+            FM_RADIO_CANDIDATES +
+            GOOGLE_APP_PACKAGES
 
     // S1560: the rows of the approved grid that cut across profiles, one set each. Membership tests
     // rather than eleven near-identical `when` branches: the owner reads the grid row-wise, and a row
@@ -188,13 +218,19 @@ object LauncherStarterSets {
      * section on the desktop has no lower bound, so a single header would own every cell below it.
      *
      * S1613: [importedShortcuts] land at the tail of the content section, never inside the app-functions
-     * section, and any whose target the starter set already placed is dropped.
+     * section.
+     *
+     * S1644: a repeated target is placed, not dropped. This used to discard an imported shortcut whose
+     * target the starter set had already placed, which was the only target-uniqueness check anywhere in
+     * the seed; the owner ruled that uniqueness belongs to the grid rectangle alone, so one application
+     * may hold as many cells as it has free positions. [place] is what still keeps two cells apart.
      */
     fun itemsFor(
         profile: DeviceProfileType,
         resources: StarterResources,
         routeAvailableInBuild: Map<String, Boolean>,
         installedPackages: Set<String>,
+        googleServicesAvailable: Boolean = false,
         importedShortcuts: List<StarterItem> = emptyList(),
     ): List<StarterItem> {
         val streamsAvailable = routeAvailableInBuild[InternalRouteCatalog.KEY_STREAMS] == true
@@ -208,12 +244,36 @@ object LauncherStarterSets {
         items += profileItems(profile, resources, streamsAvailable, installedPackages)
         items += commonFeatures(routeAvailableInBuild)
         items += commonThirdPartyApps(installedPackages)
-        val placedTargets = items.mapTo(mutableSetOf()) { it.target }
-        items += importedShortcuts.filterNot { it.target in placedTargets }
+        items += importedShortcuts
+        items += googleSection(googleServicesAvailable, installedPackages)
         items += section(LauncherCellCommand.SECTION_APP_FUNCTIONS)
         items += launcherActions(profile)
         items += commonTail()
         return items
+    }
+
+    /**
+     * S1644: the conditional Google section - its header and the installed members of
+     * [GOOGLE_APP_PACKAGES], in catalogue order. The header is emitted only alongside at least one app,
+     * because a header with nothing under it would own every cell below it: section membership is
+     * positional (see [LauncherSectionMembership]), so an empty section is not merely ugly, it swallows
+     * the section that follows. Every installed candidate is seeded - strategic §6.4 rules there is no
+     * cap and the desktop scrolls instead.
+     */
+    private fun googleSection(
+        googleServicesAvailable: Boolean,
+        installedPackages: Set<String>,
+    ): List<StarterItem> {
+        val apps = if (googleServicesAvailable) {
+            GOOGLE_APP_PACKAGES.mapNotNull { appIfInstalled(it, installedPackages) }
+        } else {
+            emptyList()
+        }
+        return if (apps.isEmpty()) {
+            emptyList()
+        } else {
+            listOf(section(LauncherCellCommand.SECTION_GOOGLE)) + apps
+        }
     }
 
     /** The two media apps the owner assigned to every profile, each conditional on being installed. */

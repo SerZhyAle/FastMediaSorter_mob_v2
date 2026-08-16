@@ -123,12 +123,15 @@ On exit 3, read `.claude/reference/spec-prerelease.md` §"0.7" - it names the ar
 
 ```powershell
 pwsh -NoProfile -File scripts/quality/assert-new-lexemes-translated.ps1
+pwsh -NoProfile -File scripts/quality/assert-new-lexemes-translated.ps1 -Module wear
 ```
 
-Branch on its exit code:
+**Both modules, every time (S1628).** The gate has always accepted `-Module`, and this step has always called it without one - so it judged `app_v2` and the watch was never judged at all. The watch is interface too: its 102 keys sat in three locales while the rule claimed thirteen, and nothing said so, because the only thing that would have said so was never invoked. Run both lines; either one at exit 1 blocks the release.
+
+Branch on each exit code:
 
 - **0** - every string reaches all thirteen locales, or its gap predates the rule. Continue.
-- **1** - new untranslated strings exist. **Hard release blocker**, and the fix is a task of this stage, not of the ticket that added the strings: hand `temp/S1627/new_lexemes_en.txt` (written by the gate's own run) to the external translation service, import each returned file with `scripts/utils/locale-bulk-import.ps1 -TextPath <returned file>`, then re-run this step until it is 0. When the values are already known, `set-android-string.ps1 -Action set -Key <key> -Locale <tag>` fills them directly instead. Do not proceed to step 1 on exit 1.
+- **1** - new untranslated strings exist. **Hard release blocker**, and the fix is a task of this stage, not of the ticket that added the strings: hand `temp/S1627/new_lexemes_en.txt` (written by the gate's own run) to the external translation service, import each returned file with `scripts/utils/locale-bulk-import.ps1 -TextPath <returned file>`, then re-run this step until it is 0. The wear run writes its own list; import it with `-Module wear` so the returned strings land in the watch's resources rather than the phone's. When the values are already known, `set-android-string.ps1 -Action set -Key <key> -Locale <tag>` fills them directly instead. Do not proceed to step 1 on exit 1.
 - **2** - the gate cannot verify: its producer or `scripts/quality/locale-untranslated-baseline.txt` is missing. Treat as sweep abort (exit 2 in step 4), same as any infrastructure failure - never as a pass.
 
 Carry the outcome into the step 4 verdict the way 0.7's is carried: exit 1 blocks a clean PASS, exit 2 aborts the sweep.

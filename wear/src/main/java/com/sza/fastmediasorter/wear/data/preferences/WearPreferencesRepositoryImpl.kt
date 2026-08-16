@@ -30,6 +30,8 @@ class WearPreferencesRepositoryImpl(
         val SLIDESHOW_WAIT_FINISH = booleanPreferencesKey("wear_slideshow_wait_finish")
         
         val DOWNLOAD_ALBUM_ART = booleanPreferencesKey("wear_download_album_art")
+
+        val SHUFFLE_ENABLED = booleanPreferencesKey("wear_shuffle_enabled")
     }
     
     // Media type toggles
@@ -102,6 +104,17 @@ class WearPreferencesRepositoryImpl(
     override suspend fun setDownloadAlbumArt(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.DOWNLOAD_ALBUM_ART] = enabled
+        }
+    }
+
+    // Playback order
+    override val isShuffleEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.SHUFFLE_ENABLED] ?: false
+    }
+
+    override suspend fun setShuffleEnabled(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.SHUFFLE_ENABLED] = enabled
         }
     }
 }

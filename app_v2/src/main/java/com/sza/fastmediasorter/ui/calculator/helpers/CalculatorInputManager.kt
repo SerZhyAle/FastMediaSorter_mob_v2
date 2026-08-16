@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.calculator.helpers
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
@@ -18,14 +19,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.orientation.isWideLayout
-import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
-import com.sza.fastmediasorter.core.share.SharePayload
-import com.sza.fastmediasorter.core.share.SystemShareInvoker
-import com.sza.fastmediasorter.databinding.ActivityCalculatorBinding
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.orientation.isWideLayout
+import com.sza.fastmediasorter.core.share.SharePayload
+import com.sza.fastmediasorter.core.share.SystemShareInvoker
+import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
+import com.sza.fastmediasorter.databinding.ActivityCalculatorBinding
 import timber.log.Timber
 import java.io.File
 import kotlin.concurrent.thread
@@ -48,6 +49,68 @@ class CalculatorInputManager(
     private val memoryStore = CalculatorMemoryStore(context)
     private val prankManager = CalculatorAprilFoolsPrankManager(context)
     private var memoryRowExpanded = false
+
+    /**
+     * S1549: what a rotation must carry across a rebuilt view hierarchy - the engine's calculation plus the
+     * two display-level facts that live here and nowhere else.
+     */
+    data class State(
+        val engine: CalculatorEngine.State,
+        val memoryRowExpanded: Boolean,
+        val hasReturnableResult: Boolean,
+    )
+
+    fun snapshot(): State = State(
+        engine = engine.snapshot(),
+        memoryRowExpanded = memoryRowExpanded,
+        hasReturnableResult = hasReturnableResult,
+    )
+
+    fun restore(state: State) {
+        engine.restore(state.engine)
+        memoryRowExpanded = state.memoryRowExpanded
+        hasReturnableResult = state.hasReturnableResult
+        render()
+    }
+
+    /** S1549: the calculation crosses a rotation-induced recreate through the instance state. */
+    fun saveTo(outState: Bundle) {
+        val state = snapshot()
+        outState.putString(STATE_DISPLAY, state.engine.display)
+        outState.putString(STATE_OPERATION_HISTORY, state.engine.operationHistory)
+        outState.putStringArrayList(STATE_COMPLETED_HISTORY, ArrayList(state.engine.completedHistory))
+        outState.putString(STATE_ACCUMULATOR, state.engine.accumulator)
+        outState.putString(STATE_PENDING_OPERATOR, state.engine.pendingOperatorSymbol)
+        outState.putString(STATE_REPEAT_OPERATOR, state.engine.repeatOperatorSymbol)
+        outState.putString(STATE_REPEAT_OPERAND, state.engine.repeatOperand)
+        outState.putBoolean(STATE_START_NEW_INPUT, state.engine.startNewInput)
+        outState.putString(STATE_MEMORY, state.engine.memory)
+        outState.putBoolean(STATE_MEMORY_ROW_EXPANDED, state.memoryRowExpanded)
+        outState.putBoolean(STATE_HAS_RETURNABLE_RESULT, state.hasReturnableResult)
+    }
+
+    /** Returns true when a calculation was restored, so the caller knows not to re-apply its intent input. */
+    fun restoreFrom(savedState: Bundle?): Boolean {
+        val display = savedState?.getString(STATE_DISPLAY) ?: return false
+        restore(
+            State(
+                engine = CalculatorEngine.State(
+                    display = display,
+                    operationHistory = savedState.getString(STATE_OPERATION_HISTORY).orEmpty(),
+                    completedHistory = savedState.getStringArrayList(STATE_COMPLETED_HISTORY).orEmpty(),
+                    accumulator = savedState.getString(STATE_ACCUMULATOR),
+                    pendingOperatorSymbol = savedState.getString(STATE_PENDING_OPERATOR),
+                    repeatOperatorSymbol = savedState.getString(STATE_REPEAT_OPERATOR),
+                    repeatOperand = savedState.getString(STATE_REPEAT_OPERAND),
+                    startNewInput = savedState.getBoolean(STATE_START_NEW_INPUT, true),
+                    memory = savedState.getString(STATE_MEMORY) ?: "0",
+                ),
+                memoryRowExpanded = savedState.getBoolean(STATE_MEMORY_ROW_EXPANDED, false),
+                hasReturnableResult = savedState.getBoolean(STATE_HAS_RETURNABLE_RESULT, false),
+            )
+        )
+        return true
+    }
 
     fun bind() {
         bindDigitButtons()
@@ -494,6 +557,19 @@ class CalculatorInputManager(
         const val FN_INTEGER_DIVIDE = 114
         const val CLIP_LABEL = "calculator"
         const val HISTORY_FILE_NAME = "calculator_history.txt"
+
+        // S1549: instance-state keys for the in-progress calculation.
+        const val STATE_DISPLAY = "calc_display"
+        const val STATE_OPERATION_HISTORY = "calc_operation_history"
+        const val STATE_COMPLETED_HISTORY = "calc_completed_history"
+        const val STATE_ACCUMULATOR = "calc_accumulator"
+        const val STATE_PENDING_OPERATOR = "calc_pending_operator"
+        const val STATE_REPEAT_OPERATOR = "calc_repeat_operator"
+        const val STATE_REPEAT_OPERAND = "calc_repeat_operand"
+        const val STATE_START_NEW_INPUT = "calc_start_new_input"
+        const val STATE_MEMORY = "calc_memory"
+        const val STATE_MEMORY_ROW_EXPANDED = "calc_memory_row_expanded"
+        const val STATE_HAS_RETURNABLE_RESULT = "calc_has_returnable_result"
         const val FUNCTION_DIALOG_COLUMN_COUNT = 2
         const val FUNCTION_DIALOG_BUTTON_HEIGHT_DP = 44
         const val FUNCTION_DIALOG_SIDE_MARGIN_DP = 16

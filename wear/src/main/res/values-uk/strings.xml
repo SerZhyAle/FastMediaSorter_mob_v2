@@ -121,4 +121,15 @@
     <string name="wear_seek_backward">Назад на 10 секунд</string>
     <string name="wear_seek_forward">Вперед на 10 секунд</string>
     <string name="wear_video_continue">Продовжити</string>
+    <string name="phone_resource_title">Телефон</string>
+    <string name="phone_resource_loading">Завантаження з телефона..</string>
+    <string name="phone_resource_retry">Повторити</string>
+    <string name="phone_resource_empty">Тут нема чого показати. Відкрийте іншу теку або повторіть.</string>
+    <string name="phone_resource_unavailable">Телефон недоступний. Підключіть його та повторіть.</string>
+    <string name="phone_resource_access_denied">Телефон не відкриває цю теку для годинника.</string>
+    <string name="phone_resource_unsupported">Годинник не вміє відкривати такі файли.</string>
+    <string name="phone_resource_transfer_rejected">Файл завеликий для передавання на годинник.</string>
+    <string name="wear_shuffle_on">Випадковий порядок увімкнено</string>
+    <string name="wear_shuffle_off">Випадковий порядок вимкнено</string>
+    <string name="wear_seek_drag">Потягніть, щоб перемотати</string>
 </resources>

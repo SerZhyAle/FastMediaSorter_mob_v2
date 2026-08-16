@@ -21,6 +21,7 @@ object LauncherSectionCatalog {
     val all: List<Section> = listOf(
         Section(LauncherCellCommand.SECTION_APP_FUNCTIONS, R.string.launcher_section_app_functions),
         Section(LauncherCellCommand.SECTION_EVERYTHING_ELSE, R.string.launcher_section_everything_else),
+        Section(LauncherCellCommand.SECTION_GOOGLE, R.string.launcher_section_google),
     )
 
     fun byKey(key: String): Section? = all.firstOrNull { it.key == key }

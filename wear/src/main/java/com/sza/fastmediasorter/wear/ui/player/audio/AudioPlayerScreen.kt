@@ -7,24 +7,43 @@ import android.view.WindowManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -41,6 +60,7 @@ import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
+import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
@@ -48,7 +68,7 @@ import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
-import com.sza.fastmediasorter.wear.ui.player.common.PlayerScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import timber.log.Timber
 
@@ -66,6 +86,20 @@ private const val COVER_SCRIM_ALPHA = 0.7f
  */
 private val CONTROL_BUTTON_SIZE = 48.dp
 private val CONTROL_ROW_SPACING = 4.dp
+
+/** S1701: the glyph inside the 48.dp press target - the target is the reach, the icon is the read. */
+private val CONTROL_ICON_SIZE = 24.dp
+
+/**
+ * S1701: the bar is drawn thin but grabbed over a taller strip - a 4.dp target on a watch is missed
+ * far more often than it is hit, and the miss scrolls the list instead of seeking.
+ */
+private val PROGRESS_BAR_HEIGHT = 4.dp
+private val PROGRESS_BAR_TOUCH_HEIGHT = 24.dp
+private val PROGRESS_BAR_SPACING = 6.dp
+
+/** A fully rounded cap on a bar this thin reads as a track rather than as a rectangle. */
+private const val PROGRESS_BAR_CORNER_PERCENT = 50
 
 /**
  * Audio player screen for Wear OS.
@@ -90,12 +124,13 @@ fun AudioPlayerScreen(
 
     KeepScreenOn(enabled = uiState.isDimmed)
 
-    PlayerScaffold(
+    WearScreenScaffold(
         // Both the clock and the scroll indicator are drawn by the scaffold above the content, so an
         // overlay alone cannot hide them - they have to be withheld, or the dark screen keeps two lit
         // elements on it.
         positionIndicator = if (uiState.isDimmed) null else { { PositionIndicator(listState) } },
-        showTimeText = !uiState.isDimmed
+        showTimeText = !uiState.isDimmed,
+        contentPadding = PaddingValues(0.dp)
     ) {
         PlayerBackground(
             albumArtUrl = uiState.albumArtUrl,
@@ -124,12 +159,12 @@ fun AudioPlayerScreen(
                     },
                     actions = AudioPlayerActions(
                         onPlayPause = viewModel::togglePlayPause,
-                        onSeekForward = viewModel::seekForward,
-                        onSeekBackward = viewModel::seekBackward,
                         onToggleFavorite = viewModel::toggleFavorite,
                         onSkipNext = viewModel::skipToNext,
                         onSkipPrevious = viewModel::skipToPrevious,
-                        onToggleDimmed = viewModel::toggleDimmed
+                        onToggleDimmed = viewModel::toggleDimmed,
+                        onToggleShuffle = viewModel::toggleShuffle,
+                        onSeekTo = viewModel::seekTo
                     )
                 )
             }
@@ -188,12 +223,12 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 
 private data class AudioPlayerActions(
     val onPlayPause: () -> Unit,
-    val onSeekForward: () -> Unit,
-    val onSeekBackward: () -> Unit,
     val onToggleFavorite: () -> Unit,
     val onSkipNext: () -> Unit,
     val onSkipPrevious: () -> Unit,
-    val onToggleDimmed: () -> Unit
+    val onToggleDimmed: () -> Unit,
+    val onToggleShuffle: () -> Unit,
+    val onSeekTo: (Long) -> Unit
 )
 
 @Composable
@@ -225,37 +260,30 @@ private fun AudioPlayerContent(
             )
         }
         item {
-            CircularProgressIndicator(
-                progress = uiState.progress,
-                modifier = Modifier.size(100.dp),
-                strokeWidth = 4.dp,
-                trackColor = Color.DarkGray
-            )
-        }
-        item {
             PlaybackTimeRow(
                 currentPosition = uiState.currentPositionFormatted,
-                duration = uiState.durationFormatted
+                duration = uiState.durationFormatted,
+                progress = uiState.progress,
+                durationMs = uiState.durationMs,
+                onSeekTo = actions.onSeekTo
             )
         }
         item {
             PlaybackControls(
                 isPlaying = uiState.isPlaying,
-                isFavorite = isFavorite,
+                isShuffleEnabled = uiState.isShuffleEnabled,
                 onPlayPause = actions.onPlayPause,
-                onSeekForward = actions.onSeekForward,
-                onSeekBackward = actions.onSeekBackward,
-                onToggleFavorite = actions.onToggleFavorite
+                onSkipNext = actions.onSkipNext,
+                onSkipPrevious = actions.onSkipPrevious,
+                onToggleShuffle = actions.onToggleShuffle
             )
         }
-        if (uiState.hasSet) {
-            item {
-                PagingControls(
-                    positionText = uiState.positionText,
-                    onSkipNext = actions.onSkipNext,
-                    onSkipPrevious = actions.onSkipPrevious
-                )
-            }
+        item {
+            SecondaryControls(
+                isFavorite = isFavorite,
+                positionText = uiState.positionText,
+                onToggleFavorite = actions.onToggleFavorite
+            )
         }
         item {
             ScreenOffControl(onToggleDimmed = actions.onToggleDimmed)
@@ -325,19 +353,33 @@ private fun PlayerBackground(
     )
 }
 
+/**
+ * S1701: position is shown by the same bar the user drags, so what is visible is what is grabbed.
+ * The two times stay where they already were, at the ends of the row, and the bar takes the space
+ * the 100.dp ring used to occupy in the centre of a round screen.
+ */
 @Composable
 private fun PlaybackTimeRow(
     currentPosition: String,
-    duration: String
+    duration: String,
+    progress: Float,
+    durationMs: Long,
+    onSeekTo: (Long) -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.spacedBy(PROGRESS_BAR_SPACING),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = currentPosition,
             style = MaterialTheme.typography.caption3,
             color = Color.Gray
+        )
+        SeekBar(
+            progress = progress,
+            durationMs = durationMs,
+            onSeekTo = onSeekTo
         )
         Text(
             text = duration,
@@ -347,128 +389,167 @@ private fun PlaybackTimeRow(
     }
 }
 
+/**
+ * The drag consumes its own events so the scrolling column underneath cannot move at the same time -
+ * the same claim the bezel binding already makes on this screen, for the same reason.
+ */
 @Composable
-private fun PlaybackControls(
-    isPlaying: Boolean,
-    isFavorite: Boolean,
-    onPlayPause: () -> Unit,
-    onSeekForward: () -> Unit,
-    onSeekBackward: () -> Unit,
-    onToggleFavorite: () -> Unit
+private fun RowScope.SeekBar(
+    progress: Float,
+    durationMs: Long,
+    onSeekTo: (Long) -> Unit
 ) {
-    val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
-    val backwardDesc = stringResource(R.string.wear_seek_backward)
-    val forwardDesc = stringResource(R.string.wear_seek_forward)
-    // The description names the action the press performs, and it changes with the state, so a screen
-    // reader announces playing versus paused - the icon alone states it only to someone looking.
-    val playPauseDesc = stringResource(if (isPlaying) R.string.pause else R.string.play)
+    val seekDesc = stringResource(R.string.wear_seek_drag)
+    // The seek target is a fraction of the bar, so the bar has to report how wide it ended up after
+    // the two time labels took theirs.
+    var barWidthPx by remember { mutableIntStateOf(0) }
+    val shape = RoundedCornerShape(percent = PROGRESS_BAR_CORNER_PERCENT)
 
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(CONTROL_ROW_SPACING),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Button(
-            onClick = onSeekBackward,
-            modifier = Modifier.size(CONTROL_BUTTON_SIZE),
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) {
-            Text(
-                text = "⏪",
-                style = MaterialTheme.typography.body2,
-                modifier = Modifier.semantics { contentDescription = backwardDesc }
-            )
-        }
-
-        Button(
-            onClick = onPlayPause,
-            modifier = Modifier.size(CONTROL_BUTTON_SIZE),
-            colors = ButtonDefaults.primaryButtonColors()
-        ) {
-            Text(
-                text = if (isPlaying) "⏸" else "▶️",
-                style = MaterialTheme.typography.title2,
-                modifier = Modifier.semantics { contentDescription = playPauseDesc }
-            )
-        }
-
-        Button(
-            onClick = onSeekForward,
-            modifier = Modifier.size(CONTROL_BUTTON_SIZE),
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) {
-            Text(
-                text = "⏩",
-                style = MaterialTheme.typography.body2,
-                modifier = Modifier.semantics { contentDescription = forwardDesc }
-            )
-        }
-
-        Button(
-            onClick = onToggleFavorite,
-            modifier = Modifier.size(CONTROL_BUTTON_SIZE),
-            colors = if (isFavorite) {
-                ButtonDefaults.primaryButtonColors()
-            } else {
-                ButtonDefaults.secondaryButtonColors()
+    Box(
+        modifier = Modifier
+            .weight(1f)
+            .height(PROGRESS_BAR_TOUCH_HEIGHT)
+            .onSizeChanged { barWidthPx = it.width }
+            .pointerInput(durationMs) {
+                detectHorizontalDragGestures { change, _ ->
+                    change.consume()
+                    if (durationMs > 0 && barWidthPx > 0) {
+                        val fraction = (change.position.x / barWidthPx).coerceIn(0f, 1f)
+                        onSeekTo((durationMs * fraction).toLong())
+                    }
+                }
             }
-        ) {
-            Text(
-                text = if (isFavorite) "❤️" else "🤍",
-                style = MaterialTheme.typography.body2,
-                modifier = Modifier.semantics { contentDescription = favoriteDesc }
-            )
-        }
+            .semantics { contentDescription = seekDesc },
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(PROGRESS_BAR_HEIGHT)
+                .clip(shape)
+                .background(Color.DarkGray)
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(progress.coerceIn(0f, 1f))
+                .height(PROGRESS_BAR_HEIGHT)
+                .clip(shape)
+                .background(MaterialTheme.colors.primary)
+        )
     }
 }
 
 /**
- * S1683: paging keeps its own row instead of flanking the transport controls. Six buttons plus their
- * spacing need about 268.dp, and the watch this ticket was reported on is 226.dp wide, so a single row
- * would push the outer buttons off the round screen - the very defect being fixed here. The position
- * marker sits between the two buttons that move it, so a wrapped set never loses its landmark.
+ * S1701: the four buttons the owner ruled on 2026-08-16 - previous, play and pause, next, shuffle.
+ * Width recomputed for this composition rather than inherited from S1683: four 48.dp targets and
+ * three 4.dp gaps span 204.dp of the 226.dp screen this ticket was reported on, leaving 11.dp either
+ * side at the centre chord. Seeking left this row with the ring: it lives on the bar above.
  */
 @Composable
-private fun PagingControls(
-    positionText: String,
+private fun PlaybackControls(
+    isPlaying: Boolean,
+    isShuffleEnabled: Boolean,
+    onPlayPause: () -> Unit,
     onSkipNext: () -> Unit,
-    onSkipPrevious: () -> Unit
+    onSkipPrevious: () -> Unit,
+    onToggleShuffle: () -> Unit
 ) {
     val previousDesc = stringResource(R.string.wear_previous_file)
     val nextDesc = stringResource(R.string.wear_next_file)
+    // The description names the action the press performs, and it changes with the state, so a screen
+    // reader announces playing versus paused - the icon alone states it only to someone looking.
+    val playPauseDesc = stringResource(if (isPlaying) R.string.pause else R.string.play)
+    val shuffleDesc = stringResource(
+        if (isShuffleEnabled) R.string.wear_shuffle_on else R.string.wear_shuffle_off
+    )
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(CONTROL_ROW_SPACING),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Button(
+        ControlButton(
             onClick = onSkipPrevious,
-            modifier = Modifier.size(CONTROL_BUTTON_SIZE),
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) {
-            Text(
-                text = "⏮",
-                style = MaterialTheme.typography.body2,
-                modifier = Modifier.semantics { contentDescription = previousDesc }
-            )
-        }
+            icon = Icons.Filled.SkipPrevious,
+            description = previousDesc
+        )
+
+        ControlButton(
+            onClick = onPlayPause,
+            icon = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+            description = playPauseDesc,
+            highlighted = true
+        )
+
+        ControlButton(
+            onClick = onSkipNext,
+            icon = Icons.Filled.SkipNext,
+            description = nextDesc
+        )
+
+        ControlButton(
+            onClick = onToggleShuffle,
+            icon = Icons.Filled.Shuffle,
+            description = shuffleDesc,
+            highlighted = isShuffleEnabled
+        )
+    }
+}
+
+/**
+ * S1701: the second row the owner ruled on. It is no longer conditional on the set being known -
+ * a favourite can be marked on a single file just as much as on one inside a browsed folder, and a
+ * control that appears and disappears is the harder thing to learn. The set marker rides along here
+ * because the buttons that move it now sit in the row above, and dropping it would leave a wrapping
+ * folder without the landmark S1683 added it for.
+ */
+@Composable
+private fun SecondaryControls(
+    isFavorite: Boolean,
+    positionText: String,
+    onToggleFavorite: () -> Unit
+) {
+    val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(CONTROL_ROW_SPACING),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ControlButton(
+            onClick = onToggleFavorite,
+            icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+            description = favoriteDesc,
+            highlighted = isFavorite
+        )
 
         Text(
             text = positionText,
             style = MaterialTheme.typography.caption3,
             color = Color.Gray
         )
+    }
+}
 
-        Button(
-            onClick = onSkipNext,
-            modifier = Modifier.size(CONTROL_BUTTON_SIZE),
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) {
-            Text(
-                text = "⏭",
-                style = MaterialTheme.typography.body2,
-                modifier = Modifier.semantics { contentDescription = nextDesc }
-            )
+@Composable
+private fun ControlButton(
+    onClick: () -> Unit,
+    icon: ImageVector,
+    description: String,
+    highlighted: Boolean = false
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.size(CONTROL_BUTTON_SIZE),
+        colors = if (highlighted) {
+            ButtonDefaults.primaryButtonColors()
+        } else {
+            ButtonDefaults.secondaryButtonColors()
         }
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = description,
+            modifier = Modifier.size(CONTROL_ICON_SIZE)
+        )
     }
 }
 

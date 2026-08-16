@@ -22,6 +22,18 @@ object WearDataLayerPaths {
     /** Message, watch → phone. Carries favorites delta payload. */
     const val FAVORITES_DELTA = "/fms/watch/favorites_delta"
 
+    /** Message, watch → phone. Requests a paired-phone resource page. */
+    const val PHONE_RESOURCE_BROWSE_REQUEST = "/fms/watch/phone_resource/browse"
+
+    /** Message, watch → phone. Requests an on-demand paired-phone media channel. */
+    const val PHONE_RESOURCE_OPEN_REQUEST = "/fms/watch/phone_resource/open"
+
+    /** Data Item, phone → watch. Carries a correlated paired-phone resource page. */
+    const val PHONE_RESOURCE_PAGE = "/fms/phone/phone_resource/page"
+
+    /** Channel, phone → watch. Carries the bytes of one approved paired-phone media item. */
+    const val PHONE_RESOURCE_TRANSFER = "/fms/phone/phone_resource/transfer"
+
     // --- WearEventEnvelope.eventType constants ---
 
     /** eventType value for SETTINGS_PUSH envelopes. */
@@ -38,4 +50,7 @@ object WearDataLayerPaths {
 
     /** eventType value for FAVORITES_DELTA envelopes. */
     const val EVENT_FAVORITES = "FAVORITES_DELTA"
+
+    /** eventType value for PHONE_RESOURCE_PAGE envelopes. */
+    const val EVENT_PHONE_RESOURCE_PAGE = "PHONE_RESOURCE_PAGE"
 }

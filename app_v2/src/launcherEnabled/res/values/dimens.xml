@@ -75,4 +75,10 @@
     <dimen name="launcher_cell_label_plate_radius">6dp</dimen>
     <dimen name="launcher_cell_label_plate_padding_horizontal">4dp</dimen>
     <dimen name="launcher_cell_label_plate_padding_vertical">1dp</dimen>
+
+    <!-- S1430: the drawn track keeps the width of the system bar it replaces, while the view around it is
+         wide enough to catch a finger - the owner chose the invisible touch zone over a thicker bar. -->
+    <dimen name="launcher_scroll_thumb_track_width">4dp</dimen>
+    <dimen name="launcher_scroll_thumb_touch_width">24dp</dimen>
+    <dimen name="launcher_scroll_thumb_min_height">32dp</dimen>
 </resources>

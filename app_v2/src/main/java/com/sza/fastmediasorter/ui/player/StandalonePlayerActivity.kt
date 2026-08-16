@@ -156,6 +156,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     @Inject lateinit var vrCinemaLaunchManager: StandaloneVrCinemaLaunchManager
 
     private lateinit var viewManager: StandaloneViewManager
+
+    /** S1549: orientation the current content view was inflated for; a flip drives the re-inflate. */
+    private var lastAppliedOrientation = Configuration.ORIENTATION_UNDEFINED
     private var pipManager: PictureInPictureManager? = null
     private lateinit var lifecycleManager: StandalonePlayerLifecycleManager
     private lateinit var keyboardHandler: PlayerKeyboardHandler
@@ -206,6 +209,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         // See PlayerActivity.onCreate - must run before super → setContentView.
         com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs.applyControlsThemeOverlay(this)
         super.onCreate(savedInstanceState)
+        lastAppliedOrientation = resources.configuration.orientation
     }
 
     // Player layout has its own immersive insets handling - skip global edge-to-edge
@@ -476,6 +480,10 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        if (newConfig.orientation != lastAppliedOrientation) {
+            lastAppliedOrientation = newConfig.orientation
+            rebindLayoutForOrientation()
+        }
         // Re-apply insets after orientation change so panels don't overlap OS bars
         binding.topCommandPanel.post {
             binding.topCommandPanel.requestApplyInsets()
@@ -511,6 +519,38 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                     }
                 }
             null -> Unit
+        }
+    }
+
+    /**
+     * S1549: apply the orientation-specific layout variant without a recreate - standalone absorbs
+     * rotation on purpose (a recreate would tear down the live render surface). Re-inflates via
+     * [rebindContentView], re-points the view manager at the fresh hierarchy (it re-attaches the
+     * surviving ExoPlayer and the document viewers itself) and re-wires the listeners that were
+     * bound to the discarded tree.
+     */
+    private fun rebindLayoutForOrientation() {
+        rebindContentView()
+        viewManager.rebindLayoutRoot(binding.root)
+        setupCloseButton()
+        hidePlaylistControls()
+        setupFileOperationButtons()
+        setupFullscreenButton()
+        setupPdfButtons()
+        setupEpubButtons()
+        setupSearchControls()
+        pipManager = PictureInPictureManager(
+            activity = this,
+            playerView = binding.playerView,
+            chromeToHide = listOf(binding.toolbar, binding.topCommandPanel),
+            getPlayer = { viewManager.getExoPlayer() },
+            onPlay = { viewManager.play() },
+            onPause = { viewManager.pause() },
+            isVideoPlaying = { viewManager.isMediaPlaying() }
+        )
+        if (currentMediaType() == MediaType.VIDEO) {
+            viewManager.getExoPlayer()?.let { player -> tracksChangedListener?.let(player::removeListener) }
+            setupVideoControls(binding.playerView)
         }
     }
 

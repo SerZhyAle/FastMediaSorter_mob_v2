@@ -429,5 +429,17 @@
     <color name="stream_pin_badge_bg">#FFC62828</color>
     <!-- S0997: splash-screen center content (app logo + wordmark) - dark on the light splash background, light in night mode. -->
     <color name="splash_content">#FF37474F</color>
+    <!-- S1706: splash logo gradient, sampled from the lit and shaded faces of the launcher icon's
+         arrows in mipmap-xxxhdpi/ic_launcher_adaptive_fore.png, so the splash shows the same blue
+         the user tapped rather than a flat silhouette. -->
+    <color name="splash_logo_gradient_start">#FF98CFF1</color>
+    <color name="splash_logo_gradient_end">#FF0B82EB</color>
+    <!-- S1706: splash slogan - deeper than the logo blue to stay readable on the light splash background. -->
+    <color name="splash_slogan">#FF1565C0</color>
+
+    <!-- S1549: portrait keeps the pressed/focused accent of the shared player selector; the landscape
+         scroll buttons are flat white (see values-land/values-w600dp). An alias rather than a copied
+         selector, so the portrait state list stays defined in exactly one place. -->
+    <item name="browse_scroll_button_tint" type="color">@color/selector_player_button_tint</item>
 </resources>
 

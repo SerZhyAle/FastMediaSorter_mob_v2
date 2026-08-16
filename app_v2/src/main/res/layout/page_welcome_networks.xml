@@ -3,7 +3,8 @@
      over three group-toggle rows (SMB / (S)FTP / Cloud), each a SettingsToggleRow over the six
      per-source flags. WelcomeRemoteSourcesController owns persistence and hides the Cloud row
      (@id/rowSourceCloud) on flavors without cloud support.
-     All ids must stay in sync with the landscape variant (layout-land/page_welcome_networks.xml). -->
+     S1549: the landscape variant was deleted because it was byte-identical to this file once comments
+     were stripped, so this layout now serves both orientations and there is no sibling to keep in sync. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"

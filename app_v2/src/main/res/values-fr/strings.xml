@@ -2834,4 +2834,5 @@
     <string name="wear_sync_no_ack">Aucune confirmation de la montre. Elle est peut-être éteinte ou hors de portée.</string>
     <string name="browse_empty_type_gated">%1$d fichiers sont masqués car leur type de média est désactivé.</string>
     <string name="browse_empty_type_gated_hint">Réactivez ce type de média dans les paramètres pour les voir.</string>
+    <string name="launcher_section_google">GOOGLE</string>
 </resources>

@@ -89,7 +89,7 @@ class LauncherCellViewBinder(
         // what the desktop looks like, never what it stores (strategic §5.1.6). Folding here rather than
         // at the guard is also what keeps a toggle made while editing from rebuilding an identical tree.
         val foldedSections = if (editMode) emptySet() else collapsedSections
-        val plan = LauncherGridGeometry.renderPlan(cells, foldedSections)
+        val plan = LauncherGridGeometry.renderPlan(cells, foldedSections, columns)
         val rows = rowsToShow(plan, editMode, viewportRows)
         // The row count joins the guard rather than [viewportRows] itself: a viewport that changed
         // without changing how many rows are drawn - a few pixels of inset, a rotation on a square
@@ -117,7 +117,9 @@ class LauncherCellViewBinder(
                     // S1428: the drawn row, not the stored one - collapsing lifts everything below a
                     // folded section without rewriting a single position (strategic §5.1.6).
                     row = rendered.renderRow,
-                    col = item.cell.colIndex,
+                    // S1645: the drawn column, for the same reason as the drawn row above - a packed
+                    // header sits beside the previous one, not at the column it is stored at.
+                    col = rendered.renderCol,
                     // S1428: the span the same helper reports to the empty-slot sweep, so layout and
                     // occupancy can never disagree about which squares a header covers.
                     spanW = LauncherGridGeometry.renderSpanW(item.cell, columns),

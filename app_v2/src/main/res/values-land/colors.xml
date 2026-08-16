@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- S1549: layout-land/activity_browse.xml tints the four scroll buttons flat white - it drops the
+         pressed/focused accent the portrait selector carries. BrowseActivity absorbs the rotation, so
+         the tint is re-applied from this key. Mirrored in values-w600dp, which outranks this bucket. -->
+    <item name="browse_scroll_button_tint" type="color">@color/white</item>
+</resources>

@@ -23,9 +23,21 @@ import timber.log.Timber
 abstract class BaseDocumentViewerManager(
     // S0380: decoupled from ActivityPlayerUnifiedBinding to any layout root so the document viewers
     // can drive a trimmed standalone layout as well as the full unified player layout.
-    protected val root: View
+    // S1549: var, not val - a host that re-inflates its layout re-points the viewer instead of
+    // recreating it, because the renderer, page index and file descriptor live in the subclass.
+    protected var root: View
 ) {
-    
+
+    /**
+     * S1549: aim this viewer at a freshly inflated hierarchy, keeping all reading state.
+     * Subclasses override to re-point their own view seams and move any live child view they
+     * created into the new tree; they must call super.
+     */
+    open fun rebindLayoutRoot(newRoot: View) {
+        root = newRoot
+    }
+
+
     /**
      * Handle touch zones for document navigation.
      * @param x Touch X coordinate

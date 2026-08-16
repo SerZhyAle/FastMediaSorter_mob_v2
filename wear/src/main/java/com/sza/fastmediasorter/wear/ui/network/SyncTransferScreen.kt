@@ -21,6 +21,7 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WatchSyncEvents
 import com.sza.fastmediasorter.wear.domain.model.ImportResult
+import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import kotlinx.coroutines.flow.merge
 
 /**
@@ -42,27 +43,29 @@ fun SyncTransferScreen(
         }
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(80.dp),
-            strokeWidth = 4.dp
-        )
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+    WearScreenScaffold {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            Spacer(Modifier.height(96.dp))
-            Text(
-                text = if (phoneName.isNotBlank())
-                    stringResource(R.string.wear_sync_receiving_from, phoneName)
-                else
-                    stringResource(R.string.wear_sync_receiving),
-                style = MaterialTheme.typography.body2,
-                textAlign = TextAlign.Center
+            CircularProgressIndicator(
+                modifier = Modifier.size(80.dp),
+                strokeWidth = 4.dp
             )
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(Modifier.height(96.dp))
+                Text(
+                    text = if (phoneName.isNotBlank())
+                        stringResource(R.string.wear_sync_receiving_from, phoneName)
+                    else
+                        stringResource(R.string.wear_sync_receiving),
+                    style = MaterialTheme.typography.body2,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }

@@ -20,14 +20,26 @@ import com.github.chrisbanes.photoview.PhotoView
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 
 class PlayerBindingSafeViews private constructor(
-    private val root: View,
-    private val binding: ActivityPlayerUnifiedBinding?,
+    private var root: View,
+    private var binding: ActivityPlayerUnifiedBinding?,
 ) {
     /** Primary use: wrap a generated player binding (full unified layout). */
     constructor(binding: ActivityPlayerUnifiedBinding) : this(binding.root, binding)
 
     /** S0380: wrap any layout root (e.g. a trimmed specialized standalone layout) by id lookup. */
     constructor(root: View) : this(root, null)
+
+    /**
+     * S1549: aim every accessor at a freshly inflated hierarchy. Every property here resolves on
+     * read, so one instance shared by a manager and its delegates re-points all of them at once -
+     * which is what lets a re-inflate keep the holders (and their live state) alive. The generated
+     * binding is dropped because its fields belong to the discarded tree; lookups fall back to
+     * [root], as they already do for every trimmed standalone layout.
+     */
+    fun rebindRoot(newRoot: View) {
+        root = newRoot
+        binding = null
+    }
 
     private fun <T : View> required(@IdRes id: Int): T {
         return root.findViewById(id)

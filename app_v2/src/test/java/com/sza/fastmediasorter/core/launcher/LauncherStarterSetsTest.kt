@@ -367,6 +367,108 @@ class LauncherStarterSetsTest {
         }
     }
 
+    // ── S1644: the conditional GOOGLE section ───────────────────────────────
+
+    private fun googleItems(
+        googleServicesAvailable: Boolean,
+        installed: Set<String>,
+    ): List<LauncherStarterSets.StarterItem> = LauncherStarterSets.itemsFor(
+        DeviceProfileType.PERSONAL_SMARTPHONE,
+        StarterResources(recentId = 1),
+        allPaddingAvailable,
+        installed,
+        googleServicesAvailable = googleServicesAvailable,
+    )
+
+    @Test
+    fun `google section holds the installed candidates in catalogue order`() {
+        val installed = setOf(
+            "com.google.android.youtube",
+            "com.android.chrome",
+            "com.android.vending",
+        )
+        val targets = googleItems(googleServicesAvailable = true, installed = installed).map { it.target }
+        val headerIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_GOOGLE))
+        assertTrue("google header absent", headerIndex >= 0)
+        val actionsHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_APP_FUNCTIONS))
+        // The catalogue order, not the order the caller happened to hand the installed set in.
+        assertEquals(
+            listOf("app:com.android.vending", "app:com.android.chrome", "app:com.google.android.youtube"),
+            targets.subList(headerIndex + 1, actionsHeaderIndex),
+        )
+    }
+
+    @Test
+    fun `google section is absent when no candidate is installed`() {
+        val targets = googleItems(googleServicesAvailable = true, installed = emptySet()).map { it.target }
+        assertFalse(
+            "an empty section would swallow every cell below it",
+            targets.contains(sectionTarget(LauncherCellCommand.SECTION_GOOGLE)),
+        )
+    }
+
+    @Test
+    fun `google section is absent without google services even when the apps are installed`() {
+        val installed = LauncherStarterSets.GOOGLE_APP_PACKAGES.toSet()
+        val targets = googleItems(googleServicesAvailable = false, installed = installed).map { it.target }
+        assertFalse(targets.contains(sectionTarget(LauncherCellCommand.SECTION_GOOGLE)))
+        LauncherStarterSets.GOOGLE_APP_PACKAGES
+            .filterNot { it == LauncherStarterSets.PACKAGE_YOUTUBE }
+            .filterNot { it == LauncherStarterSets.PACKAGE_YOUTUBE_MUSIC }
+            .filterNot { it == LauncherStarterSets.PACKAGE_MAPS }
+            .forEach { assertFalse("seeded without services: $it", targets.contains("app:$it")) }
+    }
+
+    @Test
+    fun `google section sits after all content and before the app-functions header`() {
+        val installed = setOf("com.android.vending")
+        val targets = googleItems(googleServicesAvailable = true, installed = installed).map { it.target }
+        val contentHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_EVERYTHING_ELSE))
+        val googleHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_GOOGLE))
+        val actionsHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_APP_FUNCTIONS))
+        assertTrue("google header must follow the content header", contentHeaderIndex < googleHeaderIndex)
+        assertTrue("google header must precede the app-functions header", googleHeaderIndex < actionsHeaderIndex)
+        // Every content item the profile earned still sits above the google header.
+        assertTrue(targets.indexOf("fn:ocr") < googleHeaderIndex)
+        assertTrue(targets.indexOf("res:1:BROWSE") < googleHeaderIndex)
+    }
+
+    // ── S1644: a repeated target is not what makes a cell a duplicate ───────
+
+    @Test
+    fun `an imported shortcut is kept even when the starter set already placed its target`() {
+        val collidingTarget = LauncherCellCommand.App("com.android.vending").encode()
+        val imported = listOf(
+            LauncherStarterSets.StarterItem(LauncherCellKind.SHORTCUT, collidingTarget),
+        )
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1),
+            allPaddingAvailable,
+            setOf("com.android.vending"),
+            googleServicesAvailable = true,
+            importedShortcuts = imported,
+        ).map { it.target }
+        // Once from the import, once from the GOOGLE section: the owner allows the same application to
+        // hold as many cells as it has free positions.
+        assertEquals(2, targets.count { it == collidingTarget })
+    }
+
+    @Test
+    fun `two cells with the same target occupy different rectangles`() {
+        val target = LauncherCellCommand.App("com.android.vending").encode()
+        val items = List(2) { LauncherStarterSets.StarterItem(LauncherCellKind.SHORTCUT, target) }
+        columnCounts.forEach { columns ->
+            val placed = LauncherStarterSets.place(items, columns)
+            assertNoOverlap(placed)
+            assertNotEquals(
+                "same target packed onto the same anchor at $columns",
+                placed[0].rowIndex to placed[0].colIndex,
+                placed[1].rowIndex to placed[1].colIndex,
+            )
+        }
+    }
+
     @Test
     fun `a header is packed at the one span it is stored at`() {
         // S1642: the packer's clamp to the seeded width used to narrow a header, which is why the seed

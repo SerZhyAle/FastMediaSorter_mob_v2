@@ -34,7 +34,8 @@ class ExportSourcesUseCase @Inject constructor(
                 shareName = source.shareName,
                 basePath = source.basePath,
                 domain = source.domain,
-                sshPrivateKey = source.sshPrivateKey
+                sshPrivateKey = source.sshPrivateKey,
+                hostKeyFingerprint = source.hostKeyFingerprint
             )
         }
         val payload = WearSourcesExportPayload(

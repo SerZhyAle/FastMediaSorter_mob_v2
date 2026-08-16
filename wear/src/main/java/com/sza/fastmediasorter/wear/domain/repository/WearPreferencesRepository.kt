@@ -29,4 +29,8 @@ interface WearPreferencesRepository {
     // Album art settings
     val downloadAlbumArt: Flow<Boolean>
     suspend fun setDownloadAlbumArt(enabled: Boolean)
+
+    /** S1701: playback order of the browsed set; remembered so it survives a restart. */
+    val isShuffleEnabled: Flow<Boolean>
+    suspend fun setShuffleEnabled(enabled: Boolean)
 }

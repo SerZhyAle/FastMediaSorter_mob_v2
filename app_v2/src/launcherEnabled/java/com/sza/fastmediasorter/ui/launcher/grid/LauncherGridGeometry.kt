@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
+import timber.log.Timber
 
 /**
  * S0404: desktop grid sizing. The column count is derived from the screen at render time and the
@@ -106,8 +107,14 @@ object LauncherGridGeometry {
     fun footprintOf(cell: LauncherCell, columns: Int): CellFootprint =
         footprint(cell.rowIndex, cell.colIndex, renderSpanW(cell, columns), cell.spanH, columns)
 
-    /** S1428: a cell paired with the row it is drawn on once collapsed sections are folded shut. */
-    data class RenderedCell(val item: LauncherCellUi, val renderRow: Int)
+    /**
+     * S1428: a cell paired with the row it is drawn on once collapsed sections are folded shut.
+     *
+     * S1645 adds the column for the same reason the row exists: a packed header is drawn beside the
+     * previous one rather than at the column it is stored at. Every other cell reports its stored
+     * column here, so callers read one field and never have to know which case they are in.
+     */
+    data class RenderedCell(val item: LauncherCellUi, val renderRow: Int, val renderCol: Int)
 
     /**
      * S1428: the desktop as it is drawn - every cell inside a collapsed section dropped, everything
@@ -124,21 +131,47 @@ object LauncherGridGeometry {
      * user drags to another row is the same section, and a row that later carries a different header is
      * not.
      */
-    fun renderPlan(cells: List<LauncherCellUi>, collapsedSections: Set<String>): List<RenderedCell> {
+    fun renderPlan(
+        cells: List<LauncherCellUi>,
+        collapsedSections: Set<String>,
+        columns: Int,
+    ): List<RenderedCell> {
         val stored = cells.map { it.cell }
         val headerRows = LauncherSectionMembership.headerRows(stored)
         val collapsedHeaderRows = stored
             .filter { it.kind == LauncherCellKind.SECTION && it.target in collapsedSections }
             .map { it.rowIndex.coerceAtLeast(0) }
             .toSet()
-        return cells.mapNotNull { item ->
+        val drawnRowOf = { cell: LauncherCell ->
             LauncherSectionMembership.renderRowFor(
-                row = item.cell.rowIndex,
-                isHeader = item.cell.kind == LauncherCellKind.SECTION,
+                row = cell.rowIndex,
+                isHeader = cell.kind == LauncherCellKind.SECTION,
                 headerRows = headerRows,
                 collapsedHeaderRows = collapsedHeaderRows,
-            )?.let { RenderedCell(item, it) }
+            )
         }
+        // S1645: packing runs on the folded rows, so it continues the lift instead of fighting it.
+        val packed = LauncherSectionMembership.packedHeaderPositions(
+            cells = stored,
+            collapsedTargets = collapsedSections,
+            columns = columns,
+            renderRowOf = drawnRowOf,
+        )
+        Timber.d("S1645: render plan packed ${packed.size} collapsed header(s) across $columns columns")
+        return cells.mapNotNull { item ->
+            val drawnRow = drawnRowOf(item.cell) ?: return@mapNotNull null
+            val packedPosition = packed[item.cell.target]
+                ?.takeIf { item.cell.kind == LauncherCellKind.SECTION }
+            RenderedCell(
+                item = item,
+                renderRow = packedPosition?.row ?: drawnRow,
+                renderCol = packedPosition?.col ?: item.cell.colIndex,
+            )
+        }
+            // S1645: reading order, not storage order. The container adds children in this order and
+            // TalkBack follows that, so a packed header must be announced where it is seen - which the
+            // order the cells arrive in from the database does not describe once packing moves one.
+            .sortedWith(compareBy({ it.renderRow }, { it.renderCol }))
     }
 
     /**
@@ -152,7 +185,7 @@ object LauncherGridGeometry {
     /** [footprintOf] at the drawn row, so layout and the empty-slot sweep agree on a folded desktop. */
     fun footprintOfRendered(rendered: RenderedCell, columns: Int): CellFootprint = footprint(
         row = rendered.renderRow,
-        col = rendered.item.cell.colIndex,
+        col = rendered.renderCol,
         spanW = renderSpanW(rendered.item.cell, columns),
         spanH = rendered.item.cell.spanH,
         columns = columns,

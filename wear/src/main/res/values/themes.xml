@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        S1706: the wear module's first theme. Below Android 12 there is no splash mechanism, so
+        this base carries no splash attributes and keeps the module's current system appearance.
+        The splash attributes live in values-v31.
+    -->
+    <style name="Theme.FastMediaSorterWear" parent="@android:style/Theme.DeviceDefault.NoActionBar" />
+</resources>

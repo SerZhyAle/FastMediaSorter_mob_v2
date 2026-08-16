@@ -36,6 +36,13 @@ class LyricsManager(
     private val getTranslationSessionSettings: () -> com.sza.fastmediasorter.domain.models.TranslationSessionSettings
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
+
+    /**
+     * S1549: re-point every accessor at a re-inflated hierarchy. This manager is constructed once
+     * per screen - its init-block settings collector must not double - so a layout re-inflate
+     * re-points it instead of re-creating it.
+     */
+    fun rebindRoot(newRoot: android.view.View) = safeViews.rebindRoot(newRoot)
     private var ttsManager: TtsReadAloudManager? = null
     private val calculatorEnabledFlow = MutableStateFlow(false)
 

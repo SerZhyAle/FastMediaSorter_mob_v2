@@ -687,6 +687,12 @@ class VideoPlayerManager(
 
     /** Attach the [PlayerView] used for video rendering. Must be called before playback. */
     fun setPlayerView(playerView: PlayerView) {
+        // S1549: a re-inflate hands the surface over - detach the player from the discarded
+        // PlayerView first, or both views keep component listeners on the same player and the
+        // dying tree keeps receiving frame callbacks.
+        if (currentPlayerView !== playerView) {
+            currentPlayerView?.player = null
+        }
         currentPlayerView = playerView
         Timber.d("VideoPlayerManager: PlayerView set")
     }

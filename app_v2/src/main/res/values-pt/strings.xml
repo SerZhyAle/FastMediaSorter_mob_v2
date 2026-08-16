@@ -2832,4 +2832,5 @@
     <string name="wear_sync_no_ack">O relógio não confirmou. Ele pode estar desligado ou fora de alcance.</string>
     <string name="browse_empty_type_gated">%1$d arquivos estão ocultos porque o tipo de mídia deles está desativado.</string>
     <string name="browse_empty_type_gated_hint">Ative esse tipo de mídia nas configurações para vê-los.</string>
+    <string name="launcher_section_google">GOOGLE</string>
 </resources>

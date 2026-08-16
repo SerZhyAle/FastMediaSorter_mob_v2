@@ -15,11 +15,12 @@ import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
-import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
-import com.sza.fastmediasorter.wear.domain.usecase.SendFavoritesDeltaUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.ResolveAlbumArtUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -39,6 +40,9 @@ private const val SEEK_STEP_MS = 10_000L
  * ViewModel for the audio player screen.
  * Manages ExoPlayer instance and playback state.
  */
+// S1701: the tenth injected dependency crosses detekt's threshold. Bundling collaborators behind a
+// holder would hide the graph Hilt actually builds, which is the same trade PlayerViewModel took.
+@Suppress("LongParameterList")
 @HiltViewModel
 class AudioPlayerViewModel @Inject constructor(
     private val mediaRepository: WearMediaRepository,
@@ -47,8 +51,9 @@ class AudioPlayerViewModel @Inject constructor(
     private val downloadNetworkFile: DownloadNetworkFileUseCase,
     private val exoPlayer: ExoPlayer,
     private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
-    private val favoritesRepository: WearFavoritesRepository,
-    private val sendFavoritesDeltaUseCase: SendFavoritesDeltaUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val resolveAlbumArt: ResolveAlbumArtUseCase,
+    private val preferencesRepository: WearPreferencesRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -119,6 +124,16 @@ class AudioPlayerViewModel @Inject constructor(
             loadAudioFile()
         }
 
+        // S1701: the stored flag is the single source of truth - it feeds both the control that
+        // renders it and the set that resolves the successor, so the two can never disagree about
+        // which order is active.
+        viewModelScope.launch {
+            preferencesRepository.isShuffleEnabled.collect { enabled ->
+                playbackSetManager.shuffleEnabled = enabled
+                _uiState.update { it.copy(isShuffleEnabled = enabled) }
+            }
+        }
+
         // Subscribe to remote playback commands from phone
         viewModelScope.launch {
             WatchPlaybackCommandEvents.commandFlow.collect { command ->
@@ -158,11 +173,13 @@ class AudioPlayerViewModel @Inject constructor(
      * drifting apart.
      */
     private fun playFile(file: WearMediaFile) {
+        Timber.d("S1683: paging to ${file.name} art=${file.albumArt != null}")
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
         _uiState.update {
             it.withMediaFile(file).copy(currentPositionMs = 0, durationMs = 0, error = null)
         }
+        fetchRemoteAlbumArt(file)
         val selection = networkSelection
         if (selection != null) {
             viewModelScope.launch {
@@ -181,6 +198,27 @@ class AudioPlayerViewModel @Inject constructor(
      */
     private fun AudioPlayerUiState.withMediaFile(file: WearMediaFile): AudioPlayerUiState =
         copy(mediaFile = file, albumArtUrl = file.albumArt?.toString())
+
+    /**
+     * S1689: the cover in the file wins; the network is asked only when there is none and the user
+     * asked for it. The setting has existed - and been offered on two screens - since before
+     * anything read it, so this is the call that makes the switch mean something.
+     */
+    private fun fetchRemoteAlbumArt(file: WearMediaFile) {
+        viewModelScope.launch {
+            val url = resolveAlbumArt(file)
+            if (url != null) {
+                Timber.d("S1689: remote cover found for ${file.artist} - ${file.album}")
+                _uiState.update { state ->
+                    // The track may have paged on while the lookup was in flight; a late answer
+                    // must not paint the previous track's cover over the current one. Until it
+                    // arrives the waves-and-particles background stands in, which is the correct
+                    // no-cover state.
+                    if (state.mediaFile?.id == file.id) state.copy(albumArtUrl = url) else state
+                }
+            }
+        }
+    }
 
     /** S1683: keeps the position marker in step with the set on first open and on every page. */
     private fun syncSetPosition() {
@@ -215,6 +253,7 @@ class AudioPlayerViewModel @Inject constructor(
                 val file = mediaRepository.getMediaFileById(fileId, MediaType.MUSIC)
                 if (file != null) {
                     _uiState.update { it.withMediaFile(file) }
+                    fetchRemoteAlbumArt(file)
                     checkFavoriteState(sourceId = "local", filePath = file.uri.toString())
                     playLocalFile(file)
                 } else {
@@ -258,6 +297,15 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     /**
+     * S1701: writes the new order to settings and lets the collector above publish it back, so the
+     * screen never holds a copy that a failed write could leave stale.
+     */
+    fun toggleShuffle() {
+        val enabled = !_uiState.value.isShuffleEnabled
+        viewModelScope.launch { preferencesRepository.setShuffleEnabled(enabled) }
+    }
+
+    /**
      * S1683: blanks the screen without touching playback, and any touch on the black screen calls this
      * again. The flag lives here rather than in the composition so it survives a recomposition, and it
      * dies with this view model when the player is left - a screen reopened is never already dark.
@@ -267,6 +315,7 @@ class AudioPlayerViewModel @Inject constructor(
         // Stopping it was tried and measured on the watch: 679 ticks per ten seconds against 672 with
         // it running, so the recomposition it drives is not what the dark screen costs, and the extra
         // stop/restart/refresh path bought nothing. What the screen does cost is tracked in S1709.
+        Timber.d("S1683: screen-off toggled to ${!_uiState.value.isDimmed}")
         _uiState.update { it.copy(isDimmed = !it.isDimmed) }
     }
 
@@ -339,19 +388,13 @@ class AudioPlayerViewModel @Inject constructor(
         val sourceId = if (selected?.isNetworkSource == true) selected.file.uri.host ?: "network" else "local"
         val filePath = selected?.streamUri ?: _uiState.value.mediaFile?.uri?.toString() ?: return
         viewModelScope.launch {
-            if (_isFavorite.value) {
-                favoritesRepository.removeFavorite(sourceId, filePath)
-            } else {
-                favoritesRepository.addFavorite(sourceId, filePath)
-            }
-            _isFavorite.value = !_isFavorite.value
-            sendFavoritesDeltaUseCase()
+            _isFavorite.value = toggleFavoriteUseCase.toggle(sourceId, filePath, _isFavorite.value)
         }
     }
 
     private fun checkFavoriteState(sourceId: String, filePath: String) {
         viewModelScope.launch {
-            _isFavorite.value = favoritesRepository.isFavorite(sourceId, filePath)
+            _isFavorite.value = toggleFavoriteUseCase.isFavorite(sourceId, filePath)
         }
     }
 

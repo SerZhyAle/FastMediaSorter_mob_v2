@@ -3243,4 +3243,6 @@
     <string name="wear_sync_no_ack">Годинник не підтвердив отримання. Можливо, він вимкнений або поза зоною.</string>
     <string name="browse_empty_type_gated">%1$d файлів приховано: їхній тип медіа вимкнено в налаштуваннях.</string>
     <string name="browse_empty_type_gated_hint">Увімкніть цей тип медіа в налаштуваннях, щоб побачити їх.</string>
+    <string name="splash_slogan">..Усе моє тут!</string>
+    <string name="launcher_section_google">GOOGLE</string>
 </resources>

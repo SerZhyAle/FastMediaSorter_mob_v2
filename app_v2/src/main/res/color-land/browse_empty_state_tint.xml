@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1549: layout-land/activity_browse.xml paints the empty state from the theme attribute rather
+     than the fixed colour resource. Theme references inside a ColorStateList need API 23+, which the
+     legacy flavor's minSdk 23 satisfies. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="?android:attr/textColorSecondary" />
+</selector>

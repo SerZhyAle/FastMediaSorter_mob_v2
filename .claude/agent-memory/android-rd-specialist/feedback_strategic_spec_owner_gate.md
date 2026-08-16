@@ -40,6 +40,15 @@ For pure documentation / refactor / rename specs that match no scope tag, §3.3 
 
 - **Backward compatibility.** Specs S0268..S0277 (created with the old 12-field §3.3 before this rule was relaxed) remain valid - the data-driven gate accepts whatever bullets are present, so the existing 12-bullet form still passes. Do not retroactively shrink those specs.
 
+**`Owner sign-off: требуется - не подписано` is a FILLED field, not a refusal (measured 2026-08-16).** The
+gate reads §3.3 for presence and placeholders only - it has no notion of a signature, so that literal value
+passes and the spec is promotable. Do not block a Draft on that phrase alone: run
+`check-owner-inputs.ps1 -Id Sxxxx` and obey its verdict. Block only when the spec names a decision the code
+cannot answer (a cost/benefit trade the owner must price, an unmeasured performance budget), and say which
+decision it is. S1711 was blocked on the phrase, then promoted the same session once the gate was actually
+run; S1715 stayed blocked because it also carries an open `Owner decision required` bullet - that is the real
+difference between the two.
+
 **Edge cases.**
 
 - A spec that genuinely spans multiple scopes (e.g. UI + data + flavor) emits the union of bullets - that is the correct outcome, not bureaucracy.

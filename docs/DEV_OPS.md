@@ -498,6 +498,20 @@ Three facts a reader cannot derive from the commands:
 
 The three actions share one definition of "a reference", in `scripts/quality/lib/android-string-liveness.ps1`. Change it there, never in a caller.
 
+### Generated splash drawables - S1706
+
+```powershell
+# THE ONLY WRITER of ic_splash_app_brand.xml, in either module
+pwsh -NoProfile -File scripts/utils/generate-splash-brand.ps1 -Module <app_v2|wear>
+
+# THE SAME COMPARISON AS A GATE (fails on a hand-edited or stale variant; in .\a.ps1 fg)
+pwsh -NoProfile -File scripts/quality/assert-splash-brand-sync.ps1
+```
+
+- **The drawable is generated, never authored.** The system splash window cannot render a string, so the wordmark and the slogan exist only as contours baked in from `splash_slogan` and one template. A hand edit therefore compiles, renders, and diverges silently from every other locale.
+- **`splash_slogan` is consumed at authoring time, not at run time.** Nothing under `app_v2/src` references it and nothing can, which is why it sits in the unreferenced-strings baseline with that reason rather than being deleted as dead.
+- **The two modules generate different compositions on purpose.** The phone carries arrows, wordmark and slogan with one variant per locale; the watch carries the arrows alone, because measured on a Galaxy Watch 7 the wordmark rendered 10 px tall and the slogan 12 px, roughly 5-7 dp against Wear OS's 12 sp floor. `-Module wear` therefore adds `--arrows-only`, and the watch has no per-locale variant at all.
+
 ### Gson persistence contract - S1639
 
 ```powershell

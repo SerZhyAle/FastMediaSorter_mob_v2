@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S1706: the wordmark rises into its resting place a beat after the arrows. It ends at the
+    group's own translateY, so a splash cut short leaves it a few units low and still readable.
+-->
+<objectAnimator xmlns:android="http://schemas.android.com/apk/res/android"
+    android:propertyName="translateY"
+    android:valueFrom="-6.0"
+    android:valueTo="-14.0"
+    android:valueType="floatType"
+    android:startOffset="60"
+    android:duration="340"
+    android:interpolator="@android:interpolator/decelerate_quint" />

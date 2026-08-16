@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.FastMediaSorter" parent="Theme.FastMediaSorter.Base">
+        <!-- S1706: see values-v31 - the inherited windowDisablePreview suppressed the splash. -->
+        <item name="android:windowDisablePreview">false</item>
         <item name="android:windowSplashScreenBackground">@color/item_normal</item>
         <!-- S0997: center = app logo + wordmark fading in; author logo moved to the branding slot. -->
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_animated</item>

@@ -1,9 +1,14 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
 import android.content.res.Configuration
+import android.util.TypedValue
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.Space
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
@@ -62,12 +67,136 @@ class MainLayoutChromeManager(
         if (changed) applyControlBarOverflow()
     }
 
-    /** Show or hide text labels on toolbar buttons depending on orientation. */
+    /**
+     * Show or hide text labels on toolbar buttons depending on orientation, and re-apply the rest of
+     * the landscape control-bar delta.
+     *
+     * S1549: MainActivity declares android:configChanges, so layout-land/activity_main.xml is
+     * inflated on a landscape cold start but never on a rotation. Labels alone left the button
+     * metrics, the row gravity and the seven-cell separator pattern frozen at the first inflation.
+     */
     fun updateToolbarButtonLabels(config: Configuration) {
         val isWide = config.isWideLayout()
         Timber.d("updateToolbarButtonLabels: isWide=$isWide")
+        applyCommandBarMetrics()
         applyLabels(isWide)
         applyControlBarOverflow()
+    }
+
+    /**
+     * Values come from qualified dimens, so the resource bucket - not this code - decides which
+     * variant they belong to. The style itself is never swapped: a View reads it once at inflation.
+     */
+    private fun applyCommandBarMetrics() {
+        styleCommandButton(
+            button = binding.btnExit,
+            minWidthRes = R.dimen.main_cmd_first_min_width,
+            paddingStartRes = R.dimen.main_cmd_first_padding_start,
+            paddingEndRes = R.dimen.main_cmd_first_padding_end,
+            iconPaddingRes = R.dimen.main_cmd_first_icon_padding
+        )
+        styleCommandButton(
+            button = binding.btnMainDropdownMenu,
+            minWidthRes = R.dimen.main_cmd_menu_min_width,
+            paddingStartRes = R.dimen.main_cmd_menu_padding_start,
+            paddingEndRes = R.dimen.main_cmd_menu_padding_end,
+            iconPaddingRes = R.dimen.main_cmd_icon_padding
+        )
+        listOf(
+            binding.btnAddResource,
+            binding.btnFilter,
+            binding.btnRefresh,
+            binding.btnSettings,
+            binding.btnToggleView,
+            binding.btnFavorites,
+            binding.btnStartPlayer
+        ).forEach { button ->
+            styleCommandButton(
+                button = button,
+                minWidthRes = R.dimen.main_cmd_min_width,
+                paddingStartRes = R.dimen.main_cmd_padding_start,
+                paddingEndRes = R.dimen.main_cmd_padding_end,
+                iconPaddingRes = R.dimen.main_cmd_icon_padding
+            )
+        }
+        binding.layoutControlButtons.gravity =
+            if (activity.resources.getBoolean(R.bool.main_cmd_bar_center_vertical)) {
+                Gravity.CENTER_VERTICAL
+            } else {
+                Gravity.TOP or Gravity.START
+            }
+        syncControlBarSeparators()
+    }
+
+    /**
+     * iconGravity is set to textStart for every command, including Exit, whose portrait copy declares
+     * plain start: with the label empty - which is the only state portrait ever shows - the two
+     * resolve to the same placement, so one write covers both variants.
+     */
+    private fun styleCommandButton(
+        button: MaterialButton,
+        minWidthRes: Int,
+        paddingStartRes: Int,
+        paddingEndRes: Int,
+        iconPaddingRes: Int
+    ) {
+        val res = activity.resources
+        button.minWidth = res.getDimensionPixelSize(minWidthRes)
+        button.setPaddingRelative(
+            res.getDimensionPixelSize(paddingStartRes),
+            button.paddingTop,
+            res.getDimensionPixelSize(paddingEndRes),
+            button.paddingBottom
+        )
+        button.iconPadding = res.getDimensionPixelSize(iconPaddingRes)
+        button.iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
+        button.setTextSize(TypedValue.COMPLEX_UNIT_PX, res.getDimension(R.dimen.main_cmd_text_size))
+        AppCompatResources.getColorStateList(activity, R.color.command_button_text)
+            ?.let(button::setTextColor)
+    }
+
+    /**
+     * The wide bar separates its commands with narrow Space cells that exist in no other variant, so
+     * this is the one part of the delta that has to create views rather than write attributes.
+     *
+     * Idempotent by construction: every cell this method creates carries [SEPARATOR_TAG], and the
+     * sync removes all tagged children before inserting the current set. A second rotation therefore
+     * replaces the row's separators instead of stacking another five, and the tag - rather than a
+     * field - is what remembers them, so the guarantee survives this manager being rebuilt over a
+     * view tree that already has them.
+     */
+    private fun syncControlBarSeparators() {
+        val bar = binding.layoutControlButtons
+        for (i in bar.childCount - 1 downTo 0) {
+            if (bar.getChildAt(i).tag == SEPARATOR_TAG) {
+                bar.removeViewAt(i)
+            }
+        }
+        val width = activity.resources.getDimensionPixelSize(R.dimen.main_cmd_bar_separator_width)
+        if (width <= 0) {
+            return
+        }
+        separatorAnchors.forEach { anchor ->
+            val index = bar.indexOfChild(anchor)
+            if (index >= 0) {
+                bar.addView(newSeparator(width), index + 1)
+            }
+        }
+    }
+
+    /** Each command the wide bar follows with a separator; the menu wrapper carries its own. */
+    private val separatorAnchors: List<View>
+        get() = listOf(
+            binding.btnAddResource,
+            binding.btnFilter,
+            binding.btnRefresh,
+            binding.btnSettings,
+            binding.btnToggleView
+        )
+
+    private fun newSeparator(width: Int): Space = Space(activity).apply {
+        tag = SEPARATOR_TAG
+        layoutParams = LinearLayout.LayoutParams(width, LinearLayout.LayoutParams.MATCH_PARENT)
     }
 
     /**
@@ -88,9 +217,23 @@ class MainLayoutChromeManager(
     fun applyControlBarOverflow() {
         val bar = binding.layoutControlButtons
         bar.doOnLayout {
-            val available = bar.width - bar.paddingStart - bar.paddingEnd
+            // S1549: the separators are children of the row but never candidates, so their width has
+            // to leave the budget - otherwise the planner fits a row wider than the one it measured
+            // and the last label is clipped again, the very failure S1672 removed.
+            val available = bar.width - bar.paddingStart - bar.paddingEnd - separatorsWidth(bar)
             if (available > 0) applyControlBarPlan(bar, available)
         }
+    }
+
+    private fun separatorsWidth(bar: ViewGroup): Int {
+        var total = 0
+        for (i in 0 until bar.childCount) {
+            val child = bar.getChildAt(i)
+            if (child.tag == SEPARATOR_TAG) {
+                total += child.layoutParams.width
+            }
+        }
+        return total
     }
 
     private fun applyControlBarPlan(bar: ViewGroup, availableWidthPx: Int) {
@@ -386,5 +529,10 @@ class MainLayoutChromeManager(
         } else {
             binding.tvFilterWarning.isVisible = false
         }
+    }
+
+    private companion object {
+        /** Marks the Space cells this class owns, so a re-sync can tell them from layout children. */
+        const val SEPARATOR_TAG = "s1549_control_bar_separator"
     }
 }

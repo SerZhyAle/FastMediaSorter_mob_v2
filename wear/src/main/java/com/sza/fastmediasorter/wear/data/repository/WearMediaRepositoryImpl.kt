@@ -82,6 +82,12 @@ class WearMediaRepositoryImpl(
             val albumIdColumn = if (mediaType == MediaType.MUSIC) {
                 cursor.getColumnIndex(MediaStore.Audio.AudioColumns.ALBUM_ID)
             } else -1
+            val artistColumn = if (mediaType == MediaType.MUSIC) {
+                cursor.getColumnIndex(MediaStore.Audio.AudioColumns.ARTIST)
+            } else -1
+            val albumColumn = if (mediaType == MediaType.MUSIC) {
+                cursor.getColumnIndex(MediaStore.Audio.AudioColumns.ALBUM)
+            } else -1
             
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idColumn)
@@ -106,7 +112,9 @@ class WearMediaRepositoryImpl(
                         size = size,
                         dateModified = dateModified,
                         duration = duration,
-                        albumArt = albumArt
+                        albumArt = albumArt,
+                        artist = if (artistColumn >= 0) cursor.getString(artistColumn) else null,
+                        album = if (albumColumn >= 0) cursor.getString(albumColumn) else null
                     )
                 )
             }
@@ -130,7 +138,10 @@ class WearMediaRepositoryImpl(
                 baseProjection,
                 arrayOf(
                     MediaStore.MediaColumns.DURATION,
-                    MediaStore.Audio.AudioColumns.ALBUM_ID
+                    MediaStore.Audio.AudioColumns.ALBUM_ID,
+                    // S1689: the network cover lookup asks by these two; nothing else reads them.
+                    MediaStore.Audio.AudioColumns.ARTIST,
+                    MediaStore.Audio.AudioColumns.ALBUM
                 )
             )
             MediaType.VIDEO -> Triple(

@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.wear.ui.network.NetworkSourcesScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncResultScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncTransferScreen
 import com.sza.fastmediasorter.wear.ui.permission.PermissionsScreen
+import com.sza.fastmediasorter.wear.ui.phone.PhoneResourceScreen
 import com.sza.fastmediasorter.wear.ui.player.audio.AudioPlayerScreen
 import com.sza.fastmediasorter.wear.ui.player.image.ImageViewerScreen
 import com.sza.fastmediasorter.wear.ui.player.video.VideoPlayerScreen
@@ -64,7 +65,8 @@ class MainActivity : ComponentActivity() {
                 packageManager.getPackageInfo(packageName, 0)
             }
             val versionName = packageInfo.versionName ?: "unknown"
-            val versionCode = packageInfo.versionCode
+            // longVersionCode is the non-deprecated reader and exists from API 28, the module minimum.
+            val versionCode = packageInfo.longVersionCode
             
             Timber.d("========== FastMediaSorter Wear OS ==========")
             Timber.d("Version: $versionName")
@@ -155,6 +157,11 @@ fun MainNavigation() {
         // Network sources list screen
         composable("network_sources") {
             NetworkSourcesScreen(navController = navController)
+        }
+
+        // Paired-phone resource browser (S1697)
+        composable("phone_resource") {
+            PhoneResourceScreen(navController = navController)
         }
         
         // Add network source screen

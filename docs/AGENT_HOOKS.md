@@ -26,6 +26,7 @@ The canon ships some of these guards in its own `hooks/` folder. Until the *inst
 | `observe-empty-grep.ps1` | PostToolUse / Grep | observes | project | - | `.claude/hooks/tests/Run-ObserveEmptyGrep-Tests.ps1` |
 | `nudge-small-task-tier.ps1` | UserPromptSubmit | nudges | project | - | - |
 | `reset-catalog-touch-marker.ps1` | SessionStart | arms | project | - | - |
+| `refuse-spec-do-stop.ps1` | Stop | **refuses** | project | - | `.claude/hooks/tests/Run-RefuseSpecDoStop-Tests.ps1` |
 
 ## Contracts and escape hatches
 
@@ -37,6 +38,12 @@ The canon ships some of these guards in its own `hooks/` folder. Until the *inst
 - **`guard-bash-unavailable-command`** (Rule 28) refuses three heads: a PowerShell cmdlet, an interpreter absent from this machine (`node`, `npm`, `npx`), and `& {` at the start of a command. **Escape:** the PowerShell tool, or `pwsh -NoProfile -Command "<pipeline>"`. Only a *head* is refused - a cmdlet in quotes, in a heredoc, or as an argument passes. `python3` is deliberately **not** refused: `~/bin/python3` shims to the `python` on PATH.
 - **`guard-bash-slash-arg`** (Rule 27) refuses a slash-command name as an argument value in a Bash-tool `pwsh` call, because MSYS rewrites the leading `/name` into the Git installation root **silently**, at exit code 0, corrupting lock and lease diagnostics. **Escape:** double the slash (`//spec-dev ..`), prefix `MSYS2_ARG_CONV_EXCL='*'`, or issue the call from the PowerShell tool. A real path like `/release/x` is never refused; only a name matching `.claude/commands/*.md` closed by whitespace or a quote.
 - **`guard-catalog-before-kt-search`** refuses an **unnarrowed** Kotlin search issued before the class catalogue was consulted this session. All three must hold: the tool is `Grep`/`Glob`, the call targets `.kt`, and it carries no path or glob restricting it to a subtree. **Escape:** name a subtree, or run `dev/CATALOG/scripts/query.ps1` first - any successful query writes `temp/catalog-touch.marker`, which is the pass condition for the rest of the session.
+
+### Refusing to finish - the one hook that guards a turn, not a tool call
+
+- **`refuse-spec-do-stop`** is the only hook on the `Stop` event, and the only one whose subject is the model rather than a tool call: while a `/spec-do` endless marker is armed for **this** session, it answers the Stop event with `{"decision":"block"}` and hands the loop its own next step. It exists because `/spec-do`'s "only the operator ends this loop" was prose, and a loop ended itself at a round boundary anyway, asking the operator to compact and say "continue" - a stop wearing a report's clothes. **Escape:** `pwsh -NoProfile -File scripts/utils/spec-do-marker.ps1 -Action disarm -Token <token>`, which the refusal text always names; the hook never arms anything itself, so a session that armed nothing is never touched.
+- Four allow-paths keep it from holding a session hostage, each pinned by a contract test: no marker; a marker claimed by a **different** session; a marker older than 24 h (purged, never inherited - a killed session must not hold a new one open); and a **live idle wait**, `temp/SPEC-DO.WORK-*.json` with `outcome: waiting` refreshed within 15 minutes, because blocking there would force the loop to spin instead of waiting. A streak of blocks under 20 s apart escalates the instruction to "launch the waiter in the background" rather than surrendering - the cure for a spin is the wait, not a stop.
+- It ignores `stop_hook_active` on purpose. That flag exists so an ordinary hook cannot loop forever; looping forever is this one's contract.
 
 ### Rewriting and observing
 

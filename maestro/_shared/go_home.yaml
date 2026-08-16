@@ -10,7 +10,57 @@ appId: com.sza.fastmediasorter.debug
 #
 # Each back is guarded on tabResourceTypes, so a screen that is already home is never
 # over-backed out of (which would exit the app).
+#
+# S1673: backing out is not always enough. A back press only walks the app's own task stack, so
+# any state where the foreground screen is NOT on that stack is unreachable by backing. Launcher
+# mode is the case that surfaced it: with the HOME component enabled, leaving MainActivity lands
+# on the app's own LauncherHomeActivity desktop, from which back never returns to MainActivity -
+# the three guarded backs then change nothing and the final assert fails naming tabResourceTypes,
+# pointing at the resource tabs instead of at the launcher mode that actually caused it. Because
+# this fragment backs every capability flow, that turns one leftover device setting into a red
+# suite - the false red that teaches the reader to ignore red.
+#
+# The relaunch below is the escape hatch. LauncherHomeActivity declares MAIN/HOME only, while
+# MainActivity holds MAIN/LAUNCHER, so the launcher intent Maestro fires always resolves to
+# MainActivity regardless of launcher mode. That makes the suite independent of the setting
+# instead of dependent on the operator having turned it back off, which nothing enforces.
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+    commands:
+      - back
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+    commands:
+      - back
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+    commands:
+      - back
+      - waitForAnimationToEnd
 
+# Escape hatch - only reached when backing out failed, i.e. the foreground screen is not on the
+# app's back stack. stopApp drops whatever task is in the way; clearState is deliberately NOT set,
+# because it would wipe the registered resources every flow depends on.
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+    commands:
+      - launchApp:
+          appId: "com.sza.fastmediasorter.debug"
+          stopApp: true
+      - waitForAnimationToEnd
+
+# The relaunch is a cold start, so resumeOnNextLaunch can reopen the last played file on top of
+# MainActivity. Back out of that restored screen the same guarded way as above.
 - runFlow:
     when:
       notVisible:
@@ -25,12 +75,7 @@ appId: com.sza.fastmediasorter.debug
     commands:
       - back
       - waitForAnimationToEnd
-- runFlow:
-    when:
-      notVisible:
-        id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
-    commands:
-      - back
-      - waitForAnimationToEnd
+
 - assertVisible:
     id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+    label: "Main resource-type tabs reached (after back-cascade and relaunch escape - S1673)"

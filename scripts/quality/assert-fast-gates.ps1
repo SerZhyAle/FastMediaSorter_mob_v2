@@ -22,6 +22,7 @@
 - assert-sdk-pin-claims        (S1438 SDK pins stated in prose vs the build files)
       - assert-ctor-arg-slots        (S1470 primary constructors near the 255 argument-slot ceiling)
       - assert-packaging-excludes-parity (S1679 shared-library payload stripped in one module only)
+      - assert-splash-brand-sync     (S1706 generated splash drawables vs their strings and template)
       - assert-retired-dependency-names (S1489 prose naming a dependency the project replaced)
       - assert-notification-small-icon (S1399 a small-icon setter handed a drawable literal)
       - assert-backup-rules-consistent (S1552 API 31+ extraction rules vs the pre-31 backup rules)
@@ -98,6 +99,10 @@ $gates = [ordered]@{
     # wear shipped them for months - 1.2 MB, 10 % of its release APK, on a watch. Parses the two
     # build files by brace balance, no gradle daemon.
     'assert-packaging-excludes-parity.ps1'      = @('-Quiet')
+    # S1706: ic_splash_app_brand.xml is generated per locale from the strings and one template, so a
+    # hand edit to one variant compiles and renders while silently diverging from the other twelve.
+    # Runs the generator in -Check mode for both modules; no gradle daemon.
+    'assert-splash-brand-sync.ps1'              = @('-Quiet')
     # S1438: SDK pins stated in ORDINARY PROSE, which the managed-block gate above cannot see -
     # an index line, an architecture bullet, an agent definition, agent memory. Eight copies said
     # compileSdk 35 while Gradle compiled against 36, and an agent reading one concludes an API is

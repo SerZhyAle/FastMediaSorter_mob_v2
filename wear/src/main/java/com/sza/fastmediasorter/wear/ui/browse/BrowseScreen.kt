@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.browse
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,15 +21,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import timber.log.Timber
 
 /**
@@ -68,29 +74,42 @@ fun BrowseScreen(
     
     Timber.d("BrowseScreen composing with state: $uiState")
     
-    when (val state = uiState) {
-        is BrowseUiState.Loading -> {
-            LoadingContent()
+    val listState = rememberScalingLazyListState()
+
+    WearScreenScaffold(
+        contentPadding = PaddingValues(0.dp),
+        // Only the list branch scrolls, so only it has a position to indicate.
+        positionIndicator = if (uiState is BrowseUiState.Success) {
+            { PositionIndicator(listState) }
+        } else {
+            null
         }
-        is BrowseUiState.Success -> {
-            MediaListContent(
-                title = title,
-                files = state.files,
-                mediaType = mediaType,
-                onFileClick = { file ->
-                    viewModel.selectFile(file)
-                    navigateToPlayer(navController, file, mediaType)
-                }
-            )
-        }
-        is BrowseUiState.Empty -> {
-            EmptyContent(message = state.message)
-        }
-        is BrowseUiState.Error -> {
-            ErrorContent(
-                message = state.message,
-                onRetry = { viewModel.loadMediaFiles() }
-            )
+    ) {
+        when (val state = uiState) {
+            is BrowseUiState.Loading -> {
+                LoadingContent()
+            }
+            is BrowseUiState.Success -> {
+                MediaListContent(
+                    title = title,
+                    files = state.files,
+                    mediaType = mediaType,
+                    listState = listState,
+                    onFileClick = { file ->
+                        viewModel.selectFile(file)
+                        navigateToPlayer(navController, file, mediaType)
+                    }
+                )
+            }
+            is BrowseUiState.Empty -> {
+                EmptyContent(message = state.message)
+            }
+            is BrowseUiState.Error -> {
+                ErrorContent(
+                    message = state.message,
+                    onRetry = { viewModel.loadMediaFiles() }
+                )
+            }
         }
     }
 }
@@ -98,7 +117,9 @@ fun BrowseScreen(
 @Composable
 private fun LoadingContent() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(wearScreenInsets()),
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
@@ -112,10 +133,13 @@ private fun MediaListContent(
     title: String,
     files: List<WearMediaFile>,
     mediaType: MediaType,
+    listState: ScalingLazyListState,
     onFileClick: (WearMediaFile) -> Unit
 ) {
     ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        state = listState,
+        contentPadding = wearScreenInsets()
     ) {
         // Title header
         item {
@@ -186,7 +210,9 @@ private fun MediaFileChip(
 @Composable
 private fun EmptyContent(message: String) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(wearScreenInsets()),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -212,7 +238,9 @@ private fun ErrorContent(
     onRetry: () -> Unit
 ) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(wearScreenInsets()),
         contentAlignment = Alignment.Center
     ) {
         Column(

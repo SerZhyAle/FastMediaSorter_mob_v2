@@ -1,0 +1,32 @@
+# orientation-layout-pairing exceptions (S1549).
+#
+# Two line shapes, both carry a reason after ' #' - an entry without a reason is
+# indistinguishable from a forgotten defect:
+#
+#   <ActivitySimpleName>  # <reason the keep-absorption branch is correct for it>
+#   layout:<base|base.*>=<SimpleName>[,<SimpleName>..]  # <why the convention cannot reach it>
+#
+# The bare form is an exemption: the activity keeps absorbing orientation on purpose and
+# re-applies its landscape layout in code. The 'layout:' form is NOT an exemption - it maps
+# an activity to a landscape layout its simple name cannot reach by the activity_*
+# convention, so the gate can pair them. '.*' is a prefix wildcard over layout base names.
+#
+# Landscape ownership mappings (used by the gate, not exemptions):
+layout:activity_player_unified=PlayerActivity,StandalonePlayerActivity  # shared unified player layout; two activities inflate it, neither name reaches it by convention
+layout:activity_standalone_photo_video=PhotoVideoStandaloneActivity  # layout name drops the 'standalone' word order the convention would produce
+layout:activity_standalone_audio=AudioStandaloneActivity  # same convention break
+layout:activity_standalone_document=DocumentStandaloneActivity  # same convention break
+layout:activity_standalone_text=TextStandaloneActivity  # same convention break
+layout:fragment_auth_sessions_list=AuthSessionsActivity  # landscape layout belongs to the hosted list fragment, not the activity itself
+layout:page_welcome.*=WelcomeActivity  # the pager's seven page_welcome* layouts, hosted via the pager adapter
+#
+# Exemptions (keep-absorption branch, fixed in code):
+WelcomeActivity  # S1377: WelcomeRotationManager (registerComponentCallbacks) rebuilds the pager on a real orientation flip, which re-inflates the pages
+BrowseActivity  # keeps its browse session and scroll position, so it absorbs on purpose; re-applies the landscape command bar in BrowseButtonSetupHelper.applyCommandBarMetrics, driven from onLayoutConfigurationChanged (S1549 phase 05)
+MainActivity  # keeps the resource list and its panels, so it absorbs on purpose; re-applies the landscape command bar in MainLayoutChromeManager.applyCommandBarMetrics and the tab strip anchor in MainResourceTabsManager.applyLeadingAnchor (S1549 phase 05)
+#
+# Screens that deliberately appear nowhere in this file, and why they are not exceptions: CalculatorActivity,
+# GameHelpActivity, SettingsActivity and AuthSessionsActivity stopped absorbing orientation
+# (S1549 phases 03 and 06), and StreamsActivity's and LauncherHomeActivity's duplicate landscape
+# layout files were deleted once their whole delta moved into values-land - an activity that owns no
+# landscape layout is not paired by this gate in the first place.

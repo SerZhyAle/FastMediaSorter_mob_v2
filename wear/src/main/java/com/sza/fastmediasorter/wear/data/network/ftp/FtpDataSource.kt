@@ -1,14 +1,13 @@
 package com.sza.fastmediasorter.wear.data.network.ftp
 
 import android.net.Uri
-import android.webkit.MimeTypeMap
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.util.MediaMimeTypes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
-import org.apache.commons.net.ftp.FTPReply
 import timber.log.Timber
 import java.io.FilterInputStream
 import java.io.IOException
@@ -37,7 +36,7 @@ class FtpDataSource @Inject constructor() {
                         id = index.toLong(),
                         name = ftpFile.name,
                         uri = Uri.parse("ftp://${source.server}:${source.port}$filePath"),
-                        mimeType = inferMimeType(ftpFile.name),
+                        mimeType = MediaMimeTypes.fromFileName(ftpFile.name),
                         size = ftpFile.size,
                         dateModified = ftpFile.timestamp?.timeInMillis ?: 0L
                     )
@@ -82,23 +81,7 @@ class FtpDataSource @Inject constructor() {
         return Result.failure(cause)
     }
 
-    private fun openSession(client: FTPClient, source: NetworkSource) {
-        // S1688: before connect, never after - the control-channel reader is built inside connect
-        // from the encoding current at that moment.
-        client.applyUtf8Encoding()
-        client.connect(source.server, source.port)
-        val replyCode = client.replyCode
-        if (!FTPReply.isPositiveCompletion(replyCode)) {
-            error("FTP server refused connection (code=$replyCode)")
-        }
-        if (!client.login(source.username, source.password)) {
-            error("FTP login failed for ${source.username}@${source.server}")
-        }
-        // S1688: RFC 2640 servers decode names as UTF-8 only after this; older ones refuse it and
-        // keep working on the pre-connect encoding alone.
-        client.enableUtf8Mode()
-        client.enterLocalPassiveMode()
-    }
+    private fun openSession(client: FTPClient, source: NetworkSource) = client.openFtpSession(source)
 
     /**
      * The control connection has to outlive the data stream: commons-net only finishes the transfer
@@ -121,11 +104,5 @@ class FtpDataSource @Inject constructor() {
                 runCatching { if (client.isConnected) client.disconnect() }
             }
         }
-    }
-
-    private fun inferMimeType(fileName: String): String? {
-        val ext = fileName.substringAfterLast('.', "").lowercase()
-        if (ext.isEmpty()) return null
-        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
     }
 }

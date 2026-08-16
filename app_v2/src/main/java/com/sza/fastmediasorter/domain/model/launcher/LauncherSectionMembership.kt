@@ -39,16 +39,123 @@ object LauncherSectionMembership {
     /**
      * The rows carrying a header, ascending and without duplicates.
      *
-     * Two headers on one row is not a state the desktop can reach - a header covers the whole row, so
-     * the overlap invariant refuses the second - but a row is still distinct-ed here rather than
-     * asserted: this reads persisted data, and a defensive distinct costs nothing next to a boundary
-     * list that silently contains the same row twice.
+     * S1645 corrects what this used to claim. While a header covered the whole row, two headers on one
+     * row was unreachable and the overlap invariant refused the second; S1642 narrowed the header to
+     * [HEADER_SPAN_W] columns, so a row can now carry several. The distinct here is what keeps this
+     * boundary list well-formed in that case, and [sectionsInOrder] is what answers ownership when it
+     * happens - a row number alone no longer can.
      */
     fun headerRows(cells: List<LauncherCell>): List<Int> = cells
         .filter { it.kind == LauncherCellKind.SECTION }
         .map { it.rowIndex.coerceAtLeast(0) }
         .distinct()
         .sorted()
+
+    /**
+     * S1645: every section header in the order the desktop reads them - by stored row ascending, then by
+     * stored column ascending.
+     *
+     * This is the owner's ruling of 2026-08-15 expressed as a function: sections pack top to bottom and
+     * left to right, in the order the user saw before collapsing. It follows a dragged header on its own,
+     * so no second stored property is needed to remember an order.
+     */
+    fun sectionsInOrder(cells: List<LauncherCell>): List<LauncherCell> = cells
+        .filter { it.kind == LauncherCellKind.SECTION }
+        .sortedWith(compareBy({ it.rowIndex.coerceAtLeast(0) }, { it.colIndex.coerceAtLeast(0) }))
+
+    /**
+     * The header owning [cell], or null when [cell] precedes every header.
+     *
+     * A cell belongs to the last header that precedes it in [sectionsInOrder]. On a row carrying two
+     * headers that means a cell belongs to the header on its left and never to both, which is the case
+     * [sectionHeaderRowFor] cannot express: it compares rows only, so both headers of a shared row are
+     * equally "at or above" it.
+     *
+     * A header is owned by itself, which is what keeps collapsing addressable by the header the user
+     * tapped.
+     */
+    fun ownerOf(cell: LauncherCell, sectionsInOrder: List<LauncherCell>): LauncherCell? {
+        val row = cell.rowIndex.coerceAtLeast(0)
+        val col = cell.colIndex.coerceAtLeast(0)
+        return sectionsInOrder.lastOrNull { header ->
+            val headerRow = header.rowIndex.coerceAtLeast(0)
+            val headerCol = header.colIndex.coerceAtLeast(0)
+            headerRow < row || (headerRow == row && headerCol <= col)
+        }
+    }
+
+    /**
+     * S1645: where each collapsed header is drawn once consecutive collapsed sections share rows.
+     *
+     * Returns a position per collapsed header, keyed by that header's [LauncherCell.target] - the stable
+     * identity a section is addressed by, never its row. A header takes the first position of the
+     * current packed row that leaves room for its whole [HEADER_SPAN_W]; when the remainder is narrower,
+     * it starts the next row, because ADR-2 forbids a header split across rows.
+     *
+     * A chain is a run of consecutive sections that show nothing: collapsed ones, and empty ones whether
+     * collapsed or not (owner, 2026-08-15 - a whole row spent on a section with nothing to show is
+     * wasted). A section with visible content ends the chain, and the next chain starts below whatever
+     * that content occupies.
+     *
+     * [renderRowOf] supplies the row a header is already drawn on - [renderRowFor]'s answer, not the
+     * stored row. Packing is a second pass over the fold, so it must continue that lift rather than
+     * restart from storage; a header [renderRowOf] hides is skipped.
+     *
+     * Pure arithmetic: nothing here reads or writes a cell, which is what keeps expanding able to land
+     * every shortcut back on its own square (ADR-1).
+     */
+    fun packedHeaderPositions(
+        cells: List<LauncherCell>,
+        collapsedTargets: Set<String>,
+        columns: Int,
+        renderRowOf: (LauncherCell) -> Int?,
+    ): Map<String, PackedPosition> {
+        // Nothing folded, nothing packed. An empty section is chainable by the rule above whether or not
+        // it is collapsed, so without this a desktop with no collapsed section at all - and edit mode,
+        // which folds nothing by design - would still see its empty headers moved off their squares.
+        if (collapsedTargets.isEmpty()) {
+            return emptyMap()
+        }
+        val width = columns.coerceAtLeast(HEADER_SPAN_W)
+        val sections = sectionsInOrder(cells)
+        // One pass over the content cells instead of one per header: the render path runs this on every
+        // fold, and asking "does this section own anything" per header would be quadratic.
+        val ownersWithContent = cells
+            .filter { it.kind != LauncherCellKind.SECTION }
+            .mapNotNull { ownerOf(it, sections)?.target }
+            .toSet()
+        val positions = mutableMapOf<String, PackedPosition>()
+        var packRow = -1
+        var nextCol = width
+        for (header in sections) {
+            val chainable = header.target in collapsedTargets || header.target !in ownersWithContent
+            if (!chainable) {
+                packRow = -1
+                nextCol = width
+            }
+            // The chain starts at the row the header is DRAWN on, not the row it is stored at: folding
+            // has already lifted everything below a collapsed section, and packing on top of stored rows
+            // would fight that lift instead of continuing it. A header the fold hides has no drawn row
+            // and takes no position, while leaving the chain it belongs to intact.
+            val startRow = if (chainable) renderRowOf(header) else null
+            if (startRow != null) {
+                if (packRow < 0) {
+                    packRow = startRow.coerceAtLeast(0)
+                    nextCol = 0
+                }
+                if (nextCol + HEADER_SPAN_W > width) {
+                    packRow += 1
+                    nextCol = 0
+                }
+                positions[header.target] = PackedPosition(row = packRow, col = nextCol)
+                nextCol += HEADER_SPAN_W
+            }
+        }
+        return positions
+    }
+
+    /** The row and column a packed header is drawn at. Never stored - see [packedHeaderPositions]. */
+    data class PackedPosition(val row: Int, val col: Int)
 
     /**
      * The header row owning [row], or null when [row] lies above every header.

@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
+import timber.log.Timber
 
 /**
  * S1683: the bezel's action arrives as a lambda and this file never learns what it does. The owner
@@ -53,6 +54,7 @@ fun Modifier.rotaryActionSteps(onStep: (Int) -> Unit): Modifier {
     val focusRequester = rememberRotaryFocus()
     val accumulator = remember { RotaryStepAccumulator() }
     return this.rotaryAction(focusRequester) { delta ->
+        Timber.d("S1683: rotary delta=$delta")
         accumulator.add(delta, onStep)
     }
 }

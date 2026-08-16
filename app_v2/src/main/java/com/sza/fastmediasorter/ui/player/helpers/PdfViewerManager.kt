@@ -746,6 +746,24 @@ class PdfViewerManager(
 
     // ── Lifecycle ──────────────────────────────────────────────────────────────
 
+    /**
+     * S1549: re-point at a re-inflated hierarchy. The renderer, the open file descriptor and the
+     * current page index stay untouched - only the views this manager writes into are replaced, so
+     * the caller re-renders the current page afterwards.
+     */
+    override fun rebindLayoutRoot(newRoot: View) {
+        // The selection overlay was inflated into the discarded tree; drop it before losing the
+        // container that owns it, otherwise the mode stays "on" with no view behind it.
+        if (pdfTextSelectionManager.isInTextSelectionMode()) {
+            pdfTextSelectionManager.exitTextSelectionMode()
+        }
+        safeViews.photoView.removeOnLayoutChangeListener(rotationCarryLayoutListener)
+        super.rebindLayoutRoot(newRoot)
+        safeViews.rebindRoot(newRoot)
+        pdfTextSelectionManager.rebindLayoutRoot(newRoot)
+        safeViews.photoView.addOnLayoutChangeListener(rotationCarryLayoutListener)
+    }
+
     /** Close PDF renderer and release resources. Saves current page position before closing. */
     fun close() {
         // Save position before closing
@@ -846,6 +864,9 @@ class PdfViewerManager(
             isSwappingPageBitmap = false
         }
     }
+
+    /** S1549: exposes the held page index so a host re-inflate can re-render it on the fresh tree. */
+    fun currentPageIndex(): Int = currentPdfPageIndex
 
     fun showPdfPage(index: Int) {
         if (pdfRenderer == null || pdfPageCount == 0) return

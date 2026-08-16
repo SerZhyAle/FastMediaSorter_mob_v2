@@ -162,7 +162,25 @@ class PlayerActivity :
     internal var nowPlayingManager: com.sza.fastmediasorter.ui.player.helpers.NowPlayingManager? = null
     internal var sleepTimerManager: com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = null
     internal var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
-    internal val safeViews by lazy { PlayerBindingSafeViews(binding) }
+    // S1549: NOT a `by lazy`. A lazy never recomputes, so after a re-inflate it would keep handing
+    // out accessors resolved against the discarded hierarchy no matter how the binding is reassigned.
+    // Every consumer (PlayerViewerFactory included) reads through this property, so dropping the
+    // cached instance is enough to re-point all of them.
+    private var _safeViews: PlayerBindingSafeViews? = null
+    internal val safeViews: PlayerBindingSafeViews
+        get() = _safeViews ?: PlayerBindingSafeViews(binding).also { _safeViews = it }
+
+    /** S1549: drop the cached [safeViews] so the next read resolves against the current binding. */
+    internal fun invalidateSafeViews() {
+        _safeViews = null
+    }
+
+    /** S1549: orientation the current content view was inflated for; a flip drives the re-inflate. */
+    private var lastAppliedOrientation = Configuration.ORIENTATION_UNDEFINED
+
+    /** S1549: owns the per-holder re-bind operations after a re-inflate (see its KDoc inventory). */
+    private val playerLayoutRebindManager =
+        com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutRebindManager()
     internal lateinit var dialogAndUiStateManager: PlayerDialogAndUiStateManager
 
     // S0550: assigned late in PlayerManagerInitializer.initUiCoordinators(); the slideshow callback
@@ -536,6 +554,7 @@ class PlayerActivity :
         if (!slideshowModeRequested && viewModel.resumeSlideshowEnabled) {
             slideshowModeRequested = true
         }
+        lastAppliedOrientation = resources.configuration.orientation
         initializeManagers()
         // S0159: pre-activate draw overlay when launched from Browse overflow ⋮ menu
         if (intent.getBooleanExtra(EXTRA_ACTIVATE_DRAW_MODE, false)) {
@@ -614,6 +633,10 @@ class PlayerActivity :
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        if (newConfig.orientation != lastAppliedOrientation) {
+            lastAppliedOrientation = newConfig.orientation
+            rebindLayoutForOrientation()
+        }
         if (::commandPanelController.isInitialized) commandPanelController.notifyMultiWindowModeChanged()
         commandPanelController.updateOrientation(newConfig)
         // Hardware keyboard attach/detach arrives as a configuration change - re-evaluate slot number badges.
@@ -641,6 +664,61 @@ class PlayerActivity :
             binding.photoView.setImageDrawable(null)
             lifecycleScope.launch(Dispatchers.Main) { displayImage(currentFile.path) }
         }
+    }
+
+    /**
+     * S1549: apply the orientation-specific layout variant without a recreate - the player family
+     * absorbs rotation on purpose (ADR-1: a recreate tears down the live render surface). Re-inflates
+     * via [rebindContentView], re-points the stateful holders from the PlayerLayoutRebindManager
+     * inventory, re-runs the binding-bound half of manager construction (owner ruling 2026-08-16,
+     * strategic §6 item 5, variant A) and re-wires the listeners that died with the old tree.
+     */
+    private fun rebindLayoutForOrientation() {
+        rebindContentView()
+        invalidateSafeViews()
+        playerLayoutRebindManager.rebindDocumentViewers(
+            binding.root,
+            _pdfViewerManager,
+            _epubViewerManager,
+            _textViewerManager,
+            _officeDocumentViewerManager,
+        )
+        if (isDrawOverlayManagerReady) {
+            binding.photoDualSurfaceContainer?.let { container ->
+                playerLayoutRebindManager.rebindDrawOverlay(
+                    imageDrawOverlayManager,
+                    container,
+                    binding.drawOverlayToolbarStub.root,
+                )
+            }
+        }
+        _videoPlayerManager?.let { playerLayoutRebindManager.repointVideoSurface(it, binding.playerView) }
+        // Re-point the screen-level holders that capture the binding (constructed once per screen).
+        commandPanelController.rebind(activityBinding)
+        translationButtonManager.rebindRoot(binding.root)
+        lyricsManager.rebindRoot(binding.root)
+        nowPlayingManager?.rebind(activityBinding)
+        audioEmptyStateController?.rebindViews(
+            binding.audioCoverArtView,
+            binding.audioBarsView,
+            binding.audioVideoView,
+            binding.audioWaveParticleView,
+        )
+        // Re-create the binding-bound graph against the fresh tree, then re-point the media
+        // loader at the two helpers it drives.
+        playerManagerInitializer.constructBindingBoundManagers()
+        mediaLoaderManager.rebind(activityBinding, imageLoadingManager, exoPlayerControlsManager)
+        // Re-wire the listeners that were bound to the discarded tree.
+        setupGestureDetector()
+        setupToolbar()
+        setupControls()
+        setupCommandPanelControls()
+        setupTouchZones()
+        setupGoogleLensButtons()
+        if (_videoPlayerManager != null) exoPlayerControlsManager.setupExoPlayerNavigationButtons()
+        // Re-render what the fresh views start without (EPUB/Office move their live WebView over).
+        _pdfViewerManager?.let { it.showPdfPage(it.currentPageIndex()) }
+        _textViewerManager?.rerenderAfterRebind()
     }
 
     override fun setupViews() {

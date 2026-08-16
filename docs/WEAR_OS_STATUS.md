@@ -5,7 +5,7 @@ permalink: /docs/WEAR_OS_STATUS.html
 ---
 # Wear OS Development Status
 
-**Last Updated**: 2026-01-27
+**Last Updated**: 2026-08-16
 **Status**: ⚠️ Phases 0-4 Partially Implemented (Requires Testing & Integration Verification)
 **Module**: `:wear`
 
@@ -36,6 +36,7 @@ permalink: /docs/WEAR_OS_STATUS.html
   - Hilt Navigation Compose (for hiltViewModel)
   - Accompanist Permissions (for runtime permissions)
 - ✅ Configured `AndroidManifest.xml` (Standalone app + Media permissions)
+- ✅ Startup splash (S1706): the module owns `values/themes.xml` and a `values-v31` redefinition carrying the splash attributes, so a cold start opens on the brand logo instead of a bare system background. Android 12 and newer only, matching the phone. The drawable is generated - see `docs/DEV_OPS.md` "Generated splash drawables".
 
 ### 2. Architecture
 
@@ -59,6 +60,7 @@ permalink: /docs/WEAR_OS_STATUS.html
 - **Data Layer**:
   - ✅ `WearMediaRepositoryImpl` - implementation via MediaStore API
 - **UI Layer**:
+  - ✅ `WearScreenScaffold` (`ui/common/`) - the common root every screen composes through; supplies the clock, the scroll indicator, and a safe area derived from the shape the platform reports, so content stays inside the glass on a round watch (S1678)
   - ✅ `BrowseViewModel` - ViewModel for file list
   - ✅ `BrowseScreen` - screen with file list (ScalingLazyColumn)
   - ✅ `BrowseUiState` - sealed class for UI states
@@ -289,6 +291,26 @@ permalink: /docs/WEAR_OS_STATUS.html
 | **Hilt DI**             | ✅     | @HiltViewModel, @AndroidEntryPoint  |
 | **Navigation**          | ✅     | SwipeDismissableNavHost             |
 | **Home Screen**         | ✅     | Categories with Settings button     |
+
+### Player rework, 2026-08-16 (S1683)
+
+Everything below was measured or watched on the owner's Galaxy Watch 7, not inferred.
+
+| Capability | Where | Notes |
+| ---------- | ----- | ----- |
+| Controls always reachable | audio, video | The players scroll instead of clipping; the control row used to be pushed past the bottom edge of a round screen, where it could not be pressed at all. |
+| File paging | audio, video, images | Buttons page through the set the user was browsing, wrapping at both ends. Not a gesture: the Wear dismiss gesture fires on about 64% of the screen width from any starting point, so a horizontal swipe cannot be shared with it. |
+| Rotary seek | audio, video | The bezel moves the position inside the file by 10 seconds a step and never changes the file. A watch without a bezel loses nothing - every action is also a button. |
+| Album art | audio | Shown full-bleed behind the controls when the file carries one. A MediaStore album-art uri exists for every track that belongs to an album, so the fallback keys on the image failing to load, not on the uri being absent. |
+| Brand background | audio | The waves-and-particles animation, at the same speed as the phone and the website with fewer elements. It stops when playback pauses: measured 1277 CPU ticks per ten seconds running against 3 stopped. |
+| Screen-off mode | audio | A button blanks the screen and any touch restores it. Playback continues, because the display is never allowed to time out for real - `ON_STOP` pauses playback by S0902 design. |
+| Clock | all three players | HH:MM at top centre, from the Wear scaffold, in every state except the blanked screen. |
+| Localization | browse, all three players | Titles and player literals come from resources in EN/RU/UK. The list title used to stay English under a Russian interface. |
+| Touch targets | all three players | Every control is 48.dp, the Wear OS minimum. Wear Compose 1.2.1 has no way to enlarge a press target without enlarging the button. |
+
+Known cost, tracked separately as S1709: the audio player burns about 70% of a core while playing
+with a static screen, more than the animation costs. Stopping the position updates was tried and
+measured - it changed nothing, so the recomposition is not the cause.
 
 **Excluded from MVP**:
 

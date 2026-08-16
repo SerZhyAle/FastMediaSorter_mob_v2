@@ -1836,6 +1836,16 @@ scripts/quality/assert-orientation-implied-feature.ps1
     -Gate         [SwitchParameter]
 ```
 
+### assert-orientation-layout-pairing.ps1
+
+```
+scripts/quality/assert-orientation-layout-pairing.ps1
+  Params:
+    -Gate         [SwitchParameter]
+    -List         [SwitchParameter]
+  Exit: 0 every activity clean, or a non-gate report/-List run.; 1 -Gate and at least one activity absorbs orientation while owning a landscape layout.; 2 cannot verify - no manifest found, or the source root does not exist.
+```
+
 ### assert-oss-notices.ps1
 S1495 - OSS notice conformance gate.
 
@@ -1992,6 +2002,19 @@ scripts/quality/assert-source-gates.ps1
     -Only                   [String[]]
     -ChangedFiles           [String[]]
   Exit: 0 every rule at or below its baseline, or a non-gate report run.; 1 -Gate and at least one rule is above its baseline.; 2 cannot verify - an unknown rule name in -Only, or a source root that does not exist.
+```
+
+### assert-splash-brand-sync.ps1
+S1706 - generated splash brand drawables vs their source.
+
+```
+scripts/quality/assert-splash-brand-sync.ps1
+  S1706 - generated splash brand drawables vs their source.
+  Params:
+    -Module         [String]  {app_v2|wear}
+    -Gate           [SwitchParameter]
+    -Quiet          [SwitchParameter]
+  Exit: 0 every generated drawable matches its source; 1 at least one drawable diverges, or a slogan no longer fits the mask circle; 2 could not verify: the generator is missing, or python/fontTools is unavailable
 ```
 
 ### assert-string-format.ps1
@@ -2314,6 +2337,16 @@ scripts/quality/assert-hook-inventory.tests/run-tests.ps1
 
 ```
 scripts/quality/assert-listener-symmetry.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-orientation-layout-pairing.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-orientation-layout-pairing.tests/Run-Tests.ps1
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
@@ -3420,6 +3453,17 @@ scripts/utils/generate-quality-report.ps1
     -Flavor             [String] = "standard"
 ```
 
+### generate-splash-brand.ps1
+Generate the splash brand drawable for every locale that declares `splash_slogan`.
+
+```
+scripts/utils/generate-splash-brand.ps1
+  Generate the splash brand drawable for every locale that declares `splash_slogan`.
+  Params:
+    -Module         [String] = 'app_v2'  {app_v2|wear}
+    -Check          [SwitchParameter]
+```
+
 ### help.ps1
 Print the parameter signature of any repo PowerShell script, or generate a full cheatsheet - so callers stop re-reading scripts just to recall params.
 
@@ -3731,6 +3775,19 @@ scripts/utils/setup-avd-for-tests.ps1
     -SkipPermissions         [SwitchParameter]
 ```
 
+### spec-do-marker.ps1
+
+```
+scripts/utils/spec-do-marker.ps1
+  Params:
+    -Action           [String] = 'list'  {arm|disarm|list}
+    -Token            [String] = ''
+    -Reason           [String] = ''
+    -All              [SwitchParameter]
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - the requested state holds (armed, disarmed, or listed).; 2 - could not verify - temp/ is unreadable or a marker could not be written.; 4 - usage error (disarm without -Token and without -All).
+```
+
 ### test-agent-lock-queue.ps1
 
 ```
@@ -3764,11 +3821,10 @@ scripts/utils/wait-for-lock-turn.ps1
 scripts/utils/wait-for-ticket-work.ps1
   Params:
     -Exclude              [String[]] = @()
-    -MaxMinutes           [Int32] = 30
     -PollSeconds          [Int32] = 120
     -DeviceOnline         [SwitchParameter]
     -Reason               [String] = ''
     -MarkerPath           [String] = ''
-  Exit: 0 - work is available now; the marker names the kind (impl / device-drain) and the ticket.; 2 - the wait window expired with the queue still idle.; 3 - every poll in the window failed to read the eligible set (preflight missing or broken).; 4 - usage error.
+  Exit: 0 - work is available now; the marker names the kind (impl / device-drain) and the ticket.; 3 - required preflight script is missing.; 4 - usage error.
 ```
 

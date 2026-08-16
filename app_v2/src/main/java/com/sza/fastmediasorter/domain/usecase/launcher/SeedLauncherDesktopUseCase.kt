@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.launcher
 
 import android.content.Context
 import com.sza.fastmediasorter.core.launcher.LauncherStarterSets
+import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
@@ -19,6 +20,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -26,6 +28,12 @@ import javax.inject.Inject
  * the profile seeds the layout once, then the user owns it). Portrait and landscape are laid out
  * independently for their own column count. [LauncherDesktopRepository.seedIfEmpty] makes this a no-op
  * once a desktop exists, so a later profile change never overwrites the user's arrangement.
+ *
+ * S1644: the launcher reset needs no code of its own to rebuild the conditional Google section.
+ * [ResetLauncherToDefaultsUseCase] calls `clearAll`, which deletes the desktop state row, and
+ * `state()` then answers from defaults with both seeded flags false - so the next draw re-enters this
+ * seed and re-resolves the services verdict and the installed set against the device as it is now,
+ * rather than replaying whatever was true at first install (verified 2026-08-16).
  *
  * This is a HOME-activity first-run path, so the whole body is wrapped in `runCatching`: a failed
  * dependency read (e.g. a Room exception) degrades to an empty desktop the user can fill, never a crash
@@ -77,6 +85,19 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             // Behind the already-seeded early-exit above, so a desktop that will not be seeded never pays
             // for the package-manager probe (strategic §3.2).
             val installedPackages = resolveInstalledPackages(LauncherStarterSets.candidatePackages)
+            // S1644: one live probe per seed, behind the same early exit as the package snapshot, so a
+            // desktop that will not be seeded never pays for it. Outdated services still launch the
+            // installed Google apps, so UPDATE_REQUIRED counts as present - only a device that has no
+            // Play Services at all goes without the section (strategic §6.2).
+            val googleServicesAvailable = when (GmsAvailabilityChecker.evaluateLive(context)) {
+                GmsAvailabilityChecker.Status.OK,
+                GmsAvailabilityChecker.Status.UPDATE_REQUIRED -> true
+                GmsAvailabilityChecker.Status.UNAVAILABLE -> false
+            }
+            Timber.d(
+                "S1644: seeding desktop, googleServices=$googleServicesAvailable " +
+                    "installedGoogleApps=${LauncherStarterSets.GOOGLE_APP_PACKAGES.count { it in installedPackages }}"
+            )
             // S1613: behind the same early exit, so a desktop that will not be seeded never pays for it.
             val importedShortcuts = appShortcuts.allPinned().map { shortcut ->
                 LauncherStarterSets.StarterItem(
@@ -89,13 +110,13 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 )
             }
 
-
             val items = LauncherStarterSets.itemsFor(
                 profile,
                 starterResources,
                 routeAvailableInBuild,
                 installedPackages,
-                importedShortcuts,
+                googleServicesAvailable = googleServicesAvailable,
+                importedShortcuts = importedShortcuts,
             )
             val ownPackage = context.packageName
             val now = System.currentTimeMillis()

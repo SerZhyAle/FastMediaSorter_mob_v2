@@ -16,12 +16,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 
 /** Manages image-player Draw Mode, including canvas overlay, toolbar binding, orientation lock, back handling, and save callbacks. */
 class ImageDrawOverlayManager(
     private val activity: Activity,
-    private val imageContainer: ViewGroup,
+    // S1549: var - the container belongs to the host layout, so a host that re-inflates re-points it
+    // (see [rebindLayoutRoot]) instead of recreating this manager, which holds the unsaved drawing.
+    private var imageContainer: ViewGroup,
     // S0162 ADR-4: restore rotation manager state on draw-mode exit (not unconditional UNSPECIFIED)
     private val screenRotationManager: ScreenRotationManager? = null,
     private val hasAccelerometer: Boolean = false,
@@ -269,6 +272,33 @@ class ImageDrawOverlayManager(
      *   btn_draw_overflow - opens R.menu.menu_draw_overflow (Save as.. / Undo last /
      *       Undo all / Settings / Send to Google Keep)
      */
+    /**
+     * S1549: move an active draw session into a re-inflated hierarchy. The [DrawCanvasView] holds
+     * every unsaved stroke, so it is detached and re-attached rather than re-created; the crop
+     * overlay is transient and is dismissed instead. [bindToolbar] re-registers the toolbar.
+     */
+    fun rebindLayoutRoot(newImageContainer: ViewGroup, newToolbarRoot: View) {
+        drawCropOverlayController?.hide()
+        val canvas = drawCanvasView
+        if (canvas != null) {
+            imageContainer.removeView(canvas)
+        }
+        imageContainer = newImageContainer
+        if (canvas != null) {
+            imageContainer.addView(
+                canvas,
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                ),
+            )
+            imageContainer.requestDisallowInterceptTouchEvent(true)
+            drawCropOverlayController = DrawCropOverlayController(activity, imageContainer)
+        }
+        bindToolbar(newToolbarRoot)
+        toolbarRoot?.visibility = if (isDrawModeActive) View.VISIBLE else View.GONE
+    }
+
     fun bindToolbar(root: View) {
         toolbarRoot = root
 

@@ -2833,4 +2833,5 @@
     <string name="wear_sync_no_ack">Nessuna conferma dallo smartwatch. Potrebbe essere spento o fuori portata.</string>
     <string name="browse_empty_type_gated">%1$d file sono nascosti perché il loro tipo di media è disattivato.</string>
     <string name="browse_empty_type_gated_hint">Riattiva quel tipo di media nelle impostazioni per vederli.</string>
+    <string name="launcher_section_google">GOOGLE</string>
 </resources>

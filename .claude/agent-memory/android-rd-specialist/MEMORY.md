@@ -88,7 +88,9 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps it.
 - [Shared layout: fix shared layer](feedback_shared_layout_fix_at_shared_layer.md)
 
 ## Wear OS
-- [Data Layer never delivered](project_wear_data_layer_applicationid_mismatch.md) - ids must match; S1631 untestable until fixed
+- [Watches DO auto-rotate](project_wear_auto_rotation_is_real.md) - measured; square screen hides it, app declares nothing
+- [Data Layer ids must match](project_wear_data_layer_applicationid_mismatch.md) - fixed in S1681; never re-suffix the watch applicationId
+- [Watch is permanently locked](project_wear_watch_bootloader_permanently_locked.md) - One UI 8 killed OEM unlock; no root/Shizuku/system-perm route exists
 - [Play publishing gaps](project_wear_play_publishing_gaps.md) - own track, AAB not APK, on-watch password fails WO-P6
 
 ## OCR
@@ -108,6 +110,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps it.
 - [drift-check reads .kt only](feedback_drift_check_scans_kotlin_only.md) - XML-only fix looks CLEAN; grep layouts
 - [IDE finalizes mid-task](feedback_ide_open_spec_may_finalize_midtask.md) · [Draft style gate](feedback_draft_style_gate.md) · [Status auto-syncs](feedback_spec_header_autosync.md)
 - [§0 alone fails the gate](feedback_owner_inputs_gate_needs_section_33.md) - check-owner-inputs reads only §3.3; add it alongside
+- [Owner's answer may outrank the menu](feedback_owner_answer_may_outrank_the_menu.md) - or contradict the option he picked; show the collision back
 - [Owner gate](feedback_strategic_spec_owner_gate.md) · [§3.3 ≠ owner ruling](feedback_spec_tech_ui_placement_refusal.md) · [plan quality](feedback_spec_tech_plan_quality.md) · [Phase audit](feedback_phase_boundary_audit.md)
 - [Verify code first](feedback_spec_dev_continue_verify_code_first.md) · [Plan file lists can be wrong](feedback_tactical_plan_file_list_may_be_wrong.md)
 - [Verify a capture's claims](feedback_old_capture_may_be_superseded.md) - age is not the tell · [Dead code may be scaffolding](feedback_dead_code_vs_active_tickets.md)
@@ -116,6 +119,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps it.
 - [No quotes in -StatusNote](feedback_status_note_quotes_corrupt_catalog.md)
 - [Status before gate](feedback_blockneedusertest_status_before_gate.md) + [tags](feedback_timber_tags_before_test.md) + [phases](feedback_per_phase_debug_tags_break_gate.md) · [close.ps1 2-step](project_close_ps1_two_step_unblock.md)
 - [Predicates grep Timber form](feedback_probe_predicate_names_timber_form.md) · [Zero-hit predicate](feedback_zero_hit_predicate_cannot_name_the_literal.md)
+- [Probe marker must start a line](feedback_probe_marker_must_start_a_line.md) - mid-line = `contracts: 0`, gate passes vacuously
 - [Busy = lease, not status](feedback_ticket_busyness_is_a_lease_not_a_status.md) + [queue driver mute in Stage 0](project_spec_all_queue_driver_stage0_silence.md)
 - [Long gap voids the round](feedback_long_gap_invalidates_round_state.md)
 - [Capability inventory](project_functionality_log.md) · [flavors from the gate](feedback_feature_record_flavors_from_gate.md) · [noLegal features](feedback_features_nolegal.md)
@@ -130,7 +134,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps it.
 - [Bash `cd` leaks CWD](feedback_bash_cd_leaks_into_powershell_cwd.md)
 - [$-escape](feedback_pwsh_bash_dollar_escape_trap.md) + [backticks](feedback_no_backticks_in_bash_args.md) · [param/local collision](feedback_pwsh_param_local_case_collision.md)
 - [string[] CSV via -File](feedback_string_array_param_csv_via_file.md) + [-DevLogs](feedback_devlogs_array_binding.md) · [strings tool](reference_strings_tool.md) + [main/res only](feedback_string_tools_main_res_only.md)
-- [Grep mangles `//`](feedback_grep_output_mangles_comment_markers.md)
+- [Grep mangles `//`](feedback_grep_output_mangles_comment_markers.md) · [`Measure-Object -Line` skips blank lines](feedback_measure_object_line_undercounts_loc.md) - use `wc -l` for LOC gates
 - [rg skips CATALOG](feedback_rg_gitignore_catalog.md) · [BG exit = the echo](feedback_background_task_exit_code_is_echo.md) + [no probe echo](feedback_no_flush_echo_commands.md)
 - [`Select -First N` detaches a running script](feedback_select_first_detaches_running_script.md) - state read next is mid-write
 - [$LASTEXITCODE guard after a cmdlet](feedback_lastexitcode_null_after_cmdlet.md)
@@ -147,5 +151,6 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps it.
 - [An invariant is a claim](feedback_documented_invariant_is_a_claim.md) · [Resolved may be inference](feedback_resolved_research_item_may_be_inference.md) - re-measure before planning
 - [Visibility != action](feedback_visibility_condition_is_not_the_action.md) - read the handler before describing what a control does
 - [Audit the fixes too](feedback_audit_fixes_need_their_own_round.md)
+- [Read the screenshot yourself](feedback_subagent_pixel_measurements_unreliable.md) - agent pixel extents can be flatly wrong
 - [javap the android.jar](feedback_verify_platform_api_with_javap.md) · [Verify owner's mechanism](feedback_verify_owner_proposed_remedy_mechanism.md)
 - [Signed-off needs widget check](feedback_owner_signed_values_still_need_widget_validation.md) · [Never pass inference as owner's](feedback_never_attribute_agent_inference_to_owner.md)

@@ -110,6 +110,31 @@ class StandaloneViewManager(
     // Works on the full unified layout and on a trimmed specialized standalone layout (id lookup).
     private val safeViews = PlayerBindingSafeViews(root)
 
+    // S1549: the layout root can be replaced under this manager when the host re-inflates for a new
+    // orientation. Viewer managers are created lazily, possibly after that point, so they must be
+    // handed the current hierarchy - never the one captured at construction.
+    private var currentRoot: View = root
+
+    /**
+     * S1549: re-point every view lookup at a re-inflated hierarchy and hand the surviving
+     * ExoPlayer to the new PlayerView. No player is created here - Standalone does not drive
+     * VideoPlayerManager, so this is the only place its surface reference is refreshed.
+     */
+    fun rebindLayoutRoot(newRoot: View) {
+        currentRoot = newRoot
+        safeViews.rebindRoot(newRoot)
+        _pdfViewerManager?.rebindLayoutRoot(newRoot)
+        _epubViewerManager?.rebindLayoutRoot(newRoot)
+        _textViewerManager?.rebindLayoutRoot(newRoot)
+        if (officeDocumentViewerHostDelegate.isInitialized()) {
+            officeDocumentViewerHost.rebindLayoutRoot(newRoot)
+        }
+        exoPlayer?.let { safeViews.playerView.player = it }
+        // Re-render what the fresh views start without (EPUB/Office move their live WebView over).
+        _pdfViewerManager?.let { it.showPdfPage(it.currentPageIndex()) }
+        _textViewerManager?.rerenderAfterRebind()
+    }
+
     private var onDocumentEnterFullscreen: (() -> Unit)? = null
     private var onDocumentExitFullscreen: (() -> Unit)? = null
 

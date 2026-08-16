@@ -16,6 +16,7 @@ import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import com.sza.fastmediasorter.BuildConfig
 import timber.log.Timber
 import kotlin.math.abs
 
@@ -60,7 +61,10 @@ class TranslationOverlayView @JvmOverloads constructor(
         val confidence: Float,
         var backgroundColor: Int = Color.parseColor("#F0FFFFFF"), // Adaptive background color
         var textColor: Int = Color.BLACK, // Contrast text color
-        var customFontSize: Float? = null // Per-block font size override (6-72sp)
+        var customFontSize: Float? = null, // Per-block font size override (6-72sp)
+        // S1711: source-line type size in OCR pixels (median of the line's word heights). Null means the
+        // engine reported no words, and the size then comes from the box height as it always did.
+        val typeSizePx: Int? = null
     )
 
     private val translatedBlocks = mutableListOf<TranslatedBlock>()
@@ -102,6 +106,14 @@ class TranslationOverlayView @JvmOverloads constructor(
         isFakeBoldText = false
         // Slight letter spacing for better readability of both Cyrillic and Latin
         letterSpacing = 0.02f
+    }
+
+    // S1702: Paint for the debug image-display-rect boundary, hoisted out of onDraw
+    // so it is allocated once instead of per frame.
+    private val debugPaint = Paint().apply {
+        style = Paint.Style.STROKE
+        color = Color.YELLOW
+        strokeWidth = 5f
     }
     
     /**
@@ -218,6 +230,18 @@ class TranslationOverlayView @JvmOverloads constructor(
         return (target * fontSizeMultiplier).coerceIn(spToPx(minTextSizeSp), spToPx(perBlockMaxFontSizeSp))
     }
     
+    /**
+     * S1711: height the automatic type size is derived from, in view pixels.
+     *
+     * A block that carries a [TranslatedBlock.typeSizePx] uses it, so one tall artifact inside the line no
+     * longer sets the size of the translation; a block without one falls back to [scaledBoxHeightPx], which
+     * is the behaviour that shipped before this rule.
+     */
+    internal fun autoTextSizeSourcePx(block: TranslatedBlock, scaledBoxHeightPx: Float): Float {
+        val carried = block.typeSizePx ?: return scaledBoxHeightPx
+        return carried * scaleY
+    }
+
     /**
      * Load font size multiplier from SharedPreferences
      */
@@ -352,26 +376,30 @@ class TranslationOverlayView @JvmOverloads constructor(
     }
     
     /**
-     * Set the source bitmap for color sampling
+     * Set the source bitmap for color sampling.
+     * This is the full-resolution bitmap; bounding boxes are in OCR-bitmap
+     * coordinates (see [setScale]/[setOriginalImageSize]).
      */
     fun setSourceBitmap(bitmap: Bitmap?) {
         sourceBitmap = bitmap
     }
-    
+
     /**
-     * Sample background color from source image at top-left corner of bounding box
+     * Sample background color from source image at top-left corner of bounding box.
+     *
+     * The bounding box is measured on the (possibly down-scaled) OCR bitmap, while
+     * [sourceBitmap] is the full-resolution original. Scale the OCR coordinates into
+     * source-bitmap space before sampling so the plate colour is read from the point
+     * actually under the plate (S1704).
      */
     private fun sampleBackgroundColor(boundingBox: Rect): Int {
         val bitmap = sourceBitmap ?: return Color.parseColor("#F0FFFFFF")
-        
+
         try {
-            // Get coordinates (top-left corner of bounding box)
-            val x = boundingBox.left.coerceIn(0, bitmap.width - 1)
-            val y = boundingBox.top.coerceIn(0, bitmap.height - 1)
-            
-            // Sample pixel color
+            val (x, y) = ocrPointToSource(boundingBox.left, boundingBox.top, bitmap)
+            Timber.d("S1704: ocr(${boundingBox.left},${boundingBox.top}) -> source($x,$y)")
             val pixelColor = bitmap.getPixel(x, y)
-            
+
             // Add slight opacity for better blending
             val alpha = 240 // ~94% opacity
             return Color.argb(
@@ -385,11 +413,28 @@ class TranslationOverlayView @JvmOverloads constructor(
             return Color.parseColor("#F0FFFFFF")
         }
     }
-    
+
+    /**
+     * Map a point from OCR-bitmap coordinates to source-bitmap coordinates.
+     *
+     * Returns the input unchanged (clamped) when the two bitmaps are the same size.
+     * Exposed as a pure, testable helper (S1704).
+     */
+    internal fun ocrPointToSource(ocrX: Int, ocrY: Int, source: Bitmap): Pair<Int, Int> {
+        val ocrW = if (originalImageWidth > 0) originalImageWidth else source.width
+        val ocrH = if (originalImageHeight > 0) originalImageHeight else source.height
+        val scaleX = source.width.toFloat() / ocrW.toFloat()
+        val scaleY = source.height.toFloat() / ocrH.toFloat()
+        val x = (ocrX * scaleX).toInt().coerceIn(0, source.width - 1)
+        val y = (ocrY * scaleY).toInt().coerceIn(0, source.height - 1)
+        return x to y
+    }
+
     /**
      * Calculate contrast text color (black or white) based on background brightness
      * Uses luminance formula: 0.299*R + 0.587*G + 0.114*B
      */
+
     private fun getContrastTextColor(backgroundColor: Int): Int {
         val r = Color.red(backgroundColor)
         val g = Color.green(backgroundColor)
@@ -505,7 +550,7 @@ class TranslationOverlayView @JvmOverloads constructor(
             var textSize = if (block.customFontSize != null) {
                 spToPx(block.customFontSize!!)
             } else {
-                autoTextSizePx(scaledHeight - padding * 2)
+                autoTextSizePx(autoTextSizeSourcePx(block, scaledHeight) - padding * 2)
             }
 
             textPaint.textSize = textSize
@@ -566,19 +611,18 @@ class TranslationOverlayView @JvmOverloads constructor(
         }
 
 
-        // DEBUG: Draw the image display rect boundary to verify alignment with PhotoView
-        // This helps diagnostics if the overlay appears shifted relative to the image
-        imageDisplayRect?.let { rect ->
-            val debugPaint = android.graphics.Paint().apply {
-                style = android.graphics.Paint.Style.STROKE
-                color = android.graphics.Color.YELLOW
-                strokeWidth = 5f
+        // S1702: debug-only overlay-alignment diagnostic - kept behind BuildConfig.DEBUG
+        // so release builds never draw the yellow frame over content.
+        // Draw the image display rect boundary to verify alignment with PhotoView.
+        // This helps diagnostics if the overlay appears shifted relative to the image.
+        if (BuildConfig.DEBUG) {
+            imageDisplayRect?.let { rect ->
+                canvas.drawRect(rect, debugPaint)
+
+                // Draw a crosshair at the top-left of the rect to verify origin
+                canvas.drawLine(rect.left - 20, rect.top, rect.left + 20, rect.top, debugPaint)
+                canvas.drawLine(rect.left, rect.top - 20, rect.left, rect.top + 20, debugPaint)
             }
-            canvas.drawRect(rect, debugPaint)
-            
-            // Draw a crosshair at the top-left of the rect to verify origin
-            canvas.drawLine(rect.left - 20, rect.top, rect.left + 20, rect.top, debugPaint)
-            canvas.drawLine(rect.left, rect.top - 20, rect.left, rect.top + 20, debugPaint)
         }
     }
 }

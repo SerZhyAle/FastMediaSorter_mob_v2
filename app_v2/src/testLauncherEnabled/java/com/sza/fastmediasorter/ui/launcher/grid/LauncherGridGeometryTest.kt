@@ -193,7 +193,8 @@ class LauncherGridGeometryTest {
                 ui(cell(row = 1, col = 0)),
                 ui(cell(row = 2, col = 0))
             ),
-            collapsedSections = emptySet()
+            collapsedSections = emptySet(),
+            columns = 4
         )
 
         assertEquals(listOf(0, 1, 2), plan.map { it.renderRow })
@@ -208,7 +209,8 @@ class LauncherGridGeometryTest {
                 ui(cell(row = 2, col = 0, kind = LauncherCellKind.SECTION, target = "next")),
                 ui(cell(row = 3, col = 0, target = "below"))
             ),
-            collapsedSections = setOf("top")
+            collapsedSections = setOf("top"),
+            columns = 4
         )
 
         // The header itself survives - it is the only thing left to tap to expand.
@@ -226,7 +228,8 @@ class LauncherGridGeometryTest {
                 ui(cell(row = 0, col = 0, kind = LauncherCellKind.SECTION, target = "top")),
                 ui(cell(row = 1, col = 0, target = "inside"))
             ),
-            collapsedSections = setOf("some-other-header")
+            collapsedSections = setOf("some-other-header"),
+            columns = 4
         )
 
         assertEquals(listOf(0, 1), plan.map { it.renderRow })
@@ -241,7 +244,8 @@ class LauncherGridGeometryTest {
                 ui(cell(row = 2, col = 0, kind = LauncherCellKind.SECTION, target = "next")),
                 ui(cell(row = 3, col = 0, target = "below"))
             ),
-            collapsedSections = setOf("top")
+            collapsedSections = setOf("top"),
+            columns = 4
         )
 
         assertEquals(3, LauncherGridGeometry.rowsForRendered(rendered))
@@ -262,7 +266,8 @@ class LauncherGridGeometryTest {
                 ui(cell(row = 2, col = 0, kind = LauncherCellKind.SECTION, target = "next")),
                 below
             ),
-            collapsedSections = setOf("top")
+            collapsedSections = setOf("top"),
+            columns = 4
         ).first { it.item.cell.target == "below" }
 
         val footprint = LauncherGridGeometry.footprintOfRendered(rendered, columns = 4)
