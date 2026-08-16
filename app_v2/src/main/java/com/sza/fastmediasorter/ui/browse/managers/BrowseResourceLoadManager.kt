@@ -404,7 +404,6 @@ class BrowseResourceLoadManager(
         } else {
             probeSuppressedCount(resource, ungated, "type-gate")
         }
-        Timber.d("S1696: empty-state cause size=$sizeSuppressed typeGate=$typeSuppressed")
         updateState { it.copy(filteredOutCount = sizeSuppressed, typeGatedOutCount = typeSuppressed) }
     }
 

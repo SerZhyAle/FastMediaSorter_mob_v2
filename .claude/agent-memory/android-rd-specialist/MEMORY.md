@@ -5,6 +5,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps it.
 - [About Me](about_me.md) - solo owner, no Kotlin · [Audience](feedback_target_audience_non_technical.md) - zero jargon
 - [Argue then obey](feedback_argue_then_obey.md) + [after pushback](feedback_owner_decision_after_pushback.md)
 - [Architecture answers it](feedback_no_owner_questions_when_architecture_already_answers.md) · [research forks](feedback_research_over_owner_question.md) · [clarify framing](feedback_clarify_task_when_framing_unclear.md)
+- [Measure throughput before "won't fit"](feedback_measure_throughput_before_calling_a_plan_infeasible.md) - ~16-20 tickets/day closed here
 - [Finish follow-ups](feedback_finish_mechanical_followups_in_context.md) · [Skill aliases](feedback_skill_aliases.md) · [/quick+Sxxxx still closes](feedback_skill_fix_with_ticket_id_still_closes_ticket.md) - skip-list is id-less only
 - [Agent Kit](reference_universal_agent_kit.md) · [No paid services](feedback_no_paid_or_key_services.md) · [Open-Meteo](project_weather_gadget_open_meteo.md)
 - [fms_companion](project_fms_companion_subproject.md) - Go+Wails, out of repo · [Windows rebrand](project_fms_windows_rebrand.md)
@@ -87,7 +88,11 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps it.
 - [Shared layout: fix shared layer](feedback_shared_layout_fix_at_shared_layer.md)
 
 ## Wear OS
-- [Data Layer never delivered](project_wear_data_layer_applicationid_mismatch.md) - phone/watch applicationId differ; S1631 untestable until fixed
+- [Data Layer never delivered](project_wear_data_layer_applicationid_mismatch.md) - ids must match; S1631 untestable until fixed
+- [Play publishing gaps](project_wear_play_publishing_gaps.md) - own track, AAB not APK, on-watch password fails WO-P6
+
+## OCR
+- [Overlay accuracy exchange](reference_ocr_overlay_exchange.md) - three-sided; the measured constants live in two repos outside this one
 
 ## Brand
 - [Waves and particles](project_brand_visual_waves_and_particles.md) - the signature visual, shared with the site; NOT the equalizer bars

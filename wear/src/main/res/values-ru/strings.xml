@@ -114,4 +114,11 @@
     <!-- Favorites sync (S0111 Phase 06) -->
     <string name="wear_toggle_favorite">Избранное</string>
     <string name="wear_favorite_sent">Избранное синхронизировано</string>
+    <string name="wear_previous_file">Предыдущий файл</string>
+    <string name="wear_next_file">Следующий файл</string>
+    <string name="wear_screen_off">Погасить экран</string>
+    <string name="wear_screen_off_exit">Коснитесь, чтобы вернуть экран</string>
+    <string name="wear_seek_backward">Назад на 10 секунд</string>
+    <string name="wear_seek_forward">Вперёд на 10 секунд</string>
+    <string name="wear_video_continue">Продолжить</string>
 </resources>

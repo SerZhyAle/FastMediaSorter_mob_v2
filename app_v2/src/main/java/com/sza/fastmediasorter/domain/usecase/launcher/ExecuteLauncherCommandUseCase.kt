@@ -221,7 +221,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
      * Maps is absent the same view intent still reaches a browser instead of failing to start.
      */
     private fun showPlaceIntent(command: LauncherCellCommand.Geographic): Intent {
-        Timber.d("S1616: show place, query is a link: ${command.isWebLinkQuery}")
         if (!command.isWebLinkQuery) {
             return Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=${Uri.encode(command.query)}"))
         }

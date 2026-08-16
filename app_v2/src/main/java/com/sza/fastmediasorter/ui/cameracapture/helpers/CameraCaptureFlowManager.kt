@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.cameracapture.model.PhotoProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -330,7 +329,6 @@ class CameraCaptureFlowManager(
         val fromLensPillRow = !currentCapabilities.supportsZoom
         if (currentCapabilities.isFront) return
         if (!currentCapabilities.showsCrossLensFloor && !fromLensPillRow) return
-        Timber.d("S1675: lens pill tap - equivalent=$equivalent fromLensPillRow=$fromLensPillRow")
         session.switchCamera(targetEquivalentFloor = equivalent)
         liveZoomRatio = session.currentZoomRatio()
         liveLinearZoom = session.currentLinearZoom()

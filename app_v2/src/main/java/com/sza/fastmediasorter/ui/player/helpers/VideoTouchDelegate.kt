@@ -9,7 +9,6 @@ import android.view.MotionEvent
 import androidx.core.math.MathUtils
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.ui.player.PlayerActivity
-import timber.log.Timber
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -221,7 +220,6 @@ class VideoTouchDelegate(
     private fun applyBrightnessProgress(progress: Int) = activity.videoPlayerManager.setBrightnessProgress(progress)
 
     private fun showIndicator(text: String) {
-        Timber.d("S1647: gesture indicator shown with text=$text")
         binding.tvVideoGestureIndicator?.text = text
         binding.tvVideoGestureIndicator?.visibility = android.view.View.VISIBLE
         scheduleIndicatorHide()

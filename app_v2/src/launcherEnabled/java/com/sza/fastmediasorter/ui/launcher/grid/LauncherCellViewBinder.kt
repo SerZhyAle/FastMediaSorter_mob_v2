@@ -18,7 +18,6 @@ import com.sza.fastmediasorter.databinding.ItemLauncherSectionHeaderBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
-import timber.log.Timber
 
 /**
  * S0404: fills [LauncherDesktopLayout] with cell views. Shortcuts draw an icon + label here, gadgets
@@ -357,13 +356,6 @@ class LauncherCellViewBinder(
         // animation here would play on a view the user has not seen yet, on every unrelated rebind.
         binding.sectionChevron.rotation =
             if (collapsed) COLLAPSED_CHEVRON_ROTATION else EXPANDED_CHEVRON_ROTATION
-        Timber.d(
-            "S1642: section header drawn row=%d col=%d storedSpanW=%d collapsed=%b",
-            item.cell.rowIndex,
-            item.cell.colIndex,
-            item.cell.spanW,
-            collapsed,
-        )
         ViewCompat.setAccessibilityHeading(binding.root, true)
         binding.root.setOnClickListener { onSectionClick(item) }
         announceSectionState(binding.root, title, collapsed)

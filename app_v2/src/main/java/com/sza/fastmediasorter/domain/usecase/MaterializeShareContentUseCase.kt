@@ -107,7 +107,6 @@ class MaterializeShareContentUseCase @Inject constructor(
         targetFile: File,
         onProgress: ((Int) -> Unit)?,
     ): File? {
-        Timber.d("S0494: materializing cloud source %s", sourcePath)
         val ok = cloudDownload.get().downloadToPublic(
             cloudPath = sourcePath,
             destPath = targetFile.parentFile?.absolutePath ?: targetFile.absolutePath,

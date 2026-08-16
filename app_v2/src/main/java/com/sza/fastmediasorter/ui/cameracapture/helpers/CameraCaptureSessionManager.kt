@@ -341,7 +341,6 @@ class CameraCaptureSessionManager(
         manualIso = null
         manualShutterNs = null
         exposureCompensationIndex = 0
-        Timber.d("S1658: lens switch restoreSaved=$restoreSaved index=$resolvedIndex")
         if (restoreSaved) availableLenses.getOrNull(resolvedIndex)?.id?.let { onLensEntering?.invoke(it) }
         runCatching { bindToLifecycle(provider, preview) }
             .onFailure { Timber.e(it, "CameraCaptureSessionManager: lens switch failed") }
@@ -675,7 +674,6 @@ class CameraCaptureSessionManager(
         } else {
             null
         }
-        Timber.d("S1658: shutter aspect=$selectedAspect cropRatio=$cropRatioAtShutter")
         val builder = ImageCapture.OutputFileOptions.Builder(outputFile)
         // S0766: opt-in geotag. CameraX writes GPS into the JPEG EXIF before any digital-zoom crop,
         // and the crop path preserves the GPS tags (PRESERVED_EXIF_TAGS, S0765), so a cropped shot

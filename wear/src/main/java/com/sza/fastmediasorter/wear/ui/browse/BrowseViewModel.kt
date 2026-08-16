@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
 import android.webkit.MimeTypeMap
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.network.ftp.FtpDataSource
 import com.sza.fastmediasorter.wear.data.network.sftp.SftpDataSource
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
@@ -25,6 +27,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
+
+/**
+ * A screen title the view model can name without holding a Context: either text that came from the
+ * user's own data, or a resource the screen resolves.
+ */
+sealed interface ScreenTitle {
+    data class Text(val value: String) : ScreenTitle
+    data class Resource(@param:StringRes val id: Int) : ScreenTitle
+}
 
 /**
  * ViewModel for the browse screen.
@@ -224,16 +235,27 @@ class BrowseViewModel @Inject constructor(
         playbackSetManager.clear()
     }
     
-    fun getScreenTitle(): String {
-        return if (isNetworkSource) {
-            sourceName ?: "Network Storage"
-        } else {
-            when (mediaType) {
-                MediaType.MUSIC -> "Music"
-                MediaType.VIDEO -> "Videos"
-                MediaType.PHOTO -> "Photos"
+    /**
+     * S1683: the title is either a source's own name, which no dictionary can translate, or one of
+     * four resources. It used to be four English literals, so the browse list stayed English under a
+     * Russian interface - the defect that put the localization constraint in the spec at all.
+     */
+    fun getScreenTitle(): ScreenTitle {
+        if (isNetworkSource) {
+            val name = sourceName
+            return if (name.isNullOrBlank()) {
+                ScreenTitle.Resource(R.string.network_storage)
+            } else {
+                ScreenTitle.Text(name)
             }
         }
+        return ScreenTitle.Resource(
+            when (mediaType) {
+                MediaType.MUSIC -> R.string.music
+                MediaType.VIDEO -> R.string.videos
+                MediaType.PHOTO -> R.string.photos
+            }
+        )
     }
     
     /**

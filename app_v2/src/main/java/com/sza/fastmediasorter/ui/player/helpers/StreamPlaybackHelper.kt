@@ -160,7 +160,6 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
     // no ladder, so it has nothing to remember.
     activeStreamMemoryPath = if (isRtsp) null else path
     activeStreamQualityMemory = if (isRtsp) null else readStreamQualityMemory(path)
-    Timber.d("S1511: session start memory read - remembered=%s path=%s", activeStreamQualityMemory, path)
     // S1144 (phase 04): stream-wide defaults sit under the per-channel pick and over the generic
     // player settings, so both are seated together and cleared together in playVideo.
     val streamSettings = settingsRepository.getSettings().first()
@@ -304,7 +303,6 @@ private fun VideoPlayerManager.inventoryStreamRenditions(tracks: Tracks, path: S
         path,
     )
     logStreamQualityRestore(remembered, adopted, path)
-    Timber.d("S1511: ceiling restored at inventory - adopted=%s remembered=%s", adopted, remembered)
 }
 
 /**
@@ -394,7 +392,6 @@ private fun VideoPlayerManager.persistStreamQualityMemory(controller: StreamQual
     val entryPoint = streamQualityMemoryEntryPoint()
     val useCase = entryPoint.recordStreamQualityMemoryUseCase()
     val atMillis = System.currentTimeMillis()
-    Timber.d("S1511: persisting memory - rung=%s failures=%d", memory.rung, memory.probeFailures)
     entryPoint.applicationScope().launch {
         useCase(
             url = url,
@@ -474,7 +471,6 @@ private fun VideoPlayerManager.closeStreamQualityProbe(
     val probed = controller.memory?.rung
     val playing = playingStreamRendition()
     val survived = controller.closeProbeIfSurvived(nowMs, playing)
-    Timber.d("S1511: probe verdict - survived=%b probed=%s playing=%s", survived, probed, playing)
     if (!survived) return
     Timber.i(
         "Stream quality: probe succeeded - probed=%s playing=%s path=%s",
@@ -504,7 +500,6 @@ private fun VideoPlayerManager.startStreamQualityProbe(
         probed?.bitrateBps ?: cap.maxBitrateBps,
         path,
     )
-    Timber.d("S1511: probe opened - target=%s", probed)
 }
 
 /**

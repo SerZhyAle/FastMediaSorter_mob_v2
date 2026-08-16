@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.service.WearDataLayerPaths
-import timber.log.Timber
 import javax.inject.Inject
 
 class PushWearSettingsUseCase @Inject constructor(
@@ -16,7 +15,6 @@ class PushWearSettingsUseCase @Inject constructor(
         val nodes = wearableRepository.getConnectedNodes()
         check(nodes.isNotEmpty()) { "No watch connected" }
         val settingsJson = gson.toJson(settings)
-        Timber.d("S1631: settings pushed, real keys=${settingsJson.startsWith("{\"audioEnabled\"")}")
         val settingsBytes = settingsJson.toByteArray(Charsets.UTF_8)
         val envelope = WearEventEnvelope(
             eventType = WearDataLayerPaths.EVENT_SETTINGS,

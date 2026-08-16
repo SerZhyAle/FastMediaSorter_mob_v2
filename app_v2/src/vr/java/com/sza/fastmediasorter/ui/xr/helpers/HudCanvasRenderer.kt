@@ -7,7 +7,6 @@ import android.graphics.PorterDuff
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
-import timber.log.Timber
 
 /**
  * Model + Canvas painter of the immersive HUD panel.
@@ -294,7 +293,6 @@ class HudCanvasRenderer {
         // otherwise stack the blocks backwards.
         val gap = (free / (blocks.size + 1)).coerceAtLeast(0f)
         val lastRight = ROW_AREA_LEFT + totalWidth + gap * blocks.size
-        Timber.d("S1278: row blocks=%d gap=%.0f lastRight=%.0f limit=%.0f", blocks.size, gap, lastRight, ROW_AREA_RIGHT)
         var cursor = ROW_AREA_LEFT + gap
         for (block in blocks) {
             block.place(cursor)

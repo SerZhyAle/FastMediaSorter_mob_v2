@@ -75,7 +75,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 import java.util.Optional
 import javax.inject.Inject
 
@@ -815,7 +814,6 @@ class PlayerActivity :
         // not be what instantiates VideoPlayerManager.
         if (castMediaManager.isCasting) {
             val panelCrop = _videoPlayerManager?.currentPanelStereoCrop
-            Timber.d("S1558: cast requested for ${currentFile.name} with panel crop $panelCrop")
             castMediaManager.sendCurrentMedia(currentFile, panelCrop)
         }
     }

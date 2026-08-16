@@ -13,7 +13,9 @@ data class AudioPlayerUiState(
     val durationMs: Long = 0,
     val error: String? = null,
     val albumArtUrl: String? = null,
-    val isAlbumArtLoading: Boolean = false,
+    // S1683: the screen-off mode of strategic 6.7. It is screen state and nothing else - playback does
+    // not know about it, which is the whole point of the mode.
+    val isDimmed: Boolean = false,
     // S1683: position inside the browsed set. Paging wraps around, so without a visible marker an
     // endlessly looping folder loses every landmark the user could navigate by.
     val setIndex: Int = 0,

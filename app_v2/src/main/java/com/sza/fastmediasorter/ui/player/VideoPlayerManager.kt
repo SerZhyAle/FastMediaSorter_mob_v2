@@ -235,7 +235,6 @@ class VideoPlayerManager(
     // preferences file there was a blocking disk read of ~53 ms on the player's hot open path. Nothing
     // in the constructor reads a value, so the file is only needed when a control is actually used.
     private val playbackControlPrefs by lazy(LazyThreadSafetyMode.NONE) {
-        Timber.d("S1648: playback control prefs opened on first use")
         context.getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, Context.MODE_PRIVATE)
     }
 

@@ -35,6 +35,9 @@ import javax.inject.Inject
 private const val PREFS_NAME = "wear_video_prefs"
 private const val KEY_BATTERY_WARNING_SHOWN = "battery_warning_shown"
 
+/** S1683: same step the audio player uses, so one bezel detent means the same thing in both. */
+private const val SEEK_STEP_MS = 10_000L
+
 /**
  * ViewModel for the video player screen.
  * Manages ExoPlayer instance and playback state for video files.
@@ -326,6 +329,19 @@ class VideoPlayerViewModel @Inject constructor(
     fun seekTo(positionMs: Long) {
         exoPlayer.seekTo(positionMs)
         _uiState.update { it.copy(currentPositionMs = positionMs) }
+    }
+
+    fun seekForward() {
+        val target = exoPlayer.currentPosition + SEEK_STEP_MS
+        // ExoPlayer reports C.TIME_UNSET, a large negative, while the duration is still unknown -
+        // clamping to it would send playback backwards past the start on the first turn of the bezel.
+        val duration = exoPlayer.duration
+        seekTo(if (duration > 0) target.coerceAtMost(duration) else target)
+    }
+
+    fun seekBackward() {
+        val newPosition = (exoPlayer.currentPosition - SEEK_STEP_MS).coerceAtLeast(0)
+        seekTo(newPosition)
     }
 
     private fun startProgressUpdates() {

@@ -91,13 +91,6 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             db.withTransaction {
                 val anchor = findFreeAnchor(candidate, columns) ?: return@withTransaction null
                 Timber.i("Launcher desktop: placing new cell at %d,%d", anchor.row, anchor.col)
-                Timber.d(
-                    "S1642: free-slot anchor kind=%s row=%d col=%d spanW=%d",
-                    candidate.kind.name,
-                    anchor.row,
-                    anchor.col,
-                    candidate.spanW,
-                )
                 cellDao.upsert(candidate.copy(rowIndex = anchor.row, colIndex = anchor.col).toEntity())
             }
         }
@@ -199,7 +192,6 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
     override suspend fun normalizeSectionSpans() {
         withContext(Dispatchers.IO) {
             val narrowed = cellDao.narrowSectionSpans(SECTION_KIND, LauncherSectionMembership.HEADER_SPAN_W)
-            Timber.d("S1642: section-span normalization ran, narrowed %d header(s)", narrowed)
             if (narrowed > 0) {
                 Timber.i("Launcher desktop: narrowed %d section header(s) to the compact span", narrowed)
             }

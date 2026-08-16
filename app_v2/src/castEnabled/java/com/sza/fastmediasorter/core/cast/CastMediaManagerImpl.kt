@@ -338,7 +338,6 @@ class CastMediaManagerImpl(
                 Toast.makeText(context, R.string.cast_cropping_stereo, Toast.LENGTH_SHORT).show()
             }
             val result = stereoCropTranscoder.crop(context, localFile, stereoCrop, context.cacheDir)
-            Timber.d("S1558: crop outcome for ${file.name} is $result")
             if (result == CastStereoCropResult.SkippedLong) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, R.string.cast_crop_skipped_long, Toast.LENGTH_LONG).show()

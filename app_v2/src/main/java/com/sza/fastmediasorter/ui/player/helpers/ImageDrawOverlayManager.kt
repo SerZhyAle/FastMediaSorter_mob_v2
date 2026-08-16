@@ -16,7 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 
 /** Manages image-player Draw Mode, including canvas overlay, toolbar binding, orientation lock, back handling, and save callbacks. */
@@ -271,7 +270,6 @@ class ImageDrawOverlayManager(
      *       Undo all / Settings / Send to Google Keep)
      */
     fun bindToolbar(root: View) {
-        Timber.d("S1648: draw toolbar bound without reading the custom colour")
         toolbarRoot = root
 
         // S0368: keep the draw toolbar inside the system-bar / display-cutout safe area.

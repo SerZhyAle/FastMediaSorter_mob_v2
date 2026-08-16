@@ -61,7 +61,10 @@ fun BrowseScreen(
     }
     
     val uiState by viewModel.uiState.collectAsState()
-    val title = viewModel.getScreenTitle()
+    val title = when (val screenTitle = viewModel.getScreenTitle()) {
+        is ScreenTitle.Text -> screenTitle.value
+        is ScreenTitle.Resource -> stringResource(screenTitle.id)
+    }
     
     Timber.d("BrowseScreen composing with state: $uiState")
     

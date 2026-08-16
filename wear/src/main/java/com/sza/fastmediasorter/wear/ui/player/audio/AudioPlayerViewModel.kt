@@ -32,6 +32,9 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
+/** S1683: named because the bezel now reaches the same step the buttons do. */
+private const val SEEK_STEP_MS = 10_000L
+
 /**
  * ViewModel for the audio player screen.
  * Manages ExoPlayer instance and playback state.
@@ -158,7 +161,7 @@ class AudioPlayerViewModel @Inject constructor(
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
         _uiState.update {
-            it.copy(mediaFile = file, currentPositionMs = 0, durationMs = 0, error = null)
+            it.withMediaFile(file).copy(currentPositionMs = 0, durationMs = 0, error = null)
         }
         val selection = networkSelection
         if (selection != null) {
@@ -170,6 +173,14 @@ class AudioPlayerViewModel @Inject constructor(
         }
         syncSetPosition()
     }
+
+    /**
+     * S1683: the cover travels with the file, so both fields are written in one place. `albumArtUrl`
+     * was declared from the start and never assigned anywhere, which is what happens when the file
+     * and its cover are published from separate call sites.
+     */
+    private fun AudioPlayerUiState.withMediaFile(file: WearMediaFile): AudioPlayerUiState =
+        copy(mediaFile = file, albumArtUrl = file.albumArt?.toString())
 
     /** S1683: keeps the position marker in step with the set on first open and on every page. */
     private fun syncSetPosition() {
@@ -194,7 +205,7 @@ class AudioPlayerViewModel @Inject constructor(
                 // without ever storing it, so every network track was titled "Unknown" while a
                 // local one showed its name. SelectedMediaManager carries this object precisely
                 // because MediaStore cannot answer for network sources.
-                _uiState.update { it.copy(mediaFile = selectedMedia.file) }
+                _uiState.update { it.withMediaFile(selectedMedia.file) }
                 // S1683: remembered so paging can re-enter the download path with the same source id.
                 networkSelection = selectedMedia
                 Timber.d("Loading network audio: ${selectedMedia.file.name}")
@@ -203,7 +214,7 @@ class AudioPlayerViewModel @Inject constructor(
                 // Local file - use MediaStore
                 val file = mediaRepository.getMediaFileById(fileId, MediaType.MUSIC)
                 if (file != null) {
-                    _uiState.update { it.copy(mediaFile = file) }
+                    _uiState.update { it.withMediaFile(file) }
                     checkFavoriteState(sourceId = "local", filePath = file.uri.toString())
                     playLocalFile(file)
                 } else {
@@ -247,6 +258,19 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     /**
+     * S1683: blanks the screen without touching playback, and any touch on the black screen calls this
+     * again. The flag lives here rather than in the composition so it survives a recomposition, and it
+     * dies with this view model when the player is left - a screen reopened is never already dark.
+     */
+    fun toggleDimmed() {
+        // The twice-a-second position update deliberately keeps running while the screen is dark.
+        // Stopping it was tried and measured on the watch: 679 ticks per ten seconds against 672 with
+        // it running, so the recomposition it drives is not what the dark screen costs, and the extra
+        // stop/restart/refresh path bought nothing. What the screen does cost is tracked in S1709.
+        _uiState.update { it.copy(isDimmed = !it.isDimmed) }
+    }
+
+    /**
      * S0902: called from the screen's onStop lifecycle effect - without this, playback
      * keeps running while the host activity is stopped (screen off / app backgrounded);
      * onCleared was the only prior teardown edge.
@@ -261,12 +285,16 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     fun seekForward() {
-        val newPosition = (exoPlayer.currentPosition + 10_000).coerceAtMost(exoPlayer.duration)
-        seekTo(newPosition)
+        val target = exoPlayer.currentPosition + SEEK_STEP_MS
+        // ExoPlayer reports C.TIME_UNSET, a large negative, while the duration is still unknown -
+        // clamping to it would send playback backwards past the start. Reachable here since S1683,
+        // because the bezel can now reach this action within the first moments of a stream opening.
+        val duration = exoPlayer.duration
+        seekTo(if (duration > 0) target.coerceAtMost(duration) else target)
     }
 
     fun seekBackward() {
-        val newPosition = (exoPlayer.currentPosition - 10_000).coerceAtLeast(0)
+        val newPosition = (exoPlayer.currentPosition - SEEK_STEP_MS).coerceAtLeast(0)
         seekTo(newPosition)
     }
 

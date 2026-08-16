@@ -26,6 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -43,6 +45,7 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerScaffold
 import com.sza.fastmediasorter.wear.ui.player.common.playerOverlayInsets
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import timber.log.Timber
 
 /**
@@ -81,7 +84,18 @@ fun VideoPlayerScreen(
                     uiState = uiState,
                     player = viewModel.getPlayer(),
                     onScreenTap = viewModel::onScreenTap,
-                    onPlayPause = viewModel::togglePlayPause
+                    onPlayPause = viewModel::togglePlayPause,
+                    onSkipNext = viewModel::skipToNext,
+                    onSkipPrevious = viewModel::skipToPrevious,
+                    onRotaryStep = { step ->
+                        // S1683: same binding as audio, per strategic 6.2 - the bezel moves inside the
+                        // file, and the file is changed by the buttons only.
+                        if (step > 0) {
+                            viewModel.seekForward()
+                        } else {
+                            viewModel.seekBackward()
+                        }
+                    }
                 )
             }
         }
@@ -116,7 +130,7 @@ private fun BatteryWarningDialog(
         
         Chip(
             onClick = onDismiss,
-            label = { Text("Continue") },
+            label = { Text(stringResource(R.string.wear_video_continue)) },
             colors = ChipDefaults.primaryChipColors()
         )
     }
@@ -127,7 +141,10 @@ private fun VideoPlayerContent(
     uiState: VideoPlayerUiState,
     player: androidx.media3.exoplayer.ExoPlayer,
     onScreenTap: () -> Unit,
-    onPlayPause: () -> Unit
+    onPlayPause: () -> Unit,
+    onSkipNext: () -> Unit,
+    onSkipPrevious: () -> Unit,
+    onRotaryStep: (Int) -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val context = LocalContext.current
@@ -144,6 +161,9 @@ private fun VideoPlayerContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            // The rotary binding is a separate input from the tap: rotation moves the position and
+            // leaves the overlay alone, so the bezel does not have to reveal controls to be useful.
+            .rotaryActionSteps(onRotaryStep)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -176,11 +196,10 @@ private fun VideoPlayerContent(
             modifier = Modifier.align(Alignment.Center)
         ) {
             VideoControls(
-                isPlaying = uiState.isPlaying,
-                currentPosition = uiState.currentPositionFormatted,
-                duration = uiState.durationFormatted,
-                progress = uiState.progress,
-                onPlayPause = onPlayPause
+                uiState = uiState,
+                onPlayPause = onPlayPause,
+                onSkipNext = onSkipNext,
+                onSkipPrevious = onSkipPrevious
             )
         }
     }
@@ -196,13 +215,37 @@ private fun VideoPlayerContent(
 }
 
 @Composable
-private fun VideoControls(
+private fun PlayPauseButton(
     isPlaying: Boolean,
-    currentPosition: String,
-    duration: String,
-    progress: Float,
-    onPlayPause: () -> Unit
+    description: String,
+    onClick: () -> Unit
 ) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.size(56.dp),
+        colors = ButtonDefaults.primaryButtonColors()
+    ) {
+        Text(
+            text = if (isPlaying) "⏸" else "▶️",
+            style = MaterialTheme.typography.title1,
+            modifier = Modifier.semantics { contentDescription = description }
+        )
+    }
+}
+
+@Composable
+private fun VideoControls(
+    uiState: VideoPlayerUiState,
+    onPlayPause: () -> Unit,
+    onSkipNext: () -> Unit,
+    onSkipPrevious: () -> Unit
+) {
+    val previousDesc = stringResource(R.string.wear_previous_file)
+    val nextDesc = stringResource(R.string.wear_next_file)
+    // Names the action the press performs and follows the state, so playing versus paused is
+    // announced rather than only drawn.
+    val playPauseDesc = stringResource(if (uiState.isPlaying) R.string.pause else R.string.play)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -213,37 +256,70 @@ private fun VideoControls(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Play/Pause button
-        Button(
-            onClick = onPlayPause,
-            modifier = Modifier.size(56.dp),
-            colors = ButtonDefaults.primaryButtonColors()
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = if (isPlaying) "⏸" else "▶️",
-                style = MaterialTheme.typography.title1
+            if (uiState.hasSet) {
+                Button(
+                    onClick = onSkipPrevious,
+                    modifier = Modifier.size(48.dp),
+                    colors = ButtonDefaults.secondaryButtonColors()
+                ) {
+                    Text(
+                        text = "⏮",
+                        style = MaterialTheme.typography.body2,
+                        modifier = Modifier.semantics { contentDescription = previousDesc }
+                    )
+                }
+            }
+
+            PlayPauseButton(
+                isPlaying = uiState.isPlaying,
+                description = playPauseDesc,
+                onClick = onPlayPause
             )
+
+            if (uiState.hasSet) {
+                Button(
+                    onClick = onSkipNext,
+                    modifier = Modifier.size(48.dp),
+                    colors = ButtonDefaults.secondaryButtonColors()
+                ) {
+                    Text(
+                        text = "⏭",
+                        style = MaterialTheme.typography.body2,
+                        modifier = Modifier.semantics { contentDescription = nextDesc }
+                    )
+                }
+            }
         }
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
-        // Progress bar
+
         CircularProgressIndicator(
-            progress = progress,
+            progress = uiState.progress,
             modifier = Modifier.size(80.dp),
             strokeWidth = 4.dp,
             trackColor = Color.DarkGray
         )
-        
-        // Time display
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "$currentPosition / $duration",
+                text = "${uiState.currentPositionFormatted} / ${uiState.durationFormatted}",
                 style = MaterialTheme.typography.caption3,
                 color = Color.White
+            )
+        }
+
+        if (uiState.hasSet) {
+            Text(
+                text = uiState.positionText,
+                style = MaterialTheme.typography.caption3,
+                color = Color.Gray
             )
         }
     }

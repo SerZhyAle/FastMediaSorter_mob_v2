@@ -32,17 +32,24 @@ private val SQUARE_OVERLAY_INSET = 4.dp
  *
  * @param positionIndicator scroll indicator for a scrolling player screen, omitted by the ones
  * whose content is full-bleed and does not scroll.
+ * @param showTimeText false only for the screen-off mode of S1683, where a lit clock would be the one
+ * thing still drawn on a screen the user asked to go dark.
  */
 @Composable
 fun PlayerScaffold(
     modifier: Modifier = Modifier,
     positionIndicator: (@Composable () -> Unit)? = null,
+    showTimeText: Boolean = true,
     content: @Composable BoxScope.() -> Unit
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         positionIndicator = positionIndicator,
-        timeText = { TimeText() }
+        timeText = if (showTimeText) {
+            { TimeText() }
+        } else {
+            null
+        }
     ) {
         Box(
             modifier = Modifier

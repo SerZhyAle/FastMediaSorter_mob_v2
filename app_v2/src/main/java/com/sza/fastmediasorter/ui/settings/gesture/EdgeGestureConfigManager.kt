@@ -31,7 +31,6 @@ import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import com.sza.fastmediasorter.util.showBoundTo
-import timber.log.Timber
 
 /**
  * S1035: hosts the edge-gesture detail UI inside [EdgeGestureConfigDialogFragment] - the four per-zone
@@ -438,7 +437,6 @@ class EdgeGestureConfigManager(
         // S1408: both ways of choosing a zone land here - the tab itself, and the schema tap that
         // selects that tab - so the marker follows either without a second path into the view.
         selectedZone = tabZones.getOrNull(position)
-        Timber.d("S1408: edge gesture zone selected -> ${selectedZone?.name}")
         binding.edgeGestureSchema.setState(buildSchemaState(viewModel.settings.value))
     }
 

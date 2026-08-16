@@ -164,8 +164,10 @@ private fun ImageViewerContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    // The arrows stay outside the resource: they are decoration, and a translator
+                    // handed "← Prev" has to guess whether the glyph is part of the word.
                     Text(
-                        text = "← Prev",
+                        text = "← " + stringResource(R.string.previous),
                         style = MaterialTheme.typography.caption3,
                         color = Color.Gray
                     )
@@ -175,7 +177,7 @@ private fun ImageViewerContent(
                         color = Color.White
                     )
                     Text(
-                        text = "Next →",
+                        text = stringResource(R.string.next) + " →",
                         style = MaterialTheme.typography.caption3,
                         color = Color.Gray
                     )
@@ -185,7 +187,7 @@ private fun ImageViewerContent(
             // Slideshow indicator
             if (uiState.isSlideshowActive) {
                 Text(
-                    text = "▶ Slideshow Active",
+                    text = "▶ " + stringResource(R.string.slideshow_active),
                     style = MaterialTheme.typography.caption3,
                     color = Color.Green,
                     modifier = Modifier.padding(top = 4.dp)
@@ -195,8 +197,10 @@ private fun ImageViewerContent(
             // Favorite toggle button
             Button(
                 onClick = onToggleFavorite,
+                // Wear OS asks for a 48.dp press target; this button was drawn at 32.dp, and this
+                // module has no Material dependency offering a target larger than the button.
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(48.dp)
                     .padding(top = 4.dp),
                 colors = if (isFavorite) ButtonDefaults.primaryButtonColors() else ButtonDefaults.secondaryButtonColors()
             ) {
