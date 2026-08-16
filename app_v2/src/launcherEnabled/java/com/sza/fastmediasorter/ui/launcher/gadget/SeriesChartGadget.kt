@@ -22,7 +22,6 @@ import com.sza.fastmediasorter.domain.usecase.sensors.RecordSensorSeriesPointUse
 import com.sza.fastmediasorter.domain.usecase.sensors.ResetSensorSeriesUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.roundToInt

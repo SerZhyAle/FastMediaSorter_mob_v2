@@ -4,7 +4,6 @@ import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
 import com.sza.fastmediasorter.domain.usecase.HostReachabilityChecker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -25,8 +24,6 @@ class HostReachabilityCheckerImpl @Inject constructor(
     override suspend fun isReachable(host: String, port: Int, timeoutMs: Int): Boolean =
         withContext(Dispatchers.IO) {
             val endpoint = endpointResolver.resolve(host, port)
-            if (endpoint.host != host || endpoint.port != port) {
-            }
             SmbErrorClassifier.checkConnectivity(endpoint.host, endpoint.port, timeoutMs)
         }
 }

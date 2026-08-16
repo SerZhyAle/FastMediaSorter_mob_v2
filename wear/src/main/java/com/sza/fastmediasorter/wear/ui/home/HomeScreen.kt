@@ -34,6 +34,7 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.settings.SettingsViewModel
 import timber.log.Timber
 
@@ -88,7 +89,7 @@ fun HomeScreen(
                 Chip(
                     onClick = {
                         Timber.d("Category clicked: ${category.route}")
-                        navController.navigate("browse/${category.route}")
+                        navController.navigate(WearRoutes.browse(category.route))
                     },
                     label = {
                         Text(text = category.name)
@@ -110,7 +111,7 @@ fun HomeScreen(
                 Chip(
                     onClick = {
                         Timber.d("Network Storage clicked")
-                        navController.navigate("network_sources")
+                        navController.navigate(WearRoutes.NETWORK_SOURCES)
                     },
                     label = {
                         Text(text = stringResource(R.string.network_storage))
@@ -133,7 +134,7 @@ fun HomeScreen(
                 Chip(
                     onClick = {
                         Timber.d("Phone resource clicked")
-                        navController.navigate("phone_resource")
+                        navController.navigate(WearRoutes.PHONE_RESOURCE)
                     },
                     label = {
                         Text(text = stringResource(R.string.phone_resource_title))
@@ -155,7 +156,7 @@ fun HomeScreen(
                 Chip(
                     onClick = {
                         Timber.d("Settings clicked")
-                        navController.navigate("settings")
+                        navController.navigate(WearRoutes.SETTINGS)
                     },
                     label = {
                         Text(text = stringResource(R.string.settings))

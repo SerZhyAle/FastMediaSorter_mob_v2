@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.data.delivery.DeliveredPayloadCorruptException
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.ocr.OcrBlockFilter
+import com.sza.fastmediasorter.domain.ocr.OcrDiscardRecorder
 import com.sza.fastmediasorter.domain.ocr.OcrLineGeometry
 import com.sza.fastmediasorter.domain.ocr.OfflineOcrEngineProvider
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -31,6 +32,9 @@ class RecognitionBackend(
     private val capabilityRepository: DeliverableCapabilityRepository,
     private val libraryLoader: DeliveredNativeLibraryLoader,
     private val statsSink: StatsSink,
+    // S1712: the discard channel. Off by default, and while it is off this costs one flag comparison
+    // per fragment and allocates nothing.
+    private val discardRecorder: OcrDiscardRecorder = OcrDiscardRecorder(),
 ) : TextRecognitionFacade {
 
     // Languages that use Cyrillic script.
@@ -157,8 +161,14 @@ class RecognitionBackend(
 
         if (!ocrBlocks.isNullOrEmpty()) {
             // S1712: the four thresholds live in OcrBlockFilter now, so the reason a fragment was
-            // dropped survives the decision instead of collapsing into a boolean.
-            val filteredBlocks = ocrBlocks.filter { OcrBlockFilter.isAccepted(it) }
+            // dropped survives the decision instead of collapsing into a boolean. The recorder reads that
+            // same verdict - one function, two readers - and stays silent while its channel is off.
+            discardRecorder.beginRun()
+            val filteredBlocks = ocrBlocks.filter { block ->
+                val verdict = OcrBlockFilter.evaluate(block)
+                discardRecorder.record(block, verdict)
+                verdict == OcrBlockFilter.Verdict.ACCEPTED
+            }
 
             Timber.d("S1711: applying word-level line geometry to the recognised blocks")
             val translatedBlocks = mutableListOf<TranslationManager.TranslatedTextBlock>()

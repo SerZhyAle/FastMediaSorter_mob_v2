@@ -6,7 +6,6 @@ import android.view.MotionEvent
 import com.sza.fastmediasorter.domain.input.InputSurface
 import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.utils.UserActionLogger
-import timber.log.Timber
 
 /** Routes key/motion/gamepad input for [PlayerActivity] - extracted to keep the host class under the 1000-LOC budget. */
 internal class PlayerInputDispatcher(private val activity: PlayerActivity) {

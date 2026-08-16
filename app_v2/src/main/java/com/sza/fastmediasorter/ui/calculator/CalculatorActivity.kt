@@ -16,7 +16,6 @@ import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorInputManager
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {

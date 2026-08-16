@@ -22,7 +22,6 @@ import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import timber.log.Timber
 
 /**
  * Owns the destinations list embedded in the Operations tab: the RecyclerView + adapter, add/remove/

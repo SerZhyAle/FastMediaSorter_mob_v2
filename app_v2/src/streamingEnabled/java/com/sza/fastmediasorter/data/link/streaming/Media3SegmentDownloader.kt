@@ -41,7 +41,9 @@ import javax.inject.Singleton
  * Failure modes raise [StreamingDownloadException]; callers handle these and map
  * to [com.sza.fastmediasorter.domain.usecase.link.streaming.PipelineOutcome.NetworkError].
  */
-@OptIn(UnstableApi::class)
+// S1685: `@OptIn` did nothing here - UnstableApi is not a `@RequiresOptIn` marker in this Media3 version,
+// and the compiler said so on every build. `@UnstableApi` is what the rest of the tree uses.
+@UnstableApi
 @Singleton
 class Media3SegmentDownloader @Inject constructor(
     @ApplicationContext private val context: Context,

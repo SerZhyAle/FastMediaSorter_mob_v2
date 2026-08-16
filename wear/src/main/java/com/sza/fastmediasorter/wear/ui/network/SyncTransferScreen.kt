@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WatchSyncEvents
 import com.sza.fastmediasorter.wear.domain.model.ImportResult
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import kotlinx.coroutines.flow.merge
 
 /**
@@ -37,8 +38,8 @@ fun SyncTransferScreen(
 ) {
     LaunchedEffect(Unit) {
         WatchSyncEvents.importResultFlow.collect { result ->
-            navController.navigate("sync_result/${result.added}/${result.updated}") {
-                popUpTo("sync_transfer") { inclusive = true }
+            navController.navigate(WearRoutes.syncResult(result.added, result.updated)) {
+                popUpTo(WearRoutes.SYNC_TRANSFER) { inclusive = true }
             }
         }
     }

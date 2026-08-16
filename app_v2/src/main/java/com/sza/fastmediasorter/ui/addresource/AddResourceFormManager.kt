@@ -16,13 +16,12 @@ import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.mediaPreset
 import com.sza.fastmediasorter.ui.common.ResourceProfileDialog
+import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow
-import com.sza.fastmediasorter.ui.common.installTextInputTapFocusBridge
-import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.utils.NetworkUtils
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 internal class AddResourceFormManager(
     private val activity: AddResourceActivity,

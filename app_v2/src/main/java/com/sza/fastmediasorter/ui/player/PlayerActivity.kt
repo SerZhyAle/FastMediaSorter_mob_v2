@@ -162,6 +162,7 @@ class PlayerActivity :
     internal var nowPlayingManager: com.sza.fastmediasorter.ui.player.helpers.NowPlayingManager? = null
     internal var sleepTimerManager: com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = null
     internal var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
+
     // S1549: NOT a `by lazy`. A lazy never recomputes, so after a re-inflate it would keep handing
     // out accessors resolved against the discarded hierarchy no matter how the binding is reassigned.
     // Every consumer (PlayerViewerFactory included) reads through this property, so dropping the
@@ -181,6 +182,7 @@ class PlayerActivity :
     /** S1549: owns the per-holder re-bind operations after a re-inflate (see its KDoc inventory). */
     private val playerLayoutRebindManager =
         com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutRebindManager()
+
     internal lateinit var dialogAndUiStateManager: PlayerDialogAndUiStateManager
 
     // S0550: assigned late in PlayerManagerInitializer.initUiCoordinators(); the slideshow callback

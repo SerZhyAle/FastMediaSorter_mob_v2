@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.widget.registry.HomeWidgetEntry
-import timber.log.Timber
 import javax.inject.Inject
 
 /**

@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.browse.BrowseState
-import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

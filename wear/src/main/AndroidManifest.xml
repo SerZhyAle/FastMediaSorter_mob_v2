@@ -25,9 +25,17 @@
         <meta-data
             android:name="com.google.android.wearable.standalone"
             android:value="true" />
+        <!-- S1721: the watch absorbs a rotation instead of being recreated by it. On a 480x480 screen a
+             rotation changes no proportions, so a recreate reads as the screen resetting itself - the
+             Compose tree and the navigation stack are rebuilt for nothing.
+             Safe here and NOT a repeat of the S1549 defect: that rule is about layouts chosen by an
+             orientation qualifier at inflate time, and this module has no res/layout* at all. Compose
+             receives the new configuration through LocalConfiguration and recomposes. If a view layout ever
+             appears in this module, this declaration stops being free. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
             android:theme="@style/Theme.FastMediaSorterWear">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

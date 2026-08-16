@@ -442,8 +442,6 @@ class PdfViewerManager(
                                 } else {
                                     setupPageMode(startPage)
                                 }
-                                if (startPage > 0) {
-                                }
 
                                 // Force command panel button visibility update after page is rendered
                                 // Only show in landscape mode; portrait uses overflow menu

@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import timber.log.Timber
 
 /**
@@ -272,13 +273,13 @@ private fun navigateToPlayer(
 ) {
     // Determine player based on file's actual mimeType, not the screen's mediaType
     val route = when {
-        file.mimeType?.startsWith("image/") == true -> "image_viewer/${file.id}"
-        file.mimeType?.startsWith("video/") == true -> "video_player/${file.id}"
-        file.mimeType?.startsWith("audio/") == true -> "audio_player/${file.id}"
+        file.mimeType?.startsWith("image/") == true -> WearRoutes.imageViewer(file.id)
+        file.mimeType?.startsWith("video/") == true -> WearRoutes.videoPlayer(file.id)
+        file.mimeType?.startsWith("audio/") == true -> WearRoutes.audioPlayer(file.id)
         else -> when (mediaType) {
-            MediaType.MUSIC -> "audio_player/${file.id}"
-            MediaType.VIDEO -> "video_player/${file.id}"
-            MediaType.PHOTO -> "image_viewer/${file.id}"
+            MediaType.MUSIC -> WearRoutes.audioPlayer(file.id)
+            MediaType.VIDEO -> WearRoutes.videoPlayer(file.id)
+            MediaType.PHOTO -> WearRoutes.imageViewer(file.id)
         }
     }
     Timber.d("Navigating to: $route for file: ${file.name} (mimeType: ${file.mimeType})")

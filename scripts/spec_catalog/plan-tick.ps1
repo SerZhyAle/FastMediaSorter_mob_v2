@@ -353,6 +353,35 @@ for ($i = 0; $i -lt $lines.Length; $i++) {
     }
 }
 
+# S1723: the phase file's own header used to be left alone, so a finished phase read
+# "Status: not started" inside the very file documenting it while INDEX.md said Done for the same
+# phase - measured on 2026-08-17 as 74 of 138 phase files in PLAN/. The counter above and the row
+# in the index were kept in step with each other and with nothing else. Recomputed from the
+# markers, never incremented, for the same reason the index row is: a header that already drifted
+# by hand must end up equal to what the steps say, not equal to itself plus one.
+$phaseStatusText = if ($doneAfter -ge $totalSteps -and $totalSteps -gt 0) {
+    '**Status:** ✅ Done'
+} elseif ($doneAfter -gt 0) {
+    '**Status:** 🚧 In Progress'
+} else {
+    '**Status:** ⬜ Not started'
+}
+$today = Get-Date -Format 'yyyy-MM-dd'
+for ($i = 0; $i -lt $lines.Length; $i++) {
+    if ($lines[$i] -match '^\*\*Status:\*\*\s*(⬜|🚧|✅|⛔|⏭)') {
+        # Only the header form is touched: a step's own "**Status:** `[x] done`" line never starts
+        # with one of these glyphs, so it cannot be hit by this branch.
+        $lines[$i] = $phaseStatusText
+    } elseif ($lines[$i] -match '^\*\*Started:\*\*\s*-\s*$' -and $doneAfter -gt 0) {
+        $lines[$i] = "**Started:** $today"
+    } elseif ($lines[$i] -match '^\*\*Completed:\*\*' -and $doneAfter -ge $totalSteps -and $totalSteps -gt 0) {
+        $lines[$i] = "**Completed:** $today"
+    } elseif ($lines[$i] -match '^\*\*Completed:\*\*' -and $doneAfter -lt $totalSteps) {
+        # A step reopened after the phase was finished: the completion date is no longer true.
+        $lines[$i] = '**Completed:** -'
+    }
+}
+
 # Durable trace. The primary machine-readable record of an execution is this script's own
 # invocation - a process audit reads transcripts, and the ticket, phase and step numbers are
 # right there in the arguments. The Step Log is the in-repository copy, so someone reading the

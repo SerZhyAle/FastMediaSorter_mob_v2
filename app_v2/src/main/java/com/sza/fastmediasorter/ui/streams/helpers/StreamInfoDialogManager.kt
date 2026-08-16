@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.media3.common.util.UnstableApi
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.ui.dialog.StreamInfoDialog
-import timber.log.Timber
 
 /**
  * S1474: owns the "about this channel" window for the streams screen, the way

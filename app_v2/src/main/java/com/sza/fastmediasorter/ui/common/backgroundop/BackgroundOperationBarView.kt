@@ -7,7 +7,6 @@ import androidx.core.view.isVisible
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * Hairline progress bar for a background file operation, laid over the bottom of a screen.

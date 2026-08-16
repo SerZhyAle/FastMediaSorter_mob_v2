@@ -21,6 +21,7 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import kotlinx.coroutines.delay
 
 /**
@@ -35,8 +36,8 @@ fun SyncResultScreen(
 ) {
     LaunchedEffect(Unit) {
         delay(8_000)
-        navController.navigate("network_sources") {
-            popUpTo("sync_result/$added/$updated") { inclusive = true }
+        navController.navigate(WearRoutes.NETWORK_SOURCES) {
+            popUpTo(WearRoutes.syncResult(added, updated)) { inclusive = true }
         }
     }
 
@@ -80,8 +81,8 @@ fun SyncResultScreen(
             item {
                 Chip(
                     onClick = {
-                        navController.navigate("network_sources") {
-                            popUpTo("sync_result/$added/$updated") { inclusive = true }
+                        navController.navigate(WearRoutes.NETWORK_SOURCES) {
+                            popUpTo(WearRoutes.syncResult(added, updated)) { inclusive = true }
                         }
                     },
                     label = { Text(stringResource(R.string.wear_sync_browse_now)) },
@@ -92,8 +93,8 @@ fun SyncResultScreen(
             item {
                 Chip(
                     onClick = {
-                        navController.navigate("network_sources") {
-                            popUpTo("sync_result/$added/$updated") { inclusive = true }
+                        navController.navigate(WearRoutes.NETWORK_SOURCES) {
+                            popUpTo(WearRoutes.syncResult(added, updated)) { inclusive = true }
                         }
                     },
                     label = { Text(stringResource(R.string.done)) },

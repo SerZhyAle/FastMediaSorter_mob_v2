@@ -7,7 +7,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
-import timber.log.Timber
 
 /**
  * S1179: which sensor gadget needs which runtime permission, and the single place that asks.

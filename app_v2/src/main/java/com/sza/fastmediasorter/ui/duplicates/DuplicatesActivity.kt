@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.databinding.ActivityDuplicatesBinding
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class DuplicatesActivity : BaseActivity<ActivityDuplicatesBinding>() {

@@ -25,7 +25,6 @@ import com.sza.fastmediasorter.ui.game.helpers.GameBoardRenderState
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardScale
 import com.sza.fastmediasorter.ui.game.helpers.GameBoardTheme
 import com.sza.fastmediasorter.ui.game.helpers.GameScalingManager
-import timber.log.Timber
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2

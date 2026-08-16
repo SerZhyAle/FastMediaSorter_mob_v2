@@ -8,7 +8,6 @@ import androidx.core.view.updatePadding
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
-import timber.log.Timber
 
 /**
  * Applies edge-to-edge window insets to BrowseActivity layout.

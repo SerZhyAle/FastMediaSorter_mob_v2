@@ -4,7 +4,6 @@ import android.app.Activity
 import android.view.WindowManager
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import timber.log.Timber
 
 /**
  * S0920: standalone player hosts run under Theme.FastMediaSorter.FullScreen, whose

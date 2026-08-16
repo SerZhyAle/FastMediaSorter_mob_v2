@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FastMedia Wear</string>
+    <!-- S1724: title of the settings group that holds what the named groups do not. -->
+    <string name="settings_group_other">Інші</string>
     <string name="music">Музика</string>
     <string name="videos">Відео</string>
     <string name="photos">Фото</string>

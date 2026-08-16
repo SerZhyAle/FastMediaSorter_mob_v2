@@ -11,7 +11,6 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityAuthSessionsBinding
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class AuthSessionsActivity : BaseActivity<ActivityAuthSessionsBinding>() {

@@ -7,7 +7,6 @@ import android.view.View
 import android.widget.GridLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.util.showBoundToHost
-import timber.log.Timber
 
 /**
  * 16-color custom palette picker (S0192 Phase 05, strategic §2.3.1).

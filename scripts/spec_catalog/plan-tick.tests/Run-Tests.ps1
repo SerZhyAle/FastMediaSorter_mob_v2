@@ -62,7 +62,13 @@ function Reset-Fixture {
     [IO.Directory]::CreateDirectory($fixture) | Out-Null
     $phaseBody = @(
         '# Phase 01 - Probe', '',
-        '**Steps done:** 1 / 3', '',
+        # S1723: the fixture carries the same header a real phase file does. Without these three lines the
+        # header rule had nothing to act on and its assertions passed vacuously - the shape of test that
+        # reports success while checking nothing.
+        '**Status:** ⬜ Not started',
+        '**Steps done:** 1 / 3',
+        '**Started:** -',
+        '**Completed:** -', '',
         '## Prerequisites', '',
         '- [ ] Working tree is clean', '- [ ] Research read', '',
         '## Steps', '',
@@ -130,8 +136,12 @@ try {
     $restored = [IO.File]::ReadAllText($phaseFile)
     # The Step Log the Done pass appended is a deliberate survivor: the record of what happened
     # is not erased by changing the state back. Compare the markers, not the whole file.
-    $markerLines = @([IO.File]::ReadAllLines($phaseFile) | Where-Object { $_ -match '^\*\*Status:\*\*' })
-    $pristineMarkers = @($pristine -split "`n" | Where-Object { $_ -match '^\*\*Status:\*\*' })
+    # S1723: step markers only, not the phase header. The header is recomputed from the markers rather than
+    # restored, and that is deliberate - this fixture starts with "Not started" beside "1 / 3", and a
+    # round trip through the tool leaves it saying "In Progress", which is the truth. Comparing the header
+    # here would assert that the tool preserves a lie it was written to remove.
+    $markerLines = @([IO.File]::ReadAllLines($phaseFile) | Where-Object { $_ -match '^\*\*Status:\*\*\s*`' })
+    $pristineMarkers = @($pristine -split "`n" | Where-Object { $_ -match '^\*\*Status:\*\*\s*`' })
     Assert-That -Case 'C' -What 'markers restored exactly' -Condition (($markerLines -join '|') -eq ($pristineMarkers -join '|')) -Detail ($markerLines -join ' / ')
     Assert-That -Case 'C' -What 'step log survives the reversal' -Condition ($restored -match '\*\*Step Log:\*\*')
     $cases++
@@ -178,6 +188,22 @@ try {
     Assert-That -Case 'G' -What 'exactly two log lines' -Condition ($logLines.Count -eq 2) -Detail "$($logLines.Count)"
     Assert-That -Case 'G' -What 'each names its own step' -Condition (($logLines -join ' ') -match 'step 01\.2' -and ($logLines -join ' ') -match 'step 01\.3') -Detail ($logLines -join ' | ')
     $cases++
+
+    # ---- case H: the phase file's own header follows its steps (S1723) -------
+    Write-Host 'case H - the phase header stops lying about a finished phase' -ForegroundColor Cyan
+    Reset-Fixture
+    Invoke-Tick -Arguments @('-Id', 'S9991', '-Phase', '01', '-Steps', '1,2,3', '-State', 'Done') | Out-Null
+    $headerDone = [IO.File]::ReadAllText($phaseFile)
+    Assert-That -Case 'H' -What 'header says done' -Condition ($headerDone -match '\*\*Status:\*\* ✅ Done')
+    Assert-That -Case 'H' -What 'completed date filled' -Condition ($headerDone -notmatch '\*\*Completed:\*\* -')
+    Assert-That -Case 'H' -What 'started date filled' -Condition ($headerDone -notmatch '\*\*Started:\*\* -')
+    Assert-That -Case 'H' -What 'step markers untouched by the header rule' -Condition ((@([IO.File]::ReadAllLines($phaseFile) | Where-Object { $_ -match '^\*\*Status:\*\* `\[x\]` done' })).Count -eq 3)
+
+    Invoke-Tick -Arguments @('-Id', 'S9991', '-Phase', '01', '-Steps', '3', '-State', 'NotDone') | Out-Null
+    $headerReopened = [IO.File]::ReadAllText($phaseFile)
+    Assert-That -Case 'H' -What 'reopening drops the header back' -Condition ($headerReopened -match '\*\*Status:\*\* 🚧 In Progress')
+    Assert-That -Case 'H' -What 'completion date withdrawn with it' -Condition ($headerReopened -match '\*\*Completed:\*\* -')
+    $cases++
 } finally {
     if ([IO.Directory]::Exists($fixture)) { [IO.Directory]::Delete($fixture, $true) }
     if ([IO.Directory]::Exists($fixture)) {
@@ -192,5 +218,5 @@ if ($failures.Count -gt 0) {
     exit 1
 }
 
-Write-Host "plan-tick.tests: PASS - $cases cases passed (A batch, B counters, C reversal, D unknown step, E divergence, F checkbox, G trace)." -ForegroundColor Green
+Write-Host "plan-tick.tests: PASS - $cases cases passed (A batch, B counters, C reversal, D unknown step, E divergence, F checkbox, G trace, H phase header)." -ForegroundColor Green
 exit 0

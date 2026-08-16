@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.GadgetLauncherSearchBinding
 import com.sza.fastmediasorter.ui.launcher.search.WebSearchLaunchManager
 import dagger.Lazy
-import timber.log.Timber
 import javax.inject.Inject
 
 /**

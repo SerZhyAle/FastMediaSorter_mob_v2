@@ -11,7 +11,6 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner.PlayerCommand
 import dagger.hilt.android.qualifiers.ActivityContext
 import dagger.hilt.android.scopes.ActivityScoped
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -48,7 +47,6 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         addDirectEntries(entries, menuContext, actions)
         addExtendedEntries(entries, menuContext, actions)
         if (entries.isEmpty()) return
-        val groupSizes = listOf(entries.topLevel, entries.organize, entries.text, entries.edit, entries.share)
         render(anchor, entries)
     }
 

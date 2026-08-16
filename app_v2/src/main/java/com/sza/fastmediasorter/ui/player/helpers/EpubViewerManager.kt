@@ -398,8 +398,6 @@ class EpubViewerManager(
 
                             if (chapterCount > 0) {
                                 showChapter(startChapter)
-                                if (startChapter > 0) {
-                                }
 
                                 // Hide navigation controls for single-chapter EPUBs
                                 val isSingleChapter = chapterCount == 1

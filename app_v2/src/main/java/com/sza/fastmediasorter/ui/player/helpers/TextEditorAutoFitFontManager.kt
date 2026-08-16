@@ -6,7 +6,6 @@ import android.util.TypedValue
 import android.widget.EditText
 import android.widget.ScrollView
 import androidx.core.view.doOnLayout
-import timber.log.Timber
 
 /**
  * S0189: auto-fits the [EditText] font size so content fills (but does not overflow) the

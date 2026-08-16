@@ -252,12 +252,10 @@ android {
         // === STARTUP DEBUG INFO ===
         // Owner trigger - read from local.properties (excluded from VCS)
         // If local.properties is absent or the key is missing, field is empty → no special behavior
-        val localProps = Properties()
-        val localPropsFile = rootProject.file("local.properties")
-        if (localPropsFile.exists()) {
-            localProps.load(FileInputStream(localPropsFile))
-        }
-        buildConfigField("String", "OWNER_TRIGGER", "\"${localProps.getProperty("sza.owner.trigger", "")}\"")
+        // S1666: OWNER_TRIGGER and its local.properties key `sza.owner.trigger` are gone. The trigger
+        // guarded an import of credentials that shipped inside every APK regardless of it - with the
+        // bundled file withdrawn there is nothing left to guard, and the string itself no longer ends up
+        // in the built BuildConfig.
 
         // Git Hash
         // === STARTUP DEBUG INFO ===

@@ -614,7 +614,10 @@ object LoggingHelper {
                 PrintWriter(OutputStreamWriter(FileOutputStream(crashFile, false), Charsets.UTF_8), true).use { pw ->
                     pw.println("=== CRASH REPORT: $timestamp ===")
                     pw.println("=== App: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ===")
-                    pw.println("=== Thread: ${thread.name} [id=${thread.id}] ===")
+                    // S1685: same as CrashReportFormatter - threadId() is not available at our minSdk.
+                    @Suppress("DEPRECATION")
+                    val threadId = thread.id
+                    pw.println("=== Thread: ${thread.name} [id=$threadId] ===")
                     pw.println("=== ${throwable.javaClass.name}: ${throwable.message} ===")
                     pw.println(android.util.Log.getStackTraceString(throwable))
                     pw.println("=== END CRASH REPORT ===")

@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.databinding.ActivityStatisticsBinding
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 /**

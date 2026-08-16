@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.domain.usecase
 import com.sza.fastmediasorter.domain.model.PermissionEntry
 import com.sza.fastmediasorter.domain.model.PermissionGrantKind
 import com.sza.fastmediasorter.domain.model.PermissionStatus
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 

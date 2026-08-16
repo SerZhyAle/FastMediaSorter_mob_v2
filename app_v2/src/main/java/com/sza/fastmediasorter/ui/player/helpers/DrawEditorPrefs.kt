@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
 import android.util.TypedValue
-import timber.log.Timber
 
 /**
  * Persistent settings for the draw editor (S0192 Phase 02).

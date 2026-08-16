@@ -7,7 +7,6 @@ import com.sza.fastmediasorter.domain.input.InputTrigger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 

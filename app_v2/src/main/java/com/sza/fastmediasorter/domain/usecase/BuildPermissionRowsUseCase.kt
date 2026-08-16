@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.domain.model.PermissionEntry
 import com.sza.fastmediasorter.domain.model.PermissionGroupHeader
 import com.sza.fastmediasorter.domain.model.PermissionRow
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 

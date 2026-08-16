@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import timber.log.Timber
 
 /**
  * S1428: which launcher desktop sections are folded shut, and the tap that folds them (strategic §6.8).

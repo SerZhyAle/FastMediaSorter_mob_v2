@@ -7,7 +7,6 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.sza.fastmediasorter.data.input.InputBindingDao
 import com.sza.fastmediasorter.data.input.InputBindingEntity
-import timber.log.Timber
 
 @Database(
     entities = [

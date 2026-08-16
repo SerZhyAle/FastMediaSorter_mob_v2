@@ -4,7 +4,6 @@ import android.os.Handler
 import android.os.Looper
 import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
-import timber.log.Timber
 
 class HudPlaybackController(
     private var exoPlayer: ExoPlayer?,

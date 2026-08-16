@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.domain.usecase
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.StatisticsRepository
 import javax.inject.Inject
-import timber.log.Timber
 
 /**
  * Toggles the opt-in local usage statistics flag (S0473).

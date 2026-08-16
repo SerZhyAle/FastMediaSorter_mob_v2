@@ -9,7 +9,6 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.util.showBoundToHost
-import timber.log.Timber
 
 /**
  * S0189: dialog that asks the user to confirm (or rename) a text note filename before saving.

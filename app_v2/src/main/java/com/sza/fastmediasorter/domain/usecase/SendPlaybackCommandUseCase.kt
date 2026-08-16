@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.service.WearDataLayerPaths
-import timber.log.Timber
 import javax.inject.Inject
 
 class SendPlaybackCommandUseCase @Inject constructor(

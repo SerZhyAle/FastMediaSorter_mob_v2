@@ -490,6 +490,13 @@ function Select-ReleaseLines {
     $kept = New-Object System.Collections.Generic.List[object]
     if (-not (Test-Path $Path)) { return ,$kept }
 
+    # S1725: the id of the ticket line standing directly above the current one, within this file.
+    # A line that crosses to the sibling file carries it as an anchor, so coming back it can be put
+    # where the owner had it instead of at the end of its package. Before this the package survived a
+    # round trip and the position did not - and the position is what the ticket picker reads as the
+    # order of work, so a status that went ready and came back silently re-prioritised its own ticket.
+    $previousTicketId = $null
+
     foreach ($line in (Read-ReleaseFile -Path $Path)) {
         if ($line.Kind -ne 'ticket') { $kept.Add($line); continue }
         # S1698: one line per id, across BOTH files. $Seen is shared by the two passes, so this
@@ -513,7 +520,9 @@ function Select-ReleaseLines {
             Changed = $changed
             Status  = $rec.status
             Id      = $line.Id
+            After   = $previousTicketId                  # S1725: and so does its place in the block
         }
+        $previousTicketId = $line.Id
         if ((Test-ReleaseReadyStatus -Status $rec.status) -eq $WantReady) { $kept.Add($row) } else { $Moved.Add($row) }
     }
     return ,$kept
@@ -539,8 +548,21 @@ function Add-ReleaseLines {
         }
         $present[$add.Id] = $true
         $insertAt = -1
-        for ($i = 0; $i -lt $Target.Count; $i++) {
-            if ($Target[$i].Kind -eq 'ticket' -and $Target[$i].Release -eq $add.Release) { $insertAt = $i }
+        # S1725: put the line back where it stood, when we know where that was. The anchor is the id
+        # of the line it used to follow; if that line is still here, the returning ticket goes right
+        # after it. Only when the anchor is gone - or was never recorded, as for a brand-new ticket -
+        # does it fall back to the end of its package block, which is the correct place for something
+        # the owner has not ordered yet.
+        $anchorId = if ($add.PSObject.Properties['After']) { $add.After } else { $null }
+        if ($anchorId) {
+            for ($i = 0; $i -lt $Target.Count; $i++) {
+                if ($Target[$i].Kind -eq 'ticket' -and $Target[$i].Id -eq $anchorId) { $insertAt = $i; break }
+            }
+        }
+        if ($insertAt -lt 0) {
+            for ($i = 0; $i -lt $Target.Count; $i++) {
+                if ($Target[$i].Kind -eq 'ticket' -and $Target[$i].Release -eq $add.Release) { $insertAt = $i }
+            }
         }
         if ($insertAt -ge 0) { $Target.Insert($insertAt + 1, $add) } else { $Target.Add($add) }
     }

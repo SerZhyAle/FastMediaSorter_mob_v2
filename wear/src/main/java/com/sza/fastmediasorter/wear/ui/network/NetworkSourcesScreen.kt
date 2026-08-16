@@ -34,6 +34,7 @@ import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.ExportState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesUiState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesViewModel
@@ -59,7 +60,7 @@ fun NetworkSourcesScreen(
     // Navigate to sync_transfer immediately when sync request is pending
     LaunchedEffect(syncState) {
         if (syncState is SyncState.Pending) {
-            navController.navigate("sync_transfer")
+            navController.navigate(WearRoutes.SYNC_TRANSFER)
         }
     }
 
@@ -90,11 +91,11 @@ fun NetworkSourcesScreen(
                         onSourceClick = { sourceId, sourceName ->
                             Timber.d("Source selected: $sourceName (ID: $sourceId)")
                             navController.navigate(
-                                "browse/music?sourceId=$sourceId&sourceName=$sourceName"
+                                WearRoutes.browseSource(MUSIC_MEDIA_TYPE, sourceId, sourceName)
                             )
                         },
                         onAddClick = {
-                            navController.navigate("add_network_source")
+                            navController.navigate(WearRoutes.ADD_NETWORK_SOURCE)
                         },
                         onSyncClick = {
                             viewModel.requestSyncFromPhone()
@@ -113,7 +114,7 @@ fun NetworkSourcesScreen(
                 EmptyContent(
                     syncState = syncState,
                     onAddClick = {
-                        navController.navigate("add_network_source")
+                        navController.navigate(WearRoutes.ADD_NETWORK_SOURCE)
                     },
                     onSyncClick = {
                         viewModel.requestSyncFromPhone()
@@ -428,3 +429,6 @@ data class SourceItem(
     val name: String,
     val server: String
 )
+
+/** A network source opens on its music tab; the other tabs are reached from there. */
+private const val MUSIC_MEDIA_TYPE = "music"

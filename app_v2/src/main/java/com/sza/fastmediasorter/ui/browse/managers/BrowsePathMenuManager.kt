@@ -4,7 +4,6 @@ import android.content.Context
 import android.view.View
 import android.widget.PopupMenu
 import com.sza.fastmediasorter.utils.UserActionLogger
-import timber.log.Timber
 
 /**
  * Renders the current browse path as a popup list of segments anchored to a bar button.

@@ -22,7 +22,6 @@ import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S0675: renders the stream catalog as grid tiles. Each cell shows the cached current frame via

@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResizeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceActionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceCreateManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceOperations
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScrollThumbManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSensorPermissionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherStatusStripManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherStreamActionManager
@@ -307,6 +308,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             lifecycleOwner = this,
             root = binding.launcherRoot,
         )
+        attachScrollThumb()
         editModeManager = LauncherEditModeManager(
             lifecycleOwner = this,
             desktop = binding.launcherDesktop,
@@ -348,6 +350,15 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         ).attach()
         geometryManager.syncOrientation()
         addFlowManager.registerAddFlowListeners()
+    }
+
+    /** S1430: the desktop's own scroll thumb - the system bar it replaces could not be dragged. */
+    private fun attachScrollThumb() {
+        LauncherScrollThumbManager(
+            lifecycleOwner = this,
+            scrollView = binding.launcherGridScroll,
+            thumb = binding.launcherScrollThumb,
+        ).attach()
     }
 
     override fun observeData() {

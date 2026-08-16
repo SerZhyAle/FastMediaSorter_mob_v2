@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationProgress
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog
 import com.sza.fastmediasorter.util.showBoundToHost
-import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

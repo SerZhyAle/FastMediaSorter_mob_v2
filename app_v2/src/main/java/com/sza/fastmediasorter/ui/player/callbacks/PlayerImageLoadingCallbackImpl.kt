@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.domain.stats.ViewKind
 import com.sza.fastmediasorter.ui.player.ImageLoadingManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
-import timber.log.Timber
 
 /**
  * Implementation of ImageLoadingManager.ImageLoadingCallback extracted from PlayerActivity.

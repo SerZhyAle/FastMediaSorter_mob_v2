@@ -49,6 +49,7 @@ Pointers only; billed every turn. `assert-memory-budget.ps1` caps it.
 - [Gradle via PowerShell](feedback_gradle_via_powershell_not_bash.md)
 - [Unmask kapt NPE](project_kapt_npe_unmask.md) + [subagent claims](feedback_verify_subagent_build_failures.md) · [Remove dead config](feedback_remove_dead_applications_too.md)
 - [Ctor change -> compile tests](feedback_constructor_change_compile_tests.md) + [pre-existing fails](feedback_build_pre_existing_test_failures.md)
+- [Flavor-only class -> flavor test set](feedback_flavor_only_code_needs_its_own_test_set.md) - src/test compiles for all six
 - [`$stable` breaks field reflection](feedback_compose_stable_field_in_reflection_tests.md)
 - [Sandbox tests copy libs by name](feedback_sandbox_tests_carry_a_dependency_manifest.md) - new dot-source = all cases fail at load
 - [fk misses the Hilt graph](feedback_fk_does_not_validate_hilt_graph.md) - MissingBinding hides

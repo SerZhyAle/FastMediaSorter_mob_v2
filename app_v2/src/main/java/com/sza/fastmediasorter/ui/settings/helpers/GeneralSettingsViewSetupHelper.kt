@@ -553,17 +553,11 @@ class GeneralSettingsViewSetupHelper(
 
         lastCommittedDefaultUser = newUser
         val current = viewModel.settings.value
-        val ownerTrigger = BuildConfig.OWNER_TRIGGER
+        // S1666: the secret trigger that imported the bundled credential file is gone with the file. It
+        // guarded the action while the data shipped in every APK regardless - resources now come in only
+        // through the user's own file, which needs no hidden entry point.
         if (current.defaultUser != newUser) {
             viewModel.updateSettings(current.copy(defaultUser = newUser))
-        }
-        if (ownerTrigger.isNotEmpty() && newUser.equals(ownerTrigger, ignoreCase = true)) {
-            MaterialAlertDialogBuilder(fragment.requireContext())
-                .setTitle(R.string.import_resources_title)
-                .setMessage(R.string.import_resources_message)
-                .setPositiveButton(R.string.yes) { _, _ -> viewModel.importSzaResources(fragment.requireContext()) }
-                .setNegativeButton(R.string.no, null)
-                .showBoundTo(fragment)
         }
     }
 

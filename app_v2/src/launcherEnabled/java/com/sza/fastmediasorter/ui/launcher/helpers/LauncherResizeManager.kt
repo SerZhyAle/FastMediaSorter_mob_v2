@@ -11,7 +11,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
-import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.roundToInt
 

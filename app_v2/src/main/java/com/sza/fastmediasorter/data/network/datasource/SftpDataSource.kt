@@ -85,7 +85,9 @@ class SftpDataSource(
 
             Timber.d("SftpDataSource: Got pooled connection - session=${session?.isConnected}, channel=${openChannel?.isConnected}")
 
-            if (openChannel == null || !openChannel.isConnected) {
+            // S1685: the pool returns a non-null channel, so only its connected state is worth checking -
+            // the null half of this guard was dead and the compiler said so on every build.
+            if (!openChannel.isConnected) {
                 throw IOException("Failed to get connected SFTP channel from pool")
             }
 
@@ -106,7 +108,7 @@ class SftpDataSource(
                     val retryChannel = retryConn.channel
                     channel = retryChannel
                     connectionAcquired = true
-                    if (retryChannel == null || !retryChannel.isConnected) throw IOException("SFTP retry: channel not connected")
+                    if (!retryChannel.isConnected) throw IOException("SFTP retry: channel not connected")
                     val encodedPath = uri?.encodedPath ?: throw IOException("SFTP retry: URI unavailable")
                     return attemptOpen(retryChannel, Uri.decode(encodedPath), dataSpec)
                 } catch (retryEx: Exception) {

@@ -4,7 +4,6 @@ import com.sza.fastmediasorter.domain.model.StorageVolumeInfo
 import com.sza.fastmediasorter.domain.repository.StorageVolumeRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 

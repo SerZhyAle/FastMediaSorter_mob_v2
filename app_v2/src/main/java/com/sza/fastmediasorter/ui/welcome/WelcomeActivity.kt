@@ -46,7 +46,6 @@ import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeRemoteSourcesController
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint

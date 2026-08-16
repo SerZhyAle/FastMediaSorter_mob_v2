@@ -28,15 +28,15 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * S0046 - imports predefined resources from the bundled `res/xml/sza_resources.xml` into the
- * database. Extracted from `SettingsViewModel` so the parsing/credentials/fingerprint logic lives
- * outside the UI layer.
+ * S0046 - imports resources from a share file the user picks. Extracted from `SettingsViewModel` so the
+ * parsing/credentials/fingerprint logic lives outside the UI layer.
  *
- * SFTP rows may declare `auth="key"` with a `privateKeyAsset` (a file under `assets/sftp_keys/`),
- * an optional `keyPassphrase`, and a `hostKeyFingerprint` for pinning. The bundled key is read once
- * here and stored encrypted in credentials storage; the asset is never read again at runtime. A
- * declared-but-unreadable key skips the resource entirely (no silent password fallback). Key bytes
- * and passphrases are never logged.
+ * S1666: the bundled `res/xml/sza_resources.xml` and the private key under `assets/sftp_keys/` are gone -
+ * they carried real credentials into every APK, where unpacking the archive was the only step needed to
+ * read them. A file that declares `auth="key"` is now skipped with a named reason: there is no bundled key
+ * to pair it with, and inventing a password fallback would create an auth method the user never chose.
+ * Credentials that arrive in a user-picked file are still stored encrypted; key bytes and passphrases are
+ * never logged.
  */
 @Singleton
 class SzaResourcesImporter @Inject constructor(
@@ -58,16 +58,10 @@ class SzaResourcesImporter @Inject constructor(
         data class Invalid(val reason: String) : PreviewResult
     }
 
-    /** Imports the bundled predefined-resource config (owner trigger). */
-    suspend fun import(): ImportResult = withContext(Dispatchers.IO) {
-        try {
-            val parser = context.resources.getXml(com.sza.fastmediasorter.R.xml.sza_resources)
-            importFromParser(parser)
-        } catch (e: Exception) {
-            Timber.e(e, "Error importing SZA resources")
-            ImportResult.Failure(e)
-        }
-    }
+    // S1666: the bundled entry point is gone. It read `R.xml.sza_resources`, a file that carried real
+    // passwords, PINs and host fingerprints into every APK - the owner ruled on 2026-08-16 that the
+    // resource and the code reading it go, and that the user's own file import is the way in. Only that
+    // way in remains below.
 
     /** Imports a user-supplied share file (S0422). */
     suspend fun importFromUri(uri: Uri): ImportResult = withContext(Dispatchers.IO) {
@@ -206,8 +200,6 @@ class SzaResourcesImporter @Inject constructor(
 
             // S0046 SFTP key-auth + fingerprint attributes.
             val auth = parser.getAttributeValue(null, "auth") ?: "password"
-            val privateKeyAsset = parser.getAttributeValue(null, "privateKeyAsset")
-            val keyPassphrase = parser.getAttributeValue(null, "keyPassphrase")
             val hostKeyFingerprintRaw = parser.getAttributeValue(null, "hostKeyFingerprint")
 
             val type = try {
@@ -216,22 +208,13 @@ class SzaResourcesImporter @Inject constructor(
                 ResourceType.LOCAL
             }
 
-            // Load bundled private key when this resource declares key-auth. A declared-but-unreadable
-            // key is a release packaging bug: skip the whole resource rather than fall back to a
-            // password and create an inconsistent auth method (strategic spec S0046 §6.2).
-            var bundledPrivateKey: String? = null
+            // S1666: no key ships with the app any more. A file that declares key-auth is skipped with
+            // a named reason rather than silently imported without its key - the private key that used to
+            // live in assets/sftp_keys was itself part of the leak this ticket closes.
+            val bundledPrivateKey: String? = null
             if (type == ResourceType.SFTP && auth == "key") {
-                if (privateKeyAsset.isNullOrBlank()) {
-                    Timber.w("Predefined SFTP resource '$name' declares auth=key without privateKeyAsset; skipping")
-                    return Outcome.SKIPPED
-                }
-                bundledPrivateKey = readBundledKey(privateKeyAsset, name) ?: return Outcome.SKIPPED
-                if (!keyPassphrase.isNullOrBlank()) {
-                    // The credentials schema has no passphrase column, so a passphrase-protected
-                    // bundled key cannot be unlocked at runtime. Surface this instead of silently
-                    // shipping a key that will fail to load.
-                    Timber.w("Predefined SFTP resource '$name' declares keyPassphrase, which is not persisted; an encrypted key will fail to load")
-                }
+                Timber.w("Resource '$name' declares auth=key; bundled keys are no longer shipped, skipping")
+                return Outcome.SKIPPED
             }
 
             val canonicalFingerprint = hostKeyFingerprintRaw?.let { raw ->
@@ -378,16 +361,5 @@ class SzaResourcesImporter @Inject constructor(
             Timber.e(e, "Error parsing predefined resource entry")
             return Outcome.SKIPPED
         }
-    }
-
-    /**
-     * Reads a bundled private key from `assets/sftp_keys/`. Returns null (and logs at warn, without
-     * key bytes) when the asset is missing or unreadable so the caller skips the resource.
-     */
-    private fun readBundledKey(privateKeyAsset: String, resourceName: String): String? = try {
-        context.assets.open("sftp_keys/$privateKeyAsset").bufferedReader().use { it.readText() }
-    } catch (e: Exception) {
-        Timber.w("Bundled SFTP key '$privateKeyAsset' for resource '$resourceName' unreadable: ${e.message}")
-        null
     }
 }

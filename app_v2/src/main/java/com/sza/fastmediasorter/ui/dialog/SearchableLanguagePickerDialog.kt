@@ -25,7 +25,6 @@ import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
 

@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.xr.helpers
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
-import timber.log.Timber
 import java.nio.ByteBuffer
 
 /**

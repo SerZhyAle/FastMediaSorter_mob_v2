@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 
 /**
  * S0133: Reconciles system component state (ACTION_SEND share-sheet aliases, ACTION_VIEW player aliases)

@@ -33,17 +33,16 @@ import kotlin.math.abs
  * 1. Auto-size font so a single line fills ~90% of the original OCR box height
  *    (metric-correct, no fixed sp ceiling) so it matches the source text size
  * 2. Wrap text to multiple lines within bounding box width
- * 3. If multiline still doesn't fit vertically, reduce font size (min 8sp)
- * 4. Background covers at least the original box; expand width/height only when the
- *    translation is larger, capped at 270%
+ * 3. S1713: a translation that does not fit grows the plate DOWNWARD - it is never shrunk to fit and
+ *    never clipped, because a translation smaller than the line it replaces defeats the plate
+ * 4. Background covers at least the original box and grows down as far as the view allows
  * 5. Center text vertically within final box
  * 
  * Features:
  * - Tap on a block to bring it to front (raise z-order)
- * - Adaptive padding based on box size (2-4sp)
+ * - S1713: padding is a share of the type size (see PLATE_PADDING_EM), not of the box height
  * - Slight letter spacing for better readability
- * - Rounded corners with opaque white background
- * - Expansion limits prevent blocks from overlapping excessively
+ * - Rounded corners and an OPAQUE backing (S1713 - at 94 % the source letters read through)
  */
 class TranslationOverlayView @JvmOverloads constructor(
     context: Context,
@@ -59,7 +58,9 @@ class TranslationOverlayView @JvmOverloads constructor(
         val translatedText: String,
         val boundingBox: Rect,
         val confidence: Float,
-        var backgroundColor: Int = Color.parseColor("#F0FFFFFF"), // Adaptive background color
+        // S1713: opaque. The plate exists to cover the source text; at 94 % the original letters read
+        // through it, and if the result looks heavy the cause is the colour (S1704, S1714), not the alpha.
+        var backgroundColor: Int = Color.parseColor("#FFFFFFFF"),
         var textColor: Int = Color.BLACK, // Contrast text color
         var customFontSize: Float? = null, // Per-block font size override (6-72sp)
         // S1711: source-line type size in OCR pixels (median of the line's word heights). Null means the
@@ -93,7 +94,7 @@ class TranslationOverlayView @JvmOverloads constructor(
     
     // Paint for background rectangles
     private val backgroundPaint = Paint().apply {
-        color = Color.parseColor("#F0FFFFFF") // More opaque white for readability
+        color = Color.parseColor("#FFFFFFFF") // S1713: opaque backing, see TranslatedBlock.backgroundColor
         style = Paint.Style.FILL
         isAntiAlias = true
     }
@@ -393,7 +394,7 @@ class TranslationOverlayView @JvmOverloads constructor(
      * actually under the plate (S1704).
      */
     private fun sampleBackgroundColor(boundingBox: Rect): Int {
-        val bitmap = sourceBitmap ?: return Color.parseColor("#F0FFFFFF")
+        val bitmap = sourceBitmap ?: return Color.parseColor("#FFFFFFFF")
 
         try {
             val (x, y) = ocrPointToSource(boundingBox.left, boundingBox.top, bitmap)
@@ -410,7 +411,7 @@ class TranslationOverlayView @JvmOverloads constructor(
             )
         } catch (e: Exception) {
             Timber.e(e, "Failed to sample background color")
-            return Color.parseColor("#F0FFFFFF")
+            return Color.parseColor("#FFFFFFFF")
         }
     }
 
@@ -513,8 +514,7 @@ class TranslationOverlayView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         
-        val minTextSizePx = spToPx(minTextSizeSp)
-
+        Timber.d("S1713: drawing translation plates, opaque backing and downward growth")
         // Clear and rebuild scaled rects for hit testing
         scaledRects.clear()
         
@@ -541,8 +541,12 @@ class TranslationOverlayView @JvmOverloads constructor(
                  Timber.d("TRANSLATION_DEBUG: View dimensions: ${width}x${height}")
             }
 
-            // Adaptive padding based on box size (2-4sp range)
-            val padding = spToPx(2f + (scaledHeight / 100f).coerceIn(0f, 2f))
+            // S1713: padding is a share of the type size, not of the box height. The neighbouring
+            // project measured plate padding as load-bearing rather than cosmetic and bracketed it at
+            // 0.05em to 0.28em; PLATE_PADDING_EM sits inside that bracket. The old 2..4sp rule read the
+            // box height, so a tall box padded a small translation as if it were large.
+            val padding = (autoTextSizeSourcePx(block, scaledHeight) * PLATE_PADDING_EM)
+                .coerceAtLeast(spToPx(MIN_PLATE_PADDING_SP))
             val availableWidth = (scaledWidth - padding * 2).toInt().coerceAtLeast(1)
             
             // Use custom font size if set by user gesture, otherwise auto-size to the
@@ -558,32 +562,27 @@ class TranslationOverlayView @JvmOverloads constructor(
             // Create StaticLayout for multiline text wrapping within box width
             var staticLayout = createStaticLayout(block.translatedText, textPaint, availableWidth)
             
-            // If text takes more than 1 line and no custom size, try to reduce font size to fit in box height
-            val adjustedMinTextSizePx = minTextSizePx * fontSizeMultiplier
-            if (block.customFontSize == null && staticLayout.height > scaledHeight - padding * 2 && staticLayout.lineCount > 1 && textSize > adjustedMinTextSizePx) {
-                // Scale down to fit within box height with padding
-                val targetHeight = scaledHeight - padding * 2
-                val scaleFactor = (targetHeight / staticLayout.height).coerceIn(0.6f, 1f)
-                val newSize = (textSize * scaleFactor).coerceAtLeast(adjustedMinTextSizePx)
-                textPaint.textSize = newSize
-                staticLayout = createStaticLayout(block.translatedText, textPaint, availableWidth)
-            }
+            // S1713: a translation that does not fit grows the plate downward. The shrink-to-fit pass that
+            // used to sit here made the translation smaller than the source line it replaces, which is the
+            // opposite of what the plate is for; growth is handled below, where the height is computed.
             
             // Calculate final background dimensions
             // Width: use box width, unless single line is wider
             val textActualWidth = (0 until staticLayout.lineCount)
                 .maxOfOrNull { staticLayout.getLineWidth(it) } ?: 0f
             
-            // S0451: cover at least the original box width (never shrink below the source
-            // text); expand right only when the translation is wider, capped at 270%.
-            val maxAllowedWidth = scaledWidth * 2.7f
-            val actualRight = scaledLeft + (textActualWidth + padding * 2).coerceIn(scaledWidth, maxAllowedWidth)
+            // S0451: cover at least the original box width (never shrink below the source text).
+            // S1713: the sideways cap of 270 % is gone with the growth direction it belonged to - a plate
+            // that widens covers the picture beside the line, which the line never occupied.
+            val actualRight = scaledLeft + (textActualWidth + padding * 2).coerceAtLeast(scaledWidth)
 
-            // S0451: cover at least the original box height; expand down only when the
-            // translation is taller (multiline), capped at 270%.
+            // S0451: cover at least the original box height.
+            // S1713: downward is the direction a plate may grow, and it grows as far as the translation
+            // needs - the old 270 % ceiling cut the text off instead. The view's own bottom is the only
+            // limit, because a plate past it is drawn nowhere.
             val textHeightWithPadding = staticLayout.height + padding * 2
-            val maxAllowedHeight = scaledHeight * 2.7f
-            val actualBottom = scaledTop + textHeightWithPadding.coerceIn(scaledHeight, maxAllowedHeight)
+            val availableDownwards = (height - scaledTop).coerceAtLeast(scaledHeight)
+            val actualBottom = scaledTop + textHeightWithPadding.coerceIn(scaledHeight, availableDownwards)
             
             // Calculate actual final box height (for proper vertical centering)
             val finalBoxHeight = actualBottom - scaledTop
@@ -624,5 +623,18 @@ class TranslationOverlayView @JvmOverloads constructor(
                 canvas.drawLine(rect.left, rect.top - 20, rect.left, rect.top + 20, debugPaint)
             }
         }
+    }
+
+    private companion object {
+        /**
+         * S1713: plate padding as a share of the type size. Inherited bracket from the neighbouring
+         * project's measurement (0.05em to 0.28em, where padding alone moved a scene from 0.2841 to
+         * 0.2705 with byte-identical rectangles); this sits mid-bracket. Not derived on our own
+         * material - S1716's harness is what would derive it.
+         */
+        const val PLATE_PADDING_EM = 0.12f
+
+        /** Floor so a plate around very small text still has a visible edge. */
+        const val MIN_PLATE_PADDING_SP = 2f
     }
 }

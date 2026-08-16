@@ -22,6 +22,7 @@ import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.sza.fastmediasorter.wear.ui.browse.BrowseScreen
 import com.sza.fastmediasorter.wear.ui.home.HomeScreen
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.network.AddNetworkSourceScreen
 import com.sza.fastmediasorter.wear.ui.network.NetworkSourcesScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncResultScreen
@@ -125,18 +126,18 @@ fun MainNavigation() {
     
     SwipeDismissableNavHost(
         navController = navController,
-        startDestination = "home",
+        startDestination = WearRoutes.HOME,
         modifier = Modifier.background(Color.Black)
     ) {
-        composable("home") {
+        composable(WearRoutes.HOME) {
             HomeScreen(navController = navController)
         }
         
         // Browse screen with media type argument
         composable(
-            route = "browse/{mediaType}",
+            route = WearRoutes.BROWSE_PATTERN,
             arguments = listOf(
-                navArgument("mediaType") { type = NavType.StringType }
+                navArgument(WearRoutes.ARG_MEDIA_TYPE) { type = NavType.StringType }
             )
         ) {
             BrowseScreen(navController = navController)
@@ -144,59 +145,63 @@ fun MainNavigation() {
         
         // Browse network source screen
         composable(
-            route = "browse/{mediaType}?sourceId={sourceId}&sourceName={sourceName}",
+            route = WearRoutes.BROWSE_SOURCE_PATTERN,
             arguments = listOf(
-                navArgument("mediaType") { type = NavType.StringType },
-                navArgument("sourceId") { type = NavType.StringType; nullable = true; defaultValue = null },
-                navArgument("sourceName") { type = NavType.StringType; nullable = true; defaultValue = null }
+                navArgument(WearRoutes.ARG_MEDIA_TYPE) { type = NavType.StringType },
+                navArgument(WearRoutes.ARG_SOURCE_ID) {
+                    type = NavType.StringType; nullable = true; defaultValue = null
+                },
+                navArgument(WearRoutes.ARG_SOURCE_NAME) {
+                    type = NavType.StringType; nullable = true; defaultValue = null
+                }
             )
         ) {
             BrowseScreen(navController = navController)
         }
         
         // Network sources list screen
-        composable("network_sources") {
+        composable(WearRoutes.NETWORK_SOURCES) {
             NetworkSourcesScreen(navController = navController)
         }
 
         // Paired-phone resource browser (S1697)
-        composable("phone_resource") {
+        composable(WearRoutes.PHONE_RESOURCE) {
             PhoneResourceScreen(navController = navController)
         }
         
         // Add network source screen
-        composable("add_network_source") {
+        composable(WearRoutes.ADD_NETWORK_SOURCE) {
             AddNetworkSourceScreen(navController = navController)
         }
 
         // Backward-compatible alias for old route name
-        composable("add_smb") {
+        composable(WearRoutes.ADD_SMB_ALIAS) {
             AddNetworkSourceScreen(navController = navController)
         }
 
         // Sync transfer animation (shown while receiving data from phone)
-        composable("sync_transfer") {
+        composable(WearRoutes.SYNC_TRANSFER) {
             SyncTransferScreen(navController = navController)
         }
 
         // Sync result screen (shown after successful sync)
         composable(
-            route = "sync_result/{added}/{updated}",
+            route = WearRoutes.SYNC_RESULT_PATTERN,
             arguments = listOf(
-                navArgument("added") { type = NavType.IntType },
-                navArgument("updated") { type = NavType.IntType }
+                navArgument(WearRoutes.ARG_ADDED) { type = NavType.IntType },
+                navArgument(WearRoutes.ARG_UPDATED) { type = NavType.IntType }
             )
         ) { backStackEntry ->
-            val added = backStackEntry.arguments?.getInt("added") ?: 0
-            val updated = backStackEntry.arguments?.getInt("updated") ?: 0
+            val added = backStackEntry.arguments?.getInt(WearRoutes.ARG_ADDED) ?: 0
+            val updated = backStackEntry.arguments?.getInt(WearRoutes.ARG_UPDATED) ?: 0
             SyncResultScreen(navController = navController, added = added, updated = updated)
         }
         
         // Audio player screen
         composable(
-            route = "audio_player/{fileId}",
+            route = WearRoutes.AUDIO_PLAYER_PATTERN,
             arguments = listOf(
-                navArgument("fileId") { type = NavType.LongType }
+                navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
             )
         ) {
             AudioPlayerScreen()
@@ -204,9 +209,9 @@ fun MainNavigation() {
         
         // Video player screen
         composable(
-            route = "video_player/{fileId}",
+            route = WearRoutes.VIDEO_PLAYER_PATTERN,
             arguments = listOf(
-                navArgument("fileId") { type = NavType.LongType }
+                navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
             )
         ) {
             VideoPlayerScreen()
@@ -214,16 +219,16 @@ fun MainNavigation() {
         
         // Image viewer screen
         composable(
-            route = "image_viewer/{fileId}",
+            route = WearRoutes.IMAGE_VIEWER_PATTERN,
             arguments = listOf(
-                navArgument("fileId") { type = NavType.LongType }
+                navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
             )
         ) {
             ImageViewerScreen()
         }
         
         // Settings screen
-        composable("settings") {
+        composable(WearRoutes.SETTINGS) {
             SettingsScreen(navController = navController)
         }
     }

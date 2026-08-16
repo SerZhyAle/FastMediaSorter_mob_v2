@@ -121,6 +121,9 @@ class StandaloneViewManager(
      * VideoPlayerManager, so this is the only place its surface reference is refreshed.
      */
     fun rebindLayoutRoot(newRoot: View) {
+        // Resolved against the OLD root: the discarded PlayerView must release the player before
+        // the fresh one takes it, or both views keep component listeners on the same instance.
+        val oldPlayerView = safeViews.playerView
         currentRoot = newRoot
         safeViews.rebindRoot(newRoot)
         _pdfViewerManager?.rebindLayoutRoot(newRoot)
@@ -129,7 +132,10 @@ class StandaloneViewManager(
         if (officeDocumentViewerHostDelegate.isInitialized()) {
             officeDocumentViewerHost.rebindLayoutRoot(newRoot)
         }
-        exoPlayer?.let { safeViews.playerView.player = it }
+        exoPlayer?.let {
+            oldPlayerView.player = null
+            safeViews.playerView.player = it
+        }
         // Re-render what the fresh views start without (EPUB/Office move their live WebView over).
         _pdfViewerManager?.let { it.showPdfPage(it.currentPageIndex()) }
         _textViewerManager?.rerenderAfterRebind()

@@ -13,7 +13,6 @@ import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import kotlin.math.abs
 import kotlin.math.min
-import timber.log.Timber
 
 /**
  * Draws a bright-red, wide-stroke draggable rectangle over the captured photo for the Camera-OCR

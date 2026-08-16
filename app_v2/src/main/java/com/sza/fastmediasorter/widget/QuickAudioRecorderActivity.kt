@@ -4,7 +4,6 @@ import android.Manifest
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import timber.log.Timber
 
 /**
  * S0349 - transparent, no-UI trampoline for the Quick Audio Recorder widget.

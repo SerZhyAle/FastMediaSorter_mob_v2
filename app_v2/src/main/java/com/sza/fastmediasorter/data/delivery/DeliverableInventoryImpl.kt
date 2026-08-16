@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import timber.log.Timber
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -354,9 +353,6 @@ class DeliverableInventoryImpl @Inject constructor(
         private const val STREAM_CATALOG_SIZE = 2_500_000L
         private const val BYTES_PER_KB = 1024.0
         private const val BYTES_PER_MB = 1024.0 * 1024.0
-
-        /** S1483 probe: enough stamp to tell two payloads apart in a log without dumping a full hash. */
-        private const val STAMP_LOG_CHARS = 12
 
         private const val LANG_SIZE_RUS = 15_000_000L
         private const val LANG_SIZE_UKR = 11_600_000L

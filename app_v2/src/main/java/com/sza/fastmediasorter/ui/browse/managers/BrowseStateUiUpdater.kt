@@ -23,7 +23,6 @@ import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.clearBadge
 import com.sza.fastmediasorter.utils.setBadgeText
-import timber.log.Timber
 import java.util.Date
 
 /**
@@ -86,13 +85,16 @@ class BrowseStateUiUpdater(
             (filter.mediaTypes != null && filter.mediaTypes != resource?.supportedMediaTypes)
         )
 
-        if (isUserFilter && filter != null) {
+        // S1685: `isUserFilter` already requires a non-null filter, so a second null check was dead code
+        // the compiler reported on every build; carrying the value instead keeps the non-null type.
+        val activeFilter = filter?.takeIf { isUserFilter }
+        if (activeFilter != null) {
             // S1272: Browse spells the active filter out under the toolbar, the way Main already does.
             // The badge stays alongside it - a count at a glance, the detail underneath.
-            val summary = describeFilter(filter)
+            val summary = describeFilter(activeFilter)
             binding.tvFilterWarning.text = activity.getString(R.string.filters_active, summary)
             binding.tvFilterWarning.isVisible = summary.isNotEmpty()
-            binding.btnFilter.setBadgeText(filter.activeFilterCount().toString())
+            binding.btnFilter.setBadgeText(activeFilter.activeFilterCount().toString())
         } else {
             binding.tvFilterWarning.isVisible = false
             binding.btnFilter.clearBadge()

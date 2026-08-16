@@ -7,7 +7,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * S1443: relocates the collapsed-panel chips between the command bar's free tail and the shared

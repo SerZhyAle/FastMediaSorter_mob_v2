@@ -17,6 +17,7 @@ import androidx.lifecycle.withStarted
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.util.ApkInstallFailure
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -72,13 +73,24 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
         installLauncher = activity.registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
+            Timber.d("S1686: APK install result received, resultCode=${result.resultCode}")
             val act = activityRef.get() ?: return@registerForActivityResult
             val msgRes = when (result.resultCode) {
                 Activity.RESULT_OK -> R.string.s0183_apk_install_success
                 Activity.RESULT_CANCELED -> R.string.s0183_apk_install_cancelled
                 else -> {
-                    Timber.w("APK install failed - resultCode=${result.resultCode}")
-                    R.string.s0183_apk_install_failed
+                    // S1686: resultCode is RESULT_FIRST_USER for every refusal and names no cause; the
+                    // legacy status beside it does, and it is what a user-supplied log needs to carry.
+                    val legacyStatus = result.data?.getIntExtra(
+                        ApkInstallFailure.EXTRA_INSTALL_RESULT,
+                        ApkInstallFailure.NO_STATUS
+                    ) ?: ApkInstallFailure.NO_STATUS
+                    val failure = ApkInstallFailure.fromLegacyStatus(legacyStatus)
+                    Timber.w(
+                        "APK install failed - resultCode=${result.resultCode}, " +
+                            "installResult=$legacyStatus ($failure)"
+                    )
+                    ApkInstallFailureMapper.messageRes(failure)
                 }
             }
             Toast.makeText(act, msgRes, Toast.LENGTH_SHORT).show()
