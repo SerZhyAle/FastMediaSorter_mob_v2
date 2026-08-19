@@ -25,7 +25,7 @@ class TranslationLanguageCatalogTest {
     }
 
     @Test
-    fun languageCapabilities_markTranslationOcrAndNoLegalLevels() {
+    fun languageCapabilities_markTranslationAndOcrLevels() {
         val czech = TranslationLanguageCatalog.findLanguage("cs", Locale.ENGLISH)
         val russian = TranslationLanguageCatalog.findLanguage("ru", Locale.ENGLISH)
 
@@ -33,9 +33,8 @@ class TranslationLanguageCatalogTest {
         assertNotNull(russian)
         assertTrue(czech!!.capabilities.contains(LanguageCapability.TRANSLATION))
         assertTrue(czech.capabilities.contains(LanguageCapability.BASIC_OCR))
-        assertTrue(!czech.capabilities.contains(LanguageCapability.NO_LEGAL_OCR))
+        assertTrue(!czech.capabilities.contains(LanguageCapability.QUALITY_OCR))
         assertTrue(russian!!.capabilities.contains(LanguageCapability.QUALITY_OCR))
-        assertTrue(russian.capabilities.contains(LanguageCapability.NO_LEGAL_OCR))
     }
 
     @Test

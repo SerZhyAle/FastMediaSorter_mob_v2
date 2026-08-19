@@ -73,7 +73,7 @@ class LauncherSignalListBottomSheet : BottomSheetDialogFragment() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val signal = signals[position]
-            holder.itemBinding.launcherSignalItemIcon.setImageResource(signal.iconRes)
+            LauncherSignalIconBinder.bind(holder.itemBinding.launcherSignalItemIcon, signal.icon)
             holder.itemBinding.launcherSignalItemLabel.text = signal.label
             holder.itemBinding.launcherSignalItemDetail.text = signal.detail.orEmpty()
             holder.itemBinding.launcherSignalItemDetail.isVisible = !signal.detail.isNullOrBlank()

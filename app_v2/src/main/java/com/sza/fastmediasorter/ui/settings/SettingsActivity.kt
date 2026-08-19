@@ -50,8 +50,16 @@ import kotlin.math.max
 @AndroidEntryPoint
 class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
-    // S1045: Authorization tab reveals plaintext defaultUser/defaultPassword; secure the whole window.
-    override fun isSensitiveScreen(): Boolean = true
+    // S1784: deliberately NOT a sensitive screen, reversing S1045.
+    //
+    // S1045 secured the whole window because the Authorization tab shows the default user and password in
+    // plaintext. The owner overruled that on 2026-08-17: "ничего тут сенситив нет, а пароль по умолчанию
+    // личная проблема пользователя". The cost was concrete and one-sided - FLAG_SECURE blanks every
+    // screenshot of the settings screen, so neither a bug report nor a device-test artefact could ever
+    // show it, which is why the UI evidence gate has a black-frame branch at all.
+    //
+    // The two screens that hold a resource's own credentials - adding a resource and editing one - keep
+    // the flag, so `secureSensitiveScreens` still means what it says.
 
     // S0245: flavor-supplied extra Settings tabs (currently only the VR flavor adds an entry).
     @Inject lateinit var settingsTabExtensions: Set<@JvmSuppressWildcards SettingsTabExtension>
@@ -180,6 +188,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Timber.d("S1549: SettingsActivity onCreate - recreation applies the orientation layout")
         // Measure actionBarSize and register insets listener before the first frame
         // to prevent toolbarContainer height from jumping on activity open.
         val tv = TypedValue()
@@ -489,12 +498,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }
     }
 
-    override fun onLayoutConfigurationChanged(newConfig: android.content.res.Configuration) {
-        if (binding.searchOverlay.isVisible) {
-            closeSearchOverlay()
-        }
-    }
-    
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyboardManager.handleKeyDown(keyCode, event)) return true
         return super.onKeyDown(keyCode, event)

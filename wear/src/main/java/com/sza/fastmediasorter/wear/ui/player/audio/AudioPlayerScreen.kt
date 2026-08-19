@@ -1,9 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.player.audio
 
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
-import android.view.WindowManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,7 +26,6 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -44,7 +39,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -67,6 +61,7 @@ import androidx.wear.compose.material.Text
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
@@ -122,7 +117,7 @@ fun AudioPlayerScreen(
 
     Timber.d("AudioPlayerScreen composing, isPlaying: ${uiState.isPlaying}")
 
-    KeepScreenOn(enabled = uiState.isDimmed)
+    KeepScreenOnEffect(enabled = uiState.isPlaying || uiState.isDimmed)
 
     WearScreenScaffold(
         // Both the clock and the scroll indicator are drawn by the scaffold above the content, so an
@@ -149,13 +144,10 @@ fun AudioPlayerScreen(
                     isFavorite = isFavorite,
                     listState = listState,
                     onRotaryStep = { step ->
-                        // S1683: the bezel reaches the same two actions the buttons do, per strategic 6.2 -
-                        // rotation moves inside the file and never changes the file.
-                        if (step > 0) {
-                            viewModel.seekForward()
-                        } else {
-                            viewModel.seekBackward()
-                        }
+                        // S1701 (ADR-1): the bezel now serves volume, the Wear OS media convention. It no
+                        // longer seeks - phase 02 gave the screen a progress bar, which is a better way to
+                        // reach a position than a bezel that also has to be a volume knob.
+                        viewModel.onVolumeStep(step > 0)
                     },
                     actions = AudioPlayerActions(
                         onPlayPause = viewModel::togglePlayPause,
@@ -197,30 +189,6 @@ private fun DimOverlay(onExit: () -> Unit) {
     )
 }
 
-/**
- * Holds `FLAG_KEEP_SCREEN_ON` while [enabled] and clears it on every exit path, including leaving the
- * screen. A leaked flag keeps the watch display awake with nothing on it, which is the most expensive
- * mistake this file could make.
- */
-@Composable
-private fun KeepScreenOn(enabled: Boolean) {
-    val window = LocalContext.current.findActivity()?.window
-    DisposableEffect(window, enabled) {
-        if (enabled) {
-            window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        }
-        onDispose {
-            window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        }
-    }
-}
-
-private tailrec fun Context.findActivity(): Activity? = when (this) {
-    is Activity -> this
-    is ContextWrapper -> baseContext.findActivity()
-    else -> null
-}
-
 private data class AudioPlayerActions(
     val onPlayPause: () -> Unit,
     val onToggleFavorite: () -> Unit,
@@ -258,6 +226,27 @@ private fun AudioPlayerContent(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
+        }
+        // S1701: the volume readout, present only while the bezel is being turned and for a moment
+        // after. It is its own item rather than an overlay so it cannot displace the control rows or
+        // the progress bar, and nothing about it runs while it is hidden - strategic 3.2 protects the
+        // budget the wave drawing already spends.
+        if (uiState.isVolumeVisible) {
+            item {
+                val readout = stringResource(
+                    R.string.wear_audio_volume_level,
+                    uiState.volumeLevel,
+                    uiState.volumeMax,
+                )
+                Text(
+                    text = readout,
+                    style = MaterialTheme.typography.caption1,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = readout },
+                )
+            }
         }
         item {
             PlaybackTimeRow(

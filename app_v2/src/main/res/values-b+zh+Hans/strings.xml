@@ -45,7 +45,6 @@
     <string name="language_capability_translation">翻译</string>
     <string name="language_capability_basic_ocr">基础 OCR</string>
     <string name="language_capability_quality_ocr">高质量 OCR</string>
-    <string name="language_capability_nolegal_ocr">noLegal OCR</string>
     <string name="translate">翻译</string>
     <string name="no_files_selected">未选择文件</string>
     <string name="msg_last_filter_restored">已恢复上次的筛选：%1$s</string>
@@ -956,9 +955,6 @@
     <string name="enable_ocr">启用文字识别</string>
     <string name="enable_ocr_summary">从图片和 PDF 中提取文字以便复制</string>
     <string name="translation_downloading_wait">正在等待翻译结果..</string>
-    <string name="paddle_ocr_model">PaddleOCR 模型</string>
-    <string name="paddle_ocr_model_cyrillic">西里尔文（PP-OCRv5 Mobile）</string>
-    <string name="paddle_ocr_model_eslav">东斯拉夫语（PP-OCRv5 Mobile，更精确）</string>
     <string name="toast_edit_images_only">编辑功能仅支持图片</string>
     <string name="toast_failed_to_prepare_file">准备文件失败</string>
     <string name="toast_error_google_lens">分享到 Google Lens 时出错</string>
@@ -1389,10 +1385,6 @@
     <string name="duplicate_groups_summary">找到 %1$d 个组 | %2$s</string>
     <string name="duplicate_fab_delete">删除选定项（%1$d 项，%2$s）</string>
     <string name="scan_files_progress">%1$d / %2$d 个文件</string>
-    <string name="import_resources_title">导入资源</string>
-    <string name="import_resources_message">添加SZA资源？</string>
-    <string name="sza_resources_imported">SZA资源导入</string>
-    <string name="error_importing_resources">导入资源出错</string>
     <string name="download_translation_model_title">下载翻译模型</string>
     <string name="download_translation_model_message">翻译成 %1$s 需要下载约 30 MB 的模型。立即下载？</string>
     <string name="download">下载</string>
@@ -2393,7 +2385,6 @@
     <string name="launcher_edit_kind_action">启动器操作</string>
     <string name="launcher_settings_reset_title">重置启动器设置</string>
     <string name="launcher_settings_reset_message">系统启动器设置将恢复为默认值。桌面布局、固定图标和壁纸都会恢复到刚安装完成时的状态。启动器以外的内容不受影响。</string>
-    <string name="launcher_settings_reset_button_description">将启动器设置重置为默认值</string>
     <string name="launcher_settings_reset_success">启动器设置已重置为默认值</string>
     <string name="launcher_settings_reset_failed">无法重置启动器设置，未做任何更改 - 请重试。</string>
     <string name="launcher_add_cell">添加到桌面</string>
@@ -2609,7 +2600,6 @@
     <string name="streams_media_filter_video">仅显示视频流</string>
     <string name="streams_media_filter_clear">显示所有流</string>
     <string name="launcher_section_app_functions">应用内功能</string>
-    <string name="launcher_section_everything_else">其他内容</string>
     <string name="launcher_edit_kind_section">分区</string>
     <string name="launcher_gadget_network">网络</string>
     <string name="launcher_gadget_battery">电池</string>
@@ -2680,7 +2670,6 @@
     <string name="network_monitor_link_gateway_label">网关</string>
     <string name="network_monitor_link_route_label">默认路由</string>
     <string name="network_monitor_link_proxy_label">代理人</string>
-    <string name="network_monitor_link_bandwidth_label">系统带宽估算</string>
     <string name="network_monitor_route_present">展示</string>
     <string name="network_monitor_route_absent">没有任何</string>
     <string name="network_monitor_chart_signal_heading">信号</string>

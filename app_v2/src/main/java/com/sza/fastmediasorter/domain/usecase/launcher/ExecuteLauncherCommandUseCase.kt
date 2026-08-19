@@ -39,13 +39,13 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
     private val toggleRadioTarget: ToggleRadioTargetUseCase,
 ) {
 
-    suspend fun launch(command: LauncherCellCommand): Boolean {
+    suspend fun launch(command: LauncherCellCommand, screenOnly: Boolean = false): Boolean {
         val started = when (command) {
             is LauncherCellCommand.App -> launchPackage(command.packageName)
             is LauncherCellCommand.Feature -> launchFeature(command.routeKey)
             is LauncherCellCommand.Resource -> launchResource(command)
             is LauncherCellCommand.Stream -> launchStream(command.streamId)
-            is LauncherCellCommand.OsShortcut -> launchOsShortcut(command.targetKey)
+            is LauncherCellCommand.OsShortcut -> launchOsShortcut(command.targetKey, screenOnly)
             // S1170: mirrors the favourites widget's per-row fill-in intent - the file's own resource,
             // opened at that file. skipAvailabilityCheck matches the widget: the row was listed from the
             // favourites table a moment ago, so a second existence probe only delays the open.
@@ -107,15 +107,31 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
         return startIntent(StreamPlayLaunchActivity.createIntent(context, source.url))
     }
 
-    private suspend fun launchOsShortcut(targetKey: String): Boolean {
+    /**
+     * @param screenOnly S1767: open the target's settings screen and do nothing else.
+     *
+     * A desktop cell the user placed as a switch wants the radio attempt below; a status indicator does
+     * not. Tapping the Wi-Fi indicator to have Wi-Fi switch off is the opposite of what an indicator's
+     * tap promises, and the panel [osShortcutIntent] prefers is a toggle rather than the settings section
+     * that ticket's §11 asks for - so a screen-only caller skips both.
+     */
+    private suspend fun launchOsShortcut(targetKey: String, screenOnly: Boolean): Boolean {
         val target = OsShortcutCatalog.byKey(targetKey)
             ?.takeIf { OsShortcutCatalog.isResolvable(context, targetKey) }
         if (target == null) {
             Timber.i("Launcher: system screen %s is unknown to this build or absent here", targetKey)
             return false
         }
+        if (screenOnly) {
+            Timber.d("S1767: status indicator opens system screen %s", targetKey)
+        }
         // S1441: a radio target tries to switch itself first; only a refusal reaches a system screen.
-        return toggleRadioTarget(target) || startIntent(osShortcutIntent(target))
+        // Written as one expression rather than an early return: a third return crosses detekt's limit.
+        return if (screenOnly) {
+            startIntent(target.intent(context))
+        } else {
+            toggleRadioTarget(target) || startIntent(osShortcutIntent(target))
+        }
     }
 
     /**

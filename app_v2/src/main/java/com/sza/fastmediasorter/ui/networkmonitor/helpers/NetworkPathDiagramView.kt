@@ -75,9 +75,24 @@ class NetworkPathDiagramView @JvmOverloads constructor(
         pathEffect = dash()
     }
 
-    private val nodeTextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = NODE_TEXT_SP * density
+    /**
+     * S1617: sp, not dp. The old line multiplied an sp-named constant by [density], which is the dp
+     * conversion - so the label was pinned at 14dp and did not grow one pixel when the user raised the
+     * system font size. That is the whole of goal 4: the label was both small and deaf to the setting
+     * meant to fix it.
+     */
+    private fun sp(value: Float): Float =
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, resources.displayMetrics)
+
+    private val labelPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = sp(LABEL_TEXT_SP)
         textAlign = Paint.Align.CENTER
+    }
+
+    private val valuePaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = sp(VALUE_TEXT_SP)
+        textAlign = Paint.Align.CENTER
+        isFakeBoldText = true
     }
 
     private val box = RectF()
@@ -89,7 +104,8 @@ class NetworkPathDiagramView @JvmOverloads constructor(
         absentNodePaint.color = variant
         linkPaint.color = outline
         absentLinkPaint.color = variant
-        nodeTextPaint.color = themeColor(MaterialR.attr.colorOnSurface)
+        labelPaint.color = variant
+        valuePaint.color = themeColor(MaterialR.attr.colorOnSurface)
     }
 
     /** Replaces the whole chain; the section rebuilds it rather than mutating one hop. */
@@ -154,14 +170,34 @@ class NetworkPathDiagramView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * S1617: the label and its value are two lines, not "Gateway: 192.168.1.1" squeezed into one.
+     *
+     * One line meant the box had to hold both halves at once, so on a phone the address was ellipsized
+     * away - and an address nobody can read is not a diagnostic. Two lines spend height, which this
+     * diagram has, instead of width, which it does not.
+     */
     private fun drawNode(canvas: Canvas, node: NetworkPathNode, bounds: RectF) {
         val radius = CORNER_DP * density
         canvas.drawRoundRect(bounds, radius, radius, if (node.reachable) nodePaint else absentNodePaint)
         val inner = bounds.width() - INNER_PADDING_DP * density * 2f
         val centerX = bounds.centerX()
-        val baseline = bounds.centerY() - (nodeTextPaint.ascent() + nodeTextPaint.descent()) / 2f
-        canvas.drawText(fit(node.displayText, nodeTextPaint, inner), centerX, baseline, nodeTextPaint)
+        val value = node.value?.takeIf { it.isNotBlank() }
+        if (value == null) {
+            val baseline = bounds.centerY() - (valuePaint.ascent() + valuePaint.descent()) / 2f
+            canvas.drawText(fit(node.label, valuePaint, inner), centerX, baseline, valuePaint)
+            return
+        }
+        val labelHeight = labelPaint.descent() - labelPaint.ascent()
+        val valueHeight = valuePaint.descent() - valuePaint.ascent()
+        val block = labelHeight + lineGap() + valueHeight
+        val top = bounds.centerY() - block / 2f
+        canvas.drawText(fit(node.label, labelPaint, inner), centerX, top - labelPaint.ascent(), labelPaint)
+        val valueTop = top + labelHeight + lineGap()
+        canvas.drawText(fit(value, valuePaint, inner), centerX, valueTop - valuePaint.ascent(), valuePaint)
     }
+
+    private fun lineGap(): Float = LINE_GAP_DP * density
 
     /** A hop is joined to the previous one with a solid line only when both ends actually answered. */
     private fun linkPaintAt(index: Int): Paint {
@@ -177,7 +213,17 @@ class NetworkPathDiagramView @JvmOverloads constructor(
         return usable < nodes.size.coerceAtLeast(1) * MIN_HORIZONTAL_NODE_DP * density
     }
 
-    private fun nodeHeight(): Float = NODE_HEIGHT_DP * density
+    /**
+     * Grows with the font scale rather than pinning a box the text can outgrow: at a large system font
+     * a fixed 48dp box would clip both lines, which is the failure goal 4 exists to remove.
+     */
+    private fun nodeHeight(): Float {
+        val text = (labelPaint.descent() - labelPaint.ascent()) +
+            lineGap() +
+            (valuePaint.descent() - valuePaint.ascent())
+        val padded = text + INNER_PADDING_DP * density * 2f
+        return maxOf(NODE_HEIGHT_DP * density, padded)
+    }
 
     private fun connectorLength(): Float = CONNECTOR_DP * density
 
@@ -198,11 +244,16 @@ class NetworkPathDiagramView @JvmOverloads constructor(
         const val CONNECTOR_DP = 16f
         const val CORNER_DP = 8f
         const val INNER_PADDING_DP = 6f
-        const val NODE_TEXT_SP = 14f
+        const val LABEL_TEXT_SP = 13f
+        const val VALUE_TEXT_SP = 17f
+        const val LINE_GAP_DP = 2f
         const val DASH_ON_DP = 4f
         const val DASH_OFF_DP = 3f
 
-        /** Below this per-hop width an IPv4 address no longer fits, so the chain stacks instead. */
-        const val MIN_HORIZONTAL_NODE_DP = 96f
+        /**
+         * Below this per-hop width an IPv4 address no longer fits, so the chain stacks instead. Raised
+         * with the text in S1617: the old 96dp was measured against a 14dp label that is now 17sp.
+         */
+        const val MIN_HORIZONTAL_NODE_DP = 128f
     }
 }

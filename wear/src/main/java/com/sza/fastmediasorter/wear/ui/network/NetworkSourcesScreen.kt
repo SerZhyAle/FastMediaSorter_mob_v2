@@ -1,6 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.network
 
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -22,7 +21,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
@@ -31,7 +29,9 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Alert
+import com.sza.fastmediasorter.wear.BuildConfig
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
@@ -39,6 +39,7 @@ import com.sza.fastmediasorter.wear.ui.network.viewmodel.ExportState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesUiState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesViewModel
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.SyncState
+import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
 /**
@@ -53,6 +54,7 @@ fun NetworkSourcesScreen(
     val uiState by viewModel.uiState.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
     val exportState by viewModel.exportState.collectAsState()
+    val viewMode by viewModel.viewMode.collectAsState()
 
     // State for delete confirmation dialog
     var pendingDeleteSource by remember { mutableStateOf<SourceItem?>(null) }
@@ -70,6 +72,7 @@ fun NetworkSourcesScreen(
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
+        scrollState = listState,
         // The sources list is the only branch whose length is unbounded, so it is the only one whose
         // position is worth indicating.
         positionIndicator = if (uiState is NetworkSourcesUiState.Success) {
@@ -87,9 +90,13 @@ fun NetworkSourcesScreen(
                     sources = state.sources,
                     syncState = syncState,
                     listState = listState,
+                    viewMode = viewMode,
                     actions = NetworkSourcesActions(
                         onSourceClick = { sourceId, sourceName ->
                             Timber.d("Source selected: $sourceName (ID: $sourceId)")
+                            // S1781: the home screen's Last used section is fed from here - this is
+                            // the only place a named resource is opened.
+                            viewModel.rememberLastUsedResource(sourceName)
                             navController.navigate(
                                 WearRoutes.browseSource(MUSIC_MEDIA_TYPE, sourceId, sourceName)
                             )
@@ -181,7 +188,7 @@ private fun LoadingContent() {
 }
 
 /** The list's five callbacks, grouped so the composable stays inside the parameter-count limit. */
-private data class NetworkSourcesActions(
+internal data class NetworkSourcesActions(
     val onSourceClick: (String, String) -> Unit,
     val onAddClick: () -> Unit,
     val onSyncClick: () -> Unit,
@@ -194,85 +201,74 @@ private fun SourcesListContent(
     sources: List<SourceItem>,
     syncState: SyncState,
     listState: ScalingLazyListState,
+    viewMode: WearViewMode,
     actions: NetworkSourcesActions,
     exportState: ExportState = ExportState.Idle
 ) {
-    ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        state = listState,
-        contentPadding = wearScreenInsets()
-    ) {
-        item {
-            Text(
-                text = stringResource(R.string.network_storage),
-                style = MaterialTheme.typography.title2,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-
-        items(sources) { source ->
-            Chip(
-                onClick = { actions.onSourceClick(source.id, source.name) },
-                label = {
-                    Text(text = "${source.name}\n${source.server}")
-                },
-                secondaryLabel = {
-                    Text(
-                        text = stringResource(R.string.hold_to_delete),
-                        style = MaterialTheme.typography.caption2
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .pointerInput(source.id) {
-                        detectTapGestures(onLongPress = { actions.onDeleteClick(source) })
-                    },
-                colors = ChipDefaults.primaryChipColors()
-            )
-        }
-
-        item {
-            SyncFromPhoneChip(syncState = syncState, onClick = actions.onSyncClick)
-        }
-
-        item {
-            ExportToPhoneChip(exportState = exportState, onClick = actions.onExportClick)
-        }
-
-        if (exportState is ExportState.Success) {
+    // The column count comes from the width this composable actually gets, never from the mode name -
+    // the same rule the home screen applies, so the two screens cannot drift apart (strategic ADR-1).
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
+        ScalingLazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            contentPadding = wearScreenInsets()
+        ) {
             item {
                 Text(
-                    text = stringResource(R.string.wear_export_success),
-                    style = MaterialTheme.typography.caption2,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                    text = stringResource(R.string.network_storage),
+                    style = MaterialTheme.typography.title2,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    textAlign = TextAlign.Center
                 )
             }
-        }
 
-        item {
-            Chip(
-                onClick = actions.onAddClick,
-                label = {
-                    Text(text = stringResource(R.string.add_network_source))
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ChipDefaults.secondaryChipColors()
-            )
-        }
+            sourceItems(sources = sources, columns = columns, actions = actions)
 
-        if (syncState is SyncState.Error) {
             item {
-                Text(
-                    text = syncState.message,
-                    style = MaterialTheme.typography.caption2,
-                    color = MaterialTheme.colors.error,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
-                )
+                SyncFromPhoneChip(syncState = syncState, onClick = actions.onSyncClick)
+            }
+
+            item {
+                ExportToPhoneChip(exportState = exportState, onClick = actions.onExportClick)
+            }
+
+            if (exportState is ExportState.Success) {
+                item {
+                    Text(
+                        text = stringResource(R.string.wear_export_success),
+                        style = MaterialTheme.typography.caption2,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                    )
+                }
+            }
+
+            if (NetworkSourceEntry.isOffered(BuildConfig.DEBUG)) {
+                item {
+                    Chip(
+                        onClick = actions.onAddClick,
+                        label = {
+                            Text(text = stringResource(R.string.add_network_source))
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ChipDefaults.secondaryChipColors()
+                    )
+                }
+            }
+
+            if (syncState is SyncState.Error) {
+                item {
+                    Text(
+                        text = syncState.message,
+                        style = MaterialTheme.typography.caption2,
+                        color = MaterialTheme.colors.error,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                    )
+                }
             }
         }
     }
@@ -301,7 +297,7 @@ private fun EmptyContent(
 
         item {
             Text(
-                text = stringResource(R.string.no_network_sources),
+                text = stringResource(R.string.wear_resources_empty_hint),
                 style = MaterialTheme.typography.body2,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -314,15 +310,17 @@ private fun EmptyContent(
             SyncFromPhoneChip(syncState = syncState, onClick = onSyncClick)
         }
 
-        item {
-            Chip(
-                onClick = onAddClick,
-                label = {
-                    Text(text = stringResource(R.string.add_network_source))
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ChipDefaults.secondaryChipColors()
-            )
+        if (NetworkSourceEntry.isOffered(BuildConfig.DEBUG)) {
+            item {
+                Chip(
+                    onClick = onAddClick,
+                    label = {
+                        Text(text = stringResource(R.string.add_network_source))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ChipDefaults.secondaryChipColors()
+                )
+            }
         }
 
         if (syncState is SyncState.Error) {

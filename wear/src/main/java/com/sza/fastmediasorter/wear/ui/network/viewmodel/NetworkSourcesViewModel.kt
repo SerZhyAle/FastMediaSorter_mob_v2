@@ -4,19 +4,25 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.wearable.Wearable
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ExportSourcesUseCase
 import com.sza.fastmediasorter.wear.ui.network.SourceItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
+
+private const val VIEW_MODE_SUBSCRIPTION_MS = 5_000L
 
 sealed class SyncState {
     data object Idle : SyncState()
@@ -40,8 +46,13 @@ sealed class ExportState {
 class NetworkSourcesViewModel @Inject constructor(
     private val networkSourceRepository: NetworkSourceRepository,
     @ApplicationContext private val context: Context,
-    private val exportSourcesUseCase: ExportSourcesUseCase
+    private val exportSourcesUseCase: ExportSourcesUseCase,
+    private val preferencesRepository: WearPreferencesRepository
 ) : ViewModel() {
+
+    /** S1781: ADR-1 - one stored view shared with the home screen, never a second setting here. */
+    val viewMode: StateFlow<WearViewMode> = preferencesRepository.viewMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(VIEW_MODE_SUBSCRIPTION_MS), WearViewMode.LIST)
 
     private val _uiState = MutableStateFlow<NetworkSourcesUiState>(NetworkSourcesUiState.Loading)
     val uiState: StateFlow<NetworkSourcesUiState> = _uiState.asStateFlow()
@@ -160,6 +171,13 @@ class NetworkSourcesViewModel @Inject constructor(
                     message = e.message ?: "Failed to load network sources"
                 )
             }
+        }
+    }
+
+    /** S1781: the home screen's Last used section reads this, so it is written where a resource is opened. */
+    fun rememberLastUsedResource(name: String) {
+        viewModelScope.launch {
+            preferencesRepository.setLastUsedResource(name)
         }
     }
 

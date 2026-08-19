@@ -45,7 +45,6 @@
     <string name="language_capability_translation">Traduzione</string>
     <string name="language_capability_basic_ocr">OCR base</string>
     <string name="language_capability_quality_ocr">OCR di qualità</string>
-    <string name="language_capability_nolegal_ocr">OCR noLegal</string>
     <string name="translate">Traduci</string>
     <string name="no_files_selected">Nessun file selezionato</string>
     <string name="msg_last_filter_restored">Ripristinato l\'ultimo filtro: %1$s</string>
@@ -956,9 +955,6 @@
     <string name="enable_ocr">Attiva il riconoscimento del testo</string>
     <string name="enable_ocr_summary">Estrai il testo da immagini e PDF per copiarlo</string>
     <string name="translation_downloading_wait">In attesa del risultato della traduzione..</string>
-    <string name="paddle_ocr_model">Modello PaddleOCR</string>
-    <string name="paddle_ocr_model_cyrillic">Cirillico (PP-OCRv5 Mobile)</string>
-    <string name="paddle_ocr_model_eslav">Slavo orientale (PP-OCRv5 Mobile, più accurato)</string>
     <string name="toast_edit_images_only">La modifica è disponibile solo per le immagini</string>
     <string name="toast_failed_to_prepare_file">Impossibile preparare il file</string>
     <string name="toast_error_google_lens">Errore nella condivisione con Google Lens</string>
@@ -1389,10 +1385,6 @@
     <string name="duplicate_groups_summary">Trovati %1$d gruppi | %2$s</string>
     <string name="duplicate_fab_delete">Elimina gli elementi selezionati (%1$d elementi, %2$s)</string>
     <string name="scan_files_progress">file %1$d / %2$d</string>
-    <string name="import_resources_title">Risorse di importazione</string>
-    <string name="import_resources_message">Aggiungere risorse SZA?</string>
-    <string name="sza_resources_imported">Risorse SZA importate</string>
-    <string name="error_importing_resources">Errore durante l\'importazione delle risorse</string>
     <string name="download_translation_model_title">Scarica il modello di traduzione</string>
     <string name="download_translation_model_message">La traduzione in %1$s richiede il download di un modello di circa 30 MB. Scaricalo ora?</string>
     <string name="download">Scaricamento</string>
@@ -2395,7 +2387,6 @@
     <string name="launcher_edit_kind_action">Azione del launcher</string>
     <string name="launcher_settings_reset_title">Ripristina le impostazioni del launcher</string>
     <string name="launcher_settings_reset_message">Le impostazioni del launcher di sistema verranno ripristinate ai valori predefiniti. La disposizione del desktop, le icone bloccate e lo sfondo tornano allo stato che avevano subito dopo l\'installazione. Nient\'altro al di fuori del launcher viene modificato.</string>
-    <string name="launcher_settings_reset_button_description">Ripristina le impostazioni del launcher ai valori predefiniti</string>
     <string name="launcher_settings_reset_success">Impostazioni del launcher ripristinate ai valori predefiniti</string>
     <string name="launcher_settings_reset_failed">Impossibile ripristinare le impostazioni del launcher. Nulla è stato modificato - riprova.</string>
     <string name="launcher_add_cell">Aggiungi al desktop</string>
@@ -2611,7 +2602,6 @@
     <string name="streams_media_filter_video">Mostra solo stream video</string>
     <string name="streams_media_filter_clear">Mostra tutti gli stream</string>
     <string name="launcher_section_app_functions">Funzioni dell\'app</string>
-    <string name="launcher_section_everything_else">Tutto il resto</string>
     <string name="launcher_edit_kind_section">Sezione</string>
     <string name="launcher_gadget_network">Rete</string>
     <string name="launcher_gadget_battery">Batteria</string>
@@ -2682,7 +2672,6 @@
     <string name="network_monitor_link_gateway_label">Gateway</string>
     <string name="network_monitor_link_route_label">Percorso predefinito</string>
     <string name="network_monitor_link_proxy_label">Proxy</string>
-    <string name="network_monitor_link_bandwidth_label">Stima della larghezza di banda del sistema</string>
     <string name="network_monitor_route_present">Presente</string>
     <string name="network_monitor_route_absent">Nessuno</string>
     <string name="network_monitor_chart_signal_heading">Segnale</string>

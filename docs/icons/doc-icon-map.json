@@ -22,7 +22,9 @@
     { "title": "Home-Screen Smart Widgets", "drawable": "ic_widget_resource_launch" },
     { "title": "OpenXR VR Immersive Cinema", "drawable": "ic_vr_headset" },
     { "title": "Quick Math & Calculations", "drawable": "ic_calculator" },
-    { "title": "Cloud Markdown & Code Notes", "drawable": "ic_edit_20" }
+    { "title": "Cloud Markdown & Code Notes", "drawable": "ic_edit_20" },
+    { "title": "Music on Smartwatch", "drawable": "ic_audio" },
+    { "title": "Connect Watch to Network Shares", "drawable": "ic_resource_smb" }
   ],
   "howto": [
     { "emoji": "📷", "drawable": "ic_camera_capture" },
@@ -57,6 +59,8 @@
     "streams": "ic_cast",
     "other": "ic_camera_capture",
     "playback": "ic_play",
-    "destinations": "ic_folder"
+    "destinations": "ic_folder",
+    "wear": "ic_display"
   }
 }
+

@@ -29,6 +29,9 @@ object NotificationIds {
     /** Foreground notification of the duplicate-detection worker. */
     const val DUPLICATE_DETECTION = 4203
 
+    /** S1802: one log report arrived from the paired watch and is ready to send on. */
+    const val WATCH_LOG_REPORT = 4204
+
     /** MediaProjection screenshot capture service. */
     const val SCREEN_CAPTURE = 0x4053
 

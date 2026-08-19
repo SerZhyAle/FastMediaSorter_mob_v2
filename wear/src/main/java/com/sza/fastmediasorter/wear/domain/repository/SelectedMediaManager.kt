@@ -36,18 +36,20 @@ class SelectedMediaManager @Inject constructor() {
         file: WearMediaFile,
         isNetworkSource: Boolean,
         streamUri: String? = null,
-        sourceId: String? = null
+        sourceId: String? = null,
+        isDirectStream: Boolean = false
     ) {
         val effectiveStreamUri = streamUri ?: file.uri.toString()
         Timber.d(
             "SelectedMediaManager: Selected file=${file.name}, isNetwork=$isNetworkSource, " +
-                "sourceId=$sourceId, streamUri=$effectiveStreamUri"
+                "sourceId=$sourceId, streamUri=$effectiveStreamUri, isDirectStream=$isDirectStream"
         )
         _selectedFile.value = SelectedMedia(
             file = file,
             isNetworkSource = isNetworkSource,
             streamUri = effectiveStreamUri,
-            sourceId = sourceId
+            sourceId = sourceId,
+            isDirectStream = isDirectStream
         )
     }
     
@@ -82,10 +84,14 @@ class SelectedMediaManager @Inject constructor() {
  * Without it the handover carried only "is this network", every player assumed SMB, and nothing but
  * SMB ever played. The protocol enum is deliberately not duplicated here - the id resolves to the
  * whole [com.sza.fastmediasorter.wear.domain.model.NetworkSource], credentials included.
+ *
+ * S1708: [isDirectStream] indicates a live network stream (e.g. radio/video) played directly by URL
+ * without downloading to a temporary file.
  */
 data class SelectedMedia(
     val file: WearMediaFile,
     val isNetworkSource: Boolean,
     val streamUri: String,
-    val sourceId: String? = null
+    val sourceId: String? = null,
+    val isDirectStream: Boolean = false
 )

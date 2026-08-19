@@ -163,8 +163,12 @@ The Extensions screen is reachable from three places (all under `isExtensionsScr
 Welcome "Elements" button, Settings > General > Downloadable Extensions, and Settings > Media > Other >
 Downloadable Extensions.
 
-**Known defect (parked S1110):** the row's size is a hardcoded `STREAM_CATALOG_SIZE = 200_000` bytes,
-formatted by `formatBytes()` as `%.0f MB` -> rounds to a literal **"0 MB"**. The real ZIP is ~2.5 MB.
+**Known defect (parked S1110), partially patched, drifted again:** the row's size is a hardcoded
+`STREAM_CATALOG_SIZE = 2_500_000` bytes (`DeliverableInventoryImpl.kt`) - manually bumped once to match a
+2026-07-19 measurement (per its own comment), not wired to the real download size. `formatBytes()` now
+shows **"2 MB"** (not the literal "0 MB" this file originally reported against an older `200_000`-byte
+stand-in). The real ZIP is 7,557,268 bytes (~7.56 MB) as of 2026-08-19 - the hardcoded value is stale again
+and will keep drifting every time the catalog grows, because nothing re-measures it automatically.
 
 ---
 

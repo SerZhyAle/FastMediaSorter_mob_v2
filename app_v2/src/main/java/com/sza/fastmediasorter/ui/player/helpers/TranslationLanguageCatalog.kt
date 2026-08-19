@@ -6,8 +6,7 @@ import java.util.Locale
 enum class LanguageCapability {
     TRANSLATION,
     BASIC_OCR,
-    QUALITY_OCR,
-    NO_LEGAL_OCR
+    QUALITY_OCR
 }
 
 data class LanguageItem(
@@ -69,8 +68,6 @@ object TranslationLanguageCatalog {
     )
 
     val qualityOcrCodes: Set<String> = setOf("ru", "uk")
-
-    val noLegalOcrCodes: Set<String> = setOf("ru", "uk", "bg", "be", "mk")
 
     fun buildSourceLanguageList(interfaceLang: String): List<LanguageItem> {
         val displayLocale = displayLocaleFor(interfaceLang)
@@ -164,7 +161,6 @@ object TranslationLanguageCatalog {
             add(LanguageCapability.TRANSLATION)
             if (code in basicOcrCodes) add(LanguageCapability.BASIC_OCR)
             if (code in qualityOcrCodes) add(LanguageCapability.QUALITY_OCR)
-            if (code in noLegalOcrCodes) add(LanguageCapability.NO_LEGAL_OCR)
         }
     }
 

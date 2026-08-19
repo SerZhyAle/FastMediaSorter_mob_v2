@@ -28,6 +28,7 @@ contracts in Part A are fixed** and must match exactly, or you break compatibili
 - `06_player_routing.md` - playback, buffering, recovery, cast
 - `07_entrypoints_and_gating.md` - entry points + gating
 - `08_build_publish_pipeline.md` - the offline producer (only if you regenerate the bank)
+- `09_logo_and_preview_atlases.md` - the two on-demand atlases (only if you render richer art than a favicon)
 
 Everything below summarizes those files; on any conflict, the files win.
 
@@ -51,16 +52,18 @@ Everything below summarizes those files; on any conflict, the files win.
 - **UTF-8, no BOM.** RFC-4180 (quoted fields may contain commas, `""` escapes a quote, quoted fields may
   contain newlines). The producer quotes every field; quoting is not required of a consumer.
 - **Columns are matched by header NAME (case-insensitive), never by position.** Tolerate reordered columns,
-  unknown extra columns, and a missing column (read it as empty). The 18 producer columns, in order:
+  unknown extra columns, and a missing column (read it as empty). The 19 producer columns, in order:
   ```
   category, topic, name, url, media_kind, protocol, format, bitrate,
   is_live, https, language, country, homepage, source_kind,
-  license_note, notes, confidence, favicon_index
+  license_note, notes, confidence, favicon_index, access
   ```
 - **A row is valid only if both `name` and `url` are non-blank** (after trim); drop any other row silently.
 - Columns you must use: `name` (title), `url` (the direct playable stream URL, playlists already resolved),
   `media_kind` (`AUDIO`/`VIDEO`/`RTSP`), `favicon_index` (int), plus metadata `category`, `topic`,
-  `language` (lowercase, comma-separated inside one cell), `country` (ISO 3166-1 alpha-2), `homepage`.
+  `language` (lowercase, comma-separated inside one cell), `country` (ISO 3166-1 alpha-2), `homepage`,
+  `access` (added S1117: `""` = open, `"geo"` = region-locked from the build machine's network, may still
+  play in-region - tolerate every row shipping a blank `access` cell).
 - Columns you may ignore for playback (maintainer/tooling metadata): `protocol`, `format`, `bitrate`,
   `is_live`, `https`, `source_kind`, `license_note`, `notes`, `confidence`.
 - **`favicon_index`** decode: a non-negative integer -> that index; blank / non-numeric / negative /
@@ -87,8 +90,10 @@ radio stream is legitimately `AUDIO`).
 - **`favicon_index` is not stable across bank rebuilds** - it is assigned in favicon-decode order per build.
   Always slice against the atlas from the **same** ZIP you read the CSV from. Never cache-mismatch.
 - **Bounds-check** every index: `index < 0`, or a rect exceeding the actual decoded atlas dimensions ->
-  render **no favicon** (never crash). An index beyond the packed count (partial last row) yields a
-  transparent tile - treat "index > max index present in the CSV" as no-favicon if you want to avoid blanks.
+  render **no favicon** (never crash). An index that fits the canvas but was never assigned to any row also
+  yields a transparent tile - don't infer "packed" from the row count alone (the live bank's populated-row
+  count can sit below its highest referenced index; see `04` §1.4). Bounds-check per tile and accept a
+  transparent result gracefully.
 - The coords mapping you build is `url -> favicon_index` (keyed by the stream URL, since ids are not shared).
 
 ### A.5 Merge semantics (how to apply the bank without losing user data)
@@ -237,7 +242,7 @@ explicit "Update catalog" / "Import list" action and/or first-run onboarding.
 - **Tech stack, UI framework, media library, storage engine** - your choice within the Windows app. Do not
   port Android classes; match the **contracts (Part A)** and **behaviors (Parts B-D)** instead.
 - You **may regenerate or extend** the bank yourself with the offline pipeline (`08`) - same constraints
-  (CSV entry 0, atlas <= 3 MiB, never ship `favicon_index` values without a matching atlas). The atlas
+  (CSV entry 0, atlas <= 30 MB, never ship `favicon_index` values without a matching atlas). The atlas
   packer uses .NET `System.Drawing`/GDI+, which is native on Windows.
 - Chromecast casting and Android-specific surfaces (home-screen pinned shortcuts, launcher gadget) are
   optional / may not apply on desktop.
@@ -246,8 +251,8 @@ explicit "Update catalog" / "Import list" action and/or first-run onboarding.
 
 ## PART G - Acceptance criteria
 
-1. Downloads and applies the **live** bank; the list shows ~2,600+ channels (AUDIO ~350, VIDEO ~2,300,
-   RTSP ~6 at time of writing).
+1. Downloads and applies the **live** bank; the list shows ~19,500+ channels (AUDIO ~16,600, VIDEO ~2,900,
+   RTSP ~1 at time of writing - expect these to keep growing).
 2. Filter (category/language/country/media-kind), sort (5), search, and pin/reorder all work as in Part B.2.
 3. An internet **radio** channel plays **inline** with ICY now-playing text; a **VIDEO/HLS** channel plays;
    an **RTSP** channel plays or degrades gracefully with a clear message.

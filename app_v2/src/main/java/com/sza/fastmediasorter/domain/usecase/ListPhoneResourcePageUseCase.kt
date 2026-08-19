@@ -21,7 +21,8 @@ import javax.inject.Inject
  */
 class ListPhoneResourcePageUseCase @Inject constructor(
     private val resourceRepository: ResourceRepository,
-    private val mediaScannerFactory: MediaScannerFactory
+    private val mediaScannerFactory: MediaScannerFactory,
+    private val buildWatchThumbnail: BuildWatchThumbnailUseCase
 ) {
 
     suspend operator fun invoke(request: WearPhoneResourceRequest): WearPhoneResourcePage =
@@ -39,7 +40,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             }
             .filter { it.isExposedToWatch() }
 
-        return page(request, visible.map { it.toRootItem() })
+        return page(request, visible) { it.toRootItem() }
     }
 
     private suspend fun listChildren(request: WearPhoneResourceRequest): WearPhoneResourcePage {
@@ -78,37 +79,45 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         return when {
             scanner == null -> failure(request, WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA)
             children == null -> failure(request, WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE)
-            else -> page(request, children.toWireItems(parent, resource.showHiddenFiles))
+            else -> page(request, children.visibleTo(resource)) { it.toWireItem(parent) }
         }
     }
 
-    private fun List<MediaFile>.toWireItems(
-        parent: PhoneResourceToken,
-        showHiddenFiles: Boolean
-    ): List<WearPhoneResourceItem> = this
-        .filter { showHiddenFiles || !it.isHidden() }
-        .map { file ->
-            WearPhoneResourceItem(
-                token = PhoneResourceToken(parent.resourceId, parent.childPath(file.name)).serialize(),
-                name = file.name,
-                mimeType = if (file.isDirectory) null else file.type.toWireMimeType(),
-                sizeBytes = file.size,
-                isDirectory = file.isDirectory
-            )
-        }
+    private fun List<MediaFile>.visibleTo(resource: MediaResource): List<MediaFile> =
+        filter { resource.showHiddenFiles || !it.isHidden() }
+
+    private suspend fun MediaFile.toWireItem(parent: PhoneResourceToken): WearPhoneResourceItem =
+        WearPhoneResourceItem(
+            token = PhoneResourceToken(parent.resourceId, parent.childPath(name)).serialize(),
+            name = name,
+            mimeType = if (isDirectory) null else type.toWireMimeType(),
+            sizeBytes = size,
+            isDirectory = isDirectory,
+            // A folder carries no picture, and a file the use case declines carries none either -
+            // both are ordinary states the watch draws as a type icon.
+            thumbnailBase64 = if (isDirectory) null else buildWatchThumbnail(this)
+        )
 
     /**
      * The page window is applied here rather than by the scanner: a scanner page would count
      * entries the phone is about to hide, so the watch would receive short or empty pages while
      * `nextPageToken` still promised more.
+     *
+     * The wire item is built only for the window, never for the whole folder: since S1730 building
+     * one costs a decode, and a folder of thousands would otherwise pay for thousands of pictures
+     * to ship fifty.
      */
-    private fun page(request: WearPhoneResourceRequest, items: List<WearPhoneResourceItem>): WearPhoneResourcePage {
+    private suspend fun <T> page(
+        request: WearPhoneResourceRequest,
+        source: List<T>,
+        toItem: suspend (T) -> WearPhoneResourceItem
+    ): WearPhoneResourcePage {
         val offset = request.pageToken?.toIntOrNull()?.coerceAtLeast(0) ?: 0
-        val window = items.drop(offset).take(PAGE_SIZE)
+        val window = source.drop(offset).take(PAGE_SIZE).map { toItem(it) }
         val nextOffset = offset + window.size
         // EMPTY describes the folder, not the window: a page past the last item is still a valid OK
         // answer about a folder that does have content.
-        val status = if (items.isEmpty()) {
+        val status = if (source.isEmpty()) {
             WearPhoneResourceResponseStatus.EMPTY
         } else {
             WearPhoneResourceResponseStatus.OK
@@ -117,9 +126,29 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         return WearPhoneResourcePage(
             requestId = request.requestId,
             status = status,
-            items = window,
-            nextPageToken = if (nextOffset < items.size) nextOffset.toString() else null
+            items = withinPageBudget(window),
+            nextPageToken = if (nextOffset < source.size) nextOffset.toString() else null
         )
+    }
+
+    /**
+     * Caps what one page spends on pictures.
+     *
+     * The per-item ceiling alone does not bound the page: fifty items at that ceiling would exceed
+     * what one Data Layer message carries, and the page would fail to arrive at all rather than
+     * arrive with fewer pictures. Items past the budget keep every other field and simply carry no
+     * picture - the state the watch already draws as a type icon.
+     */
+    private fun withinPageBudget(items: List<WearPhoneResourceItem>): List<WearPhoneResourceItem> {
+        var spent = 0
+        return items.map { item ->
+            val cost = item.thumbnailBase64?.length ?: 0
+            when {
+                cost == 0 -> item
+                spent + cost <= MAX_PAGE_THUMBNAIL_CHARS -> item.also { spent += cost }
+                else -> item.copy(thumbnailBase64 = null)
+            }
+        }
     }
 
     private fun failure(
@@ -162,6 +191,14 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     companion object {
         /** Upper bound of items in one watch-bound page. */
         const val PAGE_SIZE = 50
+
+        /**
+         * Upper bound of Base64 picture data one page may carry, across all its items.
+         *
+         * Sized well inside the Data Layer's per-message limit so the metadata the page also
+         * carries still fits beside the pictures.
+         */
+        const val MAX_PAGE_THUMBNAIL_CHARS = 64 * 1024
     }
 }
 

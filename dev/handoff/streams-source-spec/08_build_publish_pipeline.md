@@ -16,7 +16,9 @@ Origin tickets: **S0570** (catalog founding), **S0668** (favicon atlas + offline
 
 ## 1. Script identity
 
-- **One script**: `scripts/streams/collect-stream-candidates.ps1` - 67,202 bytes, 1,271 lines.
+- **One script**: `scripts/streams/collect-stream-candidates.ps1` - 167,720 bytes, 2,902 lines (measured
+  2026-08-19; the 2026-07-19 snapshot this file was originally written from measured 67,202 bytes / 1,271
+  lines - the script has grown substantially since).
 - `#requires -Version 7` - PowerShell 7+ only (uses `ForEach-Object -Parallel`,
   `System.Net.Http.HttpClient` with `CancellationToken`, and `System.Drawing`/GDI+ imaging).
 - **No sibling scripts.** All candidate harvesting, liveness probing, favicon fetching, atlas packing, zip
@@ -30,9 +32,15 @@ Origin tickets: **S0570** (catalog founding), **S0668** (favicon atlas + offline
 
 ---
 
-## 2. Parameters (28)
+## 2. Parameters (28 as of the 2026-07-19 snapshot)
 
-The `param()` block (`:56-126`). Grouped:
+The `param()` block (`:56-126` in the 2026-07-19 snapshot; now `:70-226`). Grouped:
+
+> **Not re-audited for this refresh:** the live `param()` block now declares **64** parameters, not 28 -
+> the script has grown substantially since 2026-07-19 (new modes/axes such as `-ArtworkCacheOnly` and the
+> `-LogoCacheDir` incremental favicon cache, S1201's separate logo-atlas pass, and more). The groupings
+> below are the original 28 and are still accurate for what they describe, but are **not a complete list**.
+> Read the live `param()` block for the current full set before relying on flags not named here.
 
 **Discovery axes / sources**
 - `-Axis` (`ValidateSet 'livetv','genres','geo','webcam'`, default all four) - which harvest axes to run.
@@ -56,7 +64,7 @@ The `param()` block (`:56-126`). Grouped:
   atlas, stamp `favicon_index`.
 - `-FaviconS2Fallback` (default ON) - allow the Google s2 third-party fallback.
 - `-AtlasPath` (`delivery/stream-catalog/favicon-atlas.png`), `-FaviconTimeoutSec` (8),
-  `-FaviconThrottle` (16), `-MaxAtlasBytes` (3145728 = 3 MiB publish cap).
+  `-FaviconThrottle` (16), `-MaxAtlasBytes` (31457280 = 30 MB publish cap).
 
 **Publish**
 - `-Publish` - after the run, zip and upload.
@@ -208,15 +216,15 @@ catalog) and the discovery append path (full merged set).
 
 - Written by `Write-CsvUtf8` = `$Rows | Select-Object $Schema | Export-Csv -NoTypeInformation -Encoding utf8`.
 - PS7 `-Encoding utf8` = **UTF-8 without BOM** (unlike Windows PowerShell 5.1). All fields quoted.
-- Column order = the `$Schema` array (18 columns, `favicon_index` last, existing columns never reordered).
-  See `03_catalog_format.md` for the full column table.
-- Live snapshot (measured): 966,495 bytes, 2,691 data rows - AUDIO 348 / VIDEO 2,337 / RTSP 6;
-  `favicon_index` populated on 1,636 rows (max index 1,635), blank on 1,055.
+- Column order = the `$Schema` array (19 columns, `favicon_index` second-to-last, `access` last, existing
+  columns never reordered). See `03_catalog_format.md` for the full column table.
+- Live snapshot (measured 2026-08-19): 5,834,634 bytes, 19,534 data rows - AUDIO 16,616 / VIDEO 2,917 /
+  RTSP 1; `favicon_index` populated on 5,624 rows (highest index in use 5,742), blank on 13,910.
 
 ## 8. `favicon-atlas.png` producer output
 
-- `delivery/stream-catalog/favicon-atlas.png`, 2,426,865 bytes (~2.31 MiB), **512 x 3,296 px** = 16 x 103
-  tiles = 1,648 capacity, 1,636 packed (12 transparent trailing cells). Under the 3 MiB publish cap.
+- `delivery/stream-catalog/favicon-atlas.png`, 6,992,874 bytes (~6.67 MiB), **512 x 11,488 px** = 16 x 359
+  tiles = 5,744 capacity. Under the 30 MB publish cap.
 - **`favicon-coords.json` is NOT produced here** - it does not exist on the producer side at all. The app
   derives it at import time from the CSV `favicon_index` column (see `01`/`04`).
 
@@ -229,7 +237,7 @@ Requires the `gh` CLI on PATH (`C:\Program Files\GitHub CLI\gh.exe`, not on PATH
 1. **CSV first** (entry 0): `Compress-Archive -Path streams.csv -DestinationPath temp/stream-catalog.zip -Force`
    creates a zip whose sole first entry is the CSV. `Compress-Archive` does not guarantee entry order for a
    multi-path call, so the CSV is packed **alone first** deliberately.
-2. **Atlas appended** (`-Update`) only if it exists **and** `size <= $MaxAtlasBytes` (3 MiB). Over the cap ->
+2. **Atlas appended** (`-Update`) only if it exists **and** `size <= $MaxAtlasBytes` (30 MB). Over the cap ->
    warning, CSV-only publish (the S0583 30 s import-timeout budget rationale).
 3. **S0925 guard** (`:1082-1091`): if the atlas was NOT bundled (missing or over-cap) **and** the CSV has
    any row with a numeric `favicon_index`, **throw and refuse to publish** unless `-AllowFaviconlessPublish`.
@@ -264,8 +272,8 @@ APK/AAB to a `v<version>` tag - a completely separate release; do not conflate.
 
 - **One-shot refresh + publish** (rebuild atlas + push): `pwsh -NoProfile -File
   scripts/streams/collect-stream-candidates.ps1 -WithFavicons -Publish`.
-- **Safer two-step**: run `-WithFavicons` **without** `-Publish` first, validate `streams.csv` (18 cols,
-  `favicon_index` range/no gaps) and the atlas (512 wide, < 3 MB), then `-CatalogOnly -SkipLiveness -Publish`
+- **Safer two-step**: run `-WithFavicons` **without** `-Publish` first, validate `streams.csv` (19 cols,
+  `favicon_index` in range) and the atlas (512 wide, < 30 MB), then `-CatalogOnly -SkipLiveness -Publish`
   (no re-probe/re-atlas).
 - **Re-publish an already-consistent pair** (no favicon re-fetch): `-CatalogOnly -SkipLiveness -Publish`.
 

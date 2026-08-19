@@ -435,6 +435,16 @@
         <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
+    <!-- S1617: the one fact the tile carries. Stronger than the status line beneath it, because the
+         fact is what the user came for and the availability phrase is the fallback. -->
+    <style name="Widget.FastMediaSorter.NetworkMonitor.TileFact" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/margin_small</item>
+        <item name="android:textSize">@dimen/text_size_normal</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
     <!-- Status line is deliberately multi-line: the availability phrases are sentences, not badges, and
          truncating "No such hardware on this device" would cost the honesty criterion 2 asks for. -->
     <style name="Widget.FastMediaSorter.NetworkMonitor.TileStatus" parent="">
@@ -455,6 +465,11 @@
         <item name="android:textSize">@dimen/text_size_large</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
+        <!-- S1617: the glyph is set per heading, but its spacing and tint are set once - twelve
+             layouts carrying the same two attributes is twelve chances for one of them to differ. -->
+        <item name="android:drawablePadding">@dimen/margin_small</item>
+        <item name="android:drawableTint">?attr/colorOnSurface</item>
+        <item name="android:gravity">center_vertical</item>
     </style>
 
     <style name="Widget.FastMediaSorter.NetworkMonitor.Card" parent="Widget.Material3.CardView.Outlined">

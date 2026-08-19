@@ -5,10 +5,14 @@ import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourcePage
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -31,9 +35,14 @@ class PhoneResourceViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val client: PhoneResourceClient = mockk()
 
+    // S1730: the view model now reads the file-list view mode. These cases pin the browse mapping,
+    // so the stored view is held at its default and never varied.
+    private val preferences: WearPreferencesRepository = mockk()
+
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
+        every { preferences.fileListViewMode } returns flowOf(WearViewMode.LIST)
     }
 
     @After
@@ -45,7 +54,7 @@ class PhoneResourceViewModelTest {
     fun `a page becomes content`() = runTest {
         coEvery { client.browse(any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
 
-        val viewModel = PhoneResourceViewModel(client)
+        val viewModel = PhoneResourceViewModel(client, preferences)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -57,7 +66,7 @@ class PhoneResourceViewModelTest {
     fun `an answered but empty folder is not an error`() = runTest {
         coEvery { client.browse(any(), any()) } returns PhoneResourceOutcome.Page(page())
 
-        val viewModel = PhoneResourceViewModel(client)
+        val viewModel = PhoneResourceViewModel(client, preferences)
         advanceUntilIdle()
 
         assertEquals(PhoneResourceUiState.Empty, viewModel.uiState.value)
@@ -67,7 +76,7 @@ class PhoneResourceViewModelTest {
     fun `a disconnected phone becomes unavailable with no reason to show`() = runTest {
         coEvery { client.browse(any(), any()) } returns PhoneResourceOutcome.PhoneUnavailable
 
-        val viewModel = PhoneResourceViewModel(client)
+        val viewModel = PhoneResourceViewModel(client, preferences)
         advanceUntilIdle()
 
         assertEquals(PhoneResourceUiState.Unavailable(null), viewModel.uiState.value)
@@ -78,7 +87,7 @@ class PhoneResourceViewModelTest {
         coEvery { client.browse(any(), any()) } returns
             PhoneResourceOutcome.Rejected(WearPhoneResourceResponseStatus.ACCESS_DENIED)
 
-        val viewModel = PhoneResourceViewModel(client)
+        val viewModel = PhoneResourceViewModel(client, preferences)
         advanceUntilIdle()
 
         assertEquals(
@@ -91,7 +100,7 @@ class PhoneResourceViewModelTest {
     fun `retry after a disconnect recovers the content`() = runTest {
         coEvery { client.browse(any(), any()) } returns PhoneResourceOutcome.PhoneUnavailable
 
-        val viewModel = PhoneResourceViewModel(client)
+        val viewModel = PhoneResourceViewModel(client, preferences)
         advanceUntilIdle()
         assertEquals(PhoneResourceUiState.Unavailable(null), viewModel.uiState.value)
 
@@ -106,7 +115,7 @@ class PhoneResourceViewModelTest {
     fun `walking into a folder and back keeps the screen on the trail`() = runTest {
         coEvery { client.browse(any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
 
-        val viewModel = PhoneResourceViewModel(client)
+        val viewModel = PhoneResourceViewModel(client, preferences)
         advanceUntilIdle()
 
         viewModel.openFolder("1:Camera")

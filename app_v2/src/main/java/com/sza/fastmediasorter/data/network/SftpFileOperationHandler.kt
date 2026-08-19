@@ -88,7 +88,9 @@ class SftpFileOperationHandler @Inject constructor(
     override suspend fun executeMove(
         operation: FileOperation.Move,
         progressCallback: ByteProgressCallback?
-    ): FileOperationResult {
+    ): FileOperationResult = withContext(Dispatchers.IO) {
+        // S1813: the base declares this method's body as withContext(Dispatchers.IO); an override
+        // replaces that body, so the confinement has to be restated here or it is silently lost.
         val destinationPath = operation.destination.path
 
         // Handle Local/SAF -> SFTP move explicitly
@@ -164,7 +166,7 @@ class SftpFileOperationHandler @Inject constructor(
                 requestBatchDeletePermission(pendingDeletePaths)
             }
             
-            return buildMoveResult(successCount, operation, movedPaths, errors)
+            return@withContext buildMoveResult(successCount, operation, movedPaths, errors)
         }
         
         // Handle SFTP -> FTP move via temp file bridging
@@ -240,10 +242,10 @@ class SftpFileOperationHandler @Inject constructor(
                 }
             }
             
-            return buildMoveResult(successCount, operation, movedPaths, errors)
+            return@withContext buildMoveResult(successCount, operation, movedPaths, errors)
         }
         
-        return super.executeMove(operation, progressCallback)
+        return@withContext super.executeMove(operation, progressCallback)
     }
 
     /**

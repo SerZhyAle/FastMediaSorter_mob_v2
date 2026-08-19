@@ -64,6 +64,7 @@ class StreamsViewModelAutoGridTest {
             // dispatcher keeps the emission synchronous, so the assertions below still observe the
             // state without waiting on a real background thread.
             defaultDispatcher = dispatcherRule.testDispatcher,
+            clearDownloadedStreams = mockk(relaxed = true),
         )
     }
 

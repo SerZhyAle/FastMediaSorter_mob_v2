@@ -34,6 +34,40 @@ object LauncherGridGeometry {
         if (columns <= 0) availableWidthPx else availableWidthPx / columns
 
     /**
+     * S1757: visual dimensions for a shortcut cell proportional to the cell's edge size.
+     * When [cellSizeDp] is at nominal size (>= 88dp), standard dimensions are returned.
+     * At smaller sizes (dense grid mode), icon, paddings, and margins scale down so up to 2 lines of
+     * label text fit without clipping.
+     */
+    data class ShortcutCellLayoutSpec(
+        val iconSizeDp: Float,
+        val monogramTextSizeSp: Float,
+        val modeBadgeSizeDp: Float,
+        val contentPaddingVerticalDp: Float,
+        val labelMarginTopDp: Float,
+    )
+
+    fun shortcutLayoutSpec(cellSizeDp: Float): ShortcutCellLayoutSpec {
+        if (cellSizeDp >= 88f || cellSizeDp <= 0f) {
+            return ShortcutCellLayoutSpec(
+                iconSizeDp = 44f,
+                monogramTextSizeSp = 16f,
+                modeBadgeSizeDp = 18f,
+                contentPaddingVerticalDp = 4f,
+                labelMarginTopDp = 3f,
+            )
+        }
+        val scale = (cellSizeDp / 88f).coerceIn(0.55f, 1.0f)
+        return ShortcutCellLayoutSpec(
+            iconSizeDp = (44f * scale).coerceIn(26f, 44f),
+            monogramTextSizeSp = (16f * scale).coerceIn(10f, 16f),
+            modeBadgeSizeDp = (18f * scale).coerceIn(12f, 18f),
+            contentPaddingVerticalDp = (4f * scale).coerceIn(1f, 4f),
+            labelMarginTopDp = (3f * scale).coerceIn(1f, 3f),
+        )
+    }
+
+    /**
      * How many rows the canvas needs to show every cell - the lowest occupied row, plus its own
      * height. The desktop is one screen plus downward scroll (strategic §3.3), so the canvas grows to
      * its content rather than being clipped to the viewport.
@@ -201,6 +235,27 @@ object LauncherGridGeometry {
         width = footprint.spanW * cellSize,
         height = footprint.spanH * cellSize,
     )
+
+    /** One square of the grid, addressed the way [CellFootprint] reports a cell's origin. */
+    data class Slot(val row: Int, val col: Int)
+
+    /**
+     * S1466: the square under a point of the grid's content box, or null when the point is outside it.
+     *
+     * The inverse of [boundsOf] and it shares that function's assumption - cells tile the canvas with no
+     * gutter, so the square is plain integer division by [cellSize].
+     *
+     * Outside the grid yields no slot rather than a clamped one: the caller places a new cell at the
+     * answer, and a clamped one would drop the item on the last row while the user pressed past it.
+     * A point on the seam between two cells belongs to the later one, because the division floors.
+     */
+    fun slotAt(xPx: Int, yPx: Int, cellSize: Int, columns: Int, rows: Int): Slot? {
+        val measurable = cellSize > 0 && columns > 0 && rows > 0 && xPx >= 0 && yPx >= 0
+        if (!measurable) return null
+        val col = xPx / cellSize
+        val row = yPx / cellSize
+        return Slot(row = row, col = col).takeIf { col < columns && row < rows }
+    }
 
     /** Row and height clamps do not depend on the column count, so [rowsFor] can share them. */
     private fun safeRow(row: Int): Int = row.coerceAtLeast(0)

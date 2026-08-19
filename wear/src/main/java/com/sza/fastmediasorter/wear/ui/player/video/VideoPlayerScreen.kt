@@ -49,6 +49,7 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
@@ -71,6 +72,8 @@ fun VideoPlayerScreen(
     }
 
     Timber.d("VideoPlayerScreen composing, isPlaying: ${uiState.isPlaying}")
+
+    KeepScreenOnEffect(enabled = uiState.isPlaying)
 
     WearScreenScaffold(contentPadding = PaddingValues(0.dp)) {
         when {

@@ -81,8 +81,22 @@ class SettingsManifestExportTest {
                 )
             }
         }
+        // S1788: Wear OS settings scope (Compose-based settings defined in SettingsDocScopeCatalog.wearEntries).
+        for (item in SettingsDocScopeCatalog.wearEntries) {
+            entries += SettingsManifestEntry(
+                key = item.key,
+                sectionId = item.sectionId,
+                destination = item.destination.name,
+                layout = item.layout,
+                kind = item.kind,
+                titleEn = item.titleEn,
+                titleRu = item.titleRu,
+                titleUk = item.titleUk
+            )
+        }
         return entries
     }
+
 
     // Mirrors LocalizedKeywordCollector title precedence: title res, inline title, hint res, inline hint.
     private fun resolveTitle(raw: RawSettingsSearchEntry, res: Resources): String {

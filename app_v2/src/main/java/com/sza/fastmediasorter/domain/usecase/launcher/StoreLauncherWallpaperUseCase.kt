@@ -35,7 +35,7 @@ class StoreLauncherWallpaperUseCase @Inject constructor(
             // Wipe first: one wallpaper at a time, so a change never accumulates copies.
             dir.deleteRecursively()
             dir.mkdirs()
-            val outFile = File(dir, "$FILE_BASE_NAME.${resolveExtension(uri)}")
+            val outFile = File(dir, "${FILE_BASE_NAME}_${System.currentTimeMillis()}.${resolveExtension(uri)}")
             val copied = context.contentResolver.openInputStream(uri)?.use { input ->
                 outFile.outputStream().use { output -> input.copyTo(output) }
             }

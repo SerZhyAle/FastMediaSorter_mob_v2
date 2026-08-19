@@ -70,6 +70,16 @@ class LauncherSectionCollapseManager(
     }
 
     /**
+     * S1742 §04.2: clears collapsed-state entry for [cell] when it is removed.
+     */
+    fun clear(cell: LauncherCell) {
+        if (cell.kind != LauncherCellKind.SECTION) return
+        val key = keyFor(orientation.value, cell.target)
+        store.setExpanded(key, EXPANDED_BY_DEFAULT)
+        revision.value += 1
+    }
+
+    /**
      * Portrait and landscape are two independent layouts (strategic §6.3), so the orientation is part of
      * the key: a section folded in one says nothing about the same section in the other.
      */

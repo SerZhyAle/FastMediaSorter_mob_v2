@@ -223,3 +223,7 @@
 "launcherWallpaperMode","","","","","","","","","","",""
 "enableNetworkMonitor","","","","","","","","","","",""
 "launcherTopStatusStripMode","","","","","","","","","","",""
+"launcherForeignNotificationsEnabled","","","","","","","","","","",""
+"launcherScreenBlackoutTimeoutSeconds","0","0","300","60","300","0","300","60","300","60",""
+"launcherWidgetBackdropAlpha","","","","","","","","","","",""
+"frontFlashlightEnabled","FALSE","FALSE","FALSE","TRUE","FALSE","TRUE","FALSE","FALSE","FALSE","FALSE",""

@@ -53,11 +53,11 @@ object SensorGadgetModule {
         map: MapGadget,
         charts: SeriesChartDependencies,
     ): List<LauncherGadget> = listOf(
-        compass,
-        speed,
         altitude,
-        satellites,
+        speed,
         steps,
+        compass,
+        satellites,
         map,
         SeriesChartGadget(
             key = LauncherGadgetRegistry.KEY_SPEED_CHART,

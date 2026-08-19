@@ -83,7 +83,10 @@ if ($Tests) {
     }
 }
 
-$checkLabel = if ($Module -eq 'wear') { 'wear' } else { $Flavor }
+# S1807: the label names the module, not only the flavor. This banner is what gets pasted into a
+# step log as proof, and with two active modules a phone verdict quoted under a wear ticket has to
+# read as foreign rather than as confirmation.
+$checkLabel = if ($Module -eq 'wear') { 'wear' } else { "app_v2/$Flavor" }
 Write-Host "Fast $checkLabel check.." -ForegroundColor Cyan
 Write-Host "Mode: $Mode" -ForegroundColor Yellow
 if ($Tests) {
@@ -124,7 +127,7 @@ $gradleExit = $run.ExitCode
 # catch would exit first and never reach it. Skipped for a --tests filter, where a handful of
 # reports is the correct outcome rather than a truncation.
 if ($Mode -eq "Unit" -and -not $Tests) {
-    & "$PSScriptRoot\..\quality\assert-test-suite-complete.ps1" -TaskDir "test${variant}DebugUnitTest"
+    & "$PSScriptRoot\..\quality\assert-test-suite-complete.ps1" -Module $Module -TaskDir "test${variant}DebugUnitTest"
     $gateExit = $LASTEXITCODE
     if ($gateExit -eq 1 -and -not $run.WorkerDeath) {
         Write-Host "`nFast check failed - the unit run did not cover the whole suite." -ForegroundColor Red
@@ -150,6 +153,16 @@ if ($run.WorkerDeath) {
 
 if ($gradleExit -ne 0) {
     Write-Host "`nFast check failed." -ForegroundColor Red
+    # S1786: auto-emit structured failure digest from the current run's log
+    $bfdScript = Join-Path $PSScriptRoot "build-failure-digest.ps1"
+    if (Test-Path $bfdScript) {
+        $tempLogPath = Join-Path $projectRoot "temp/check_fast_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+        if ($run.Lines -and $run.Lines.Length -gt 0) {
+            [System.IO.File]::WriteAllLines($tempLogPath, $run.Lines, [System.Text.UTF8Encoding]::new($false))
+            Write-Host "`n--- Build Failure Digest ---" -ForegroundColor Yellow
+            & $bfdScript -LogPath $tempLogPath
+        }
+    }
     exit $gradleExit
 }
 

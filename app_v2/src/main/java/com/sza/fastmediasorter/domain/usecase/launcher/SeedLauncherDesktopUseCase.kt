@@ -71,6 +71,19 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             // resource since deleted) never becomes a permanently-dead tile.
             val lastResourceId = settings.getLastUsedResourceId().takeIf { it > 0L && it in resourceIds }
             fun idOf(path: String): Long? = allResources.firstOrNull { it.path == path }?.id
+
+            val virtualPaths = setOf(
+                LocalMediaScanner.VIRTUAL_PATH_RECENT,
+                LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO,
+                LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES,
+                LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO,
+                LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS,
+                LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS,
+            )
+            val userResourceIds = allResources
+                .filterNot { it.path in virtualPaths }
+                .map { it.id }
+
             val starterResources = LauncherStarterSets.StarterResources(
                 recentId = idOf(LocalMediaScanner.VIRTUAL_PATH_RECENT),
                 allAudioId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO),
@@ -79,6 +92,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 allDocsId = idOf(LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS),
                 cameraId = idOf(LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS),
                 lastResourceId = lastResourceId,
+                userResourceIds = userResourceIds,
             )
             val routeAvailableInBuild = routeAvailability.all()
                 .mapValues { (_, availability) -> availability.availableInBuild }

@@ -2,13 +2,14 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.os.Build
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
+import com.sza.fastmediasorter.data.local.db.LauncherCellEntity
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
+import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.repository.RawAuthSession
@@ -22,6 +23,7 @@ import java.util.TimeZone
  * Converts domain models to backup-safe DTOs and back.
  * Keeps credential fields out of the backup payload.
  */
+@Suppress("LargeClass")
 object BackupMapper {
 
     // S1346: pinned threshold, deliberately NOT BackupPayload.CURRENT_VERSION - a future bump of
@@ -140,6 +142,8 @@ object BackupMapper {
             keepScreenOnPlayer = settings.keepScreenOnPlayer,
             showSmallControls = settings.showSmallControls,
             embeddedGameEnabled = settings.embeddedGameEnabled,
+            frontFlashlightEnabled = settings.frontFlashlightEnabled,
+            frontFlashlightColor = settings.frontFlashlightColor,
             networkParallelism = settings.networkParallelism,
             cacheSizeMb = settings.cacheSizeMb,
             isCacheSizeUserModified = settings.isCacheSizeUserModified,
@@ -262,6 +266,28 @@ object BackupMapper {
             stereoAmbiguityBestGuess = settings.stereoAmbiguityBestGuess,
             stereoDefaultLayout = settings.stereoDefaultLayout.name,
             stereoDefaultProjection = settings.stereoDefaultProjection.name,
+            // S1740: Launcher settings
+            launcherDensityFactor = settings.launcherDensityFactor,
+            launcherTaskbarPlacement = settings.launcherTaskbarPlacement,
+            launcherTaskbarShowRecents = settings.launcherTaskbarShowRecents,
+            launcherTaskbarShowPinned = settings.launcherTaskbarShowPinned,
+            launcherTaskbarShowTray = settings.launcherTaskbarShowTray,
+            launcherReplaceSystemStatusArea = settings.launcherReplaceSystemStatusArea,
+            launcherTopStatusStripMode = settings.launcherTopStatusStripMode,
+            launcherForeignNotificationsEnabled = settings.launcherForeignNotificationsEnabled,
+            launcherTrayShowClock = settings.launcherTrayShowClock,
+            launcherTrayShowBluetooth = settings.launcherTrayShowBluetooth,
+            launcherTrayShowSim1 = settings.launcherTrayShowSim1,
+            launcherTrayShowSim2 = settings.launcherTrayShowSim2,
+            launcherTrayShowNetwork = settings.launcherTrayShowNetwork,
+            launcherTrayShowBattery = settings.launcherTrayShowBattery,
+            launcherRotationHintShown = settings.launcherRotationHintShown,
+            launcherDesktopLocked = settings.launcherDesktopLocked,
+            launcherWallpaperMode = settings.launcherWallpaperMode,
+            launcherWallpaperImagePath = settings.launcherWallpaperImagePath,
+            allAppsSortOrder = settings.allAppsSortOrder,
+            allAppsSortDescending = settings.allAppsSortDescending,
+            launcherScreenBlackoutTimeoutSeconds = settings.launcherScreenBlackoutTimeoutSeconds,
         )
     }
 
@@ -308,6 +334,8 @@ object BackupMapper {
             keepScreenOnPlayer = backup.keepScreenOnPlayer,
             showSmallControls = backup.showSmallControls,
             embeddedGameEnabled = backup.embeddedGameEnabled,
+            frontFlashlightEnabled = backup.frontFlashlightEnabled,
+            frontFlashlightColor = backup.frontFlashlightColor,
             // S0406: restore global default network login from backup (was kept-from-current before).
             defaultUser = backup.defaultUser,
             defaultPassword = backup.defaultPassword,
@@ -449,6 +477,28 @@ object BackupMapper {
                 ?.let { StereoMode.fromKey(it) }
                 ?.takeIf { it != StereoMode.AUTO && it != StereoMode.UNKNOWN }
                 ?: current.stereoDefaultProjection,
+            // S1740: Launcher settings
+            launcherDensityFactor = backup.launcherDensityFactor,
+            launcherTaskbarPlacement = backup.launcherTaskbarPlacement.gsonSafe(current.launcherTaskbarPlacement),
+            launcherTaskbarShowRecents = backup.launcherTaskbarShowRecents,
+            launcherTaskbarShowPinned = backup.launcherTaskbarShowPinned,
+            launcherTaskbarShowTray = backup.launcherTaskbarShowTray,
+            launcherReplaceSystemStatusArea = backup.launcherReplaceSystemStatusArea,
+            launcherTopStatusStripMode = backup.launcherTopStatusStripMode,
+            launcherForeignNotificationsEnabled = backup.launcherForeignNotificationsEnabled,
+            launcherTrayShowClock = backup.launcherTrayShowClock,
+            launcherTrayShowBluetooth = backup.launcherTrayShowBluetooth,
+            launcherTrayShowSim1 = backup.launcherTrayShowSim1,
+            launcherTrayShowSim2 = backup.launcherTrayShowSim2,
+            launcherTrayShowNetwork = backup.launcherTrayShowNetwork,
+            launcherTrayShowBattery = backup.launcherTrayShowBattery,
+            launcherRotationHintShown = backup.launcherRotationHintShown,
+            launcherDesktopLocked = backup.launcherDesktopLocked,
+            launcherWallpaperMode = backup.launcherWallpaperMode.gsonSafe(current.launcherWallpaperMode),
+            launcherWallpaperImagePath = backup.launcherWallpaperImagePath.gsonSafe(current.launcherWallpaperImagePath),
+            allAppsSortOrder = backup.allAppsSortOrder.gsonSafe(current.allAppsSortOrder),
+            allAppsSortDescending = backup.allAppsSortDescending,
+            launcherScreenBlackoutTimeoutSeconds = backup.launcherScreenBlackoutTimeoutSeconds,
         )
     }
 
@@ -597,6 +647,36 @@ object BackupMapper {
                     maxAge = if (expires != null) ((expires - now) / 1000L).coerceAtLeast(1L) else -1L
                 }
             }
+        )
+    }
+
+    // S1740: Launcher cell mapping (desktop shortcuts, gadgets, section headers).
+    fun toBackupLauncherCell(entity: LauncherCellEntity): BackupLauncherCell {
+        return BackupLauncherCell(
+            orientation = entity.orientation,
+            rowIndex = entity.rowIndex,
+            colIndex = entity.colIndex,
+            spanW = entity.spanW,
+            spanH = entity.spanH,
+            kind = entity.kind,
+            target = entity.target,
+            labelOverride = entity.labelOverride,
+            addedAt = entity.addedAt
+        )
+    }
+
+    fun toLauncherCellEntity(backup: BackupLauncherCell): LauncherCellEntity {
+        return LauncherCellEntity(
+            id = 0L,
+            orientation = backup.orientation.gsonSafe("PORTRAIT"),
+            rowIndex = backup.rowIndex,
+            colIndex = backup.colIndex,
+            spanW = backup.spanW,
+            spanH = backup.spanH,
+            kind = backup.kind.gsonSafe("SHORTCUT"),
+            target = backup.target.gsonSafe(""),
+            labelOverride = backup.labelOverride,
+            addedAt = backup.addedAt
         )
     }
 

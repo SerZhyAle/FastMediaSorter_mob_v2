@@ -107,12 +107,6 @@
 
         <TextView android:id="@+id/tvOcrSummary" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginBottom="@dimen/settings_margin_standard" android:text="@string/enable_ocr_summary" android:textColor="@color/text_color_secondary" android:textSize="@dimen/toggler_desc_text_size" />
 
-        <!-- OCR Engine Type (S0288) - trigger row opens SimpleValueChoiceDialog (S0646). -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowOcrEngineType" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:visibility="gone" app:ssr_title="@string/ocr_engine_type" />
-
-        <!-- PaddleOCR Model Selection (S0288) - trigger row opens SimpleValueChoiceDialog (S0646). -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowPaddleOcrModel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:visibility="gone" app:ssr_title="@string/paddle_ocr_model" />
-
         <!-- OCR Font Size - trigger row opens SimpleValueChoiceDialog (S0646). -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowOcrFontSize" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:visibility="gone" app:ssr_title="@string/ocr_font_size" />
 

@@ -231,6 +231,9 @@ class ImportSettingsUseCase @Inject constructor(
                                         defaultSortMode = SortMode.valueOf(data["defaultSortMode"] ?: "NAME_ASC"),
                                         slideshowInterval = data["slideshowInterval"]?.toInt() ?: 10,
                                         embeddedGameEnabled = data["embeddedGameEnabled"]?.toBoolean() ?: false,
+                                        frontFlashlightEnabled = data["frontFlashlightEnabled"]?.toBoolean() ?: false,
+                                        frontFlashlightColor = data["frontFlashlightColor"]?.toIntOrNull()
+                                            ?: AppSettings.FRONT_FLASHLIGHT_DEFAULT_COLOR,
                                         enableSlideshowBackgroundMusic = data["enableSlideshowBackgroundMusic"]?.toBoolean() ?: false,
                                         slideshowMusicResourceId = data["slideshowMusicResourceId"]?.toLongOrNull(),
                                         

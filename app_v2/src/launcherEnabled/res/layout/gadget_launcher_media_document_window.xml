@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1754: the document media window - the newest document of a resource, readable in the cell.
+
+     A ScrollView rather than a fixed block of lines: a 2x2 cell shows a paragraph at most, and a reader
+     that cannot move past the first paragraph is a preview, not the reading window the ticket asks for.
+
+     Orientation-neutral, so no layout-land counterpart: the launcher measures a cell exactly. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="@dimen/margin_small">
+
+        <TextView
+            android:id="@+id/mediaDocumentWindowTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:ellipsize="end"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:maxLines="1"
+            android:minHeight="28dp"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="Trip notes.txt" />
+
+        <ScrollView
+            android:id="@+id/mediaDocumentWindowScroll"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true"
+            android:scrollbars="vertical">
+
+            <TextView
+                android:id="@+id/mediaDocumentWindowText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingMultiplier="1.1"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="12sp"
+                tools:text="The first paragraph of the document." />
+
+        </ScrollView>
+
+    </LinearLayout>
+
+</merge>

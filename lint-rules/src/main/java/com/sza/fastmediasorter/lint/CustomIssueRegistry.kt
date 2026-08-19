@@ -12,7 +12,8 @@ class CustomIssueRegistry : IssueRegistry() {
             UiContextLeakDetector.ISSUE,
             UnsafeFlowCollectDetector.ISSUE,
             PlayerReleaseDetector.ISSUE,
-            MainThreadIoDetector.ISSUE
+            MainThreadIoDetector.ISSUE,
+            NetworkDataSourceDispatcherDetector.ISSUE
         )
 
     override val api: Int

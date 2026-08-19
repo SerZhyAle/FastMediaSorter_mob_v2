@@ -628,6 +628,49 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-LoneResourceBackslashes $t }
             LocateInText = { param($t) Find-LoneResourceBackslashLines $t }
             FailMessage  = 'new lone backslash in a string resource. AAPT2 reads it as an escape introducer and drops the character - write \\ instead (S1586).'
+        },
+        # S1786: Rule 6 architectural class suffix naming ratchet
+        [pscustomobject]@{
+            Name         = 'class-architecture-naming'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src', 'wear/src')
+            PathFilter   = '[\\/](domain[\\/]usecase|data[\\/]repository)[\\/]'
+            Baseline     = 'class-architecture-naming-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = {
+                param($t)
+                if ([string]::IsNullOrWhiteSpace($t)) { return 0 }
+                $isUseCase = $t -match 'package\s+.*\.domain\.usecase'
+                $isRepo = $t -match 'package\s+.*\.data\.repository'
+                if (-not $isUseCase -and -not $isRepo) { return 0 }
+                
+                $count = 0
+                foreach ($line in ($t -split "`n")) {
+                    $trimmed = $line.Trim()
+                    if ($trimmed.StartsWith('//') -or $trimmed.StartsWith('/*') -or $trimmed.StartsWith('*')) { continue }
+                    if ($trimmed -match '^(?:public\s+|internal\s+|private\s+|open\s+|abstract\s+|sealed\s+|data\s+)*(?:class|interface)\s+([A-Za-z0-9_]+)') {
+                        $name = $Matches[1]
+                        # S1742: a test class is named after the thing it tests, so `FooUseCaseTest` is
+                        # correct naming rather than a violation of it. Without this the rule taxed every
+                        # new test in these two packages - the baseline had silently absorbed ~94 of them,
+                        # so the next test file always failed the delta. A gate that charges for writing a
+                        # test is worse than no gate.
+                        if ($name -match '(Test|Tests)$') { continue }
+                        if ($isUseCase -and $name -notmatch '(UseCase|UseCases|Factory|Contract)$') {
+                            $count++
+                        }
+                        # S1797: `Values` is the read-result holder every `data/repository/settings/*Store`
+                        # nests by contract, so the rule taxed the section-store pattern it should endorse -
+                        # 12 of them sat absorbed in the baseline, which made the next new store fail the
+                        # delta for following the convention. Same shape as the `Test` excuse above.
+                        elseif ($isRepo -and $name -notmatch '(Repository|RepositoryImpl|Module|Factory|Source|Store|Mapper|Parser|Utils|Coordinator|Values)$') {
+                            $count++
+                        }
+                    }
+                }
+                return $count
+            }
+            FailMessage  = 'new class or interface in domain/usecase or data/repository violates Rule 6 naming suffix (expected *UseCase or *Repository / *RepositoryImpl).'
         }
     )
 }

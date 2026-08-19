@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.repository
 
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellPlacement
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import kotlinx.coroutines.flow.Flow
 
@@ -22,9 +23,13 @@ interface LauncherDesktopRepository {
 
     /**
      * Inserts, or replaces the row with the same id - the edit flow needs no separate update.
-     * Returns null when the cell's footprint would overlap one already there (see [moveCell]).
+     *
+     * S1772: the anchor the caller names is the user's choice of place, so a blocked footprint no longer
+     * gives up - the desktop's tail is pushed down until the footprint is clear, and only a cell wider
+     * than [columns] is refused. A section header is exempt from the push: displacing one would duplicate
+     * a header rather than make room.
      */
-    suspend fun addCell(cell: LauncherCell): Long?
+    suspend fun addCell(cell: LauncherCell, columns: Int): LauncherCellPlacement
 
     /**
      * Places [cell] wherever it fits instead of at the anchor it carries: scans row-major from the top
@@ -89,6 +94,14 @@ interface LauncherDesktopRepository {
      * existed.
      */
     suspend fun updateCellTarget(id: Long, target: String): Boolean
+
+    suspend fun updateCellLabel(id: Long, labelOverride: String?): Boolean
+
+    /**
+     * S1742 §04.1: exchanges a section block (the header and its owned cells) with an adjacent section block
+     * in [orientation]. Returns whether the swap occurred (false if no adjacent section exists).
+     */
+    suspend fun swapSectionBlock(orientation: LauncherOrientation, sectionCellId: Long, moveUp: Boolean): Boolean
 
     /**
      * Places [cells] only when this orientation has never been seeded and holds no cells.

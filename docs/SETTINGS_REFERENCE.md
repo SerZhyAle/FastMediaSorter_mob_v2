@@ -35,6 +35,7 @@ _Generated from the app. Do not edit by hand._
 | Welcome Tutorial | Reopens the welcome tutorial screen shown on first launch. |
 | Permissions & Access | Opens the permissions and access management screen where you can review and adjust what the app can access. |
 | Privacy | Opens the app's privacy policy. |
+| In this build | Lists the tickets included in this debug build, so a tester can see what there is to check. |
 | Reset General section | Restores all General section settings to their factory defaults. |
 | SET default settings | Resets all app settings across every section to factory defaults. |
 | Reset SMB | Clears all saved SMB network connection credentials and configurations. |
@@ -46,6 +47,7 @@ _Generated from the app. Do not edit by hand._
 | Sync Now | Triggers an immediate manual sync with configured remote resources. |
 | About system | Displays device and app version information useful for troubleshooting. |
 | Screenshot test | Takes a screenshot of the app right away using the built-in capture flow. |
+| Unused credentials | Shows how many saved network passwords and keys no resource uses any more, and removes them after a confirmation that lists them. The row is hidden while there are none. |
 | User Guide | Opens the full user guide for the app. |
 | Wear Companion | Opens settings for the Wear OS companion app pairing and configuration. |
 | Icon size for grid (pixels) | Sets the thumbnail icon size in pixels for grid view. |
@@ -167,10 +169,8 @@ _Available in: Standard, Legacy, VR_
 | OCR & translation downloads | Manages downloadable OCR and translation components. |
 | Enable text recognition | Enables on-device text recognition (OCR) so you can extract text from images. |
 | Enable Translation | Enables on-device text translation of recognized text. |
-| OCR Engine | Selects which on-device text-recognition engine is used for OCR. |
 | OCR Font Family | Sets the font family used to display recognized OCR text. |
 | OCR Font Size | Sets the font size used to display recognized OCR text. |
-| PaddleOCR Model | Selects which PaddleOCR model is used for text recognition. |
 | Translation result in blocks | Displays translation results in overlay blocks on top of the image instead of a separate panel. |
 | Original Language | Chooses the source language that recognized text is translated from. |
 | Translate To | Chooses the target language that recognized text is translated into. |
@@ -256,6 +256,7 @@ _Available in: Standard, Legacy, VR_
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
 | Use scheduled operations | Activates the scheduler so configured operations run automatically at their set times. |
 | Rotate screen with OS auto-rotate (except player) | When on, every app window except the player follows the OS auto-rotate setting; when off, they rotate by the device sensor regardless of the OS lock. |
+| Front flashlight | Adds the front flashlight to the programs list: the screen itself becomes a lamp. |
 | Gesture overlay | Enables the left-edge gesture overlay, allowing swipe shortcuts to trigger file operations. |
 | Go to next file after copying | Automatically advances to the next file in the list after a copy operation completes. |
 | Keep screen on while player is active | Prevents the screen from turning off while the media player is active. |
@@ -278,19 +279,24 @@ _Settings -> General -> System launcher settings_
 
 | Setting | What it does |
 |---|---|
+| Import system desktop shortcuts | Adds a desktop cell for every application installed on the device, so a fresh launcher desktop can be filled without placing each one by hand. |
+| Grant notification access | Opens the system notification-access screen. Shown only while the launcher's foreign-notification row is on and the system has not granted the access. |
+| Reset launcher settings | Resets the launcher configuration and desktop cells back to defaults after confirmation. |
 | Desktop | Settings for the launcher desktop itself: icon grid density, the edit lock and the wallpaper. |
 | System | Entry to the Android home-app chooser, where the system launcher is selected. |
 | Taskbar | Settings for the launcher taskbar at the bottom: recent and pinned apps, and which icons its tray shows. |
 | Top bar | Settings for the launcher's own top strip, which can replace the system status area. |
 | Grid density | Sets how many icons the launcher desktop grid fits per row and column. |
+| Notifications from other apps on the top bar | Shows one icon per other app that has pending notifications in the launcher top bar, with how many it has. Their title, text and attachments are never read. Off by default and inert until the system grants notification access. |
 | Lock desktop | Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable. |
 | Change home screen | Opens Android's default-launcher chooser to switch the system home screen. |
-| Replace system status area | Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar. |
+| Hide system status bar | Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar. |
+| Screen timeout | Turns the screen black after a chosen period of inactivity while on the launcher desktop: never (off), presets of 5 to 300 seconds, or a custom number of seconds. |
 | Show pinned apps | Shows pinned apps on the launcher desktop. |
 | Show recent apps | Shows recently used apps on the launcher desktop. |
 | Show status tray | Master switch for the launcher's tray block; the switches below it decide which indicators the block contains. |
 | Taskbar position | Puts the taskbar with the Start button along the bottom or the top edge of the desktop. |
-| Clock and indicators on the top bar | Moves the clock with seconds to the left of the launcher top bar and the device indicators to the right, freeing the Start panel for more recent apps; available only while the system status area is replaced. |
+| Top status bar | Moves the clock with seconds to the left of the launcher top bar and the device indicators to the right, freeing the Start panel for more recent apps; available only while the system status area is replaced. |
 | Battery | Shows the battery charge in the launcher tray as a number in an outline, yellow below 30 percent, red below 15, blinking below 10. |
 | Bluetooth | Shows a Bluetooth icon in the launcher tray while the adapter is on. |
 | Clock | Shows the clock in the launcher tray. |
@@ -298,6 +304,7 @@ _Settings -> General -> System launcher settings_
 | SIM 1 signal | Shows the signal level of the first SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or without a SIM in the slot. |
 | SIM 2 signal | Shows the signal level of the second SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or on a single-SIM device. |
 | Desktop wallpaper | Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, or your own image. |
+| Widget backdrop opacity | Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 85% default). |
 
 ## Edge gestures
 
@@ -387,3 +394,20 @@ _Reached from Network Monitor -> Satellites, not from Settings._
 | Setting | What it does |
 |---|---|
 | Record the track on this device | Writes the satellite positions to a file on this device while the Network Monitor Satellites screen is open. Off after installation; the track never leaves the device and can be shared from that screen. |
+
+## <img src="icons/doc/ic_display.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Wear OS
+
+_Reached from Wear OS watch app -> Settings._
+
+| Setting | What it does |
+|---|---|
+| Download album art | Downloads and displays cover art for audio tracks on Wear OS. |
+| Enable audio | Enables playback and browsing of audio files on Wear OS. |
+| Enable images | Enables viewing and browsing of image files on Wear OS. |
+| Enable slideshow | Enables automatic slideshow presentation of media files on Wear OS. |
+| Enable video | Enables playback and browsing of video files on Wear OS. |
+| Files view | Chooses how file lists on the watch are laid out: a list, or a grid of two or three columns with real thumbnails. |
+| Keep screen on | Keeps the watch screen on outside the players; the audio, video and image players hold it on regardless. |
+| Slideshow interval | Sets the delay in seconds between slides during slideshow playback on Wear OS. |
+| Wait for finish | Waits for audio or video playback to complete before switching to the next slide on Wear OS. |
+| Screens view | Chooses how the watch navigation screens are laid out: a list, or a grid of two or three columns. |

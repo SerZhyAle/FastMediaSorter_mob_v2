@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
+import android.app.PendingIntent
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
@@ -66,9 +67,25 @@ private class AudioNowPlayingGadgetView(
     private val ownSession: NowPlayingSource = OwnSessionNowPlayingSource(context)
     private val activeSession: NowPlayingSource = ActiveSessionNowPlayingSource(context)
 
+    /**
+     * S1177: the open intent of whatever session is currently drawn, or null when nothing external plays.
+     *
+     * Held from the last render rather than re-read on the tap: re-reading would ask the platform for the
+     * sessions again on the main thread, and the answer a user acts on is the one they are looking at.
+     */
+    private var openIntent: PendingIntent? = null
+
+    /**
+     * What the artwork view currently shows - the bitmap itself, or the package name its icon came from.
+     *
+     * Identity, not equality: two different sessions can publish equal-looking bitmaps, and re-setting an
+     * identical one costs nothing anyway. What this exists to skip is the icon lookup below it.
+     */
+    private var shownArtwork: Any? = null
+
     init {
         binding.nowPlayingBody.setOnClickListener {
-            host.run(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_RANDOM_MUSIC))
+            openPlayingApp()
         }
         binding.nowPlayingPrevious.setOnClickListener {
             send(NowPlayingCommand.PREVIOUS)
@@ -155,6 +172,8 @@ private class AudioNowPlayingGadgetView(
         }
         binding.nowPlayingArtist.isVisible = state.active && state.artist.isNotBlank()
         binding.nowPlayingArtist.text = state.artist
+        openIntent = state.openIntent
+        renderArtwork(state)
         binding.nowPlayingPlayPause.setImageResource(
             if (state.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
         )
@@ -164,6 +183,63 @@ private class AudioNowPlayingGadgetView(
         // by one row and cannot hold both. So it appears exactly when the gadget has nothing to show and
         // the access that could give it something is off - the moment the missing capability is visible.
         binding.nowPlayingGrantAccess.isVisible = !accessGranted && !state.canControl
+    }
+
+    /**
+     * S1177: a tap opens the player that is actually playing, and keeps the old route when none is.
+     *
+     * The owner chose this over always opening the foreign app (2026-08-17): with no external session the
+     * cell behaves exactly as it did before this ticket, so no scenario that works today changes. The send
+     * is wrapped because a session activity can be revoked between the render and the tap, and a home
+     * screen must not die of it.
+     */
+    private fun openPlayingApp() {
+        val intent = openIntent
+        if (intent == null) {
+            host.run(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_RANDOM_MUSIC))
+            return
+        }
+        runCatching { intent.send() }
+            .onFailure {
+                Timber.w("Now Playing: session activity refused (%s)", it.javaClass.simpleName)
+                host.run(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_RANDOM_MUSIC))
+            }
+    }
+
+    /**
+     * S1177: the cover, the source application's icon, or nothing at all - in that order.
+     *
+     * A placeholder box is deliberately not the third option: it costs a square of a two-square cell and
+     * tells the user nothing the missing cover has not already told them.
+     *
+     * Guarded by [shownArtwork] because [render] runs every two seconds for as long as the desktop is on
+     * screen: without the guard the icon branch would cross a binder and load a resource on every tick,
+     * per placed cell, on the main thread. The phase-02 audit caught exactly that, and research 05
+     * measured why it matters here - the budget is counted across every placed cell at once, not per
+     * visible one.
+     */
+    private fun renderArtwork(state: NowPlayingState) {
+        val key = state.artwork ?: state.sourcePackage
+        if (key == shownArtwork) {
+            return
+        }
+        shownArtwork = key
+        Timber.d(
+            "S1177: now-playing artwork changed - bitmap=%b source=%s",
+            state.artwork != null,
+            state.sourcePackage,
+        )
+        val artwork = state.artwork
+        if (artwork != null) {
+            binding.nowPlayingArtwork.setImageBitmap(artwork)
+            binding.nowPlayingArtwork.isVisible = true
+            return
+        }
+        val icon = state.sourcePackage?.let { packageName ->
+            runCatching { context.packageManager.getApplicationIcon(packageName) }.getOrNull()
+        }
+        binding.nowPlayingArtwork.setImageDrawable(icon)
+        binding.nowPlayingArtwork.isVisible = icon != null
     }
 
     private fun send(command: NowPlayingCommand) {

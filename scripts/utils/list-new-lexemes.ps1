@@ -63,6 +63,7 @@ param(
     [string]$Module = 'app_v2',
     [string[]]$SourceSet = @('main', 'vr', 'noLegal'),
     [string]$BaselinePath,
+    [string]$FingerprintsPath,
     [string]$OutDir,
     [switch]$Quiet
 )
@@ -72,6 +73,7 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot 'locale-set.ps1')
+. (Join-Path $repoRoot 'scripts/quality/lib/locale-fingerprints.ps1')
 
 # pwsh -File hands an array parameter one literal string, so -SourceSet main,vr arrives as a single
 # element with a comma in it.
@@ -79,6 +81,7 @@ $SourceSet = @($SourceSet | ForEach-Object { $_ -split ',' } | Where-Object { $_
 
 if (-not $OutDir) { $OutDir = Join-Path $repoRoot 'temp/S1627' }
 if (-not $BaselinePath) { $BaselinePath = Join-Path $repoRoot 'scripts/quality/locale-untranslated-baseline.txt' }
+if (-not $FingerprintsPath) { $FingerprintsPath = Join-Path $repoRoot 'scripts/quality/locale-source-fingerprints.json' }
 $corpusDir = Join-Path $OutDir 'corpus'
 
 $exporter = Join-Path $PSScriptRoot 'locale-bulk-export.ps1'
@@ -123,12 +126,31 @@ function Get-PresentKeys([string]$Set, [string]$File, [string]$Tag) {
     return , $keys
 }
 
+$fingerprints = Get-LocaleSourceFingerprints -Path $FingerprintsPath
+
 $missingByIdentity = [ordered]@{}
 foreach ($record in $records) {
     $identity = "$($record.set)|$($record.file)|$($record.key)"
+    $unitId = if ($record.slot) { "$($record.set)|$($record.file)|$($record.key)|$($record.slot)" } else { "$($record.set)|$($record.file)|$($record.key)" }
+    $enHash = Get-EnglishStringFingerprint -Text ([string]$record.en)
+
+    $missingForThisRecord = [System.Collections.Generic.List[string]]::new()
+    foreach ($tag in $bestEffort) {
+        $hasKey = (Get-PresentKeys $record.set $record.file $tag).Contains($record.key)
+        if (-not $hasKey) {
+            $missingForThisRecord.Add($tag)
+        } elseif (-not ($fingerprints.ContainsKey($tag) -and $fingerprints[$tag].ContainsKey($unitId))) {
+            $missingForThisRecord.Add($tag)
+        } elseif ($fingerprints[$tag][$unitId] -ne $enHash) {
+            $missingForThisRecord.Add($tag)
+        }
+    }
+
     if (-not $missingByIdentity.Contains($identity)) {
-        $missing = @($bestEffort | Where-Object { -not (Get-PresentKeys $record.set $record.file $_).Contains($record.key) })
-        $missingByIdentity[$identity] = $missing
+        $missingByIdentity[$identity] = [System.Collections.Generic.HashSet[string]]::new()
+    }
+    foreach ($m in $missingForThisRecord) {
+        [void]$missingByIdentity[$identity].Add($m)
     }
 }
 

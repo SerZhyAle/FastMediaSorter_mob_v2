@@ -104,6 +104,16 @@ interface StreamSourceDao {
      * so the import no longer depends on SQLite's bind-variable limit (the old single
      * `NOT IN (:keepUrls)` aborted large-catalog imports with "too many SQL variables").
      */
+    /**
+     * S1780: everything that arrived by download, and nothing the user typed.
+     *
+     * CATALOG rows come from the curated catalog and IMPORTED rows from a playlist this app fetched over
+     * HTTP, so both are "downloaded from the internet" in the owner's sense; MANUAL rows were entered by
+     * hand and survive. Returns how many rows went, so the caller can say so instead of guessing.
+     */
+    @Query("DELETE FROM stream_sources WHERE sourceOrigin IN ('CATALOG', 'IMPORTED')")
+    suspend fun deleteAllDownloaded(): Int
+
     @Query("DELETE FROM stream_sources WHERE sourceOrigin = 'CATALOG' AND url IN (:urls)")
     suspend fun deleteCatalogByUrls(urls: List<String>)
 

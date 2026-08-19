@@ -75,6 +75,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import timber.log.Timber
 import java.util.Optional
 import javax.inject.Inject
 
@@ -676,6 +677,7 @@ class PlayerActivity :
      * strategic §6 item 5, variant A) and re-wires the listeners that died with the old tree.
      */
     private fun rebindLayoutForOrientation() {
+        Timber.d("S1549: PlayerActivity rebindLayoutForOrientation - layout re-inflated without a recreate")
         rebindContentView()
         invalidateSafeViews()
         playerLayoutRebindManager.rebindDocumentViewers(

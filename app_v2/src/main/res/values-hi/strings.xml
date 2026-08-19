@@ -45,7 +45,6 @@
     <string name="language_capability_translation">अनुवाद</string>
     <string name="language_capability_basic_ocr">बेसिक OCR</string>
     <string name="language_capability_quality_ocr">उच्च गुणवत्ता OCR</string>
-    <string name="language_capability_nolegal_ocr">noLegal OCR</string>
     <string name="translate">अनुवाद करें</string>
     <string name="no_files_selected">कोई फ़ाइल चयनित नहीं</string>
     <string name="msg_last_filter_restored">आख़िरी फ़िल्टर बहाल किया गया: %1$s</string>
@@ -956,9 +955,6 @@
     <string name="enable_ocr">टेक्स्ट पहचान चालू करें</string>
     <string name="enable_ocr_summary">कॉपी करने के लिए छवियों और PDF से टेक्स्ट निकालें</string>
     <string name="translation_downloading_wait">अनुवाद परिणाम की प्रतीक्षा की जा रही है..</string>
-    <string name="paddle_ocr_model">PaddleOCR मॉडल</string>
-    <string name="paddle_ocr_model_cyrillic">सिरिलिक (PP-OCRv5 Mobile)</string>
-    <string name="paddle_ocr_model_eslav">पूर्वी स्लाव (PP-OCRv5 Mobile, अधिक सटीक)</string>
     <string name="toast_edit_images_only">संपादन केवल छवियों के लिए उपलब्ध है</string>
     <string name="toast_failed_to_prepare_file">फ़ाइल तैयार नहीं की जा सकी</string>
     <string name="toast_error_google_lens">Google Lens पर शेयर करने में त्रुटि</string>
@@ -1389,10 +1385,6 @@
     <string name="duplicate_groups_summary">%1$d समूह मिले | %2$s</string>
     <string name="duplicate_fab_delete">चयनित आइटम हटाएं (%1$d आइटम, %2$s)</string>
     <string name="scan_files_progress">%1$d / %2$d फ़ाइलें</string>
-    <string name="import_resources_title">आयात संसाधन</string>
-    <string name="import_resources_message">क्या SZA संसाधन जोड़े जा सकते हैं?</string>
-    <string name="sza_resources_imported">SZA संसाधनों का आयात किया गया</string>
-    <string name="error_importing_resources">संसाधन आयात करने में त्रुटि</string>
     <string name="download_translation_model_title">अनुवाद मॉडल डाउनलोड करें</string>
     <string name="download_translation_model_message">%1$s में अनुवाद के लिए लगभग 30 MB का मॉडल डाउनलोड करना होगा। अभी डाउनलोड करें?</string>
     <string name="download">डाउनलोड करना</string>
@@ -2391,7 +2383,6 @@
     <string name="launcher_edit_kind_action">लॉन्चर कार्रवाई</string>
     <string name="launcher_settings_reset_title">लॉन्चर सेटिंग्स रीसेट करें</string>
     <string name="launcher_settings_reset_message">सिस्टम लॉन्चर सेटिंग्स को उनकी डिफ़ॉल्ट स्थिति में रीसेट कर दिया जाएगा. डेस्कटॉप लेआउट, पिन किए गए आइकन और वॉलपेपर इंस्टॉलेशन के तुरंत बाद की स्थिति में वापस आ जाएंगे. लॉन्चर के बाहर कुछ भी प्रभावित नहीं होता.</string>
-    <string name="launcher_settings_reset_button_description">लॉन्चर सेटिंग्स को डिफ़ॉल्ट पर रीसेट करें</string>
     <string name="launcher_settings_reset_success">लॉन्चर सेटिंग्स डिफ़ॉल्ट पर रीसेट हो गईं</string>
     <string name="launcher_settings_reset_failed">लॉन्चर सेटिंग्स रीसेट नहीं की जा सकीं. कुछ भी नहीं बदला - फिर से कोशिश करें.</string>
     <string name="launcher_add_cell">डेस्कटॉप में जोड़ें</string>
@@ -2607,7 +2598,6 @@
     <string name="streams_media_filter_video">केवल वीडियो स्ट्रीम दिखाएं</string>
     <string name="streams_media_filter_clear">सभी स्ट्रीम दिखाएं</string>
     <string name="launcher_section_app_functions">ऐप फ़ंक्शन</string>
-    <string name="launcher_section_everything_else">बाकी सब कुछ</string>
     <string name="launcher_edit_kind_section">अनुभाग</string>
     <string name="launcher_gadget_network">नेटवर्क</string>
     <string name="launcher_gadget_battery">बैटरी</string>
@@ -2678,7 +2668,6 @@
     <string name="network_monitor_link_gateway_label">द्वार</string>
     <string name="network_monitor_link_route_label">डिफ़ॉल्ट रूट</string>
     <string name="network_monitor_link_proxy_label">प्रतिनिधि</string>
-    <string name="network_monitor_link_bandwidth_label">सिस्टम बैंडविड्थ अनुमान</string>
     <string name="network_monitor_route_present">उपस्थित</string>
     <string name="network_monitor_route_absent">कोई नहीं</string>
     <string name="network_monitor_chart_signal_heading">संकेत</string>

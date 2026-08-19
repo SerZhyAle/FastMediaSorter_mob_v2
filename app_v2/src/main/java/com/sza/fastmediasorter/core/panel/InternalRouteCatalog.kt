@@ -40,6 +40,9 @@ object InternalRouteCatalog {
     const val KEY_SCREEN_RECORDING = "screen_recording"
     const val KEY_LINK_DOWNLOAD = "link_download"
 
+    // S1796: the screen itself used as a lamp - a program like its neighbours, with its own toggle.
+    const val KEY_FRONT_FLASHLIGHT = "front_flashlight"
+
     // S0978: the camera/video gesture actions that already have a Context-generic trampoline, offered
     // as panel routes too (labels reused from the left-edge gesture picker so wording never drifts).
     const val KEY_TAKE_PHOTO_SEND_TO = "take_photo_send_to"
@@ -126,6 +129,13 @@ object InternalRouteCatalog {
             labelRes = R.string.download_by_link_menu_label,
             iconRes = R.drawable.ic_cloud_download,
             intent = AppLaunchPanelRouteIntents::linkDownload,
+        ),
+        Route(
+            key = KEY_FRONT_FLASHLIGHT,
+            labelRes = R.string.front_flashlight_title,
+            iconRes = R.drawable.ic_front_flashlight,
+            intent = AppLaunchPanelRouteIntents::frontFlashlight,
+            settingsIntent = AppLaunchPanelRouteIntents::frontFlashlightSettings,
         ),
         // S0978: camera/video gesture actions with an existing standalone trampoline. Labels reuse the
         // left-edge gesture picker's own strings; order follows the ScreenshotGestureAction enum order.

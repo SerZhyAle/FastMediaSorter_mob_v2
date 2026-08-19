@@ -20,6 +20,7 @@
 
         <TextView
             style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+            android:drawableStart="@drawable/ic_mobile_network"
             android:text="@string/network_monitor_section_mobile" />
 
         <com.google.android.material.card.MaterialCardView

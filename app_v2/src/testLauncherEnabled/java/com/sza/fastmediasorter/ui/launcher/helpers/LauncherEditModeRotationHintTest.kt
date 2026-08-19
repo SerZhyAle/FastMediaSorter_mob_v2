@@ -85,7 +85,7 @@ class LauncherEditModeRotationHintTest {
             addCellButton = mockk(relaxed = true),
             snackbarAnchor = content,
             viewModel = viewModel,
-            onAddCellClick = {},
+            actions = mockk(relaxed = true),
         )
     }
 

@@ -118,8 +118,6 @@ class SettingsSearchCapabilityGateTest {
 
         assertFalse(gate.isAvailable(entry(key = "spinnerTranslationSourceLanguage")))
         assertFalse(gate.isAvailable(entry(key = "spinnerTranslationTargetLanguage")))
-        assertFalse(gate.isAvailable(entry(key = "rowOcrEngineType")))
-        assertFalse(gate.isAvailable(entry(key = "rowPaddleOcrModel")))
         assertFalse(gate.isAvailable(entry(key = "rowOcrFontSize")))
         assertFalse(gate.isAvailable(entry(key = "rowOcrFontFamily")))
     }

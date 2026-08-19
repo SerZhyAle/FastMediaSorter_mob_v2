@@ -1,12 +1,17 @@
 package com.sza.fastmediasorter.ui.settings
 
 import android.app.Dialog
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -108,6 +113,17 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         )
         sectionsManager.register(binding.headerLauncherDesktop, binding.containerLauncherDesktop, "launcher__desktop")
         sectionsManager.register(binding.headerLauncherSystem, binding.containerLauncherSystem, "launcher__system")
+        expandRequestedSection()
+    }
+
+    /**
+     * S1466: unfolds the group the caller asked for, after every section restored its stored state -
+     * the request has to win over that state, or a user who once folded the desktop group would open the
+     * dialog from "Wallpaper" and see no wallpaper row.
+     */
+    private fun expandRequestedSection() {
+        if (arguments?.getString(ARG_EXPAND_SECTION) != SECTION_DESKTOP) return
+        binding.headerLauncherDesktop.setExpanded(true, notify = true)
     }
 
     private fun setupRows() {
@@ -140,6 +156,18 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(launcherTopStatusStripMode = isChecked))
         }
+        binding.rowLauncherForeignNotifications.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(
+                viewModel.settings.value.copy(launcherForeignNotificationsEnabled = isChecked)
+            )
+            // Turning it on without the system grant would leave a switch claiming to work, so the screen
+            // that can fix it is offered in the same gesture rather than waiting for the user to find it.
+            if (isChecked && !hasNotificationAccess()) {
+                openNotificationAccessScreen()
+            }
+        }
+        binding.btnLauncherGrantNotificationAccess.setOnClickListener { openNotificationAccessScreen() }
         binding.rowLauncherDensity.setEntries(
             listOf(
                 getText(R.string.launcher_settings_density_sparse),
@@ -176,9 +204,14 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(launcherDesktopLocked = isChecked))
         }
+        setupScreenTimeoutRow()
+        setupWidgetBackdropAlphaRow()
         binding.rowLauncherOpenHomeSettings.setOnClickListener {
             val host = activity ?: return@setOnClickListener
             launcherRoleManager.openHomeChooser(host)
+        }
+        binding.btnImportSystemShortcuts.setOnClickListener {
+            launcherViewModel.importSystemShortcuts()
         }
         binding.btnResetLauncher.setOnClickListener { confirmReset() }
     }
@@ -201,6 +234,45 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             val placement = options.getOrElse(index) { AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM }
             Timber.d("S1643: taskbar placement chosen in settings, value=$placement")
             viewModel.updateSettings(viewModel.settings.value.copy(launcherTaskbarPlacement = placement))
+        }
+    }
+
+    /**
+     * S1741: presets (0, 5, 15, 30, 60, 300 seconds) and custom duration entry.
+     */
+    private fun setupScreenTimeoutRow() {
+        binding.rowLauncherScreenTimeout.setOnItemSelectedListener { index ->
+            if (isUpdatingFromSettings) return@setOnItemSelectedListener
+            val presets = AppSettings.LAUNCHER_SCREEN_TIMEOUT_PRESETS
+            if (index in presets.indices) {
+                val seconds = presets[index]
+                Timber.d("Screen timeout preset chosen, seconds=%d", seconds)
+                viewModel.updateSettings(
+                    viewModel.settings.value.copy(launcherScreenBlackoutTimeoutSeconds = seconds)
+                )
+            } else if (index == presets.size) {
+                showCustomScreenTimeoutDialog()
+            }
+        }
+    }
+
+    /** S1748: widget backdrop opacity presets selector. */
+    private fun setupWidgetBackdropAlphaRow() {
+        binding.rowLauncherWidgetBackdropAlpha.setEntries(
+            listOf(
+                getText(R.string.launcher_settings_widget_backdrop_alpha_0),
+                getText(R.string.launcher_settings_widget_backdrop_alpha_25),
+                getText(R.string.launcher_settings_widget_backdrop_alpha_50),
+                getText(R.string.launcher_settings_widget_backdrop_alpha_70),
+                getText(R.string.launcher_settings_widget_backdrop_alpha_85),
+                getText(R.string.launcher_settings_widget_backdrop_alpha_100),
+            )
+        )
+        binding.rowLauncherWidgetBackdropAlpha.setOnItemSelectedListener { index ->
+            if (isUpdatingFromSettings) return@setOnItemSelectedListener
+            val options = AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
+            val alpha = options.getOrElse(index) { 0.85f }
+            viewModel.updateSettings(viewModel.settings.value.copy(launcherWidgetBackdropAlpha = alpha))
         }
     }
 
@@ -265,11 +337,15 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             binding.rowLauncherReplaceStatusArea.setCheckedSilently(settings.launcherReplaceSystemStatusArea)
             binding.rowLauncherTopStatusStrip.setCheckedSilently(settings.launcherTopStatusStripMode)
             renderTopStatusStripRows(settings)
+            binding.rowLauncherForeignNotifications.setCheckedSilently(settings.launcherForeignNotificationsEnabled)
+            renderForeignNotificationsRow(settings.launcherForeignNotificationsEnabled)
             binding.rowLauncherTaskbarPlacement.setSelection(placementIndex(settings))
             binding.rowLauncherLockDesktop.setCheckedSilently(settings.launcherDesktopLocked)
             val densityIndex = AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(settings.launcherDensityFactor)
             binding.rowLauncherDensity.setSelection(if (densityIndex >= 0) densityIndex else DENSITY_DEFAULT_INDEX)
             renderWallpaperRow(settings)
+            renderScreenTimeoutRow(settings)
+            renderWidgetBackdropAlphaRow(settings)
             isUpdatingFromSettings = false
         }
         collectOnLifecycle(launcherViewModel.resetResult) { succeeded ->
@@ -282,6 +358,15 @@ class LauncherSettingsDialogFragment : DialogFragment() {
                 },
                 Snackbar.LENGTH_LONG,
             ).show()
+        }
+        collectOnLifecycle(launcherViewModel.importResult) { succeeded ->
+            if (succeeded) {
+                Snackbar.make(
+                    binding.root,
+                    R.string.launcher_settings_import_system_shortcuts_success,
+                    Snackbar.LENGTH_LONG,
+                ).show()
+            }
         }
         collectOnLifecycle(viewModel.launcherWallpaperImportFailed) {
             // The stored mode never changed, so the row has to be walked back off "My image" by hand.
@@ -312,6 +397,42 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         )
     }
 
+    /**
+     * S1465: the row has three states, not two, because the app's own switch and the system's grant are
+     * separate answers - a two-state row would read as "working" while the system silently refuses.
+     * The grant is read here on every render rather than cached, which is what makes a revocation taken in
+     * another screen visible without restarting the app (strategic §6.1).
+     */
+    private fun renderForeignNotificationsRow(isEnabled: Boolean) {
+        val granted = hasNotificationAccess()
+        binding.rowLauncherForeignNotifications.setSubtitle(
+            when {
+                !isEnabled -> R.string.launcher_settings_foreign_notifications_summary_off
+                granted -> R.string.launcher_settings_foreign_notifications_summary_on
+                else -> R.string.launcher_settings_foreign_notifications_summary_no_access
+            }
+        )
+        binding.btnLauncherGrantNotificationAccess.visibility =
+            if (isEnabled && !granted) View.VISIBLE else View.GONE
+    }
+
+    private fun hasNotificationAccess(): Boolean {
+        val context = context ?: return false
+        return context.packageName in NotificationManagerCompat.getEnabledListenerPackages(context)
+    }
+
+    /**
+     * The notification-access screen is a global list rather than a package-scoped page, which is why no
+     * `package:` uri is attached - some OEM builds refuse the scoped form (`PermissionGrantIntentFactory`).
+     */
+    private fun openNotificationAccessScreen() {
+        try {
+            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        } catch (screenMissing: ActivityNotFoundException) {
+            Timber.w(screenMissing, "Notification access screen is absent on this build")
+        }
+    }
+
     /** A stored token from a newer build resolves to no entry, so the row falls back to the bottom edge. */
     private fun placementIndex(settings: AppSettings): Int {
         val index = AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS.indexOf(settings.launcherTaskbarPlacement)
@@ -326,6 +447,73 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         isUpdatingFromSettings = wasUpdating
     }
 
+    private fun renderScreenTimeoutRow(settings: AppSettings) {
+        val presets = AppSettings.LAUNCHER_SCREEN_TIMEOUT_PRESETS
+        val currentSeconds = settings.launcherScreenBlackoutTimeoutSeconds
+        val customLabel = if (currentSeconds !in presets && currentSeconds > 0) {
+            getString(R.string.launcher_settings_screen_timeout_custom_format, currentSeconds)
+        } else {
+            getString(R.string.launcher_settings_screen_timeout_custom)
+        }
+        val entries = listOf(
+            getText(R.string.launcher_settings_screen_timeout_off),
+            getText(R.string.launcher_settings_screen_timeout_5s),
+            getText(R.string.launcher_settings_screen_timeout_15s),
+            getText(R.string.launcher_settings_screen_timeout_30s),
+            getText(R.string.launcher_settings_screen_timeout_60s),
+            getText(R.string.launcher_settings_screen_timeout_300s),
+            customLabel,
+        )
+        binding.rowLauncherScreenTimeout.setEntries(entries)
+        val presetIndex = presets.indexOf(currentSeconds)
+        val selectedIndex = if (presetIndex >= 0) presetIndex else presets.size
+        binding.rowLauncherScreenTimeout.setSelection(selectedIndex)
+    }
+
+    private fun renderWidgetBackdropAlphaRow(settings: AppSettings) {
+        val options = AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
+        val index = options.indexOfFirst { kotlin.math.abs(it - settings.launcherWidgetBackdropAlpha) < 0.01f }
+        binding.rowLauncherWidgetBackdropAlpha.setSelection(if (index >= 0) index else 4)
+    }
+
+    private fun showCustomScreenTimeoutDialog() {
+        val current = viewModel.settings.value.launcherScreenBlackoutTimeoutSeconds
+        val initialText = if (current > 0) current.toString() else ""
+        val context = requireContext()
+        val input = com.google.android.material.textfield.TextInputEditText(context).apply {
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            setText(initialText)
+            hint = getString(R.string.launcher_settings_screen_timeout_dialog_hint)
+            setSingleLine()
+            setSelection(text?.length ?: 0)
+        }
+        val container = android.widget.FrameLayout(context).apply {
+            val margin = resources.getDimensionPixelSize(R.dimen.margin_normal)
+            setPadding(margin, margin / 2, margin, 0)
+            addView(input)
+        }
+        MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.launcher_settings_screen_timeout_dialog_title)
+            .setView(container)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val entered = input.text?.toString()?.trim()?.toIntOrNull()
+                if (entered != null && entered > 0) {
+                    viewModel.updateSettings(
+                        viewModel.settings.value.copy(launcherScreenBlackoutTimeoutSeconds = entered)
+                    )
+                } else {
+                    renderScreenTimeoutRow(viewModel.settings.value)
+                }
+            }
+            .setNegativeButton(android.R.string.cancel) { _, _ ->
+                renderScreenTimeoutRow(viewModel.settings.value)
+            }
+            .setOnCancelListener {
+                renderScreenTimeoutRow(viewModel.settings.value)
+            }
+            .showBoundTo(this@LauncherSettingsDialogFragment)
+    }
+
     override fun onStart() {
         super.onStart()
         dialog?.window?.setLayout(
@@ -338,6 +526,15 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         binding.btnClose.requestFocus()
     }
 
+    /**
+     * The grant is changed on a system screen, so nothing in this process emits when it does - returning
+     * here is the only moment the dialog can learn that the answer moved.
+     */
+    override fun onResume() {
+        super.onResume()
+        renderForeignNotificationsRow(viewModel.settings.value.launcherForeignNotificationsEnabled)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -345,6 +542,21 @@ class LauncherSettingsDialogFragment : DialogFragment() {
 
     companion object {
         const val TAG = "LauncherSettingsDialogFragment"
+
+        /**
+         * S1466: the desktop group holds the wallpaper row, and the quick menu's "Wallpaper" item has no
+         * other home - wallpaper is a row of this dialog, not a screen of its own. Opening the dialog with
+         * that group already unfolded is what keeps the two menu items from landing in the same place.
+         */
+        const val SECTION_DESKTOP = "desktop"
+
+        private const val ARG_EXPAND_SECTION = "expand_section"
+
+        /** [expandSection] unfolds one group on open regardless of its stored state; null keeps them as they were. */
+        fun newInstance(expandSection: String? = null): LauncherSettingsDialogFragment =
+            LauncherSettingsDialogFragment().apply {
+                arguments = bundleOf(ARG_EXPAND_SECTION to expandSection)
+            }
 
         // Standard density (1.0f) sits at index 1 of AppSettings.LAUNCHER_DENSITY_OPTIONS.
         private const val DENSITY_DEFAULT_INDEX = 1

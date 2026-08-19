@@ -23,6 +23,8 @@ import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.DeviceStorageState
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
+import com.sza.fastmediasorter.domain.usecase.CredentialAuditor
+import com.sza.fastmediasorter.domain.usecase.DeleteUnusedCredentialsUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
@@ -47,6 +49,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsPrefetchHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsProfileHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsResetHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
+import com.sza.fastmediasorter.ui.settings.helpers.UnusedCredentialsHelper
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -62,6 +65,11 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     private val binding get() = _binding!!
 
     @Inject lateinit var audioMetadataCacheRepository: AudioMetadataCacheRepository
+
+    @Inject lateinit var credentialAuditor: CredentialAuditor
+
+    @Inject lateinit var deleteUnusedCredentialsUseCase: DeleteUnusedCredentialsUseCase
+
     @Inject lateinit var streamingCacheRepository: StreamingCacheRepository
     @Inject lateinit var gatherSystemInfoUseCase: GatherSystemInfoUseCase
     @Inject lateinit var ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
@@ -178,6 +186,12 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     private val credentialHelper by lazy {
         GeneralSettingsCredentialHelper(viewModel, this, importCredentialsLauncher)
     }
+
+    // S1649: the unused-credentials row lives in its own helper for the same reason the cache row
+    // does - the fragment stays a wiring point rather than growing another screen's logic.
+    private val unusedCredentialsHelper by lazy {
+        UnusedCredentialsHelper(binding, this, credentialAuditor, deleteUnusedCredentialsUseCase)
+    }
     private val cacheHelper by lazy {
         GeneralSettingsCacheHelper(
             binding,
@@ -269,6 +283,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         observersHelper.observeManualNetworkSyncState()
         observersHelper.refreshLastSyncStatus()
         cacheHelper.checkAndSuggestOptimalCacheSize()
+        unusedCredentialsHelper.bind()
         setupGeneralLayouts()
         setupCollapsibleSections()
         launcherHelper.setup()

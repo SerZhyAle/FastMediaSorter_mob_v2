@@ -43,9 +43,14 @@ class OrientationReadingSource @Inject constructor(
                 val rotationMatrix = FloatArray(ROTATION_MATRIX_SIZE)
                 val orientation = FloatArray(ORIENTATION_SIZE)
                 var accuracy = SensorAccuracy.UNRELIABLE
+                var lastEmittedAtMillis = 0L
 
                 val listener = object : SensorEventListener {
                     override fun onSensorChanged(event: SensorEvent) {
+                        val now = System.currentTimeMillis()
+                        if (now - lastEmittedAtMillis < MIN_UPDATE_INTERVAL_MS) return
+                        lastEmittedAtMillis = now
+
                         SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
                         SensorManager.getOrientation(rotationMatrix, orientation)
                         trySend(
@@ -55,7 +60,7 @@ class OrientationReadingSource @Inject constructor(
                                 // Altitude belongs to the position fix, not to orientation - the
                                 // compass tile combines the two streams itself.
                                 altitudeMeters = null,
-                                takenAtMillis = System.currentTimeMillis(),
+                                takenAtMillis = now,
                             ),
                         )
                     }
@@ -65,7 +70,7 @@ class OrientationReadingSource @Inject constructor(
                     }
                 }
 
-                manager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI)
+                manager.registerListener(listener, sensor, UPDATE_INTERVAL_MICROS)
                 awaitClose { manager.unregisterListener(listener) }
             }.conflate()
         }
@@ -82,5 +87,7 @@ class OrientationReadingSource @Inject constructor(
         const val ORIENTATION_SIZE = 3
         const val AZIMUTH_INDEX = 0
         const val FULL_CIRCLE_DEGREES = 360f
+        const val MIN_UPDATE_INTERVAL_MS = 1000L
+        const val UPDATE_INTERVAL_MICROS = 1_000_000
     }
 }

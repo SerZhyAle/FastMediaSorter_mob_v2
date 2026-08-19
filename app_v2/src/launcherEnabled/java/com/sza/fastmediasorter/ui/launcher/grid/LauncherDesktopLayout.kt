@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.ui.launcher.grid
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import kotlin.math.floor
 
 /**
  * S0404: the desktop canvas - a fixed 2D grid of square cells, addressed by (row, column).
@@ -98,6 +100,45 @@ class LauncherDesktopLayout @JvmOverloads constructor(
         val row = ((y - paddingTop) / cellSize).toInt()
         return LauncherGridGeometry.footprint(row, col, spanW = 1, spanH = 1, columns = columns)
     }
+
+    /**
+     * S1466: where the last press went down, in this view's coordinates.
+     *
+     * Recorded here rather than by a touch listener on the container: a long-press callback is told that a
+     * press happened and never where, and this is the one place every touch passes through on its way to a
+     * child - including the presses that a cell goes on to consume.
+     */
+    var lastPressX: Float = 0f
+        private set
+
+    var lastPressY: Float = 0f
+        private set
+
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+        if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+            lastPressX = ev.x
+            lastPressY = ev.y
+        }
+        // Nothing is intercepted - this only reads the point on the way past.
+        return super.onInterceptTouchEvent(ev)
+    }
+
+    /**
+     * S1466: the square a press landed on, or null when it landed past the grid.
+     *
+     * The unclamped sibling of [cellAt], and separate from it on purpose: a drop needs an anchor and is
+     * right to be pulled back onto the grid, while a press decides where a *new* cell is created, and
+     * clamping there would place the item somewhere the user did not point at.
+     */
+    fun slotAt(x: Float, y: Float): LauncherGridGeometry.Slot? = LauncherGridGeometry.slotAt(
+        // floor, not truncation: a press a fraction of a pixel left of the grid must stay negative, or
+        // toInt() would round it back to 0 and report a slot for a point that is outside.
+        xPx = floor(x - paddingLeft).toInt(),
+        yPx = floor(y - paddingTop).toInt(),
+        cellSize = cellSize(width).coerceAtLeast(1),
+        columns = columns,
+        rows = rows,
+    )
 
     /** The current cell edge in px - the one authoritative size the resize gesture reads (S1093). */
     fun currentCellSize(): Int = cellSize(width)

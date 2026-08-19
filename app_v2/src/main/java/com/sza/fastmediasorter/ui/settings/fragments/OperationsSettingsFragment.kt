@@ -461,6 +461,11 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateEmbeddedGameEnabled(isChecked)
         }
+        binding.rowFrontFlashlight.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            Timber.d("front flashlight toggle -> $isChecked")
+            viewModel.updateSettings(viewModel.settings.value.copy(frontFlashlightEnabled = isChecked))
+        }
 
         // System apps group rows.
         // S1051: accessibility-shortcut control relocated here from the edge-gesture dialog. Visibility
@@ -609,6 +614,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             }
                             if (binding.rowEmbeddedGame.isChecked != settings.embeddedGameEnabled) {
                                 binding.rowEmbeddedGame.setCheckedSilently(settings.embeddedGameEnabled)
+                            }
+                            if (binding.rowFrontFlashlight.isChecked != settings.frontFlashlightEnabled) {
+                                binding.rowFrontFlashlight.setCheckedSilently(settings.frontFlashlightEnabled)
                             }
 
                             // SystemApps group (moved from Player tab).

@@ -86,6 +86,7 @@ fun AddNetworkSourceScreen(
     } else {
         WearScreenScaffold(
             contentPadding = PaddingValues(0.dp),
+            scrollState = listState,
             positionIndicator = { PositionIndicator(listState) }
         ) {
             ScalingLazyColumn(

@@ -5,9 +5,6 @@
     <string name="ocr_best_model_delete">يمسح</string>
     <string name="ocr_best_model_download">تحميل</string>
     <string name="ocr_button_description">استخراج النص</string>
-    <string name="ocr_engine_type">محرك التعرف الضوئي على الأحرف</string>
-    <string name="ocr_engine_type_paddleocr">PaddleOCR</string>
-    <string name="ocr_engine_type_tesseract">تيسيراكت (افتراضي)</string>
     <string name="ocr_error">لم يتم التعرف على النص.</string>
     <string name="ocr_extract_image_failed">تعذر إعداد هذه الصورة لتقنية التعرف الضوئي على الحروف (OCR). حاول مرة أخرى.</string>
     <string name="ocr_font_family">عائلة خطوط التعرف الضوئي على الحروف</string>

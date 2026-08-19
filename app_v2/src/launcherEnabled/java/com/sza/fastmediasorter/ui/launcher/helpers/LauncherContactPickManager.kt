@@ -204,10 +204,15 @@ class LauncherContactPickManager(
     }
 
     private fun chooseChannel(channels: List<LauncherContactChannel>) {
+        val pm = activity.packageManager
         val options = channels.map { channel ->
+            val appIcon = runCatching {
+                pm.getApplicationIcon(channel.target.messagePackage)
+            }.getOrNull()
             SearchableOptionPickerDialog.Option(
                 id = channel.target.messageDataId.toString(),
                 label = channel.label,
+                leading = appIcon?.let { SearchableOptionPickerDialog.LeadingVisual.IconDrawable(it) },
             )
         }
         showPicker(R.string.launcher_contact_channel_title, options, TAG_CHANNEL, KEY_CHANNEL) { pickedId ->

@@ -300,7 +300,9 @@ class SmbFileOperationHandler @Inject constructor(
     override suspend fun executeMove(
         operation: FileOperation.Move,
         progressCallback: ByteProgressCallback?
-    ): FileOperationResult {
+    ): FileOperationResult = withContext(Dispatchers.IO) {
+        // S1813: the base declares this method's body as withContext(Dispatchers.IO); an override
+        // replaces that body, so the confinement has to be restated here or it is silently lost.
         Timber.i("SmbFileOperationHandler.executeMove: ENTRY - sources=${operation.sources.size}, destination=${operation.destination.path}")
         operation.sources.forEachIndexed { index, source ->
             Timber.d("SmbFileOperationHandler.executeMove: Source[$index]: ${source.path}")
@@ -377,7 +379,7 @@ class SmbFileOperationHandler @Inject constructor(
             }
             
             Timber.i("SMB executeMove done - success=$successCount, skipped=$skippedCount, errors=${errors.size}")
-            return buildMoveResult(successCount, operation, movedPaths, errors, skippedCount)
+            return@withContext buildMoveResult(successCount, operation, movedPaths, errors, skippedCount)
         }
 
         // Optimization: If operation involves SMB, use SMB strategy directly
@@ -396,17 +398,17 @@ class SmbFileOperationHandler @Inject constructor(
             val result = smbStrategy.moveFile(firstSource, destinationPath)
             if (result.isSuccess) {
                  Timber.i("SMB executeMove: Strategy move success")
-                 return FileOperationResult.Success(1, operation, listOf(destinationPath))
+                 return@withContext FileOperationResult.Success(1, operation, listOf(destinationPath))
             } else {
                  Timber.e("SMB executeMove: Strategy move failed - ${result.exceptionOrNull()?.message}")
-                 return FileOperationResult.Failure(result.exceptionOrNull()?.message ?: "Move failed")
+                 return@withContext FileOperationResult.Failure(result.exceptionOrNull()?.message ?: "Move failed")
             }
         }
 
         Timber.d("SMB executeMove: Delegating to super.executeMove")
         val superResult = super.executeMove(operation, progressCallback)
         Timber.i("SMB executeMove: EXIT with result ${superResult.javaClass.simpleName}")
-        return superResult
+        return@withContext superResult
     }
 
     /**

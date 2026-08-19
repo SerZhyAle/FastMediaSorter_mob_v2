@@ -85,7 +85,10 @@ pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Assemble
 .\a.ps1 d
 .\a.ps1 db
 .\a.ps1 dq
-.\gradlew.bat :wear:assembleDebug
+.\a.ps1 fw
+.\a.ps1 fwr
+.\a.ps1 fwu
+.\gradlew.bat :wear:assembleDebug   # wear packaging proof only - fw/fwr/fwu cover the rest
 .\a.ps1 adb install -Flavor standard
 .\a.ps1 adb launch
 .\a.ps1 adb log -Tail 400 -Grep "FATAL|ANR|Sxxxx"
@@ -215,8 +218,13 @@ This is useful when compile/resources are not enough, but you still do not need 
 Use:
 
 ```powershell
-.\gradlew.bat :wear:assembleDebug
+.\a.ps1 fw                          # Kotlin under wear/
+.\a.ps1 fwr                         # resources/manifest under wear/
+.\a.ps1 fwu                         # unit tests under wear/src/test
+.\gradlew.bat :wear:assembleDebug   # only when packaging proof is the point
 ```
+
+**Never prove a wear change with `fk`/`fr`/`fc`/`fu` (S1807).** Those four check `app_v2` and exit 0 without compiling a single watch file, so the green they print is a verdict about the other module. Every fast check prints the module it checked in its own banner - read that line before quoting the exit code as proof.
 
 Escalate only if the change also affects shared code used by `app_v2/`.
 
@@ -295,7 +303,9 @@ Move upward only when needed:
 | Focused logic bug fix | targeted unit test | shared area or many tests affected |
 | Shared model / serializer / infra | `.\a.ps1 fu` | install/runtime behavior also changed |
 | Packaging/install concern | `.\a.ps1 d` | device-specific behavior matters |
-| Wear-only change | `:wear:assembleDebug` | shared app code also changed |
+| Wear-only Kotlin edit | `.\a.ps1 fw` | resources or tests also changed |
+| Wear-only resource/manifest edit | `.\a.ps1 fwr` | Kotlin also changed |
+| Wear-only logic change with tests | `.\a.ps1 fwu` | packaging proof needed - then `:wear:assembleDebug` |
 | Flavor-visible resources / flavor source sets | `.\a.ps1 fc -Flavor <name>` per affected flavor | packaging proof needed on that flavor |
 
 ## Anti-patterns
@@ -307,6 +317,7 @@ Avoid these habits:
 - using `dav` during normal development
 - jumping to the full unit suite before a targeted test
 - using standard fast checks for `noLegal` tasks
+- proving a `wear/` change with `fk`/`fr`/`fc`/`fu` - they check `app_v2` and pass without touching the watch module (S1807)
 - wiping all Gradle caches before trying targeted KAPT recovery
 
 ## Quick examples

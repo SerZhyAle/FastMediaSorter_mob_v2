@@ -45,7 +45,6 @@
     <string name="language_capability_translation">Traducción</string>
     <string name="language_capability_basic_ocr">OCR básico</string>
     <string name="language_capability_quality_ocr">OCR de calidad</string>
-    <string name="language_capability_nolegal_ocr">OCR noLegal</string>
     <string name="translate">Traducir</string>
     <string name="no_files_selected">No hay archivos seleccionados</string>
     <string name="msg_last_filter_restored">Se restauró el último filtro: %1$s</string>
@@ -956,9 +955,6 @@
     <string name="enable_ocr">Activar reconocimiento de texto</string>
     <string name="enable_ocr_summary">Extraer texto de imágenes y PDF para copiarlo</string>
     <string name="translation_downloading_wait">Esperando el resultado de la traducción..</string>
-    <string name="paddle_ocr_model">Modelo PaddleOCR</string>
-    <string name="paddle_ocr_model_cyrillic">Cirílico (PP-OCRv5 Mobile)</string>
-    <string name="paddle_ocr_model_eslav">Eslavo oriental (PP-OCRv5 Mobile, más preciso)</string>
     <string name="toast_edit_images_only">La edición solo está disponible para imágenes</string>
     <string name="toast_failed_to_prepare_file">No se pudo preparar el archivo</string>
     <string name="toast_error_google_lens">Error al compartir con Google Lens</string>
@@ -1389,10 +1385,6 @@
     <string name="duplicate_groups_summary">Se encontraron %1$d grupos | %2$s</string>
     <string name="duplicate_fab_delete">Eliminar seleccionados (%1$d elementos, %2$s)</string>
     <string name="scan_files_progress">%1$d / %2$d archivos</string>
-    <string name="import_resources_title">Recursos de importación</string>
-    <string name="import_resources_message">¿Añadir recursos de SZA?</string>
-    <string name="sza_resources_imported">Recursos importados de SZA</string>
-    <string name="error_importing_resources">Error al importar recursos</string>
     <string name="download_translation_model_title">Descargar modelo de traducción</string>
     <string name="download_translation_model_message">La traducción a %1$s requiere la descarga de un modelo de aproximadamente 30 MB. ¿Descargar ahora?</string>
     <string name="download">Descargar</string>
@@ -2394,7 +2386,6 @@
     <string name="launcher_edit_kind_action">Acción del launcher</string>
     <string name="launcher_settings_reset_title">Restablecer ajustes del launcher</string>
     <string name="launcher_settings_reset_message">Los ajustes del launcher del sistema se restablecerán a sus valores predeterminados. El diseño del escritorio, los iconos anclados y el fondo de pantalla vuelven al estado que tenían justo después de la instalación. Nada fuera del launcher se ve afectado.</string>
-    <string name="launcher_settings_reset_button_description">Restablecer los ajustes del launcher a los valores predeterminados</string>
     <string name="launcher_settings_reset_success">Ajustes del launcher restablecidos a los valores predeterminados</string>
     <string name="launcher_settings_reset_failed">No se pudieron restablecer los ajustes del launcher. No se cambió nada - inténtalo de nuevo.</string>
     <string name="launcher_add_cell">Añadir al escritorio</string>
@@ -2610,7 +2601,6 @@
     <string name="streams_media_filter_video">Mostrar solo emisiones de vídeo</string>
     <string name="streams_media_filter_clear">Mostrar todas las emisiones</string>
     <string name="launcher_section_app_functions">Funciones de la app</string>
-    <string name="launcher_section_everything_else">Todo lo demás</string>
     <string name="launcher_edit_kind_section">Sección</string>
     <string name="launcher_gadget_network">Red</string>
     <string name="launcher_gadget_battery">Batería</string>
@@ -2681,7 +2671,6 @@
     <string name="network_monitor_link_gateway_label">Puerta</string>
     <string name="network_monitor_link_route_label">Ruta predeterminada</string>
     <string name="network_monitor_link_proxy_label">Apoderado</string>
-    <string name="network_monitor_link_bandwidth_label">Estimación del ancho de banda del sistema</string>
     <string name="network_monitor_route_present">Presente</string>
     <string name="network_monitor_route_absent">Ninguno</string>
     <string name="network_monitor_chart_signal_heading">Señal</string>
@@ -2695,7 +2684,6 @@
     <string name="network_monitor_value_mbps">%1$d Mbps</string>
     <string name="network_monitor_value_mhz">%1$d MHz</string>
     <string name="network_monitor_value_kbps">%1$d kbit/s</string>
-    <string name="network_monitor_bandwidth_pair">bajó %1$s, subió %2$s</string>
     <string name="network_monitor_mobile_modems_label">módems activos</string>
     <string name="network_monitor_mobile_sim_label">SIM %1$d</string>
     <string name="network_monitor_mobile_sim_data_preferred">%1$s - preferido para datos</string>

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.os.Build
 import com.google.gson.Gson
+import com.sza.fastmediasorter.data.repository.WearResourceSelectionRepositoryImpl
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.WearNetworkSourcePayload
 import com.sza.fastmediasorter.domain.model.WearSyncPayload
@@ -23,17 +24,25 @@ data class SendResult(
 class SendResourcesToWatchUseCase @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val credentialsRepository: NetworkCredentialsRepository,
-    private val wearableRepository: WearableDataLayerRepository
+    private val wearableRepository: WearableDataLayerRepository,
+    private val selectionRepository: WearResourceSelectionRepositoryImpl
 ) {
     private val gson = Gson()
     suspend operator fun invoke(): Result<SendResult> = runCatching {
         val nodes = wearableRepository.getConnectedNodes()
         if (nodes.isEmpty()) error("No watch connected")
 
+        // S1781: an empty selection means "nothing to send", never "send the whole registry".
+        val selectedIds = selectionRepository.getSelectedIds()
+        if (selectedIds.isEmpty()) {
+            Timber.i("No resources are marked for the watch - nothing sent")
+            return@runCatching SendResult(0, 0)
+        }
         val allResources = resourceRepository.getAllResourcesSync()
         // S1009: never push hidden resources to the watch (defense-in-depth; hidden resources are LOCAL today).
         val networkResources = allResources.filter {
-            it.type in listOf(ResourceType.SMB, ResourceType.FTP, ResourceType.SFTP) && !it.isHidden
+            it.id in selectedIds && !it.isHidden &&
+                it.type in listOf(ResourceType.SMB, ResourceType.FTP, ResourceType.SFTP)
         }
 
         var sent = 0

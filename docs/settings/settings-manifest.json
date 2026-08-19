@@ -671,6 +671,16 @@
       "titleUk": "Повертати екран разом із ОС (крім плеєра)"
     },
     {
+      "key": "rowFrontFlashlight",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Front flashlight",
+      "titleRu": "Фронтальный фонарик",
+      "titleUk": "Фронтальний ліхтарик"
+    },
+    {
       "key": "rowGestureOverlayEnabled",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -1121,6 +1131,16 @@
       "titleUk": "Конфіденційність"
     },
     {
+      "key": "btnReleasedTickets",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "In this build",
+      "titleRu": "В этой сборке",
+      "titleUk": "У цій збірці"
+    },
+    {
       "key": "btnResetGeneralSection",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1229,6 +1249,16 @@
       "titleEn": "Screenshot test",
       "titleRu": "Тест скриншота (снимка экрана)",
       "titleUk": "Тест знімка екрана"
+    },
+    {
+      "key": "btnUnusedCredentials",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Unused credentials",
+      "titleRu": "Неиспользуемые учётные данные",
+      "titleUk": "Невикористовувані облікові дані"
     },
     {
       "key": "btnUserGuide",
@@ -2061,6 +2091,36 @@
       "titleUk": "Підтримка статичних зображень"
     },
     {
+      "key": "btnImportSystemShortcuts",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "BUTTON",
+      "titleEn": "Import system desktop shortcuts",
+      "titleRu": "Импортировать ярлыки системы",
+      "titleUk": "Імпортувати системні ярлики"
+    },
+    {
+      "key": "btnLauncherGrantNotificationAccess",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "BUTTON",
+      "titleEn": "Grant notification access",
+      "titleRu": "Выдать доступ к уведомлениям",
+      "titleUk": "Надати доступ до сповіщень"
+    },
+    {
+      "key": "btnResetLauncher",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "BUTTON",
+      "titleEn": "Reset launcher settings",
+      "titleRu": "Сброс настроек лаунчера",
+      "titleUk": "Скидання налаштувань лаунчера"
+    },
+    {
       "key": "headerLauncherDesktop",
       "sectionId": "launcher",
       "destination": "GENERAL",
@@ -2111,6 +2171,16 @@
       "titleUk": "Щільність сітки"
     },
     {
+      "key": "rowLauncherForeignNotifications",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Notifications from other apps on the top bar",
+      "titleRu": "Уведомления других приложений на верхней полосе",
+      "titleUk": "Сповіщення інших застосунків на верхній смузі"
+    },
+    {
       "key": "rowLauncherLockDesktop",
       "sectionId": "launcher",
       "destination": "GENERAL",
@@ -2136,9 +2206,19 @@
       "destination": "GENERAL",
       "layout": "dialog_launcher_settings",
       "kind": "TOGGLE_ROW",
-      "titleEn": "Replace system status area",
-      "titleRu": "Замещать системную область статуса",
-      "titleUk": "Замінювати системну область статусу"
+      "titleEn": "Hide system status bar",
+      "titleRu": "Скрывать системную строку состояния",
+      "titleUk": "Приховувати системний рядок стану"
+    },
+    {
+      "key": "rowLauncherScreenTimeout",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Screen timeout",
+      "titleRu": "Автоотключение экрана",
+      "titleUk": "Автовимкнення екрана"
     },
     {
       "key": "rowLauncherShowPinned",
@@ -2186,9 +2266,9 @@
       "destination": "GENERAL",
       "layout": "dialog_launcher_settings",
       "kind": "TOGGLE_ROW",
-      "titleEn": "Clock and indicators on the top bar",
-      "titleRu": "Часы и показатели на верхней полосе",
-      "titleUk": "Годинник і показники на верхній смузі"
+      "titleEn": "Top status bar",
+      "titleRu": "Верхняя строка состояния",
+      "titleUk": "Верхній рядок стану"
     },
     {
       "key": "rowLauncherTrayBattery",
@@ -2261,6 +2341,16 @@
       "titleUk": "Заставка робочого столу"
     },
     {
+      "key": "rowLauncherWidgetBackdropAlpha",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Widget backdrop opacity",
+      "titleRu": "Прозрачность подложки виджетов",
+      "titleUk": "Прозорість підкладки віджетів"
+    },
+    {
       "key": "rowRecordGnssTrack",
       "sectionId": "networkMonitor",
       "destination": "OPERATIONS",
@@ -2311,16 +2401,6 @@
       "titleUk": "Увімкнути переклад"
     },
     {
-      "key": "rowOcrEngineType",
-      "sectionId": "other",
-      "destination": "MEDIA",
-      "layout": "fragment_settings_other",
-      "kind": "SELECTION_ROW",
-      "titleEn": "OCR Engine",
-      "titleRu": "Движок OCR",
-      "titleUk": "Двигун OCR"
-    },
-    {
       "key": "rowOcrFontFamily",
       "sectionId": "other",
       "destination": "MEDIA",
@@ -2339,16 +2419,6 @@
       "titleEn": "OCR Font Size",
       "titleRu": "Размер шрифта для OCR",
       "titleUk": "Розмір шрифту для OCR"
-    },
-    {
-      "key": "rowPaddleOcrModel",
-      "sectionId": "other",
-      "destination": "MEDIA",
-      "layout": "fragment_settings_other",
-      "kind": "SELECTION_ROW",
-      "titleEn": "PaddleOCR Model",
-      "titleRu": "Модель PaddleOCR",
-      "titleUk": "Модель PaddleOCR"
     },
     {
       "key": "rowTranslationLensStyle",
@@ -2849,6 +2919,106 @@
       "titleEn": "Save video frames to clipboard",
       "titleRu": "Сохранять кадры видео в буфер обмена",
       "titleUk": "Зберігати кадри відео в буфер обміну"
+    },
+    {
+      "key": "wearDownloadAlbumArt",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_other_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Download album art",
+      "titleRu": "Загружать обложки",
+      "titleUk": "Завантажувати обкладинки"
+    },
+    {
+      "key": "wearEnableAudio",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_media_types_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Enable audio",
+      "titleRu": "Включить аудио",
+      "titleUk": "Увімкнути аудіо"
+    },
+    {
+      "key": "wearEnableImages",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_media_types_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Enable images",
+      "titleRu": "Включить изображения",
+      "titleUk": "Увімкнути зображення"
+    },
+    {
+      "key": "wearEnableSlideshow",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_slideshow_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Enable slideshow",
+      "titleRu": "Включить слайд-шоу",
+      "titleUk": "Увімкнути слайд-шоу"
+    },
+    {
+      "key": "wearEnableVideo",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_media_types_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Enable video",
+      "titleRu": "Включить видео",
+      "titleUk": "Увімкнути відео"
+    },
+    {
+      "key": "wearFileListViewMode",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_screen_settings",
+      "kind": "RADIO_GROUP",
+      "titleEn": "Files view",
+      "titleRu": "Вид файлов",
+      "titleUk": "Вигляд файлів"
+    },
+    {
+      "key": "wearKeepScreenAwake",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_screen_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Keep screen on",
+      "titleRu": "Не гасить экран",
+      "titleUk": "Не гасити екран"
+    },
+    {
+      "key": "wearSlideshowInterval",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_slideshow_settings",
+      "kind": "SPINNER",
+      "titleEn": "Slideshow interval",
+      "titleRu": "Интервал слайд-шоу",
+      "titleUk": "Інтервал слайд-шоу"
+    },
+    {
+      "key": "wearSlideshowWaitForFinish",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_slideshow_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Wait for finish",
+      "titleRu": "Ждать завершения",
+      "titleUk": "Чекати завершення"
+    },
+    {
+      "key": "wearViewMode",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_screen_settings",
+      "kind": "RADIO_GROUP",
+      "titleEn": "Screens view",
+      "titleRu": "Вид экранов",
+      "titleUk": "Вигляд екранів"
     }
   ]
 }

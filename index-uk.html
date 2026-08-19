@@ -645,6 +645,44 @@
                     <a href="docs/HOW_TO_UK.html#хмарні-нотатки-markdown-та-код" class="card-footer" target="_blank">Відкрити опис сценарію</a>
                 </details>
             </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" fill="currentColor"/></svg></span>
+                        <h3>Музика на смарт-годиннику</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge wear">Wear OS (FastMedia Wear)</span></div>
+                    <p class="card-summary">Слухайте улюблену музику прямо зі смарт-годинника Wear OS: з обкладинками альбомів, випадковим порядком, безелем і сном екрана.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Відтворення композицій, переданих із телефона, або локальних аудіофайлів із пам'яті годинника.</li>
+                        <li>Налаштування гучності безелем годинника та зручний повзунок прогресу.</li>
+                        <li>Енергоощадний режим гасіння екрана для збереження заряду батареї.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-watch-music-uk.html" class="card-footer" target="_blank">Відкрити покроковий сценарій</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M4,1C2.89,1 2,1.89 2,3V7C2,8.11 2.89,9 4,9H1V11H13V9H10C11.11,9 12,8.11 12,7V3C12,1.89 11.11,1 10,1H4M4,3H10V7H4V3M14,13C12.89,13 12,13.89 12,15V19C12,20.11 12.89,21 14,21H11V23H23V21H20C21.11,21 22,20.11 22,19V15C22,13.89 21.11,13 20,13H14M14,15H20V19H14V15Z" fill="currentColor"/></svg></span>
+                        <h3>Підключення годинника до мережевих ресурсів</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge wear">Wear OS (FastMedia Wear)</span></div>
+                    <p class="card-summary">Пряме підключення годинника до NAS, спільних папок ПК, FTP або SFTP-серверів через Wi-Fi для автономного перегляду та прослуховування.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Прямий Wi-Fi доступ до SMB, FTP та SFTP (за паролем або SSH-ключем).</li>
+                        <li>Перевірка з'єднання безпосередньо на годиннику перед збереженням джерела.</li>
+                        <li>Швидка синхронізація всіх налаштованих ресурсів із телефона в один дотик.</li>
+                    </ul>
+                    <a href="docs/howto/scenario-watch-network-uk.html" class="card-footer" target="_blank">Відкрити покроковий сценарій</a>
+                </details>
+            </article>
         </div>
 
         <!-- Посібники користувача -->
@@ -1292,6 +1330,10 @@
                 }
                 if (text.indexOf('tv') !== -1 || text.indexOf('вітальн') !== -1 || text.indexOf('телевіз') !== -1) {
                     links.push({ url: 'docs/HOW_TO_UK.html#перетворіть-nas-на-медіаполицю-для-вітальні', label: 'NAS для TV' });
+                }
+                if (text.indexOf('watch') !== -1 || text.indexOf('wear') !== -1 || text.indexOf('годинник') !== -1 || text.indexOf('смарт-годинник') !== -1) {
+                    links.push({ url: 'docs/howto/scenario-watch-music-uk.html', label: 'Сценарій: Музика на годиннику' });
+                    links.push({ url: 'docs/howto/scenario-watch-network-uk.html', label: 'Сценарій: Мережа на годиннику' });
                 }
                 if (text.indexOf('дублікат') !== -1 || text.indexOf('sha-256') !== -1) {
                     links.push({ url: 'docs/FEATURES_UK.html#3-файлові-операції', label: 'Очищення дублікатів' });

@@ -552,7 +552,8 @@ scripts/builders/build-vr-release.ps1
 
 ```
 scripts/builders/build-wear-debug.PS1
-  (no param block)
+  Params:
+    -AutoVersion         [SwitchParameter] = $true
 ```
 
 ### build-wear-release.PS1
@@ -1696,6 +1697,7 @@ scripts/quality/assert-icon-inventory-sync.ps1
     -IncludeExportTest           [SwitchParameter]
     -RegenerateInventory         [SwitchParameter]
     -RepoRoot                    [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -TimeoutSeconds              [Int32] = 600
   Exit: 0 - every enforced check passed, or the inventory was regenerated.; 1 - a check failed.; 2 - regeneration could not run (gradle returned non-zero).
 ```
 
@@ -1764,6 +1766,16 @@ scripts/quality/assert-memory-budget.ps1
   Exit: 0 at or below MaxBytes, or a report-only run.; 1 -Gate and the index is above MaxBytes.; 2 cannot verify - the index or the memory directory does not exist.
 ```
 
+### assert-module-version-parity.ps1
+
+```
+scripts/quality/assert-module-version-parity.ps1
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - clean, both modules state one version under the documented derivation; 1 - versionName differs, or the versionCode derivation is broken; 2 - cannot verify: a build file is missing or states no version constants
+```
+
 ### assert-neuroslop.ps1
 
 ```
@@ -1784,6 +1796,17 @@ scripts/quality/assert-new-lexemes-translated.ps1
     -OutDir               [String]
     -Quiet                [SwitchParameter]
   Exit: 0 - every string reaches all thirteen declared locales, or its gap predates the rule.; 1 - new untranslated strings exist; the release is blocked until they are translated.; 2 - the gate cannot verify: the producer or the baseline is missing.
+```
+
+### assert-no-orphan-merged-resources.ps1
+
+```
+scripts/quality/assert-no-orphan-merged-resources.ps1
+  Params:
+    -Module         [String] = 'app_v2'
+    -Fix            [SwitchParameter]
+    -Quiet          [SwitchParameter]
+  Exit: 0 - no orphaned artifact, or nothing has been built yet.; 1 - at least one artifact has no source; the output names every one.; 2 - cannot verify: the module directory does not exist.
 ```
 
 ### assert-no-ticket-logs.ps1
@@ -1844,6 +1867,17 @@ scripts/quality/assert-orientation-layout-pairing.ps1
     -Gate         [SwitchParameter]
     -List         [SwitchParameter]
   Exit: 0 every activity clean, or a non-gate report/-List run.; 1 -Gate and at least one activity absorbs orientation while owning a landscape layout.; 2 cannot verify - no manifest found, or the source root does not exist.
+```
+
+### assert-orphaned-merged-resources.ps1
+
+```
+scripts/quality/assert-orphaned-merged-resources.ps1
+  Params:
+    -Gate           [SwitchParameter]
+    -Quiet          [SwitchParameter]
+    -Module         [String] = 'app_v2'  {app_v2|wear}
+  Exit: 0 - clean (or audit mode).; 1 - substantive failure: at least one orphaned .flat artifact exists (-Gate only).; 2 - gate execution error (e.g. invalid module path).
 ```
 
 ### assert-oss-notices.ps1
@@ -1975,6 +2009,7 @@ scripts/quality/assert-settings-doc-sync.ps1
     -RepoRoot                 [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -SkipManifestTest         [SwitchParameter]
     -ChangedFiles             [String[]]
+    -TimeoutSeconds           [Int32] = 600
   Exit: 0 - every stage passed.; 1 - a stage found real drift (the failing stage is named).; 2 - a stage could not be judged: either the manifest test never ran because the
 ```
 
@@ -2154,6 +2189,14 @@ scripts/quality/assert-untracked-dialogs.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-wear-route-literals.ps1
+
+```
+scripts/quality/assert-wear-route-literals.ps1
+  Params:
+    -Gate         [SwitchParameter]
+```
+
 ### assert-window-insets.ps1
 
 ```
@@ -2238,6 +2281,16 @@ scripts/quality/measure-file-touch-frequency.ps1
   Exit: 0 - measured; one row printed per path.; 2 - cannot verify: dev/CHANGELOG.md is missing, or no path was given.
 ```
 
+### measure-gate-frequency.ps1
+
+```
+scripts/quality/measure-gate-frequency.ps1
+  Params:
+    -Filter         [String] = ''
+    -Json           [SwitchParameter]
+    -Help           [SwitchParameter]
+```
+
 ### measure-hotspots.ps1
 
 ```
@@ -2284,6 +2337,13 @@ scripts/quality.tests/android-string-liveness.Tests.ps1
 
 ```
 scripts/quality.tests/check-device-profile-presets.Tests.ps1
+  (no param block)
+```
+
+### locale-fingerprints.Tests.ps1
+
+```
+scripts/quality.tests/locale-fingerprints.Tests.ps1
   (no param block)
 ```
 
@@ -2463,6 +2523,13 @@ scripts/quality/lib/flavor-source-map.ps1
   (no param block)
 ```
 
+### gate-telemetry.ps1
+
+```
+scripts/quality/lib/gate-telemetry.ps1
+  (no param block)
+```
+
 ### house-text-style.ps1
 
 ```
@@ -2474,6 +2541,13 @@ scripts/quality/lib/house-text-style.ps1
 
 ```
 scripts/quality/lib/listener-symmetry-count.ps1
+  (no param block)
+```
+
+### locale-fingerprints.ps1
+
+```
+scripts/quality/lib/locale-fingerprints.ps1
   (no param block)
 ```
 
@@ -3122,6 +3196,17 @@ scripts/spec_catalog/close-and-log.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\spec_catalog\drift-check.tests
+
+### Run-Tests.ps1
+
+```
+scripts/spec_catalog/drift-check.tests/Run-Tests.ps1
+  Params:
+    -SubjectId         [String] = 'S1800'
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 cannot verify - the subject id did not resolve, or rg is absent so only one backend exists
+```
+
 ## scripts\spec_catalog\plan-tick.tests
 
 ### Run-Tests.ps1
@@ -3430,6 +3515,16 @@ scripts/utils/fix-house-style.ps1
   Exit: 0 - nothing needed changing, or -Apply completed and every file was written.; 1 - unusable input: an explicit -Path does not exist, or a file could not be written.; 3 - dry run only: changes are pending. Re-run with -Apply to write them.
 ```
 
+### format-kotlin-imports.ps1
+
+```
+scripts/utils/format-kotlin-imports.ps1
+  Params:
+    -FilePath         [String]
+    -Files            [String[]]
+    -Check            [SwitchParameter]
+```
+
 ### generate-changelog.ps1
 
 ```
@@ -3514,11 +3609,12 @@ scripts/utils/Install_release_on_adb_connected_device.ps1
 ```
 scripts/utils/list-new-lexemes.ps1
   Params:
-    -Module               [String] = 'app_v2'
-    -SourceSet            [String[]] = @('main', 'vr', 'noLegal')
-    -BaselinePath         [String]
-    -OutDir               [String]
-    -Quiet                [SwitchParameter]
+    -Module                   [String] = 'app_v2'
+    -SourceSet                [String[]] = @('main', 'vr', 'noLegal')
+    -BaselinePath             [String]
+    -FingerprintsPath         [String]
+    -OutDir                   [String]
+    -Quiet                    [SwitchParameter]
   Exit: 0 - every unit reaches all thirteen locales, or the only gaps are baselined.; 1 - unusable input: the export failed, or its sidecar could not be read.; 3 - new untranslated text exists; the produced files name it.
 ```
 
@@ -3826,5 +3922,14 @@ scripts/utils/wait-for-ticket-work.ps1
     -Reason               [String] = ''
     -MarkerPath           [String] = ''
   Exit: 0 - work is available now; the marker names the kind (impl / device-drain) and the ticket.; 3 - required preflight script is missing.; 4 - usage error.
+```
+
+## scripts\utils\format-kotlin-imports.tests
+
+### run-tests.ps1
+
+```
+scripts/utils/format-kotlin-imports.tests/run-tests.ps1
+  (no param block)
 ```
 

@@ -67,6 +67,7 @@
     <!-- Consumed by SettingsDropdownRow.kt. All public attrs use the sdr_ prefix. -->
     <declare-styleable name="SettingsDropdownRow">
         <attr name="sdr_title" format="string|reference" />
+        <attr name="sdr_subtitle" format="string|reference" />
         <attr name="sdr_showHelp" format="boolean" />
         <attr name="sdr_helpTitle" format="string|reference" />
         <attr name="sdr_helpMessage" format="string|reference" />

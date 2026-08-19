@@ -16,8 +16,8 @@ See also: `01_delivery_contract.md` (zip/atlas/URL), `02_data_model.md` (how row
 
 **[CONTRACT]** `streams.csv` is the curated catalog: one header row plus one data row per channel.
 
-Live production file measured directly (`delivery/stream-catalog/streams.csv`):
-- 966,495 bytes, 2,692 lines = 1 header + 2,691 data rows.
+Live production file measured directly against the published `stream-catalog.zip` (2026-08-19):
+- 5,834,634 bytes, 19,535 lines = 1 header + 19,534 data rows.
 - **No UTF-8 BOM** (first byte is `0x22` = `"`).
 - Every field double-quoted (the PowerShell producer `Export-Csv -Encoding utf8` quotes unconditionally),
   but quoting is **not required** by the consumer parser - unquoted bare fields parse identically.
@@ -27,24 +27,24 @@ Live production file measured directly (`delivery/stream-catalog/streams.csv`):
 Verbatim header (byte offset 0):
 
 ```csv
-"category","topic","name","url","media_kind","protocol","format","bitrate","is_live","https","language","country","homepage","source_kind","license_note","notes","confidence","favicon_index"
+"category","topic","name","url","media_kind","protocol","format","bitrate","is_live","https","language","country","homepage","source_kind","license_note","notes","confidence","favicon_index","access"
 ```
 
 ### 1.1 Column order (producer) **[CONTRACT]**
 
-The producer always writes these 18 columns in this order (`collect-stream-candidates.ps1:138-142`, the
+The producer always writes these 19 columns in this order (`collect-stream-candidates.ps1:256-259`, the
 `$Schema` array). Existing columns are **never reordered**; new columns are appended at the end. This is
 safe because the consumer matches columns **by header name**, not by position.
 
 ```
 category, topic, name, url, media_kind, protocol, format, bitrate,
 is_live, https, language, country, homepage, source_kind,
-license_note, notes, confidence, favicon_index
+license_note, notes, confidence, favicon_index, access
 ```
 
 ---
 
-## 2. Column reference (all 18) **[CONTRACT]**
+## 2. Column reference (all 19) **[CONTRACT]**
 
 | # | Column | Meaning | Example values | Blank default | Required | Persisted to `stream_sources`? |
 |---|--------|---------|----------------|---------------|----------|--------------------------------|
@@ -66,12 +66,16 @@ license_note, notes, confidence, favicon_index
 | 16 | `notes` | maintainer remarks | free text | `""` | no | **no** |
 | 17 | `confidence` | maintainer confidence the URL is correct/stable | `high` \| `medium` \| `low` | `""` | no | **no** |
 | 18 | `favicon_index` | zero-based tile ordinal into `favicon-atlas.png` (32px tile / 16-col grid, row-major) | `0`, `17`, blank | `null` | no | **no** (routed to the favicon sidecar, see `04`) |
+| 19 | `access` | region-lock flag, added S1117 | `""` (open), `"geo"` (region-locked: HTTP 403/451 seen from the build machine, may still play in-region) | `""` -> `null` | no | yes -> `access` |
 
-Ten of the 18 columns (`protocol`, `format`, `bitrate`, `is_live`, `https`, `homepage`, `source_kind`,
+Ten of the 19 columns (`protocol`, `format`, `bitrate`, `is_live`, `https`, `homepage`, `source_kind`,
 `license_note`, `notes`, `confidence`) are **parsed but never stored** in `stream_sources`; they exist in
 the shipped catalog for maintainer/tooling use only. The running app sees them for exactly one import
 pass, then discards them. `homepage` is the sole exception that has a second consumer: the offline favicon
-packer (see `08`).
+packer (see `08`). `favicon_index` is the one column routed elsewhere (the favicon sidecar, not the
+`stream_sources` row itself); `access` **is** persisted, straight to the `access` column added by
+Migration41To42 (S1117) - a consumer must tolerate every row shipping a blank `access` cell, including
+every row from a catalog produced before this ticket.
 
 ### 2.1 Required-row rule **[CONTRACT]**
 
@@ -132,7 +136,7 @@ data class ParsedCatalogEntry(
     val mediaKind: String, val protocol: String, val format: String, val bitrate: String,
     val isLive: Boolean, val https: Boolean, val language: String, val country: String,
     val homepage: String, val sourceKind: String, val licenseNote: String, val notes: String,
-    val confidence: String, val faviconIndex: Int?
+    val confidence: String, val faviconIndex: Int?, val access: String = ""
 )
 ```
 
@@ -148,7 +152,7 @@ field-by-field table. Highlights:
   declared kind wins after uppercasing; a blank cell falls back to the URL classifier (section 4). This is
   the only path where a declared kind is trusted (manual add and playlist import always classify from the
   URL).
-- `category`/`topic`/`language`/`country` = `.ifBlank { null }`.
+- `category`/`topic`/`language`/`country`/`access` = `.ifBlank { null }`.
 - The 10 catalog-only fields are dropped; `faviconIndex` is routed to the favicon sidecar keyed by URL.
 
 ---
@@ -247,10 +251,10 @@ stream.
 
 ---
 
-## 7. Media-kind distribution (live snapshot)
+## 7. Media-kind distribution (live snapshot, 2026-08-19)
 
-From the current `streams.csv` (2,691 data rows): **AUDIO 348, VIDEO 2,337, RTSP 6** (measured by the
-offline collector during publish; see `08`).
+From the current `streams.csv` (19,534 data rows): **AUDIO 16,616, VIDEO 2,917, RTSP 1** (is_live true on
+18,624 rows, false on 910; measured against the published `stream-catalog.zip`).
 
 ---
 

@@ -45,7 +45,6 @@
     <string name="language_capability_translation">অনুবাদ</string>
     <string name="language_capability_basic_ocr">বেসিক OCR</string>
     <string name="language_capability_quality_ocr">উচ্চমান OCR</string>
-    <string name="language_capability_nolegal_ocr">noLegal OCR</string>
     <string name="translate">অনুবাদ করুন</string>
     <string name="no_files_selected">কোনো ফাইল নির্বাচিত নেই</string>
     <string name="msg_last_filter_restored">শেষ ফিল্টার পুনরুদ্ধার করা হয়েছে: %1$s</string>
@@ -956,9 +955,6 @@
     <string name="enable_ocr">টেক্সট শনাক্তকরণ সক্রিয় করুন</string>
     <string name="enable_ocr_summary">কপি করার জন্য ছবি এবং PDF থেকে টেক্সট বের করুন</string>
     <string name="translation_downloading_wait">অনুবাদের ফলাফলের অপেক্ষায়..</string>
-    <string name="paddle_ocr_model">PaddleOCR মডেল</string>
-    <string name="paddle_ocr_model_cyrillic">সিরিলিক (PP-OCRv5 Mobile)</string>
-    <string name="paddle_ocr_model_eslav">পূর্ব স্লাভিক (PP-OCRv5 Mobile, অধিক নির্ভুল)</string>
     <string name="toast_edit_images_only">সম্পাদনা শুধুমাত্র ছবির জন্য উপলব্ধ</string>
     <string name="toast_failed_to_prepare_file">ফাইল প্রস্তুত করা যায়নি</string>
     <string name="toast_error_google_lens">Google Lens-এ শেয়ার করতে ত্রুটি</string>
@@ -1389,10 +1385,6 @@
     <string name="duplicate_groups_summary">%1$d টি গ্রুপ পাওয়া গেছে | %2$s</string>
     <string name="duplicate_fab_delete">নির্বাচিত আইটেমগুলো মুছুন (%1$d টি, %2$s)</string>
     <string name="scan_files_progress">%1$d / %2$d ফাইল</string>
-    <string name="import_resources_title">সম্পদ আমদানি করুন</string>
-    <string name="import_resources_message">SZA রিসোর্স যোগ করবেন?</string>
-    <string name="sza_resources_imported">SZA সম্পদ আমদানি করা হয়েছে</string>
-    <string name="error_importing_resources">রিসোর্স আমদানি করতে ত্রুটি</string>
     <string name="download_translation_model_title">অনুবাদ মডেল ডাউনলোড করুন</string>
     <string name="download_translation_model_message">%1$s-এ অনুবাদ করার জন্য প্রায় ৩০ মেগাবাইটের একটি মডেল ডাউনলোড করতে হবে। এখনই ডাউনলোড করবেন?</string>
     <string name="download">ডাউনলোড করুন</string>
@@ -2393,7 +2385,6 @@
     <string name="launcher_edit_kind_action">লঞ্চার কার্যক্রম</string>
     <string name="launcher_settings_reset_title">লঞ্চার সেটিংস রিসেট করুন</string>
     <string name="launcher_settings_reset_message">সিস্টেম লঞ্চার সেটিংস ডিফল্টে রিসেট হবে। ডেস্কটপ লেআউট, পিন করা আইকন এবং ওয়ালপেপার ইনস্টলেশনের ঠিক পরে যে অবস্থায় ছিল, সেই অবস্থায় ফিরে যাবে। লঞ্চারের বাইরে কিছুতে প্রভাব পড়বে না।</string>
-    <string name="launcher_settings_reset_button_description">লঞ্চার সেটিংস ডিফল্টে রিসেট করুন</string>
     <string name="launcher_settings_reset_success">লঞ্চার সেটিংস ডিফল্টে রিসেট করা হয়েছে</string>
     <string name="launcher_settings_reset_failed">লঞ্চার সেটিংস রিসেট করা যায়নি। কিছুই পরিবর্তন হয়নি - আবার চেষ্টা করুন।</string>
     <string name="launcher_add_cell">ডেস্কটপে যোগ করুন</string>
@@ -2609,7 +2600,6 @@
     <string name="streams_media_filter_video">শুধু ভিডিও স্ট্রিম দেখান</string>
     <string name="streams_media_filter_clear">সব স্ট্রিম দেখান</string>
     <string name="launcher_section_app_functions">অ্যাপের ফাংশন</string>
-    <string name="launcher_section_everything_else">বাকি সবকিছু</string>
     <string name="launcher_edit_kind_section">সেকশন</string>
     <string name="launcher_gadget_network">নেটওয়ার্ক</string>
     <string name="launcher_gadget_battery">ব্যাটারি</string>
@@ -2680,7 +2670,6 @@
     <string name="network_monitor_link_gateway_label">গেটওয়ে</string>
     <string name="network_monitor_link_route_label">ডিফল্ট রুট</string>
     <string name="network_monitor_link_proxy_label">প্রক্সি</string>
-    <string name="network_monitor_link_bandwidth_label">সিস্টেম ব্যান্ডউইথ অনুমান</string>
     <string name="network_monitor_route_present">বর্তমান</string>
     <string name="network_monitor_route_absent">কোনোটিই না</string>
     <string name="network_monitor_chart_signal_heading">সংকেত</string>

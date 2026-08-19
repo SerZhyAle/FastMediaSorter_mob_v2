@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
+import timber.log.Timber
 
 /**
  * S0404: profile -> starter desktop, as pure data + a pure row-major packer (strategic §5.3: adding a
@@ -37,8 +38,11 @@ object LauncherStarterSets {
     // S1560: the tiles the per-profile grid adds, under the same duplication contract as the four above.
     private const val GADGET_WEATHER = "weather"
     private const val GADGET_SPEED = "speed"
-    private const val GADGET_ALTITUDE = "altitude"
-    private const val GADGET_SATELLITES = "satellites"
+
+    // S1747: the compass replaced altitude and satellites in the seed. Both gadgets still exist and stay
+    // addable by hand - the owner's objection was that a bare satellite count says nothing to a user and
+    // that altitude is a thing one adds deliberately, not something a fresh desktop should decide for them.
+    private const val GADGET_COMPASS = "compass"
     private const val GADGET_AUDIO_NOW_PLAYING = "audio_now_playing"
 
     // S1566: same duplication contract again - the web search field every profile opens with.
@@ -56,8 +60,7 @@ object LauncherStarterSets {
         GADGET_FOLDER_PREVIEW,
         GADGET_WEATHER,
         GADGET_SPEED,
-        GADGET_ALTITUDE,
-        GADGET_SATELLITES,
+        GADGET_COMPASS,
         GADGET_AUDIO_NOW_PLAYING,
         GADGET_SEARCH,
     )
@@ -109,10 +112,17 @@ object LauncherStarterSets {
         PACKAGE_CALENDAR,
     )
 
+    private val DIALER_CANDIDATES = listOf(
+        "com.google.android.dialer",
+        "com.android.dialer",
+        "com.samsung.android.dialer",
+    )
+
     /** Everything the seed must ask the package manager about, in one set. */
     val candidatePackages: Set<String> =
-        setOf(PACKAGE_YOUTUBE, PACKAGE_YOUTUBE_MUSIC, PACKAGE_MAPS) +
+        setOf(PACKAGE_YOUTUBE, PACKAGE_YOUTUBE_MUSIC, PACKAGE_MAPS, PACKAGE_CHROME) +
             FM_RADIO_CANDIDATES +
+            DIALER_CANDIDATES +
             GOOGLE_APP_PACKAGES
 
     // S1560: the rows of the approved grid that cut across profiles, one set each. Membership tests
@@ -155,7 +165,7 @@ object LauncherStarterSets {
         DeviceProfileType.PHOTO_FRAME,
     )
 
-    /** Altitude and satellites travel together - both read the same location fix. */
+    /** S1747: the profiles a fresh desktop seeds the compass on - the one location tile that survived. */
     private val LOCATION_TILE_PROFILES = setOf(
         DeviceProfileType.CAR_HEAD_UNIT,
         DeviceProfileType.PERSONAL_SMARTPHONE,
@@ -199,6 +209,7 @@ object LauncherStarterSets {
         val allDocsId: Long? = null,
         val cameraId: Long? = null,
         val lastResourceId: Long? = null,
+        val userResourceIds: List<Long> = emptyList(),
     )
 
     /**
@@ -234,21 +245,76 @@ object LauncherStarterSets {
         importedShortcuts: List<StarterItem> = emptyList(),
     ): List<StarterItem> {
         val streamsAvailable = routeAvailableInBuild[InternalRouteCatalog.KEY_STREAMS] == true
-        val items = mutableListOf(section(LauncherCellCommand.SECTION_EVERYTHING_ELSE))
+        val items = mutableListOf<StarterItem>()
+
+        // 1. Unsectioned top items ("все")
         items += clock()
-        // S1566: directly after the clock, never before it - LauncherStarterSetsParityTest reads the first
-        // GADGET item of an OTHER-profile set and expects the clock.
         items += gadget(GADGET_SEARCH)
         weatherOrNull(profile)?.let { items += it }
-        items += commonResources(resources)
-        items += profileItems(profile, resources, streamsAvailable, installedPackages)
-        items += commonFeatures(routeAvailableInBuild)
-        items += commonThirdPartyApps(installedPackages)
-        items += importedShortcuts
+
+        // 2. Widgets section
+        val widgets = buildList {
+            addAll(profileGadgets(profile, resources, streamsAvailable))
+            if (profile in LOCATION_TILE_PROFILES) {
+                add(gadget(GADGET_COMPASS))
+            }
+            if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
+                add(gadget(GADGET_SPEED))
+            }
+            if (profile in NOW_PLAYING_PROFILES) {
+                add(gadget(GADGET_AUDIO_NOW_PLAYING))
+            }
+        }
+        if (widgets.isNotEmpty()) {
+            items += section(LauncherCellCommand.SECTION_WIDGETS)
+            items += widgets
+        }
+
+        // 3. Resources section
+        val resItems = buildList {
+            addAll(commonResources(resources))
+            addAll(importedShortcuts)
+        }
+        if (resItems.isNotEmpty()) {
+            items += section(LauncherCellCommand.SECTION_RESOURCES)
+            items += resItems
+        }
+
+        // 4. App functions section
+        val appFuncs = buildList {
+            addAll(commonFeatures(routeAvailableInBuild))
+            addAll(launcherActions(profile))
+            addAll(commonTail())
+        }
+        if (appFuncs.isNotEmpty()) {
+            items += section(LauncherCellCommand.SECTION_APP_FUNCTIONS)
+            items += appFuncs
+        }
+
+        // 5. Android apps section
+        val androidApps = buildList {
+            if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
+                appIfInstalled(PACKAGE_MAPS, installedPackages)?.let(::add)
+                firstInstalled(FM_RADIO_CANDIDATES, installedPackages)?.let(::add)
+            } else if (profile in MAPS_PROFILES) {
+                appIfInstalled(PACKAGE_MAPS, installedPackages)?.let(::add)
+            }
+            if (profile in WIFI_PROFILES) {
+                add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_WIFI)))
+            }
+            if (profile in BLUETOOTH_PROFILES) {
+                add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_BLUETOOTH)))
+            }
+            addAll(commonThirdPartyApps(installedPackages))
+        }
+        if (androidApps.isNotEmpty()) {
+            items += section(LauncherCellCommand.SECTION_ANDROID_APPS)
+            items += androidApps
+        }
+
+        // 6. Google section (conditional)
         items += googleSection(googleServicesAvailable, installedPackages)
-        items += section(LauncherCellCommand.SECTION_APP_FUNCTIONS)
-        items += launcherActions(profile)
-        items += commonTail()
+
         return items
     }
 
@@ -276,10 +342,12 @@ object LauncherStarterSets {
         }
     }
 
-    /** The two media apps the owner assigned to every profile, each conditional on being installed. */
+    /** The third party apps assigned to profiles, conditional on being installed. */
     private fun commonThirdPartyApps(installedPackages: Set<String>): List<StarterItem> = buildList {
         appIfInstalled(PACKAGE_YOUTUBE, installedPackages)?.let(::add)
         appIfInstalled(PACKAGE_YOUTUBE_MUSIC, installedPackages)?.let(::add)
+        appIfInstalled(PACKAGE_CHROME, installedPackages)?.let(::add)
+        firstInstalled(DIALER_CANDIDATES, installedPackages)?.let(::add)
     }
 
     private fun appIfInstalled(packageName: String, installedPackages: Set<String>): StarterItem? =
@@ -294,6 +362,9 @@ object LauncherStarterSets {
         resources.allVideoId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
         resources.allDocsId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
         resources.cameraId?.let { add(resourceShortcut(it, LauncherResourceMode.BROWSE)) }
+        resources.userResourceIds.forEach { id ->
+            add(resourceShortcut(id, LauncherResourceMode.BROWSE))
+        }
     }
 
     // Padding feature shortcuts that fill the desktop toward the 12-15 target. Gated on build presence
@@ -326,8 +397,8 @@ object LauncherStarterSets {
         addAll(profileGadgets(profile, resources, streamsAvailable))
         // Cross-profile rows driven by membership sets (S1560 Phase 04 grid).
         if (profile in LOCATION_TILE_PROFILES) {
-            add(gadget(GADGET_ALTITUDE))
-            add(gadget(GADGET_SATELLITES))
+            add(gadget(GADGET_COMPASS))
+            Timber.d("S1747: seeded the compass for %s, altitude and satellites left out", profile)
         }
         if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
             add(gadget(GADGET_SPEED))

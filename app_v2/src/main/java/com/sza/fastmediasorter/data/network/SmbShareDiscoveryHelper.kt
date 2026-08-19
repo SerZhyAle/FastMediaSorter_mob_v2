@@ -5,6 +5,8 @@ import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.domain.model.MediaExtensions
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -25,8 +27,11 @@ class SmbShareDiscoveryHelper(private val connectionManager: SmbConnectionManage
         password: String = "",
         domain: String = "",
         port: Int = 445
-    ): SmbResult<List<String>> {
-        return try {
+    ): SmbResult<List<String>> = withContext(Dispatchers.IO) {
+        // S1812: the one SMB path that reaches smbj without going through
+        // SmbConnectionManager.withConnection - it connects, authenticates and trial-connects
+        // shares straight from this body, so confining withConnection does not cover it.
+        try {
             val client = connectionManager.getClient(server, port)
             val connection = client.connect(server, port)
             val finalDomain = domain.trim().ifEmpty { null }
@@ -90,7 +95,7 @@ class SmbShareDiscoveryHelper(private val connectionManager: SmbConnectionManage
                 Timber.e(e, "Failed to enumerate shares")
                 session.close()
                 connection.close()
-                return SmbResult.Error(
+                return@withContext SmbResult.Error(
                     "Share enumeration failed. SMBJ library limitation: cannot list shares automatically. " +
                         "Please enter share name manually. Technical details: ${e.message}",
                     e
@@ -101,7 +106,7 @@ class SmbShareDiscoveryHelper(private val connectionManager: SmbConnectionManage
             connection.close()
 
             if (shares.isEmpty()) {
-                return SmbResult.Error(
+                return@withContext SmbResult.Error(
                     "No accessible shares found using trial method.\n\n" +
                         "SMBJ library limitation: Cannot automatically discover all shares.\n\n" +
                         "Tried multiple common share names, but none were accessible.\n\n" +

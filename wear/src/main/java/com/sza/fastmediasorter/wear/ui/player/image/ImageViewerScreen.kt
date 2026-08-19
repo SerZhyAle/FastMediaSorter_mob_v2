@@ -41,6 +41,7 @@ import androidx.wear.compose.material.Text
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import timber.log.Timber
@@ -67,6 +68,9 @@ fun ImageViewerScreen(
     val isFavorite by viewModel.isFavorite.collectAsState()
 
     Timber.d("ImageViewerScreen composing, index: ${uiState.currentIndex}")
+
+    // An image has no playing state, so having one on screen is itself the active condition.
+    KeepScreenOnEffect(enabled = uiState.mediaFile != null)
 
     WearScreenScaffold(contentPadding = PaddingValues(0.dp)) {
         when {

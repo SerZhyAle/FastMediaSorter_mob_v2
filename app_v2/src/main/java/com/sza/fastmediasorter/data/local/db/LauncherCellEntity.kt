@@ -56,6 +56,9 @@ interface LauncherCellDao {
     @Query("SELECT * FROM launcher_cells WHERE id = :id")
     suspend fun getById(id: Long): LauncherCellEntity?
 
+    @Query("SELECT * FROM launcher_cells ORDER BY rowIndex ASC, colIndex ASC")
+    suspend fun getAllCellsSync(): List<LauncherCellEntity>
+
     /**
      * The first row index strictly below every cell in [orientation] - i.e. the top of the empty band
      * under the desktop, and 0 when the desktop is empty. A free-slot scan uses it as its upper bound:
@@ -100,6 +103,31 @@ interface LauncherCellDao {
      * (0,1), (1,0) and (1,1), so a query keyed on the anchor alone reports those three as free and the
      * caller happily writes a cell on top of the gadget.
      */
+    /**
+     * S1772: moves the whole tail of a desktop down, so a widget can be seated where the user pointed.
+     *
+     * Every row at or below [fromRow] moves by the same [delta], which is what keeps section membership
+     * intact: a section owns the cells below its header down to the next one, so a selective shift would
+     * re-parent cells between sections. Shifting a contiguous tail cannot.
+     */
+    @Query(
+        "UPDATE launcher_cells SET rowIndex = rowIndex + :delta " +
+            "WHERE orientation = :orientation AND rowIndex >= :fromRow"
+    )
+    suspend fun pushRowsDown(orientation: String, fromRow: Int, delta: Int): Int
+
+    /**
+     * Every cell whose footprint reaches into rows [fromRow, fromRow + spanH), whatever column it sits in.
+     *
+     * Column-blind on purpose: the push moves whole rows, so what matters is which rows are involved, not
+     * whether a particular square collides.
+     */
+    @Query(
+        "SELECT * FROM launcher_cells WHERE orientation = :orientation " +
+            "AND rowIndex < :fromRow + :spanH AND rowIndex + spanH > :fromRow"
+    )
+    suspend fun findInRowBand(orientation: String, fromRow: Int, spanH: Int): List<LauncherCellEntity>
+
     @Query(
         "SELECT * FROM launcher_cells WHERE orientation = :orientation AND id != :excludeId " +
             "AND :colIndex < colIndex + spanW AND colIndex < :colIndex + :spanW " +

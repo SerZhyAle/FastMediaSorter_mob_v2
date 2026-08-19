@@ -65,6 +65,16 @@ For details: See [MODULE_SELECTION.md](MODULE_SELECTION.md)
 
 ---
 
+## Settings Organization
+
+Wear settings are grouped into **Media Types**, **Slideshow**, **Other**, and **About**. The owner
+ruled on 2026-08-16: two settings about the same thing earn a new group; a single setting with no
+relatives lives in **Other** until relatives appear, then it moves into that new group. This keeps
+the root screen short while allowing the watch app's settings to grow without returning to one
+flat list.
+
+---
+
 ## Running Without Android Studio
 
 ### Quick Build + Deploy

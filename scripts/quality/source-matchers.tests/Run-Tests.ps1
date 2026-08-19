@@ -19,6 +19,14 @@ function Assert-UnsafeCollectCount([string]$Name, [string]$Source, [int]$Expecte
     }
 }
 
+function Assert-NamingCount([string]$Name, [string]$Source, [int]$Expected) {
+    $rule = Get-SourceRules | Where-Object Name -eq 'class-architecture-naming'
+    $actual = & $rule.CountInText $Source
+    if ($actual -ne $Expected) {
+        throw "$Name expected $Expected naming violation(s), got $actual."
+    }
+}
+
 function Assert-SourceRule([string]$Name, [string]$ExpectedBaseline) {
     $rule = Get-SourceRules | Where-Object Name -eq $Name
     if ($null -eq $rule) {
@@ -66,4 +74,22 @@ lifecycleScope.launch {
 }
 '@
 
-Write-Output 'source-matchers tests: PASS (7 cases)'
+Assert-NamingCount -Name 'nested Values holder in a section store is not a naming violation' -Expected 0 -Source @'
+package com.sza.fastmediasorter.data.repository.settings
+
+object LauncherSettingsStore {
+    data class Values(
+        val launcherDesktopLocked: Boolean,
+    )
+}
+'@
+
+Assert-NamingCount -Name 'misnamed repository class is still a naming violation' -Expected 1 -Source @'
+package com.sza.fastmediasorter.data.repository
+
+class LauncherDesktopThing {
+    fun load() = Unit
+}
+'@
+
+Write-Output 'source-matchers tests: PASS (9 cases)'

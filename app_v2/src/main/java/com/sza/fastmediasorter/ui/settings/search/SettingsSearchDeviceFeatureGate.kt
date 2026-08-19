@@ -25,7 +25,7 @@ import javax.inject.Singleton
  *    `PlaybackSettingsFragment` show the rotation rows only when an accelerometer is present.
  *  - `rowCameraOcrTranslationEnabled` / `rowCameraOcrOnly` - `OperationsSettingsFragment` shows the
  *    camera-OCR rows only when [DeviceCapabilities.isOcrSupported] (RAM + API floor for ML Kit).
- *  - `rowOcrEngineType` / `rowPaddleOcrModel` / `rowOcrFontSize` / `rowOcrFontFamily`
+ *  - `rowOcrFontSize` / `rowOcrFontFamily`
  *    (S0603) - `OtherMediaSettingsFragment` force-disables the OCR toggle when OCR is unsupported,
  *    so these in-app OCR pickers can never be revealed on such a device.
  *
@@ -68,7 +68,6 @@ class SettingsSearchDeviceFeatureGate @Inject constructor(
             // DeviceCapabilities.isOcrSupported the OCR toggle is force-disabled, so these spinners
             // can never be revealed - GONE in UI, dead in search. Mirror the device gate.
             "rowCameraOcrTranslationEnabled", "rowCameraOcrOnly",
-            "rowOcrEngineType", "rowPaddleOcrModel",
             "rowOcrFontSize", "rowOcrFontFamily" -> supportsOcr
             else -> true
         }

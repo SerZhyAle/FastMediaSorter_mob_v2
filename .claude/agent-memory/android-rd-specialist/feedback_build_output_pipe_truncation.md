@@ -15,6 +15,8 @@ Two separate failures, both real:
 
 **3. The file redirect is a BASH-tool remedy, and it backfires in the PowerShell tool.** 2026-08-08, S1433: `pwsh -NoProfile -File ./a.ps1 fk *> temp/S1433/fk.log` from the PowerShell tool reported **exit 255** on one run and blew past the 600 s tool timeout on the next - while the log itself held `BUILD SUCCESSFUL in 2m 54s` / `Fast check passed`, written minutes earlier. The same target run plainly in the foreground finished in 45 s with a clean verdict on screen. Redirecting hides the verdict behind a false failure signal, and the stale log then invites citing it as proof for a *later* edit: that is exactly what happened - a compile log from 20:33 was cited for a file edited at 20:41, so the last source edit was never actually compiled until the discrepancy surfaced.
 
+**4. `| tail` also MASKS THE EXIT CODE - a red run reads as green.** 2026-08-17, during the S1786 review: `pwsh -NoProfile -File ./a.ps1 fu 2>&1 | tail -60` in a background Bash task was reported as `[exited with code 0]`, while the captured output itself ended with `BUILD FAILED in 7m 49s` and `Fast check failed`. In Bash the pipeline's status is the LAST element's, i.e. `tail`'s. The completion notification therefore says "completed (exit code 0)" for a failed unit suite - and that notification is often the only thing read. Worse than cropping: cropping loses the reason, this loses the verdict.
+
 **Why:** wasted a turn in S0250 hunting a noLegal failure that `tail -30` had cropped, ~40 minutes in S1239 waiting on a pipe that was never going to return, and in S1433 a false FAIL plus a false evidence citation in a spec Step Log.
 
 **How to apply:**

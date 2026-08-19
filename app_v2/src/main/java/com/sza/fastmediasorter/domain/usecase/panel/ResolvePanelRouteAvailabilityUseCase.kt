@@ -91,6 +91,10 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 )
             InternalRouteCatalog.KEY_LINK_DOWNLOAD ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.linkAutoDownloadEnabled)
+            // S1796: the flashlight needs no capability - it only paints its own window - so the pair
+            // is the same shape the embedded game uses: always built in, gated by the user's toggle.
+            InternalRouteCatalog.KEY_FRONT_FLASHLIGHT ->
+                Availability(availableInBuild = true, enabledAtRuntime = settings.frontFlashlightEnabled)
             // S0978: photo-capture routes gate exactly like KEY_QUICK_CAMERA (images capability + the
             // global camera-capture toggle); the OCR-translate variant additionally needs the translation
             // capability compiled in, and the video route gates on the video capability + video toggle.

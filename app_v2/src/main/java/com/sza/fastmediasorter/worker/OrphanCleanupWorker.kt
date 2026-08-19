@@ -9,7 +9,10 @@ import com.sza.fastmediasorter.data.local.db.DuplicateHashCacheDao
 import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
+import com.sza.fastmediasorter.domain.model.CredentialAuditReport
+import com.sza.fastmediasorter.domain.model.CredentialStatus
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
+import com.sza.fastmediasorter.domain.usecase.CredentialAuditor
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
@@ -24,6 +27,9 @@ import java.util.UUID
  * - Log network credentials that have no associated resources (orphan audit).
  *   Credentials are NOT auto-deleted - manual cleanup is intentional to avoid
  *   accidental data loss.
+ * - S1649: record when each credential was first seen orphaned, and clear that moment when a
+ *   resource references it again. This worker is the only writer of that clock; the deletion
+ *   deferral is measured from it.
  *
  * Scheduled as a periodic task by [WorkManagerScheduler].
  */
@@ -32,7 +38,10 @@ class OrphanCleanupWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted workerParams: WorkerParameters,
     private val cachedFileListDao: CachedFileListDao,
+    // S1649: a writer here, not a reader. CredentialAuditor is the only thing that decides what
+    // "orphaned" means; this DAO exists in the worker solely to wind the orphan clock.
     private val networkCredentialsDao: NetworkCredentialsDao,
+    private val credentialAuditor: CredentialAuditor,
     private val fileMetadataCacheDao: FileMetadataCacheDao,
     private val duplicateHashCacheDao: DuplicateHashCacheDao,
     private val resumeStateRepository: ResumeStateRepository,
@@ -137,20 +146,61 @@ class OrphanCleanupWorker @AssistedInject constructor(
     }
 
     /**
-     * Log network credentials that are no longer referenced by any resource.
-     * Does NOT auto-delete - credentials might be re-associated or the user
-     * may want them retained for future resources.
+     * Report on network credentials no longer referenced by any resource, and wind their clock.
+     *
+     * S1649: the count comes from [CredentialAuditor] rather than from a second query of its own.
+     * The worker used to ask the DAO directly and so knew nothing about the grace period - it warned
+     * about every unreferenced credential, including ones orphaned minutes earlier, which is the
+     * split ADR-2 removes. Deletion stays out of the background path entirely: a password is not
+     * recoverable, so it is offered to a human and never taken automatically.
      */
     private suspend fun auditOrphanedCredentials(correlationId: String) {
-        val orphaned = networkCredentialsDao.getOrphanedCredentials()
+        val report = credentialAuditor.audit()
+        windOrphanClock(correlationId, report)
+        val orphaned = report.entries.filter { it.status == CredentialStatus.ORPHANED }
         if (orphaned.isEmpty()) {
             Timber.d("[orphan-cleanup/$correlationId] no orphaned network credentials found")
             return
         }
         Timber.w(
             "[orphan-cleanup/$correlationId] found ${orphaned.size} orphaned credential(s) " +
-                "(not referenced by any resource). " +
-                "Credential IDs: ${orphaned.joinToString { it.credentialId }}"
+                "(not referenced by any resource), ${report.eligibleForCleanupCount} past the grace " +
+                "period. Credential IDs: ${orphaned.joinToString { it.credentialId }}"
         )
+    }
+
+    /**
+     * S1649: stamp the moment a credential was first seen orphaned, and clear it once a resource
+     * references it again.
+     *
+     * This is the only writer of that clock. Rows that were already orphaned when the schema 51
+     * migration landed carry no moment, and this pass is what gives them one - which is why no
+     * backfill statement exists in the migration: a moment derived there from the creation date
+     * would restore the very defect the column was added to remove.
+     *
+     * Both writes are batched, one call per direction, because a per-row update on a table the user
+     * never sees is a cost with no benefit.
+     */
+    private suspend fun windOrphanClock(correlationId: String, report: CredentialAuditReport) {
+        val toStamp = report.entries
+            .filter { it.status == CredentialStatus.ORPHANED && it.orphanedSince == null }
+            .map { it.credentialId }
+        val toClear = report.entries
+            .filter { it.status != CredentialStatus.ORPHANED && it.orphanedSince != null }
+            .map { it.credentialId }
+
+        Timber.d("S1649: orphan clock pass, toStamp=${toStamp.size} toClear=${toClear.size}")
+        if (toStamp.isNotEmpty()) {
+            networkCredentialsDao.stampOrphanedSince(toStamp, System.currentTimeMillis())
+        }
+        if (toClear.isNotEmpty()) {
+            networkCredentialsDao.clearOrphanedSince(toClear)
+        }
+        if (toStamp.isNotEmpty() || toClear.isNotEmpty()) {
+            Timber.d(
+                "[orphan-cleanup/$correlationId] orphan clock: stamped ${toStamp.size}, " +
+                    "cleared ${toClear.size}"
+            )
+        }
     }
 }

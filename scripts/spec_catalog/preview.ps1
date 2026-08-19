@@ -171,7 +171,7 @@ finally {
 # scraping all of them names a sibling as a blocker - the right verdict for the wrong reason.
 $dependsOn = @()
 $depIds = @()
-$depMatch = [regex]::Match($specText, '(?ms)\*\*Depends on:\*\*\s*(.+?)(?:^\*\*|\r?\n##\s)')
+$depMatch = [regex]::Match($specText, '(?ms)\*\*Depends on:\*\*\s*(.+?)(?:^\*\*|\r?\n##\s|\z)')
 if ($depMatch.Success) {
     $depIds = @([regex]::Matches($depMatch.Groups[1].Value, '\bS\d{4}\b') | ForEach-Object { $_.Value })
 }
@@ -227,6 +227,7 @@ foreach ($p in $ownerGatePatterns) {
 $autoSkip = $null
 $autoSkipReason = $null
 $tierVal = if ($frontmatter['Tier']) { $frontmatter['Tier'] } else { '' }
+$unverifiedBlockers = @($dependsOn | Where-Object { $_.status -ne 'Verified' -and $_.status -ne 'Archived' })
 if ($tierVal -match '^\s*5') {
     $autoSkip = 'tier-5-epic'
     $autoSkipReason = 'Tier 5 epic-container, no code under its id'
@@ -235,24 +236,20 @@ elseif ($ownerGate) {
     $autoSkip = 'owner-gate'
     $autoSkipReason = 'Spec explicitly forbids automatic handoff (§12 owner directive)'
 }
+elseif ($unverifiedBlockers.Count -gt 0) {
+    # S1775: directed spec link is truth. Any unverified blocker excludes the ticket from
+    # automatic selection regardless of lifecycle status; status remains descriptive.
+    $autoSkip = 'blocker-not-verified'
+    $autoSkipReason = 'Depends on ' + (($unverifiedBlockers | ForEach-Object { "$($_.id)($($_.status))" }) -join ', ')
+}
 elseif ($rec.status -eq 'BlockByOtherTask') {
-    # S1073: fail-closed. This used to also require `-and $dependsOn.Count -gt 0`, so a spec whose
-    # blocker could not be parsed fell through with auto_skip = null and /spec-next offered it as a
-    # live candidate - despite its own status asserting it is blocked. When the tool cannot name the
-    # blocker, the honest answer is "skip", not "go". 'blocker-unresolvable' is kept distinct from
-    # 'blocker-not-verified' so the operator can tell "the blocker is still open" (wait for it) from
-    # "nobody recorded a blocker" (fix the spec).
-    $unverifiedBlockers = @($dependsOn | Where-Object { $_.status -ne 'Verified' -and $_.status -ne 'Archived' })
+    # S1073: fail-closed. Status is BlockByOtherTask but no directional blocker was parsed.
     if ($dependsOn.Count -eq 0) {
         $autoSkip = 'blocker-unresolvable'
         $autoSkipReason = 'Status is BlockByOtherTask but no blocker is recorded in a directional ' +
         'channel: a `**Depends on:**` line, or a `Blocker: Sxxxx` token in section 10 or in the ' +
         'statusNote. Naming the ticket in section 10 prose is not enough - that section records ' +
         'neighbours and consumers too, so it cannot state which way the dependency points'
-    }
-    elseif ($unverifiedBlockers.Count -gt 0) {
-        $autoSkip = 'blocker-not-verified'
-        $autoSkipReason = 'Depends on ' + (($unverifiedBlockers | ForEach-Object { "$($_.id)($($_.status))" }) -join ', ')
     }
 }
 # NB: no 'research-heavy' auto-skip. /spec-next drives every Draft/Approved forward

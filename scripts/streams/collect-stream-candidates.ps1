@@ -99,6 +99,10 @@ param(
     # broken artifact - the app's null-atlas import path wipes favicons for everyone (portrait then shows
     # text, not icons). Publish refuses that combination unless this switch acknowledges it (intentional
     # over-cap / favicon-less publish).
+    # S1827: that acknowledgement now costs more than its own name suggests. A second consumer,
+    # StreamsPlayer, does NOT wipe anything on a favicon-less publish - it keeps the atlas it already has
+    # and applies the new indices to it, so its users see other stations' logos on a UI that looks
+    # correct. "Ship CSV-only intentionally" means "ship silently wrong icons to a third party".
     [switch]$AllowFaviconlessPublish,
 
     # Favicon sprite-atlas build (S0668). When set, fetch each catalog row's favicon from its
@@ -189,8 +193,13 @@ param(
 
     # Explicit ffmpeg binary; empty means auto-discovery (PATH, then the usual install roots).
     [string]$FfmpegPath = '',
-    # Atlas size ceiling enforced before publish. This must match the app-side import cap. Over the cap
-    # -> publish CSV-only (atlas skipped), never an atlas the app would discard.
+    # S1827: the shared atlas ceiling, 30 MiB, and the ONLY place this repository spells the number.
+    # Three independent consumers carry their own copy of it, and each discards an over-cap atlas in its
+    # own way: this publisher skips bundling it (CSV-only), the app
+    # (ImportStreamCatalogUseCase.MAX_ATLAS_BYTES) drops it and wipes every favicon, and StreamsPlayer
+    # (StreamBankReader.MaximumAtlasBytes, another repository) keeps the previously installed sheet and
+    # applies the new CSV's indices to it, so its channels show other stations' logos while looking
+    # healthy. Enforced at build time by Assert-AtlasBudget and again before publish.
     [int]$MaxAtlasBytes = 31457280,
 
     # Deep-signal catalog probe: pull a few KB of real media body (HLS -> first segment) instead of
@@ -204,6 +213,14 @@ param(
     [string]$ExistingCsv = 'delivery/stream-catalog/streams.csv',
     [string]$OutDir = 'temp',
     [string]$CatalogLivenessReport = 'temp/stream-catalog-liveness.csv',
+    # S1830: a prune that takes a large share of ONE provider is the shape of a probe failure, not of a
+    # provider dying - on 2026-08-19 laut.fm lost 1 321 of its 2 038 rows and nothing printed said so,
+    # because each station has its own subdomain and a per-host histogram showed only 17-row entries.
+    # Refuse such a run and name the provider; -AllowProviderLoss is the deliberate override.
+    [double]$ProviderLossShare = 0.35,
+    [int]$ProviderLossMin = 50,
+    [switch]$AllowProviderLoss,
+
     # Statuses removed by -PruneDead. Default 'dead'; an un-pinned deep-signal run widens it to
     # 'dead','unknown' (S1117) since region-locked channels are separated into their own 'geo' verdict.
     [string[]]$PruneStatuses = @('dead'),
@@ -233,6 +250,16 @@ $ua = 'FastMediaSorter-catalog/1.0 (+stream-candidate-collector)'
 # region-locked channels into their own 'geo' verdict, so the remaining 'unknown' rows are non-geo
 # failures (timeout / SSL / 401 / 5xx) safe to drop. Header-only runs stay conservative ('dead').
 $script:PruneStatusesExplicit = $PSBoundParameters.ContainsKey('PruneStatuses')
+
+# A `pwsh -File` invocation cannot build an array: `-PruneStatuses dead,unknown,geo` arrives as ONE
+# string, which matches no verdict, so the prune finds nothing and reports "Nothing to prune (no rows
+# classified: dead,unknown,geo)" - a wrong verdict that reads exactly like a correct one. Measured
+# 2026-08-19 on a full 19534-row deep-signal sweep that should have pruned 2001 rows. Splitting here
+# costs nothing for a caller that already passed a real array.
+$PruneStatuses = @($PruneStatuses |
+    ForEach-Object { $_ -split ',' } |
+    ForEach-Object { $_.Trim() } |
+    Where-Object { $_ })
 
 # Deep-signal probing pulls media bytes, so it benefits from many more concurrent runspaces than the
 # header-only liveness probe. Bump the default only when the caller did not pin -Throttle explicitly.
@@ -609,6 +636,143 @@ function Invoke-LivenessProbe {
 # body. For HLS it walks master -> media playlist -> first segment and reads bytes off that segment, so
 # a stream that advertises a live playlist but serves no segments is correctly classified 'dead'. Each
 # fetch is bounded by a CancellationToken so endless live bodies are never fully downloaded.
+# S1830: only a verdict that is a claim ABOUT the channel may delete it. 'unknown' records a failed
+# measurement on our side, and it does not even reproduce - two identical deep-signal runs six minutes
+# apart over the same 19 534 rows disagreed by 95 rows. Checked at entry as well as at the prune, so a
+# run that cannot legally prune says so before spending an hour probing rather than after.
+function Assert-PrunableStatuses {
+    param([Parameter(Mandatory = $true)][string[]]$Statuses)
+    if ($Statuses -notcontains 'unknown') { return }
+    throw ("Refusing to prune on 'unknown' (S1830). That verdict means this probe could not measure the row - timeout, TLS, 5xx - not that the channel is dead, and it does not reproduce between runs. " +
+        'Pruning on it deleted 1 321 live stations of a single provider on 2026-08-19, 79% of that run removals, and a deletion is not recoverable: a re-added channel mints a new id, so every affected user loses the pin and the collection membership. ' +
+        'Prune on dead,geo and read the per-run report to see what stayed unmeasured.')
+}
+
+# S1830: the load-spreading and loss-alarm key for one row, built on the existing Get-RegistrableDomain
+# (which already carries the multi-label suffix list, so 'cp-1.owh.radio.br' does not collapse into
+# 'com.br'-shaped nonsense). The wrapper exists because those two uses need a key for EVERY row, while
+# Get-RegistrableDomain returns $null for a bare IP host and for a host with no dot - correct for "what
+# domain would I crawl", wrong for "which endpoint am I about to hammer". Falls back to the host, then
+# to the raw string, so grouping is never silently dropped.
+function Get-ProviderKey {
+    param([Parameter(Mandatory = $true)][string]$Url)
+    $hostName = ''
+    try { $hostName = ([Uri]$Url).Host } catch { $hostName = '' }
+    if ([string]::IsNullOrWhiteSpace($hostName)) { return '<unparsable>' }
+    $domain = Get-RegistrableDomain -hostName $hostName
+    if ([string]::IsNullOrWhiteSpace($domain)) { return $hostName.ToLowerInvariant() }
+    return $domain
+}
+
+# S1830: round-robin the rows across providers so the parallel window never belongs to one host.
+# ForEach-Object -ThrottleLimit caps only the TOTAL number of in-flight requests, and the catalog is
+# sorted by category and name, which on the 2026-08-19 bank put 1 964 rows of one provider in a single
+# contiguous block - so for that whole stretch all 48-64 concurrent requests hit one host, the host
+# started refusing, and the refusals became 'unknown' verdicts that pruned 1 321 live stations.
+# Interleaving drops one provider's share of the window to its share of the bank (10,4% for laut.fm).
+# Only the probe INPUT order changes; the report and the CSV keep their own ordering.
+function Get-ProviderInterleavedRows {
+    param([Parameter(Mandatory = $true)][object[]]$Rows)
+
+    $byProvider = [ordered]@{}
+    foreach ($row in $Rows) {
+        $key = Get-ProviderKey -Url ([string]$row.url)
+        if (-not $byProvider.Contains($key)) { $byProvider[$key] = [System.Collections.Generic.List[object]]::new() }
+        $byProvider[$key].Add($row)
+    }
+
+    $out = [System.Collections.Generic.List[object]]::new()
+    $queues = @($byProvider.Values)
+    $cursor = 0
+    while ($out.Count -lt $Rows.Count) {
+        $placed = $false
+        foreach ($q in $queues) {
+            if ($cursor -lt $q.Count) { $out.Add($q[$cursor]); $placed = $true }
+        }
+        if (-not $placed) { break }
+        $cursor++
+    }
+    return $out.ToArray()
+}
+
+# S1830: ffprobe ships beside ffmpeg, so look next to the resolved ffmpeg first and fall back to PATH.
+# Returns '' instead of throwing: without ffprobe the probe degrades to the old byte criterion with a
+# warning rather than refusing to run at all, because a maintenance run that cannot start repairs
+# nothing.
+function Get-FfprobeExe {
+    if ($script:FfprobeExe) { return $script:FfprobeExe }
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    try {
+        $ffmpeg = Get-FfmpegExe
+        if ($ffmpeg) { $candidates.Add((Join-Path (Split-Path -Parent $ffmpeg) 'ffprobe.exe')) }
+    }
+    catch { $null = $_ }
+    $onPath = (Get-Command ffprobe -ErrorAction SilentlyContinue).Source
+    if ($onPath) { $candidates.Add($onPath) }
+    foreach ($c in $candidates) {
+        if ($c -and (Test-Path $c)) { $script:FfprobeExe = (Resolve-Path $c).Path; return $script:FfprobeExe }
+    }
+    return ''
+}
+
+# S1830: the owner's liveness criterion, 2026-08-20 - "важно не чтобы оно 200 отдавала, а видео или
+# музыку". Returns the codec_type set ffprobe actually found, so a verdict can rest on decoded media
+# instead of on a byte count that an HTML "stream offline" page satisfies just as well.
+# Kept a named function rather than inline runspace code so it stays testable outside the probe; the
+# parallel block re-creates it from this definition, because -Parallel runspaces inherit no functions.
+function Get-MediaStreamKinds {
+    param(
+        [Parameter(Mandatory = $true)][string]$FfprobeExe,
+        [Parameter(Mandatory = $true)][string]$Url,
+        [int]$TimeoutSec = 10
+    )
+
+    $result = [pscustomobject]@{ Kinds = ''; Codecs = ''; Ok = $false }
+
+    $probeArgs = @(
+        '-v', 'error',
+        '-rw_timeout', [string]($TimeoutSec * 1000000),
+        '-analyzeduration', '3000000',
+        '-probesize', '1000000',
+        '-print_format', 'json',
+        '-show_streams',
+        $Url
+    )
+
+    $psi = [System.Diagnostics.ProcessStartInfo]::new($FfprobeExe)
+    foreach ($a in $probeArgs) { $psi.ArgumentList.Add($a) }
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+
+    $proc = $null
+    try {
+        $proc = [System.Diagnostics.Process]::Start($psi)
+        $stdout = $proc.StandardOutput.ReadToEndAsync()
+        if (-not $proc.WaitForExit($TimeoutSec * 1000 + 2000)) {
+            try { $proc.Kill($true) } catch { $null = $_ }
+            return $result
+        }
+        if ($proc.ExitCode -ne 0) { return $result }
+        $text = $stdout.GetAwaiter().GetResult()
+        if ([string]::IsNullOrWhiteSpace($text)) { return $result }
+        $streams = @(($text | ConvertFrom-Json).streams)
+        if ($streams.Count -eq 0) { return $result }
+        $kinds = @($streams | ForEach-Object { $_.codec_type } | Where-Object { $_ } | Sort-Object -Unique)
+        $result.Kinds = ($kinds -join '+')
+        $result.Codecs = (@($streams | ForEach-Object { $_.codec_name } | Where-Object { $_ } | Sort-Object -Unique) -join ',')
+        $result.Ok = ($kinds -contains 'audio') -or ($kinds -contains 'video')
+    }
+    catch {
+        $null = $_
+    }
+    finally {
+        if ($proc) { try { $proc.Dispose() } catch { $null = $_ } }
+    }
+    return $result
+}
+
 function Invoke-SignalProbe {
     param(
         [Parameter(Mandatory = $true)][object[]]$Rows,
@@ -617,15 +781,29 @@ function Invoke-SignalProbe {
 
     if (-not $Rows -or $Rows.Count -eq 0) { return @() }
 
-    Write-Host ("{0} {1} URLs (throttle {2}, timeout {3}s, pull up to {4} KB) .." -f `
-            $Activity, $Rows.Count, $Throttle, $SignalTimeoutSec, [int]($SignalBytes / 1024)) -ForegroundColor Yellow
+    $ffprobeExe = Get-FfprobeExe
+    if (-not $ffprobeExe) {
+        Write-Warning ('ffprobe not found - liveness falls back to the byte criterion, under which a ' +
+            'host returning an HTML "stream offline" page reads as alive (S1830).')
+    }
+    # -Parallel runspaces inherit no functions, so the definition travels as text and is re-created inside.
+    $mediaProbeDef = ${function:Get-MediaStreamKinds}.ToString()
 
-    $probeJob = $Rows | ForEach-Object -ThrottleLimit $Throttle -Parallel {
+    $ordered = Get-ProviderInterleavedRows -Rows $Rows
+    $providerCount = @($Rows | ForEach-Object { Get-ProviderKey -Url ([string]$_.url) } | Sort-Object -Unique).Count
+
+    Write-Host ("{0} {1} URLs across {2} provider(s), interleaved (throttle {3}, timeout {4}s, pull up to {5} KB, media check {6}) .." -f `
+            $Activity, $Rows.Count, $providerCount, $Throttle, $SignalTimeoutSec, [int]($SignalBytes / 1024),
+            $(if ($ffprobeExe) { 'ffprobe' } else { 'BYTES ONLY' })) -ForegroundColor Yellow
+
+    $probeJob = $ordered | ForEach-Object -ThrottleLimit $Throttle -Parallel {
+        ${function:Get-MediaStreamKinds} = $using:mediaProbeDef
         $row      = $_
         $timeout  = $using:SignalTimeoutSec
         $maxBytes = $using:SignalBytes
         $minBytes = $using:SignalMinBytes
         $ua2      = $using:ua
+        $ffprobe  = $using:ffprobeExe
         $url      = ([string]$row.url).Trim()
         $fmt      = ([string]$row.format).ToLowerInvariant()
         $proto    = ([string]$row.protocol).ToUpperInvariant()
@@ -635,7 +813,24 @@ function Invoke-SignalProbe {
         $note     = ''
         $gotBytes = 0
 
-        if ($url -like 'rtsp://*') {
+        # S1830: ask the decoder first. The playable majority then costs one ffprobe instead of a body
+        # pull, and only what it cannot confirm falls through to the branches below - whose job narrows
+        # to telling geo from dead from "we could not measure".
+        $mediaKinds = ''
+        $mediaCodecs = ''
+        $mediaConfirmed = $false
+        if ($ffprobe) {
+            $media = Get-MediaStreamKinds -FfprobeExe $ffprobe -Url $url -TimeoutSec $timeout
+            $mediaKinds = $media.Kinds
+            $mediaCodecs = $media.Codecs
+            $mediaConfirmed = $media.Ok
+        }
+
+        if ($mediaConfirmed) {
+            $status = 'alive'
+            $note = "media $mediaKinds [$mediaCodecs]"
+        }
+        elseif ($url -like 'rtsp://*') {
             # RTSP: OPTIONS handshake over a raw socket; a valid RTSP reply line proves a live server.
             try {
                 $u = [Uri]$url
@@ -798,10 +993,21 @@ function Invoke-SignalProbe {
             }
         }
 
+        # S1830: bytes are not media. When ffprobe ran and found no audio or video stream, an 'alive'
+        # reached on byte count alone is exactly the false positive the owner ruled out - an HTML
+        # "stream offline" page satisfies it. Downgrade to 'unknown' ("we could not confirm"), never to
+        # 'dead': that would be a claim about the channel this probe did not earn.
+        if ($ffprobe -and -not $mediaConfirmed -and $status -eq 'alive') {
+            $status = 'unknown'
+            $note = "no decodable media ($note)"
+        }
+
         Add-Member -InputObject $row -NotePropertyName 'liveness_status' -NotePropertyValue $status -Force
         Add-Member -InputObject $row -NotePropertyName 'http_code' -NotePropertyValue $httpCode -Force
         Add-Member -InputObject $row -NotePropertyName 'liveness_note' -NotePropertyValue $note -Force
         Add-Member -InputObject $row -NotePropertyName 'signal_bytes' -NotePropertyValue $gotBytes -Force
+        Add-Member -InputObject $row -NotePropertyName 'media_kinds' -NotePropertyValue $mediaKinds -Force
+        Add-Member -InputObject $row -NotePropertyName 'media_codecs' -NotePropertyValue $mediaCodecs -Force
         $row
     } -AsJob
 
@@ -1620,6 +1826,42 @@ function Invoke-ArtworkCacheFetch {
 # to $AtlasPath, and return a hashtable mapping each packed row's url -> zero-based tile ordinal. Rows
 # whose favicon could not be fetched/decoded are absent from the map (their favicon_index stays blank).
 # System.Drawing (GDI+) handles decode (.ico/.png/.gif/.jpg via Image.FromStream), scaling, and PNG save.
+# S1827: report the freshly written atlas against the shared byte ceiling, and refuse an over-cap sheet
+# HERE, where it is built, instead of at publish time. Before this the only check sat in
+# Invoke-PublishCatalog, so a run learned it had overshot only after fetching every homepage in the
+# catalog - and the headroom was never printed at all, so approaching the ceiling was invisible.
+# An over-cap atlas is rolled back to its backup (or deleted when there was none) before the throw:
+# leaving the new PNG on disk next to a CSV still carrying the previous indices is the one state that
+# silently mismatches, and it is exactly the pairing every consumer resolves by showing wrong icons.
+function Assert-AtlasBudget {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][int]$Tiles,
+        [string]$RestoreFrom = ''
+    )
+
+    $bytes = (Get-Item $Path).Length
+    $percent = if ($MaxAtlasBytes -gt 0) { ($bytes / $MaxAtlasBytes) * 100 } else { 0 }
+    $perTile = if ($Tiles -gt 0) { $bytes / $Tiles } else { 0 }
+    $fits = if ($perTile -gt 0) { [int][Math]::Floor($MaxAtlasBytes / $perTile) } else { 0 }
+
+    Write-Host ("Favicons: atlas budget {0:N0} of {1:N0} B ({2:N1}% of the shared ceiling), {3:N0} B/tile, room for about {4:N0} tile(s) at this density." -f `
+            $bytes, $MaxAtlasBytes, $percent, $perTile, $fits) -ForegroundColor Cyan
+
+    if ($bytes -le $MaxAtlasBytes) { return }
+
+    if ($RestoreFrom -and (Test-Path $RestoreFrom)) {
+        Copy-Item -Path $RestoreFrom -Destination $Path -Force
+        Write-Warning ("Restored the previous atlas from {0}; the over-cap sheet was discarded." -f $RestoreFrom)
+    }
+    elseif (Test-Path $Path) {
+        Remove-Item -Path $Path -Force
+    }
+
+    throw ("Favicon atlas is {0:N0} B, over the {1:N0} B ceiling shared with the app (ImportStreamCatalogUseCase.MAX_ATLAS_BYTES) and with StreamsPlayer (StreamBankReader.MaximumAtlasBytes). About {2:N0} tile(s) fit at this density and {3:N0} were packed. Every consumer discards an over-cap atlas, and none of them says so to the user: the app wipes every favicon, while StreamsPlayer keeps the previously installed sheet and applies the new indices to it, so its channels show other stations' logos and look healthy." -f `
+            $bytes, $MaxAtlasBytes, $fits, $Tiles)
+}
+
 function Build-FaviconAtlas {
     param([Parameter(Mandatory = $true)][object[]]$Rows, [Parameter(Mandatory = $true)][string]$AtlasPath)
 
@@ -1687,13 +1929,14 @@ function Build-FaviconAtlas {
 
     $parent = Split-Path -Parent $AtlasPath
     if ($parent -and -not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
-    Backup-IfExists -Path $AtlasPath | Out-Null
+    $atlasBackup = Backup-IfExists -Path $AtlasPath
     $atlas.Save($AtlasPath, [System.Drawing.Imaging.ImageFormat]::Png)
     $atlas.Dispose()
 
     $sizeKb = (Get-Item $AtlasPath).Length / 1KB
     Write-Host ("Favicons: packed {0} tile(s) into {1}x{2} atlas -> {3} ({4:N1} KB)." -f `
             $packable.Count, $atlasW, $atlasH, $AtlasPath, $sizeKb) -ForegroundColor Green
+    Assert-AtlasBudget -Path $AtlasPath -Tiles $packable.Count -RestoreFrom $atlasBackup
     return $map
 }
 
@@ -2426,6 +2669,7 @@ function Invoke-CatalogMaintenance {
     $allRows = @(Import-Csv -Path $ExistingCsv)
     if (-not $allRows -or $allRows.Count -eq 0) { throw "No rows in $ExistingCsv" }
     if ($Limit -gt 0 -and $PruneDead) { throw '-Limit cannot be combined with -PruneDead (pruning needs a full-catalog probe).' }
+    Assert-PrunableStatuses -Statuses $PruneStatuses
 
     # S0668: build the favicon atlas over the FULL catalog and stamp favicon_index on every row before
     # any CSV write. Indices are set on $allRows, so the prune path's $survivors (same objects) keep
@@ -2453,24 +2697,38 @@ function Invoke-CatalogMaintenance {
 
     $reportRows = $probed | ForEach-Object {
         [pscustomobject]@{
-            status     = $_.liveness_status
-            http       = $_.http_code
-            bytes      = $_.signal_bytes
-            note       = $_.liveness_note
-            media_kind = $_.media_kind
-            category   = $_.category
-            topic      = $_.topic
-            name       = $_.name
-            url        = $_.url
-            country    = $_.country
-            homepage   = $_.homepage
+            status       = $_.liveness_status
+            http         = $_.http_code
+            bytes        = $_.signal_bytes
+            note         = $_.liveness_note
+            media_kind   = $_.media_kind
+            media_found  = $_.media_kinds
+            media_codecs = $_.media_codecs
+            provider     = (Get-ProviderKey -Url ([string]$_.url))
+            category     = $_.category
+            topic        = $_.topic
+            name         = $_.name
+            url          = $_.url
+            country      = $_.country
+            homepage     = $_.homepage
         }
     }
-    Write-CsvUtf8 -Rows ($reportRows | Sort-Object status, category, topic, name) -Path $CatalogLivenessReport `
-        -Columns @('status', 'http', 'bytes', 'note', 'media_kind', 'category', 'topic', 'name', 'url', 'country', 'homepage')
+    $reportColumns = @('status', 'http', 'bytes', 'note', 'media_kind', 'media_found', 'media_codecs',
+        'provider', 'category', 'topic', 'name', 'url', 'country', 'homepage')
+    $sortedReport = $reportRows | Sort-Object status, category, topic, name
+    Write-CsvUtf8 -Rows $sortedReport -Path $CatalogLivenessReport -Columns $reportColumns
+
+    # S1830: also keep a per-run copy. The single fixed path is overwritten by whatever runs next, and
+    # on 2026-08-19 the publish run six minutes later erased the per-row verdicts of the prune that had
+    # just deleted 1 906 rows - so the one action that destroyed user data left nothing to audit.
+    $runStamp = (Get-Date).ToString('yyyyMMdd-HHmmss')
+    $runReport = Join-Path (Split-Path -Parent $CatalogLivenessReport) `
+        ("{0}.{1}.csv" -f [System.IO.Path]::GetFileNameWithoutExtension($CatalogLivenessReport), $runStamp)
+    Write-CsvUtf8 -Rows $sortedReport -Path $runReport -Columns $reportColumns
+
     Show-LivenessSummary -Rows $probed -Title '=== Catalog liveness summary ==='
     Write-Host ''
-    Write-Host ("Report written: {0}" -f $CatalogLivenessReport) -ForegroundColor Green
+    Write-Host ("Report written: {0} (per-run copy: {1})" -f $CatalogLivenessReport, $runReport) -ForegroundColor Green
 
     # S1117: stamp the access flag from the deep-signal verdict onto the original catalog rows so a
     # prune write persists it. 'geo' (region-locked 403/451) -> access='geo'; every other verdict
@@ -2486,10 +2744,15 @@ function Invoke-CatalogMaintenance {
         }
     }
 
-    # S1117: widen prune to 'dead','unknown' on an un-pinned deep-signal run - geo is now its own
-    # verdict, so surviving 'unknown' rows are non-geo failures safe to drop. Header-only or a
-    # caller-pinned -PruneStatuses stays exactly as given.
-    $pruneStatuses = if ($DeepSignal -and -not $script:PruneStatusesExplicit) { @('dead', 'unknown') } else { $PruneStatuses }
+    # S1830 supersedes the S1117 widening. 'unknown' means "this probe could not measure the row", not
+    # "the channel is dead", and it does not reproduce: two identical deep-signal runs six minutes apart
+    # over the same 19 534 rows disagreed by 95 rows. Pruning on it deleted 1 512 rows on 2026-08-19,
+    # 79% of that day's removals, and a deletion is not recoverable - a re-added channel gets a new id,
+    # so the user's pin and collection membership do not come back. Only a verdict that is a claim ABOUT
+    # the channel may prune: 'dead' (404/410, DNS failure, refused) and 'geo' (403/451, owner ruling
+    # 2026-08-19).
+    $pruneStatuses = if ($DeepSignal -and -not $script:PruneStatusesExplicit) { @('dead', 'geo') } else { $PruneStatuses }
+    Assert-PrunableStatuses -Statuses $pruneStatuses
 
     $pruneUrls = @($probed | Where-Object { $pruneStatuses -contains $_.liveness_status } | ForEach-Object { [string]$_.url })
     $pruneSet = [System.Collections.Generic.HashSet[string]]::new()
@@ -2506,6 +2769,37 @@ function Invoke-CatalogMaintenance {
         $reportRows | Where-Object { $pruneSet.Contains([string]$_.url) } | Sort-Object category, topic, name |
             ForEach-Object { " - [{0}] {1}  ({2})  {3}" -f $_.category, $_.name, $_.note, $_.url }
         return
+    }
+
+    # S1830: last gate before an irreversible write. A provider losing most of its rows is what a
+    # self-inflicted rate limit looks like from here, and it is invisible in every other number the run
+    # prints, so it gets its own refusal rather than a line in a log nobody reads afterwards.
+    $providerTotals = @{}
+    foreach ($r in $allRows) {
+        $k = Get-ProviderKey -Url ([string]$r.url)
+        $providerTotals[$k] = 1 + [int]$providerTotals[$k]
+    }
+    $providerLosses = @{}
+    foreach ($u in $pruneSet) {
+        $k = Get-ProviderKey -Url $u
+        $providerLosses[$k] = 1 + [int]$providerLosses[$k]
+    }
+    $offenders = @($providerLosses.Keys | Where-Object {
+            $lost = [int]$providerLosses[$_]
+            $total = [int]$providerTotals[$_]
+            $lost -ge $ProviderLossMin -and $total -gt 0 -and ($lost / $total) -ge $ProviderLossShare
+        } | Sort-Object { - [int]$providerLosses[$_] })
+
+    if ($offenders.Count -gt 0) {
+        foreach ($o in $offenders) {
+            Write-Host ("  provider loss: {0} - {1} of {2} row(s) ({3:P1})" -f `
+                    $o, $providerLosses[$o], $providerTotals[$o], ($providerLosses[$o] / $providerTotals[$o])) -ForegroundColor Red
+        }
+        if (-not $AllowProviderLoss) {
+            throw ("Refusing to prune: {0} provider(s) above the loss threshold ({1:P0} of their rows and at least {2}). A whole provider going dark in one run is far more often our probe under self-inflicted load than the provider actually dying - that is exactly how 1 321 live stations were deleted on 2026-08-19. Re-probe those rows on their own before deciding, or pass -AllowProviderLoss when the loss is real." -f `
+                    $offenders.Count, $ProviderLossShare, $ProviderLossMin)
+        }
+        Write-Warning '-AllowProviderLoss set: pruning despite the provider-wide loss above.'
     }
 
     $backup = Backup-IfExists -Path $ExistingCsv
@@ -2560,7 +2854,7 @@ function Invoke-PublishCatalog {
     if (-not $bundledAtlas) {
         $csvFaviconIndexed = @(Import-Csv $CsvPath | Where-Object { $_.favicon_index -match '^\d+$' }).Count
         if ($csvFaviconIndexed -gt 0 -and -not $AllowFaviconlessPublish) {
-            throw ("Refusing to publish: {0} row(s) carry favicon_index but no atlas is bundled (missing '{1}' or over the {2:N1} KB cap). The app would wipe all favicons. Restore/rebuild the atlas (-WithFavicons), or pass -AllowFaviconlessPublish to ship CSV-only intentionally." -f `
+            throw ("Refusing to publish: {0} row(s) carry favicon_index but no atlas is bundled (missing '{1}' or over the {2:N1} KB cap). Two consumers, two different failures: the app wipes all favicons, and StreamsPlayer keeps the atlas it already installed and applies these new indices to it, so its channels show other stations' logos and look healthy. Restore/rebuild the atlas (-WithFavicons), or pass -AllowFaviconlessPublish to ship CSV-only intentionally - which means shipping silently wrong icons to that third party." -f `
                     $csvFaviconIndexed, $AtlasFile, ($MaxAtlasBytes / 1KB))
         }
     }

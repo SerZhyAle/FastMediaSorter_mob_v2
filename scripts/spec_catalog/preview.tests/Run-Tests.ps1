@@ -105,10 +105,11 @@ $script:probeIds = @()
 # of a live fixture must not shift the ids of the cases after it, or a failure would name a
 # different probe than the one that produced it.
 $script:probeIdBySlug = @{
-    'preview-tests-probe-note'      = 'S9991'
-    'preview-tests-probe'           = 'S9992'
-    'preview-tests-probe-relations' = 'S9993'
-    'preview-tests-probe-token'     = 'S9994'
+    'preview-tests-probe-note'          = 'S9991'
+    'preview-tests-probe'               = 'S9992'
+    'preview-tests-probe-relations'     = 'S9993'
+    'preview-tests-probe-token'         = 'S9994'
+    'preview-tests-probe-draft-blocker' = 'S9995'
 }
 
 # Insert a throwaway spec through the CLI and remember it for the finally block. Body is written
@@ -293,6 +294,29 @@ Temporary fixture written by scripts/spec_catalog/preview.tests/Run-Tests.ps1. D
     } else {
         Write-Host '  SKIP  F - fewer than two Draft specs to use as blocker fixtures' -ForegroundColor DarkGray
     }
+
+    # --- G (S1775): a Draft spec with an unverified blocker gets auto_skip = blocker-not-verified regardless of status ---
+    Write-Host 'G (S1775): Draft spec with unverified blocker is auto-skipped' -ForegroundColor Yellow
+    if ($drafts.Count -ge 2) {
+        $blockerIdG = $drafts[0].id
+        $probeG = New-Probe -Slug 'preview-tests-probe-draft-blocker' -Body @"
+# <ID> - preview.tests probe (draft blocker S1775)
+
+**Status:** Draft
+
+Temporary fixture written by scripts/spec_catalog/preview.tests/Run-Tests.ps1. Deleted by the same run.
+
+**Depends on:** $blockerIdG
+"@
+        Assert-That 'G0 draft blocker probe inserted' ([bool]$probeG) "insert.ps1 exit $LASTEXITCODE"
+        $pvG = if ($probeG) { Get-Preview $probeG } else { $null }
+        if ($pvG) {
+            $skipG = if ($pvG.auto_skip) { $pvG.auto_skip } else { 'null' }
+            Assert-That 'G1 Draft spec with unverified blocker has auto_skip = blocker-not-verified' ($skipG -eq 'blocker-not-verified') "got '$skipG'"
+        }
+    } else {
+        Write-Host '  SKIP  G - fewer than two Draft specs to use as blocker fixtures' -ForegroundColor DarkGray
+    }
 }
 finally {
     # Per record, never the whole journal (S1490) - see the header note.
@@ -307,14 +331,14 @@ finally {
         $left = if ($raw) { @($raw | ConvertFrom-Json) } else { @() }
         if (@($left | Where-Object { $_.status -ne 'Archived' }).Count -gt 0) { $residue += $p.id }
     }
-    if ($residue.Count -gt 0) {
-        Write-Host "  FAIL  probe cleanup left $($residue.Count) live record(s) in the catalog" -ForegroundColor Red
+    if (@($residue).Count -gt 0) {
+        Write-Host "  FAIL  probe cleanup left $(@($residue).Count) live record(s) in the catalog" -ForegroundColor Red
         foreach ($leftId in $residue) {
             Write-Host "        pwsh -NoProfile -File scripts/spec_catalog/delete.ps1 -Id $leftId -Confirm" -ForegroundColor Red
         }
-        $script:fail += $residue.Count
+        $script:fail += @($residue).Count
     }
-    Write-Host "$($script:probeIds.Count) probe(s) removed per record" -ForegroundColor DarkGray
+    Write-Host "$(@($script:probeIds).Count) probe(s) removed per record" -ForegroundColor DarkGray
 
     # Sandbox down and the redirect cleared BEFORE the leak check - with the variable still set,
     # select.ps1 would answer from the copy and the check would pass no matter what leaked.
@@ -338,8 +362,8 @@ finally {
     if (@($leaked).Count -gt 0 -or @($archiveJunk).Count -gt 0) {
         Write-Host "  FAIL  probes leaked into the REAL catalog - the sandbox did not hold" -ForegroundColor Red
         foreach ($leakedId in $leaked) { Write-Host "        reserved id $leakedId resolves against PLAN/" -ForegroundColor Red }
-        if ($archiveJunk.Count -gt 0) {
-            Write-Host "        $($archiveJunk.Count) preview-tests-probe row(s) in PLAN/spec-catalog-archive.jsonl" -ForegroundColor Red
+        if (@($archiveJunk).Count -gt 0) {
+            Write-Host "        $(@($archiveJunk).Count) preview-tests-probe row(s) in PLAN/spec-catalog-archive.jsonl" -ForegroundColor Red
             Write-Host "        pwsh -NoProfile -File scripts/spec_catalog/purge-probe-records.ps1" -ForegroundColor Red
         }
         $script:fail++

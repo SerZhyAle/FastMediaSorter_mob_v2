@@ -47,6 +47,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             "showSmallControls" -> settings.copy(showSmallControls = raw.toBool())
             "enableCalculator" -> settings.copy(enableCalculator = raw.toBool())
             "embeddedGameEnabled" -> settings.copy(embeddedGameEnabled = raw.toBool())
+            "frontFlashlightEnabled" -> settings.copy(frontFlashlightEnabled = raw.toBool())
             "enableNetworkMonitor" -> settings.copy(enableNetworkMonitor = raw.toBool())
             "isCacheSizeUserModified" -> settings.copy(isCacheSizeUserModified = raw.toBool())
             "enableBackgroundSync" -> settings.copy(enableBackgroundSync = raw.toBool())
@@ -348,6 +349,9 @@ class DeviceProfilePresetApplier @Inject constructor(
             "launcherTopStatusStripMode" -> applyLauncherField(field, raw, settings) { s ->
                 s.copy(launcherTopStatusStripMode = raw.toBool())
             }
+            "launcherForeignNotificationsEnabled" -> applyLauncherField(field, raw, settings) { s ->
+                s.copy(launcherForeignNotificationsEnabled = raw.toBool())
+            }
             "launcherTrayShowClock" -> applyLauncherField(field, raw, settings) { s ->
                 s.copy(launcherTrayShowClock = raw.toBool())
             }
@@ -372,6 +376,9 @@ class DeviceProfilePresetApplier @Inject constructor(
             "launcherWallpaperMode" -> applyLauncherField(field, raw, settings) { s ->
                 raw.trim().takeIf { it in AppSettings.LAUNCHER_WALLPAPER_MODES }
                     ?.let { s.copy(launcherWallpaperMode = it) }
+            }
+            "launcherScreenBlackoutTimeoutSeconds" -> applyLauncherField(field, raw, settings) { s ->
+                raw.trim().toIntOrNull()?.coerceAtLeast(0)?.let { s.copy(launcherScreenBlackoutTimeoutSeconds = it) }
             }
 
             // ── String set fields (delimiter: comma, semicolon or pipe) ───

@@ -25,6 +25,7 @@ For every screen and input:
 • Full keyboard, TV remote / D-pad and gamepad navigation.
 • Home-screen widgets - resource launch, continue reading, random music, camera photos.
 • Quick Settings tile for background audio. Search across every settings entry.
+• Wear OS support - browse local media and play from network shares transferred from your phone directly on your watch, without requiring a constant phone connection.
 
 Why the app asks for access to all files:
 

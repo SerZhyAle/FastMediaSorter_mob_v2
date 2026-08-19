@@ -77,6 +77,9 @@ class CredentialAuditor @Inject constructor(
                 label          = "${entity.server}:${entity.port} (${entity.username})",
                 status         = status,
                 createdAt      = entity.createdDate,
+                // S1649: the clock the policy actually reads. Null until the background worker stamps
+                // it, which is also the state of every row right after the schema 51 migration.
+                orphanedSince  = entity.orphanedSince,
                 eligibleForCleanup = false // set below via policy
             )
             entry.copy(eligibleForCleanup = unusedCredentialPolicy.isEligibleForCleanup(entry, now))

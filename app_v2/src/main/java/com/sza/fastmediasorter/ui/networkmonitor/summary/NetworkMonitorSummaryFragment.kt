@@ -71,6 +71,34 @@ class NetworkMonitorSummaryFragment : Fragment() {
         statusViews.forEach { (section, view) ->
             view.setText(state.sections[section].toStatusRes())
         }
+        renderFacts(state)
+    }
+
+    /**
+     * S1617: a tile with no fact loses the line rather than showing a placeholder - the ticket exists
+     * because these tiles were bulky and said nothing, and "no data" would be more of both.
+     */
+    private fun renderFacts(state: NetworkMonitorSummaryUiState) {
+        tileFactViews().forEach { (section, view) ->
+            val text = state.facts[section]?.let { fact -> factText(fact) }
+            view.text = text.orEmpty()
+            view.isVisible = !text.isNullOrBlank()
+        }
+    }
+
+    private fun factText(fact: SectionFact): String? = when (fact) {
+        is SectionFact.Name -> fact.value
+        is SectionFact.WifiLink -> wifiLinkText(fact)
+        is SectionFact.BondedDevices -> getString(R.string.network_monitor_fact_bonded_devices, fact.count)
+        is SectionFact.ExternalAddress -> fact.value
+    }
+
+    /** Either half may be missing, and a lone separator would read as a rendering fault. */
+    private fun wifiLinkText(fact: SectionFact.WifiLink): String? {
+        val speed = fact.linkSpeedMbps?.let { getString(R.string.network_monitor_fact_link_speed, it) }
+        return listOfNotNull(fact.ssid?.takeIf { it.isNotBlank() }, speed)
+            .joinToString(separator = " - ")
+            .ifBlank { null }
     }
 
     private fun renderActiveCard(state: NetworkMonitorSummaryUiState) {
@@ -100,6 +128,15 @@ class NetworkMonitorSummaryFragment : Fragment() {
         NetworkMonitorSection.Gnss to binding.tileGnss,
         NetworkMonitorSection.Internet to binding.tileInternet,
         NetworkMonitorSection.History to binding.tileHistory,
+    )
+
+    private fun tileFactViews(): Map<NetworkMonitorSection, TextView> = mapOf(
+        NetworkMonitorSection.Wifi to binding.tileWifiFact,
+        NetworkMonitorSection.Mobile to binding.tileMobileFact,
+        NetworkMonitorSection.Bluetooth to binding.tileBluetoothFact,
+        NetworkMonitorSection.Gnss to binding.tileGnssFact,
+        NetworkMonitorSection.Internet to binding.tileInternetFact,
+        NetworkMonitorSection.History to binding.tileHistoryFact,
     )
 
     private fun tileStatusViews(): Map<NetworkMonitorSection, TextView> = mapOf(

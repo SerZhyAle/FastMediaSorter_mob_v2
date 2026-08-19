@@ -6,6 +6,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -21,6 +22,11 @@ import org.robolectric.annotation.Config
  * "too many SQL variables". Each scenario here exceeds that 999-variable limit so a reintroduced
  * giant IN/NOT IN clause fails the test where the runtime enforces the cap, while always asserting
  * correct add/update/prune semantics at scale.
+ *
+ * S1826 regression: the prune deletes catalog rows by url and so never learns the ids it removed,
+ * which left every pruned channel's `stream_play_outcome` row behind as an unreachable orphan keyed
+ * by a dead UUID. The three orphan tests below cover the prune, the already-stranded backlog, and the
+ * downloaded-streams wipe that shares the defect.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -31,6 +37,7 @@ class StreamSourceCatalogMergeTest {
     val dbRule = InMemoryRoomRule { RuntimeEnvironment.getApplication() }
 
     private val dao get() = dbRule.db.streamSourceDao()
+    private val outcomeDao get() = dbRule.db.streamPlayOutcomeDao()
     private val repo get() = StreamSourceRepository(
         dbRule.db,
         dao,
@@ -93,6 +100,53 @@ class StreamSourceCatalogMergeTest {
         assertEquals("My channel", row.title)
     }
 
+    @Test
+    fun mergeCatalog_prune_takesThePrunedChannelsPlayOutcome() = runTest {
+        repo.mergeCatalog(listOf(catalogEntry(0), catalogEntry(1)))
+        outcomeDao.markPlayOutcome("cat-0", "OK", RECORDED_AT)
+        outcomeDao.markPlayOutcome("cat-1", "FAIL", RECORDED_AT)
+
+        // The second catalog drops channel 0, so its outcome must go with it.
+        repo.mergeCatalog(listOf(catalogEntry(1)))
+
+        assertNull(outcomeDao.outcomeFor("cat-0"))
+        assertEquals("FAIL", outcomeDao.outcomeFor("cat-1"))
+    }
+
+    @Test
+    fun mergeCatalog_clearsOutcomesStrandedByEarlierImports() = runTest {
+        // A row an earlier build's prune left behind: no stream_sources row has ever carried this id.
+        outcomeDao.markPlayOutcome("stranded-by-an-older-build", "OK", RECORDED_AT)
+
+        repo.mergeCatalog(listOf(catalogEntry(0)))
+
+        assertNull(outcomeDao.outcomeFor("stranded-by-an-older-build"))
+    }
+
+    @Test
+    fun deleteAllDownloaded_takesOutcomesOfDownloadedRowsAndKeepsManualOnes() = runTest {
+        repo.mergeCatalog(listOf(catalogEntry(0)))
+        dao.upsert(
+            StreamSourceEntity(
+                id = "manual-1",
+                url = "https://manual.example/live.m3u8",
+                title = "My channel",
+                mediaKind = "VIDEO",
+                sourceOrigin = "MANUAL",
+                sortIndex = 0,
+                addedAt = 0L,
+            ),
+        )
+        outcomeDao.markPlayOutcome("cat-0", "OK", RECORDED_AT)
+        outcomeDao.markPlayOutcome("manual-1", "FAIL", RECORDED_AT)
+
+        val removed = repo.deleteAllDownloaded()
+
+        assertEquals(1, removed)
+        assertNull(outcomeDao.outcomeFor("cat-0"))
+        assertEquals("FAIL", outcomeDao.outcomeFor("manual-1"))
+    }
+
     private fun catalogEntry(index: Int) = StreamSourceEntity(
         id = "cat-$index",
         url = "https://stream.example/$index.m3u8",
@@ -109,5 +163,6 @@ class StreamSourceCatalogMergeTest {
         const val LARGE_CATALOG = 1500
         const val SECOND_CATALOG = 1100
         const val DISJOINT_OFFSET = 100_000
+        const val RECORDED_AT = 1_000L
     }
 }

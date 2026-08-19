@@ -244,6 +244,12 @@ if ($buildResult.ExitCode -ne 0) {
 if ($buildResult.ExitCode -ne 0) {
     Save-BuildLog -OutputText $buildResult.Output
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red
+    # S1786: auto-emit structured failure digest
+    $bfdScript = Join-Path $PSScriptRoot "build-failure-digest.ps1"
+    if (Test-Path $bfdScript) {
+        Write-Host "`n--- Build Failure Digest ---" -ForegroundColor Yellow
+        & $bfdScript -LogPath $buildLogPath
+    }
     exit $buildResult.ExitCode
 }
 

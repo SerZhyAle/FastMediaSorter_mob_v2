@@ -7,12 +7,13 @@ import com.sza.fastmediasorter.wear.data.network.ftp.FtpConnectionTest
 import com.sza.fastmediasorter.wear.data.network.sftp.SftpConnectionTest
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
+import com.sza.fastmediasorter.wear.domain.model.NetworkSourceMerge
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -78,14 +79,14 @@ class NetworkSourceRepositoryImpl(
     override suspend fun upsertSource(source: NetworkSource) = withContext(Dispatchers.IO) {
         try {
             val sources = sourcesFlow.value.toMutableList()
-            val index = sources.indexOfFirst { existing ->
-                existing.type == source.type &&
-                existing.server == source.server &&
-                existing.port == source.port &&
-                existing.shareName == source.shareName
-            }
+            val index = NetworkSourceMerge.indexOfMatch(sources, source)
+            Timber.d("S1734: upsert ${source.name} basePath=${source.basePath} matchIndex=$index")
             if (index != -1) {
-                sources[index] = source.copy(id = sources[index].id) // preserve original id
+                // S1734: the incoming id is kept, not replaced by the stored one. Preserving the old
+                // id was what made the discrepancy permanent - a row matched by the share tuple kept
+                // an id the phone never sends again, so every later sync counted it as new. Adopting
+                // the incoming id lets the next sync match by id and the counts converge.
+                sources[index] = source
                 Timber.d("upsertSource: updated ${source.name}")
             } else {
                 sources.add(source)

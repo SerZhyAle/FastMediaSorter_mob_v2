@@ -85,6 +85,7 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
                 launcherTaskbarShowTray = defaults.launcherTaskbarShowTray,
                 launcherReplaceSystemStatusArea = defaults.launcherReplaceSystemStatusArea,
                 launcherTopStatusStripMode = defaults.launcherTopStatusStripMode,
+                launcherForeignNotificationsEnabled = defaults.launcherForeignNotificationsEnabled,
                 launcherTaskbarPlacement = defaults.launcherTaskbarPlacement,
                 launcherTrayShowClock = defaults.launcherTrayShowClock,
                 launcherTrayShowBluetooth = defaults.launcherTrayShowBluetooth,
@@ -96,6 +97,8 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
                 launcherDesktopLocked = defaults.launcherDesktopLocked,
                 launcherWallpaperMode = defaults.launcherWallpaperMode,
                 launcherWallpaperImagePath = defaults.launcherWallpaperImagePath,
+                launcherScreenBlackoutTimeoutSeconds = defaults.launcherScreenBlackoutTimeoutSeconds,
+                launcherWidgetBackdropAlpha = defaults.launcherWidgetBackdropAlpha,
             )
         }
     }

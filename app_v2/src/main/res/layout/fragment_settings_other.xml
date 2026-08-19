@@ -143,24 +143,6 @@
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small" />
 
-        <!-- OCR Engine Type (S0288) - trigger row opens SimpleValueChoiceDialog (S0646). -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
-            android:id="@+id/rowOcrEngineType"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
-            app:ssr_title="@string/ocr_engine_type" />
-
-        <!-- PaddleOCR Model Selection (S0288) - trigger row opens SimpleValueChoiceDialog (S0646). -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
-            android:id="@+id/rowPaddleOcrModel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
-            app:ssr_title="@string/paddle_ocr_model" />
-
         <!-- OCR Font Size - trigger row opens SimpleValueChoiceDialog (S0646). -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
             android:id="@+id/rowOcrFontSize"

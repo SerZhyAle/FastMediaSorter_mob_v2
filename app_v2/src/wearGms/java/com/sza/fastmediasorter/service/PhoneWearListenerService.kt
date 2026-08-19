@@ -51,6 +51,8 @@ class PhoneWearListenerService : WearableListenerService() {
 
     @Inject lateinit var wearableDataLayerRepository: WearableDataLayerRepository
 
+    @Inject lateinit var wearLogReportReceiver: WearLogReportReceiver
+
     @Inject lateinit var gson: Gson
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -65,6 +67,8 @@ class PhoneWearListenerService : WearableListenerService() {
             WearDataLayerPaths.PHONE_RESOURCE_BROWSE_REQUEST -> handlePhoneResourceBrowse(event.data)
             WearDataLayerPaths.PHONE_RESOURCE_OPEN_REQUEST ->
                 handlePhoneResourceOpen(event.sourceNodeId, event.data)
+            WearDataLayerPaths.LOG_REPORT_REQUEST ->
+                handleLogReport(event.sourceNodeId, event.data)
         }
     }
 
@@ -123,6 +127,12 @@ class PhoneWearListenerService : WearableListenerService() {
             } catch (e: Exception) {
                 Timber.e(e, "Failed to deserialize favorites delta payload")
             }
+        }
+    }
+
+    private fun handleLogReport(nodeId: String, data: ByteArray) {
+        serviceScope.launch {
+            wearLogReportReceiver.handle(nodeId, data)
         }
     }
 

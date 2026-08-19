@@ -246,9 +246,11 @@ private fun VideoPlayerManager.startStreamStatsSampler(
 
 /**
  * S1127: detach the stream diagnostics AnalyticsListener and log the one-line session summary.
- * Symmetric with the add in [playStreamVideo]; the removeAnalyticsListener token is co-located here with
- * its add so the per-file listener-symmetry gate stays balanced. Called from both
- * `VideoPlayerLifecycleHelper` teardown paths (releasePlayer / onDestroy).
+ * Symmetric with the add in [playStreamVideo]. Called from both `VideoPlayerLifecycleHelper`
+ * teardown paths (releasePlayer / onDestroy). The per-stream Player.Listener added alongside it is
+ * released cross-file, through `manager.activeExtraPlayerListener`, so this file reads as one
+ * unbalanced add to the per-file symmetry gate - that residue is deliberate and sits in the gate
+ * baseline (S1815).
  */
 @UnstableApi
 internal fun VideoPlayerManager.releaseStreamDiagnostics(player: ExoPlayer) {

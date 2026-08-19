@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1754: the audio media window - a resource's own playback, controlled without leaving the desktop.
+
+     Not gadget_launcher_now_playing.xml, which is a 2x1 strip bound to whatever session is active. This
+     is a 2x2 window bound to ONE resource, so it names that resource before it names what plays.
+
+     Orientation-neutral, so no layout-land counterpart: the launcher measures a cell exactly. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="@dimen/margin_small">
+
+        <TextView
+            android:id="@+id/mediaAudioWindowTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:ellipsize="end"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:maxLines="1"
+            android:minHeight="28dp"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="Road trip" />
+
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+            android:id="@+id/mediaAudioWindowTrack"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="2"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="12sp"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+            tools:text="Blue Monday" />
+
+        <LinearLayout
+            android:id="@+id/mediaAudioWindowControls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <!-- focus_button_background goes in FOREGROUND, never background: as background it replaces
+                 ImageButton's ripple with a selector that has no state_pressed, so taps stop giving
+                 feedback. Same reason gadget_launcher_now_playing.xml states. -->
+            <ImageButton
+                android:id="@+id/mediaAudioWindowPrevious"
+                android:layout_width="@dimen/launcher_gadget_action_size"
+                android:layout_height="@dimen/launcher_gadget_action_size"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/previous"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
+                android:padding="6dp"
+                android:src="@drawable/ic_skip_previous"
+                app:tint="?attr/colorControlNormal"
+                tools:ignore="MissingPrefix" />
+
+            <ImageButton
+                android:id="@+id/mediaAudioWindowPlayPause"
+                android:layout_width="@dimen/launcher_gadget_action_size"
+                android:layout_height="@dimen/launcher_gadget_action_size"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/play_pause"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
+                android:padding="6dp"
+                android:src="@drawable/ic_play"
+                app:tint="?attr/colorControlNormal"
+                tools:ignore="MissingPrefix" />
+
+            <ImageButton
+                android:id="@+id/mediaAudioWindowNext"
+                android:layout_width="@dimen/launcher_gadget_action_size"
+                android:layout_height="@dimen/launcher_gadget_action_size"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/next"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
+                android:padding="6dp"
+                android:src="@drawable/ic_skip_next"
+                app:tint="?attr/colorControlNormal"
+                tools:ignore="MissingPrefix" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</merge>

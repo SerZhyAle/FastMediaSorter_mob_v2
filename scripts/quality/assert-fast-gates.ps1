@@ -22,6 +22,7 @@
 - assert-sdk-pin-claims        (S1438 SDK pins stated in prose vs the build files)
       - assert-ctor-arg-slots        (S1470 primary constructors near the 255 argument-slot ceiling)
       - assert-packaging-excludes-parity (S1679 shared-library payload stripped in one module only)
+      - assert-module-version-parity  (app_v2 / wear version fields under one applicationId)
       - assert-splash-brand-sync     (S1706 generated splash drawables vs their strings and template)
       - assert-retired-dependency-names (S1489 prose naming a dependency the project replaced)
       - assert-notification-small-icon (S1399 a small-icon setter handed a drawable literal)
@@ -58,6 +59,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'lib/gate-telemetry.ps1')
 
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
     "$env:ProgramFiles\PowerShell\7\pwsh.exe"
@@ -75,8 +77,13 @@ $gates = [ordered]@{
     # neuroslop (nine rules), flavor-flags, public-mutable-flow and deprecated-pm-flags.
     # The individual scripts still exist as wrappers for any direct caller.
     'assert-source-gates.ps1'                   = @()
+    'assert-wear-route-literals.ps1'            = @()
     'assert-listener-symmetry.ps1'              = @()
     'assert-orientation-implied-feature.ps1'    = @()
+    # S1549: an activity that absorbs 'orientation' in configChanges never re-inflates on
+    # rotation, so its res/layout-land variant applies only on a landscape cold start. The
+    # same defect was fixed pointwise twice before anyone inventoried the project.
+    'assert-orientation-layout-pairing.ps1'     = @()
     # S1568: a string resource nothing references. 397 had accumulated in values/strings.xml, each
     # one paid for again by every locale tranche. Baseline is an allowlist of NAMES, not a count, so
     # a new dead key cannot hide behind a deleted one.
@@ -99,6 +106,11 @@ $gates = [ordered]@{
     # wear shipped them for months - 1.2 MB, 10 % of its release APK, on a watch. Parses the two
     # build files by brace balance, no gradle daemon.
     'assert-packaging-excludes-parity.ps1'      = @('-Quiet')
+    # The version fields of app_v2 and wear are one contract under one applicationId: the same
+    # versionName, and versionCodes that must NOT collide - Play refuses the repeat at submission
+    # time, long after the build passed. The tree carried both modules on 260815161. Reads the two
+    # checked-in constants; no gradle daemon.
+    'assert-module-version-parity.ps1'          = @('-Quiet')
     # S1706: ic_splash_app_brand.xml is generated per locale from the strings and one template, so a
     # hand edit to one variant compiles and renders while silently diverging from the other twelve.
     # Runs the generator in -Check mode for both modules; no gradle daemon.
@@ -121,6 +133,8 @@ $gates = [ordered]@{
     # invisible to the build and to lint, and it survived a year in dimens.xml. Parses a handful of
     # small values-*.xml files, no gradle daemon.
     'assert-qualifier-shadowing.ps1'            = @('-Quiet')
+    # S1825: detect orphaned intermediate .flat compiled resources in merged_res/
+    'assert-orphaned-merged-resources.ps1'       = @('-Quiet')
     # S1470: primary constructors approaching the 255 argument-slot ceiling. AppSettings crossed it
     # at one field per ticket; kotlinc and D8 both accepted the class and only the runtime verifier
     # refused it, so the build stayed green while the app could not start at all. Source parse of
@@ -223,6 +237,7 @@ foreach ($entry in $gates.GetEnumerator()) {
     $path = Join-Path $PSScriptRoot $entry.Key
     if (-not (Test-Path $path)) {
         $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = 'MISSING'; Ms = 0 })
+        Write-GateTelemetryRecord -Runner 'assert-fast-gates' -Gate $entry.Key -Status 'MISSING' -ExitCode 2 -ElapsedMs 0
         continue
     }
     $extraArgs = @($entry.Value)
@@ -236,6 +251,7 @@ foreach ($entry in $gates.GetEnumerator()) {
     $sw.Stop()
     $status = ($LASTEXITCODE -eq 0) ? 'PASS' : 'FAIL'
     $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = $status; Ms = [int]$sw.Elapsed.TotalMilliseconds })
+    Write-GateTelemetryRecord -Runner 'assert-fast-gates' -Gate $entry.Key -Status $status -ExitCode ([int]$LASTEXITCODE) -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
 }
 
 if ($IncludeDetekt) {
@@ -247,6 +263,7 @@ if ($IncludeDetekt) {
     $sw.Stop()
     $status = ($LASTEXITCODE -eq 0) ? 'PASS' : 'FAIL'
     $results.Add([pscustomobject]@{ Gate = 'assert-detekt.ps1'; Status = $status; Ms = [int]$sw.Elapsed.TotalMilliseconds })
+    Write-GateTelemetryRecord -Runner 'assert-fast-gates' -Gate 'assert-detekt.ps1' -Status $status -ExitCode ([int]$LASTEXITCODE) -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
 }
 
 Write-Host ''

@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.databinding.LauncherStatusStripBinding
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignal
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalListBottomSheet
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalRegistry
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayCallbacks
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -86,7 +87,7 @@ class LauncherStatusStripManager @Inject constructor(
         replaceSystemStatusArea: Flow<Boolean>,
         topStatusStripMode: Flow<Boolean>,
         trayComposition: Flow<LauncherTrayComposition>,
-        onRequestPhoneStatePermission: () -> Unit,
+        callbacks: LauncherTrayCallbacks,
     ) {
         this.binding = binding
         this.fragmentManager = fragmentManager
@@ -100,12 +101,10 @@ class LauncherStatusStripManager @Inject constructor(
             lifecycleOwner = lifecycleOwner,
             topStatusStripMode = topStatusStripMode,
             trayComposition = trayComposition,
-            onRequestPhoneStatePermission = onRequestPhoneStatePermission,
+            callbacks = callbacks,
         )
         lifecycleOwner.collectOnLifecycle(topStatusStripMode) { enabled ->
             applyStripMode(enabled)
-            val clockPinned = stripClock?.root?.parent != null
-            val indicatorsPinned = stripIndicators?.root?.parent != null
         }
         lifecycleOwner.collectOnLifecycle(replaceSystemStatusArea) { replace ->
             // The band exists only while the launcher owns the status area; with the Android bar left in
@@ -143,7 +142,7 @@ class LauncherStatusStripManager @Inject constructor(
         lifecycleOwner: LifecycleOwner,
         topStatusStripMode: Flow<Boolean>,
         trayComposition: Flow<LauncherTrayComposition>,
-        onRequestPhoneStatePermission: () -> Unit,
+        callbacks: LauncherTrayCallbacks,
     ) {
         val row = binding.launcherSignalRow
         val inflater = LayoutInflater.from(row.context)
@@ -156,7 +155,7 @@ class LauncherStatusStripManager @Inject constructor(
             lifecycleOwner = lifecycleOwner,
             clock = clock,
             indicators = indicators,
-            onRequestPhoneStatePermission = onRequestPhoneStatePermission,
+            callbacks = callbacks,
         ).apply { bind(topStatusStripMode, trayComposition) }
     }
 

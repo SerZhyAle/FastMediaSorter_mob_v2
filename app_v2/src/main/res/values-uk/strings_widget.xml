@@ -63,4 +63,22 @@
     <string name="widget_camera_quick_capture_mode_label">Що знімати</string>
     <string name="widget_camera_quick_capture_mode_photo">Фото</string>
     <string name="widget_camera_quick_capture_mode_video">Відео</string>
+    <string name="widget_network_monitor_label">Мережевий монітор</string>
+    <string name="widget_network_monitor_description">Один мережевий показник на вибір</string>
+    <string name="widget_network_monitor_config_title">Виберіть, що показувати</string>
+    <string name="widget_network_monitor_indicator_local_address">Локальна адреса</string>
+    <string name="widget_network_monitor_indicator_radio_status">Wi-Fi, Bluetooth, SIM</string>
+    <string name="widget_network_monitor_indicator_signal_level">Рівень сигналу</string>
+    <string name="widget_network_monitor_indicator_live_throughput">Поточна швидкість</string>
+    <string name="widget_network_monitor_indicator_external_address">Зовнішня адреса</string>
+    <string name="widget_network_monitor_indicator_last_measurement">Останній замір швидкості</string>
+    <string name="widget_network_monitor_indicator_resource_reachability">Збережений ресурс</string>
+    <string name="widget_network_monitor_indicator_satellite_count">Супутники</string>
+    <string name="widget_network_monitor_unavailable">Даних поки немає</string>
+    <string name="widget_network_monitor_tap_to_read">Натисніть, щоб перевірити</string>
+    <string name="widget_network_monitor_behind_nat_unknown_depth">За NAT - глибина невідома</string>
+    <string name="widget_network_monitor_cgnat_likely">Імовірно, за NAT оператора</string>
+    <string name="widget_network_monitor_direct_connection">Пряме підключення</string>
+    <string name="launcher_gadget_network_indicator">Мережевий показник</string>
+    <string name="launcher_gadget_network_indicator_pick_title">Який показник показувати</string>
 </resources>

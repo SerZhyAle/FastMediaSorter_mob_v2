@@ -45,7 +45,6 @@
     <string name="language_capability_translation">Traduction</string>
     <string name="language_capability_basic_ocr">OCR de base</string>
     <string name="language_capability_quality_ocr">OCR de qualité</string>
-    <string name="language_capability_nolegal_ocr">noLegal OCR</string>
     <string name="translate">Traduire</string>
     <string name="no_files_selected">Aucun fichier sélectionné</string>
     <string name="msg_last_filter_restored">Dernier filtre restauré : %1$s</string>
@@ -956,9 +955,6 @@
     <string name="enable_ocr">Activer la reconnaissance de texte</string>
     <string name="enable_ocr_summary">Extraire le texte des images et des PDF pour le copier</string>
     <string name="translation_downloading_wait">En attente du résultat de la traduction..</string>
-    <string name="paddle_ocr_model">Modèle PaddleOCR</string>
-    <string name="paddle_ocr_model_cyrillic">Cyrillique (PP-OCRv5 Mobile)</string>
-    <string name="paddle_ocr_model_eslav">Slave oriental (PP-OCRv5 Mobile, plus précis)</string>
     <string name="toast_edit_images_only">La modification n\'est disponible que pour les images</string>
     <string name="toast_failed_to_prepare_file">Échec de la préparation du fichier</string>
     <string name="toast_error_google_lens">Erreur lors du partage vers Google Lens</string>
@@ -1389,10 +1385,6 @@
     <string name="duplicate_groups_summary">Groupes trouvés %1$d | %2$s</string>
     <string name="duplicate_fab_delete">Supprimer la sélection (%1$d éléments, %2$s)</string>
     <string name="scan_files_progress">Fichiers %1$d / %2$d</string>
-    <string name="import_resources_title">Ressources d\'importation</string>
-    <string name="import_resources_message">Ajouter des ressources SZA ?</string>
-    <string name="sza_resources_imported">Ressources SZA importées</string>
-    <string name="error_importing_resources">Erreur lors de l\'importation des ressources</string>
     <string name="download_translation_model_title">Télécharger le modèle de traduction</string>
     <string name="download_translation_model_message">La traduction vers %1$s nécessite le téléchargement d\'un modèle d\'environ 30 Mo. Télécharger maintenant ?</string>
     <string name="download">Télécharger</string>
@@ -2395,7 +2387,6 @@
     <string name="launcher_edit_kind_action">Action du lanceur</string>
     <string name="launcher_settings_reset_title">Réinitialiser les paramètres du lanceur</string>
     <string name="launcher_settings_reset_message">Les paramètres du lanceur système seront réinitialisés à leurs valeurs par défaut. La disposition du bureau, les icônes épinglées et le fond d\'écran reviennent à leur état juste après l\'installation. Rien en dehors du lanceur n\'est affecté.</string>
-    <string name="launcher_settings_reset_button_description">Réinitialiser les paramètres du lanceur aux valeurs par défaut</string>
     <string name="launcher_settings_reset_success">Paramètres du lanceur réinitialisés aux valeurs par défaut</string>
     <string name="launcher_settings_reset_failed">Impossible de réinitialiser les paramètres du lanceur. Rien n\'a été modifié - réessayez.</string>
     <string name="launcher_add_cell">Ajouter au bureau</string>
@@ -2611,7 +2602,6 @@
     <string name="streams_media_filter_video">Afficher uniquement les flux vidéo</string>
     <string name="streams_media_filter_clear">Afficher tous les flux</string>
     <string name="launcher_section_app_functions">Fonctions de l\'application</string>
-    <string name="launcher_section_everything_else">Tout le reste</string>
     <string name="launcher_edit_kind_section">Section</string>
     <string name="launcher_gadget_network">Réseau</string>
     <string name="launcher_gadget_battery">Batterie</string>
@@ -2682,7 +2672,6 @@
     <string name="network_monitor_link_gateway_label">Porte</string>
     <string name="network_monitor_link_route_label">Route par défaut</string>
     <string name="network_monitor_link_proxy_label">Procuration</string>
-    <string name="network_monitor_link_bandwidth_label">Estimation de la bande passante du système</string>
     <string name="network_monitor_route_present">Présent</string>
     <string name="network_monitor_route_absent">Aucun</string>
     <string name="network_monitor_chart_signal_heading">Signal</string>
@@ -2696,7 +2685,6 @@
     <string name="network_monitor_value_mbps">%1$d Mbps</string>
     <string name="network_monitor_value_mhz">%1$d MHz</string>
     <string name="network_monitor_value_kbps">%1$d kbit/s</string>
-    <string name="network_monitor_bandwidth_pair">en baisse de %1$s, en hausse de %2$s</string>
     <string name="network_monitor_mobile_modems_label">Modems actifs</string>
     <string name="network_monitor_mobile_sim_label">SIM %1$d</string>
     <string name="network_monitor_mobile_sim_data_preferred">%1$s - préféré pour les données</string>

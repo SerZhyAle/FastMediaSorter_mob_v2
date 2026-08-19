@@ -158,6 +158,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '..\quality\lib\android-string-format.ps1')
 . (Join-Path $PSScriptRoot '..\quality\lib\android-string-liveness.ps1')
 . (Join-Path $PSScriptRoot '..\quality\lib\house-text-style.ps1')
+. (Join-Path $PSScriptRoot '..\quality\lib\locale-fingerprints.ps1')
 
 # Capture at script scope: $PSBoundParameters inside a function refers to the function, not the script.
 $valueBound = $PSBoundParameters.ContainsKey('Value')
@@ -450,6 +451,17 @@ function Remove-KeyFromLocales([string]$Key) {
             break
         }
     }
+    if ($removed -and -not $DryRun) {
+        $fps = Get-LocaleSourceFingerprints
+        $escKey = [regex]::Escape($Key)
+        foreach ($loc in $fps.Keys) {
+            $matchingIds = @($fps[$loc].Keys | Where-Object { $_ -match "\|$escKey($|\|)" })
+            foreach ($mid in $matchingIds) {
+                Remove-LocaleSourceFingerprint -Fingerprints $fps -Identity $mid -Locale $loc
+            }
+        }
+        Save-LocaleSourceFingerprints -Fingerprints $fps
+    }
     return $removed
 }
 
@@ -536,6 +548,18 @@ function Invoke-Set {
     Write-Host "[done] $action ${Locale}:$Key in $filePath" -ForegroundColor Green
     if ($null -ne $oldDecodedValue) { Write-Host "Old: $oldDecodedValue" -ForegroundColor DarkGray }
     Write-Host "New: $Value" -ForegroundColor Green
+
+    if (-not (Test-StrictLocale -Tag $Locale)) {
+        $enHit = Find-Key (Get-LocaleDir 'values') $Key
+        if ($enHit) {
+            $enDecoded = ConvertFrom-XmlText $enHit.Raw
+            $enHash = Get-EnglishStringFingerprint $enDecoded
+            $unitId = "main|$($enHit.File.Name)|$Key"
+            $fps = Get-LocaleSourceFingerprints
+            Update-LocaleSourceFingerprint -Fingerprints $fps -Locale $Locale -Identity $unitId -Hash $enHash
+            Save-LocaleSourceFingerprints -Fingerprints $fps
+        }
+    }
 }
 
 # Skeleton for a freshly created thematic file, matching the locale's strings.xml BOM/EOL.
@@ -619,6 +643,14 @@ function Move-OneKey([string]$key, [string]$targetFile) {
     }
     # --- commit ---
     foreach ($path in $writes.Keys) { Save-File $path $writes[$path] }
+
+    $fps = Get-LocaleSourceFingerprints
+    $oldBase = [System.IO.Path]::GetFileName($plan[0].Source)
+    $oldUnit = "main|$oldBase|$key"
+    $newUnit = "main|$targetFile|$key"
+    Rename-LocaleSourceFingerprint -Fingerprints $fps -OldIdentity $oldUnit -NewIdentity $newUnit
+    Save-LocaleSourceFingerprints -Fingerprints $fps
+
     Write-Host "  [ok]  moved '$key' -> $targetFile (EN/RU/UK)" -ForegroundColor Green
     return $true
 }
@@ -754,6 +786,15 @@ switch ($Action) {
             }
             else { Save-File $target $newContent; Write-Host "[$($loc.Tag)] added to $File" -ForegroundColor Green }
         }
+        if (-not $DryRun -and $suppliedOptional.Count -gt 0) {
+            $enHash = Get-EnglishStringFingerprint $En
+            $unitId = "main|$File|$Key"
+            $fps = Get-LocaleSourceFingerprints
+            foreach ($loc in $suppliedOptional) {
+                Update-LocaleSourceFingerprint -Fingerprints $fps -Locale $loc.Code -Identity $unitId -Hash $enHash
+            }
+            Save-LocaleSourceFingerprints -Fingerprints $fps
+        }
         # S1627: name the locales this call left empty. The silence was the gap - the parameter for
         # them already existed, so a key reached the release in three languages without anything
         # saying so. This is a hint, not an obligation: the refusal lives at the pre-release stage,
@@ -873,6 +914,18 @@ switch ($Action) {
                     break
                 }
             }
+        }
+        if ($renamed -and -not $DryRun) {
+            $fps = Get-LocaleSourceFingerprints
+            $escKey = [regex]::Escape($Key)
+            foreach ($loc in $fps.Keys) {
+                $matchingIds = @($fps[$loc].Keys | Where-Object { $_ -match "\|$escKey($|\|)" })
+                foreach ($mid in $matchingIds) {
+                    $newId = [regex]::Replace($mid, "\|$escKey($|\|)", "|$NewKey`$1")
+                    Rename-LocaleSourceFingerprint -Fingerprints $fps -OldIdentity $mid -NewIdentity $newId
+                }
+            }
+            Save-LocaleSourceFingerprints -Fingerprints $fps
         }
         if (-not $renamed) { Write-Host "Key '$Key' not found in any locale." -ForegroundColor Yellow }
         exit 0

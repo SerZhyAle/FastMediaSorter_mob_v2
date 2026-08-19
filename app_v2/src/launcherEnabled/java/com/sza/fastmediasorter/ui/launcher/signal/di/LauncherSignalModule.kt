@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.launcher.signal.di
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalSource
 import com.sza.fastmediasorter.ui.launcher.signal.source.BackgroundWorkLauncherSignalSource
 import com.sza.fastmediasorter.ui.launcher.signal.source.FileTransferLauncherSignalSource
+import com.sza.fastmediasorter.ui.launcher.signal.source.ForeignNotificationSignalSource
 import com.sza.fastmediasorter.ui.launcher.signal.source.PlaybackLauncherSignalSource
 import dagger.Binds
 import dagger.Module
@@ -37,4 +38,8 @@ abstract class LauncherSignalModule {
     @Binds
     @IntoSet
     abstract fun bindBackgroundWorkSource(source: BackgroundWorkLauncherSignalSource): LauncherSignalSource
+
+    @Binds
+    @IntoSet
+    abstract fun bindForeignNotificationSource(source: ForeignNotificationSignalSource): LauncherSignalSource
 }

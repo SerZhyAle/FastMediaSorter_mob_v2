@@ -260,6 +260,18 @@ class VideoPlayerViewModel @Inject constructor(
      * screen's; this view model used to call SMB unconditionally and broke every other source.
      */
     private suspend fun loadNetworkVideo(selected: SelectedMedia) {
+        if (selected.isDirectStream) {
+            Timber.d("S1708: direct video stream playback uri=${selected.streamUri}")
+            _uiState.update { it.copy(isLoading = true) }
+            val mediaItem = MediaItem.fromUri(Uri.parse(selected.streamUri))
+            exoPlayer.setMediaItem(mediaItem)
+            exoPlayer.prepare()
+            _uiState.update { it.copy(isLoading = false) }
+            if (!_uiState.value.showBatteryWarning) {
+                exoPlayer.playWhenReady = true
+            }
+            return
+        }
         Timber.d("S1687: network video entry sourceId=${selected.sourceId} uri=${selected.streamUri}")
         _uiState.update { it.copy(isLoading = true) }
 

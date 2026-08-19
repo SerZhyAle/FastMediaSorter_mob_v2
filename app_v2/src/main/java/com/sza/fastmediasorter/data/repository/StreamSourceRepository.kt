@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceDao
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -105,6 +106,20 @@ class StreamSourceRepository @Inject constructor(
     suspend fun clearPlayOutcomes() = streamPlayOutcomeDao.clearAllPlayOutcomes()
 
     /**
+     * S1780: drop every downloaded stream, keeping the hand-added ones.
+     *
+     * S1826: one transaction, because the outcome rows must go with their channels. This path deletes
+     * by origin and so never learns the ids it removed, which is why it purges by what is left over
+     * rather than by a list of ids the way [remove] does.
+     */
+    suspend fun deleteAllDownloaded(): Int =
+        db.withTransaction {
+            val removed = dao.deleteAllDownloaded()
+            purgeOrphanedPlayOutcomes()
+            removed
+        }
+
+    /**
      * S1511: the rung this channel last settled on, keyed by normalized address so it survives the catalog
      * re-import that reissues the row id (strategic ADR-5). The caller normalizes; this only reads.
      */
@@ -183,8 +198,26 @@ class StreamSourceRepository @Inject constructor(
             // transaction, identical semantics (only CATALOG rows whose url left the new list).
             val urlsToDelete = existingCatalogUrls.filter { it !in newUrls }
             urlsToDelete.chunked(SQLITE_IN_CLAUSE_LIMIT).forEach { dao.deleteCatalogByUrls(it) }
+            // S1826: the prune above deletes by url, so the outcome rows keyed by the removed channels'
+            // ids would survive as unreachable orphans. Unconditional rather than gated on
+            // urlsToDelete: the same call also clears whatever earlier imports already stranded.
+            purgeOrphanedPlayOutcomes()
             CatalogMergeResult(added = added, updated = updated, removed = urlsToDelete.size)
         }
+
+    /**
+     * S1826: enforce the invariant [remove] has always held by hand - an outcome row lives exactly as
+     * long as the `stream_sources` row with the same id. Callers must already be inside a transaction.
+     *
+     * A DELETE matching nothing does not fire SQLite's update hook, so the common no-orphan case leaves
+     * `observeAll()` silent and repaints no rows.
+     */
+    private suspend fun purgeOrphanedPlayOutcomes() {
+        val orphans = streamPlayOutcomeDao.deleteOrphanedPlayOutcomes()
+        if (orphans > 0) {
+            Timber.i("Stream play outcomes: purged %d orphaned rows", orphans)
+        }
+    }
 
     /** S0570: outcome of a [mergeCatalog] run. */
     data class CatalogMergeResult(val added: Int, val updated: Int, val removed: Int)

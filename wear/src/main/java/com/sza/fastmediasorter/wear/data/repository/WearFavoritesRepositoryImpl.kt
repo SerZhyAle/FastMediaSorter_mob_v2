@@ -57,6 +57,10 @@ class WearFavoritesRepositoryImpl @Inject constructor(
         readFavorites().contains("$sourceId:$filePath")
     }
 
+    override suspend fun hasAnyFavorite(): Boolean = withContext(Dispatchers.IO) {
+        readFavorites().isNotEmpty()
+    }
+
     override suspend fun getPendingDelta(): List<WearFavoriteDeltaItem> = withContext(Dispatchers.IO) {
         readDelta()
     }

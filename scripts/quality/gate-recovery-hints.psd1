@@ -113,6 +113,11 @@
         Fix   = 'A manifest orientation lock implies a hardware feature requirement that would shrink device reach - declare the feature as not required.'
     }
 
+    'orientation-layout-pairing-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-orientation-layout-pairing.ps1 -Gate'
+        Fix   = 'An activity absorbs orientation in configChanges while owning a landscape layout, so that layout never applies on rotation - stop absorbing it, re-apply the variant in code and record the exemption with its reason in scripts/quality/orientation-layout-pairing-exceptions.txt, or delete the layout if it encodes no difference.'
+    }
+
     'all-features-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/all_features/validate.ps1'
         Fix   = 'The capability inventory is invalid or lost records - fix the JSONL row; add capabilities through scripts/all_features/add.ps1, never by hand.'

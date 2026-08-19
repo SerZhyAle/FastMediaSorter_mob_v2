@@ -98,8 +98,10 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -1070,11 +1072,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
 
         binding.btnRefresh.setOnClickListenerDebounced {
-            // Force SMB client reset before scanning resources
-            smbClient.forceFullReset()
-            // Clear failed video thumbnail cache to retry previously failed videos
-            NetworkFileDataFetcher.clearFailedVideoCache()
-            viewModel.scanAllResources()
+            // S1812: forceFullReset() ends in three synchronous SMBClient.close() calls - socket
+            // teardown that ran on the click callback's own stack, on the main thread, every time
+            // this button was tapped. The scan must still start after the reset, so the ordering
+            // moves into the coroutine rather than the reset moving out of it.
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) { smbClient.forceFullReset() }
+                // Clear failed video thumbnail cache to retry previously failed videos
+                NetworkFileDataFetcher.clearFailedVideoCache()
+                viewModel.scanAllResources()
+            }
         }
 
         // S0759: the top-left exit button minimizes (moveTaskToBack) when any background function is
@@ -1295,6 +1302,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     /** Recalculates grid layout, toolbar labels and tabs after screen rotation. */
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
+        Timber.d("S1549: MainActivity onLayoutConfigurationChanged - command bar and tab anchor re-applied on rotation")
         layoutChrome.updateToolbarButtonLabels(newConfig)
         layoutChrome.updateLayoutManagerForScreenSize()
 

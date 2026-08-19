@@ -1,4 +1,4 @@
-# Combined post-change runner.
+﻿# Combined post-change runner.
 # Chains the applicable mechanical post-change steps for a given change type.
 #
 # Usage:
@@ -397,10 +397,13 @@ $runsAllFeaturesGate = Test-AnyChangedFile 'docs/ALL_FEATURES.*\.(jsonl|json)$'
 $runsSettingsDocGate = (
     (Test-AnyChangedFile 'app_v2/src/main/res/layout/fragment_settings_.*\.xml$') -or
     (Test-AnyChangedFile 'app_v2/.*/ui/settings/search/') -or
+    (Test-AnyChangedFile 'wear/.*/ui/settings/') -or
+    (Test-AnyChangedFile 'wear/src/main/res/values[^/]*/strings') -or
     (Test-AnyChangedFile 'SettingsSearchAvailabilityModule\.kt$') -or
     (Test-AnyChangedFile 'docs/settings/') -or
     (Test-AnyChangedFile 'docs/SETTINGS_REFERENCE')
 )
+
 # S0558/S0945 settings-path drift gate. Fires when a HOW_TO or narrative guide
 # (README/QUICK_START/FAQ/TROUBLESHOOTING, all locales) is edited - validates the
 # embedded "Settings -> .." recipes against the manifest. Standalone (pure text, no
@@ -446,6 +449,13 @@ $runsListenerSymmetryGate = $isCodeChange
 # activity that pins screenOrientation implies a required screen.* hardware feature,
 # which shrinks Google Play device reach unless src/main declares it not-required.
 $runsOrientationFeatureGate = Test-AnyChangedFile 'AndroidManifest\.xml$'
+# S1598 orientation layout-pairing gate. The defect needs BOTH halves - an activity that absorbs
+# orientation in configChanges AND a landscape layout it therefore never re-inflates - so either a
+# touched manifest or a touched landscape layout can create it, and neither half sees the other
+# alone. The recovery hint for this label already shipped in gate-recovery-hints.psd1; without the
+# call site it described a gate the facade never ran.
+$runsOrientationLayoutPairingGate = (Test-AnyChangedFile 'AndroidManifest\.xml$') -or
+    (Test-AnyChangedFile 'res/layout[^/]*-land[^/]*/.*\.xml$')
 # S1639 Gson persistence contract gate. Fires on a Kotlin source or an obfuscation rules file, the two
 # halves of the invariant: a model whose JSON outlives the process must have its field names pinned, and
 # either half can break it alone - a new model, or a keep rule that stopped covering an old one. The
@@ -696,6 +706,15 @@ if ($runsOrientationFeatureGate) {
 }
 else {
     Skip-Step "orientation-implied-feature-gate" "not applicable - no changed file is an AndroidManifest.xml"
+}
+
+if ($runsOrientationLayoutPairingGate) {
+    Invoke-Gate "orientation-layout-pairing-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-orientation-layout-pairing.ps1") -Gate
+    }
+}
+else {
+    Skip-Step "orientation-layout-pairing-gate" "not applicable - no changed file is a manifest or a landscape layout"
 }
 
 if ($runsFgsGate) {

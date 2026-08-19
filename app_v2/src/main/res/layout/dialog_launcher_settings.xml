@@ -35,16 +35,6 @@
                 android:textStyle="bold" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnResetLauncher"
-                style="@style/Widget.FastMediaSorter.Button.Icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:contentDescription="@string/launcher_settings_reset_button_description"
-                android:focusable="true"
-                app:icon="@drawable/ic_restore_defaults" />
-
-            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClose"
                 style="@style/Widget.FastMediaSorter.Button.DialogCancel"
                 android:layout_width="wrap_content"
@@ -87,6 +77,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/margin_small"
+                app:str_subtitle="@string/launcher_settings_show_recents_subtitle"
                 app:str_title="@string/launcher_settings_show_recents_title" />
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -94,6 +85,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/margin_small"
+                app:str_subtitle="@string/launcher_settings_show_pinned_subtitle"
                 app:str_title="@string/launcher_settings_show_pinned_title" />
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -101,6 +93,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/margin_small"
+                app:str_subtitle="@string/launcher_settings_show_tray_subtitle"
                 app:str_title="@string/launcher_settings_show_tray_title" />
 
             <!-- S1415: the tray's own composition, in the order the icons appear left to right. Placed under
@@ -111,6 +104,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/margin_small"
+                app:str_subtitle="@string/launcher_settings_tray_clock_subtitle"
                 app:str_title="@string/launcher_settings_tray_clock_title" />
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -142,6 +136,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/margin_small"
+                app:str_subtitle="@string/launcher_settings_tray_network_subtitle"
                 app:str_title="@string/launcher_settings_tray_network_title" />
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -149,6 +144,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/margin_small"
+                app:str_subtitle="@string/launcher_settings_tray_battery_subtitle"
                 app:str_title="@string/launcher_settings_tray_battery_title" />
 
         </LinearLayout>
@@ -175,6 +171,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/margin_small"
+                app:str_subtitle="@string/launcher_settings_replace_status_area_subtitle"
                 app:str_title="@string/launcher_settings_replace_status_area_title" />
 
             <!-- S1431: directly under the setting that gates it - the mode needs the freed band, so the
@@ -186,6 +183,29 @@
                 android:layout_marginBottom="@dimen/margin_small"
                 app:str_subtitle="@string/launcher_settings_top_status_strip_summary"
                 app:str_title="@string/launcher_settings_top_status_strip_title" />
+
+            <!-- S1465: the owner put this in the top-bar group, next to the row that frees the band it
+                 draws in. Its subtitle is set from code because the row has three states, not two: off,
+                 on without the system grant, and working. -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLauncherForeignNotifications"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:str_title="@string/launcher_settings_foreign_notifications_title" />
+
+            <!-- Shown only in the middle state: the switch is on and the system has not granted access. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLauncherGrantNotificationAccess"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="@string/launcher_settings_foreign_notifications_grant"
+                android:textAllCaps="false"
+                android:visibility="gone" />
 
         </LinearLayout>
 
@@ -222,6 +242,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/margin_small"
+                app:str_subtitle="@string/launcher_settings_lock_desktop_subtitle"
                 app:str_title="@string/launcher_settings_lock_desktop_title" />
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
@@ -233,6 +254,27 @@
                 app:sdr_inline="true"
                 app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
                 app:sdr_title="@string/launcher_settings_wallpaper_title" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowLauncherScreenTimeout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:sdr_inline="true"
+                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                app:sdr_subtitle="@string/launcher_settings_screen_timeout_subtitle"
+                app:sdr_title="@string/launcher_settings_screen_timeout_title" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowLauncherWidgetBackdropAlpha"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:sdr_inline="true"
+                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                app:sdr_title="@string/launcher_settings_widget_backdrop_alpha_title" />
 
         </LinearLayout>
 
@@ -262,6 +304,33 @@
                 android:focusable="true"
                 android:text="@string/launcher_settings_open_home_chooser_title"
                 android:textAllCaps="false" />
+
+            <!-- S1761: import system desktop shortcuts button in System group -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnImportSystemShortcuts"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="@string/launcher_settings_import_system_shortcuts_title"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_import" />
+
+            <!-- S1738: reset sits in the System group as a labeled button - as an unlabeled header icon
+                 its purpose was unreadable until pressed. The destructive confirmation dialog is unchanged. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnResetLauncher"
+                style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="@string/launcher_settings_reset_title"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_restore_defaults" />
 
         </LinearLayout>
 

@@ -106,6 +106,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         initBindingBoundCore()
         initImageLoading()
         initBindingBoundControlsAndOcr()
+        initMediaLoaderOnce()
         initBindingBoundMediaServices()
         initUiCoordinators()
         initSetupManagers()
@@ -634,7 +635,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                     }
             }
         }
-
     }
 
     /** Binding-bound half: control/gesture/search helpers that only capture the binding. */
@@ -791,6 +791,22 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             faviconAtlasStore = activity.faviconAtlasStore,
             scope = activity.lifecycleScope
         )
+    }
+
+    /**
+     * S1817: constructed HERE, in the binding-bound half, and no longer in [initAudioAndMediaServices]
+     * where it used to sit. The constructor reads `imageLoadingManager` and `exoPlayerControlsManager`,
+     * both created earlier in THIS half, so a screen-level construction read the first of them before
+     * its only assignment and killed every PlayerActivity open with an
+     * UninitializedPropertyAccessException.
+     *
+     * Still once per screen, despite living in the re-runnable half: this manager owns the audio
+     * service connection and the prefetch jobs, and it carries the S1549 [PlayerMediaLoaderManager.rebind]
+     * seam precisely so a re-inflate re-points it at the new views instead of re-creating it. The guard
+     * is what keeps both halves of that contract true, since a re-inflate re-runs this function.
+     */
+    private fun initMediaLoaderOnce() {
+        if (activity.isMediaLoaderManagerInitialized) return
         activity.mediaLoaderManager = PlayerMediaLoaderManager(
             activity = activity,
             binding = activity.activityBinding,

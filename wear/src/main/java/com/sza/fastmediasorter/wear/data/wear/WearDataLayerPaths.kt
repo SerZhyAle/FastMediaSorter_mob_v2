@@ -35,6 +35,12 @@ object WearDataLayerPaths {
     /** Channel, phone → watch. Carries the bytes of one approved paired-phone media item. */
     const val PHONE_RESOURCE_TRANSFER = "/fms/phone/phone_resource/transfer"
 
+    /** Message, watch → phone. Carries one log report for the developer. */
+    const val LOG_REPORT_REQUEST = "/fms/watch/log_report"
+
+    /** Message, phone → watch. Answers one log report - accepted, or refused with a reason. */
+    const val LOG_REPORT_ACK = "/fms/phone/log_report_ack"
+
     // --- WearEventEnvelope.eventType constants ---
 
     /** eventType value for SETTINGS_PUSH envelopes. */

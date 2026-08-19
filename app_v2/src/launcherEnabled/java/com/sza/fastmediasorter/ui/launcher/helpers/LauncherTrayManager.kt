@@ -20,12 +20,14 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.databinding.LauncherStatusClockBinding
 import com.sza.fastmediasorter.databinding.LauncherStatusIndicatorsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.devicestatus.NetworkTransport
 import com.sza.fastmediasorter.domain.usecase.devicestatus.GetNetworkStatusUseCase
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayBluetoothMonitor
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayCallbacks
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTraySimSignalMonitor
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -55,7 +57,7 @@ class LauncherTrayManager(
     private val lifecycleOwner: LifecycleOwner,
     private val clock: LauncherStatusClockBinding,
     private val indicators: LauncherStatusIndicatorsBinding,
-    private val onRequestPhoneStatePermission: () -> Unit = {},
+    private val callbacks: LauncherTrayCallbacks = LauncherTrayCallbacks(),
 ) : DefaultLifecycleObserver {
 
     private val context: Context = indicators.root.context
@@ -97,6 +99,15 @@ class LauncherTrayManager(
     /** Asked once per activity instance: the system's own "don't ask again" governs everything after that. */
     private var phoneStatePermissionRequested = false
 
+    /**
+     * S1767: which settings screen the network indicator currently points at.
+     *
+     * Held from the last render rather than re-read on the tap: asking the connectivity manager again
+     * would answer for a moment the user is not looking at, and the icon they tapped is the promise the
+     * tap has to keep.
+     */
+    private var networkScreenKey = OsShortcutCatalog.KEY_WIRELESS
+
     private val batteryReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             intent?.let { renderBattery(it) }
@@ -116,6 +127,24 @@ class LauncherTrayManager(
 
     init {
         lifecycleOwner.lifecycle.addObserver(this)
+        // S1767: an indicator reports on a system screen, so it opens that screen. The SIM slots share the
+        // network-and-internet section, which is where SIM cards and the mobile network live.
+        val open = callbacks.onOpenSystemScreen
+        indicators.trayBluetooth.setOnClickListener { open(OsShortcutCatalog.KEY_BLUETOOTH) }
+        indicators.traySim1.setOnClickListener { open(OsShortcutCatalog.KEY_WIRELESS) }
+        indicators.traySim2.setOnClickListener { open(OsShortcutCatalog.KEY_WIRELESS) }
+        indicators.trayNetwork.setOnClickListener { open(networkScreenKey) }
+        indicators.trayBatteryLevel.setOnClickListener { open(OsShortcutCatalog.KEY_BATTERY) }
+    }
+
+    /**
+     * S1767: the state description, plus what the tap does with it.
+     *
+     * Appended rather than replacing: the state is what the indicator is for, and a description saying
+     * only "opens settings" would cost a screen-reader user the reading they came for.
+     */
+    private fun describe(view: View, state: CharSequence?) {
+        view.contentDescription = context.getString(R.string.launcher_tray_indicator_action, state)
     }
 
     /**
@@ -184,7 +213,7 @@ class LauncherTrayManager(
             return
         }
         indicators.trayBluetooth.setImageResource(R.drawable.ic_bluetooth)
-        indicators.trayBluetooth.contentDescription = context.getString(R.string.launcher_tray_bluetooth_on)
+        describe(indicators.trayBluetooth, context.getString(R.string.launcher_tray_bluetooth_on))
         indicators.trayBluetooth.isVisible = true
     }
 
@@ -202,7 +231,7 @@ class LauncherTrayManager(
         }
         if (!simSignalMonitor.hasPermission() && !phoneStatePermissionRequested) {
             phoneStatePermissionRequested = true
-            onRequestPhoneStatePermission()
+            callbacks.onRequestPhoneStatePermission()
         }
         if (simJob?.isActive == true) return
         simJob = lifecycleOwner.collectOnLifecycle(simSignalMonitor.levels()) { renderSim(it) }
@@ -231,11 +260,14 @@ class LauncherTrayManager(
         val slotNumber = slotIndex + 1
         view.setImageResource(R.drawable.launcher_tray_signal_level)
         view.setImageLevel(level)
-        view.contentDescription = if (level == NO_SERVICE_LEVEL) {
-            context.getString(R.string.launcher_tray_sim_signal_none, slotNumber)
-        } else {
-            context.getString(R.string.launcher_tray_sim_signal, slotNumber, level)
-        }
+        describe(
+            view,
+            if (level == NO_SERVICE_LEVEL) {
+                context.getString(R.string.launcher_tray_sim_signal_none, slotNumber)
+            } else {
+                context.getString(R.string.launcher_tray_sim_signal, slotNumber, level)
+            },
+        )
         view.isVisible = true
     }
 
@@ -294,7 +326,17 @@ class LauncherTrayManager(
 
     private fun renderNetwork(transport: NetworkTransport) {
         indicators.trayNetwork.setImageResource(iconOf(transport))
-        indicators.trayNetwork.contentDescription = context.getString(labelOf(transport))
+        describe(indicators.trayNetwork, context.getString(labelOf(transport)))
+        networkScreenKey = screenOf(transport)
+    }
+
+    /**
+     * S1767: Wi-Fi has its own settings screen; every other transport - and no transport at all - belongs
+     * to the network-and-internet section, which is where a user goes to fix exactly that.
+     */
+    private fun screenOf(transport: NetworkTransport): String = when (transport) {
+        NetworkTransport.WIFI -> OsShortcutCatalog.KEY_WIFI
+        else -> OsShortcutCatalog.KEY_WIRELESS
     }
 
     @DrawableRes
@@ -325,9 +367,12 @@ class LauncherTrayManager(
         indicators.trayBatteryLevel.text = context.getString(R.string.launcher_tray_battery_value, percent)
         // The number alone is what the owner asked for (strategic §2 goal 2), so the spoken description is
         // the only place left that says what the number means and whether the device is charging.
-        indicators.trayBatteryLevel.contentDescription = context.getString(
-            if (charging) R.string.launcher_tray_battery_charging else R.string.launcher_tray_battery_level,
-            percent,
+        describe(
+            indicators.trayBatteryLevel,
+            context.getString(
+                if (charging) R.string.launcher_tray_battery_charging else R.string.launcher_tray_battery_level,
+                percent,
+            ),
         )
         applyBatteryLevelStyle(percent)
     }

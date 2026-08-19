@@ -23,6 +23,8 @@ layout:page_welcome.*=WelcomeActivity  # the pager's seven page_welcome* layouts
 # Exemptions (keep-absorption branch, fixed in code):
 WelcomeActivity  # S1377: WelcomeRotationManager (registerComponentCallbacks) rebuilds the pager on a real orientation flip, which re-inflates the pages
 BrowseActivity  # keeps its browse session and scroll position, so it absorbs on purpose; re-applies the landscape command bar in BrowseButtonSetupHelper.applyCommandBarMetrics, driven from onLayoutConfigurationChanged (S1549 phase 05)
+PlayerActivity  # a recreate would tear down the live render surface, so it absorbs on purpose; re-inflates the orientation variant in rebindLayoutForOrientation via BaseActivity.rebindContentView and re-points its holders through PlayerLayoutRebindManager (S1549 phase 07)
+StandalonePlayerActivity  # same render-surface reason; re-inflates in rebindLayoutForOrientation and re-points StandaloneViewManager at the fresh hierarchy (S1549 phase 07)
 MainActivity  # keeps the resource list and its panels, so it absorbs on purpose; re-applies the landscape command bar in MainLayoutChromeManager.applyCommandBarMetrics and the tab strip anchor in MainResourceTabsManager.applyLeadingAnchor (S1549 phase 05)
 #
 # Screens that deliberately appear nowhere in this file, and why they are not exceptions: CalculatorActivity,

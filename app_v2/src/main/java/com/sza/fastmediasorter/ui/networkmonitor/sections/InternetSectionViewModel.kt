@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
@@ -169,6 +170,17 @@ class InternetSectionViewModel @Inject constructor(
     private var selectedResourceId: Long? = null
 
     private var subnetRange: SubnetScanTarget = SubnetScanTarget.DeviceSubnet
+
+    /**
+     * S1617: the range a scan with untouched fields would use, so the screen can show it.
+     *
+     * Resolved once per screen rather than observed: it changes only when the device changes network, and
+     * a value that rewrote itself under a user mid-edit would be worse than a stale one. Null means the
+     * device has no usable IPv4 address, which is also the case where the scan itself refuses.
+     */
+    val deviceSubnetRange: StateFlow<SubnetScanTarget.AddressRange?> =
+        flow { emit(scanSubnet.deviceSubnetRange()) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
 
     private var activeJob: Job? = null
 

@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignal
+import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalIcon
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalKind
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalSource
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -43,7 +44,7 @@ class FileTransferLauncherSignalSource @Inject constructor(
             LauncherSignal(
                 id = SIGNAL_ID,
                 kind = LauncherSignalKind.FILE_TRANSFER,
-                iconRes = R.drawable.ic_copy,
+                icon = LauncherSignalIcon.Resource(R.drawable.ic_copy),
                 label = context.getString(R.string.launcher_signal_transfer),
                 detail = state.progress?.let { "${it.currentIndex}/${it.totalFiles}" },
             ),

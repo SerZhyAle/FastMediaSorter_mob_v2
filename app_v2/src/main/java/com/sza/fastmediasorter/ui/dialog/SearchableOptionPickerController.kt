@@ -2,10 +2,13 @@ package com.sza.fastmediasorter.ui.dialog
 
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
+import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
+import com.google.android.material.textfield.TextInputEditText
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -44,14 +47,35 @@ object SearchableOptionPickerController {
         columns: Int = 1,
         onPicked: (Option?) -> Unit,
     ) {
+        attachViews(
+            recyclerOptions = binding.recyclerOptions,
+            searchLayout = binding.layoutOptionSearch,
+            editOptionSearch = binding.editOptionSearch,
+            tvOptionsEmpty = binding.tvOptionsEmpty,
+            options = options,
+            selectedId = selectedId,
+            resetRow = resetRow,
+            columns = columns,
+            onPicked = onPicked,
+        )
+    }
+
+    fun attachViews(
+        recyclerOptions: RecyclerView,
+        searchLayout: View?,
+        editOptionSearch: TextInputEditText?,
+        tvOptionsEmpty: TextView?,
+        options: List<Option>,
+        selectedId: String?,
+        resetRow: Option?,
+        columns: Int = 1,
+        onPicked: (Option?) -> Unit,
+    ) {
         val rows = if (resetRow != null) listOf(resetRow) + options else options
         val adapter = OptionAdapter(selectedId) { option ->
             onPicked(if (resetRow != null && option.id == resetRow.id) null else option)
         }
-        binding.recyclerOptions.apply {
-            // Single column (the default) keeps every existing picker identical; a caller that asks
-            // for more gets a grid (GridLayoutManager extends LinearLayoutManager, so scrollToSelected
-            // still applies).
+        recyclerOptions.apply {
             layoutManager =
                 if (columns > 1) GridLayoutManager(context, columns) else LinearLayoutManager(context)
             this.adapter = adapter
@@ -59,22 +83,20 @@ object SearchableOptionPickerController {
         }
         adapter.submit(rows)
 
-        binding.editOptionSearch.doOnTextChanged { text, _, _, _ ->
+        editOptionSearch?.doOnTextChanged { text, _, _, _ ->
             val visibleCount = adapter.filter(text?.toString().orEmpty())
-            binding.tvOptionsEmpty.isVisible = visibleCount == 0
+            tvOptionsEmpty?.isVisible = visibleCount == 0
         }
 
-        // Re-apply an already-present query (e.g. restored across rotation) so the list matches the
-        // field instead of showing everything until the next keystroke.
-        val initialQuery = binding.editOptionSearch.text?.toString().orEmpty()
+        val initialQuery = editOptionSearch?.text?.toString().orEmpty()
         if (initialQuery.isNotEmpty()) {
-            binding.tvOptionsEmpty.isVisible = adapter.filter(initialQuery) == 0
+            tvOptionsEmpty?.isVisible = adapter.filter(initialQuery) == 0
         }
 
-        // Passive field (no auto-IME); reveal it only when the list overflows the viewport, and
-        // autoscroll the currently selected option into view on open.
-        scrollToSelected(binding.recyclerOptions, rows, selectedId)
-        applySearchVisibilityOnFit(binding)
+        scrollToSelected(recyclerOptions, rows, selectedId)
+        if (searchLayout != null) {
+            applySearchVisibilityOnFit(recyclerOptions, searchLayout)
+        }
     }
 
     /**
@@ -102,14 +124,13 @@ object SearchableOptionPickerController {
      * list is laid out; re-runs on recreate (rotation), so it stays orientation-correct without a
      * separate landscape layout.
      */
-    private fun applySearchVisibilityOnFit(binding: DialogSearchableOptionPickerBinding) {
-        val recycler = binding.recyclerOptions
+    private fun applySearchVisibilityOnFit(recycler: RecyclerView, searchLayout: View) {
         recycler.viewTreeObserver.addOnGlobalLayoutListener(
             object : ViewTreeObserver.OnGlobalLayoutListener {
                 override fun onGlobalLayout() {
                     if (recycler.height == 0) return
                     recycler.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                    binding.layoutOptionSearch.isVisible =
+                    searchLayout.isVisible =
                         recycler.computeVerticalScrollRange() > recycler.height
                 }
             },

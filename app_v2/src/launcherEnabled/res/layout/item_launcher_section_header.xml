@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S1428: a titled section header on the launcher desktop. It owns every cell below it down to the next
      header. S1642 narrows it to two grid cells by one, so this layout has to read inside a small box: the
-     caption takes one ellipsized line and the underline stops at the header's own edge instead of ruling
-     the whole row. The underline carries the same distinction as the bold caption - strategic §3.2 forbids
-     marking membership by colour alone.
+     caption takes one ellipsized line.
+
+     S1743 collapses what used to be two tiers - a large caption with a one-pixel rule beneath it - into a
+     single strip: the caption now sits inside a thin plate, and the rule is gone. The plate carries what the
+     rule carried, which is the non-colour distinction strategic §3.2 requires; it is drawn shorter than the
+     square it sits in, while the square itself stays a full grid row because the grid measures rows by one
+     cell size and maps a drop back through the same number (S1743 ADR-1).
 
      The root is a FrameLayout because the binder's edit-mode decoration bails on anything else, and
-     strategic §11.14 requires the header to be removable in edit mode like any other cell.
+     strategic §11.14 requires the header to be removable in edit mode like any other cell. Its 48dp floor is
+     the touch target for the collapse tap and does not follow the plate down.
 
      Orientation-neutral - strategic §6.1 rules one 2x1 geometry for both orientations, so a layout-land
      counterpart would be a second rule for the same header and there is deliberately none. -->
@@ -25,53 +30,56 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/launcher_section_strip_height"
         android:layout_gravity="center_vertical"
-        android:orientation="vertical">
+        android:background="@drawable/bg_launcher_section_strip"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/launcher_cell_label_plate_padding_horizontal"
+        android:paddingEnd="@dimen/launcher_cell_label_plate_padding_horizontal">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <!-- S1664: the folded state used to reach the user through the state description alone, so a
+             collapsed section looked exactly like an empty one and its content read as lost. The
+             chevron, its drawable and its rotation are taken from CollapsibleSectionHeader rather
+             than invented here, so the desktop answers the gesture the same way every other
+             collapsible section in the app does. Not announced: the header root already carries the
+             spoken state, and a second source would read it out twice. -->
+        <ImageView
+            android:id="@+id/sectionChevron"
+            android:layout_width="@dimen/settings_help_icon_size"
+            android:layout_height="@dimen/settings_help_icon_size"
+            android:importantForAccessibility="no"
+            app:srcCompat="@drawable/ic_arrow_drop_down"
+            app:tint="?attr/colorOnSurfaceVariant" />
+
+        <!-- S1743: no minimum height of its own any more. The 48dp target lives on the root, which keeps
+             the whole square tappable, so repeating it here would only stop the plate from being thin. -->
+        <TextView
+            android:id="@+id/sectionTitle"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold"
+            tools:text="App functions" />
 
-            <!-- S1664: the folded state used to reach the user through the state description alone, so a
-                 collapsed section looked exactly like an empty one and its content read as lost. The
-                 chevron, its drawable and its rotation are taken from CollapsibleSectionHeader rather
-                 than invented here, so the desktop answers the gesture the same way every other
-                 collapsible section in the app does. Not announced: the header root already carries the
-                 spoken state, and a second source would read it out twice. -->
-            <ImageView
-                android:id="@+id/sectionChevron"
-                android:layout_width="@dimen/settings_help_icon_size"
-                android:layout_height="@dimen/settings_help_icon_size"
-                android:layout_gravity="center_vertical"
-                android:importantForAccessibility="no"
-                app:srcCompat="@drawable/ic_arrow_drop_down"
-                app:tint="?attr/colorOnSurfaceVariant" />
-
-            <!-- The grid measures every cell exactly at its cell size, so this floor never fights the
-                 layout; it states the 48dp target strategic §3.2 requires. -->
-            <TextView
-                android:id="@+id/sectionTitle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:maxLines="1"
-                android:minHeight="48dp"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?attr/colorOnSurface"
-                android:textStyle="bold"
-                tools:text="App functions" />
-
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="?attr/colorOutline"
-            android:importantForAccessibility="no" />
+        <!-- S1742: visible actions button in edit mode so section management is focusable and gesture-free. -->
+        <ImageView
+            android:id="@+id/sectionActionsButton"
+            android:layout_width="@dimen/settings_help_icon_size"
+            android:layout_height="@dimen/settings_help_icon_size"
+            android:layout_marginStart="@dimen/margin_small"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="@string/launcher_section_actions_title"
+            android:focusable="true"
+            android:visibility="gone"
+            app:srcCompat="@drawable/ic_more_vert"
+            app:tint="?attr/colorOnSurfaceVariant" />
 
     </LinearLayout>
 

@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAllAppsGestureManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppActionMenuManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherCellActionMenuManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherContactPickManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopActions
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopGeometryManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherEditModeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherGadgetRenderManager
@@ -36,6 +37,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResizeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceActionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceCreateManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceOperations
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenBlackoutManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScrollThumbManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSensorPermissionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherStatusStripManager
@@ -46,6 +48,9 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTrayManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperManager
 import com.sza.fastmediasorter.ui.launcher.menu.LauncherAllAppsFragment
 import com.sza.fastmediasorter.ui.launcher.menu.LauncherStartMenuFragment
+import com.sza.fastmediasorter.ui.launcher.picker.LauncherSectionNameDialogFragment
+import com.sza.fastmediasorter.ui.launcher.section.LauncherSectionActionsSheet
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayCallbacks
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
@@ -56,6 +61,7 @@ import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
@@ -134,6 +140,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         onAttachResizeHandle = { handle, cellUi -> resizeManager.attachHandle(handle, cellUi) },
         onCellLongPress = { view, cellUi -> showCellActions(view, cellUi) },
         onSectionClick = { cellUi -> viewModel.sections.toggle(cellUi.cell) },
+        onSectionLongClick = { _, cellUi -> showSectionActions(cellUi) },
     )
 
     private lateinit var taskbarManager: LauncherTaskbarManager
@@ -146,6 +153,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     private lateinit var wallpaperManager: LauncherWallpaperManager
 
     private lateinit var resizeManager: LauncherResizeManager
+
+    // S1741: manages the app-private screen blackout overlay and inactivity timeout.
+    private lateinit var blackoutManager: LauncherScreenBlackoutManager
 
     // S1560: one overlay per Activity, built on the first black-screen tap - a fresh manager per tap
     // would leak the previous overlay view on the decor view instead of reusing its hide path.
@@ -258,6 +268,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         ActivityLauncherHomeBinding.inflate(layoutInflater)
 
     override fun setupViews() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         // BaseActivity posts setupViews(), so the window's first insets dispatch has already
         // happened - applySystemBarInsetPadding registers the listener AND applies the current
         // insets immediately, which a bare listener would miss (Rule 17).
@@ -275,9 +286,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             lifecycleOwner = this,
             clock = binding.launcherTaskbar.trayClock,
             indicators = binding.launcherTaskbar.trayIndicators,
-            onRequestPhoneStatePermission = {
-                requestPhoneStatePermission.launch(Manifest.permission.READ_PHONE_STATE)
-            },
+            callbacks = trayCallbacks(),
             // S1431: gated on the taskbar being the placement in use, not merely on the launcher owning the
             // status area - otherwise this renderer and the strip's would subscribe to the same sources at
             // once while the mode is on.
@@ -289,9 +298,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             replaceSystemStatusArea = viewModel.replaceSystemStatusArea,
             topStatusStripMode = viewModel.topStatusStripMode,
             trayComposition = viewModel.trayComposition,
-            onRequestPhoneStatePermission = {
-                requestPhoneStatePermission.launch(Manifest.permission.READ_PHONE_STATE)
-            },
+            callbacks = trayCallbacks(),
         )
         collectOnLifecycle(viewModel.replaceSystemStatusArea) { applyStatusBarPolicy(it) }
         taskbarManager = LauncherTaskbarManager(
@@ -309,22 +316,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             root = binding.launcherRoot,
         )
         attachScrollThumb()
-        editModeManager = LauncherEditModeManager(
-            lifecycleOwner = this,
-            desktop = binding.launcherDesktop,
-            // S1412: the button moved onto the taskbar, so it is reached through the included layout.
-            doneButton = binding.launcherTaskbar.launcherEditDone,
-            addCellButton = binding.launcherTaskbar.launcherAddCell,
-            snackbarAnchor = binding.launcherRoot,
-            viewModel = viewModel,
-            onAddCellClick = {
-                addFlowManager.openContentPicker(
-                    LauncherAddFlowManager.NO_SLOT,
-                    LauncherAddFlowManager.NO_SLOT,
-                )
-            },
-        )
-        editModeManager.attach()
+        attachEditMode()
         wallpaperManager = LauncherWallpaperManager(
             lifecycleOwner = this,
             imageLayer = binding.launcherWallpaperImage,
@@ -350,6 +342,38 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         ).attach()
         geometryManager.syncOrientation()
         addFlowManager.registerAddFlowListeners()
+        blackoutManager = LauncherScreenBlackoutManager(WeakReference(this))
+        blackoutManager.onStart()
+    }
+
+    /**
+     * The desktop's gestures and the four entry points they can reach. Kept out of `setupViews` for the
+     * same reason [attachScrollThumb] is - the actions bundle is where this screen says which surface each
+     * quick-menu item opens, and it reads better as one block than as a tail of that function.
+     */
+    private fun attachEditMode() {
+        editModeManager = LauncherEditModeManager(
+            lifecycleOwner = this,
+            desktop = binding.launcherDesktop,
+            // S1412: the button moved onto the taskbar, so it is reached through the included layout.
+            doneButton = binding.launcherTaskbar.launcherEditDone,
+            addCellButton = binding.launcherTaskbar.launcherAddCell,
+            snackbarAnchor = binding.launcherRoot,
+            viewModel = viewModel,
+            actions = LauncherDesktopActions(
+                addItem = {
+                    addFlowManager.openContentPicker(
+                        LauncherAddFlowManager.NO_SLOT,
+                        LauncherAddFlowManager.NO_SLOT,
+                    )
+                },
+                // S1466: the same picker, told which square the user pointed at (owner's ruling 2026-08-17).
+                addItemAtSlot = { row, col -> addFlowManager.openContentPicker(row, col) },
+                wallpaper = { showLauncherSettings(LauncherSettingsDialogFragment.SECTION_DESKTOP) },
+                launcherSettings = { showLauncherSettings() },
+            ),
+        )
+        editModeManager.attach()
     }
 
     /** S1430: the desktop's own scroll thumb - the system bar it replaces could not be dragged. */
@@ -381,6 +405,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         collectOnLifecycle(viewModel.editMode) { editMode ->
             geometryManager.renderDesktop()
             taskbarManager.setEditMode(editMode)
+        }
+        collectOnLifecycle(viewModel.screenBlackoutTimeoutSeconds) { timeout ->
+            blackoutManager.updateTimeout(timeout)
         }
         // The density factor changes the column count, so re-derive the grid when it lands.
         collectOnLifecycle(viewModel.densityFactor) {
@@ -431,9 +458,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             LauncherActionCatalog.KEY_APP_SETTINGS ->
                 startActivity(Intent(this, SettingsActivity::class.java))
 
-            LauncherActionCatalog.KEY_LAUNCHER_SETTINGS ->
-                LauncherSettingsDialogFragment()
-                    .show(supportFragmentManager, LauncherSettingsDialogFragment.TAG)
+            LauncherActionCatalog.KEY_LAUNCHER_SETTINGS -> showLauncherSettings()
 
             LauncherActionCatalog.KEY_ALL_APPS -> showAllApps()
 
@@ -441,6 +466,15 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
             LauncherActionCatalog.KEY_EXIT_LAUNCHER_MODE -> confirmExitLauncherMode()
         }
+    }
+
+    /**
+     * The one place this screen opens the launcher settings dialog - the Start-menu row, the desktop cell
+     * and the quick menu all come through here, so the three cannot drift into three different dialogs.
+     */
+    private fun showLauncherSettings(expandSection: String? = null) {
+        LauncherSettingsDialogFragment.newInstance(expandSection)
+            .show(supportFragmentManager, LauncherSettingsDialogFragment.TAG)
     }
 
     /** The overlay dismisses itself on touch, so the cell only ever has to raise it. */
@@ -491,11 +525,45 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         }
     }
 
+    private fun showSectionActions(cellUi: LauncherCellUi): Boolean {
+        val sheet = LauncherSectionActionsSheet()
+        sheet.items = listOf(
+            LauncherSectionActionsSheet.ActionItem(
+                action = LauncherSectionActionsSheet.Action.RENAME,
+                label = getString(R.string.launcher_section_action_rename),
+                iconResId = R.drawable.ic_rename,
+            ),
+        )
+        sheet.onItemClick = { action ->
+            when (action) {
+                LauncherSectionActionsSheet.Action.RENAME -> {
+                    openRenameSectionDialog(cellUi)
+                }
+            }
+        }
+        sheet.show(supportFragmentManager, "LauncherSectionActionsSheet")
+        return true
+    }
+
+    private fun openRenameSectionDialog(cellUi: LauncherCellUi) {
+        val requestKey = "rename_section_${cellUi.cell.id}"
+        val initialName = cellUi.visual?.label?.toString().orEmpty()
+        supportFragmentManager.setFragmentResultListener(requestKey, this) { _, bundle ->
+            val newName = bundle.getString(LauncherSectionNameDialogFragment.RESULT_NAME)
+            if (!newName.isNullOrBlank()) {
+                viewModel.renameSection(cellUi.cell.id, newName)
+            }
+        }
+        LauncherSectionNameDialogFragment.newInstance(requestKey, initialName)
+            .show(supportFragmentManager, LauncherSectionNameDialogFragment.TAG)
+    }
+
     override fun onStart() {
         super.onStart()
         // Guarded: onStart fires before BaseActivity's posted setupViews() on the very first pass, which
         // is where the manager is created - that pass starts it itself.
         if (::wallpaperManager.isInitialized) wallpaperManager.onStart()
+        if (::blackoutManager.isInitialized) blackoutManager.onStart()
     }
 
     override fun onStop() {
@@ -510,43 +578,87 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         cellActionMenuManager.dismiss()
         // S1101: symmetric with onStart - an animated wallpaper must not keep drawing off-screen.
         if (::wallpaperManager.isInitialized) wallpaperManager.onStop()
+        if (::blackoutManager.isInitialized) blackoutManager.onStop()
     }
+
+    /**
+     * S1767: both tray placements ask the host for the same two things, so they are built in one place -
+     * a callback wired for one placement and forgotten for the other is the bug this shape prevents.
+     */
+    private fun trayCallbacks(): LauncherTrayCallbacks = LauncherTrayCallbacks(
+        onRequestPhoneStatePermission = {
+            requestPhoneStatePermission.launch(Manifest.permission.READ_PHONE_STATE)
+        },
+        // Screen-only: an indicator reports on a section and opens it, never toggling the radio the
+        // shared OsShortcut path would try first (ticket ADR-1).
+        onOpenSystemScreen = { key ->
+            viewModel.run(LauncherCellCommand.OsShortcut(key), screenOnly = true)
+        },
+    )
 
     override fun onDestroy() {
         // S1421: the manager holds the strip's binding, so it drops it here rather than leaving a destroyed
         // hierarchy reachable for as long as anything still references the manager.
         statusStripManager.unbind()
+        if (::blackoutManager.isInitialized) blackoutManager.onDestroy()
         super.onDestroy()
     }
 
+    override fun dispatchTouchEvent(ev: android.view.MotionEvent?): Boolean {
+        if (ev != null && ::blackoutManager.isInitialized && blackoutManager.onDispatchTouchEvent(ev)) {
+            return true
+        }
+        return super.dispatchTouchEvent(ev)
+    }
+
+    override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
+        if (::blackoutManager.isInitialized && blackoutManager.onDispatchGenericMotionEvent(event)) {
+            return true
+        }
+        return super.dispatchGenericMotionEvent(event)
+    }
+
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        if (::blackoutManager.isInitialized && blackoutManager.onDispatchKeyEvent(event)) {
+            return true
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
     /**
-     * S1087: hand the status area to the launcher, or give it back. Only `statusBars()` is touched - the
+     * S1087 / S1766: hand the status area to the launcher, or give it back. Only `statusBars()` is touched - the
      * navigation bar is the way out of a Home surface and stays whatever the setting says. The safe-area
      * padding is re-applied on every change because the inset the desktop must respect moves with the
      * bar, and a stale one leaves either a gap or content under the cutout (Rule 17).
      */
     private fun applyStatusBarPolicy(replaceSystemStatusArea: Boolean) {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         val controller = statusBarController()
         if (replaceSystemStatusArea) {
-            // S1409: the default behaviour hands the bar back permanently once the user swipes it into
-            // view, so the setting looked switched off from the first swipe until it was applied again.
-            // Transient is what the setting actually promises: the bar is there on demand and leaves on
-            // its own. Set before hide - the behaviour applies to the hidden types.
+            // S1409 / S1766: transient bars by swipe preserve top notification shade gesture. When replacing
+            // the system status area, top inset padding on launcherRoot is disabled (applyTop = false) so the
+            // custom launcher status strip occupies y = 0 without top gap, while cutout bounds handle signal alignment.
             controller.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             controller.hide(WindowInsetsCompat.Type.statusBars())
+            binding.launcherRoot.applySystemBarInsetPadding(
+                applyTop = false,
+                useStatusBarHeightFallback = false,
+            )
         } else {
             controller.show(WindowInsetsCompat.Type.statusBars())
+            binding.launcherRoot.applySystemBarInsetPadding(
+                applyTop = true,
+                useStatusBarHeightFallback = false,
+            )
         }
-        // Re-apply, never re-install: applySystemBarInsetPadding captures the view's current padding as
-        // its base, so calling it again would treat the already-inset padding as the base and compound
-        // it on every toggle. A fresh dispatch makes the listener recompute from the original base.
         ViewCompat.requestApplyInsets(binding.launcherRoot)
     }
 
     private fun statusBarController() = WindowCompat.getInsetsController(window, binding.launcherRoot)
 
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
+        Timber.d("S1549: LauncherHomeActivity onLayoutConfigurationChanged - grid padding re-read on rotation")
         // S1549: this screen absorbs the configuration change to keep an unfinished widget placement, so the
         // grid padding has to be re-read by hand - resources already resolve to the new orientation here.
         val gridPadding = resources.getDimensionPixelSize(R.dimen.launcher_grid_side_padding)

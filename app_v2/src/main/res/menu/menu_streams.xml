@@ -8,14 +8,18 @@
         android:title="@string/streams_view_grid"
         app:showAsAction="always" />
 
+    <!-- S1823: the catalog import is the toolbar's second pinned command, and the reachability probe
+         moved into the overflow below. Before this, the visible button was the probe under the label
+         "Refresh" while downloading the channel list hid in the overflow - so a screen with an empty
+         list showed no visible way to fill it, and the one visible action did something else. -->
     <item
-        android:id="@+id/action_stream_refresh"
-        android:icon="@drawable/ic_refresh"
-        android:title="@string/streams_refresh"
+        android:id="@+id/action_stream_import_catalog"
+        android:icon="@drawable/ic_import"
+        android:title="@string/streams_import_catalog"
         app:showAsAction="always" />
 
-    <!-- S1473: the three list-population commands live in the toolbar's own overflow, which the
-         toolbar renders last by construction - no manual positioning of a "three dots" button. -->
+    <!-- S1473: the list-population commands live in the toolbar's own overflow, which the toolbar
+         renders last by construction - no manual positioning of a "three dots" button. -->
     <item
         android:id="@+id/action_stream_add"
         android:icon="@drawable/ic_add"
@@ -23,14 +27,22 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_stream_import_catalog"
-        android:icon="@drawable/ic_import"
-        android:title="@string/streams_import_catalog"
-        app:showAsAction="never" />
-
-    <item
         android:id="@+id/action_stream_import_url"
         android:icon="@drawable/ic_import"
         android:title="@string/streams_import_from_url"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_stream_refresh"
+        android:icon="@drawable/ic_refresh"
+        android:title="@string/streams_refresh"
+        app:showAsAction="never" />
+
+    <!-- S1780: last in the overflow on purpose - it is the one destructive entry here, so it sits away
+         from the two import actions it undoes. -->
+    <item
+        android:id="@+id/action_stream_clear_downloaded"
+        android:icon="@drawable/ic_delete"
+        android:title="@string/streams_clear_downloaded"
         app:showAsAction="never" />
 </menu>

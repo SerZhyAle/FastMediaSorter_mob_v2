@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ClearDownloadedStreamsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamPlaylistUseCase
@@ -79,6 +80,7 @@ class StreamsViewModel @Inject constructor(
     // S0938: relative reorder of a pinned channel (up / down / to top) within the pinned set.
     private val reorderPinnedStream: ReorderPinnedStreamUseCase,
     private val removeStreamSource: RemoveStreamSourceUseCase,
+    private val clearDownloadedStreams: ClearDownloadedStreamsUseCase,
     private val recordStreamPlayOutcome: RecordStreamPlayOutcomeUseCase,
     // S1502: outcomes arrive on their own table-scoped Flow, beside the catalog rather than inside it.
     observeStreamPlayOutcomes: ObserveStreamPlayOutcomesUseCase,
@@ -342,6 +344,17 @@ class StreamsViewModel @Inject constructor(
     }
 
     /** Downloads/refreshes the curated FastMediaSorter catalog; reports the added/updated/removed delta. */
+    /**
+     * S1780: drops every downloaded channel, keeping the hand-added ones.
+     *
+     * The confirmation belongs to the screen, not here - by the time this runs the user has already
+     * agreed, and a ViewModel that re-asked would put the question in two places.
+     */
+    fun onClearDownloaded() = viewModelScope.launch {
+        val removed = clearDownloadedStreams()
+        _events.send(StreamsEvent.DownloadedCleared(removed))
+    }
+
     fun onImportCatalog() = viewModelScope.launch {
         _state.update { it.copy(isImporting = true) }
         try {
@@ -723,6 +736,9 @@ class StreamsViewModel @Inject constructor(
     sealed interface StreamsEvent {
         data class Message(@StringRes val messageResId: Int) : StreamsEvent
         data class ImportFinished(val inserted: Int) : StreamsEvent
+
+        /** S1780: how many downloaded channels the clear actually removed. */
+        data class DownloadedCleared(val removed: Int) : StreamsEvent
         data class CatalogUpdated(val added: Int, val updated: Int, val removed: Int) : StreamsEvent
         data class PlayRequested(val source: StreamSourceEntity) : StreamsEvent
 

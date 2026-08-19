@@ -43,6 +43,7 @@ class ResolveLauncherCommandLabelUseCaseContactTest {
         resourceIconProvider = mockk(relaxed = true),
         appShortcutDataSource = mockk(relaxed = true),
         liveContactDataSource = liveContacts,
+        faviconAtlasStore = mockk(relaxed = true),
     )
 
     @Test

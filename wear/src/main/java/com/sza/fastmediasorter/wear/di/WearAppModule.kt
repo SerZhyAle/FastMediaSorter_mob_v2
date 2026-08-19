@@ -176,4 +176,20 @@ object WearAppModule {
     @Provides
     @Singleton
     fun provideWearFavoritesRepository(impl: WearFavoritesRepositoryImpl): WearFavoritesRepository = impl
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(): okhttp3.OkHttpClient {
+        return okhttp3.OkHttpClient.Builder()
+            .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideWearStreamChannelRepository(
+        impl: com.sza.fastmediasorter.wear.data.repository.WearStreamChannelRepositoryImpl
+    ): com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository = impl
 }

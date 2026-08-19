@@ -183,6 +183,8 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
         super.onDestroyView()
         exitDialog?.dismiss()
         exitDialog = null
+        powerDialog?.dismiss()
+        powerDialog = null
         _binding = null
     }
 
@@ -217,6 +219,60 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
             }
             .setNegativeButton(R.string.cancel, null)
             .showBoundTo(this@LauncherStartMenuFragment)
+    }
+
+    private var powerDialog: Dialog? = null
+
+    private fun confirmReboot() {
+        powerDialog?.dismiss()
+        powerDialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.launcher_menu_reboot_confirm_title)
+            .setMessage(R.string.launcher_menu_reboot_confirm_message)
+            .setPositiveButton(R.string.launcher_menu_reboot) { _, _ ->
+                performPowerAction(isReboot = true)
+                dismiss()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .showBoundTo(this@LauncherStartMenuFragment)
+    }
+
+    private fun confirmShutdown() {
+        powerDialog?.dismiss()
+        powerDialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.launcher_menu_shutdown_confirm_title)
+            .setMessage(R.string.launcher_menu_shutdown_confirm_message)
+            .setPositiveButton(R.string.launcher_menu_shutdown) { _, _ ->
+                performPowerAction(isReboot = false)
+                dismiss()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .showBoundTo(this@LauncherStartMenuFragment)
+    }
+
+    private fun performPowerAction(isReboot: Boolean) {
+        val context = context?.applicationContext ?: return
+        if (isReboot) {
+            val powerManager = context.getSystemService(android.content.Context.POWER_SERVICE) as? android.os.PowerManager
+            val success = runCatching { powerManager?.reboot(null) }.isSuccess
+            if (!success) {
+                val intent = Intent(Intent.ACTION_REBOOT).apply {
+                    putExtra("nowait", 1)
+                    putExtra("interval", 1)
+                    putExtra("window", 0)
+                }
+                runCatching { context.sendBroadcast(intent) }
+                runCatching { Runtime.getRuntime().exec(arrayOf("reboot")) }
+            }
+        } else {
+            val intent = Intent("android.intent.action.ACTION_REQUEST_SHUTDOWN").apply {
+                putExtra("android.intent.extra.KEY_CONFIRM", false)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            val success = runCatching { context.startActivity(intent) }.isSuccess
+            if (!success) {
+                runCatching { Runtime.getRuntime().exec(arrayOf("reboot", "-p")) }
+            }
+        }
     }
 
     companion object {

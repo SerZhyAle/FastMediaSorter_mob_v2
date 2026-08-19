@@ -77,7 +77,13 @@ $srcRoots = @(
     # the catalogue while catalog-sync reported PASS, because this list is the only definition of "the
     # code" and an unlisted root is indistinguishable from an empty one.
     (Join-Path $Root "$Module\src\castEnabled\java"),
-    (Join-Path $Root "$Module\src\castDisabled\java")
+    (Join-Path $Root "$Module\src\castDisabled\java"),
+    # S1802: the Wear Data Layer seam. Added 2026-08-18 for the third time this list has cost a
+    # subsystem its visibility - PhoneWearListenerService, WearableDataLayerRepositoryImpl, the
+    # flavor-local WearModule and WearLogReportReceiver were all absent from the catalogue while
+    # catalog-sync reported PASS, because an unlisted root is indistinguishable from an empty one.
+    (Join-Path $Root "$Module\src\wearGms\java"),
+    (Join-Path $Root "$Module\src\wearStub\java")
 ) | Where-Object { Test-Path $_ }
 if (-not $srcRoots -or $srcRoots.Count -eq 0) {
     throw "No supported source roots found for module '$Module'"

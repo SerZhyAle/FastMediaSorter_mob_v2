@@ -129,14 +129,16 @@ class CloudFileOperationHandler @Inject constructor(
     override suspend fun executeCopy(
         operation: FileOperation.Copy,
         progressCallback: ByteProgressCallback?
-    ): FileOperationResult {
+    ): FileOperationResult = withContext(Dispatchers.IO) {
+        // S1813: the base declares this method's body as withContext(Dispatchers.IO); an override
+        // replaces that body, so the confinement has to be restated here or it is silently lost.
         val destinationPath = operation.destination.path
 
         // Check auth for destination if it's cloud
         if (cloudPathParser.isCloudPath(destinationPath)) {
             val destInfo = cloudPathParser.parseCloudPath(destinationPath)
             if (destInfo != null) {
-                checkAuthenticationRequired(destInfo.provider)?.let { return it }
+                checkAuthenticationRequired(destInfo.provider)?.let { return@withContext it }
             }
 
             // Handle Upload (Any -> Cloud)
@@ -170,7 +172,7 @@ class CloudFileOperationHandler @Inject constructor(
                 }
             }
 
-            return buildCopyResult(successCount, operation, copiedPaths, errors)
+            return@withContext buildCopyResult(successCount, operation, copiedPaths, errors)
         }
 
         // Check auth for sources if any are cloud
@@ -178,7 +180,7 @@ class CloudFileOperationHandler @Inject constructor(
         if (firstSource != null && cloudPathParser.isCloudPath(firstSource.path)) {
             val sourceInfo = cloudPathParser.parseCloudPath(firstSource.path)
             if (sourceInfo != null) {
-                checkAuthenticationRequired(sourceInfo.provider)?.let { return it }
+                checkAuthenticationRequired(sourceInfo.provider)?.let { return@withContext it }
             }
 
             // Handle Download (Cloud -> Any)
@@ -206,10 +208,10 @@ class CloudFileOperationHandler @Inject constructor(
                     errors.add("Failed to download $fileName from cloud")
                 }
             }
-            return buildCopyResult(successCount, operation, copiedPaths, errors)
+            return@withContext buildCopyResult(successCount, operation, copiedPaths, errors)
         }
 
-        return super.executeCopy(operation, progressCallback)
+        return@withContext super.executeCopy(operation, progressCallback)
     }
 
     suspend fun executeCopy(operation: FileOperation.Copy): FileOperationResult {
@@ -219,14 +221,16 @@ class CloudFileOperationHandler @Inject constructor(
     override suspend fun executeMove(
         operation: FileOperation.Move,
         progressCallback: ByteProgressCallback?
-    ): FileOperationResult {
+    ): FileOperationResult = withContext(Dispatchers.IO) {
+        // S1813: the base declares this method's body as withContext(Dispatchers.IO); an override
+        // replaces that body, so the confinement has to be restated here or it is silently lost.
         val destinationPath = operation.destination.path
 
         // Check auth for destination if it's cloud
         if (cloudPathParser.isCloudPath(destinationPath)) {
             val destInfo = cloudPathParser.parseCloudPath(destinationPath)
             if (destInfo != null) {
-                checkAuthenticationRequired(destInfo.provider)?.let { return it }
+                checkAuthenticationRequired(destInfo.provider)?.let { return@withContext it }
             }
 
             // Handle Move to Cloud (Upload + Delete Source)
@@ -314,7 +318,7 @@ class CloudFileOperationHandler @Inject constructor(
                 requestBatchDeletePermission(pendingDeletePaths)
             }
 
-            return buildMoveResult(successCount, operation, movedPaths, errors)
+            return@withContext buildMoveResult(successCount, operation, movedPaths, errors)
         }
 
         // Check auth for sources if any are cloud
@@ -322,7 +326,7 @@ class CloudFileOperationHandler @Inject constructor(
         if (firstSource != null && cloudPathParser.isCloudPath(firstSource.path)) {
             val sourceInfo = cloudPathParser.parseCloudPath(firstSource.path)
             if (sourceInfo != null) {
-                checkAuthenticationRequired(sourceInfo.provider)?.let { return it }
+                checkAuthenticationRequired(sourceInfo.provider)?.let { return@withContext it }
             }
 
             // Handle Move from Cloud (Download + Delete Cloud)
@@ -357,10 +361,10 @@ class CloudFileOperationHandler @Inject constructor(
                     errors.add("Failed to download $fileName from cloud")
                 }
             }
-            return buildMoveResult(successCount, operation, movedPaths, errors)
+            return@withContext buildMoveResult(successCount, operation, movedPaths, errors)
         }
 
-        return super.executeMove(operation, progressCallback)
+        return@withContext super.executeMove(operation, progressCallback)
     }
 
     suspend fun executeMove(operation: FileOperation.Move): FileOperationResult {

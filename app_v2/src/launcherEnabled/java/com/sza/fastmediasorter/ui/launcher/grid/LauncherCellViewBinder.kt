@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.ui.launcher.grid
 
 import android.content.res.ColorStateList
 import android.os.Build
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.StringRes
 import androidx.core.view.ViewCompat
@@ -17,7 +19,9 @@ import com.sza.fastmediasorter.databinding.ItemLauncherCellShortcutBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherSectionHeaderBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
+import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
+import timber.log.Timber
 
 /**
  * S0404: fills [LauncherDesktopLayout] with cell views. Shortcuts draw an icon + label here, gadgets
@@ -39,9 +43,10 @@ class LauncherCellViewBinder(
     // nothing to expand keeps behaving like an ordinary un-long-pressable cell.
     private val onCellLongPress: (View, LauncherCellUi) -> Boolean = { _, _ -> false },
     private val onAttachResizeHandle: (handle: android.view.View, cellUi: LauncherCellUi) -> Unit = { _, _ -> },
-    // S1428: a tap on a section header folds it shut or opens it again. It is the header's only gesture -
-    // strategic §6.8 ruled it explicitly not long-pressable.
+    // S1428: a tap on a section header folds it shut or opens it again.
     private val onSectionClick: (LauncherCellUi) -> Unit = {},
+    // S1742: long press in normal mode or actions button in edit mode opens section actions sheet.
+    private val onSectionLongClick: (View, LauncherCellUi) -> Boolean = { _, _ -> false },
 ) {
 
     /** Set by the host to inject a gadget's view into its cell; null renders an empty frame. */
@@ -107,7 +112,7 @@ class LauncherCellViewBinder(
                 LauncherCellKind.SHORTCUT -> bindShortcut(inflater, container, item)
                 LauncherCellKind.GADGET -> bindGadget(inflater, container, item)
                 LauncherCellKind.SECTION ->
-                    bindSection(inflater, container, item, item.cell.target in foldedSections)
+                    bindSection(inflater, container, item, item.cell.target in foldedSections, editMode)
             }
             applyCellSurface(view, item, editMode)
             if (editMode) decorateForEdit(inflater, view, item)
@@ -282,6 +287,7 @@ class LauncherCellViewBinder(
         item: LauncherCellUi,
     ): android.view.View {
         val binding = ItemLauncherCellShortcutBinding.inflate(inflater, container, false)
+        applyShortcutLayoutScaling(binding, container)
         val visual = item.visual
         // S1173: the dim goes on the icon and the caption, never on the root. With no card behind them
         // the root's alpha would fade their contour too, and an unavailable cell would stop being
@@ -303,12 +309,54 @@ class LauncherCellViewBinder(
             }
         }
         bindMonogram(binding, visual?.monogramSeed)
-        bindModeBadge(binding, item.modeBadge)
+        bindModeBadge(binding, item)
         binding.root.contentDescription = describe(binding, item)
         binding.root.setOnClickListener { onCellClick(item) }
         binding.root.setOnLongClickListener { onCellLongPress(binding.root, item) }
         nameLongPressForAccessibility(binding.root, item)
         return binding.root
+    }
+
+    /**
+     * S1757: scales shortcut icon, monogram, mode badge, vertical padding, and label margin
+     * proportionally to the desktop container's cell size so up to 2 lines of text fit in dense grid.
+     */
+    private fun applyShortcutLayoutScaling(
+        binding: ItemLauncherCellShortcutBinding,
+        container: LauncherDesktopLayout,
+    ) {
+        val density = binding.root.resources.displayMetrics.density
+        if (density <= 0f) return
+        val cellSizePx = container.currentCellSize()
+        val cellSizeDp = if (cellSizePx > 0) cellSizePx / density else LauncherGridGeometry.BASE_CELL_DP
+        val spec = LauncherGridGeometry.shortcutLayoutSpec(cellSizeDp)
+
+        val iconPx = (spec.iconSizeDp * density).toInt()
+        binding.cellIcon.layoutParams.width = iconPx
+        binding.cellIcon.layoutParams.height = iconPx
+
+        binding.cellMonogram.layoutParams.width = iconPx
+        binding.cellMonogram.layoutParams.height = iconPx
+        binding.cellMonogram.setTextSize(TypedValue.COMPLEX_UNIT_SP, spec.monogramTextSizeSp)
+
+        val badgePx = (spec.modeBadgeSizeDp * density).toInt()
+        binding.cellModeBadge.layoutParams.width = badgePx
+        binding.cellModeBadge.layoutParams.height = badgePx
+
+        val padVertPx = (spec.contentPaddingVerticalDp * density).toInt()
+        binding.cellContentLayout.setPadding(
+            binding.cellContentLayout.paddingLeft,
+            padVertPx,
+            binding.cellContentLayout.paddingRight,
+            padVertPx,
+        )
+
+        val labelMarginTopPx = (spec.labelMarginTopDp * density).toInt()
+        val labelParams = binding.cellLabel.layoutParams as? ViewGroup.MarginLayoutParams
+        if (labelParams != null && labelParams.topMargin != labelMarginTopPx) {
+            labelParams.topMargin = labelMarginTopPx
+            binding.cellLabel.layoutParams = labelParams
+        }
     }
 
     /**
@@ -348,11 +396,13 @@ class LauncherCellViewBinder(
         container: LauncherDesktopLayout,
         item: LauncherCellUi,
         collapsed: Boolean,
+        editMode: Boolean,
     ): android.view.View {
         val binding = ItemLauncherSectionHeaderBinding.inflate(inflater, container, false)
         val title = item.visual?.label
             ?: container.context.getString(R.string.launcher_home_cell_unavailable)
         binding.sectionTitle.text = title
+        Timber.d("S1743: section header bound as a single strip - title=%s", title)
         // S1664: set, never animated. [bind] rebuilds every cell view on each emission, so there is no
         // previous chevron to turn - it is inflated fresh and simply arrives already at its state. An
         // animation here would play on a view the user has not seen yet, on every unrelated rebind.
@@ -361,7 +411,25 @@ class LauncherCellViewBinder(
         ViewCompat.setAccessibilityHeading(binding.root, true)
         binding.root.setOnClickListener { onSectionClick(item) }
         announceSectionState(binding.root, title, collapsed)
+
+        if (!editMode) {
+            binding.root.setOnLongClickListener { onSectionLongClick(binding.root, item) }
+            nameSectionActionsForAccessibility(binding.root, item)
+        } else {
+            binding.sectionActionsButton.isVisible = true
+            binding.sectionActionsButton.setOnClickListener {
+                onSectionLongClick(binding.sectionActionsButton, item)
+            }
+        }
         return binding.root
+    }
+
+    private fun nameSectionActionsForAccessibility(view: View, item: LauncherCellUi) {
+        ViewCompat.replaceAccessibilityAction(
+            view,
+            AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_LONG_CLICK,
+            view.context.getString(R.string.launcher_section_actions_title),
+        ) { _, _ -> onSectionLongClick(view, item) }
     }
 
     /**
@@ -432,21 +500,57 @@ class LauncherCellViewBinder(
     private fun describe(binding: ItemLauncherCellShortcutBinding, item: LauncherCellUi): CharSequence {
         // A contact cell says what tapping it does, not just whose name is on it (strategic §11.5).
         val label = item.visual?.spokenLabel ?: binding.cellLabel.text
-        val modeRes = item.modeBadge?.let { modeLabelRes(it) } ?: return label
+        val modeRes = item.modeBadge?.let { modeLabelRes(it) }
+            ?: item.contactAction?.let { contactActionLabelRes(it) }
+            ?: return label
         val context = binding.root.context
         return context.getString(R.string.launcher_home_cell_with_mode, label, context.getString(modeRes))
     }
 
-    private fun bindModeBadge(binding: ItemLauncherCellShortcutBinding, mode: LauncherResourceMode?) {
-        binding.cellModeBadge.isVisible = mode != null
-        if (mode == null) return
-        binding.cellModeBadge.setImageResource(
-            when (mode) {
-                LauncherResourceMode.BROWSE -> R.drawable.ic_open_in_browse
-                LauncherResourceMode.SLIDESHOW -> R.drawable.ic_slideshow
-                LauncherResourceMode.PLAY -> R.drawable.ic_play
+    private fun bindModeBadge(binding: ItemLauncherCellShortcutBinding, item: LauncherCellUi) {
+        val mode = item.modeBadge
+        val contactAction = item.contactAction
+        val isContactBadge = contactAction != null && contactAction != LauncherContactAction.PROFILE
+        val isVisible = mode != null || isContactBadge
+
+        binding.cellModeBadge.isVisible = isVisible
+        if (!isVisible) return
+
+        if (mode != null) {
+            binding.cellModeBadge.setImageResource(
+                when (mode) {
+                    LauncherResourceMode.BROWSE -> R.drawable.ic_open_in_browse
+                    LauncherResourceMode.SLIDESHOW -> R.drawable.ic_slideshow
+                    LauncherResourceMode.PLAY -> R.drawable.ic_play
+                }
+            )
+        } else if (contactAction != null) {
+            var messengerDrawable: android.graphics.drawable.Drawable? = null
+            if (contactAction == LauncherContactAction.MESSAGE) {
+                item.messengerPackage?.let { pkg ->
+                    messengerDrawable = runCatching {
+                        binding.root.context.packageManager.getApplicationIcon(pkg)
+                    }.getOrNull()
+                }
             }
-        )
+            if (messengerDrawable != null) {
+                binding.cellModeBadge.setImageDrawable(messengerDrawable)
+                binding.cellModeBadge.isVisible = true
+            } else {
+                val iconRes = when (contactAction) {
+                    LauncherContactAction.DIAL -> R.drawable.ic_call
+                    LauncherContactAction.MESSAGE,
+                    LauncherContactAction.SMS -> R.drawable.ic_message
+                    LauncherContactAction.PROFILE -> 0
+                }
+                if (iconRes != 0) {
+                    binding.cellModeBadge.setImageResource(iconRes)
+                    binding.cellModeBadge.isVisible = true
+                } else {
+                    binding.cellModeBadge.isVisible = false
+                }
+            }
+        }
     }
 
     @StringRes
@@ -454,6 +558,14 @@ class LauncherCellViewBinder(
         LauncherResourceMode.BROWSE -> R.string.launcher_home_mode_browse
         LauncherResourceMode.SLIDESHOW -> R.string.launcher_home_mode_slideshow
         LauncherResourceMode.PLAY -> R.string.launcher_home_mode_play
+    }
+
+    @StringRes
+    private fun contactActionLabelRes(action: LauncherContactAction): Int? = when (action) {
+        LauncherContactAction.DIAL -> R.string.launcher_home_contact_action_call
+        LauncherContactAction.MESSAGE,
+        LauncherContactAction.SMS -> R.string.launcher_home_contact_action_message
+        LauncherContactAction.PROFILE -> null
     }
 
     companion object {

@@ -31,7 +31,16 @@ class UnusedCredentialPolicy @Inject constructor() {
     /**
      * Returns true when the credential should be offered for deletion:
      * - Its [entry.status] is [CredentialStatus.ORPHANED], AND
-     * - It was created more than [gracePeriodMs] ago.
+     * - It has been orphaned for more than [gracePeriodMs].
+     *
+     * S1649: the elapsed time is measured from [CredentialAuditEntry.orphanedSince], the moment the
+     * credential was first seen unreferenced - not from when it was stored. Measuring from storage
+     * time inverted the guarantee: a credential kept for a year lost its whole grace period the
+     * instant its resource was deleted, while yesterday's was shielded for a month regardless.
+     *
+     * An unknown orphan moment is never eligible. Every row carries null right after the schema 51
+     * migration until the background worker stamps it, and a missing clock must not read as an
+     * expired one.
      *
      * @param entry   The credential audit entry to evaluate.
      * @param nowMs   Current epoch time in ms (injectable for testing).
@@ -41,8 +50,9 @@ class UnusedCredentialPolicy @Inject constructor() {
         nowMs: Long = System.currentTimeMillis()
     ): Boolean {
         if (entry.status != CredentialStatus.ORPHANED) return false
-        if (entry.createdAt <= 0L) return false
-        return (nowMs - entry.createdAt) >= gracePeriodMs
+        val orphanedSince = entry.orphanedSince ?: return false
+        if (orphanedSince <= 0L) return false
+        return (nowMs - orphanedSince) >= gracePeriodMs
     }
 
     /**

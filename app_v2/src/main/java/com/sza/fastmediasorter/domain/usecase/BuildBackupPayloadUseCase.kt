@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
+import com.sza.fastmediasorter.data.local.db.LauncherCellDao
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -22,7 +23,8 @@ class BuildBackupPayloadUseCase @Inject constructor(
     private val favoritesDao: FavoritesDao,
     private val scheduledOperationRepository: ScheduledOperationRepository,
     private val credentialsRepository: NetworkCredentialsRepository,
-    private val authSessionRepository: AuthSessionRepository
+    private val authSessionRepository: AuthSessionRepository,
+    private val launcherCellDao: LauncherCellDao
 ) {
     suspend operator fun invoke(): BackupPayload {
         val settings = settingsRepository.getSettings().first()
@@ -38,6 +40,8 @@ class BuildBackupPayloadUseCase @Inject constructor(
             .map { BackupMapper.toBackupNetworkCredential(it) }
         val webAuthSessions = authSessionRepository.exportSessions()
             .map { BackupMapper.toBackupWebAuthSession(it) }
+        val launcherCells = launcherCellDao.getAllCellsSync()
+            .map { BackupMapper.toBackupLauncherCell(it) }
 
         return BackupMapper.toBackupPayload(
             settings = settings,
@@ -48,7 +52,8 @@ class BuildBackupPayloadUseCase @Inject constructor(
             scheduledOperations = scheduledOps
         ).copy(
             networkCredentials = networkCredentials,
-            webAuthSessions = webAuthSessions
+            webAuthSessions = webAuthSessions,
+            launcherCells = launcherCells
         )
     }
 }

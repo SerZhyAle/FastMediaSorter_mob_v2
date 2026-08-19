@@ -19,7 +19,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
@@ -351,6 +350,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     // S0699: the saved list position to restore (from RestoreScroll); applied once the row exists.
     private var pendingScrollTarget: Int? = null
+
+    // S1823: the inflated catalog-offer banner. Held because a ViewStub can only be inflated once, so
+    // the second offer of a session has to reuse this view rather than ask the stub again.
+    private var catalogBanner: View? = null
     private var scrollRestored = false
 
     private val streamScrollListener = object : RecyclerView.OnScrollListener() {
@@ -509,6 +512,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 }
                 R.id.action_stream_display_toggle -> { cancelHealthProbe(); viewModel.onToggleDisplayMode(); true }
                 R.id.action_stream_refresh -> { startHealthProbe(); true }
+                R.id.action_stream_clear_downloaded -> { confirmClearDownloaded(); true }
                 else -> false
             }
         }
@@ -550,7 +554,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         commandLabels = StreamsCommandLabelManager(
             toolbar = binding.toolbar,
             menuRes = R.menu.menu_streams,
-            labelledItemIds = listOf(R.id.action_stream_display_toggle, R.id.action_stream_refresh),
+            labelledItemIds = listOf(R.id.action_stream_display_toggle, R.id.action_stream_import_catalog),
             reapplyFixups = {
                 // Before the first state emission the display mode is unknown, so only the tint
                 // applies; the state collector sets the toggle icon on that first emission.
@@ -691,6 +695,26 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * scheme), so tint to colorOnPrimary for contrast. android:iconTint on a menu item is API 26+,
      * but legacy minSdk is 23, so apply via MenuItemCompat in code.
      */
+
+    /**
+     * S1780: asks before clearing, and says exactly what survives.
+     *
+     * The message names the hand-added channels as staying rather than only what goes: this is the one
+     * destructive entry in the streams menu, and the user's real question before tapping it is whether
+     * the channels they typed in themselves are about to disappear.
+     */
+    private fun confirmClearDownloaded() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.streams_clear_downloaded_confirm_title)
+            .setMessage(R.string.streams_clear_downloaded_confirm_message)
+            .setPositiveButton(R.string.streams_clear_downloaded) { _, _ ->
+                viewModel.onClearDownloaded()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            // S1456: bound to the host, so a destroyed activity takes the dialog with it.
+            .showBoundToHost(this)
+    }
+
     private fun tintToolbarMenuIcons() {
         val tint = ColorStateList.valueOf(
             MaterialColors.getColor(binding.toolbar, com.google.android.material.R.attr.colorOnPrimary)
@@ -761,6 +785,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             when (event) {
                 is StreamsViewModel.StreamsEvent.Message ->
                     Toast.makeText(this, event.messageResId, Toast.LENGTH_LONG).show()
+                is StreamsViewModel.StreamsEvent.DownloadedCleared -> {
+                    Toast.makeText(
+                        this,
+                        getString(R.string.streams_clear_downloaded_done, event.removed),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
                 is StreamsViewModel.StreamsEvent.ImportFinished -> {
                     Toast.makeText(
                         this,
@@ -801,12 +832,24 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     /**
      * S0659: ON_OPEN refresh policy - offer a dismissible catalog update, never auto-download. The action
-     * triggers the same curated-catalog import the toolbar uses; swiping/timeout dismisses it harmlessly.
+     * triggers the same curated-catalog import the toolbar action uses.
+     *
+     * S1823: the offer is a banner, not a Snackbar. A Snackbar dismisses itself after a few seconds, and
+     * for most installs this offer is the only path to a catalog at all: the owner's own device had never
+     * imported one, and a scripted device run missed the Snackbar twice before catching it. The banner
+     * stays until it is taken or closed, so the timeout can no longer decide whether a user ever gets a
+     * channel list. Inflated on first use only (Rule 18) - the policy may never raise it.
      */
     private fun showCatalogRefreshSuggestion() {
-        Snackbar.make(binding.rvStreams, R.string.streams_catalog_refresh_suggestion, Snackbar.LENGTH_LONG)
-            .setAction(R.string.streams_catalog_refresh_action) { viewModel.onImportCatalog() }
-            .show()
+        val banner = catalogBanner ?: binding.stubCatalogBanner.inflate().also { catalogBanner = it }
+        banner.isVisible = true
+        banner.findViewById<View>(R.id.btnCatalogBannerAction)?.setOnClickListener {
+            banner.isVisible = false
+            viewModel.onImportCatalog()
+        }
+        banner.findViewById<View>(R.id.btnCatalogBannerDismiss)?.setOnClickListener {
+            banner.isVisible = false
+        }
     }
 
     /**
@@ -1211,6 +1254,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * orientation by the time this runs, so re-reading them here produces what the dead layout described.
      */
     private fun applyOrientationDimensions() {
+        Timber.d("S1549: StreamsActivity applyOrientationDimensions - qualified dimensions re-read on rotation")
         val sidePadding = resources.getDimensionPixelSize(R.dimen.streams_list_side_padding)
         listOf(binding.rvStreams, binding.rvStreamsPinned).forEach { list ->
             list.setPaddingRelative(sidePadding, list.paddingTop, sidePadding, list.paddingBottom)

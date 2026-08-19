@@ -11,23 +11,32 @@ import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.NetworkBasePath
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearThumbnailRepository
 import com.sza.fastmediasorter.wear.util.MediaMimeTypes
+import com.sza.fastmediasorter.wear.util.WearThumbnailBudget
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
+
+private const val VIEW_MODE_SUBSCRIPTION_MS = 5_000L
 
 /**
  * A screen title the view model can name without holding a Context: either text that came from the
@@ -51,7 +60,8 @@ class BrowseViewModel @Inject constructor(
     private val sftpDataSource: SftpDataSource,
     private val networkSourceRepository: NetworkSourceRepository,
     private val selectedMediaManager: SelectedMediaManager,
-    private val playbackSetManager: PlaybackSetManager
+    private val playbackSetManager: PlaybackSetManager,
+    private val thumbnailRepository: WearThumbnailRepository
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow<BrowseUiState>(BrowseUiState.Loading)
@@ -59,6 +69,13 @@ class BrowseViewModel @Inject constructor(
     
     private val _selectedFile = MutableStateFlow<WearMediaFile?>(null)
     val selectedFile: StateFlow<WearMediaFile?> = _selectedFile.asStateFlow()
+
+    /** The file list's own stored view, separate from the navigation screens' mode. */
+    val fileListViewMode: StateFlow<WearViewMode> = preferencesRepository.fileListViewMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(VIEW_MODE_SUBSCRIPTION_MS), WearViewMode.LIST)
+
+    private val _thumbnails = MutableStateFlow<Map<Long, WearThumbnail>>(emptyMap())
+    val thumbnails: StateFlow<Map<Long, WearThumbnail>> = _thumbnails.asStateFlow()
     
     // Navigation arguments - to be set from UI layer
     private var _mediaType: MediaType = MediaType.MUSIC
@@ -168,19 +185,19 @@ class BrowseViewModel @Inject constructor(
                         if (result.isFailure) {
                             error(result.exceptionOrNull()?.message ?: "SMB list failed")
                         }
-                        result.getOrDefault(emptyList()).mapIndexed { index, fileName ->
+                        result.getOrDefault(emptyList()).mapIndexed { index, entry ->
                             val fullPath = if (currentPath == "/" || currentPath.isEmpty()) {
-                                fileName
+                                entry.name
                             } else {
-                                "${currentPath.trimEnd('/')}/$fileName"
+                                "${currentPath.trimEnd('/')}/${entry.name}"
                             }
                             WearMediaFile(
                                 id = index.toLong(),
-                                name = fileName,
+                                name = entry.name,
                                 uri = android.net.Uri.parse(fullPath),
-                                mimeType = MediaMimeTypes.fromFileName(fileName),
-                                size = 0,
-                                dateModified = 0,
+                                mimeType = MediaMimeTypes.fromFileName(entry.name),
+                                size = entry.size,
+                                dateModified = entry.modifiedTime,
                                 duration = 0
                             )
                         }
@@ -209,6 +226,34 @@ class BrowseViewModel @Inject constructor(
         }
     }
     
+    /**
+     * Publishes this file's picture once and keeps the answer.
+     *
+     * A file already carrying an entry is never asked again, so re-laying the same items in another
+     * view mode costs no second trip to the network. The read runs in [viewModelScope], so leaving
+     * the screen cancels whatever has not finished.
+     */
+    fun thumbnailFor(file: WearMediaFile) {
+        if (_thumbnails.value.containsKey(file.id)) return
+        publish(file.id, WearThumbnail.Loading)
+        viewModelScope.launch {
+            publish(file.id, thumbnailRepository.thumbnailFor(file, _sourceId))
+        }
+    }
+
+    /**
+     * A long folder must not turn this map into an unbounded bitmap holder, so it is capped at the
+     * same count the repository caches. Dropping the oldest entry is safe: a scroll back re-asks,
+     * and the repository answers from its own cache without reopening a connection.
+     */
+    private fun publish(id: Long, thumbnail: WearThumbnail) {
+        _thumbnails.update { current ->
+            val next = current + (id to thumbnail)
+            val excess = next.size - WearThumbnailBudget.MAX_CACHED_THUMBNAILS
+            if (excess <= 0) next else next.entries.drop(excess).associate { it.key to it.value }
+        }
+    }
+
     fun selectFile(file: WearMediaFile) {
         Timber.d("File selected: ${file.name}")
         _selectedFile.value = file

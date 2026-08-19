@@ -175,8 +175,17 @@ sealed interface LauncherCellCommand {
         const val PREFIX_GEOGRAPHIC = "geo:"
         const val PREFIX_SECTION = "sec:"
 
+        /** S1746: starter section for desktop widgets (clock, weather, search). */
+        const val SECTION_WIDGETS = "widgets"
+
+        /** S1746: starter section for user media and playlist resources. */
+        const val SECTION_RESOURCES = "resources"
+
         /** The preset section a fresh desktop opens with; §6.2 defers user-created ones to their own ticket. */
         const val SECTION_APP_FUNCTIONS = "app_functions"
+
+        /** S1746: starter section for installed Android applications. */
+        const val SECTION_ANDROID_APPS = "android_apps"
 
         /**
          * What ends [SECTION_APP_FUNCTIONS] (strategic §6.12). Membership is positional and the last
@@ -185,13 +194,18 @@ sealed interface LauncherCellCommand {
          *
          * Named for its position rather than its contents on purpose: the user may drag anything under
          * it, which would make a descriptive title false the moment they did.
+         *
+         * S1744 renames the constant and its label from "everything else" to "main" while keeping the
+         * stored value untouched: the owner rejected a name that described the section by negation, and
+         * every desktop already on disk addresses this section by the literal below. The two therefore
+         * disagree on purpose - the value is a persistence token, not a caption.
          */
-        const val SECTION_EVERYTHING_ELSE = "everything_else"
+        const val SECTION_MAIN = "everything_else"
 
         /**
          * S1644: the conditional section of installed Google applications, seeded only on a device that
          * reports Google services. Named for its contents rather than its position, unlike
-         * [SECTION_EVERYTHING_ELSE], because the seed decides what goes in it and the user is not
+         * [SECTION_MAIN], because the seed decides what goes in it and the user is not
          * expected to refill it.
          */
         const val SECTION_GOOGLE = "google"

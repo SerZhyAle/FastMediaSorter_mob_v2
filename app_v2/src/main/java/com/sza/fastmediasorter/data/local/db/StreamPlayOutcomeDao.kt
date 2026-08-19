@@ -41,4 +41,15 @@ interface StreamPlayOutcomeDao {
     /** Removing a channel must not leave its outcome behind as an orphan keyed by a dead id. */
     @Query("DELETE FROM stream_play_outcome WHERE streamId = :id")
     suspend fun deleteByStreamId(id: String)
+
+    /**
+     * S1826: the bulk counterpart of [deleteByStreamId], for the delete paths that work by url or by
+     * origin and so never learn the ids they removed - the catalog prune and the downloaded-streams
+     * wipe. Every write to this table resolves a live `stream_sources` row first, so a streamId with
+     * no owning row can only be an orphan and this can never take a reachable outcome.
+     *
+     * Returns how many orphans went, so the caller can log a number instead of guessing.
+     */
+    @Query("DELETE FROM stream_play_outcome WHERE streamId NOT IN (SELECT id FROM stream_sources)")
+    suspend fun deleteOrphanedPlayOutcomes(): Int
 }

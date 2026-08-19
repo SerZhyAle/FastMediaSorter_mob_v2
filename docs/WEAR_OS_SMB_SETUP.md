@@ -5,6 +5,8 @@ permalink: /docs/WEAR_OS_SMB_SETUP.html
 ---
 # Wear OS - How to Set Up SMB Network Storage
 
+> **Step-by-step guides:** See our visual walk-throughs: [Connect Smartwatch to NAS & PC Shares](howto/scenario-watch-network.md) and [Listen to Music on Your Watch](howto/scenario-watch-music.md).
+
 ## What is SMB in Wear OS?
 
 SMB allows your Wear OS watch to access files from:
@@ -15,18 +17,18 @@ SMB allows your Wear OS watch to access files from:
 
 ## UI Steps to Add SMB Connection
 
-### Step 1: Open Network Storage
+### Step 1: Open Resources
 
 **On your Wear watch:**
 
 1. Open **FastMediaSorter** app
 2. Navigate to **Browse** tab
-3. Scroll down to **Network Storage** section
-4. Tap on **Network Storage** or **Add Connection**
+3. Scroll down to **Resources** section
+4. Tap on **Resources** or **Add Connection**
 
 > **What you see:** A list showing:
 >
-> - "📡 Network Storage" (title)
+> - "📡 Resources" (title)
 > - Any previously saved connections (e.g., "Home NAS", "PC Shared")
 > - **+ Add SMB Connection** button at the bottom
 
@@ -104,7 +106,7 @@ Since Wear OS has limited text input, you'll need to enter details using:
 
 1. Once test succeeds, tap **"Save"** button
 2. Watch shows: **"Connection saved"**
-3. You're returned to Network Storage list
+3. You're returned to Resources list
 4. Your new connection now appears in the list!
 
 ---
@@ -122,7 +124,7 @@ Password: your_password
 
 **Steps:**
 
-1. Go to Browse → Network Storage
+1. Go to Browse → Resources
 2. Tap "+ Add SMB Connection"
 3. Voice input: "Server: 192.168.1.50" (or use character picker)
 4. Swipe right → Tap "Share:" → Voice: "media"
@@ -148,7 +150,7 @@ Password: (leave empty)
 
 **Steps:**
 
-1. Go to Browse → Network Storage
+1. Go to Browse → Resources
 2. Tap "+ Add SMB Connection"
 3. Enter server IP: `192.168.1.100`
 4. Enter share name: `MyVideos`
@@ -162,7 +164,7 @@ Password: (leave empty)
 
 After saving, your connection:
 
-1. Appears in the Network Storage list with icon 📡
+1. Appears in the Resources list with icon 📡
 2. Shows: **"[Name]"** and **"[Server IP]"**
 3. Tap it to **browse files** on that share
 4. Navigate folders like you would on your phone
@@ -213,7 +215,7 @@ Since text input on Wear is limited, **easier way to set up SMB:**
 
 1. **On your phone:**
    - Open main FastMediaSorter app
-   - Go to Network Storage
+   - Go to Resources
    - Tap "+ Add Network Source"
    - Fill in details easily with phone keyboard
    - Save
@@ -226,7 +228,7 @@ This way you don't have to voice input everything on the watch.
 
 ---
 
-## Network Storage Files Browser
+## Resources Files Browser
 
 Once connected, you can:
 
@@ -249,7 +251,7 @@ Once connected, you can:
 
 ## Removing a Network Connection
 
-1. Go to Network Storage list
+1. Go to Resources list
 2. Long-press the connection you want to remove
 3. Tap "Delete" or "Remove"
 4. Confirm deletion

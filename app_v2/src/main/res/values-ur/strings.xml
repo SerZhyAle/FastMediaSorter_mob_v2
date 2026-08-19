@@ -45,7 +45,6 @@
     <string name="language_capability_translation">ترجمہ</string>
     <string name="language_capability_basic_ocr">بنیادی OCR</string>
     <string name="language_capability_quality_ocr">معیاری OCR</string>
-    <string name="language_capability_nolegal_ocr">noLegal OCR</string>
     <string name="translate">ترجمہ کریں</string>
     <string name="no_files_selected">کوئی فائل منتخب نہیں کی گئی</string>
     <string name="msg_last_filter_restored">آخری فلٹر بحال ہوا: %1$s</string>
@@ -956,9 +955,6 @@
     <string name="enable_ocr">متن کی شناخت فعال کریں</string>
     <string name="enable_ocr_summary">کاپی کرنے کے لیے تصاویر اور PDF سے متن نکالیں</string>
     <string name="translation_downloading_wait">ترجمے کے نتیجے کا انتظار ہے..</string>
-    <string name="paddle_ocr_model">PaddleOCR ماڈل</string>
-    <string name="paddle_ocr_model_cyrillic">سیریلک (PP-OCRv5 موبائل)</string>
-    <string name="paddle_ocr_model_eslav">مشرقی سلاوی (PP-OCRv5 موبائل، زیادہ درست)</string>
     <string name="toast_edit_images_only">ترمیم صرف تصاویر کے لیے دستیاب ہے</string>
     <string name="toast_failed_to_prepare_file">فائل تیار کرنا ناکام ہوا</string>
     <string name="toast_error_google_lens">Google Lens پر شیئر کرنے میں خرابی</string>
@@ -1389,10 +1385,6 @@
     <string name="duplicate_groups_summary">%1$d گروپس ملے | %2$s</string>
     <string name="duplicate_fab_delete">منتخب کردہ حذف کریں (%1$d آئٹمز، %2$s)</string>
     <string name="scan_files_progress">%1$d / %2$d فائلیں۔</string>
-    <string name="import_resources_title">وسائل درآمد کریں۔</string>
-    <string name="import_resources_message">SZA وسائل شامل کریں؟</string>
-    <string name="sza_resources_imported">SZA وسائل درآمد کیے گئے۔</string>
-    <string name="error_importing_resources">وسائل درآمد کرنے میں خرابی</string>
     <string name="download_translation_model_title">ترجمہ ماڈل ڈاؤن لوڈ کریں۔</string>
     <string name="download_translation_model_message">%1$s کے ترجمہ کے لیے ~30 MB ماڈل ڈاؤن لوڈ کرنے کی ضرورت ہے۔ ابھی ڈاؤن لوڈ کریں؟</string>
     <string name="download">ڈاؤن لوڈ کریں۔</string>
@@ -2395,7 +2387,6 @@
     <string name="launcher_edit_kind_action">لانچر عمل</string>
     <string name="launcher_settings_reset_title">لانچر کی سیٹنگز ری سیٹ کریں</string>
     <string name="launcher_settings_reset_message">سسٹم لانچر کی سیٹنگز اپنی ڈیفالٹ حالت پر ری سیٹ ہو جائیں گی۔ ڈیسک ٹاپ کی ترتیب، پن کیے گئے آئیکنز اور وال پیپر انسٹالیشن کے فوراً بعد والی حالت میں واپس چلے جائیں گے۔ لانچر سے باہر کچھ بھی متاثر نہیں ہوتا۔</string>
-    <string name="launcher_settings_reset_button_description">لانچر کی سیٹنگز ڈیفالٹ پر ری سیٹ کریں</string>
     <string name="launcher_settings_reset_success">لانچر کی سیٹنگز ڈیفالٹ پر ری سیٹ ہو گئیں</string>
     <string name="launcher_settings_reset_failed">لانچر کی سیٹنگز ری سیٹ نہیں ہو سکیں۔ کچھ تبدیل نہیں ہوا - دوبارہ کوشش کریں۔</string>
     <string name="launcher_add_cell">ڈیسک ٹاپ میں شامل کریں</string>
@@ -2611,7 +2602,6 @@
     <string name="streams_media_filter_video">صرف ویڈیو سٹریمز دکھائیں</string>
     <string name="streams_media_filter_clear">تمام سٹریمز دکھائیں</string>
     <string name="launcher_section_app_functions">ایپ کے فنکشنز</string>
-    <string name="launcher_section_everything_else">باقی سب کچھ</string>
     <string name="launcher_edit_kind_section">سیکشن</string>
     <string name="launcher_gadget_network">نیٹ ورک</string>
     <string name="launcher_gadget_battery">بیٹری</string>
@@ -2682,7 +2672,6 @@
     <string name="network_monitor_link_gateway_label">گیٹ وے</string>
     <string name="network_monitor_link_route_label">طے شدہ راستہ</string>
     <string name="network_monitor_link_proxy_label">پراکسی</string>
-    <string name="network_monitor_link_bandwidth_label">سسٹم بینڈوڈتھ کا تخمینہ</string>
     <string name="network_monitor_route_present">حاضر</string>
     <string name="network_monitor_route_absent">کوئی نہیں۔</string>
     <string name="network_monitor_chart_signal_heading">سگنل</string>
@@ -2696,7 +2685,6 @@
     <string name="network_monitor_value_mbps">%1$d Mbps</string>
     <string name="network_monitor_value_mhz">%1$d میگاہرٹز</string>
     <string name="network_monitor_value_kbps">%1$d kbit/s</string>
-    <string name="network_monitor_bandwidth_pair">نیچے %1$s، اوپر %2$s</string>
     <string name="network_monitor_mobile_modems_label">ایکٹو موڈیم</string>
     <string name="network_monitor_mobile_sim_label">سم %1$d</string>
     <string name="network_monitor_mobile_sim_data_preferred">%1$s - ڈیٹا کے لیے ترجیحی</string>

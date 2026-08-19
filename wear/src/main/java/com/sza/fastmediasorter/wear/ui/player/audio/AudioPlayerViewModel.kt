@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.player.audio
 
+import android.content.Context
+import android.media.AudioManager
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -22,6 +24,7 @@ import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveAlbumArtUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +38,9 @@ import javax.inject.Inject
 
 /** S1683: named because the bezel now reaches the same step the buttons do. */
 private const val SEEK_STEP_MS = 10_000L
+
+/** S1701: how long the volume readout stays after the last bezel step. */
+private const val VOLUME_VISIBLE_MS = 1_500L
 
 /**
  * ViewModel for the audio player screen.
@@ -51,6 +57,7 @@ class AudioPlayerViewModel @Inject constructor(
     private val downloadNetworkFile: DownloadNetworkFileUseCase,
     private val exoPlayer: ExoPlayer,
     private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
+    @ApplicationContext private val context: Context,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     private val resolveAlbumArt: ResolveAlbumArtUseCase,
     private val preferencesRepository: WearPreferencesRepository,
@@ -66,6 +73,9 @@ class AudioPlayerViewModel @Inject constructor(
     private val fileId: Long = savedStateHandle.get<Long>("fileId") ?: -1L
 
     private var progressUpdateJob: Job? = null
+
+    /** Cancelled and restarted on every bezel step; dies with the ViewModel. */
+    private var volumeHideJob: Job? = null
 
     /**
      * S1683: the selection this screen was opened with, kept only when it is a network one, so paging
@@ -269,6 +279,16 @@ class AudioPlayerViewModel @Inject constructor(
      * screen's; this view model used to call SMB unconditionally and broke every other source.
      */
     private suspend fun loadNetworkAudio(selected: SelectedMedia) {
+        if (selected.isDirectStream) {
+            Timber.d("S1708: direct audio stream playback uri=${selected.streamUri}")
+            _uiState.update { it.copy(isLoading = true) }
+            val mediaItem = MediaItem.fromUri(Uri.parse(selected.streamUri))
+            exoPlayer.setMediaItem(mediaItem)
+            exoPlayer.prepare()
+            _uiState.update { it.copy(isLoading = false) }
+            exoPlayer.playWhenReady = true
+            return
+        }
         Timber.d("S1687: network audio entry sourceId=${selected.sourceId} uri=${selected.streamUri}")
         _uiState.update { it.copy(isLoading = true) }
 
@@ -301,6 +321,7 @@ class AudioPlayerViewModel @Inject constructor(
      * screen never holds a copy that a failed write could leave stale.
      */
     fun toggleShuffle() {
+        Timber.d("S1701: shuffle toggled")
         val enabled = !_uiState.value.isShuffleEnabled
         viewModelScope.launch { preferencesRepository.setShuffleEnabled(enabled) }
     }
@@ -328,7 +349,48 @@ class AudioPlayerViewModel @Inject constructor(
         exoPlayer.pause()
     }
 
+    /**
+     * S1701: one bezel step, on the system media stream.
+     *
+     * ADR-1 moved the bezel from seeking to volume, which is the Wear OS media convention; the progress
+     * bar added in phase 02 is how this screen seeks now. The level is read back from the system after
+     * the adjustment instead of being tracked here, so a change made by the watch's own volume UI is
+     * reflected the next time the bezel moves rather than fighting a private counter.
+     */
+    fun onVolumeStep(up: Boolean) {
+        Timber.d("S1701: bezel volume step up=%b", up)
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
+        audioManager.adjustStreamVolume(
+            AudioManager.STREAM_MUSIC,
+            if (up) AudioManager.ADJUST_RAISE else AudioManager.ADJUST_LOWER,
+            0,
+        )
+        _uiState.update {
+            it.copy(
+                volumeLevel = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC),
+                volumeMax = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
+                isVolumeVisible = true,
+            )
+        }
+        hideVolumeAfterDelay()
+    }
+
+    /**
+     * Hides the readout a moment after the last step, and nothing animates while it is hidden.
+     *
+     * Restarted on every step so a continuous turn keeps it up; strategic 3.2 forbids adding to what the
+     * wave drawing already costs, so it must not stay on screen once the user has stopped.
+     */
+    private fun hideVolumeAfterDelay() {
+        volumeHideJob?.cancel()
+        volumeHideJob = viewModelScope.launch {
+            delay(VOLUME_VISIBLE_MS)
+            _uiState.update { it.copy(isVolumeVisible = false) }
+        }
+    }
+
     fun seekTo(positionMs: Long) {
+        Timber.d("S1701: position bar seek to %d ms", positionMs)
         exoPlayer.seekTo(positionMs)
         _uiState.update { it.copy(currentPositionMs = positionMs) }
     }

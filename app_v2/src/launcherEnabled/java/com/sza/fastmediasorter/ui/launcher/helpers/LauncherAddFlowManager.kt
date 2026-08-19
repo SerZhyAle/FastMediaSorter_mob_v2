@@ -4,8 +4,10 @@ import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleOwner
+import com.sza.fastmediasorter.core.launcher.LauncherSectionCatalog
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellDraft
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
@@ -19,6 +21,7 @@ import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherCellContentPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherResourceModePickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherScheduledOpPickerDialogFragment
+import com.sza.fastmediasorter.ui.launcher.picker.LauncherSectionNameDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
 import timber.log.Timber
@@ -95,6 +98,7 @@ class LauncherAddFlowManager(
         }
         registerResourceListeners()
         registerWeatherLocationListener()
+        registerSectionNameListener()
         // Taskbar pin flow is separate from the desktop add-flow: no grid coordinate, its own key so an
         // app pinned to the bar is never mistaken for an app dropped on a cell (both share the picker).
         fragmentManager.setFragmentResultListener(REQ_PIN_APP, lifecycleOwner) { _, bundle ->
@@ -147,6 +151,8 @@ class LauncherAddFlowManager(
                 onLauncherActionChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_ACTION_KEY))
             LauncherCellContentPickerDialogFragment.CATEGORY_SECTION ->
                 onSectionChosen(bundle.getString(LauncherCellContentPickerDialogFragment.RESULT_SECTION_KEY))
+            // S1742: not a section key - the user asked to make one, so the name comes first.
+            LauncherCellContentPickerDialogFragment.SECTION_CREATE_ID -> askSectionName()
         }
     }
 
@@ -207,6 +213,37 @@ class LauncherAddFlowManager(
      * is stored and drawn at (S1642) - the repository pins both that span and column 0 anyway, and passing
      * the same constant here keeps the request and the stored result describing the same rectangle.
      */
+    /**
+     * S1742: asks for the name before anything is written.
+     *
+     * A section the user creates has no preset label to fall back on - its name IS its identity on the
+     * desktop (research 01 item 1) - so placing first and naming afterwards would put an unreadable
+     * header on the desktop for as long as the user hesitated.
+     */
+    private fun askSectionName() {
+        openPicker(
+            LauncherSectionNameDialogFragment.newInstance(REQ_SECTION_NAME),
+            LauncherSectionNameDialogFragment.TAG,
+        )
+    }
+
+    /**
+     * Mints the key, then places the header down the same route every other cell takes.
+     *
+     * The name is written as the cell's own caption rather than into the key: the key is a persistence
+     * token that must never change, and renaming later (Phase 03) rewrites only the caption.
+     */
+    private fun onSectionNamed(name: String) {
+        val key = LauncherSectionCatalog.mintUserKey(System.currentTimeMillis())
+        placeAtPendingSlot(
+            kind = LauncherCellKind.SECTION,
+            target = LauncherCellCommand.Section(key).encode(),
+            spanW = LauncherSectionMembership.HEADER_SPAN_W,
+            spanH = 1,
+            labelOverride = name,
+        )
+    }
+
     private fun onSectionChosen(sectionKey: String?) {
         if (sectionKey == null) {
             openPicker(
@@ -284,6 +321,7 @@ class LauncherAddFlowManager(
         spanW: Int,
         spanH: Int,
         rememberFileListResourceId: Long? = null,
+        labelOverride: String? = null,
     ) {
         if (pendingRow == NO_SLOT) {
             viewModel.addCellInFirstFreeSlot(
@@ -293,17 +331,32 @@ class LauncherAddFlowManager(
                 spanW = spanW,
                 spanH = spanH,
                 rememberFileListResourceId = rememberFileListResourceId,
+                labelOverride = labelOverride,
             )
         } else {
             viewModel.addCell(
                 rowIndex = pendingRow,
                 colIndex = pendingCol,
-                kind = kind,
-                target = target,
-                spanW = spanW,
-                spanH = spanH,
-                rememberFileListResourceId = rememberFileListResourceId,
+                draft = LauncherCellDraft(
+                    kind = kind,
+                    target = target,
+                    spanW = spanW,
+                    spanH = spanH,
+                    rememberFileListResourceId = rememberFileListResourceId,
+                    labelOverride = labelOverride,
+                ),
+                // S1772: the pointed-at path needs the grid width too - it is what decides whether a
+                // footprint can ever be seated, and the width belongs to the screen, not to the desktop.
+                columns = currentColumns(),
             )
+        }
+    }
+
+    private fun registerSectionNameListener() {
+        fragmentManager.setFragmentResultListener(REQ_SECTION_NAME, lifecycleOwner) { _, bundle ->
+            bundle.getString(LauncherSectionNameDialogFragment.RESULT_NAME)
+                ?.takeIf { it.isNotBlank() }
+                ?.let { onSectionNamed(it) }
         }
     }
 
@@ -394,6 +447,7 @@ class LauncherAddFlowManager(
         const val REQ_RESOURCE_GADGET = "launcher_add_resource_gadget"
         const val REQ_PIN_APP = "launcher_pin_app"
         const val REQ_WEATHER_LOCATION = "launcher_weather_location"
+        const val REQ_SECTION_NAME = "launcher_section_name"
 
         /**
          * S1209: "no square was pointed at" travelling through the picker's row/col arguments. A

@@ -1,8 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
-import com.sza.fastmediasorter.ui.launcher.gadget.di.HomeWidgetGadgets
-import com.sza.fastmediasorter.ui.launcher.gadget.di.SensorGadgets
-import com.sza.fastmediasorter.ui.launcher.gadget.di.TechnicalGadgets
+import com.sza.fastmediasorter.ui.launcher.gadget.di.AggregatedGadgets
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,26 +21,24 @@ class LauncherGadgetRegistry @Inject constructor(
     // S1566: the ninth parameter of ten. The next gadget joins a qualified list module instead of the
     // constructor - one more direct parameter here trips detekt's constructorThreshold.
     search: SearchGadget,
-    // S1170: the home-widget counterparts arrive as one qualified collection, not one parameter each -
-    // fourteen more constructor arguments would put this class at nineteen, past detekt's threshold of
-    // 10 and past the point where the list says anything.
+    // S1177: every family that arrives as a qualified collection - home widgets, sensor tiles, technical
+    // tiles, text cells - now arrives joined, from AggregatedGadgetModule.
+    //
+    // Four tickets in a row wrote a comment here saying the next gadget must come as a qualified list
+    // rather than a parameter, and every one of those lists was itself a parameter: the tenth tripped
+    // detekt's LongParameterList regardless. A fifth family now costs a line in that module and nothing
+    // here.
     //
     // @JvmSuppressWildcards is load-bearing, not decoration: Kotlin compiles a `List<LauncherGadget>`
     // parameter to Java `List<? extends LauncherGadget>`, which Dagger treats as a different key from
     // the `List<LauncherGadget>` the module provides - the graph then fails with MissingBinding at
     // hiltJavaCompile, long after `a.ps1 fk` has reported the Kotlin as clean. Same reason
     // ResolvePanelRouteAvailabilityUseCase writes Set<@JvmSuppressWildcards ScreenVideoRecordingController>.
-    @HomeWidgetGadgets homeWidgets: List<@JvmSuppressWildcards LauncherGadget>,
-    // S1179: the sensor tiles arrive the same way and for the same two reasons - the constructor
-    // threshold, and the @JvmSuppressWildcards erasure trap documented above.
-    @SensorGadgets sensors: List<@JvmSuppressWildcards LauncherGadget>,
-    // S1178: the four technical status tiles, for the same two reasons again - the constructor threshold
-    // and the @JvmSuppressWildcards erasure trap documented above.
-    @TechnicalGadgets technical: List<@JvmSuppressWildcards LauncherGadget>,
+    @AggregatedGadgets aggregated: List<@JvmSuppressWildcards LauncherGadget>,
 ) {
 
     private val gadgets: List<LauncherGadget> =
-        listOf(clock, weather, playlist, streams, folderPreview, search) + homeWidgets + sensors + technical
+        listOf(clock, weather, playlist, streams, folderPreview, search) + aggregated
 
     /** Picker order (Phase 07): cheapest and most universal first. */
     fun all(): List<LauncherGadget> = gadgets
@@ -99,6 +95,9 @@ class LauncherGadgetRegistry @Inject constructor(
         // S1175: same contract - the key is what a cell's `target` column stores, so it is never renamed.
         const val KEY_MAP = "map"
 
+        // S1177: same contract once more - this key is the stored `target` of a translator cell.
+        const val KEY_TRANSLATOR = "translator"
+
         // S1178: same contract - the key is what a cell's `target` column stores, so it is never renamed.
         const val KEY_NETWORK = "network"
         const val KEY_BATTERY = "battery"
@@ -107,6 +106,18 @@ class LauncherGadgetRegistry @Inject constructor(
 
         // S1566: same contract - the key is what a cell's `target` column stores, so it is never renamed.
         const val KEY_SEARCH = "search"
+
+        // S1755: YouTube and YouTube Music app gadgets.
+        const val KEY_YOUTUBE = "youtube"
+        const val KEY_YOUTUBE_MUSIC = "youtube_music"
+
+        // S1754: the media window family - one resource, played or read inside its own desktop cell.
+        // Same contract as every key above: this is what a cell's `target` column stores, so it is
+        // never renamed.
+        const val KEY_MEDIA_AUDIO_WINDOW = "media_audio_window"
+        const val KEY_MEDIA_VIDEO_WINDOW = "media_video_window"
+        const val KEY_MEDIA_DOCUMENT_WINDOW = "media_document_window"
+        const val KEY_MEDIA_IMAGE_WINDOW = "media_image_window"
 
         private const val SEPARATOR = ':'
     }

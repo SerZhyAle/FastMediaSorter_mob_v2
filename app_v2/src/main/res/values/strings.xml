@@ -47,7 +47,6 @@
     <string name="language_capability_translation">Translation</string>
     <string name="language_capability_basic_ocr">Basic OCR</string>
     <string name="language_capability_quality_ocr">Quality OCR</string>
-    <string name="language_capability_nolegal_ocr">noLegal OCR</string>
     <string name="translate">Translate</string>
     <string name="no_files_selected">No files selected</string>
     <string name="msg_last_filter_restored">Restored last filter: %1$s</string>
@@ -1176,9 +1175,6 @@
     <string name="translation_downloading_wait">Waiting for translation result..</string>
 
     <!-- OCR Engine and PaddleOCR Models (S0288) -->
-    <string name="paddle_ocr_model">PaddleOCR Model</string>
-    <string name="paddle_ocr_model_cyrillic">Cyrillic (PP-OCRv5 Mobile)</string>
-    <string name="paddle_ocr_model_eslav">East Slavic (PP-OCRv5 Mobile, More Accurate)</string>
 
     <!-- OCR Best Models Feature -->
 
@@ -1728,10 +1724,6 @@
     <string name="scan_files_progress">%1$d / %2$d files</string>
 
     <!-- Settings - SZA resources import -->
-    <string name="import_resources_title">Import Resources</string>
-    <string name="import_resources_message">Add SZA resources?</string>
-    <string name="sza_resources_imported">SZA resources imported</string>
-    <string name="error_importing_resources">Error importing resources</string>
 
     <!-- Translation model download dialog -->
     <string name="download_translation_model_title">Download Translation Model</string>
@@ -2286,7 +2278,7 @@
     <string name="streams_title">Streams</string>
     <string name="streams_add">Add stream</string>
     <string name="streams_import">Import list</string>
-    <string name="streams_refresh">Refresh</string>
+    <string name="streams_refresh">Check channels</string>
     <string name="streams_pin_to_top">Pin to top</string>
     <string name="streams_remove">Remove</string>
     <string name="streams_add_url_hint">Stream URL (http, https, rtsp)</string>
@@ -2301,7 +2293,7 @@
     <string name="settings_streams_summary">Open internet audio, video and RTSP streams.</string>
     <string name="crash_report_no_share_target">No app available to send the crash report. The report stays saved on this device.</string>
     <string name="streams_import_choose_title">Import list</string>
-    <string name="streams_import_catalog">Update FastMediaSorter catalog</string>
+    <string name="streams_import_catalog">Update catalog</string>
     <string name="streams_import_from_url">Import from URL</string>
     <string name="streams_catalog_updated">Catalog: +%1$d new, %2$d updated, %3$d removed</string>
     <string name="streams_catalog_empty">Catalog is empty or unavailable</string>
@@ -2668,6 +2660,12 @@
     <string name="launcher_menu_android_settings">Android settings</string>
     <string name="launcher_menu_app_settings">App settings</string>
     <string name="launcher_menu_exit_mode">Exit launcher mode</string>
+    <string name="launcher_menu_reboot">Reboot</string>
+    <string name="launcher_menu_reboot_confirm_title">Reboot device?</string>
+    <string name="launcher_menu_reboot_confirm_message">Are you sure you want to reboot the device?</string>
+    <string name="launcher_menu_shutdown">Power off</string>
+    <string name="launcher_menu_shutdown_confirm_title">Power off device?</string>
+    <string name="launcher_menu_shutdown_confirm_message">Are you sure you want to power off the device?</string>
     <string name="launcher_menu_exit_confirm_title">Exit launcher mode?</string>
     <string name="launcher_menu_exit_confirm_message">Your device will go back to its previous home screen. Your desktop is kept, so you can turn the mode on again at any time.</string>
     <string name="launcher_menu_exit_confirm_action">Exit</string>
@@ -2679,13 +2677,13 @@
     <string name="launcher_tray_battery_charging">Battery %1$d%%, charging</string>
     <string name="launcher_gadget_clock">Clock</string>
     <string name="launcher_gadget_playlist">Playlist</string>
-    <string name="launcher_gadget_streams">Channels</string>
+    <string name="launcher_gadget_streams">Streams</string>
     <string name="launcher_gadget_folder_preview">Folder preview</string>
-    <string name="launcher_gadget_streams_empty">No channels yet. Tap to add some.</string>
+    <string name="launcher_gadget_streams_empty">No streams yet. Tap to add some.</string>
     <string name="launcher_gadget_playlist_play_all">Play all</string>
     <string name="launcher_gadget_playlist_shuffle">Play in random order</string>
     <string name="launcher_gadget_folder_preview_open">Open the folder show</string>
-    <string name="launcher_edit_enter">Edit desktop</string>
+    <string name="launcher_edit_enter">Edit desktop contents</string>
     <string name="launcher_edit_done">Done</string>
     <string name="launcher_edit_empty_slot">Empty space. Tap to put something here.</string>
     <string name="launcher_edit_remove_cell">Remove from desktop</string>
@@ -2693,10 +2691,10 @@
     <string name="launcher_edit_kind_app">App</string>
     <string name="launcher_edit_kind_feature">App feature</string>
     <string name="launcher_edit_kind_resource">My resource</string>
-    <string name="launcher_edit_kind_stream">Channel</string>
+    <string name="launcher_edit_kind_stream">Stream</string>
     <string name="launcher_edit_kind_os">Android setting</string>
     <string name="launcher_edit_kind_gadget">Widget</string>
-    <string name="launcher_edit_pick_stream_title">Choose a channel</string>
+    <string name="launcher_edit_pick_stream_title">Choose a stream</string>
     <string name="launcher_edit_pick_gadget_title">Choose a widget</string>
     <string name="launcher_edit_remove_cell_named">Remove %1$s from desktop</string>
     <string name="launcher_edit_mode_browse">Browse</string>
@@ -2775,6 +2773,18 @@
     <string name="launcher_settings_wallpaper_none">Empty</string>
     <string name="launcher_settings_wallpaper_image">My image</string>
     <string name="launcher_settings_wallpaper_import_failed">Could not use this image</string>
+    <string name="launcher_settings_screen_timeout_title">Screen timeout</string>
+    <string name="launcher_settings_screen_timeout_subtitle">Turn screen black when idle on launcher desktop</string>
+    <string name="launcher_settings_screen_timeout_off">Off (never)</string>
+    <string name="launcher_settings_screen_timeout_5s">5 seconds</string>
+    <string name="launcher_settings_screen_timeout_15s">15 seconds</string>
+    <string name="launcher_settings_screen_timeout_30s">30 seconds</string>
+    <string name="launcher_settings_screen_timeout_60s">60 seconds</string>
+    <string name="launcher_settings_screen_timeout_300s">300 seconds (5 min)</string>
+    <string name="launcher_settings_screen_timeout_custom">Custom…</string>
+    <string name="launcher_settings_screen_timeout_custom_format">Custom (%1$d s)</string>
+    <string name="launcher_settings_screen_timeout_dialog_title">Screen timeout</string>
+    <string name="launcher_settings_screen_timeout_dialog_hint">Seconds (1–86400)</string>
     <string name="sysinfo_section_cameras">Cameras</string>
     <string name="sysinfo_field_camera_id">Camera</string>
     <string name="sysinfo_field_camera_facing">Facing</string>
@@ -2806,7 +2816,7 @@
     <string name="browse_transfer_indicator">%1$s %2$d%% - %3$s</string>
     <string name="browse_transfer_indicator_action">%1$s. Tap to reopen the progress dialog</string>
     <string name="pdf_text_selection_word_not_found">Could not find that word - select it manually</string>
-    <string name="launcher_settings_replace_status_area_title">Replace system status area</string>
+    <string name="launcher_settings_replace_status_area_title">Hide system status bar</string>
     <string name="launcher_gadget_favorites_empty">Nothing in favourites yet. Tap to open them.</string>
     <string name="launcher_gadget_scheduled_empty">No scheduled tasks yet. Tap to set one up.</string>
     <string name="settings_add_launcher_widget">Add a widget to the launcher desktop</string>
@@ -2847,7 +2857,6 @@
     <string name="launcher_edit_kind_action">Launcher action</string>
     <string name="launcher_settings_reset_title">Reset launcher settings</string>
     <string name="launcher_settings_reset_message">System launcher settings will be reset to their defaults. The desktop layout, the pinned icons and the wallpaper return to the state they had right after installation. Nothing outside the launcher is affected.</string>
-    <string name="launcher_settings_reset_button_description">Reset launcher settings to defaults</string>
     <string name="launcher_settings_reset_success">Launcher settings reset to defaults</string>
     <string name="launcher_settings_reset_failed">Could not reset the launcher settings. Nothing was changed - try again.</string>
     <string name="launcher_add_cell">Add to desktop</string>
@@ -3000,10 +3009,10 @@
     <string name="streams_rubric_traffic_cams">Traffic cams</string>
     <string name="streams_atlas_prompt_title">Channel pictures</string>
     <string name="streams_atlas_prompt_size">%1$d MB</string>
-    <string name="launcher_create_resource_menu_row">Create resource</string>
-    <string name="launcher_create_resource_picker_item">Create new..</string>
+    <string name="launcher_create_resource_menu_row">Add resource</string>
+    <string name="launcher_create_resource_picker_item">Add resource..</string>
     <string name="launcher_home_cell_actions">Show actions</string>
-    <string name="launcher_home_channel_removed">Channel removed</string>
+    <string name="launcher_home_channel_removed">Stream removed</string>
     <string name="launcher_signal_playback">Playing</string>
     <string name="launcher_signal_transfer">Transferring files</string>
     <string name="launcher_signal_scheduled_ops">Scheduled task running</string>
@@ -3063,7 +3072,6 @@
     <string name="streams_media_filter_video">Show video streams only</string>
     <string name="streams_media_filter_clear">Show all streams</string>
     <string name="launcher_section_app_functions">App functions</string>
-    <string name="launcher_section_everything_else">Everything else</string>
     <string name="launcher_edit_kind_section">Section</string>
     <string name="launcher_gadget_network">Network</string>
     <string name="launcher_gadget_battery">Battery</string>
@@ -3088,7 +3096,7 @@
     <string name="perm_addendum_contacts_cell_pinning">Allow it now and this shortcut will show the person\'s current name and photo.</string>
     <string name="streams_unavailable_offline_title">No connection</string>
     <string name="streams_unavailable_offline_message">\"%1$s\" stopped - your device is offline. Check your connection and try again.</string>
-    <string name="launcher_settings_top_status_strip_title">Clock and indicators on the top bar</string>
+    <string name="launcher_settings_top_status_strip_title">Top status bar</string>
     <string name="launcher_settings_top_status_strip_summary">The clock with seconds moves to the left of the top bar and the device indicators to the right, freeing the Start panel for more recent apps.</string>
     <string name="launcher_settings_tray_moved_hint">The indicators are on the top bar while that mode is on. Turn it off to bring them back to the Start panel.</string>
     <string name="gesture_slot_app_label">App to launch</string>
@@ -3135,7 +3143,6 @@
     <string name="network_monitor_link_gateway_label">Gateway</string>
     <string name="network_monitor_link_route_label">Default route</string>
     <string name="network_monitor_link_proxy_label">Proxy</string>
-    <string name="network_monitor_link_bandwidth_label">System bandwidth estimate</string>
     <string name="network_monitor_route_present">Present</string>
     <string name="network_monitor_route_absent">None</string>
     <string name="network_monitor_chart_signal_heading">Signal</string>
@@ -3149,7 +3156,6 @@
     <string name="network_monitor_value_mbps">%1$d Mbps</string>
     <string name="network_monitor_value_mhz">%1$d MHz</string>
     <string name="network_monitor_value_kbps">%1$d kbit/s</string>
-    <string name="network_monitor_bandwidth_pair">down %1$s, up %2$s</string>
     <string name="network_monitor_mobile_modems_label">Active modems</string>
     <string name="network_monitor_mobile_sim_label">SIM %1$d</string>
     <string name="network_monitor_mobile_sim_data_preferred">%1$s - preferred for data</string>
@@ -3300,4 +3306,99 @@
          characters: the splash mask circle clips anything wider and the generator refuses. -->
     <string name="splash_slogan">..All mine, here!</string>
     <string name="launcher_section_google">GOOGLE</string>
+    <string name="launcher_quick_menu_add_item">Add an item..</string>
+    <string name="launcher_quick_menu_edit_desktop">Edit the desktop</string>
+    <string name="launcher_quick_menu_wallpaper">Wallpaper</string>
+    <string name="launcher_settings_foreign_notifications_title">Notifications from other apps on the top bar</string>
+    <string name="launcher_settings_foreign_notifications_summary_off">Off. When on, the bar shows an icon and a count for each app with pending notifications - never their text.</string>
+    <string name="launcher_settings_foreign_notifications_summary_no_access">Waiting for notification access. Grant it on the system screen and the icons appear.</string>
+    <string name="launcher_settings_foreign_notifications_summary_on">Working. The bar shows an icon and a count per app; notification text is never read.</string>
+    <string name="launcher_settings_foreign_notifications_grant">Grant notification access</string>
+    <string name="launcher_settings_show_recents_subtitle">Show icons of recently used applications in the taskbar</string>
+    <string name="launcher_settings_show_pinned_subtitle">Show your pinned application shortcuts in the taskbar</string>
+    <string name="launcher_settings_show_tray_subtitle">Show clock and device status indicators in the taskbar</string>
+    <string name="launcher_settings_tray_clock_subtitle">Display current time in the status tray</string>
+    <string name="launcher_settings_tray_network_subtitle">Display Wi-Fi or mobile network status icon</string>
+    <string name="launcher_settings_tray_battery_subtitle">Display battery level and charging indicator</string>
+    <string name="launcher_settings_replace_status_area_subtitle">Hide the Android top status bar on the desktop to free screen space</string>
+    <string name="launcher_settings_lock_desktop_subtitle">Prevent moving, adding, or deleting icons and widgets on the desktop</string>
+    <string name="launcher_section_main">Main</string>
+    <string name="launcher_now_playing_artwork">Album art</string>
+    <string name="launcher_gadget_translator">Translator</string>
+    <string name="launcher_translator_hint">Text to translate</string>
+    <string name="launcher_translator_paste">Translate from clipboard</string>
+    <string name="launcher_translator_swap">Swap languages</string>
+    <string name="launcher_translator_model_missing">The language pack is still downloading. Translation starts as soon as it is ready.</string>
+    <string name="launcher_translator_empty">Type or paste something to translate.</string>
+    <string name="launcher_translator_unavailable">This language pair is not available offline.</string>
+    <string name="launcher_translator_attribution">Translated by Google</string>
+    <string name="launcher_translator_direction">%1$s to %2$s</string>
+    <string name="launcher_section_widgets">Widgets</string>
+    <string name="launcher_section_resources">Resources</string>
+    <string name="launcher_section_android_apps">Android Apps</string>
+    <string name="launcher_settings_widget_backdrop_alpha_title">Widget backdrop opacity</string>
+    <string name="launcher_settings_widget_backdrop_alpha_0">0% (Transparent)</string>
+    <string name="launcher_settings_widget_backdrop_alpha_25">25%</string>
+    <string name="launcher_settings_widget_backdrop_alpha_50">50%</string>
+    <string name="launcher_settings_widget_backdrop_alpha_70">70%</string>
+    <string name="launcher_settings_widget_backdrop_alpha_85">85% (Default)</string>
+    <string name="launcher_settings_widget_backdrop_alpha_100">100% (Opaque)</string>
+    <string name="launcher_gadget_youtube">YouTube</string>
+    <string name="launcher_gadget_youtube_music">YouTube Music</string>
+    <string name="launcher_home_contact_action_call">Call</string>
+    <string name="launcher_home_contact_action_message">Message</string>
+    <string name="launcher_gadget_media_audio_window">Audio window</string>
+    <string name="launcher_gadget_media_video_window">Video window</string>
+    <string name="launcher_gadget_media_document_window">Document window</string>
+    <string name="launcher_gadget_media_image_window">Image window</string>
+    <string name="launcher_settings_import_system_shortcuts_title">Import system desktop shortcuts</string>
+    <string name="launcher_settings_import_system_shortcuts_success">System shortcuts imported</string>
+    <string name="launcher_gadget_media_document_open">Tap to open in the reader</string>
+    <string name="launcher_edit_streams_loading">Loading streams..</string>
+    <string name="launcher_tray_indicator_action">%1$s. Tap to open the matching Android settings</string>
+    <string name="launcher_home_cell_too_wide">This widget is wider than the desktop grid. Rotate the screen or pick a narrower widget.</string>
+    <string name="launcher_section_create">Create a section..</string>
+    <string name="launcher_section_name_title">Section name</string>
+    <string name="launcher_section_name_hint">For example: Work</string>
+    <string name="launcher_section_name_empty">Type a name so the section can be told apart on the desktop.</string>
+    <string name="streams_clear_downloaded">Clear all downloaded</string>
+    <string name="streams_clear_downloaded_confirm_title">Clear downloaded channels?</string>
+    <string name="streams_clear_downloaded_confirm_message">Every channel that came from the catalog or an imported playlist will be removed. Channels you added by hand stay.</string>
+    <string name="streams_clear_downloaded_done">Removed %1$d downloaded channel(s)</string>
+    <string name="launcher_section_actions_title">Section Actions</string>
+    <string name="launcher_section_action_rename">Rename Section</string>
+    <string name="front_flashlight_title">Front flashlight</string>
+    <string name="front_flashlight_settings_toggle_title">Front flashlight</string>
+    <string name="front_flashlight_settings_toggle_subtitle">Turn the screen itself into a lamp</string>
+    <string name="front_flashlight_help_title">Front flashlight</string>
+    <string name="front_flashlight_help_message">The screen lights up white at full brightness and works as a lamp. Swipe up or down to change the brightness. The small button in the top left corner picks another colour, and it is remembered for the next time. A single tap anywhere closes the flashlight.</string>
+    <string name="front_flashlight_color_button">Light colour</string>
+    <string name="released_tickets_button">In this build</string>
+    <string name="released_tickets_title">Tickets in this build</string>
+    <string name="released_tickets_empty">This build carries no ticket listing. Rebuild the app to generate one.</string>
+    <string name="wear_resource_selection_title">Resources for the watch</string>
+    <string name="wear_resource_selection_hint">Only the resources you tick here are sent to the watch.</string>
+    <string name="wear_resource_selection_select_all">Select all</string>
+    <string name="wear_resource_selection_empty">No resources registered yet. Add one on the Resources screen, then come back to pick what the watch gets.</string>
+    <string name="wear_sync_nothing_selected">No resources are marked for the watch yet. Open Resources for the watch and tick the ones to send.</string>
+    <string name="wear_settings_view_mode">Home and Resources view</string>
+    <string name="wear_settings_view_mode_list">List</string>
+    <string name="wear_settings_view_mode_grid2">Grid 2</string>
+    <string name="wear_settings_view_mode_grid3">Grid 3</string>
+    <string name="wear_settings_keep_awake">Keep watch screen on</string>
+    <string name="wear_log_report_channel_name">Watch logs</string>
+    <string name="wear_log_report_notification_title">Watch logs received</string>
+    <string name="wear_log_report_notification_text">Tap to send them to the developer</string>
+    <string name="wear_log_report_email_subject">FastMediaSorter watch logs</string>
+    <string name="wear_log_report_email_body">The archive holds the logs of both the watch and the phone.</string>
+    <string name="settings_unused_credentials_title">Unused credentials</string>
+    <string name="settings_unused_credentials_button">Unused credentials - %1$d</string>
+    <string name="settings_unused_credentials_dialog_title">Delete unused credentials?</string>
+    <string name="settings_unused_credentials_dialog_body">These saved passwords and keys belong to no resource. Deleting them cannot be undone - you would have to enter them again to reconnect.</string>
+    <string name="settings_unused_credentials_deleted">Deleted %1$d unused credential(s)</string>
+    <string name="network_monitor_fact_link_speed">%1$d Mbps</string>
+    <string name="network_monitor_fact_bonded_devices">Paired: %1$d</string>
+    <string name="network_monitor_link_bandwidth_down_label">Bandwidth estimate, incoming</string>
+    <string name="network_monitor_link_bandwidth_up_label">Bandwidth estimate, outgoing</string>
+    <string name="wear_settings_file_list_view">Files view</string>
 </resources>

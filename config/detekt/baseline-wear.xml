@@ -41,7 +41,7 @@
     <ID>FunctionNaming:ImageViewerScreen.kt$@Composable fun ImageViewerScreen( viewModel: ImageViewerViewModel = hiltViewModel() )</ID>
     <ID>FunctionNaming:ImageViewerScreen.kt$@Composable private fun ErrorContent(message: String)</ID>
     <ID>FunctionNaming:ImageViewerScreen.kt$@Composable private fun ImageViewerContent( uiState: ImageViewerUiState, isFavorite: Boolean, onSwipeLeft: () -&gt; Unit, onSwipeRight: () -&gt; Unit, onToggleSlideshow: () -&gt; Unit, onToggleFavorite: () -&gt; Unit )</ID>
-    <ID>FunctionNaming:MainActivity.kt$@Composable fun MainNavigation()</ID>
+    <ID>FunctionNaming:MainActivity.kt$@Composable fun MainNavigation(keepScreenAwakeOutsidePlayers: Flow&lt;Boolean&gt;)</ID>
     <ID>FunctionNaming:MainActivity.kt$@Composable fun WearApp(initialHasPermissions: Boolean = false)</ID>
     <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable fun NetworkSourcesScreen( navController: NavController, viewModel: NetworkSourcesViewModel = hiltViewModel() )</ID>
     <ID>FunctionNaming:NetworkSourcesScreen.kt$@Composable private fun EmptyContent( syncState: SyncState, onAddClick: () -&gt; Unit, onSyncClick: () -&gt; Unit )</ID>
@@ -80,7 +80,7 @@
     <ID>LongMethod:AudioPlayerScreen.kt$@Composable private fun AudioPlayerContent( uiState: AudioPlayerUiState, isFavorite: Boolean, onPlayPause: () -&gt; Unit, onSeekForward: () -&gt; Unit, onSeekBackward: () -&gt; Unit, onToggleFavorite: () -&gt; Unit )</ID>
     <ID>LongMethod:HomeScreen.kt$@Composable fun HomeScreen( navController: NavController, settingsViewModel: SettingsViewModel = hiltViewModel() )</ID>
     <ID>LongMethod:ImageViewerScreen.kt$@Composable private fun ImageViewerContent( uiState: ImageViewerUiState, isFavorite: Boolean, onSwipeLeft: () -&gt; Unit, onSwipeRight: () -&gt; Unit, onToggleSlideshow: () -&gt; Unit, onToggleFavorite: () -&gt; Unit )</ID>
-    <ID>LongMethod:MainActivity.kt$@Composable fun MainNavigation()</ID>
+    <ID>LongMethod:MainActivity.kt$@Composable fun MainNavigation(keepScreenAwakeOutsidePlayers: Flow&lt;Boolean&gt;)</ID>
     <ID>LongMethod:NetworkSourcesScreen.kt$@Composable fun NetworkSourcesScreen( navController: NavController, viewModel: NetworkSourcesViewModel = hiltViewModel() )</ID>
     <ID>LongMethod:PermissionsScreen.kt$@OptIn(ExperimentalPermissionsApi::class) @Composable fun PermissionsScreen( onPermissionsGranted: () -&gt; Unit )</ID>
     <ID>LongMethod:SettingsScreen.kt$@Composable fun SettingsScreen( navController: NavController, viewModel: SettingsViewModel = hiltViewModel(), listState: ScalingLazyListState = rememberScalingLazyListState() )</ID>

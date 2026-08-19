@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -325,6 +326,27 @@ class LauncherGridGeometryTest {
 
         // col 9 on a 4-column grid is pulled to 2, so the rect must start at 2 * 50, not 9 * 50.
         assertEquals(100, bounds.left)
+    }
+
+    // --- shortcut layout scaling -------------------------------------------------------------
+
+    @Test
+    fun `shortcutLayoutSpec at normal size returns standard dimensions`() {
+        val spec = LauncherGridGeometry.shortcutLayoutSpec(cellSizeDp = 96f)
+        assertEquals(44f, spec.iconSizeDp, 0.01f)
+        assertEquals(16f, spec.monogramTextSizeSp, 0.01f)
+        assertEquals(18f, spec.modeBadgeSizeDp, 0.01f)
+        assertEquals(4f, spec.contentPaddingVerticalDp, 0.01f)
+        assertEquals(3f, spec.labelMarginTopDp, 0.01f)
+    }
+
+    @Test
+    fun `shortcutLayoutSpec at dense size scales down icon and paddings`() {
+        val spec = LauncherGridGeometry.shortcutLayoutSpec(cellSizeDp = 64f)
+        assertTrue(spec.iconSizeDp < 44f)
+        assertTrue(spec.iconSizeDp >= 26f)
+        assertTrue(spec.contentPaddingVerticalDp < 4f)
+        assertTrue(spec.labelMarginTopDp < 3f)
     }
 
     // --- fixtures -----------------------------------------------------------------------------

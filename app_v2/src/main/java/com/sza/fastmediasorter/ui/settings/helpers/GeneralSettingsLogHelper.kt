@@ -15,6 +15,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.logging.LogExportHelper
+import com.sza.fastmediasorter.data.debug.ReleasedTicketsDataSource
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
@@ -62,6 +63,27 @@ class GeneralSettingsLogHelper(
         binding.btnShareLogs?.setOnClickListener { shareLogs() }
         binding.btnSaveLogs?.setOnClickListener { launchSaveLogs() }
         binding.btnSystemInfo?.setOnClickListener { showSystemInfoDialog() }
+        // S1783: the button lives in the debug-tools group, which GeneralSettingsViewSetupHelper
+        // already hides outside a debug build - so this only wires the click.
+        binding.btnReleasedTickets?.setOnClickListener { showReleasedTicketsDialog() }
+    }
+
+    private fun showReleasedTicketsDialog() {
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            val tickets = ReleasedTicketsDataSource.read(fragment.requireContext())
+            if (!fragment.isAdded || fragment.view == null) return@launch
+            val message = if (tickets.isEmpty()) {
+                fragment.getString(R.string.released_tickets_empty)
+            } else {
+                tickets.joinToString(separator = "\n") { "${it.id}  ${it.slug}  ${it.status}" }
+            }
+            ScrollableTextDialog.show(
+                context = fragment.requireContext(),
+                title = fragment.getString(R.string.released_tickets_title),
+                message = message,
+                monospace = true,
+            )
+        }
     }
 
     fun showSystemInfoDialog() {

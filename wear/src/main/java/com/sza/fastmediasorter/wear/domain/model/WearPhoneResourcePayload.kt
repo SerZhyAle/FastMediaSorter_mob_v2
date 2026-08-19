@@ -1,6 +1,6 @@
 package com.sza.fastmediasorter.wear.domain.model
 
-const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 1
+const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 2
 
 enum class WearPhoneResourceRequestKind {
     ROOT,
@@ -32,7 +32,14 @@ data class WearPhoneResourceItem(
     val name: String,
     val mimeType: String? = null,
     val sizeBytes: Long? = null,
-    val isDirectory: Boolean
+    val isDirectory: Boolean,
+    /**
+     * Base64 of a small image the phone prepared, or null when it prepared none.
+     *
+     * Nullable rather than an empty default: a missing key and an empty picture would otherwise
+     * read the same, and only one of the two means "show the type icon".
+     */
+    val thumbnailBase64: String? = null
 )
 
 data class WearPhoneResourcePage(

@@ -75,6 +75,7 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot 'locale-set.ps1')
 . (Join-Path $repoRoot 'scripts/quality/lib/house-text-style.ps1')
+. (Join-Path $repoRoot 'scripts/quality/lib/locale-fingerprints.ps1')
 
 if (-not (Test-Path -LiteralPath $TextPath)) {
     Write-Error "locale-bulk-import: translated file not found: $TextPath" -ErrorAction Continue
@@ -227,6 +228,19 @@ foreach ($mapKey in $maps.Keys) {
 
 if ($DryRun) {
     Write-Host "locale-bulk-import: -DryRun, no resource file changed."
+} else {
+    $fingerprints = Get-LocaleSourceFingerprints
+    for ($i = 0; $i -lt $records.Count; $i++) {
+        $record = $records[$i]
+        $value = $translated[$i].Trim()
+        if ([string]::IsNullOrWhiteSpace($value)) { continue }
+        if ((Get-FormatSignature $value) -ne [string]$record.formats) { continue }
+        $set = if (($record.PSObject.Properties.Name -contains 'set') -and $record.set) { [string]$record.set } else { $SourceSet }
+        $unitId = if ($record.slot) { "$set|$($record.file)|$($record.key)|$($record.slot)" } else { "$set|$($record.file)|$($record.key)" }
+        $enHash = Get-EnglishStringFingerprint -Text ([string]$record.en)
+        Update-LocaleSourceFingerprint -Fingerprints $fingerprints -Locale $Locale -Identity $unitId -Hash $enHash
+    }
+    Save-LocaleSourceFingerprints -Fingerprints $fingerprints
 }
 
 if ($seedFailed -gt 0) {

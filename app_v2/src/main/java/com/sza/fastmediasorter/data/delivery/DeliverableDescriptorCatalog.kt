@@ -62,17 +62,6 @@ object DeliverableDescriptorCatalog {
         )
     )
 
-    /**
-     * Set B extra for noLegal - PaddleOCR (light_api_shared → lite_jni). Hosted for arm64-v8a only;
-     * a noLegal x86_64 emulator slice gets Tesseract only (still a working OCR engine).
-     */
-    private val PADDLE: Map<String, List<NativeLib>> = mapOf(
-        "arm64-v8a" to listOf(
-            NativeLib("libpaddle_light_api_shared.so", "12a8779e1817d9165d34a8487678a4d226970b6e38f66c316034a287512d8e01", 5_011_432L),
-            NativeLib("libpaddle_lite_jni.so", "97979c19ae2e457ba6d1c33ca45c1623caf8d395886be8d2e439a0197de879d3", 5_027_816L)
-        )
-    )
-
     /** Set D - FFmpeg DTS decoder (single `.so`, loaded by media3's FfmpegLibrary). */
     private val FFMPEG: Map<String, List<NativeLib>> = mapOf(
         "arm64-v8a" to listOf(NativeLib("libffmpegJNI.so", "b72f9a940cfb7ad5efe484603e187b0db60ccb240381b3c4340403b33f369e6a", 7_675_704L)),
@@ -152,13 +141,9 @@ object DeliverableDescriptorCatalog {
         )
     )
 
-    /** Set B for store flavors (standard/legacy): Tesseract only. */
+    /** Set B - Tesseract, the only OCR engine every flavor delivers (S1703 withdrew PaddleOCR). */
     fun ocrEnginesStore(abi: String = primaryAbi()): DeliverableSourceDescriptor =
         nativeDescriptor(DeliverableSet.OCR_ENGINES, abi, TESSERACT[abi].orEmpty())
-
-    /** Set B for sideload/VR flavors (noLegal/vr): Tesseract + PaddleOCR (Paddle on arm64 only). */
-    fun ocrEnginesNoLegal(abi: String = primaryAbi()): DeliverableSourceDescriptor =
-        nativeDescriptor(DeliverableSet.OCR_ENGINES, abi, TESSERACT[abi].orEmpty() + PADDLE[abi].orEmpty())
 
     /** Set D for store/sideload/VR flavors that ship the DTS decoder. */
     fun ffmpegDts(abi: String = primaryAbi()): DeliverableSourceDescriptor =

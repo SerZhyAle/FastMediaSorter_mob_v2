@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1177: the offline translator cell. Our own view, never a third-party AppWidget (ADR-1), and the
+     engine behind it is the one the camera and the players already use.
+
+     Nothing here sets a fixed height: the desktop grid measures the cell, and the cell seeds 2x2 with a
+     2x1 floor, so the result area has to survive shrinking to nothing. The state line sits under the
+     result rather than replacing it - a refusal must be readable without taking away the last translation.
+
+     Focus is declared per element and never on a wrapper: the cell card is deliberately non-focusable so
+     the inner controls are the D-pad stops, which is the contract every multi-control cell here follows.
+
+     Orientation-neutral, so no layout-land counterpart - the grid changes with rotation, this layout does
+     not see it. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="@dimen/margin_small">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/gadgetTranslatorDirection"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="11sp"
+                tools:text="auto to ru" />
+
+            <ImageButton
+                android:id="@+id/gadgetTranslatorSwap"
+                android:layout_width="@dimen/launcher_gadget_action_size"
+                android:layout_height="@dimen/launcher_gadget_action_size"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/launcher_translator_swap"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
+                android:padding="6dp"
+                android:src="@drawable/ic_swap_horizontal"
+                app:tint="?attr/colorControlNormal"
+                tools:ignore="MissingPrefix" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_launcher_search_field"
+            android:gravity="center_vertical"
+            android:minHeight="48dp"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/margin_small"
+            android:paddingEnd="@dimen/margin_tiny">
+
+            <EditText
+                android:id="@+id/gadgetTranslatorInput"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@null"
+                android:focusable="true"
+                android:hint="@string/launcher_translator_hint"
+                android:imeOptions="actionDone|flagNoExtractUi"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine|textNoSuggestions"
+                android:maxLines="2"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?attr/colorOnSurfaceVariant"
+                android:textSize="14sp" />
+
+            <!-- The clipboard is read here and nowhere else: an explicit tap is the whole reason this
+                 button exists rather than the cell reading the clipboard when it appears. -->
+            <ImageButton
+                android:id="@+id/gadgetTranslatorPaste"
+                android:layout_width="@dimen/launcher_gadget_action_size"
+                android:layout_height="@dimen/launcher_gadget_action_size"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/launcher_translator_paste"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
+                android:padding="6dp"
+                android:src="@drawable/ic_copy"
+                app:tint="?attr/colorControlNormal"
+                tools:ignore="MissingPrefix" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/gadgetTranslatorResult"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:paddingTop="@dimen/margin_tiny"
+            android:scrollbars="vertical"
+            android:textColor="?attr/colorOnSurface"
+            android:textIsSelectable="true"
+            android:textSize="13sp"
+            tools:text="Перевод появится здесь" />
+
+        <TextView
+            android:id="@+id/gadgetTranslatorState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="11sp"
+            android:visibility="gone"
+            tools:text="Language pack is not downloaded yet."
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+</merge>

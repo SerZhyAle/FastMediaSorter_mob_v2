@@ -72,8 +72,11 @@ class LauncherStarterSetsParityTest {
         ).map { it.target }.toSet()
         assertEquals(true, LauncherGadgetRegistry.KEY_WEATHER in sensors)
         assertEquals(true, LauncherGadgetRegistry.KEY_SPEED in sensors)
-        assertEquals(true, LauncherGadgetRegistry.KEY_ALTITUDE in sensors)
-        assertEquals(true, LauncherGadgetRegistry.KEY_SATELLITES in sensors)
+        // S1747: the compass replaced the altitude + satellites pair in the seed. Both remain in the
+        // registry and stay addable by hand, so their absence here is the assertion, not an omission.
+        assertEquals(true, LauncherGadgetRegistry.KEY_COMPASS in sensors)
+        assertEquals(false, LauncherGadgetRegistry.KEY_ALTITUDE in sensors)
+        assertEquals(false, LauncherGadgetRegistry.KEY_SATELLITES in sensors)
         assertEquals(true, LauncherGadgetRegistry.KEY_AUDIO_NOW_PLAYING in sensors)
     }
 
@@ -86,8 +89,7 @@ class LauncherStarterSetsParityTest {
             LauncherGadgetRegistry.KEY_STREAMS,
             LauncherGadgetRegistry.KEY_FOLDER_PREVIEW,
             LauncherGadgetRegistry.KEY_SPEED,
-            LauncherGadgetRegistry.KEY_ALTITUDE,
-            LauncherGadgetRegistry.KEY_SATELLITES,
+            LauncherGadgetRegistry.KEY_COMPASS,
             LauncherGadgetRegistry.KEY_AUDIO_NOW_PLAYING,
             LauncherGadgetRegistry.KEY_SEARCH,
         )

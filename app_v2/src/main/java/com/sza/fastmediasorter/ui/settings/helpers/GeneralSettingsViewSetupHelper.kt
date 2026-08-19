@@ -160,11 +160,10 @@ class GeneralSettingsViewSetupHelper(
                     .setCancelable(false)
                     .setPositiveButton(R.string.restart) { _, _ ->
                         viewModel.updateSettings(current.copy(useCompactElements = isChecked))
-                        com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
-                            .setCompact(fragment.requireContext(), isChecked)
                         LocaleHelper.markReturnToSettings(fragment.requireContext())
                         LocaleHelper.restartApp(fragment.requireActivity())
                     }
+
                     .setNegativeButton(R.string.cancel) { dialog, _ ->
                         isUpdatingSpinner.set(true)
                         row.setCheckedSilently(current.useCompactElements)

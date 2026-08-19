@@ -1,0 +1,133 @@
+package com.sza.fastmediasorter.data.repository.settings
+
+import androidx.datastore.preferences.core.MutablePreferences
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
+
+/**
+ * Owns persistence of launcher-mode desktop settings: grid density, taskbar composition and
+ * placement, tray indicator visibility, wallpaper, desktop lock, all-apps sort and the
+ * screen-blackout timeout.
+ *
+ * Extracted from SettingsRepositoryImpl as a single named responsibility. Public
+ * `AppSettings` shape and persisted key strings are unchanged - behaviour-preserving.
+ */
+object LauncherSettingsStore {
+
+    private val KEY_LAUNCHER_DENSITY_FACTOR = floatPreferencesKey("launcher_density_factor")
+    private val KEY_LAUNCHER_TASKBAR_SHOW_RECENTS = booleanPreferencesKey("launcher_taskbar_show_recents")
+    private val KEY_LAUNCHER_TASKBAR_SHOW_PINNED = booleanPreferencesKey("launcher_taskbar_show_pinned")
+    private val KEY_LAUNCHER_TASKBAR_SHOW_TRAY = booleanPreferencesKey("launcher_taskbar_show_tray")
+    private val KEY_LAUNCHER_TRAY_SHOW_CLOCK = booleanPreferencesKey("launcher_tray_show_clock")
+    private val KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH = booleanPreferencesKey("launcher_tray_show_bluetooth")
+    private val KEY_LAUNCHER_TRAY_SHOW_SIM1 = booleanPreferencesKey("launcher_tray_show_sim1")
+    private val KEY_LAUNCHER_TRAY_SHOW_SIM2 = booleanPreferencesKey("launcher_tray_show_sim2")
+    private val KEY_LAUNCHER_TRAY_SHOW_NETWORK = booleanPreferencesKey("launcher_tray_show_network")
+    private val KEY_LAUNCHER_TRAY_SHOW_BATTERY = booleanPreferencesKey("launcher_tray_show_battery")
+    private val KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA =
+        booleanPreferencesKey("launcher_replace_system_status_area")
+    private val KEY_LAUNCHER_TOP_STATUS_STRIP_MODE =
+        booleanPreferencesKey("launcher_top_status_strip_mode")
+    private val KEY_LAUNCHER_FOREIGN_NOTIFICATIONS =
+        booleanPreferencesKey("launcher_foreign_notifications_enabled")
+    private val KEY_LAUNCHER_TASKBAR_PLACEMENT = stringPreferencesKey("launcher_taskbar_placement")
+    private val KEY_LAUNCHER_ROTATION_HINT_SHOWN = booleanPreferencesKey("launcher_rotation_hint_shown")
+    private val KEY_LAUNCHER_DESKTOP_LOCKED = booleanPreferencesKey("launcher_desktop_locked")
+    private val KEY_LAUNCHER_WALLPAPER_MODE = stringPreferencesKey("launcher_wallpaper_mode")
+    private val KEY_LAUNCHER_WALLPAPER_IMAGE_PATH = stringPreferencesKey("launcher_wallpaper_image_path")
+    private val KEY_ALL_APPS_SORT_ORDER = stringPreferencesKey("all_apps_sort_order")
+    private val KEY_ALL_APPS_SORT_DESCENDING = booleanPreferencesKey("all_apps_sort_descending")
+    private val KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS =
+        intPreferencesKey("launcher_screen_blackout_timeout_seconds")
+
+    /** Launcher desktop fields read from DataStore, ready for [AppSettings]. */
+    data class Values(
+        val launcherDensityFactor: Float,
+        val launcherTaskbarShowRecents: Boolean,
+        val launcherTaskbarShowPinned: Boolean,
+        val launcherTaskbarShowTray: Boolean,
+        val launcherTrayShowClock: Boolean,
+        val launcherTrayShowBluetooth: Boolean,
+        val launcherTrayShowSim1: Boolean,
+        val launcherTrayShowSim2: Boolean,
+        val launcherTrayShowNetwork: Boolean,
+        val launcherTrayShowBattery: Boolean,
+        val launcherReplaceSystemStatusArea: Boolean,
+        val launcherTopStatusStripMode: Boolean,
+        val launcherForeignNotificationsEnabled: Boolean,
+        val launcherTaskbarPlacement: String,
+        val launcherRotationHintShown: Boolean,
+        val launcherDesktopLocked: Boolean,
+        val launcherWallpaperMode: String,
+        val launcherWallpaperImagePath: String,
+        val allAppsSortOrder: String,
+        val allAppsSortDescending: Boolean,
+        val launcherScreenBlackoutTimeoutSeconds: Int,
+    )
+
+    // S0404: absent keys resolve to auto density + full taskbar.
+    fun read(preferences: Preferences): Values = Values(
+        launcherDensityFactor = preferences.getOrDefault(KEY_LAUNCHER_DENSITY_FACTOR, 1.0f),
+        launcherTaskbarShowRecents = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_RECENTS, true),
+        launcherTaskbarShowPinned = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_PINNED, true),
+        launcherTaskbarShowTray = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_TRAY, true),
+        launcherTrayShowClock = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_CLOCK, true),
+        launcherTrayShowBluetooth = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH, true),
+        launcherTrayShowSim1 = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SIM1, true),
+        launcherTrayShowSim2 = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SIM2, true),
+        launcherTrayShowNetwork = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_NETWORK, true),
+        launcherTrayShowBattery = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_BATTERY, true),
+        launcherReplaceSystemStatusArea = preferences.getOrDefault(KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA, false),
+        launcherTopStatusStripMode = preferences.getOrDefault(KEY_LAUNCHER_TOP_STATUS_STRIP_MODE, false),
+        launcherForeignNotificationsEnabled = preferences.getOrDefault(KEY_LAUNCHER_FOREIGN_NOTIFICATIONS, false),
+        // S1643: an unknown token (older/newer build, corrupted value) degrades to the bottom edge.
+        launcherTaskbarPlacement = preferences[KEY_LAUNCHER_TASKBAR_PLACEMENT]
+            ?.takeIf { it in AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS }
+            ?: AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM,
+        launcherRotationHintShown = preferences.getOrDefault(KEY_LAUNCHER_ROTATION_HINT_SHOWN, false),
+        launcherDesktopLocked = preferences.getOrDefault(KEY_LAUNCHER_DESKTOP_LOCKED, false),
+        // S1101: an unknown token (older/newer build, corrupted value) degrades to the branded default.
+        launcherWallpaperMode = preferences[KEY_LAUNCHER_WALLPAPER_MODE]
+            ?.takeIf { it in AppSettings.LAUNCHER_WALLPAPER_MODES }
+            ?: AppSettings.LAUNCHER_WALLPAPER_BRANDED,
+        launcherWallpaperImagePath = preferences.getOrDefault(KEY_LAUNCHER_WALLPAPER_IMAGE_PATH, ""),
+        // S1401: stored as an enum name; an unknown one degrades to the default order.
+        allAppsSortOrder = InstalledAppSortOrder
+            .fromNameOrDefault(preferences[KEY_ALL_APPS_SORT_ORDER]).name,
+        allAppsSortDescending = preferences.getOrDefault(KEY_ALL_APPS_SORT_DESCENDING, false),
+        // S1741: non-negative seconds (0 = Off)
+        launcherScreenBlackoutTimeoutSeconds = preferences
+            .getOrDefault(KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS, 0)
+            .coerceAtLeast(0),
+    )
+
+    fun write(preferences: MutablePreferences, settings: AppSettings) {
+        preferences[KEY_LAUNCHER_DENSITY_FACTOR] = settings.launcherDensityFactor
+        preferences[KEY_LAUNCHER_TASKBAR_SHOW_RECENTS] = settings.launcherTaskbarShowRecents
+        preferences[KEY_LAUNCHER_TASKBAR_SHOW_PINNED] = settings.launcherTaskbarShowPinned
+        preferences[KEY_LAUNCHER_TASKBAR_SHOW_TRAY] = settings.launcherTaskbarShowTray
+        preferences[KEY_LAUNCHER_TRAY_SHOW_CLOCK] = settings.launcherTrayShowClock
+        preferences[KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH] = settings.launcherTrayShowBluetooth
+        preferences[KEY_LAUNCHER_TRAY_SHOW_SIM1] = settings.launcherTrayShowSim1
+        preferences[KEY_LAUNCHER_TRAY_SHOW_SIM2] = settings.launcherTrayShowSim2
+        preferences[KEY_LAUNCHER_TRAY_SHOW_NETWORK] = settings.launcherTrayShowNetwork
+        preferences[KEY_LAUNCHER_TRAY_SHOW_BATTERY] = settings.launcherTrayShowBattery
+        preferences[KEY_LAUNCHER_REPLACE_SYSTEM_STATUS_AREA] = settings.launcherReplaceSystemStatusArea
+        preferences[KEY_LAUNCHER_TOP_STATUS_STRIP_MODE] = settings.launcherTopStatusStripMode
+        preferences[KEY_LAUNCHER_FOREIGN_NOTIFICATIONS] = settings.launcherForeignNotificationsEnabled
+        preferences[KEY_LAUNCHER_TASKBAR_PLACEMENT] = settings.launcherTaskbarPlacement
+        preferences[KEY_LAUNCHER_ROTATION_HINT_SHOWN] = settings.launcherRotationHintShown
+        preferences[KEY_LAUNCHER_DESKTOP_LOCKED] = settings.launcherDesktopLocked
+        preferences[KEY_LAUNCHER_WALLPAPER_MODE] = settings.launcherWallpaperMode
+        preferences[KEY_LAUNCHER_WALLPAPER_IMAGE_PATH] = settings.launcherWallpaperImagePath
+        preferences[KEY_ALL_APPS_SORT_ORDER] = settings.allAppsSortOrder
+        preferences[KEY_ALL_APPS_SORT_DESCENDING] = settings.allAppsSortDescending
+        preferences[KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS] =
+            settings.launcherScreenBlackoutTimeoutSeconds
+    }
+}

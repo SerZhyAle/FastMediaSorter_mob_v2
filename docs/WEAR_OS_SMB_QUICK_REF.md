@@ -5,12 +5,14 @@ permalink: /docs/WEAR_OS_SMB_QUICK_REF.html
 ---
 # Wear OS SMB Quick Reference
 
+> **Step-by-step guide:** See [Connect Smartwatch to NAS & PC Shares](howto/scenario-watch-network.md).
+
 ## On Your Watch
 
 ### Add Connection
 
 ```
-Browse → Network Storage → "+ Add SMB Connection"
+Browse → Resources → "+ Add SMB Connection"
 ```
 
 ### Fill in Details

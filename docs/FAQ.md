@@ -27,6 +27,21 @@ Yes! FastMediaSorter v2 ships a variety of home-screen widgets - find them via l
 ### Can the app replace my home screen?
 Yes, in the **Standard** and **noLegal** builds. Turn on **Make this app the home screen** in **Settings → General** and pick FastMediaSorter when Android asks which home screen to use. You get a desktop with shortcuts to your folders, gadgets like a clock and weather, an app grid and a taskbar. Turn the setting off, or choose **Exit launcher mode**, and Android restores your previous home screen - your desktop layout is kept for next time. See [HOW_TO](HOW_TO.md#how-to-use-the-app-as-your-home-screen) for the full walkthrough.
 
+### How do I stop the app being my home screen?
+Three ways, whichever you reach first:
+
+- Open the Start menu on the desktop, choose **Exit launcher mode**, and confirm.
+- Turn **Make this app the home screen** back off in **Settings → General**.
+- Open Android's own list of home apps at **Settings → General → System launcher settings → System → Change home screen** and pick the launcher you want.
+
+Your desktop layout is kept in every case, so turning the mode on again brings it back as you left it.
+
+### Why did my tablet go back to its old home screen after a restart?
+Because that device's firmware put it back, not because the app dropped the setting. Some cheap car radios and built-in Android boxes reset the home app to their factory one on every boot, whatever you chose - no app can override that. Pick FastMediaSorter as the home app again after the restart, and if your device offers **Always** rather than **Just once**, choose **Always**. If it still refuses to stick, that device simply does not allow a replacement home screen.
+
+### Can I put my own folders and playlists on the desktop?
+Yes - that is what the desktop is for. Long-press an empty square and choose **Add an item..**, then pick what you want: one of your folders, a radio stream, an app, a person, or a gadget like the clock or the weather. The new cell lands on the square you pressed, and for a folder you also choose whether it opens in browse, slideshow or play mode. To move things around afterwards, choose **Edit the desktop** from the same long-press menu. See [HOW_TO](HOW_TO.md#how-to-use-the-app-as-your-home-screen) for the full walkthrough.
+
 ---
 
 ## File Operations

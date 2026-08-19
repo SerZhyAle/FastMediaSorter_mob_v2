@@ -649,6 +649,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "front_flashlight",
+    "feature": "front_flashlight_title",
+    "drawable": "ic_front_flashlight",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "game",
     "feature": "app_launch_panel_route_game",
     "drawable": "ic_game_kryvavitsa",
@@ -1220,6 +1228,14 @@
     "key": "rowEnableTranslation",
     "feature": "enable_translation",
     "drawable": "ic_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowFrontFlashlight",
+    "feature": "front_flashlight_settings_toggle_title",
+    "drawable": "ic_front_flashlight",
     "assetFormat": "vector",
     "public": true
   },

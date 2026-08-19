@@ -10,9 +10,10 @@
 - Spec Writing: lists over tables (tables only 3+ columns); no pseudographics; no self-evident links; one idea per bullet; no section summaries; Draft specs exempt.
 
 ## 3. Skill Rules (Mandatory Slash Commands)
+- Each `/name` is the file `.claude/commands/<name>.md` - that file is the whole procedure, so read it in full before the first step. Companions for the six largest pipelines: `.claude/reference/<name>.md`; verbatim skeletons: `.claude/templates/`. `.github/prompts/` was retired (S1787) - the Copilot prompt mirrors had drifted beyond parity and were deleted.
 - `/quick`: minor fix (design, typo, 1 string), skip spec/build; update `dev/CHANGELOG.md`.
 - `/skill-fix`: fast bug/UI fix, and the doc/config/script tweak that needs no gradle; skip doc/git/build/dev-log/spec; local validation only.
-- `/spec*`: spec lifecycle (`/spec`, `/spec-all`, `/spec-tech`, `/spec-update`, `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-arc`, `/spec-test-device`, `/spec-sweep`).
+- `/spec*`: spec lifecycle (`/spec`, `/spec-all`, `/spec-tech`, `/spec-update`, `/spec-dev`, `/spec-check`, `/spec-fix`, `/spec-arc`, `/spec-test-device`, `/spec-sweep`, `/spec-next`, `/spec-do`, `/spec-draft`, `/spec-quiz`, `/spec-prerelease`).
 - `/ui-clarify`: resolve layout/UX ambiguity before design/impl.
 - `/catalog`: class/feature queries; run `scripts/catalog_sync.ps1`.
 - `/doc-update`: docs sync.
@@ -60,6 +61,7 @@
 32. No slash-command name as an argument value in a Bash-tool `pwsh` call (CLAUDE.md Rule 27): `-Reason "/spec-dev .."` arrives as `C:/Program Files/Git/spec-dev ..` because MSYS reads the leading slash as a POSIX path, and the corruption is silent - exit 0, mangled text in the lock/queue/lease diagnostics. Use `-Reason "//spec-dev .."`, prefix `MSYS2_ARG_CONV_EXCL='*'`, or call from the PowerShell tool.
 33. No command in the Bash tool that cannot exist there (CLAUDE.md Rule 28): a PowerShell cmdlet in command-head position, an interpreter that is not installed (`node`, `npm`, `npx`), and the batching idiom `& { .. }` at the start of a command are each an `exit 127` that returns nothing. Run the pipeline in the PowerShell tool or via `pwsh -NoProfile -Command "<pipeline>"`. `python3` is not refused - it shims to the `python` on PATH.
 34. Thirteen locales for a new UI string (CLAUDE.md Rule 30): a key added to `values/strings*.xml` reaches every locale in `app_v2/src/main/res/xml/locales_config.xml` before the release, not only `en`/`ru`/`uk`. The refusal sits at pre-release (`scripts/quality/assert-new-lexemes-translated.ps1`, step 0.8 of `/spec-prerelease`); the authoring call and the ticket close only name what is missing.
+35. Subagent model routing (CLAUDE.md Rule 31): mechanical, search, and doc subagent tasks must explicitly specify lightweight model tiers (`model: sonnet` or `flash`); unpinned `general-purpose` defaults to Opus.
 
 ## 6. Workflow Stages (5-Step Engineering Workflow)
 - Step 0 TASK DEFINITION: ask clarifying questions; output RU desc to `dev/`; UI gate checks.

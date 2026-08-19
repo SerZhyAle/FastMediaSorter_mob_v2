@@ -134,6 +134,23 @@ Branch on each exit code:
 - **1** - new untranslated strings exist. **Hard release blocker**, and the fix is a task of this stage, not of the ticket that added the strings: hand `temp/S1627/new_lexemes_en.txt` (written by the gate's own run) to the external translation service, import each returned file with `scripts/utils/locale-bulk-import.ps1 -TextPath <returned file>`, then re-run this step until it is 0. The wear run writes its own list; import it with `-Module wear` so the returned strings land in the watch's resources rather than the phone's. When the values are already known, `set-android-string.ps1 -Action set -Key <key> -Locale <tag>` fills them directly instead. Do not proceed to step 1 on exit 1.
 - **2** - the gate cannot verify: its producer or `scripts/quality/locale-untranslated-baseline.txt` is missing. Treat as sweep abort (exit 2 in step 4), same as any infrastructure failure - never as a pass.
 
+### 0.9 - Refuse a tree that still packages a deleted resource (content, no device, GATING)
+
+Needs no device and no gradle, and it runs before the clean install because the install in step 1 is built from exactly the tree this judges.
+
+```powershell
+pwsh -NoProfile -File scripts/quality/assert-no-orphan-merged-resources.ps1
+pwsh -NoProfile -File scripts/quality/assert-no-orphan-merged-resources.ps1 -Module wear
+```
+
+**Why it exists (S1825).** Deleting a file under `src/*/res` does not remove its compiled artifact from `build/intermediates/merged_res`; the artifact keeps shipping and, on a device whose configuration matches its qualifier, wins over the file that is actually in the tree. On 2026-08-20 every variant - `standardRelease` included - packaged a `layout-w600dp/activity_streams.xml` deleted nine days earlier. It stayed invisible while the stale copy was merely old, and turned into a crash on every wide-screen open the moment the live layout gained a view the old one lacks.
+
+Branch on each exit code:
+
+- **0** - every merged artifact still has a source, or nothing is built yet. Continue.
+- **1** - an artifact outlived its source. **Hard release blocker.** Re-run with `-Fix` (it drops the artifacts and the incremental merge state together), then rebuild so the variant re-merges from source, then re-run this step until it is 0. Do not proceed to step 1 on exit 1: the APK the sweep would install is the one carrying the stale resource.
+- **2** - the module directory is absent. Treat as sweep abort (exit 2 in step 4), never as a pass.
+
 Carry the outcome into the step 4 verdict the way 0.7's is carried: exit 1 blocks a clean PASS, exit 2 aborts the sweep.
 
 ### 0.9 - Report capabilities no user guide mentions (content, no device, ADVISORY)
@@ -221,7 +238,7 @@ pwsh -NoProfile -File scripts/devtest/prerelease-verdict.ps1 `
     -Json
 ```
 
-Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write timestamped report to `temp/S0484/prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence paths). Aggregate verdict is `reindex AND log AND perf AND maestro`; screenshots evidence-only. A step-0.7 exit 2 (fresh settings mirror not yet committed) or exit 3 (unfixed catalog/annotation/HOW_TO inconsistency) forces a non-PASS just as a red log audit does - record it on the reindex report line. A step-0.8 exit 1 (new strings still untranslated) forces a non-PASS the same way; record it on its own report line, naming the key count.
+Exit `0` = PASS, `1` = content FAIL, `2` = infrastructure abort. Write timestamped report to `temp/S0484/prerelease_<TS>.md` (device profile, per-stage results, verdict breakdown, evidence paths). Aggregate verdict is `reindex AND log AND perf AND maestro`; screenshots evidence-only. A step-0.7 exit 2 (fresh settings mirror not yet committed) or exit 3 (unfixed catalog/annotation/HOW_TO inconsistency) forces a non-PASS just as a red log audit does - record it on the reindex report line. A step-0.8 exit 1 (new strings still untranslated) forces a non-PASS the same way; record it on its own report line, naming the key count. A step-0.9 exit 1 (a merged artifact outlived its source) forces a non-PASS as well, and its report line names the orphaned resource and the variants that carry it - the sweep's own install is built from that tree, so a pass there would certify a package nobody verified.
 
 Always run detailed log audit below before trusting a PASS - the verdict is a coarse gate; why it never proves a clean run is in `.claude/reference/spec-prerelease.md` §"4".
 

@@ -1,20 +1,39 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
 import android.content.Context
+import android.content.pm.PackageManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.BuildConfig
 import com.sza.fastmediasorter.wear.data.wear.WatchSyncEvents
+import com.sza.fastmediasorter.wear.data.wear.WearLogReportClient
+import com.sza.fastmediasorter.wear.data.wear.WearLogReportOutcome
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+
+// combine() over a flow list hands back positional values; naming the positions keeps a new flow
+// from silently shifting the reads below it.
+private const val INDEX_AUDIO = 0
+private const val INDEX_VIDEO = 1
+private const val INDEX_IMAGES = 2
+private const val INDEX_SLIDESHOW = 3
+private const val INDEX_INTERVAL = 4
+private const val INDEX_WAIT_FOR_FINISH = 5
+private const val INDEX_ALBUM_ART = 6
+private const val INDEX_VIEW_MODE = 7
+private const val INDEX_STREAMS_SECTION = 8
+private const val INDEX_KEEP_AWAKE = 9
+private const val INDEX_FILE_LIST_VIEW_MODE = 10
+private const val INDEX_AUTO_ROTATION = 11
 
 /**
  * ViewModel for Settings screen.
@@ -23,7 +42,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val preferencesRepository: WearPreferencesRepository
+    private val preferencesRepository: WearPreferencesRepository,
+    private val logReportClient: WearLogReportClient
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -33,6 +53,11 @@ class SettingsViewModel @Inject constructor(
         )
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
+    private val _logReportState = MutableStateFlow<WearLogReportState>(WearLogReportState.Idle)
+
+    /** State of the "send logs" action, separate from the settings values the screen renders. */
+    val logReportState: StateFlow<WearLogReportState> = _logReportState.asStateFlow()
 
     init {
         loadSettings()
@@ -47,12 +72,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun reloadSettings() {
-        loadSettings()
-    }
-
     private fun loadSettings() {
         viewModelScope.launch {
+            val hasAccelerometer = context.packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)
             combine(
                 listOf(
                     preferencesRepository.isAudioEnabled,
@@ -61,16 +83,26 @@ class SettingsViewModel @Inject constructor(
                     preferencesRepository.isSlideshowEnabled,
                     preferencesRepository.slideshowIntervalSeconds,
                     preferencesRepository.slideshowWaitForFinish,
-                    preferencesRepository.downloadAlbumArt
+                    preferencesRepository.downloadAlbumArt,
+                    preferencesRepository.viewMode,
+                    preferencesRepository.streamsSectionEnabled,
+                    preferencesRepository.keepScreenAwakeOutsidePlayers,
+                    preferencesRepository.fileListViewMode,
+                    preferencesRepository.isAutoRotationEnabled
                 )
             ) { values ->
-                val audio = values[0] as Boolean
-                val video = values[1] as Boolean
-                val images = values[2] as Boolean
-                val slideshow = values[3] as Boolean
-                val interval = values[4] as Int
-                val waitForFinish = values[5] as Boolean
-                val albumArt = values[6] as Boolean
+                val audio = values[INDEX_AUDIO] as Boolean
+                val video = values[INDEX_VIDEO] as Boolean
+                val images = values[INDEX_IMAGES] as Boolean
+                val slideshow = values[INDEX_SLIDESHOW] as Boolean
+                val interval = values[INDEX_INTERVAL] as Int
+                val waitForFinish = values[INDEX_WAIT_FOR_FINISH] as Boolean
+                val albumArt = values[INDEX_ALBUM_ART] as Boolean
+                val viewMode = values[INDEX_VIEW_MODE] as WearViewMode
+                val streamsSection = values[INDEX_STREAMS_SECTION] as Boolean
+                val keepAwake = values[INDEX_KEEP_AWAKE] as Boolean
+                val fileListView = values[INDEX_FILE_LIST_VIEW_MODE] as WearViewMode
+                val autoRotation = values[INDEX_AUTO_ROTATION] as Boolean
                 _uiState.value.copy(
                     isAudioEnabled = audio,
                     isVideoEnabled = video,
@@ -79,6 +111,12 @@ class SettingsViewModel @Inject constructor(
                     slideshowIntervalSeconds = interval,
                     slideshowWaitForFinish = waitForFinish,
                     downloadAlbumArt = albumArt,
+                    viewMode = viewMode,
+                    streamsSectionEnabled = streamsSection,
+                    keepScreenAwakeOutsidePlayers = keepAwake,
+                    fileListViewMode = fileListView,
+                    isAutoRotationEnabled = autoRotation,
+                    hasAutoRotationSensor = hasAccelerometer,
                     isLoading = false
                 )
             }.collect { combinedState ->
@@ -123,9 +161,71 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setViewMode(mode: WearViewMode) {
+        viewModelScope.launch {
+            preferencesRepository.setViewMode(mode)
+        }
+    }
+
+    fun setFileListViewMode(mode: WearViewMode) {
+        viewModelScope.launch {
+            preferencesRepository.setFileListViewMode(mode)
+        }
+    }
+
+    fun toggleStreamsSection() {
+        viewModelScope.launch {
+            preferencesRepository.setStreamsSectionEnabled(!_uiState.value.streamsSectionEnabled)
+        }
+    }
+
+    fun toggleKeepScreenAwakeOutsidePlayers() {
+        viewModelScope.launch {
+            preferencesRepository.setKeepScreenAwakeOutsidePlayers(
+                !_uiState.value.keepScreenAwakeOutsidePlayers
+            )
+        }
+    }
+
+    /**
+     * Sends the watch log to the paired phone.
+     *
+     * A second press while [WearLogReportState.Sending] is ignored here as well as in the row, so an
+     * impatient user cannot queue several identical reports even if the row's guard is ever lost.
+     */
+    fun sendLogReport() {
+        if (_logReportState.value is WearLogReportState.Sending) {
+            return
+        }
+        Timber.d("S1802: About row pressed, sending the watch log")
+        _logReportState.value = WearLogReportState.Sending
+        viewModelScope.launch {
+            _logReportState.value = WearLogReportState.Finished(logReportClient.send())
+        }
+    }
+
     fun toggleAlbumArt() {
         viewModelScope.launch {
             preferencesRepository.setDownloadAlbumArt(!_uiState.value.downloadAlbumArt)
         }
     }
+
+    fun toggleAutoRotation() {
+        viewModelScope.launch {
+            preferencesRepository.setAutoRotationEnabled(!_uiState.value.isAutoRotationEnabled)
+        }
+    }
+}
+
+/** What the "send logs" action is doing right now. */
+sealed interface WearLogReportState {
+
+    /** Nothing sent yet in this screen visit. */
+    data object Idle : WearLogReportState
+
+    /** A report is on its way; the row shows progress and refuses a second press. */
+    data object Sending : WearLogReportState
+
+    /** The round trip ended, carrying the outcome the row turns into a message. */
+    data class Finished(val outcome: WearLogReportOutcome) : WearLogReportState
 }

@@ -28,6 +28,7 @@
     <!-- No minHeight: LauncherDesktopLayout measures the cell EXACTLY at cellSize, so the grid is
          authoritative and a floor here would only fight it. -->
     <LinearLayout
+        android:id="@+id/cellContentLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
@@ -85,8 +86,9 @@
 
         <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/cellLabel"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
             android:layout_marginTop="@dimen/launcher_cell_label_margin_top"
             android:background="@drawable/bg_launcher_cell_label"
             android:ellipsize="end"

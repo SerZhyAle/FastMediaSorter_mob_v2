@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.cloud.CloudProvider
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -27,7 +28,9 @@ data class BackupPayload(
     val scheduledOperations: List<BackupScheduledOperation>? = null,
     // S0406: secret-bearing sections, nullable so older (v4) backups still deserialize.
     val networkCredentials: List<BackupNetworkCredential>? = null,
-    val webAuthSessions: List<BackupWebAuthSession>? = null
+    val webAuthSessions: List<BackupWebAuthSession>? = null,
+    // S1740: Launcher desktop items (shortcuts, gadgets, sections)
+    val launcherCells: List<BackupLauncherCell>? = null
 ) {
     companion object {
         // S1346: v5->v6 - not a payload-shape change but a trust marker for
@@ -50,6 +53,8 @@ data class BackupSettings(
     val keepScreenOnPlayer: Boolean = true,
     val showSmallControls: Boolean = false,
     val embeddedGameEnabled: Boolean = false,
+    val frontFlashlightEnabled: Boolean = false,
+    val frontFlashlightColor: Int = AppSettings.FRONT_FLASHLIGHT_DEFAULT_COLOR,
     val networkParallelism: Int = 4,
     val cacheSizeMb: Int = 2048,
     val isCacheSizeUserModified: Boolean = false,
@@ -190,7 +195,44 @@ data class BackupSettings(
     val stereoDefaultLayout: String? = null,
     val stereoDefaultProjection: String? = null,
     // Deprecated since S0251 - kept only so old JSON backups still deserialize.
-    val vrForcedFormat: String? = null
+    val vrForcedFormat: String? = null,
+    // S1740: Launcher settings
+    val launcherDensityFactor: Float = 1.0f,
+    val launcherTaskbarPlacement: String = "BOTTOM",
+    val launcherTaskbarShowRecents: Boolean = true,
+    val launcherTaskbarShowPinned: Boolean = true,
+    val launcherTaskbarShowTray: Boolean = true,
+    val launcherReplaceSystemStatusArea: Boolean = false,
+    val launcherTopStatusStripMode: Boolean = false,
+    val launcherForeignNotificationsEnabled: Boolean = false,
+    val launcherTrayShowClock: Boolean = true,
+    val launcherTrayShowBluetooth: Boolean = true,
+    val launcherTrayShowSim1: Boolean = true,
+    val launcherTrayShowSim2: Boolean = true,
+    val launcherTrayShowNetwork: Boolean = true,
+    val launcherTrayShowBattery: Boolean = true,
+    val launcherRotationHintShown: Boolean = false,
+    val launcherDesktopLocked: Boolean = false,
+    val launcherWallpaperMode: String = "BRANDED",
+    val launcherWallpaperImagePath: String = "",
+    val allAppsSortOrder: String = "LABEL",
+    val allAppsSortDescending: Boolean = false,
+    val launcherScreenBlackoutTimeoutSeconds: Int = 0
+)
+
+/**
+ * S1740: Serializable launcher desktop cell (shortcut, gadget, section header).
+ */
+data class BackupLauncherCell(
+    val orientation: String = "PORTRAIT",
+    val rowIndex: Int = 0,
+    val colIndex: Int = 0,
+    val spanW: Int = 1,
+    val spanH: Int = 1,
+    val kind: String = "SHORTCUT",
+    val target: String = "",
+    val labelOverride: String? = null,
+    val addedAt: Long = 0L
 )
 
 /**

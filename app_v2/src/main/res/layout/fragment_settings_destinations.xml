@@ -835,6 +835,17 @@
                         app:str_helpTitle="@string/game_settings_help_title"
                         app:str_helpMessage="@string/game_settings_help_message" />
 
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowFrontFlashlight"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_icon="@drawable/ic_front_flashlight"
+                        app:str_title="@string/front_flashlight_settings_toggle_title"
+                        app:str_subtitle="@string/front_flashlight_settings_toggle_subtitle"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/front_flashlight_help_title"
+                        app:str_helpMessage="@string/front_flashlight_help_message" />
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

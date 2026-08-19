@@ -527,6 +527,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
+        Timber.d("S1549: BrowseActivity onLayoutConfigurationChanged - command bar re-applied on rotation")
         initializer.buttonSetupHelper.updateToolbarButtonLabels(newConfig)
         // S0374: labels change button widths in landscape - re-partition the bar (cached eligibility).
         initializer.commandOverflowManager.recompute()

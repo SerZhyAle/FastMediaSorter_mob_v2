@@ -18,6 +18,7 @@
 
         <TextView
             style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+            android:drawableStart="@drawable/ic_bluetooth"
             android:text="@string/network_monitor_section_bluetooth" />
 
         <com.google.android.material.card.MaterialCardView

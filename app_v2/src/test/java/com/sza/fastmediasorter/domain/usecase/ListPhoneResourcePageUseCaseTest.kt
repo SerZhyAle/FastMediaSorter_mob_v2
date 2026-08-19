@@ -32,12 +32,17 @@ class ListPhoneResourcePageUseCaseTest {
     private val scanner: MediaScanner = mockk()
     private val scannerFactory: MediaScannerFactory = mockk()
 
+    // S1730: the page now carries a picture per item. These cases assert visibility policy, so the
+    // producer is stubbed to decline - the state in which the watch draws a type icon.
+    private val buildWatchThumbnail: BuildWatchThumbnailUseCase = mockk()
+
     private lateinit var useCase: ListPhoneResourcePageUseCase
 
     @Before
     fun setUp() {
         every { scannerFactory.getScanner(any()) } returns scanner
-        useCase = ListPhoneResourcePageUseCase(resourceRepository, scannerFactory)
+        coEvery { buildWatchThumbnail(any()) } returns null
+        useCase = ListPhoneResourcePageUseCase(resourceRepository, scannerFactory, buildWatchThumbnail)
     }
 
     @Test

@@ -40,6 +40,25 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly
 > the S0925 guard - it bundles `streams.csv` (entry 0) **and** `favicon-atlas.png` (<= 30 MiB) and refuses
 > to publish a `favicon_index` CSV with no atlas. `-SkipLiveness` skips the URL probe without touching the CSV.
 
+### Atlas byte ceiling - 31457280 B (30 MiB), shared with three consumers (S1827)
+
+The favicon atlas is bundled only while it fits **31457280 bytes**. The number is not a local choice:
+three independent code bases carry their own copy of it, and each one discards an over-cap atlas
+differently. None of them tells the user.
+
+| Consumer | Constant | What it does over the cap |
+|---|---|---|
+| This publisher | `$MaxAtlasBytes` in `scripts/streams/collect-stream-candidates.ps1` | `Assert-AtlasBudget` stops the build and rolls the atlas back; publish would otherwise bundle CSV-only |
+| The app | `ImportStreamCatalogUseCase.MAX_ATLAS_BYTES` | drops the atlas, `FaviconAtlasStore.write(null, coords)` wipes **every** favicon |
+| StreamsPlayer (separate repository) | `StreamBankReader.MaximumAtlasBytes` | keeps the previously installed atlas and applies the new CSV's indices to it, so channels show **other stations' logos** while looking healthy |
+
+That third row is why a CSV-only publish is worse than it reads: on our side it degrades visibly, on
+theirs it corrupts silently. `-AllowFaviconlessPublish` acknowledges both.
+
+Current occupancy, measured 2026-08-20: **6 992 874 B = 22,2 %** of the ceiling, 5 743 tiles packed at
+about 1 218 B per tile - room for roughly 25 800 tiles at that density. Every atlas build now prints
+this line, so the headroom is visible per run rather than discovered at publish.
+
 ## Channel preview atlas (separate release asset)
 
 The **channel-preview atlas** is an optional companion to the catalog: a single sprite sheet of

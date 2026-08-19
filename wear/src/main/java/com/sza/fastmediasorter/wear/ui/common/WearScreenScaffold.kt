@@ -11,9 +11,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.material.scrollAway
 import timber.log.Timber
 
 /**
@@ -34,6 +36,8 @@ private val SQUARE_INSET = 4.dp
  *
  * @param positionIndicator scroll indicator for a scrolling screen, omitted by the ones whose
  * content is full-bleed and does not scroll.
+ * @param scrollState the scrolling list state when content can move beneath the clock. The clock
+ * scrolls away with the list so stationary content is never obscured after a scroll.
  * @param showTimeText false only for the screen-off mode of S1683, where a lit clock would be the one
  * thing still drawn on a screen the user asked to go dark.
  * @param contentPadding defaults to the round-safe inset, so a screen added later is safe without
@@ -45,15 +49,19 @@ private val SQUARE_INSET = 4.dp
 fun WearScreenScaffold(
     modifier: Modifier = Modifier,
     positionIndicator: (@Composable () -> Unit)? = null,
+    scrollState: ScalingLazyListState? = null,
     showTimeText: Boolean = true,
     contentPadding: PaddingValues = wearScreenInsets(),
     content: @Composable BoxScope.() -> Unit
 ) {
+    if (scrollState != null) {
+        Timber.d("S1678: TimeText scrolls away with the list")
+    }
     Scaffold(
         modifier = modifier.fillMaxSize(),
         positionIndicator = positionIndicator,
         timeText = if (showTimeText) {
-            { TimeText() }
+            { TimeText(modifier = if (scrollState == null) Modifier else Modifier.scrollAway(scrollState)) }
         } else {
             null
         }
@@ -82,10 +90,8 @@ fun wearScreenInsets(): PaddingValues {
     val configuration = LocalConfiguration.current
     return if (configuration.isScreenRound) {
         val shorterEdge = minOf(configuration.screenWidthDp, configuration.screenHeightDp).dp
-        Timber.d("S1678: round screen, shorter edge $shorterEdge, inset ${shorterEdge * ROUND_INSET_FRACTION}")
         PaddingValues(shorterEdge * ROUND_INSET_FRACTION)
     } else {
-        Timber.d("S1678: square screen, inset $SQUARE_INSET")
         PaddingValues(SQUARE_INSET)
     }
 }

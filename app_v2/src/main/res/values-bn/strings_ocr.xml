@@ -5,9 +5,6 @@
     <string name="ocr_best_model_delete">মুছে ফেলুন</string>
     <string name="ocr_best_model_download">ডাউনলোড করুন</string>
     <string name="ocr_button_description">পাঠ্য উদ্ধৃত করুন</string>
-    <string name="ocr_engine_type">ওসিআর ইঞ্জিন</string>
-    <string name="ocr_engine_type_paddleocr">প্যাডেলওসিআর</string>
-    <string name="ocr_engine_type_tesseract">টেসারেক্ট (ডিফল্ট)</string>
     <string name="ocr_error">লেখাটি শনাক্ত করা যায়নি।</string>
     <string name="ocr_extract_image_failed">এই ছবিটি OCR-এর জন্য প্রস্তুত করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="ocr_font_family">OCR ফন্ট পরিবার</string>

@@ -104,6 +104,11 @@
     "ru": "Загружает настройки из ранее экспортированного файла, заменяя текущую конфигурацию.",
     "uk": "Завантажує налаштування з раніше експортованого файлу, замінюючи поточну конфігурацію."
   },
+  "btnImportSystemShortcuts": {
+    "en": "Adds a desktop cell for every application installed on the device, so a fresh launcher desktop can be filled without placing each one by hand.",
+    "ru": "Добавляет на рабочий стол по ячейке для каждого установленного приложения, чтобы не размещать их по одному вручную.",
+    "uk": "Додає на робочий стіл по комірці для кожної встановленої програми, щоб не розміщувати їх по одній вручну."
+  },
   "btnImportTestCredentials": {
     "en": "Imports a predefined test configuration used for QA and integration testing.",
     "ru": "Импортирует предустановленную тестовую конфигурацию для QA и интеграционного тестирования.",
@@ -113,6 +118,11 @@
     "en": "Runs the app's built-in integration test suite.",
     "ru": "Запускает встроенный набор интеграционных тестов приложения.",
     "uk": "Запускає вбудований набір інтеграційних тестів застосунку."
+  },
+  "btnLauncherGrantNotificationAccess": {
+    "en": "Opens the system notification-access screen. Shown only while the launcher's foreign-notification row is on and the system has not granted the access.",
+    "ru": "Открывает системный экран доступа к уведомлениям. Показывается, только пока строка чужих уведомлений лаунчера включена, а системный доступ не выдан.",
+    "uk": "Відкриває системний екран доступу до сповіщень. Показується, лише поки рядок чужих сповіщень лаунчера ввімкнено, а системний доступ не надано."
   },
   "btnOpenAccessibilitySettings": {
     "en": "Opens the Android accessibility settings, where you grant the service that powers silent screenshot capture via the edge gesture. Shown only where the silent-capture method is available.",
@@ -149,10 +159,20 @@
     "ru": "Открывает политику конфиденциальности приложения.",
     "uk": "Відкриває політику конфіденційності застосунку."
   },
+  "btnReleasedTickets": {
+    "en": "Lists the tickets included in this debug build, so a tester can see what there is to check.",
+    "ru": "Показывает тикеты, вошедшие в эту отладочную сборку, чтобы было понятно, что проверять.",
+    "uk": "Показує тікети, що увійшли до цієї налагоджувальної збірки, щоб було зрозуміло, що перевіряти."
+  },
   "btnResetGeneralSection": {
     "en": "Restores all General section settings to their factory defaults.",
     "ru": "Возвращает все настройки раздела «Общие» к заводским значениям.",
     "uk": "Повертає всі налаштування розділу «Загальні» до заводських значень."
+  },
+  "btnResetLauncher": {
+    "en": "Resets the launcher configuration and desktop cells back to defaults after confirmation.",
+    "ru": "Сбрасывает настройки лаунчера и ярлыки рабочего стола к значениям по умолчанию после подтверждения.",
+    "uk": "Скидає налаштування лаунчера та ярлики робочого стола до стандартних значень після підтвердження."
   },
   "btnResetOperationsSection": {
     "en": "Restores all Management settings in this section to their factory defaults.",
@@ -313,6 +333,11 @@
     "en": "Retries initializing the translation engine if the previous attempt failed.",
     "ru": "Повторяет попытку инициализации движка перевода после предыдущего сбоя.",
     "uk": "Повторює спробу ініціалізації рушія перекладу після попереднього збою."
+  },
+  "btnUnusedCredentials": {
+    "en": "Shows how many saved network passwords and keys no resource uses any more, and removes them after a confirmation that lists them. The row is hidden while there are none.",
+    "ru": "Показывает, сколько сохранённых сетевых паролей и ключей больше не использует ни один ресурс, и удаляет их после подтверждения со списком. Пока таких нет, строка скрыта.",
+    "uk": "Показує, скільки збережених мережевих паролів і ключів більше не використовує жоден ресурс, і видаляє їх після підтвердження зі списком. Поки таких немає, рядок прихований."
   },
   "btnUserGuide": {
     "en": "Opens the full user guide for the app.",
@@ -513,11 +538,6 @@
     "en": "Manages downloadable OCR and translation components.",
     "ru": "Управляет загружаемыми компонентами OCR и перевода.",
     "uk": "Керує завантажуваними компонентами OCR та перекладу."
-  },
-  "row_saved_authorizations": {
-    "en": "Opens the list of saved sign-ins to remote sources so you can review or remove them.",
-    "ru": "Открывает список сохранённых входов в удалённые источники для просмотра или удаления.",
-    "uk": "Відкриває список збережених входів до віддалених джерел для перегляду або видалення."
   },
   "rowAcceptSharedFiles": {
     "en": "Allows the app to receive files shared from other apps.",
@@ -734,11 +754,6 @@
     "ru": "Включает быстрый доступ к калькулятору внутри приложения.",
     "uk": "Вмикає швидкий доступ до калькулятора всередині застосунку."
   },
-  "rowEnableNetworkMonitor": {
-    "en": "Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself.",
-    "ru": "Добавляет Сетевой монитор в меню программ и поверхности лаунчера. По умолчанию он выключен и сам не запускает проверок.",
-    "uk": "Додає Мережевий монітор до меню програм і поверхонь лаунчера. Типово він вимкнений і сам не запускає перевірок."
-  },
   "rowEnableCopying": {
     "en": "Allows files to be copied to Quick Sort destinations.",
     "ru": "Разрешает копировать файлы в назначения быстрой сортировки.",
@@ -753,6 +768,11 @@
     "en": "Allows files to be moved to Quick Sort destinations.",
     "ru": "Разрешает перемещать файлы в назначения быстрой сортировки.",
     "uk": "Дозволяє переміщати файли до призначень швидкого сортування."
+  },
+  "rowEnableNetworkMonitor": {
+    "en": "Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself.",
+    "ru": "Добавляет Сетевой монитор в меню программ и поверхности лаунчера. По умолчанию он выключен и сам не запускает проверок.",
+    "uk": "Додає Мережевий монітор до меню програм і поверхонь лаунчера. Типово він вимкнений і сам не запускає перевірок."
   },
   "rowEnableOcr": {
     "en": "Enables on-device text recognition (OCR) so you can extract text from images.",
@@ -818,6 +838,11 @@
     "en": "Rotates the player screen with the device auto-rotate setting, independently of the program-wide toggle.",
     "ru": "Поворачивает экран плеера вместе с системным авто-поворотом устройства, независимо от общей настройки.",
     "uk": "Повертає екран плеєра разом із системним авто-поворотом пристрою, незалежно від загального налаштування."
+  },
+  "rowFrontFlashlight": {
+    "en": "Adds the front flashlight to the programs list: the screen itself becomes a lamp.",
+    "ru": "Добавляет фронтальный фонарик в список программ: сам экран становится лампой.",
+    "uk": "Додає фронтальний ліхтарик до списку програм: сам екран стає лампою."
   },
   "rowGestureLeftBottomDown": {
     "en": "Assigns the action triggered by swiping down from the left edge's lower gesture zone.",
@@ -974,10 +999,10 @@
     "ru": "Задаёт, сколько значков помещается по строкам и столбцам сетки рабочего стола лаунчера.",
     "uk": "Задає, скільки піктограм вміщується в рядках і стовпцях сітки робочого столу лаунчера."
   },
-  "rowLauncherTaskbarPlacement": {
-    "en": "Puts the taskbar with the Start button along the bottom or the top edge of the desktop.",
-    "ru": "Размещает панель задач с кнопкой «Пуск» у нижнего или у верхнего края рабочего стола.",
-    "uk": "Розміщує панель задач із кнопкою «Пуск» біля нижнього або верхнього краю робочого стола."
+  "rowLauncherForeignNotifications": {
+    "en": "Shows one icon per other app that has pending notifications in the launcher top bar, with how many it has. Their title, text and attachments are never read. Off by default and inert until the system grants notification access.",
+    "ru": "Показывает в верхней полосе лаунчера по одному значку на каждое другое приложение с висящими уведомлениями и число этих уведомлений. Заголовок, текст и вложения не читаются. По умолчанию выключено и бездействует, пока системный доступ к уведомлениям не выдан.",
+    "uk": "Показує у верхній смузі лаунчера по одному значку на кожен інший застосунок із висячими сповіщеннями та їхню кількість. Заголовок, текст і вкладення не читаються. Типово вимкнено і не діє, доки системний доступ до сповіщень не надано."
   },
   "rowLauncherLockDesktop": {
     "en": "Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable.",
@@ -999,6 +1024,11 @@
     "ru": "Заменяет системную строку состояния собственной областью часов/статуса лаунчера; выключено - остаётся системная строка состояния.",
     "uk": "Замінює системний рядок стану власною областю годинника/статусу лаунчера; вимкнено - лишається системний рядок стану."
   },
+  "rowLauncherScreenTimeout": {
+    "en": "Turns the screen black after a chosen period of inactivity while on the launcher desktop: never (off), presets of 5 to 300 seconds, or a custom number of seconds.",
+    "ru": "Гасит экран при простое на рабочем столе лаунчера: без отключения, предустановки от 5 до 300 секунд или заданное вручную число секунд.",
+    "uk": "Гасить екран під час простою на робочому столі лаунчера: без вимкнення, попередні налаштування від 5 до 300 секунд або довільна кількість секунд."
+  },
   "rowLauncherSettings": {
     "en": "Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density.",
     "ru": "Открывает диалог настроек системного лаунчера для настройки рабочего стола, панели задач и плотности сетки.",
@@ -1018,6 +1048,11 @@
     "en": "Master switch for the launcher's tray block; the switches below it decide which indicators the block contains.",
     "ru": "Общий выключатель блока трея лаунчера; переключатели ниже решают, какие индикаторы в него входят.",
     "uk": "Загальний вимикач блока трея лаунчера; перемикачі нижче вирішують, які індикатори до нього входять."
+  },
+  "rowLauncherTaskbarPlacement": {
+    "en": "Puts the taskbar with the Start button along the bottom or the top edge of the desktop.",
+    "ru": "Размещает панель задач с кнопкой «Пуск» у нижнего или у верхнего края рабочего стола.",
+    "uk": "Розміщує панель задач із кнопкою «Пуск» біля нижнього або верхнього краю робочого стола."
   },
   "rowLauncherTopStatusStrip": {
     "en": "Moves the clock with seconds to the left of the launcher top bar and the device indicators to the right, freeing the Start panel for more recent apps; available only while the system status area is replaced.",
@@ -1059,6 +1094,11 @@
     "ru": "Выбирает заставку рабочего стола лаунчера: фирменную анимацию, застывший кадр в стиле полос, который обновляется при возвращении в лаунчер, пустой фон или своё изображение.",
     "uk": "Вибирає заставку робочого стола лаунчера: фірмову анімацію, застиглий кадр у стилі смуг, що оновлюється після повернення до лаунчера, порожній фон або власне зображення."
   },
+  "rowLauncherWidgetBackdropAlpha": {
+    "en": "Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 85% default).",
+    "ru": "Настраивает прозрачность подложки виджетов на рабочем столе лаунчера (от 0% прозрачно до 100% непрозрачно; по умолчанию 85%).",
+    "uk": "Налаштовує прозорість підкладки віджетів на робочому столі лаунчера (від 0% прозоро до 100% непрозоро; за замовчуванням 85%)."
+  },
   "rowLinkAutodownloadEnabled": {
     "en": "Automatically downloads a file when a link is shared into the app.",
     "ru": "Автоматически скачивает файл при получении ссылки через меню «Поделиться».",
@@ -1083,11 +1123,6 @@
     "en": "Enables the built-in microphone recording feature.",
     "ru": "Включает встроенную функцию записи звука с микрофона.",
     "uk": "Вмикає вбудовану функцію запису звуку з мікрофона."
-  },
-  "rowOcrEngineType": {
-    "en": "Selects which on-device text-recognition engine is used for OCR.",
-    "ru": "Выбирает движок распознавания текста, используемый для OCR на устройстве.",
-    "uk": "Вибирає рушій розпізнавання тексту, що використовується для OCR на пристрої."
   },
   "rowOcrFontFamily": {
     "en": "Sets the font family used to display recognized OCR text.",
@@ -1119,25 +1154,20 @@
     "ru": "Перезаписывает существующий файл в назначении при конфликте имён во время перемещения.",
     "uk": "Перезаписує наявний файл у призначенні при конфлікті імен під час переміщення."
   },
-  "rowPaddleOcrModel": {
-    "en": "Selects which PaddleOCR model is used for text recognition.",
-    "ru": "Выбирает модель PaddleOCR, используемую для распознавания текста.",
-    "uk": "Вибирає модель PaddleOCR, що використовується для розпізнавання тексту."
-  },
   "rowPanelStereoSingleEye": {
     "en": "Renders 3D side-by-side content using only one eye's perspective for regular (non-VR) viewing.",
     "ru": "Отображает 3D-контент (side-by-side) с перспективой одного глаза для обычного просмотра без VR.",
     "uk": "Відображає 3D-контент (side-by-side) з перспективою одного ока для звичайного перегляду без VR."
   },
-  "rowPlayerShowFps": {
-    "en": "Displays the current frames-per-second counter over the video while it is playing.",
-    "ru": "Показывает счётчик кадров в секунду поверх видео во время воспроизведения.",
-    "uk": "Показує лічильник кадрів на секунду поверх відео під час відтворення."
-  },
   "rowPlayToEnd": {
     "en": "Waits for video or audio to finish playing before advancing to the next slide in a slideshow.",
     "ru": "Ждёт окончания воспроизведения видео или аудио перед переходом к следующему слайду в слайдшоу.",
     "uk": "Чекає завершення відтворення відео або аудіо перед переходом до наступного слайду в слайдшоу."
+  },
+  "rowPlayerShowFps": {
+    "en": "Displays the current frames-per-second counter over the video while it is playing.",
+    "ru": "Показывает счётчик кадров в секунду поверх видео во время воспроизведения.",
+    "uk": "Показує лічильник кадрів на секунду поверх відео під час відтворення."
   },
   "rowPreventSleep": {
     "en": "Keeps the device awake while the app is in the foreground, preventing automatic sleep.",
@@ -1384,6 +1414,11 @@
     "ru": "Показывает полупрозрачную направляющую полосу жеста для зоны у правого края (верхняя полоса).",
     "uk": "Показує напівпрозору напрямну смугу жесту для зони біля правого краю (верхня смуга)."
   },
+  "row_saved_authorizations": {
+    "en": "Opens the list of saved sign-ins to remote sources so you can review or remove them.",
+    "ru": "Открывает список сохранённых входов в удалённые источники для просмотра или удаления.",
+    "uk": "Відкриває список збережених входів до віддалених джерел для перегляду або видалення."
+  },
   "spinnerColorTheme": {
     "en": "Selects the color theme applied across the app interface.",
     "ru": "Выбирает цветовую тему интерфейса приложения.",
@@ -1418,5 +1453,55 @@
     "en": "Shows the translation result as opaque blocks over the original text, matching Google Lens style.",
     "ru": "Показывает результат перевода непрозрачными блоками поверх исходного текста, в стиле Google Lens.",
     "uk": "Показує результат перекладу непрозорими блоками поверх вихідного тексту, у стилі Google Lens."
+  },
+  "wearDownloadAlbumArt": {
+    "en": "Downloads and displays cover art for audio tracks on Wear OS.",
+    "ru": "Загружает и отображает обложки для аудиофайлов на Wear OS.",
+    "uk": "Завантажує та відображає обкладинки для аудіофайлів на Wear OS."
+  },
+  "wearEnableAudio": {
+    "en": "Enables playback and browsing of audio files on Wear OS.",
+    "ru": "Включает воспроизведение и просмотр аудиофайлов на Wear OS.",
+    "uk": "Вмикає відтворення та перегляд аудіофайлів на Wear OS."
+  },
+  "wearEnableImages": {
+    "en": "Enables viewing and browsing of image files on Wear OS.",
+    "ru": "Включает просмотр изображений на Wear OS.",
+    "uk": "Вмикає перегляд зображень на Wear OS."
+  },
+  "wearEnableSlideshow": {
+    "en": "Enables automatic slideshow presentation of media files on Wear OS.",
+    "ru": "Включает автоматическое слайд-шоу медиафайлов на Wear OS.",
+    "uk": "Вмикає автоматичне слайд-шоу медіафайлів на Wear OS."
+  },
+  "wearEnableVideo": {
+    "en": "Enables playback and browsing of video files on Wear OS.",
+    "ru": "Включает воспроизведение и просмотр видеофайлов на Wear OS.",
+    "uk": "Вмикає відтворення та перегляд видеофайлов на Wear OS."
+  },
+  "wearFileListViewMode": {
+    "uk": "Обирає розкладку списків файлів на годиннику: список або сітка з двох чи трьох колонок зі справжніми превʼю.",
+    "ru": "Выбирает раскладку списков файлов на часах: список либо сетка из двух или трёх колонок с настоящими превью.",
+    "en": "Chooses how file lists on the watch are laid out: a list, or a grid of two or three columns with real thumbnails."
+  },
+  "wearKeepScreenAwake": {
+    "uk": "Тримає екран годинника увімкненим поза програвачами; аудіо, відео та перегляд зображень утримують його в будь-якому разі.",
+    "ru": "Держит экран часов включённым вне проигрывателей; аудио, видео и просмотр изображений удерживают его в любом случае.",
+    "en": "Keeps the watch screen on outside the players; the audio, video and image players hold it on regardless."
+  },
+  "wearSlideshowInterval": {
+    "en": "Sets the delay in seconds between slides during slideshow playback on Wear OS.",
+    "ru": "Задаёт задержку в секундах между слайдами при воспроизведении слайд-шоу на Wear OS.",
+    "uk": "Задає затримку в секундах між слайдами під час відтворення слайд-шоу на Wear OS."
+  },
+  "wearSlideshowWaitForFinish": {
+    "en": "Waits for audio or video playback to complete before switching to the next slide on Wear OS.",
+    "ru": "Ожидает завершения воспроизведения аудио или видео перед переключением слайда на Wear OS.",
+    "uk": "Очікує на завершення відтворення аудіо або відео перед перемиканням слайда на Wear OS."
+  },
+  "wearViewMode": {
+    "uk": "Обирає розкладку навігаційних екранів годинника: список або сітка з двох чи трьох колонок.",
+    "ru": "Выбирает раскладку навигационных экранов часов: список либо сетка из двух или трёх колонок.",
+    "en": "Chooses how the watch navigation screens are laid out: a list, or a grid of two or three columns."
   }
 }

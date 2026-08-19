@@ -29,6 +29,9 @@ sealed class WearSyncUiState {
     data object Idle : WearSyncUiState()
     data object Sending : WearSyncUiState()
     data class Success(val sent: Int, val skipped: Int) : WearSyncUiState()
+
+    /** S1781: the owner has marked no resources for the watch, so nothing was sent - not a failure. */
+    data object NothingSelected : WearSyncUiState()
     data object SettingsPushed : WearSyncUiState()
     data class Error(val message: String) : WearSyncUiState()
 }
@@ -91,14 +94,20 @@ class WearSyncViewModel @Inject constructor(
         _uiState.value = WearSyncUiState.Sending
         viewModelScope.launch {
             sendResourcesToWatchUseCase()
-                .onSuccess {
-                    // S1682: the use case returns as soon as Play Services accepts the bytes, which is
-                    // necessarily before any watch ack can travel back. Declaring Success here used to
-                    // win that race every time, so the ack collector above could never fire and the
-                    // green check meant "accepted locally", never "the watch applied them". Stay in
-                    // Sending and let the ack decide; a watch that never answers ends in an error the
-                    // user can act on rather than in a check mark that is not true.
-                    startAckTimeout()
+                .onSuccess { result ->
+                    if (result.sent == 0) {
+                        // S1781: nothing left the phone, so no ack can ever arrive - waiting out the
+                        // timeout would report a watch failure for an empty selection instead.
+                        _uiState.value = WearSyncUiState.NothingSelected
+                    } else {
+                        // S1682: the use case returns as soon as Play Services accepts the bytes, which is
+                        // necessarily before any watch ack can travel back. Declaring Success here used to
+                        // win that race every time, so the ack collector above could never fire and the
+                        // green check meant "accepted locally", never "the watch applied them". Stay in
+                        // Sending and let the ack decide; a watch that never answers ends in an error the
+                        // user can act on rather than in a check mark that is not true.
+                        startAckTimeout()
+                    }
                 }
                 .onFailure { e ->
                     Timber.e(e, "Wear sync failed")

@@ -150,6 +150,17 @@ private fun BeamDialogContent(
                     Text(stringResource(R.string.cancel))
                 }
             }
+            WearSyncUiState.NothingSelected -> {
+                Text(
+                    stringResource(R.string.wear_sync_nothing_selected),
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(12.dp))
+                TextButton(onClick = { viewModel.reset(); onDismiss() }) {
+                    Text(stringResource(R.string.close))
+                }
+            }
             WearSyncUiState.SettingsPushed -> {
                 // Settings push completed - dialog auto-dismisses via LaunchedEffect above
                 Text("✓", style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.primary)

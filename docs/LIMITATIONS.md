@@ -71,6 +71,7 @@ This document outlines the current technical constraints, functional limitations
 
 - **Standard and noLegal only:** the Lite, Photos, Legacy and VR builds have no launcher mode at all. On a headset the home environment belongs to the system.
 - **Android decides, not the app:** turning the setting on cannot make the app your home screen by itself - Android shows its own chooser and you have to confirm there. Cancelling that chooser leaves the mode off.
+- **Some devices forget the choice:** a few cheap car radios and built-in Android boxes restore their factory home screen on every boot, whatever you picked. That is firmware overriding the choice, and no app can work around it.
 - **Contact cells are snapshots:** a pinned contact keeps the details as they were when you picked the person. Editing that contact later in your address book does not update the cell, because the app never reads your contacts again.
 
 ### VR Edition

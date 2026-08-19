@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
@@ -246,156 +247,173 @@ class SmbConnectionManager @Inject constructor(
         connectionInfo: SmbConnectionInfo,
         allowRetry: Boolean = true,
         block: suspend (DiskShare) -> SmbResult<T>
-    ): SmbResult<T> = connectionSemaphore.withPermit {
-        lifecycleBootstrapper.get().ensureInitialized()
-        // Wi-Fi gate: synchronous fast-fail when no Wi-Fi/ethernet transport is active.
-        // Throws NetworkConnectionLostException - no socket attempt is made.
-        reachabilityGate.requireWifi("SMB")
-        val key = ConnectionKey(
-            server = connectionInfo.server,
-            port = connectionInfo.port,
-            shareName = connectionInfo.shareName,
-            username = connectionInfo.username,
-            domain = connectionInfo.domain
-        )
-        val idleTransportKey = rememberTransportKey(key)
-        idleDisconnectPolicy.touch(idleTransportKey)
-
-        // Reset timeout counter and connections after idle period
-        val timeSinceLastSuccess = System.currentTimeMillis() - lastSuccessfulOperation.get()
-        if (timeSinceLastSuccess > CONNECTION_FORCE_RESET_MS) {
-            Timber.d("Idle for ${timeSinceLastSuccess}ms - closing all connections (server likely closed them)")
-            closeAllConnections()
-            resetClients()
-            consecutiveTimeouts.set(0)
-        } else if (consecutiveTimeouts.get() > 0 && timeSinceLastSuccess > 60000) {
-            Timber.d("Resetting timeout counter after ${timeSinceLastSuccess}ms idle (was: $consecutiveTimeouts)")
-            consecutiveTimeouts.set(0)
-        }
-
-        // Force reset after critical threshold
-        if (consecutiveTimeouts.get() >= TIMEOUT_CRITICAL_THRESHOLD) {
-            Timber.e("CRITICAL: $consecutiveTimeouts consecutive timeouts - forcing full reset")
-            closeAllConnections()
-            resetClients()
-            consecutiveTimeouts.set(0)
-        }
-
-        // Attempt 1: Try pooled connection
-        val pooled = pool.get(key)
-        // S0061 Phase 02: pre-acquire health probe. If the entry looks dead (local state check
-        // only - no I/O), drop it before opening session/share on top of a stale socket.
-        if (pooled != null && !healthProbe.isAlive(pooled)) {
-            pool.removeAndCloseAsync(key)
-            Timber.i("SMB pool entry dead - removing, key=${key.server}:${key.port}/${key.shareName}")
-            // Fall through to fresh-connect path below.
-        } else if (pooled != null && timeSinceLastSuccess > IDLE_HEALTH_RECHECK_MS && !healthProbe.isAlive(pooled)) {
-            // Secondary idle-path check: if the app was idle long enough, run the probe
-            // even if the entry passed the first guard above (harmless double-check).
-            pool.removeAndCloseAsync(key)
-            Timber.i("SMB pool entry dead after idle ${timeSinceLastSuccess}ms - removing, key=${key.server}:${key.port}")
-        } else if (pooled != null && isConnectionValid(pooled)) {
-            pooled.lastUsed = System.currentTimeMillis()
-
-            // Track usage
-            pooled.usageCount.incrementAndGet()
-
-            try {
-                val result = block(pooled.share)
-                if (result is SmbResult.Success) {
-                    armIdleTransport(idleTransportKey, key)
-                }
-                onSuccess()
-                return@withPermit result
-            } catch (e: CancellationException) {
-                Timber.d("Pooled connection cancelled: ${e::class.simpleName}")
-                throw e
-            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                handleTimeout(key, pooled)
-                throw e
-            } catch (e: Exception) {
-                handlePooledConnectionFailure(key, pooled, e)
-                // Continue to create fresh connection below
-            } finally {
-                // Release usage and check for pending close
-                val count = pooled.usageCount.decrementAndGet()
-                if (count == 0 && pooled.isPendingClose.get()) {
-                    Timber.d("Closing pending connection after use (key=${key.server})")
-                    pool.closeConnectionAsync(pooled)
-                }
-            }
-        }
-
-        // Smart retry: TCP precheck once. If host is unreachable at the TCP layer, skip the
-        // degraded retry - the server is dead, prolonging the wait will not help.
-        // Skip the precheck entirely when the pool already holds a live connection to this
-        // server:port (any share) - the server is clearly reachable.
-        val serverKnown = pool.hasActiveConnectionForServer(connectionInfo.server, connectionInfo.port)
-        val tcpReachable = if (serverKnown) {
-            Timber.d("SMB TCP precheck skipped: live pool entry for ${connectionInfo.server}:${connectionInfo.port}")
-            true
-        } else {
-            checkConnectivity(connectionInfo.server, connectionInfo.port, CONNECTIVITY_CHECK_TIMEOUT_MS)
-        }
-        if (!tcpReachable) {
-            Timber.w("SMB TCP precheck failed: ${connectionInfo.server}:${connectionInfo.port} - fast-fail without retry")
-            return@withPermit handleFreshConnectionFailure(
-                key, connectionInfo,
-                IOException("Server unreachable (${connectionInfo.server}:${connectionInfo.port})")
+    ): SmbResult<T> = withContext(Dispatchers.IO) {
+        // S1812: this is where the whole SMB family gets its dispatcher. SmbClient,
+        // SmbFileOperations, SmbFileMutationCoordinator and SmbMediaScanCoordinator reach smbj
+        // only through here and none of them switches for itself, so before this wrapper every
+        // blocking socket call ran on whatever dispatcher the caller happened to be on.
+        // SftpConnectionPool.withConnection is the same shape for SFTP.
+        connectionSemaphore.withPermit {
+            lifecycleBootstrapper.get().ensureInitialized()
+            // Wi-Fi gate: synchronous fast-fail when no Wi-Fi/ethernet transport is active.
+            // Throws NetworkConnectionLostException - no socket attempt is made.
+            reachabilityGate.requireWifi("SMB")
+            val key = ConnectionKey(
+                server = connectionInfo.server,
+                port = connectionInfo.port,
+                shareName = connectionInfo.shareName,
+                username = connectionInfo.username,
+                domain = connectionInfo.domain
             )
-        }
+            val idleTransportKey = rememberTransportKey(key)
+            idleDisconnectPolicy.touch(idleTransportKey)
 
-        // Attempt 2: Create fresh connection (with optional retry)
-        val maxAttempts = if (allowRetry) 2 else 1
-        var freshConnectionAttempts = 0
-        var lastException: Exception? = null
+            // Reset timeout counter and connections after idle period
+            val timeSinceLastSuccess = System.currentTimeMillis() - lastSuccessfulOperation.get()
+            if (timeSinceLastSuccess > CONNECTION_FORCE_RESET_MS) {
+                Timber.d("Idle for ${timeSinceLastSuccess}ms - closing all connections (server likely closed them)")
+                closeAllConnections()
+                resetClients()
+                consecutiveTimeouts.set(0)
+            } else if (consecutiveTimeouts.get() > 0 && timeSinceLastSuccess > 60000) {
+                Timber.d("Resetting timeout counter after ${timeSinceLastSuccess}ms idle (was: $consecutiveTimeouts)")
+                consecutiveTimeouts.set(0)
+            }
 
-        while (freshConnectionAttempts < maxAttempts) {
-            freshConnectionAttempts++
-            try {
-                // First attempt: always use normal timeouts (fast failure).
-                // Degraded client (extended timeouts) only on retry - server proved reachable but slow.
-                val newPooled = createFreshConnection(
-                    connectionInfo,
-                    useDegradedTimeout = freshConnectionAttempts > 1 && allowRetry
-                )
+            // Force reset after critical threshold
+            if (consecutiveTimeouts.get() >= TIMEOUT_CRITICAL_THRESHOLD) {
+                Timber.e("CRITICAL: $consecutiveTimeouts consecutive timeouts - forcing full reset")
+                closeAllConnections()
+                resetClients()
+                consecutiveTimeouts.set(0)
+            }
 
-                // Track usage for fresh connection
-                newPooled.usageCount.incrementAndGet()
+            // Attempt 1: Try pooled connection
+            val pooled = pool.get(key)
+            // S0061 Phase 02: pre-acquire health probe. If the entry looks dead (local state check
+            // only - no I/O), drop it before opening session/share on top of a stale socket.
+            if (pooled != null && !healthProbe.isAlive(pooled)) {
+                pool.removeAndCloseAsync(key)
+                Timber.i("SMB pool entry dead - removing, key=${key.server}:${key.port}/${key.shareName}")
+                // Fall through to fresh-connect path below.
+            } else if (pooled != null &&
+                timeSinceLastSuccess > IDLE_HEALTH_RECHECK_MS &&
+                !healthProbe.isAlive(pooled)
+            ) {
+                // Secondary idle-path check: if the app was idle long enough, run the probe
+                // even if the entry passed the first guard above (harmless double-check).
+                pool.removeAndCloseAsync(key)
+                Timber.i("SMB pool entry dead after idle ${timeSinceLastSuccess}ms - removing, key=${key.server}:${key.port}")
+            } else if (pooled != null && isConnectionValid(pooled)) {
+                pooled.lastUsed = System.currentTimeMillis()
+
+                // Track usage
+                pooled.usageCount.incrementAndGet()
 
                 try {
-                    val result = block(newPooled.share)
+                    val result = block(pooled.share)
                     if (result is SmbResult.Success) {
                         armIdleTransport(idleTransportKey, key)
                     }
                     onSuccess()
                     return@withPermit result
+                } catch (e: CancellationException) {
+                    Timber.d("Pooled connection cancelled: ${e::class.simpleName}")
+                    throw e
+                } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                    handleTimeout(key, pooled)
+                    throw e
+                } catch (e: Exception) {
+                    handlePooledConnectionFailure(key, pooled, e)
+                    // Continue to create fresh connection below
                 } finally {
                     // Release usage and check for pending close
-                    val count = newPooled.usageCount.decrementAndGet()
-                    if (count == 0 && newPooled.isPendingClose.get()) {
-                        Timber.d("Closing pending fresh connection after use")
-                        pool.closeConnectionAsync(newPooled)
+                    val count = pooled.usageCount.decrementAndGet()
+                    if (count == 0 && pooled.isPendingClose.get()) {
+                        Timber.d("Closing pending connection after use (key=${key.server})")
+                        pool.closeConnectionAsync(pooled)
                     }
                 }
-            } catch (e: Exception) {
-                // An outer withTimeout/coroutine cancel must not be retried as a connection failure.
-                e.rethrowIfCancellation()
+            }
 
-                lastException = e
-                if (isNonRetriableConnectionError(e)) {
-                    Timber.w("Fresh connection failed with non-retriable error, aborting retries: ${e.message}")
-                    break
-                }
-                if (freshConnectionAttempts < maxAttempts) {
-                    // S0061: log the actual reason instead of misleading "longer timeout" message.
-                    Timber.i("SMB fresh-connect attempt $freshConnectionAttempts failed (reason=${healthProbe.classify(e)}) - retrying")
-                    delay(RETRY_DELAY_MS)
+            // Smart retry: TCP precheck once. If host is unreachable at the TCP layer, skip the
+            // degraded retry - the server is dead, prolonging the wait will not help.
+            // Skip the precheck entirely when the pool already holds a live connection to this
+            // server:port (any share) - the server is clearly reachable.
+            val serverKnown = pool.hasActiveConnectionForServer(connectionInfo.server, connectionInfo.port)
+            val tcpReachable = if (serverKnown) {
+                Timber.d(
+                    "SMB TCP precheck skipped: live pool entry for " +
+                        "${connectionInfo.server}:${connectionInfo.port}"
+                )
+                true
+            } else {
+                checkConnectivity(connectionInfo.server, connectionInfo.port, CONNECTIVITY_CHECK_TIMEOUT_MS)
+            }
+            if (!tcpReachable) {
+                Timber.w("SMB TCP precheck failed: ${connectionInfo.server}:${connectionInfo.port} - fast-fail without retry")
+                return@withPermit handleFreshConnectionFailure(
+                    key, connectionInfo,
+                    IOException("Server unreachable (${connectionInfo.server}:${connectionInfo.port})")
+                )
+            }
+
+            // Attempt 2: Create fresh connection (with optional retry)
+            val maxAttempts = if (allowRetry) 2 else 1
+            var freshConnectionAttempts = 0
+            var lastException: Exception? = null
+
+            while (freshConnectionAttempts < maxAttempts) {
+                freshConnectionAttempts++
+                try {
+                    // First attempt: always use normal timeouts (fast failure).
+                    // Degraded client (extended timeouts) only on retry - server proved reachable but slow.
+                    val newPooled = createFreshConnection(
+                        connectionInfo,
+                        useDegradedTimeout = freshConnectionAttempts > 1 && allowRetry
+                    )
+
+                    // Track usage for fresh connection
+                    newPooled.usageCount.incrementAndGet()
+
+                    try {
+                        val result = block(newPooled.share)
+                        if (result is SmbResult.Success) {
+                            armIdleTransport(idleTransportKey, key)
+                        }
+                        onSuccess()
+                        return@withPermit result
+                    } finally {
+                        // Release usage and check for pending close
+                        val count = newPooled.usageCount.decrementAndGet()
+                        if (count == 0 && newPooled.isPendingClose.get()) {
+                            Timber.d("Closing pending fresh connection after use")
+                            pool.closeConnectionAsync(newPooled)
+                        }
+                    }
+                } catch (e: Exception) {
+                    // An outer withTimeout/coroutine cancel must not be retried as a connection failure.
+                    e.rethrowIfCancellation()
+
+                    lastException = e
+                    if (isNonRetriableConnectionError(e)) {
+                        Timber.w("Fresh connection failed with non-retriable error, aborting retries: ${e.message}")
+                        break
+                    }
+                    if (freshConnectionAttempts < maxAttempts) {
+                        // S0061: log the actual reason instead of misleading "longer timeout" message.
+                        Timber.i("SMB fresh-connect attempt $freshConnectionAttempts failed (reason=${healthProbe.classify(e)}) - retrying")
+                        delay(RETRY_DELAY_MS)
+                    }
                 }
             }
-        }
 
-        handleFreshConnectionFailure(key, connectionInfo, lastException ?: Exception("Unknown SMB connection error"))
+            handleFreshConnectionFailure(
+                key,
+                connectionInfo,
+                lastException ?: Exception("Unknown SMB connection error")
+            )
+        }
     }
 
     /**

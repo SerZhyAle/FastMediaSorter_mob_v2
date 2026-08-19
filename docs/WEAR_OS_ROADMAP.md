@@ -41,8 +41,7 @@ Settings Screen
 ├── Slideshow Section
 │   ├── Enable Slideshow [Toggle]
 │   ├── Slideshow Interval [Selector: 3s, 5s, 10s, 15s, 30s]
-│   ├── Wait for Media Finish [Toggle]
-│   └── Auto-advance on Complete [Toggle]
+│   └── Wait for Media Finish [Toggle]
 ├── Audio Settings
 │   └── Download Album Art [Toggle]
 ├── About Section
@@ -171,12 +170,10 @@ Enable Wear OS app to connect to network storage (SMB, FTP, SFTP, Google Drive) 
 #### UI Flow
 
 ```
-Settings → Network Storage → Add SMB
-  ├── Server Address [Text Input]
-  ├── Share Name [Text Input]
-  ├── Username [Text Input]
-  ├── Password [Text Input]
-  └── Test Connection [Button]
+Home Screen → Network Storage
+  ├── Sources List (SMB, FTP, SFTP)
+  ├── Sync / Transfer from Companion Phone App (Release & Debug)
+  └── Add Source directly (Debug builds only; hidden in Play Store release per WO-P6)
 ```
 
 #### Implementation

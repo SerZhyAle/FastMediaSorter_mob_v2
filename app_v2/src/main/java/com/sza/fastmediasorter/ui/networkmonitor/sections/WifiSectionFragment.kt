@@ -115,24 +115,22 @@ class WifiSectionFragment : Fragment() {
             }
         )
         link.linkProxyValue.text = active?.proxy ?: unknown()
-        link.linkBandwidthValue.text = bandwidthText(state)
+        link.linkBandwidthDownValue.text = bandwidthText(state.downstreamKbps, state.upstreamKbps)
+        link.linkBandwidthUpValue.text = bandwidthText(state.upstreamKbps, state.downstreamKbps)
     }
 
     /**
-     * Both directions or neither: Android reports the pair, and showing one of them alone would read as a
-     * measured asymmetry rather than as a device that answers with nothing.
+     * S1617: one direction per row, but still both or neither.
+     *
+     * Android reports the pair, and a row showing one figure while its twin says "unknown" would read as
+     * a measured asymmetry rather than as a device that answered with nothing - which is why [other] is
+     * consulted before [value] is rendered at all.
      */
-    private fun bandwidthText(state: WifiSectionUiState): String {
-        val down = state.downstreamKbps
-        val up = state.upstreamKbps
-        if (down == null || up == null) {
+    private fun bandwidthText(value: Int?, other: Int?): String {
+        if (value == null || other == null) {
             return unknown()
         }
-        return getString(
-            R.string.network_monitor_bandwidth_pair,
-            getString(R.string.network_monitor_value_kbps, down),
-            getString(R.string.network_monitor_value_kbps, up),
-        )
+        return getString(R.string.network_monitor_value_kbps, value)
     }
 
     private fun unknown(): String = getString(R.string.network_monitor_value_unknown)

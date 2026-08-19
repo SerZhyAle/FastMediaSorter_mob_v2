@@ -66,7 +66,10 @@
 | `.\a.ps1 fk`   | Fast Kotlin compile check (standard; add `-Flavor <name>` for any other) |
 | `.\a.ps1 fr`   | Fast resources/manifest check (`-Flavor` applies) |
 | `.\a.ps1 fc`   | Fast code + resources check (`-Flavor` applies) |
-| `.\a.ps1 fu`   | Fast full unit-test suite |
+| `.\a.ps1 fu`   | Fast full unit-test suite (**`app_v2` only**) |
+| `.\a.ps1 fw`   | Fast Kotlin compile check, **`wear` module** |
+| `.\a.ps1 fwr`  | Fast resources/manifest check, **`wear` module** |
+| `.\a.ps1 fwu`  | Fast unit-test suite, **`wear` module** |
 | `.\a.ps1 flr`  | Fast lint-rules detector test suite (`:lint-rules:test`); `-Tests <filter>` narrows it |
 | `.\a.ps1 dc`   | Clean + debug build |
 | `.\a.ps1 cls`  | Clean Gradle caches |
@@ -125,6 +128,11 @@ layer; `mobile-mcp` drives agent UI walks, Maestro runs repeatable flows
 .\a.ps1 fc -Flavor Legacy       # covers minSdk 23
 .\a.ps1 fc -Flavor Vr           # the only check that compiles src/vr
 
+# WEAR MODULE - fk/fr/fc/fu never look at it, they exit 0 having checked app_v2
+.\a.ps1 fw                      # Kotlin changes under wear/
+.\a.ps1 fwr                     # resources/manifest changes under wear/
+.\a.ps1 fwu                     # unit tests under wear/src/test
+
 # UNIT TESTS
 .\a.ps1 fu
 .\gradlew.bat testStandardDebugUnitTest
@@ -144,6 +152,8 @@ pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests
 4. `pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "..."` for focused logic changes.
 5. `.\a.ps1 fc -Flavor <name>` per affected flavor when a change touches flavor-visible resources or flavor source sets. This is what satisfies a spec demanding proof on "every affected variant" - all six flavors are reachable and each call takes `BUILD.LOCK`, so the requirement never needs a direct `gradlew` call or a deferral (S1589; S1568 deferred it only because the flag was undocumented).
 6. `.\a.ps1 d` only when you need APK packaging / installable artifact proof.
+
+**Pick the rung by module first, not by change type (S1807).** Every rung above checks `app_v2`. A change under `wear/` is proved by `.\a.ps1 fw` (Kotlin), `.\a.ps1 fwr` (resources/manifest) and `.\a.ps1 fwu` (unit tests); the phone target exits 0 without compiling a single watch file, so quoting it under a wear ticket records a verdict about the other module. A change touching both modules needs one rung from each column.
 
 `.\a.ps1 dav` is the slow artifact path. It keeps timestamped in-app versioning, but each unique override creates a fresh configuration-cache entry by design.
 
@@ -242,7 +252,7 @@ pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Code -Queue -Json
 pwsh -NoProfile -File scripts/utils/wait-for-lock-turn.ps1 -Name Code -Reason "S0900 edit"
 ```
 
-`wait-for-lock-turn.ps1` takes a ticket, blocks, and **exits** the moment the turn arrives - its exit is the "your turn" signal, which is the only channel through which an external event returns an agent to work. The ticket deliberately survives that exit: the caller inherits it, protected by the reservation window, and passes it to `Enter-AgentLock -Ticket`. Exit codes: **0** granted, **2** timed out, **3** ticket evicted while waiting, **4** could not enqueue. Do not read the verdict from the exit code a background task reports - that is the exit of the last command in the launch line, and it has already turned a refused build into an apparently green one. Read the marker instead: `temp/<NAME>.TURN-<sessionId>.json`, carrying `outcome` (`granted` / `timeout` / `evicted`), the ticket number and how long the wait took.
+`wait-for-lock-turn.ps1` takes a ticket, blocks, and **exits** the moment the turn arrives - its exit is the "your turn" signal, which is the only channel through which an external event returns an agent to work. The ticket deliberately survives that exit: the caller inherits it, protected by the reservation window, and passes it to `Enter-AgentLock -Ticket`. Exit codes: **0** granted, **2** timed out, **3** ticket evicted while waiting, **4** could not enqueue. Do not read the verdict from the exit code a background task reports - that is the exit of the last command in the launch line, and it has already turned a refused build into an apparently green one. Read the marker instead: `temp/<NAME>.TURN-<sessionId>.json`, carrying `outcome` (`granted` / `timeout` / `evicted` / `enqueue-failed`), the ticket number and how long the wait took.
 
 **Re-entrancy.** Several gates run a nested script while already holding `BUILD.LOCK`, and `& other.ps1` executes in the same process - so a nested acquire would queue behind a lock this very run owns. `Enter-BuildLockOrExit` recognises the holder as itself (same pid) or as the ancestor that launched it (inherited `FMS_BUILD_LOCK_HELD_BY`) and reuses the lock instead of waiting.
 
@@ -436,7 +446,8 @@ An AST-based custom lint checker `:lint-rules` enforcing structural project rule
 - **UiContextLeak**: No storage of UI Context (Activity, Fragment, View) in ViewModels or `@Singleton`s.
 - **UnsafeFlowCollect**: No lifecycle-unsafe Flow `.collect` calls without `repeatOnLifecycle` or `flowWithLifecycle`.
 - **PlayerNotReleased**: Classes holding media players must release them via `release()`.
-- **MainThreadIo**: Blocking file/network I/O calls on the main thread in UI / ViewModel classes.
+- **MainThreadIo**: Blocking file I/O calls on the main thread in UI / ViewModel classes.
+- **NetworkDataSourceDispatcher**: Blocking socket network I/O calls (smbj, commons-net, jsch) without explicit background dispatcher confinement.
 
 Usage:
 ```powershell
@@ -444,7 +455,7 @@ Usage:
 .\gradlew.bat :app_v2:lintStandardDebug
 
 # Run tests of the lint rules module itself
-.\gradlew.bat :lint-rules:test
+pwsh -NoProfile -File ./a.ps1 flr
 ```
 
 ### Memory Leak Testing (LeakCanary) - S0721
@@ -679,7 +690,7 @@ Cast is disabled in `vr` (Horizon OS lacks the Google Play Services Cast module)
 
 ## DATABASE
 
-Room schema version: 50 (`@Database(version = ..)` in `AppDatabase.kt` is the source of truth - read it rather than this line).
+Room schema version: 51 (`@Database(version = ..)` in `AppDatabase.kt` is the source of truth - read it rather than this line).
 Library: `room-runtime:2.7.0`.
 Migrations: one `MigrationNNToNN.kt` file per step in `data/local/db/`, registered in `core/di/DatabaseModule.kt`.
 Exported schemas: `app_v2/schemas/<db-class>/<version>.json`, generated by the build and committed.

@@ -5,9 +5,6 @@
     <string name="ocr_best_model_delete">حذف کریں۔</string>
     <string name="ocr_best_model_download">ڈاؤن لوڈ کریں۔</string>
     <string name="ocr_button_description">متن نکالیں۔</string>
-    <string name="ocr_engine_type">او سی آر انجن</string>
-    <string name="ocr_engine_type_paddleocr">پیڈل او سی آر</string>
-    <string name="ocr_engine_type_tesseract">ٹیسریکٹ (پہلے سے طے شدہ)</string>
     <string name="ocr_error">متن کو نہیں پہچان سکا۔</string>
     <string name="ocr_extract_image_failed">اس تصویر کو OCR کے لیے تیار نہیں کیا جا سکا۔ دوبارہ کوشش کریں۔</string>
     <string name="ocr_font_family">او سی آر فونٹ فیملی</string>

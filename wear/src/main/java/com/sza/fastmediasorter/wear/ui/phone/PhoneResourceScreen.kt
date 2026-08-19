@@ -1,7 +1,11 @@
 package com.sza.fastmediasorter.wear.ui.phone
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,6 +26,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
@@ -34,8 +40,17 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
+import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
+
+private const val SINGLE_COLUMN = 1
+private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
+private val ENTRY_ICON_SIZE = 24.dp
 
 @Composable
 fun PhoneResourceScreen(
@@ -43,6 +58,8 @@ fun PhoneResourceScreen(
     viewModel: PhoneResourceViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val fileListViewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
+    val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
 
     // Back walks the folder trail first; only the root hands Back back to navigation.
     BackHandler(enabled = true) {
@@ -55,6 +72,7 @@ fun PhoneResourceScreen(
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
+        scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
         when (val current = state) {
@@ -66,6 +84,8 @@ fun PhoneResourceScreen(
             is PhoneResourceUiState.Content -> PhoneResourceList(
                 items = current.items,
                 listState = listState,
+                viewMode = fileListViewMode,
+                thumbnails = thumbnails,
                 onFolderClick = viewModel::openFolder
             )
 
@@ -85,47 +105,120 @@ fun PhoneResourceScreen(
 @Composable
 private fun PhoneResourceList(
     items: List<WearPhoneResourceItem>,
-    listState: androidx.wear.compose.foundation.lazy.ScalingLazyListState,
+    listState: ScalingLazyListState,
+    viewMode: WearViewMode,
+    thumbnails: Map<String, WearThumbnail>,
     onFolderClick: (String) -> Unit
 ) {
-    ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        state = listState,
-        contentPadding = wearScreenInsets()
-    ) {
-        item {
-            Text(
-                text = stringResource(R.string.phone_resource_title),
-                style = MaterialTheme.typography.title3,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                textAlign = TextAlign.Center
-            )
-        }
+    // The column count comes from the width this composable actually gets, so this browser answers
+    // the geometry question exactly as the general file list does.
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
+        Timber.d("S1730: phone folder grid mode=$viewMode columns=$columns")
+        ScalingLazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            contentPadding = wearScreenInsets()
+        ) {
+            item {
+                Text(
+                    text = stringResource(R.string.phone_resource_title),
+                    style = MaterialTheme.typography.title3,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
 
-        items(items) { entry ->
-            Chip(
-                onClick = { if (entry.isDirectory) onFolderClick(entry.token) },
-                label = { Text(text = entry.name) },
-                icon = {
-                    Icon(
-                        imageVector = if (entry.isDirectory) {
-                            Icons.Filled.Folder
-                        } else {
-                            Icons.AutoMirrored.Filled.InsertDriveFile
-                        },
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = entry.name },
-                colors = ChipDefaults.primaryChipColors()
+            entryItems(
+                items = items,
+                columns = columns,
+                thumbnails = thumbnails,
+                onFolderClick = onFolderClick
             )
         }
     }
+}
+
+/** One column keeps today's chip; more than one draws the cell both watch file lists share. */
+private fun ScalingLazyListScope.entryItems(
+    items: List<WearPhoneResourceItem>,
+    columns: Int,
+    thumbnails: Map<String, WearThumbnail>,
+    onFolderClick: (String) -> Unit
+) {
+    if (columns == SINGLE_COLUMN) {
+        items(items) { entry ->
+            EntryChip(entry = entry, onFolderClick = onFolderClick)
+        }
+    } else {
+        items(items.chunked(columns)) { rowEntries ->
+            EntryRow(
+                entries = rowEntries,
+                columns = columns,
+                thumbnails = thumbnails,
+                onFolderClick = onFolderClick
+            )
+        }
+    }
+}
+
+/** A short row is padded with empty weights so its cells keep the width of a full row's cells. */
+@Composable
+private fun EntryRow(
+    entries: List<WearPhoneResourceItem>,
+    columns: Int,
+    thumbnails: Map<String, WearThumbnail>,
+    onFolderClick: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
+    ) {
+        entries.forEach { entry ->
+            ThumbnailCell(
+                thumbnail = thumbnails[entry.token] ?: WearThumbnail.Unavailable,
+                caption = entry.name,
+                onClick = { if (entry.isDirectory) onFolderClick(entry.token) },
+                modifier = Modifier.weight(1f)
+            ) {
+                EntryIcon(entry = entry)
+            }
+        }
+        repeat(columns - entries.size) {
+            Spacer(modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun EntryChip(
+    entry: WearPhoneResourceItem,
+    onFolderClick: (String) -> Unit
+) {
+    Chip(
+        onClick = { if (entry.isDirectory) onFolderClick(entry.token) },
+        label = { Text(text = entry.name) },
+        icon = { EntryIcon(entry = entry) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics { contentDescription = entry.name },
+        colors = ChipDefaults.primaryChipColors()
+    )
+}
+
+@Composable
+private fun EntryIcon(entry: WearPhoneResourceItem) {
+    Icon(
+        imageVector = if (entry.isDirectory) {
+            Icons.Filled.Folder
+        } else {
+            Icons.AutoMirrored.Filled.InsertDriveFile
+        },
+        contentDescription = null,
+        modifier = Modifier.size(ENTRY_ICON_SIZE)
+    )
 }
 
 @Composable

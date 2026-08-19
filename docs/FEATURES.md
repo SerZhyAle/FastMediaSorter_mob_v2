@@ -71,6 +71,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Thousands of channels out of the box** `[Standard / Lite / Legacy / VR / noLegal]`: Community radio and webcams from around the world arrive as a ready catalog, sorted into translated rubrics instead of a flat list of links.
 - **About this channel** `[Standard / Legacy / VR / noLegal]`: Open a card with the station's description, artwork, and stream details before deciding to listen.
 - **Start a stream without opening the list** `[Standard / Legacy / VR / noLegal]`: A stream shortcut on the home screen begins playback in the background, no channel screen in the way.
+- **Live streams on Wear OS** `[Wear OS]`: The watch app now plays live radio and video streams straight from its own channel list, over the watch's own network, with no phone nearby.
 
 ## 8. Replace setup migration and utility clutter
 - **Unified settings backup and restore** `[Standard / VR]`: Back up sources, favorites, schedules, passwords, and sign-ins to a local file or Google Drive, then restore the whole setup after reinstalling or moving devices.
@@ -78,6 +79,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Hidden bonus mini-game** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: A built-in turn-based puzzle for anyone who likes finding unexpected extras in utility apps.
 - **Thirteen interface languages** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: The interface speaks thirteen languages, picked per app without changing the whole device.
 - **See what the app connects to** `[Standard / noLegal]`: A network monitor lists the app's own connections, so a stalled transfer or stream is traceable instead of guesswork.
+- **Screen rotation switch on Wear OS** `[Wear OS]`: The watch app now has its own screen-rotation switch, so you can stop the watch screen from turning with your wrist without changing any system setting.
 
 ## 9. Replace your home-screen launcher
 - **Use the app as your home screen** `[Standard / noLegal]`: Launcher mode turns FastMediaSorter into the device home screen, with resizable gadgets, a working clock, and a labeled scrollable app grid.

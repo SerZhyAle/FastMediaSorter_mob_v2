@@ -21,7 +21,17 @@ data class AudioPlayerUiState(
     val setIndex: Int = 0,
     val setSize: Int = 0,
     // S1701: playback order of the browsed set, remembered between launches.
-    val isShuffleEnabled: Boolean = false
+    val isShuffleEnabled: Boolean = false,
+    /**
+     * S1701: the system media volume, read back after each change rather than counted here.
+     *
+     * The player keeps no scale of its own (strategic 5.1.3): anything else on the watch may move the
+     * same stream, and a private copy would drift from what the user actually hears.
+     */
+    val volumeLevel: Int = 0,
+    val volumeMax: Int = 0,
+    /** True only while the bezel is being turned, plus the short tail after it stops. */
+    val isVolumeVisible: Boolean = false
 ) {
     val positionText: String
         get() = if (setSize > 0) "${setIndex + 1}/$setSize" else ""

@@ -2,7 +2,7 @@ package com.sza.fastmediasorter.domain.model
 
 import com.google.gson.annotations.SerializedName
 
-const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 1
+const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 2
 
 enum class WearPhoneResourceRequestKind {
     @SerializedName("ROOT")
@@ -52,7 +52,14 @@ data class WearPhoneResourceItem(
     @SerializedName("name") val name: String,
     @SerializedName("mimeType") val mimeType: String? = null,
     @SerializedName("sizeBytes") val sizeBytes: Long? = null,
-    @SerializedName("isDirectory") val isDirectory: Boolean
+    @SerializedName("isDirectory") val isDirectory: Boolean,
+    /**
+     * Base64 of a small image, or null when this item carries none.
+     *
+     * Nullable rather than an empty default: Gson turns a missing key into the default, so an
+     * empty string could not be told apart from "the phone sent nothing".
+     */
+    @SerializedName("thumbnailBase64") val thumbnailBase64: String? = null
 )
 
 data class WearPhoneResourcePage(

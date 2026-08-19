@@ -45,7 +45,6 @@
     <string name="language_capability_translation">الترجمة</string>
     <string name="language_capability_basic_ocr">OCR أساسي</string>
     <string name="language_capability_quality_ocr">OCR عالي الجودة</string>
-    <string name="language_capability_nolegal_ocr">noLegal OCR</string>
     <string name="translate">ترجمة</string>
     <string name="no_files_selected">لم يتم تحديد أي ملفات</string>
     <string name="msg_last_filter_restored">تمت استعادة آخر عامل تصفية: %1$s</string>
@@ -956,9 +955,6 @@
     <string name="enable_ocr">تفعيل التعرّف على النص</string>
     <string name="enable_ocr_summary">استخراج النص من الصور وملفات PDF لنسخه</string>
     <string name="translation_downloading_wait">بانتظار نتيجة الترجمة..</string>
-    <string name="paddle_ocr_model">نموذج PaddleOCR</string>
-    <string name="paddle_ocr_model_cyrillic">السيريلية (PP-OCRv5 Mobile)</string>
-    <string name="paddle_ocr_model_eslav">السلافية الشرقية (PP-OCRv5 Mobile، أدق)</string>
     <string name="toast_edit_images_only">التعديل متاح للصور فقط</string>
     <string name="toast_failed_to_prepare_file">فشل تجهيز الملف</string>
     <string name="toast_error_google_lens">خطأ في المشاركة مع Google Lens</string>
@@ -1388,10 +1384,6 @@
     <string name="duplicate_groups_summary">تم العثور على %1$d مجموعة | %2$s</string>
     <string name="duplicate_fab_delete">حذف العناصر المحددة (%1$d عنصر، %2$s)</string>
     <string name="scan_files_progress">ملفات %1$d / %2$d</string>
-    <string name="import_resources_title">موارد الاستيراد</string>
-    <string name="import_resources_message">إضافة موارد SZA؟</string>
-    <string name="sza_resources_imported">تم استيراد موارد SZA</string>
-    <string name="error_importing_resources">خطأ في استيراد الموارد</string>
     <string name="download_translation_model_title">تنزيل نموذج الترجمة</string>
     <string name="download_translation_model_message">يتطلب تحويل الملف إلى %1$s تنزيل نموذج بحجم 30 ميجابايت تقريبًا. هل تريد التنزيل الآن؟</string>
     <string name="download">تحميل</string>
@@ -2393,7 +2385,6 @@
     <string name="launcher_edit_kind_action">إجراء المشغّل</string>
     <string name="launcher_settings_reset_title">إعادة ضبط إعدادات المشغّل</string>
     <string name="launcher_settings_reset_message">ستتم إعادة ضبط إعدادات مشغّل النظام إلى قيمها الافتراضية. يعود تخطيط سطح المكتب والأيقونات المثبَّتة والخلفية إلى حالتها بعد التثبيت مباشرة. لا يتأثر أي شيء خارج المشغّل.</string>
-    <string name="launcher_settings_reset_button_description">إعادة ضبط إعدادات المشغّل إلى الوضع الافتراضي</string>
     <string name="launcher_settings_reset_success">أُعيد ضبط إعدادات المشغّل إلى الوضع الافتراضي</string>
     <string name="launcher_settings_reset_failed">تعذرت إعادة ضبط إعدادات المشغّل. لم يتغيّر شيء - حاول مرة أخرى.</string>
     <string name="launcher_add_cell">إضافة إلى سطح المكتب</string>
@@ -2609,7 +2600,6 @@
     <string name="streams_media_filter_video">عرض بث الفيديو فقط</string>
     <string name="streams_media_filter_clear">عرض كل البث</string>
     <string name="launcher_section_app_functions">وظائف التطبيق</string>
-    <string name="launcher_section_everything_else">كل شيء آخر</string>
     <string name="launcher_edit_kind_section">قسم</string>
     <string name="launcher_gadget_network">الشبكة</string>
     <string name="launcher_gadget_battery">البطارية</string>
@@ -2680,7 +2670,6 @@
     <string name="network_monitor_link_gateway_label">بوابة</string>
     <string name="network_monitor_link_route_label">المسار الافتراضي</string>
     <string name="network_monitor_link_proxy_label">الوكيل</string>
-    <string name="network_monitor_link_bandwidth_label">تقدير عرض نطاق النظام</string>
     <string name="network_monitor_route_present">حاضر</string>
     <string name="network_monitor_route_absent">لا أحد</string>
     <string name="network_monitor_chart_signal_heading">إشارة</string>

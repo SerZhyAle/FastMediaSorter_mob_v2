@@ -180,22 +180,18 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                     onReady = {
                         val current = viewModel.settings.value
                         viewModel.updateSettings(current.copy(enableOcr = true))
-                        updateOcrVisibility(true, current.ocrEngineType)
+                        updateOcrVisibility(true)
                     },
                     onUnavailable = { setSwitchChecked(binding.rowEnableOcr, false) }
                 )
             } else {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(enableOcr = false))
-                updateOcrVisibility(false, current.ocrEngineType)
+                viewModel.updateSettings(viewModel.settings.value.copy(enableOcr = false))
+                updateOcrVisibility(false)
             }
         }
 
         // OCR Font Settings
         setupOcrFontSpinners()
-
-        // OCR Engine Settings (S0288)
-        setupOcrEngineSpinners()
 
         // OCR language models (Russian/Ukrainian) are managed in the Downloadable Extensions screen
         // (S0386 Phase 12.3) - the inline download UI was removed from this group to avoid duplication.
@@ -321,20 +317,6 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         )
     }
 
-    private val ocrEngineOptions: List<SimpleValueChoiceDialog.Option> by lazy {
-        listOf(
-            SimpleValueChoiceDialog.Option("TESSERACT", getString(R.string.ocr_engine_type_tesseract)),
-            SimpleValueChoiceDialog.Option("PADDLE_OCR", getString(R.string.ocr_engine_type_paddleocr))
-        )
-    }
-
-    private val paddleOcrModelOptions: List<SimpleValueChoiceDialog.Option> by lazy {
-        listOf(
-            SimpleValueChoiceDialog.Option("CYRILLIC", getString(R.string.paddle_ocr_model_cyrillic)),
-            SimpleValueChoiceDialog.Option("EAST_SLAVIC", getString(R.string.paddle_ocr_model_eslav))
-        )
-    }
-
     private fun setupOcrFontSpinners() {
         binding.rowOcrFontSize?.setOnRowClickListener {
             val settings = viewModel.settings.value
@@ -369,70 +351,20 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         }
     }
 
-    private fun setupOcrEngineSpinners() {
-        if (!capabilityAvailability.isOcrEngineSelectionAvailable()) {
-            binding.rowOcrEngineType?.isVisible = false
-            binding.rowPaddleOcrModel?.isVisible = false
-            return
-        }
-
-        binding.rowOcrEngineType?.setOnRowClickListener {
-            val settings = viewModel.settings.value
-            SimpleValueChoiceDialog(
-                requireContext(),
-                viewLifecycleOwner,
-                title = getString(R.string.ocr_engine_type),
-                options = ocrEngineOptions,
-                currentKey = settings.ocrEngineType,
-                onSelected = { key ->
-                    key?.let {
-                        val current = viewModel.settings.value
-                        viewModel.updateSettings(current.copy(ocrEngineType = it))
-                        refreshOcrRowValues(current.copy(ocrEngineType = it))
-                        // Preserve the engine -> model coupling: PaddleOCR model row is only relevant for PADDLE_OCR.
-                        binding.rowPaddleOcrModel?.isVisible = current.enableOcr && it == "PADDLE_OCR"
-                    }
-                }
-            ).show()
-        }
-
-        binding.rowPaddleOcrModel?.setOnRowClickListener {
-            val settings = viewModel.settings.value
-            SimpleValueChoiceDialog(
-                requireContext(),
-                viewLifecycleOwner,
-                title = getString(R.string.paddle_ocr_model),
-                options = paddleOcrModelOptions,
-                currentKey = settings.paddleOcrModel,
-                onSelected = { key ->
-                    key?.let {
-                        viewModel.updateSettings(viewModel.settings.value.copy(paddleOcrModel = it))
-                    }
-                }
-            ).show()
-        }
-    }
-
     /**
      * Sets each OCR trigger row's value text to the label matching the persisted key.
      */
     private fun refreshOcrRowValues(settings: AppSettings) {
         binding.rowOcrFontSize?.setValue(labelForKey(ocrFontSizeOptions, settings.ocrDefaultFontSize))
         binding.rowOcrFontFamily?.setValue(labelForKey(ocrFontFamilyOptions, settings.ocrDefaultFontFamily))
-        binding.rowOcrEngineType?.setValue(labelForKey(ocrEngineOptions, settings.ocrEngineType))
-        binding.rowPaddleOcrModel?.setValue(labelForKey(paddleOcrModelOptions, settings.paddleOcrModel))
     }
 
     private fun labelForKey(options: List<SimpleValueChoiceDialog.Option>, key: String): String? =
         options.firstOrNull { it.key == key }?.label
 
-    private fun updateOcrVisibility(enabled: Boolean, ocrEngineType: String = viewModel.settings.value.ocrEngineType) {
+    private fun updateOcrVisibility(enabled: Boolean) {
         binding.rowOcrFontSize?.isVisible = enabled
         binding.rowOcrFontFamily?.isVisible = enabled
-
-        val showNoLegalOcr = enabled && capabilityAvailability.isOcrEngineSelectionAvailable()
-        binding.rowOcrEngineType?.isVisible = showNoLegalOcr
-        binding.rowPaddleOcrModel?.isVisible = showNoLegalOcr && ocrEngineType == "PADDLE_OCR"
 
         refreshOcrRowValues(viewModel.settings.value)
     }
@@ -447,7 +379,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
 
                 setSwitchChecked(binding.rowTranslationLensStyle, settings.translationLensStyle)
                 setSwitchChecked(binding.rowEnableOcr, settings.enableOcr)
-                updateOcrVisibility(settings.enableOcr, settings.ocrEngineType)
+                updateOcrVisibility(settings.enableOcr)
             }
         }
         collectOnLifecycle(viewModel.translationModelPrewarmStatus) { status ->

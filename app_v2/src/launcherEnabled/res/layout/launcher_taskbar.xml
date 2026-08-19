@@ -29,17 +29,20 @@
         android:insetBottom="0dp"
         android:insetLeft="0dp"
         android:insetRight="0dp"
+        android:minWidth="0dp"
         android:minHeight="0dp"
         android:nextFocusUp="@id/launcherDesktop"
         android:nextFocusRight="@id/btnAllApps"
-        android:paddingStart="@dimen/launcher_taskbar_item_spacing"
-        android:paddingEnd="@dimen/launcher_taskbar_item_spacing"
+        android:paddingStart="@dimen/margin_tiny"
+        android:paddingEnd="@dimen/margin_tiny"
         android:text="@string/launcher_taskbar_start"
         app:icon="@drawable/ic_launcher_mode"
-        app:iconGravity="start" />
+        app:iconGravity="start"
+        app:iconPadding="@dimen/margin_tiny" />
 
     <!-- S1401: opens the full-screen app list. Icon-only (owner, 2026-08-05) and deliberately OUTSIDE
-         the weighted strip block below, so a long recents strip can never squeeze it away. -->
+         the weighted strip block below, so a long recents strip can never squeeze it away.
+         S1768: minWidth="0dp" and compact padding to keep start buttons narrow and leave room for recents/tray. -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAllApps"
         style="@style/Widget.FastMediaSorter.Button.Text"
@@ -53,12 +56,13 @@
         android:insetBottom="0dp"
         android:insetLeft="0dp"
         android:insetRight="0dp"
+        android:minWidth="0dp"
         android:minHeight="0dp"
         android:nextFocusUp="@id/launcherDesktop"
         android:nextFocusLeft="@id/btnStart"
         android:nextFocusRight="@id/taskbarRecents"
-        android:paddingStart="@dimen/launcher_taskbar_item_spacing"
-        android:paddingEnd="@dimen/launcher_taskbar_item_spacing"
+        android:paddingStart="@dimen/margin_tiny"
+        android:paddingEnd="@dimen/margin_tiny"
         app:icon="@drawable/ic_view_grid"
         app:iconGravity="textStart"
         app:iconPadding="0dp" />

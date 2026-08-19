@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,20 +10,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
@@ -33,9 +32,12 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
 /**
@@ -49,9 +51,9 @@ fun BrowseScreen(
 ) {
     // Extract navigation arguments
     val navBackStackEntry: NavBackStackEntry? = navController.currentBackStackEntry
-    val mediaTypeArg = navBackStackEntry?.arguments?.getString("mediaType")
-    val sourceId = navBackStackEntry?.arguments?.getString("sourceId")
-    val sourceName = navBackStackEntry?.arguments?.getString("sourceName")
+    val mediaTypeArg = navBackStackEntry?.arguments?.getString(WearRoutes.ARG_MEDIA_TYPE)
+    val sourceId = navBackStackEntry?.arguments?.getString(WearRoutes.ARG_SOURCE_ID)
+    val sourceName = navBackStackEntry?.arguments?.getString(WearRoutes.ARG_SOURCE_NAME)
     
     // Parse media type
     val mediaType = when (mediaTypeArg) {
@@ -67,7 +69,9 @@ fun BrowseScreen(
         viewModel.loadMediaFiles()
     }
     
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val fileListViewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
+    val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
     val title = when (val screenTitle = viewModel.getScreenTitle()) {
         is ScreenTitle.Text -> screenTitle.value
         is ScreenTitle.Resource -> stringResource(screenTitle.id)
@@ -79,6 +83,7 @@ fun BrowseScreen(
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
+        scrollState = listState,
         // Only the list branch scrolls, so only it has a position to indicate.
         positionIndicator = if (uiState is BrowseUiState.Success) {
             { PositionIndicator(listState) }
@@ -96,10 +101,15 @@ fun BrowseScreen(
                     files = state.files,
                     mediaType = mediaType,
                     listState = listState,
-                    onFileClick = { file ->
-                        viewModel.selectFile(file)
-                        navigateToPlayer(navController, file, mediaType)
-                    }
+                    viewMode = fileListViewMode,
+                    thumbnails = thumbnails,
+                    actions = MediaFileActions(
+                        onFileClick = { file ->
+                            viewModel.selectFile(file)
+                            navigateToPlayer(navController, file, mediaType)
+                        },
+                        onThumbnailNeeded = viewModel::thumbnailFor
+                    )
                 )
             }
             is BrowseUiState.Empty -> {
@@ -135,77 +145,40 @@ private fun MediaListContent(
     files: List<WearMediaFile>,
     mediaType: MediaType,
     listState: ScalingLazyListState,
-    onFileClick: (WearMediaFile) -> Unit
+    viewMode: WearViewMode,
+    thumbnails: Map<Long, WearThumbnail>,
+    actions: MediaFileActions
 ) {
-    ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        state = listState,
-        contentPadding = wearScreenInsets()
-    ) {
-        // Title header
-        item {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.title2,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-        
-        // File list
-        items(files, key = { it.id }) { file ->
-            MediaFileChip(
-                file = file,
-                mediaType = mediaType,
-                onClick = { onFileClick(file) }
-            )
-        }
-    }
-}
+    // The column count comes from the width this composable actually gets, never from the mode name -
+    // the same rule the Resources page applies, so the two lists cannot drift apart.
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
+        Timber.d("S1730: browse grid mode=$viewMode columns=$columns")
+        ScalingLazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            contentPadding = wearScreenInsets()
+        ) {
+            item {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.title2,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
 
-@Composable
-private fun MediaFileChip(
-    file: WearMediaFile,
-    mediaType: MediaType,
-    onClick: () -> Unit
-) {
-    // Determine icon based on file's actual mimeType
-    val icon = when {
-        file.mimeType?.startsWith("image/") == true -> "🖼️"
-        file.mimeType?.startsWith("video/") == true -> "🎬"
-        file.mimeType?.startsWith("audio/") == true -> "🎵"
-        else -> when (mediaType) {
-            MediaType.MUSIC -> "🎵"
-            MediaType.VIDEO -> "🎬"
-            MediaType.PHOTO -> "🖼️"
+            mediaFileItems(
+                files = files,
+                columns = columns,
+                thumbnails = thumbnails,
+                mediaType = mediaType,
+                actions = actions
+            )
         }
     }
-    
-    // Show duration for audio/video, size for images
-    val secondaryText = when {
-        file.mimeType?.startsWith("image/") == true -> formatFileSize(file.size)
-        file.mimeType?.startsWith("video/") == true -> formatDuration(file.duration)
-        file.mimeType?.startsWith("audio/") == true -> formatDuration(file.duration)
-        else -> ""
-    }
-    
-    Chip(
-        onClick = onClick,
-        label = {
-            Text(
-                text = file.name,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
-        secondaryLabel = {
-            Text(text = "$icon $secondaryText")
-        },
-        modifier = Modifier.fillMaxWidth(),
-        colors = ChipDefaults.secondaryChipColors()
-    )
 }
 
 @Composable
@@ -284,26 +257,4 @@ private fun navigateToPlayer(
     }
     Timber.d("Navigating to: $route for file: ${file.name} (mimeType: ${file.mimeType})")
     navController.navigate(route)
-}
-
-private fun formatDuration(durationMs: Long): String {
-    if (durationMs <= 0) return ""
-    val totalSeconds = durationMs / 1000
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return if (minutes >= 60) {
-        val hours = minutes / 60
-        val remainingMinutes = minutes % 60
-        String.format("%d:%02d:%02d", hours, remainingMinutes, seconds)
-    } else {
-        String.format("%d:%02d", minutes, seconds)
-    }
-}
-
-private fun formatFileSize(bytes: Long): String {
-    return when {
-        bytes >= 1024 * 1024 -> String.format("%.1f MB", bytes / (1024.0 * 1024.0))
-        bytes >= 1024 -> String.format("%.1f KB", bytes / 1024.0)
-        else -> "$bytes B"
-    }
 }
