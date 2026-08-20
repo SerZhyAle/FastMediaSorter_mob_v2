@@ -517,7 +517,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             }
 
             is LauncherCellCommand.Stream -> {
-                cellActionMenuManager.showForStream(view, command.streamId)
+                cellActionMenuManager.showForStream(view, command.identityKey)
                 true
             }
 

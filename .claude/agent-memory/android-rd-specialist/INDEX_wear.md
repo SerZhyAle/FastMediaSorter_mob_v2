@@ -18,4 +18,5 @@ installing or driving the `wear` module, or when publishing the watch app.
 - [Watch is permanently locked](project_wear_watch_bootloader_permanently_locked.md) - One UI 8 killed OEM unlock; no root, Shizuku or system-permission route exists on the owner's watch.
 - [Play publishing gaps](project_wear_play_publishing_gaps.md) - own track, AAB not APK, and the on-watch password step fails WO-P6.
 - [Watch text input IS drivable](project_wear_text_input_is_drivable.md) - tap the field itself, then `input text`; the T9 window hides the value, read it with uiautomator dump
+- [The bezel IS drivable](project_wear_rotary_bezel_is_drivable.md) - `input rotaryencoder scroll --axis SCROLL,n` reaches Compose; sign inverted, 136 px per unit; `sendevent` refused by SELinux
 - [Emulator: black shots, dead ping](project_wear_emulator_capture_and_network_traps.md) - both false blockers; uiautomator still sees content

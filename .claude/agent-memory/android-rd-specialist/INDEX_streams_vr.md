@@ -15,6 +15,7 @@ top-level index used to carry.
 - [present() dead](project_link_download_present_suppressed.md) · [Ship every live channel](feedback_stream_catalog_all_live_channels.md) + [publish](reference_stream_catalog_publish.md)
 - [Favicon atlas](project_stream_favicon_atlas_delivery.md) + [publish](project_stream_catalog_atlas_publish.md) - no atlas.png wipes favicons
 - [StreamsPlayer consumes the same zip](project_streams_player_catalog_consumer.md) - there a missing atlas shows WRONG icons, silently
+- [Hand-applied prune skips derived columns](feedback_hand_applied_prune_skips_derived_columns.md) - row count matches, `access` goes stale
 - [Atlas publish needs tile packs](project_atlas_publish_needs_tile_packs.md) - sheets go to `-v3`; the app reads stable names only `-WithTilePacks`
 - [Artwork = tile packs](project_stream_artwork_tile_packs.md) · [Streams test gate](project_streams_device_test_gate.md) · [radio vs video](project_stream_radio_vs_video_player_split.md)
 - [VR inclusion](project_vr_inclusion_hierarchy.md) - `src/vr` ships in TWO flavors · [supportsVrPlayer noLegal](project_supportsvrplayer_nolegal_only.md)

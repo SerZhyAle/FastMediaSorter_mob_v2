@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import com.sza.fastmediasorter.wear.ui.network.viewmodel.ConnectionTestState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.ExportState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesUiState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesViewModel
@@ -55,9 +56,13 @@ fun NetworkSourcesScreen(
     val syncState by viewModel.syncState.collectAsState()
     val exportState by viewModel.exportState.collectAsState()
     val viewMode by viewModel.viewMode.collectAsState()
+    val connectionTestState by viewModel.connectionTestState.collectAsState()
 
     // State for delete confirmation dialog
     var pendingDeleteSource by remember { mutableStateOf<SourceItem?>(null) }
+
+    // S1833: long press opens a choice of actions instead of heading straight for deletion.
+    var pendingActionSource by remember { mutableStateOf<SourceItem?>(null) }
 
     // Navigate to sync_transfer immediately when sync request is pending
     LaunchedEffect(syncState) {
@@ -97,8 +102,11 @@ fun NetworkSourcesScreen(
                             // S1781: the home screen's Last used section is fed from here - this is
                             // the only place a named resource is opened.
                             viewModel.rememberLastUsedResource(sourceName)
+                            // S1829: the media type is chosen on the next screen. This call used to
+                            // pass a hard-coded "music", which was the only reason images and video on
+                            // a network source were unreachable from the watch.
                             navController.navigate(
-                                WearRoutes.browseSource(MUSIC_MEDIA_TYPE, sourceId, sourceName)
+                                WearRoutes.sourceMediaType(sourceId, sourceName)
                             )
                         },
                         onAddClick = {
@@ -110,8 +118,8 @@ fun NetworkSourcesScreen(
                         onExportClick = {
                             viewModel.exportToPhone()
                         },
-                        onDeleteClick = { source ->
-                            pendingDeleteSource = source
+                        onSourceLongPress = { source ->
+                            pendingActionSource = source
                         }
                     ),
                     exportState = exportState
@@ -169,6 +177,129 @@ fun NetworkSourcesScreen(
             }
         )
     }
+
+    pendingActionSource?.let { source ->
+        SourceActionsDialog(
+            source = source,
+            onTest = {
+                viewModel.testSource(source.id, source.name)
+                pendingActionSource = null
+            },
+            onDelete = {
+                pendingDeleteSource = source
+                pendingActionSource = null
+            }
+        )
+    }
+
+    ConnectionTestDialog(
+        state = connectionTestState,
+        onDismiss = { viewModel.resetConnectionTestState() }
+    )
+}
+
+/**
+ * S1833: what a long press means now. The gesture used to lead straight to the delete confirmation,
+ * which left a saved source with no way to be checked - the one thing wanted when it stops answering.
+ * Deletion keeps its own confirmation, so the extra step costs nothing in safety.
+ */
+@Composable
+private fun SourceActionsDialog(
+    source: SourceItem,
+    onTest: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Alert(
+        title = {
+            Text(
+                text = source.name,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.title3
+            )
+        }
+    ) {
+        item {
+            Chip(
+                onClick = onTest,
+                label = { Text(stringResource(R.string.test_connection)) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ChipDefaults.primaryChipColors()
+            )
+        }
+        item {
+            Chip(
+                onClick = onDelete,
+                label = { Text(stringResource(R.string.delete)) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ChipDefaults.secondaryChipColors()
+            )
+        }
+    }
+}
+
+/** S1833: the outcome of checking a saved source, in the same words the add form uses. */
+@Composable
+private fun ConnectionTestDialog(
+    state: ConnectionTestState,
+    onDismiss: () -> Unit
+) {
+    when (state) {
+        is ConnectionTestState.Testing -> {
+            Alert(
+                title = {
+                    Text(
+                        text = state.sourceName,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.title3
+                    )
+                },
+                message = {
+                    Text(
+                        text = stringResource(R.string.testing_connection),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.body2
+                    )
+                }
+            ) {
+                item {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                }
+            }
+        }
+        is ConnectionTestState.Finished -> {
+            Alert(
+                title = {
+                    Text(
+                        text = state.sourceName,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.title3
+                    )
+                },
+                message = {
+                    Text(
+                        text = state.message,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.body2,
+                        color = if (state.isError) {
+                            MaterialTheme.colors.error
+                        } else {
+                            MaterialTheme.colors.onBackground
+                        }
+                    )
+                }
+            ) {
+                item {
+                    Chip(
+                        onClick = onDismiss,
+                        label = { Text(stringResource(android.R.string.ok)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ChipDefaults.primaryChipColors()
+                    )
+                }
+            }
+        }
+        ConnectionTestState.Idle -> Unit
+    }
 }
 
 @Composable
@@ -193,7 +324,7 @@ internal data class NetworkSourcesActions(
     val onAddClick: () -> Unit,
     val onSyncClick: () -> Unit,
     val onExportClick: () -> Unit = {},
-    val onDeleteClick: (SourceItem) -> Unit = {}
+    val onSourceLongPress: (SourceItem) -> Unit = {}
 )
 
 @Composable
@@ -427,6 +558,3 @@ data class SourceItem(
     val name: String,
     val server: String
 )
-
-/** A network source opens on its music tab; the other tabs are reached from there. */
-private const val MUSIC_MEDIA_TYPE = "music"

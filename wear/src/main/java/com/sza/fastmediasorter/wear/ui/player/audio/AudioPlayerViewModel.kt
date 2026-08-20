@@ -106,12 +106,24 @@ class AudioPlayerViewModel @Inject constructor(
                     publishPlaybackState()
                 }
                 Player.STATE_ENDED -> {
-                    _uiState.update { it.copy(isPlaying = false, currentPositionMs = 0) }
-                    // S0902: pause before seeking - playWhenReady stays true otherwise and the
-                    // track auto-restarts from 0, looping indefinitely (mirrors VideoPlayerViewModel).
-                    exoPlayer.pause()
-                    exoPlayer.seekTo(0)
-                    publishPlaybackState()
+                    // S1837: a finished track advances through the set's own rule, so auto-advance
+                    // and the NEXT button can never disagree about what follows. That rule wraps
+                    // past the last file (S1683 section 6.5, owner ruling 2026-08-15), which is also
+                    // what makes the shuffle order of S1701 audible without pressing anything.
+                    // A set of one is excluded deliberately: it has nowhere to advance to, and
+                    // restarting the only track is exactly the endless loop S0902 removed below.
+                    val setSize = playbackSetManager.currentSet.value?.files?.size ?: 0
+                    if (setSize > 1) {
+                        Timber.d("S1837: track ended, advancing within the set of $setSize")
+                        skipToNext()
+                    } else {
+                        _uiState.update { it.copy(isPlaying = false, currentPositionMs = 0) }
+                        // S0902: pause before seeking - playWhenReady stays true otherwise and the
+                        // track auto-restarts from 0, looping indefinitely (mirrors VideoPlayerViewModel).
+                        exoPlayer.pause()
+                        exoPlayer.seekTo(0)
+                        publishPlaybackState()
+                    }
                 }
                 Player.STATE_BUFFERING -> {
                     _uiState.update { it.copy(isLoading = true) }

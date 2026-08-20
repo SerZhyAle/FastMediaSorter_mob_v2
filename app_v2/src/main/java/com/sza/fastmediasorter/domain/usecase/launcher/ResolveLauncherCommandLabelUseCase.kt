@@ -134,7 +134,7 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
                 is LauncherCellCommand.App -> appVisual(command.packageName)
                 is LauncherCellCommand.Feature -> featureVisual(command.routeKey, targetContext)
                 is LauncherCellCommand.Resource -> resourceVisual(command.resourceId)
-                is LauncherCellCommand.Stream -> streamVisual(command.streamId)
+                is LauncherCellCommand.Stream -> streamVisual(command.identityKey)
                 is LauncherCellCommand.OsShortcut -> osVisual(command.targetKey, radioStates, targetContext)
                 is LauncherCellCommand.ScheduledOp -> scheduledOpVisual(command.operationId, targetContext)
                 // S1170: a favourite file is produced by a gadget row tap, never stored in a cell's
@@ -330,19 +330,22 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
         )
     }
 
-    private suspend fun streamVisual(streamId: String): LauncherCommandVisual? {
-        val source = streamSourceRepository.getById(streamId) ?: return null
+    // S1832: [cellKey] is the channel's identity, or a row id for a cell written before that ticket.
+    // Resolving the same way the launch path does is what keeps a cell's caption and its tap agreeing
+    // about which channel it is.
+    private suspend fun streamVisual(cellKey: String): LauncherCommandVisual? {
+        val source = streamSourceRepository.getByIdentityOrId(cellKey) ?: return null
         val label = source.title
             .ifBlank { source.url.toUri().host.orEmpty() }
             .ifBlank { source.url }
 
         val coords: Map<String, Int> = runCatching { faviconAtlasStore.coords() }.getOrDefault(emptyMap())
         val tileIndex: Int? = coords[source.url]
-        val tileBitmap = if (tileIndex != null) {
+        val tileBitmap = tileIndex?.let { index ->
             runCatching {
-                FaviconAtlasSlicer { faviconAtlasStore.atlasFile() }.tileFor(tileIndex)
+                FaviconAtlasSlicer { faviconAtlasStore.atlasFile() }.tileFor(index)
             }.getOrNull()
-        } else null
+        }
 
         return if (tileBitmap != null) {
             LauncherCommandVisual(

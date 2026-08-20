@@ -205,4 +205,5 @@
     <string name="wear_streams_refresh">Refresh catalog</string>
     <string name="wear_streams_updating">Updating streams..</string>
     <string name="wear_streams_update_failed">Could not update streams. Check your connection and try again</string>
+    <string name="base_path">Base path</string>
 </resources>

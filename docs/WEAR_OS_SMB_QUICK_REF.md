@@ -43,6 +43,14 @@ Tap: Test Connection → Wait for ✓
 Tap: Save → Done!
 ```
 
+### Check a Saved Connection
+
+```
+Press and hold a connection -> Test
+```
+
+Reports the same result as the setup screen. Delete lives in the same menu and still confirms.
+
 ---
 
 ## Network Examples

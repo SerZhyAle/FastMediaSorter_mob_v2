@@ -205,4 +205,5 @@
     <string name="wear_streams_refresh">Оновити каталог</string>
     <string name="wear_streams_updating">Оновлення трансляцій..</string>
     <string name="wear_streams_update_failed">Не вдалося оновити трансляції. Перевірте зʼєднання та спробуйте знову</string>
+    <string name="base_path">Базовий шлях</string>
 </resources>

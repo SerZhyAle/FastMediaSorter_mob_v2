@@ -33,6 +33,7 @@
       - assert-hook-inventory        (S1604 registered Claude Code hooks vs docs/AGENT_HOOKS.md)
       - assert-rule-digest-sync      (S1548 CLAUDE.md numbered rules vs the two full digests)
       - assert-gson-persistence-contract (S1639 a durable Gson model whose wire names nothing pins)
+      - assert-stream-asset-revisions (S1828 a pinned stream-catalog asset that would stop being published)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
@@ -135,6 +136,11 @@ $gates = [ordered]@{
     'assert-qualifier-shadowing.ps1'            = @('-Quiet')
     # S1825: detect orphaned intermediate .flat compiled resources in merged_res/
     'assert-orphaned-merged-resources.ps1'       = @('-Quiet')
+    # S1828: a pinned stream-catalog asset that would stop being published. External consumers
+    # hard-code revisioned asset names and never roll forward, and nothing here deletes an asset -
+    # so a pinned revision survives only because no action removes it. Reads the pinned names from
+    # docs/STREAM_CATALOG_CONSUMERS.md and the revision defaults from the publisher; two file reads.
+    'assert-stream-asset-revisions.ps1'         = @('-Quiet')
     # S1470: primary constructors approaching the 255 argument-slot ceiling. AppSettings crossed it
     # at one field per ticket; kotlinc and D8 both accepted the class and only the runtime verifier
     # refused it, so the build stayed green while the app could not start at all. Source parse of

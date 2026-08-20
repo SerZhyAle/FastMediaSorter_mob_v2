@@ -63,6 +63,7 @@
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -CatalogOnly -Publish   # just (re)upload current streams.csv
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PreviewLimit 40   # S1154 atlas smoke run
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PublishPreviewAtlas   # full atlas build + upload
+  pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PreviewFromCacheOnly  # S1831 repack from cached frames, no network
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithStreamLogos                            # S1201 logo atlas from the artwork cache
   pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithStreamLogos -PublishStreamLogoAtlas    # logo atlas build + upload
 #>
@@ -154,6 +155,16 @@ param(
     # Captured frames are kept between runs so an interrupted capture resumes instead of restarting.
     [string]$PreviewFrameDir = 'temp/channel-preview-frames',
     [switch]$RefreshPreviewFrames,
+    # Pack the sheet from frames the cache already holds and open no stream at all - the preview twin of
+    # -ArtworkCacheOnly. Every capture is a request against somebody else's live server, so rebuilding the
+    # sheet to check the packer itself must not cost them anything (S1831).
+    [switch]$PreviewFromCacheOnly,
+    # S1831 escape hatch. By default a VIDEO row's liveness is decided by taking its frame, which is both
+    # the stronger test and half the cost of today's probe-then-capture pair. This reverts to the
+    # ffprobe-only test for a run that must be compared against a pre-S1831 baseline, or if a provider ever
+    # turns out to punish the capture. It does NOT change any verdict semantics - the ffprobe rung is in
+    # the chain either way - only which rung gets asked first.
+    [switch]$SkipCaptureFirst,
     [int]$PreviewCaptureTimeoutSec = 20,
     [int]$PreviewThrottle = 12,
     [int]$PreviewLimit = 0,
@@ -201,6 +212,15 @@ param(
     # applies the new CSV's indices to it, so its channels show other stations' logos while looking
     # healthy. Enforced at build time by Assert-AtlasBudget and again before publish.
     [int]$MaxAtlasBytes = 31457280,
+
+    # S1831: the PREVIEW sheet's ceiling, and a DIFFERENT contract from $MaxAtlasBytes above. That one is the
+    # favicon atlas's 30 MiB, shared with the app and with StreamBankReader. This one is the 48 MiB
+    # StreamsPlayer declared for the preview sheet (S1828). Conflating them applies the wrong number to both:
+    # 30 MiB would refuse a legal preview sheet, 48 MiB would let an over-cap favicon atlas ship and wipe
+    # every user's icons. Until this parameter existed the preview sheet was checked against nothing at all -
+    # Assert-AtlasBudget has one call site and it guards the favicon atlas - so an oversized sheet reached
+    # publication with no complaint from anywhere.
+    [int]$MaxPreviewAtlasBytes = 50331648,
 
     # Deep-signal catalog probe: pull a few KB of real media body (HLS -> first segment) instead of
     # trusting a 2xx on the playlist/manifest. Catches "declared but not playing" streams.
@@ -664,6 +684,37 @@ function Get-ProviderKey {
     return $domain
 }
 
+# S1830: which providers are losing so much of themselves that the run looks like a probe failure
+# rather than a catalog cleanup. A named function rather than inline code at the call site so the
+# threshold can be checked against the real 2026-08-19 removal set instead of against a retyped copy
+# of the same comparison - a check that re-implements what it verifies proves only that it agrees
+# with itself.
+function Get-ProviderLossOffenders {
+    param(
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$AllUrls,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$PrunedUrls,
+        [double]$MinShare = 0.35,
+        [int]$MinCount = 50
+    )
+
+    $totals = @{}
+    foreach ($u in $AllUrls) { $k = Get-ProviderKey -Url $u; $totals[$k] = 1 + [int]$totals[$k] }
+    $losses = @{}
+    foreach ($u in $PrunedUrls) { $k = Get-ProviderKey -Url $u; $losses[$k] = 1 + [int]$losses[$k] }
+
+    $out = [System.Collections.Generic.List[object]]::new()
+    foreach ($k in $losses.Keys) {
+        $lost = [int]$losses[$k]
+        $total = [int]$totals[$k]
+        if ($total -le 0) { continue }
+        $share = $lost / $total
+        if ($lost -ge $MinCount -and $share -ge $MinShare) {
+            $out.Add([pscustomobject]@{ Provider = $k; Lost = $lost; Total = $total; Share = $share })
+        }
+    }
+    return @($out | Sort-Object -Property Lost -Descending)
+}
+
 # S1830: round-robin the rows across providers so the parallel window never belongs to one host.
 # ForEach-Object -ThrottleLimit caps only the TOTAL number of in-flight requests, and the catalog is
 # sorted by category and name, which on the 2026-08-19 bank put 1 964 rows of one provider in a single
@@ -681,18 +732,26 @@ function Get-ProviderInterleavedRows {
         $byProvider[$key].Add($row)
     }
 
-    $out = [System.Collections.Generic.List[object]]::new()
-    $queues = @($byProvider.Values)
-    $cursor = 0
-    while ($out.Count -lt $Rows.Count) {
-        $placed = $false
-        foreach ($q in $queues) {
-            if ($cursor -lt $q.Count) { $out.Add($q[$cursor]); $placed = $true }
+    # Spread each provider evenly over the whole sequence by giving its i-th row the fractional
+    # position (i + 0.5) / n, then sorting on that. Plain round-robin is not enough and was measured
+    # failing: once the small providers run out, the biggest one's remainder comes out contiguously,
+    # which on this bank still left a 1 143-row block of a single provider at the tail. With fractional
+    # positions a provider holding 10,4% of the bank appears about every tenth row from start to end,
+    # so the parallel window can never fill up with one host.
+    $keyed = [System.Collections.Generic.List[object]]::new()
+    foreach ($entry in $byProvider.GetEnumerator()) {
+        $rowsOfProvider = $entry.Value
+        $n = [double]$rowsOfProvider.Count
+        for ($i = 0; $i -lt $rowsOfProvider.Count; $i++) {
+            $keyed.Add([pscustomobject]@{
+                    Position = ($i + 0.5) / $n
+                    Provider = [string]$entry.Key
+                    Row      = $rowsOfProvider[$i]
+                })
         }
-        if (-not $placed) { break }
-        $cursor++
     }
-    return $out.ToArray()
+
+    return @($keyed | Sort-Object Position, Provider | ForEach-Object { $_.Row })
 }
 
 # S1830: ffprobe ships beside ffmpeg, so look next to the resolved ffmpeg first and fall back to PATH.
@@ -773,6 +832,99 @@ function Get-MediaStreamKinds {
     return $result
 }
 
+# S1831: the capture-shaped twin of Get-MediaStreamKinds. It returns the SAME three fields, because those
+# land in the row as media_kinds / media_codecs and in the human-readable note, so anything that produced a
+# different shape would silently change what those columns mean.
+#
+# What differs is the evidence. Get-MediaStreamKinds asks ffprobe to characterise the streams and believes
+# the answer; this asks ffmpeg to decode one frame and write it, so `Ok` means "this address handed us a
+# picture just now", not "this address declares a video track". Measured over 400 channels, one per
+# provider, that is the stronger test on both counts: 360 produced a frame against 340 the probe confirmed,
+# and the two calls cost the same (median 2680 ms against 2682 ms).
+#
+# The frame lands on the preview cache path, so the sheet build later packs what this pass already fetched
+# instead of opening every address a second time.
+function Get-CapturedFrameKinds {
+    param(
+        [Parameter(Mandatory = $true)][string]$FfmpegExe,
+        [Parameter(Mandatory = $true)][string]$Url,
+        [Parameter(Mandatory = $true)][string]$FramePath,
+        [int]$TimeoutSec = 20,
+        [int]$TileW = 240,
+        [int]$TileH = 135
+    )
+
+    $result = [pscustomobject]@{ Kinds = ''; Codecs = ''; Ok = $false }
+
+    # Identical to Invoke-ChannelPreviewCapture's arguments except for -loglevel: `info` is what makes
+    # ffmpeg print the "Stream #0:0: Video: h264" lines this function reads the codec set out of. At
+    # `error` the capture still works and the columns come back empty, which reads as a dead channel.
+    $capArgs = @(
+        '-hide_banner', '-loglevel', 'info', '-y',
+        '-user_agent', 'FastMediaSorter-catalog/1.0',
+        '-rw_timeout', [string]($TimeoutSec * 1000000),
+        '-analyzeduration', '5000000', '-probesize', '5000000',
+        '-i', $Url,
+        '-frames:v', '1', '-update', '1',
+        '-vf', ("scale={0}:{1}:force_original_aspect_ratio=increase,crop={0}:{1}" -f $TileW, $TileH),
+        '-f', 'image2', $FramePath
+    )
+
+    $psi = [System.Diagnostics.ProcessStartInfo]::new($FfmpegExe)
+    foreach ($a in $capArgs) { $psi.ArgumentList.Add($a) }
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+
+    $proc = $null
+    try {
+        $proc = [System.Diagnostics.Process]::Start($psi)
+        # Read stderr asynchronously: ffmpeg's banner alone can fill the pipe buffer, and a full pipe
+        # deadlocks the child while we sit in WaitForExit.
+        $stderr = $proc.StandardError.ReadToEndAsync()
+        if (-not $proc.WaitForExit($TimeoutSec * 1000)) {
+            # A live stream never ends on its own: kill the whole tree when the frame did not land.
+            try { $proc.Kill($true) } catch { $null = $_ }
+            $proc.WaitForExit(3000) | Out-Null
+        }
+        $text = ''
+        try { $text = $stderr.GetAwaiter().GetResult() } catch { $null = $_ }
+
+        # Read only the INPUT section. ffmpeg describes its own output with the same "Stream #0:0: Video:"
+        # shape, so matching the whole text reports `png` - our tile encoder - as a codec the broadcaster
+        # sent, and that string would be written into the row's media_codecs column. Measured on a live
+        # channel: 'aac,h264,png' before this cut, 'aac,h264' after.
+        $inputEnd = $text.IndexOf("`nOutput #")
+        if ($inputEnd -lt 0) { $inputEnd = $text.IndexOf('Output #') }
+        $inputText = if ($inputEnd -gt 0) { $text.Substring(0, $inputEnd) } else { $text }
+
+        $kinds = [System.Collections.Generic.List[string]]::new()
+        $codecs = [System.Collections.Generic.List[string]]::new()
+        foreach ($m in [regex]::Matches($inputText, 'Stream #\d+:\d+[^:]*: (Video|Audio): ([A-Za-z0-9_.-]+)')) {
+            $k = $m.Groups[1].Value.ToLowerInvariant()
+            $c = $m.Groups[2].Value.ToLowerInvariant()
+            if (-not $kinds.Contains($k)) { $kinds.Add($k) }
+            if (-not $codecs.Contains($c)) { $codecs.Add($c) }
+        }
+        $result.Kinds = (($kinds | Sort-Object) -join '+')
+        $result.Codecs = (($codecs | Sort-Object) -join ',')
+
+        # A failed encode still leaves the file behind at zero bytes, so presence alone is not proof.
+        if (Test-Path $FramePath) {
+            if ((Get-Item $FramePath).Length -gt 0) { $result.Ok = $true }
+            else { Remove-Item $FramePath -Force -ErrorAction SilentlyContinue }
+        }
+    }
+    catch {
+        $null = $_
+    }
+    finally {
+        if ($proc) { try { $proc.Dispose() } catch { $null = $_ } }
+    }
+    return $result
+}
+
 function Invoke-SignalProbe {
     param(
         [Parameter(Mandatory = $true)][object[]]$Rows,
@@ -789,21 +941,52 @@ function Invoke-SignalProbe {
     # -Parallel runspaces inherit no functions, so the definition travels as text and is re-created inside.
     $mediaProbeDef = ${function:Get-MediaStreamKinds}.ToString()
 
+    # S1831: the capture that doubles as the liveness test for VIDEO rows. Resolved here rather than inside
+    # the runspaces so a missing ffmpeg is one warning instead of one per channel - and so its absence is a
+    # downgrade to the old probe-only path, never a hard failure: this function has always worked without
+    # ffmpeg and must keep doing so.
+    $frameCaptureDef = ${function:Get-CapturedFrameKinds}.ToString()
+    $previewPathDef = ${function:Get-PreviewFrameFile}.ToString()
+    $captureExe = ''
+    $captureDir = ''
+    if (-not $SkipCaptureFirst) {
+        try {
+            $captureExe = Get-FfmpegExe
+            if (-not (Test-Path $PreviewFrameDir)) { New-Item -ItemType Directory -Path $PreviewFrameDir -Force | Out-Null }
+            # Absolute: a -Parallel runspace does not inherit the caller's working directory, so a relative
+            # path would make ffmpeg write somewhere else entirely and every capture would look failed.
+            $captureDir = (Resolve-Path $PreviewFrameDir).Path
+        }
+        catch {
+            Write-Warning ('ffmpeg not found - VIDEO rows fall back to the ffprobe-only liveness test and no ' +
+                'preview frames are collected on this run. ' + $_.Exception.Message)
+            $captureExe = ''
+        }
+    }
+
     $ordered = Get-ProviderInterleavedRows -Rows $Rows
     $providerCount = @($Rows | ForEach-Object { Get-ProviderKey -Url ([string]$_.url) } | Sort-Object -Unique).Count
 
+    $framesBefore = 0
+    if ($captureDir) { $framesBefore = @(Get-ChildItem $captureDir -Filter '*.png' -ErrorAction SilentlyContinue).Count }
+
     Write-Host ("{0} {1} URLs across {2} provider(s), interleaved (throttle {3}, timeout {4}s, pull up to {5} KB, media check {6}) .." -f `
             $Activity, $Rows.Count, $providerCount, $Throttle, $SignalTimeoutSec, [int]($SignalBytes / 1024),
-            $(if ($ffprobeExe) { 'ffprobe' } else { 'BYTES ONLY' })) -ForegroundColor Yellow
+            $(if ($captureExe) { 'capture-first, then ffprobe' } elseif ($ffprobeExe) { 'ffprobe' } else { 'BYTES ONLY' })) -ForegroundColor Yellow
 
     $probeJob = $ordered | ForEach-Object -ThrottleLimit $Throttle -Parallel {
         ${function:Get-MediaStreamKinds} = $using:mediaProbeDef
+        ${function:Get-CapturedFrameKinds} = $using:frameCaptureDef
+        ${function:Get-PreviewFrameFile} = $using:previewPathDef
         $row      = $_
         $timeout  = $using:SignalTimeoutSec
         $maxBytes = $using:SignalBytes
         $minBytes = $using:SignalMinBytes
         $ua2      = $using:ua
         $ffprobe  = $using:ffprobeExe
+        $capExe   = $using:captureExe
+        $capDir   = $using:captureDir
+        $capSec   = $using:PreviewCaptureTimeoutSec
         $url      = ([string]$row.url).Trim()
         $fmt      = ([string]$row.format).ToLowerInvariant()
         $proto    = ([string]$row.protocol).ToUpperInvariant()
@@ -816,10 +999,52 @@ function Invoke-SignalProbe {
         # S1830: ask the decoder first. The playable majority then costs one ffprobe instead of a body
         # pull, and only what it cannot confirm falls through to the branches below - whose job narrows
         # to telling geo from dead from "we could not measure".
+        #
+        # S1831 puts one more rung ABOVE that for a VIDEO row: try to take the frame first, and let the
+        # frame be the proof. It is the stronger claim - "this address handed us a picture" rather than
+        # "this address declares a video track" - and it is what the owner asked for: test that the
+        # channel serves video, not that it answers 200. It also leaves the thumbnail behind, so the
+        # sheet build no longer opens every address a second time.
+        #
+        # Order matters and is the whole safety argument. The capture is added ABOVE the ffprobe rung,
+        # never INSTEAD of it. ffmpeg cannot tell 403 from 404 from a timeout, so a design that let a
+        # failed capture stand as a verdict would collapse geo/dead/unknown into one failure and hand
+        # -PruneDead a mandate to delete region-locked channels - the S1830 incident, re-run. Measured
+        # over 400 channels, 2 of them declare media that ffprobe confirms while the capture still fails;
+        # those keep today's verdict because the rung below is still there, and it costs nothing on the
+        # 90% where the capture succeeds.
         $mediaKinds = ''
         $mediaCodecs = ''
         $mediaConfirmed = $false
-        if ($ffprobe) {
+        $framePath = ''
+        $isVideoRow = (([string]$row.media_kind).Trim().ToUpperInvariant() -eq 'VIDEO')
+
+        if ($capExe -and $capDir -and $isVideoRow) {
+            # Always capture, never trust the cached frame as evidence. A frame on disk proves the address
+            # served video ON THE DAY IT WAS TAKEN, and liveness is a statement about now: short-circuiting
+            # on the cache would report a channel that died last week as alive, forever, without a single
+            # request - and that verdict feeds -PruneDead. Caught in testing, where a 24-row sample came
+            # back "21 alive, 3 unknown" and not one `geo`, because every url already had a frame from a
+            # capture run eight days earlier. The cache is the handoff to the sheet build; it is not proof.
+            $framePath = Get-PreviewFrameFile -Url $url -Dir $capDir
+            # Capture beside the cached frame, not onto it. ffmpeg opens the output with -y, so a capture
+            # that fails halfway would truncate a good frame taken on an earlier run - and a channel that
+            # is merely geo-blocked from THIS network still plays for a user in-region and should keep the
+            # thumbnail it already has.
+            $stagePath = $framePath + '.new'
+            $cap = Get-CapturedFrameKinds -FfmpegExe $capExe -Url $url -FramePath $stagePath -TimeoutSec $capSec
+            if ($cap.Ok) {
+                try { Move-Item -LiteralPath $stagePath -Destination $framePath -Force } catch { $null = $_ }
+                $mediaKinds = $cap.Kinds
+                $mediaCodecs = $cap.Codecs
+                $mediaConfirmed = $true
+            }
+            else {
+                Remove-Item -LiteralPath $stagePath -Force -ErrorAction SilentlyContinue
+            }
+        }
+
+        if (-not $mediaConfirmed -and $ffprobe) {
             $media = Get-MediaStreamKinds -FfprobeExe $ffprobe -Url $url -TimeoutSec $timeout
             $mediaKinds = $media.Kinds
             $mediaCodecs = $media.Codecs
@@ -1031,7 +1256,19 @@ function Invoke-SignalProbe {
     }
     Write-Progress -Activity $Activity -Completed
 
-    return @(Receive-Job -Job $probeJob -Wait -AutoRemoveJob)
+    $probed = @(Receive-Job -Job $probeJob -Wait -AutoRemoveJob)
+
+    # S1831: say how many thumbnails this pass collected. Without the line the handoff is invisible - the
+    # sheet build would look as if it captured them itself, which is the very duplication this removed.
+    if ($captureDir) {
+        $framesAfter = @(Get-ChildItem $captureDir -Filter '*.png' -ErrorAction SilentlyContinue).Count
+        # The delta counts channels that had no frame before. Every VIDEO row that answered also had its
+        # existing frame refreshed in place, which the count cannot show - hence "at least".
+        Write-Host ("{0}: preview frame cache {1} -> {2}, at least {3} newly covered channel(s). The sheet build packs these rather than re-fetching them." -f `
+                $Activity, $framesBefore, $framesAfter, ($framesAfter - $framesBefore)) -ForegroundColor DarkGray
+    }
+
+    return $probed
 }
 
 $rbServers = @(
@@ -1963,8 +2200,18 @@ function Set-FaviconIndices {
 $script:PreviewTileW = 240
 $script:PreviewTileH = 135
 $script:PreviewCols = 34
-# ADR-2 budget: one 8192x8192 sheet, so floor(8192 / 135) = 60 rows x 34 cols = 2040 tiles maximum.
-$script:PreviewMaxRows = 60
+# The sheet's height follows the tile count, the way the favicon atlas's already does. It is deliberately
+# NOT a constant any more. The retired 60-row maximum came from a self-imposed "one 8192x8192
+# sheet" budget, and that budget - not any consumer - is what left 877 of today's 2917 VIDEO channels
+# without a thumbnail, dropped with a WARNING nobody reads (S1831). Those frames were not missing: 2928 sat
+# in the frame cache, already fetched from real broadcasters, and 888 of them were packed nowhere.
+# No receiving side declares a row count:
+# ChannelPreviewAtlasSlicer resolves a tile as col = index % COLS, row = index / COLS and takes the atlas
+# width and height as arguments.
+# What IS a real ceiling is the format. VP8 stores a dimension in 14 bits, so no WebP side may exceed
+# 16383 px. Measured against this repo's own ffmpeg 8.1.1 rather than read off a spec: 240x16383 encodes,
+# 240x16384 refuses with "Picture size is too large. Max is 16383x16383".
+$script:PreviewMaxSheetPx = 16383
 
 # Resolve the ffmpeg binary used for frame capture and the PNG -> WebP encode. PATH first, then the
 # usual install roots; -FfmpegPath overrides everything. Cached for the run.
@@ -2032,6 +2279,11 @@ function Invoke-ChannelPreviewCapture {
         $targets.Add([pscustomobject]@{ Url = [string]$row.url; File = $file; Pending = -not (Test-Path $file) })
     }
     $pending = @($targets | Where-Object { $_.Pending })
+    if ($PreviewFromCacheOnly -and $pending.Count -gt 0) {
+        Write-Host ("Channel previews: -PreviewFromCacheOnly, so {0} uncaptured channel(s) stay uncaptured and no stream is opened." -f `
+                $pending.Count) -ForegroundColor Yellow
+        $pending = @()
+    }
     Write-Host ("Channel previews: ffmpeg {0}" -f $ffmpeg) -ForegroundColor DarkGray
     Write-Host ("Channel previews: {0} channel(s), {1} already captured, {2} to capture (throttle {3}, timeout {4}s) .." -f `
             $targets.Count, $cached, $pending.Count, $PreviewThrottle, $PreviewCaptureTimeoutSec) -ForegroundColor Yellow
@@ -2095,9 +2347,11 @@ function Invoke-ChannelPreviewCapture {
     return $withFrame
 }
 
-# Pack the captured frames into the fixed-grid sheet, encode it to WebP, and write the url->index
-# sidecar. Returns the number of packed tiles. Tiles beyond the 2040-slot sheet capacity are dropped
-# (reported, never silently truncated).
+# Pack the captured frames into the fixed-width sheet, encode it to WebP, and write the url->index
+# sidecar. Returns the number of packed tiles. The sheet's height follows the tile count: every frame
+# handed in is placed, and a set too tall for the WebP dimension limit is refused outright rather than
+# trimmed to fit, because a trimmed run publishes successfully while some channels silently lose their
+# thumbnail (S1831).
 function Build-ChannelPreviewAtlas {
     param(
         [Parameter(Mandatory = $true)][object[]]$Rows,
@@ -2113,22 +2367,36 @@ function Build-ChannelPreviewAtlas {
     $cols = $script:PreviewCols
     $tileW = $script:PreviewTileW
     $tileH = $script:PreviewTileH
-    $maxSlots = $cols * $script:PreviewMaxRows
     $packable = $captured
-    if ($packable.Count -gt $maxSlots) {
-        Write-Warning ("Channel previews: {0} frames exceed the {1}-slot sheet capacity; dropping the last {2}." -f `
-                $packable.Count, $maxSlots, ($packable.Count - $maxSlots))
-        $packable = @($packable[0..($maxSlots - 1)])
-    }
-
     $rowsNeeded = [int][Math]::Ceiling($packable.Count / [double]$cols)
     $sheetW = $cols * $tileW
     $sheetH = $rowsNeeded * $tileH
+
+    # Refuse BEFORE the encoder does. Letting the sheet reach libwebp over-size reports
+    # "ffmpeg WebP encode failed (exit -22)", which names neither the tile count nor the channels that lost
+    # their thumbnail - the same silent loss this replaced, wearing an encoder's mask (S1831). The refusal
+    # is a throw rather than a truncation because a run that cannot cover every channel is the thing the
+    # operator has to know about, not something to paper over and publish.
+    if ($sheetH -gt $script:PreviewMaxSheetPx) {
+        $fitRows = [int][Math]::Floor($script:PreviewMaxSheetPx / $tileH)
+        $fitTiles = $fitRows * $cols
+        $msg = 'Channel previews: {0} captured frame(s) need {1} row(s) = {2}px, over the {3}px WebP ' +
+        'dimension limit ({4} rows = {5} tiles fit). {6} channel(s) would get no thumbnail. Refusing ' +
+        'to publish a partial sheet - more tiles need a change to the tile geometry, and that geometry ' +
+        'is a contract with ChannelPreviewAtlasSlicer and with StreamsPlayer (see S1828).'
+        throw ($msg -f $packable.Count, $rowsNeeded, $sheetH, $script:PreviewMaxSheetPx,
+            $fitRows, $fitTiles, ($packable.Count - $fitTiles))
+    }
     $pngPath = [System.IO.Path]::ChangeExtension($SheetPath, '.png')
     $parent = Split-Path -Parent $SheetPath
     if ($parent -and -not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
 
-    Write-Host ("Channel previews: packing {0} tile(s) into {1}x{2} .." -f $packable.Count, $sheetW, $sheetH) -ForegroundColor Yellow
+    # The whole sheet is one 32bpp Bitmap before it is encoded, and it now grows with the channel count
+    # instead of stopping at 60 rows - 264 MiB at the old cap, 353 MiB measured at 2830 tiles, 532 MiB at
+    # the format ceiling. Printed rather than merely true, so a run that dies of memory says why (S1831).
+    Write-Host ("Channel previews: packing {0} tile(s) into {1}x{2} ({3} row(s), ~{4:N0} MiB in memory) .." -f `
+            $packable.Count, $sheetW, $sheetH, $rowsNeeded,
+        ([double]$sheetW * $sheetH * 4 / 1MB)) -ForegroundColor Yellow
     $map = [ordered]@{}
     $sheet = [System.Drawing.Bitmap]::new($sheetW, $sheetH)
     $g = [System.Drawing.Graphics]::FromImage($sheet)
@@ -2163,7 +2431,25 @@ function Build-ChannelPreviewAtlas {
     $ffmpeg = Get-FfmpegExe
     Write-Host 'Channel previews: encoding WebP sheet ..' -ForegroundColor Yellow
     & $ffmpeg -hide_banner -loglevel error -y -i $pngPath -c:v libwebp -preset picture -quality 80 -compression_level 6 $SheetPath
-    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $SheetPath)) { throw "ffmpeg WebP encode failed (exit $LASTEXITCODE)" }
+    # Both halves of this condition are load-bearing: an over-size encode exits non-zero AND still leaves a
+    # 0-byte file behind, so a Test-Path on its own reads the failure as a success (measured, S1831).
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $SheetPath)) {
+        if (Test-Path $SheetPath) { Remove-Item $SheetPath -Force -ErrorAction SilentlyContinue }
+        throw "ffmpeg WebP encode failed (exit $LASTEXITCODE)"
+    }
+
+    # The published sheet's only byte ceiling. Checked here rather than at publish time so a run that
+    # produced an unshippable sheet fails where the sheet was made, not an hour later next to a `gh` upload.
+    $encodedBytes = (Get-Item $SheetPath).Length
+    if ($encodedBytes -gt $MaxPreviewAtlasBytes) {
+        Remove-Item $SheetPath -Force -ErrorAction SilentlyContinue
+        $overMsg = 'Channel previews: encoded sheet is {0:N0} B ({1:N1} MiB) over the {2:N0} B ({3:N1} MiB) ' +
+        'limit StreamsPlayer declared for the preview sheet. {4} tile(s) at {5}x{6}. Refusing - a sheet ' +
+        'past that size is discarded by the consumer, which then applies this build''s indices to the ' +
+        'sheet it already had and shows every channel the wrong picture (S1828).'
+        throw ($overMsg -f $encodedBytes, ($encodedBytes / 1MB), $MaxPreviewAtlasBytes,
+            ($MaxPreviewAtlasBytes / 1MB), $packable.Count, $sheetW, $sheetH)
+    }
 
     Backup-IfExists -Path $CoordsFile | Out-Null
     # -Compress keeps the sidecar small; the app parses it as a flat url -> index JSON object.
@@ -2774,26 +3060,13 @@ function Invoke-CatalogMaintenance {
     # S1830: last gate before an irreversible write. A provider losing most of its rows is what a
     # self-inflicted rate limit looks like from here, and it is invisible in every other number the run
     # prints, so it gets its own refusal rather than a line in a log nobody reads afterwards.
-    $providerTotals = @{}
-    foreach ($r in $allRows) {
-        $k = Get-ProviderKey -Url ([string]$r.url)
-        $providerTotals[$k] = 1 + [int]$providerTotals[$k]
-    }
-    $providerLosses = @{}
-    foreach ($u in $pruneSet) {
-        $k = Get-ProviderKey -Url $u
-        $providerLosses[$k] = 1 + [int]$providerLosses[$k]
-    }
-    $offenders = @($providerLosses.Keys | Where-Object {
-            $lost = [int]$providerLosses[$_]
-            $total = [int]$providerTotals[$_]
-            $lost -ge $ProviderLossMin -and $total -gt 0 -and ($lost / $total) -ge $ProviderLossShare
-        } | Sort-Object { - [int]$providerLosses[$_] })
+    $offenders = @(Get-ProviderLossOffenders -AllUrls @($allRows | ForEach-Object { [string]$_.url }) `
+            -PrunedUrls @($pruneSet) -MinShare $ProviderLossShare -MinCount $ProviderLossMin)
 
     if ($offenders.Count -gt 0) {
         foreach ($o in $offenders) {
             Write-Host ("  provider loss: {0} - {1} of {2} row(s) ({3:P1})" -f `
-                    $o, $providerLosses[$o], $providerTotals[$o], ($providerLosses[$o] / $providerTotals[$o])) -ForegroundColor Red
+                    $o.Provider, $o.Lost, $o.Total, $o.Share) -ForegroundColor Red
         }
         if (-not $AllowProviderLoss) {
             throw ("Refusing to prune: {0} provider(s) above the loss threshold ({1:P0} of their rows and at least {2}). A whole provider going dark in one run is far more often our probe under self-inflicted load than the provider actually dying - that is exactly how 1 321 live stations were deleted on 2026-08-19. Re-probe those rows on their own before deciding, or pass -AllowProviderLoss when the loss is real." -f `
@@ -2825,7 +3098,20 @@ function Invoke-PublishCatalog {
     $ghExe = Get-GhExe
     if (-not (Test-Path 'temp')) { New-Item -ItemType Directory -Path 'temp' -Force | Out-Null }
     $zip = 'temp/stream-catalog.zip'
-    $rowCount = (Import-Csv $CsvPath).Count
+    $catalogRows = @(Import-Csv $CsvPath)
+    $rowCount = $catalogRows.Count
+    # S1835: every consumer discards a row with an empty name or url without a word, so shipping one
+    # makes our row count and theirs disagree with neither side noticing. Refuse rather than strip:
+    # stripping here would be a silent prune of the published bank, which is the exact event that cost
+    # users their pins (S1830, S1832). Zero such rows exist today, so this costs nothing until a
+    # collector regresses - and then it names the count instead of hiding it.
+    $blankRows = @($catalogRows | Where-Object {
+            [string]::IsNullOrWhiteSpace([string]$_.name) -or [string]::IsNullOrWhiteSpace([string]$_.url)
+        })
+    if ($blankRows.Count -gt 0) {
+        throw ("Refusing to publish: {0} of {1} row(s) carry an empty name or url. Consumers drop such rows silently, so publishing them makes our row count and theirs diverge unnoticed. Fix the collector that produced them rather than stripping them here." -f `
+                $blankRows.Count, $rowCount)
+    }
     Write-Host ''
     Write-Host ("Publishing catalog ({0} rows): zipping {1} -> {2} .." -f $rowCount, $CsvPath, $zip) -ForegroundColor Cyan
 
@@ -2865,17 +3151,31 @@ function Invoke-PublishCatalog {
     try {
         $entryNames = @($archive.Entries | ForEach-Object { $_.FullName })
         $first = if ($entryNames.Count -gt 0) { $entryNames[0] } else { '' }
-        if (-not ($first -like '*streams.csv')) {
-            throw "Compat invariant violated: zip entry 0 is '$first', expected a streams.csv entry first."
+        # S1835: equality, not a suffix. The consumer requires the entry to be named exactly
+        # 'streams.csv'; the old '*streams.csv' test also accepted 'oldstreams.csv', which reads as a
+        # passing gate and fails at the consumer with InvalidDataException.
+        if ($first -cne 'streams.csv') {
+            throw "Compat invariant violated: zip entry 0 is '$first', expected exactly 'streams.csv' first."
         }
-        if (-not ($entryNames | Where-Object { $_ -like '*streams.csv' })) {
-            throw 'Compat invariant violated: zip has no streams.csv entry.'
+        # S1835: the atlas entry name had no check at all - it rested on a parameter default, so
+        # renaming that default would have shipped silently. The consumer pins this name too.
+        if ($bundledAtlas -and -not ($entryNames -ccontains 'favicon-atlas.png')) {
+            throw ("Compat invariant violated: an atlas was bundled but no entry is named exactly 'favicon-atlas.png' (entries: {0})." -f ($entryNames -join ', '))
         }
         Write-Host ("  zip entries: {0}" -f ($entryNames -join ', ')) -ForegroundColor DarkGray
     }
     finally { $archive.Dispose() }
 
-    $zipKb = (Get-Item $zip).Length / 1KB
+    $zipBytes = (Get-Item $zip).Length
+    $zipKb = $zipBytes / 1KB
+    # S1835: the 128 MB archive ceiling had no producer-side check. The only thing that stopped an
+    # oversized upload was gh failing, caught by a generic message that never named the cause. Read as
+    # MiB, matching how the 30 MiB atlas cap is already spelled in this script.
+    $maxZipBytes = 134217728
+    if ($zipBytes -gt $maxZipBytes) {
+        throw ("Refusing to publish: stream-catalog.zip is {0:N1} MB, over the {1:N0} MB ceiling the catalog consumers declare. An archive past it fails their update outright. Shrink the payload (fewer bundled assets, or a smaller atlas) rather than raising this number - the ceiling belongs to the consumers, not to us." -f `
+            ($zipBytes / 1MB), ($maxZipBytes / 1MB))
+    }
     $bundleNote = if ($bundledAtlas) { 'csv + atlas' } else { 'csv-only' }
     Write-Host ("  zip {0:N1} KB ({1}); uploading to release {2} (--clobber) .." -f $zipKb, $bundleNote, $Tag) -ForegroundColor Cyan
     & $ghExe release upload $Tag $zip --clobber
@@ -2936,6 +3236,21 @@ if ($WarmArtworkCache) {
     Write-Host ("Artwork cache warm: {0}/{1} homepage(s) hold an image; cache dir {2}." -f `
             $warmed.Count, $warmHomepages.Count, $LogoCacheDir) -ForegroundColor Green
     return
+}
+
+# S1828: external consumers pin revisioned asset names in their own code and do not roll forward on
+# their own, so raising a revision default strands whoever still fetches the displaced name. Refuse
+# before the first upload rather than after it - rolling an asset back on GitHub costs more than a
+# refusal. One guard here covers both revisioned publishers, which dispatch from four places below.
+if ($PublishPreviewAtlas -or $PublishStreamLogoAtlas) {
+    $revisionGate = Join-Path $PSScriptRoot '..\quality\assert-stream-asset-revisions.ps1'
+    if (-not (Test-Path $revisionGate)) {
+        throw "Pinned-revision gate missing at $revisionGate - refusing to publish revisioned assets unchecked."
+    }
+    & $revisionGate -Quiet
+    if ($LASTEXITCODE -ne 0) {
+        throw "Pinned asset revisions check refused this publication (exit $LASTEXITCODE); see the message above."
+    }
 }
 
 # S1154 PHASE_06: the atlas build is its own mode - it never runs as a side effect of discovery or

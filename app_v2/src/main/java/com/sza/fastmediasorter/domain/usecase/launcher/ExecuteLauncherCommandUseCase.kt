@@ -44,7 +44,7 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             is LauncherCellCommand.App -> launchPackage(command.packageName)
             is LauncherCellCommand.Feature -> launchFeature(command.routeKey)
             is LauncherCellCommand.Resource -> launchResource(command)
-            is LauncherCellCommand.Stream -> launchStream(command.streamId)
+            is LauncherCellCommand.Stream -> launchStream(command.identityKey)
             is LauncherCellCommand.OsShortcut -> launchOsShortcut(command.targetKey, screenOnly)
             // S1170: mirrors the favourites widget's per-row fill-in intent - the file's own resource,
             // opened at that file. skipAvailabilityCheck matches the widget: the row was listed from the
@@ -96,10 +96,12 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
         return startIntent(intent)
     }
 
-    private suspend fun launchStream(streamId: String): Boolean {
-        val source = streamSourceRepository.getById(streamId)
+    // S1832: [cellKey] is the channel's identity, or a row id for a cell written before that ticket -
+    // the repository resolves both, so nothing here has to know which form it was handed.
+    private suspend fun launchStream(cellKey: String): Boolean {
+        val source = streamSourceRepository.getByIdentityOrId(cellKey)
         if (source == null) {
-            Timber.i("Launcher: stream %s is no longer in the catalog", streamId)
+            Timber.i("Launcher: stream %s is no longer in the catalog", cellKey)
             return false
         }
         // S1471: the trampoline, not the Streams screen - this one command backs both the launcher

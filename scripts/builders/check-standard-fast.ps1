@@ -10,7 +10,7 @@
              or -Flavor was combined with -Module wear, which declares no flavors).
 #>
 param(
-    [ValidateSet("Code", "Resources", "CodeAndResources", "Unit", "Assemble")]
+    [ValidateSet("Code", "Resources", "CodeAndResources", "Unit", "AndroidTest", "Assemble")]
     [string]$Mode = "CodeAndResources",
     # S0826: per-flavor fast compile check. Standard is the default; NoLegal needs its own
     # path because it bundles Python via Chaquopy (see flag handling below).
@@ -53,6 +53,10 @@ function Get-GradleTaskList {
         "Resources" { return @(":${Module}:process${variant}DebugResources") }
         "CodeAndResources" { return @(":${Module}:compile${variant}DebugKotlin", ":${Module}:process${variant}DebugResources") }
         "Unit" { return @(":${Module}:test${variant}DebugUnitTest") }
+        # S1832: nothing compiled the instrumented source set, which is how
+        # AppDatabaseMigration50To51Test shipped referencing an undeclared constant. Compile only -
+        # running these needs a device, but a test that cannot build is never going to run anywhere.
+        "AndroidTest" { return @(":${Module}:compile${variant}DebugAndroidTestKotlin") }
         "Assemble" { return @(":${Module}:assemble${variant}Debug") }
         default { throw "Unsupported mode: $Mode" }
     }

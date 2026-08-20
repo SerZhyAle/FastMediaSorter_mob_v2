@@ -72,7 +72,7 @@ private fun SourceChip(
         modifier = Modifier
             .fillMaxWidth()
             .pointerInput(source.id) {
-                detectTapGestures(onLongPress = { actions.onDeleteClick(source) })
+                detectTapGestures(onLongPress = { actions.onSourceLongPress(source) })
             },
         colors = ChipDefaults.primaryChipColors()
     )
@@ -120,7 +120,7 @@ private fun SourceCell(
             modifier = Modifier
                 .size(CELL_BUTTON_SIZE)
                 .pointerInput(source.id) {
-                    detectTapGestures(onLongPress = { actions.onDeleteClick(source) })
+                    detectTapGestures(onLongPress = { actions.onSourceLongPress(source) })
                 },
             colors = ButtonDefaults.primaryButtonColors()
         ) {

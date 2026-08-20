@@ -60,7 +60,14 @@ fun BrowseScreen(
         "music" -> MediaType.MUSIC
         "videos" -> MediaType.VIDEO
         "photos" -> MediaType.PHOTO
-        else -> MediaType.MUSIC
+        else -> {
+            // S1829: three callers now pass this argument instead of one hard-coded value, so a route
+            // that spells the type wrong is a real possibility rather than a theoretical one. The
+            // default stays - a browse screen must still open - but it stops being silent: a wrong
+            // route used to be indistinguishable from a deliberate music request.
+            Timber.e("Browse: unknown media type argument '%s'; falling back to MUSIC", mediaTypeArg)
+            MediaType.MUSIC
+        }
     }
     
     // Initialize ViewModel with navigation args

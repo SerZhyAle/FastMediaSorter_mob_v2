@@ -33,6 +33,14 @@ publisher's guards were written only for this app's failure mode.
   a visible "could not update" and offers its bundled snapshot; ours falls back quietly. Publish in a
   quiet hour.
 
+**The single contract lives here, not in their repo (owner ruling 2026-08-20):** "контракт должен быть
+единый .. они должны принять наше виденье - всё должно работать от нас". The handoff set
+`dev/handoff/streams-source-spec/` is what we send them, and file `10_contract_amendment_2026-08-20.md`
+is the part that changes their behaviour: a build is atomic (never apply this build's indices to a
+previously installed atlas), a row's absence never deletes user-authored state, artwork is read by stable
+name plus `artwork-manifest.json` rather than by a pinned revision, and the preview sheet's height now
+follows its tile count - the last one silently breaks anyone holding the old 60-row assumption.
+
 **How to apply:** after any `stream-catalog.zip` publish, tell the owner so the other side can run its
 verification harness (`dotnet run --project tools/StreamsPlayer.CatalogHarness -- <sample.png>`) - it
 checks entry order, row count, atlas bytes and max index against the live asset and cuts a real tile

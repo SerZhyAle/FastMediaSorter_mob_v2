@@ -580,7 +580,7 @@ Fast per-flavor Gradle check - compile, resources, unit tests or assemble. Defau
 scripts/builders/check-standard-fast.ps1
   Fast per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults to app_v2; -Module wear checks the Wear OS module, which has no product flavors.
   Params:
-    -Mode           [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|Assemble}
+    -Mode           [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|AndroidTest|Assemble}
     -Flavor         [String] = "Standard"  {Standard|NoLegal|Lite|Photos|Legacy|Vr}
     -Module         [String] = "app_v2"  {app_v2|wear}
     -Tests          [String]
@@ -2052,6 +2052,19 @@ scripts/quality/assert-splash-brand-sync.ps1
   Exit: 0 every generated drawable matches its source; 1 at least one drawable diverges, or a slogan no longer fits the mask circle; 2 could not verify: the generator is missing, or python/fontTools is unavailable
 ```
 
+### assert-stream-asset-revisions.ps1
+Contract gate: every pinned stream-catalog asset the publisher still owns must keep being published.
+
+```
+scripts/quality/assert-stream-asset-revisions.ps1
+  Contract gate: every pinned stream-catalog asset the publisher still owns must keep being published.
+  Params:
+    -Gate             [SwitchParameter]
+    -Quiet            [SwitchParameter]
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 every `default` pinned asset is still produced by the publisher.; 1 a pinned asset marked `default` would stop being published - the run is refused.; 2 the gate itself cannot run: registry or publisher missing, markers absent, the
+```
+
 ### assert-string-format.ps1
 
 ```
@@ -3295,6 +3308,8 @@ scripts/streams/collect-stream-candidates.ps1
     -PreviewCoordsPath                [String] = 'temp/channel-preview-coords.json'
     -PreviewFrameDir                  [String] = 'temp/channel-preview-frames'
     -RefreshPreviewFrames             [SwitchParameter]
+    -PreviewFromCacheOnly             [SwitchParameter]
+    -SkipCaptureFirst                 [SwitchParameter]
     -PreviewCaptureTimeoutSec         [Int32] = 20
     -PreviewThrottle                  [Int32] = 12
     -PreviewLimit                     [Int32] = 0
@@ -3314,6 +3329,7 @@ scripts/streams/collect-stream-candidates.ps1
     -TilePackQuality                  [Int32] = 80
     -FfmpegPath                       [String] = ''
     -MaxAtlasBytes                    [Int32] = 31457280
+    -MaxPreviewAtlasBytes             [Int32] = 50331648
     -DeepSignal                       [SwitchParameter]
     -Limit                            [Int32] = 0
     -SignalBytes                      [Int32] = 16384
@@ -3322,6 +3338,9 @@ scripts/streams/collect-stream-candidates.ps1
     -ExistingCsv                      [String] = 'delivery/stream-catalog/streams.csv'
     -OutDir                           [String] = 'temp'
     -CatalogLivenessReport            [String] = 'temp/stream-catalog-liveness.csv'
+    -ProviderLossShare                [Double] = 0.35
+    -ProviderLossMin                  [Int32] = 50
+    -AllowProviderLoss                [SwitchParameter]
     -PruneStatuses                    [String[]] = @('dead')
     -GenreTags                        [String[]] = @(
         'sports', 'hip-hop', 'rap', 'country', 'metal', 'folk', 'children', 'kids',

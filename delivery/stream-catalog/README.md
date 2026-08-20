@@ -64,7 +64,7 @@ this line, so the headroom is visible per run rather than discovered at publish.
 The **channel-preview atlas** is an optional companion to the catalog: a single sprite sheet of
 per-channel preview frames that the app shows for a VIDEO channel in grid mode before the user's first
 watch. It is published as its **own** versioned release asset - NOT bundled inside `stream-catalog.zip` -
-because it is large (20-50 MB) and has an independent lifecycle from the CSV.
+because it is large (10-50 MB; the 2026-08-20 build is 15.9 MB) and has an independent lifecycle from the CSV.
 
 ```
 https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/channel-preview-atlas-v2.webp
@@ -77,16 +77,27 @@ from 2026-07-26 stays published unchanged for consumers pinned against it.
 
 Slicing contract (a third-party consumer of this catalog can crop the same tiles):
 
-- One sheet, at most `8192 x 8192` px (the 2026-08-07 build is `8160 x 7830` with 1949 tiles), holding
-  a fixed grid of `240 x 135` tiles, `34` columns per row.
+- One sheet of `240 x 135` tiles, `34` columns per row. The width is therefore always `8160` px; the
+  **height follows the tile count** and is not fixed. The 2026-08-20 build is `8160 x 11340` with 2830
+  tiles in 84 rows. Do not assume a row count - derive it, or read it off the image.
+- Two ceilings bound the sheet, and the packer refuses rather than truncating when either is reached.
+  A side may not exceed `16383` px, which is the WebP dimension limit and caps the sheet at 121 rows
+  (`4114` tiles); the encoded file may not exceed 48 MiB, the limit StreamsPlayer declared. The
+  2026-08-20 build sits at 15.9 MiB, a third of that allowance.
+- Until 2026-08-20 the sheet was capped at 60 rows (2040 tiles) by a self-imposed `8192 x 8192` budget,
+  and anything past it was dropped with a warning while the run still succeeded - 877 of 2917 video
+  channels had no tile for that reason alone. A build that cannot place every tile now fails and names
+  how many channels it would have left uncovered (S1831).
 - A tile's ordinal maps to its cell by `col = index % 34`, `row = index / 34`; its pixel rect is
   `left = col * 240`, `top = row * 135`, `right = left + 240`, `bottom = top + 135`. Equivalently
   `index = row * 34 + col`.
 - Only VIDEO channels have a tile; audio/radio rows are skipped by the packer. A channel that did not
-  answer during the capture pass also has no tile (128 of 2077 in the 2026-08-07 build).
+  answer during the capture pass also has no tile - 87 of 2917 in the 2026-08-20 build, and that is now
+  the *only* reason a video channel lacks one.
 - Rebuild command: `pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -WithChannelPreviews -PublishPreviewAtlas`
   (needs `ffmpeg` and `gh`; captured frames are cached under `temp/channel-preview-frames/`, so an
-  interrupted pass resumes instead of recapturing).
+  interrupted pass resumes instead of recapturing). Add `-PreviewFromCacheOnly` to repack from the cache
+  and open no stream at all - the way to rebuild the sheet without spending requests on broadcasters.
 
 Sidecar `channel-preview-coords.json` - a flat JSON object mapping each channel `url` to its zero-based
 tile `index` (keyed by `url`, the stable per-channel key, mirroring the favicon sidecar):
@@ -147,7 +158,7 @@ pins in `DeliverableDescriptorCatalog.streamLogoAtlas()`, never a silent re-uplo
 
 Both sprite sheets above are also published cut into **tile packs**, and that is what the app itself
 downloads. A sheet is not randomly addressable: a WebP decoder walks the stream from the top to reach
-a given row, so cropping one tile out of the `8160 x 7560` preview sheet costs a share of a full
+a given row, so cropping one tile out of the `8160 x 11340` preview sheet costs a share of a full
 61,7 Mpx decode (measured at 1,48 s on a desktop). A grid asking for one tile per cell filled in one
 cell at a time. Each pack entry is its own small image, so a tile costs one small decode.
 

@@ -84,9 +84,9 @@ class LauncherAddFlowManager(
             LauncherStreamPickerDialogFragment.RESULT_KEY,
             lifecycleOwner,
         ) { _, bundle ->
-            val streamId = bundle.getString(LauncherStreamPickerDialogFragment.RESULT_STREAM_ID)
+            val identityKey = bundle.getString(LauncherStreamPickerDialogFragment.RESULT_STREAM_IDENTITY)
                 ?: return@setFragmentResultListener
-            addShortcut(LauncherCellCommand.Stream(streamId))
+            addShortcut(LauncherCellCommand.Stream(identityKey))
         }
         fragmentManager.setFragmentResultListener(
             LauncherScheduledOpPickerDialogFragment.RESULT_KEY,

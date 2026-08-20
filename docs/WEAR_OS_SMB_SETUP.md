@@ -41,6 +41,7 @@ Click the **"+ Add SMB Connection"** button
 > - Server
 > - Share
 > - User  
+> - Base path
 > - Status message
 > - Test Connection button
 > - Save button
@@ -168,6 +169,21 @@ After saving, your connection:
 2. Shows: **"[Name]"** and **"[Server IP]"**
 3. Tap it to **browse files** on that share
 4. Navigate folders like you would on your phone
+
+---
+
+## Checking a Connection You Already Saved
+
+When a saved connection stops answering, you can test it without retyping anything:
+
+1. Go to Browse -> Resources
+2. **Press and hold** the connection
+3. Choose **Test**
+4. The watch reports the same result the setup screen gives: success, or the reason it failed
+
+**Delete** sits in the same menu and still asks for confirmation before removing anything.
+
+This works for connections that arrived from your phone as well as ones typed on the watch.
 
 ---
 

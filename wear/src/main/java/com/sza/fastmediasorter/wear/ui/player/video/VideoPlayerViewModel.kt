@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -47,6 +48,7 @@ class VideoPlayerViewModel @Inject constructor(
     private val mediaRepository: WearMediaRepository,
     private val selectedMediaManager: SelectedMediaManager,
     private val playbackSetManager: PlaybackSetManager,
+    private val preferencesRepository: WearPreferencesRepository,
     private val downloadNetworkFile: DownloadNetworkFileUseCase,
     private val exoPlayer: ExoPlayer,
     private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
@@ -66,6 +68,12 @@ class VideoPlayerViewModel @Inject constructor(
      * re-enters the download path with the same source id instead of a bare uri.
      */
     private var networkSelection: SelectedMedia? = null
+
+    /**
+     * S1838: the slideshow flag decides whether a finished video opens the next file. Held as a field
+     * rather than read at STATE_ENDED, because that branch is a player callback and cannot suspend.
+     */
+    private var isSlideshowEnabled = false
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -97,15 +105,26 @@ class VideoPlayerViewModel @Inject constructor(
                     publishPlaybackState()
                 }
                 Player.STATE_ENDED -> {
-                    Timber.d("Player STATE_ENDED - video finished")
-                    // Just show controls and reset position, don't auto-seek
-                    _uiState.update { it.copy(isPlaying = false, showControls = true) }
-                    // Seek to start for replay, but pause
-                    exoPlayer.pause()
-                    exoPlayer.seekTo(0)
-                    // Update position after seek
-                    _uiState.update { it.copy(currentPositionMs = 0) }
-                    publishPlaybackState()
+                    // S1838: a finished video advances only while the slideshow is on - the rule the
+                    // phone already applies, where PlayerPlaybackCallbackImpl.onPlaybackEnded pages the
+                    // set under isSlideShowActive and otherwise leaves the player standing. Audio
+                    // differs on purpose (S1837): it plays its set through unconditionally.
+                    // A set of one is excluded, because restarting the only file is the endless loop
+                    // S0902 removed below.
+                    val setSize = playbackSetManager.currentSet.value?.files?.size ?: 0
+                    if (isSlideshowEnabled && setSize > 1) {
+                        Timber.d("S1838: video ended, advancing within the set of $setSize")
+                        skipToNext()
+                    } else {
+                        Timber.d("Player STATE_ENDED - video finished")
+                        _uiState.update { it.copy(isPlaying = false, showControls = true) }
+                        // S0902: pause before seeking - playWhenReady stays true otherwise and the
+                        // file auto-restarts from 0, looping indefinitely.
+                        exoPlayer.pause()
+                        exoPlayer.seekTo(0)
+                        _uiState.update { it.copy(currentPositionMs = 0) }
+                        publishPlaybackState()
+                    }
                 }
                 Player.STATE_BUFFERING -> {
                     Timber.d("Player STATE_BUFFERING")
@@ -139,6 +158,14 @@ class VideoPlayerViewModel @Inject constructor(
             playbackSetManager.moveTo(fileId)
             syncSetPosition()
             loadVideoFile()
+        }
+
+        // S1838: the stored flag is the single source of truth for auto-advance, so the watch and the
+        // phone that pushed the setting can never disagree about whether a set plays through.
+        viewModelScope.launch {
+            preferencesRepository.isSlideshowEnabled.collect { enabled ->
+                isSlideshowEnabled = enabled
+            }
         }
 
         // Subscribe to remote playback commands from phone

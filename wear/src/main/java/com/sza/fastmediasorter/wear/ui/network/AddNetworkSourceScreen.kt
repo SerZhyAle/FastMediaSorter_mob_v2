@@ -50,6 +50,7 @@ private enum class AddField {
     PASSWORD,
     SHARE_NAME,
     DOMAIN,
+    BASE_PATH,
     SSH_PRIVATE_KEY
 }
 
@@ -199,6 +200,18 @@ fun AddNetworkSourceScreen(
                             }
                         )
                     }
+                }
+
+                item {
+                    EditableFieldChip(
+                        label = stringResource(R.string.base_path),
+                        value = uiState.basePath,
+                        fallback = stringResource(R.string.optional_value),
+                        onClick = {
+                            editingField = AddField.BASE_PATH
+                            editingValue = uiState.basePath
+                        }
+                    )
                 }
 
                 item {
@@ -430,6 +443,7 @@ private fun applyFieldChange(
         AddField.PASSWORD -> viewModel.setPassword(value)
         AddField.SHARE_NAME -> viewModel.setShareName(value)
         AddField.DOMAIN -> viewModel.setDomain(value)
+        AddField.BASE_PATH -> viewModel.setBasePath(value)
         AddField.SSH_PRIVATE_KEY -> viewModel.setSshPrivateKey(value)
     }
 }
@@ -444,6 +458,7 @@ private fun fieldTitle(field: AddField): String {
         AddField.PASSWORD -> stringResource(R.string.password)
         AddField.SHARE_NAME -> stringResource(R.string.share_name)
         AddField.DOMAIN -> stringResource(R.string.domain)
+        AddField.BASE_PATH -> stringResource(R.string.base_path)
         AddField.SSH_PRIVATE_KEY -> stringResource(R.string.ssh_private_key)
     }
 }

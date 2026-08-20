@@ -27,7 +27,7 @@ enum class LauncherGeographicAction {
  * - `app:<packageName>`  - launch an installed application.
  * - `fn:<routeKey>`      - one of our own features (keys from `InternalRouteCatalog`).
  * - `res:<id>:<MODE>`    - open a specific resource in a specific view mode.
- * - `stream:<streamId>`  - play a channel from the stream catalog.
+ * - `stream:<identityKey>` - play a channel from the stream catalog, addressed by its derived identity.
  * - `os:<targetKey>`     - a curated OS system target (keys from `OsShortcutCatalog`).
  * - `op:<id>`            - trigger a saved scheduled operation (S1103).
  * - `act:<actionKey>`    - an action on the launcher itself (keys from `LauncherActionCatalog`, S1402).
@@ -54,8 +54,19 @@ sealed interface LauncherCellCommand {
         override fun encode(): String = "$PREFIX_RESOURCE$resourceId$SEPARATOR${mode.name}"
     }
 
-    data class Stream(val streamId: String) : LauncherCellCommand {
-        override fun encode(): String = "$PREFIX_STREAM$streamId"
+    /**
+     * S1832: a channel from the stream catalog, addressed by the identity derived from its address
+     * rather than by the catalog row's id.
+     *
+     * The row id was the payload until S1832, and a catalog import mints a fresh one for every row, so
+     * a channel dropped from the published bank and re-added later left the cell pointing at an id that
+     * no longer existed. `Migration52To53` rewrote every stored payload it could resolve; a cell whose
+     * row was already gone by then still carries the old id, and so does any cell restored from a backup
+     * taken before this change. `StreamSourceRepository.getByIdentityOrId` resolves both forms, which is
+     * why this field's name states the intent rather than the exhaustive set of what may be stored.
+     */
+    data class Stream(val identityKey: String) : LauncherCellCommand {
+        override fun encode(): String = "$PREFIX_STREAM$identityKey"
     }
 
     data class OsShortcut(val targetKey: String) : LauncherCellCommand {

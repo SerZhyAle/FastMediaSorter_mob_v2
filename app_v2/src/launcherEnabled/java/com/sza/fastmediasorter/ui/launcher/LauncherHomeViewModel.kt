@@ -591,8 +591,14 @@ class LauncherHomeViewModel @Inject constructor(
      * the same flow the picker reads, so the desktop menu cannot describe a channel the streams
      * screen has already dropped.
      */
-    suspend fun streamById(streamId: String): StreamSourceEntity? =
-        observeStreams().first().firstOrNull { it.id == streamId }
+    // S1832: [cellKey] is the channel's identity, or a row id for a cell written before that ticket.
+    // Matched in that order for the same reason the repository resolves it that way - the long-press
+    // menu must open on the channel the cell's tap would play, not on a different one.
+    suspend fun streamById(cellKey: String): StreamSourceEntity? {
+        val sources = observeStreams().first()
+        return sources.firstOrNull { it.identityKey == cellKey }
+            ?: sources.firstOrNull { it.id == cellKey }
+    }
 
     /**
      * S1500: what backs the desktop's edit-a-channel row. A passthrough property rather than three

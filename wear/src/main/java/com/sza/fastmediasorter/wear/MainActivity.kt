@@ -38,6 +38,7 @@ import com.sza.fastmediasorter.wear.ui.home.LocalHomeScreen
 import com.sza.fastmediasorter.wear.ui.home.PhoneHomeScreen
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.network.AddNetworkSourceScreen
+import com.sza.fastmediasorter.wear.ui.network.NetworkSourceMediaTypeScreen
 import com.sza.fastmediasorter.wear.ui.network.NetworkSourcesScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncResultScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncTransferScreen
@@ -244,6 +245,29 @@ fun MainNavigation(keepScreenAwakeOutsidePlayers: Flow<Boolean>) {
         // Network sources list screen
         composable(WearRoutes.NETWORK_SOURCES) {
             NetworkSourcesScreen(navController = navController)
+        }
+
+        // S1829: the media-type step between a network source and browse. Without it the source list
+        // was the only entrance and it hard-coded "music", so network images and video could not be
+        // reached at all.
+        composable(
+            route = WearRoutes.SOURCE_MEDIA_TYPE_PATTERN,
+            arguments = listOf(
+                navArgument(WearRoutes.ARG_SOURCE_ID) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument(WearRoutes.ARG_SOURCE_NAME) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
+        ) { entry ->
+            NetworkSourceMediaTypeScreen(
+                navController = navController,
+                sourceId = entry.arguments?.getString(WearRoutes.ARG_SOURCE_ID).orEmpty(),
+                sourceName = entry.arguments?.getString(WearRoutes.ARG_SOURCE_NAME).orEmpty()
+            )
         }
 
         // Paired-phone resource browser (S1697)

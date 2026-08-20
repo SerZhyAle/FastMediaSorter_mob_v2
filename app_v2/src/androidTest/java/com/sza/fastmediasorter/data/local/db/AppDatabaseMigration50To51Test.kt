@@ -56,4 +56,8 @@ class AppDatabaseMigration50To51Test {
             assertEquals("exactly one row was inserted", 1, cursor.count)
         }
     }
+
+    private companion object {
+        const val TEST_DB = "migration-test-50-to-51"
+    }
 }

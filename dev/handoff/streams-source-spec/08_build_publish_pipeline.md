@@ -56,6 +56,7 @@ The `param()` block (`:56-126` in the 2026-07-19 snapshot; now `:70-226`). Group
 **Liveness**
 - `-SkipLiveness` - skip probing entirely.
 - `-LivenessTimeoutSec` (12), `-Throttle` (12; auto-bumped to 48 under `-DeepSignal` unless pinned).
+- `-SkipCaptureFirst` - revert a VIDEO row's deep-signal test to ffprobe-only (pre-S1831). See 5.2.
 - `-DeepSignal`, `-SignalBytes` (16384), `-SignalMinBytes` (2048), `-SignalTimeoutSec` (8) - deep byte probe.
 - `-SkipDeepSignal` - skip the S0805 discovery append gate.
 
@@ -147,8 +148,42 @@ Main body (`:1123-1271`):
   dead; ICY/status-line -> alive; timeout -> unknown.
 
 ### 5.2 Deep-signal probe - `Invoke-SignalProbe` (`-DeepSignal` / S0805 append gate)
-Pulls **real media bytes** (`-SignalBytes` cap 16 KB, alive threshold `-SignalMinBytes` 2 KB, per-fetch
-`-SignalTimeoutSec` 8 s, cancellation-bounded so an endless live body is never fully downloaded):
+
+The probe is a **ladder**, and the order is the safety argument. Each rung is tried only when the one above
+it could not decide, so nothing that distinguishes one failure from another is ever removed.
+
+**Rung 0, VIDEO rows only - take the frame (S1831).** `Get-CapturedFrameKinds` runs one ffmpeg
+`-frames:v 1` against the address, at `-loglevel info` so the input's `Stream #0:0: Video: h264` lines can
+be read back into `media_kinds` / `media_codecs`. A frame on disk means alive: not "declares a video track"
+but "handed us a picture just now", which is the criterion the catalog is supposed to apply. Measured over
+400 channels, one per provider: the capture confirms **360** where ffprobe confirms **340**, and the two
+calls cost the same (median 2 680 ms against 2 682 ms), so folding the capture into the probe **halves** the
+video portion of a sweep instead of adding to it.
+
+Three properties of rung 0 are load-bearing and easy to break:
+
+- **It never trusts a cached frame as evidence.** A frame proves the address served video on the day it was
+  taken; liveness is a claim about now. Short-circuiting on the cache reported channels captured eight days
+  earlier as alive without a single request - caught in testing, where a 24-row sample came back
+  "21 alive, 3 unknown" and not one `geo`.
+- **It captures to `<frame>.new` and moves on success.** ffmpeg opens its output with `-y`, so capturing
+  straight onto the cached path would truncate a good frame whenever the capture failed - and a channel
+  that is only geo-blocked from this network still plays in-region and should keep its thumbnail.
+- **A failed capture is never itself a verdict.** ffmpeg cannot tell 403 from 404 from a timeout. Control
+  falls to rung 1 and then to the branches below, which is what keeps `geo` separate from `dead` from
+  `unknown` - the distinction S1117 introduced and S1830 was opened to restore. Verified by running one
+  24-row sample down both paths: `-SkipCaptureFirst` and the default agreed on **24 of 24** verdicts.
+
+The frame lands on the preview cache path, so the sheet build packs what this pass already fetched rather
+than opening every address a second time. `-SkipCaptureFirst` reverts to the pre-S1831 ladder (rung 1 first)
+for baseline comparisons; it changes which rung is asked first, never what any verdict means.
+
+**Rung 1 - ask the decoder (S1830).** `Get-MediaStreamKinds` runs `ffprobe -show_streams`. This is where a
+non-VIDEO row starts, and where a VIDEO row lands when its capture failed.
+
+**Rung 2 and below - pull real media bytes** (`-SignalBytes` cap 16 KB, alive threshold `-SignalMinBytes`
+2 KB, per-fetch `-SignalTimeoutSec` 8 s, cancellation-bounded so an endless live body is never fully
+downloaded):
 - **RTSP**: raw-socket `OPTIONS ... RTSP/1.0` handshake; `RTSP/1.0 200` -> alive.
 - **HLS**: fetch the playlist; if a master (`#EXT-X-STREAM-INF`), resolve the first variant and re-fetch;
   then pull the first `#EXT-X-MAP` init segment or first media segment. `>= SignalMinBytes` -> alive; 404 ->

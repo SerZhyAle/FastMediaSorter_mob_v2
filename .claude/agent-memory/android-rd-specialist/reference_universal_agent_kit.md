@@ -25,6 +25,13 @@ persistent memory, validation ladder, anti-slop). MIT (kit) / CC BY 4.0 (prose).
   `main`, ~1 min deploy; direct-to-main is the owner's own pattern). Editing `kit/` leaves the zip
   stale until rebuilt.
 
+**Gate before any commit at the repo root or under `kit/`** (its own `CLAUDE.md` demands exit 0):
+`check-compliance.ps1` from the installed plugin - resolve it under
+`~/.claude/plugins/cache/sza-unified-rules/sza/<version>/tools/`, `$env:CLAUDE_PLUGIN_ROOT` is unset
+outside a plugin skill. Same file also rules: `kit/` is stack-neutral product payload (no product
+name, no portfolio path, no canon pointer), `kit/CLAUDE.md` never governs work in that repo, and the
+zip's `universal-agent-kit/` extraction root is a frozen anchor.
+
 **Why:** when the owner asks "should X go in the kit?", "review the kit", or "does the kit cover Y",
 this is the artifact - and the bar is PORTABILITY (survives stripping Kotlin/Gradle/PowerShell/Android/
 locale) plus net-signal vs the kit's deliberate leanness, not just "is it a good practice here".
@@ -36,10 +43,21 @@ run it") in `docs/VALIDATION.md` + `CLAUDE.md` §10, and filled trigger `descrip
 ALL 18 commands (agents already had SDO descriptions; commands shipped empty - same defect that FMS
 `.claude/commands/*` had). Superpowers verdict: don't install the plugin (git-worktree/branch model
 + TDD iron-law + trigger collisions); harvest the meta-disciplines only.
-Already PRESENT (do NOT re-flag as gaps): COST.md + model-tier routing, ratchet-resurface trap
-(CODE_QUALITY.md), dirty-tree closure policy + "a green can lie" (VALIDATION.md), the four 2026-06-25
-omissions. Still-open portable candidates: fan-out budget gate, BNUT drain sweep, argue-then-obey,
-systematic-debugging root-cause phases (kit has `/fix` but no debug discipline doc). The 6 dropped
+Already PRESENT (do NOT re-flag as gaps): COST.md + model-tier routing + fan-out budget gate + lock
+queueing + the four measurement traps, ratchet-resurface trap (CODE_QUALITY.md), dirty-tree closure
+policy + "a green can lie" (VALIDATION.md), RESEARCH_INDEX.md code index + capability inventory, the
+four 2026-06-25 omissions.
+**2026-08-20 landed (commit `ecd8f66`), do NOT re-propose:** COST.md "Where the spend actually is"
+(cached ~72% / output ~12% / preamble ~23% / ~7% of sessions = half the bill; terser answers and a
+trimmed rulebook both refuted as levers, 0.23%); AUTHORING.md gated ~99% vs prose-only 1-8% with the
+"place it where the decision is made" corollary; RESEARCH_INDEX.md third trust rule (measure the
+index miss rate, 57% empty unnoticed), "an index alone gets bypassed" (~32% retried at full width,
+pair with a refusing hook), and "expensive once, cheap every time" build order (retrieval tooling ->
+knowledge base -> skills/agents); merge-prompt.txt STEP 1 sizes the navigation problem. The
+skeleton-generator prompt was deliberately NOT added - `merge-prompt.txt` is already
+INVENTORY -> PLAN -> APPLY and a second prompt would compete with it.
+Still-open portable candidates: BNUT drain sweep, argue-then-obey, systematic-debugging root-cause
+phases (kit has `/fix` but no debug discipline doc). The 6 dropped
 candidates (post-change facade, dedup-by-symptom, deprecated-API wrapper, fix-tooling, N-phase
 process, route-to-docs) stay dropped - don't re-add.
 Verified NON-issues (don't flag again): `Bash(git *)` space-wildcards are valid Claude Code syntax;

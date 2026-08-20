@@ -59,6 +59,17 @@ object WearRoutes {
     const val PHONE_BROWSE_PATTERN = "browse_phone/{$ARG_MEDIA_TYPE}"
     const val BROWSE_SOURCE_PATTERN =
         "browse/{$ARG_MEDIA_TYPE}?$ARG_SOURCE_ID={$ARG_SOURCE_ID}&$ARG_SOURCE_NAME={$ARG_SOURCE_NAME}"
+
+    /**
+     * S1829: the media-type step a network source gets between its list and browse.
+     *
+     * The other two origins - the watch itself and the phone - pick the type one level up, because each
+     * of them has exactly one container. A network origin has many, so the type belongs to the source
+     * that was chosen rather than to the origin: picking Photos first would leave sources holding no
+     * image at all in the list, as dead ends with nothing to mark them at the entrance.
+     */
+    const val SOURCE_MEDIA_TYPE_PATTERN =
+        "source_media_type?$ARG_SOURCE_ID={$ARG_SOURCE_ID}&$ARG_SOURCE_NAME={$ARG_SOURCE_NAME}"
     const val SYNC_RESULT_PATTERN = "sync_result/{$ARG_ADDED}/{$ARG_UPDATED}"
     const val AUDIO_PLAYER_PATTERN = "audio_player/{$ARG_FILE_ID}"
     const val VIDEO_PLAYER_PATTERN = "video_player/{$ARG_FILE_ID}"
@@ -70,6 +81,9 @@ object WearRoutes {
 
     fun browseSource(mediaType: String, sourceId: String, sourceName: String): String =
         "browse/$mediaType?$ARG_SOURCE_ID=$sourceId&$ARG_SOURCE_NAME=$sourceName"
+
+    fun sourceMediaType(sourceId: String, sourceName: String): String =
+        "source_media_type?$ARG_SOURCE_ID=$sourceId&$ARG_SOURCE_NAME=$sourceName"
 
     fun syncResult(added: Int, updated: Int): String = "sync_result/$added/$updated"
 

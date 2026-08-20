@@ -36,6 +36,8 @@ import com.sza.fastmediasorter.data.local.db.MIGRATION_47_48
 import com.sza.fastmediasorter.data.local.db.MIGRATION_48_49
 import com.sza.fastmediasorter.data.local.db.MIGRATION_49_50
 import com.sza.fastmediasorter.data.local.db.MIGRATION_50_51
+import com.sza.fastmediasorter.data.local.db.MIGRATION_51_52
+import com.sza.fastmediasorter.data.local.db.MIGRATION_52_53
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.local.db.NetworkMeasurementDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
@@ -44,9 +46,9 @@ import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ScheduledOperationDao
 import com.sza.fastmediasorter.data.local.db.SensorSeriesDao
 import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
-import com.sza.fastmediasorter.data.local.db.StreamPlayOutcomeDao
 import com.sza.fastmediasorter.data.local.db.StreamQualityMemoryDao
 import com.sza.fastmediasorter.data.local.db.StreamSourceDao
+import com.sza.fastmediasorter.data.local.db.StreamUserStateDao
 import com.sza.fastmediasorter.data.local.db.StreamingCacheDao
 import com.sza.fastmediasorter.data.local.db.ThumbnailCacheDao
 import dagger.Module
@@ -137,7 +139,9 @@ object DatabaseModule {
                 MIGRATION_47_48,
                 MIGRATION_48_49,
                 MIGRATION_49_50,
-                MIGRATION_50_51
+                MIGRATION_50_51,
+                MIGRATION_51_52,
+                MIGRATION_52_53
             )
             // No fallbackToDestructiveMigration: a missing/failed migration now throws and is routed
             // through provideAppDatabase's recovery (backup + reset + user notice), not a silent
@@ -171,14 +175,14 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideStreamPlayOutcomeDao(database: AppDatabase): StreamPlayOutcomeDao {
-        return database.streamPlayOutcomeDao()
+    fun provideStreamQualityMemoryDao(database: AppDatabase): StreamQualityMemoryDao {
+        return database.streamQualityMemoryDao()
     }
 
     @Provides
     @Singleton
-    fun provideStreamQualityMemoryDao(database: AppDatabase): StreamQualityMemoryDao {
-        return database.streamQualityMemoryDao()
+    fun provideStreamUserStateDao(database: AppDatabase): StreamUserStateDao {
+        return database.streamUserStateDao()
     }
     
     @Provides
