@@ -101,7 +101,7 @@ fun NetworkSourcesScreen(
                             Timber.d("Source selected: $sourceName (ID: $sourceId)")
                             // S1781: the home screen's Last used section is fed from here - this is
                             // the only place a named resource is opened.
-                            viewModel.rememberLastUsedResource(sourceName)
+                            viewModel.rememberLastUsedResource(sourceId, sourceName)
                             // S1829: the media type is chosen on the next screen. This call used to
                             // pass a hard-coded "music", which was the only reason images and video on
                             // a network source were unreachable from the watch.

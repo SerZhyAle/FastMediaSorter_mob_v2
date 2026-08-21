@@ -252,4 +252,10 @@
     <string name="settings_open_default_apps_dialog">Задать по-умолчанию</string>
     <string name="default_apps_dialog_title">Приложение по умолчанию</string>
     <string name="language_download_failed">Не удалось загрузить этот язык. Проверьте подключение к интернету и попробуйте снова - приложение останется на текущем языке.</string>
+    <string name="pref_resource_grid_cell_size_title">Размер ячеек сетки ресурсов</string>
+    <string name="pref_resource_grid_cell_size_small">Малые</string>
+    <string name="pref_resource_grid_cell_size_medium">Средние</string>
+    <string name="pref_resource_grid_cell_size_large">Большие</string>
+    <string name="settings_enable_system_info">Сведения о системе</string>
+    <string name="settings_enable_system_info_summary">Показывать сведения о системе в панели и меню программ</string>
 </resources>

@@ -3,9 +3,11 @@ package com.sza.fastmediasorter.wear.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
+import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.ResolveLastUsedResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,11 +27,12 @@ private const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val preferencesRepository: WearPreferencesRepository,
-    private val favoritesRepository: WearFavoritesRepository
+    private val favoritesRepository: WearFavoritesRepository,
+    private val resolveLastUsedResource: ResolveLastUsedResourceUseCase
 ) : ViewModel() {
 
     val uiState: StateFlow<HomeUiState> = combine(
-        preferencesRepository.lastUsedResourceName,
+        resolveLastUsedResource(),
         preferencesRepository.streamsSectionEnabled,
         preferencesRepository.viewMode
     ) { lastUsedResource, streamsEnabled, viewMode ->
@@ -41,8 +44,7 @@ class HomeViewModel @Inject constructor(
             sections = HomeSectionCatalog.sectionsFor(
                 HomeSectionVisibility(
                     favouritesEnabled = favoritesRepository.hasAnyFavorite(),
-                    hasLastUsedResource = sources.lastUsedResource != null,
-                    lastUsedResourceLabel = sources.lastUsedResource,
+                    lastUsedResource = sources.lastUsedResource,
                     streamsEnabled = sources.streamsEnabled
                 )
             ),
@@ -57,7 +59,7 @@ class HomeViewModel @Inject constructor(
 
 /** Carries the three observed preferences into one emission so the mapping reads by name. */
 private data class HomeSources(
-    val lastUsedResource: String?,
+    val lastUsedResource: LastUsedResource?,
     val streamsEnabled: Boolean,
     val viewMode: WearViewMode
 )

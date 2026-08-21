@@ -28,7 +28,6 @@
     <string name="slideshow_settings">Slideshow</string>
     <string name="enable_slideshow">Enable Slideshow</string>
     <string name="slideshow_interval">Interval: %ds</string>
-    <string name="wait_for_finish">Wait for Finish</string>
     <string name="download_album_art">Download Album Art</string>
     <string name="about">About</string>
     <string name="version">Version: %s</string>
@@ -206,4 +205,28 @@
     <string name="wear_streams_updating">Updating streams..</string>
     <string name="wear_streams_update_failed">Could not update streams. Check your connection and try again</string>
     <string name="base_path">Base path</string>
+    <string name="system_info_title">System information</string>
+    <string name="system_info_section_device">Device</string>
+    <string name="system_info_section_app">App</string>
+    <string name="system_info_section_memory">Memory</string>
+    <string name="system_info_section_storage">Storage</string>
+    <string name="system_info_section_phone">Phone</string>
+    <string name="system_info_model">Model</string>
+    <string name="system_info_os_version">Wear OS version</string>
+    <string name="system_info_api_level">API level</string>
+    <string name="system_info_app_version">Version</string>
+    <string name="system_info_build_number">Build</string>
+    <string name="system_info_free">Free</string>
+    <string name="system_info_total">Total</string>
+    <string name="system_info_phone_link">Connection</string>
+    <string name="system_info_phone_connected">Connected</string>
+    <string name="system_info_phone_not_connected">Not connected</string>
+    <string name="system_info_loading">Reading device..</string>
+    <string name="phone_resource_empty_filtered">Nothing of this kind here. Open another folder or retry.</string>
+    <string name="phone_resource_open_unsupported">The watch has no player for this kind of file.</string>
+    <string name="phone_resource_opening">Getting the file from your phone..</string>
+    <string name="wear_favourites_empty">Nothing marked yet. Tap the heart while playing a file.</string>
+    <string name="wear_favourites_unmark">Remove from favourites</string>
+    <string name="wear_favourites_unopenable">This one was saved before the watch started remembering how to open it.</string>
+    <string name="phone_resource_source_unavailable">This resource is not responding. The phone is connected - check the resource, then retry.</string>
 </resources>

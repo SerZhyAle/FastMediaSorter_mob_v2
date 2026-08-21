@@ -9,6 +9,9 @@ import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
+import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
+import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
+import timber.log.Timber
 
 /**
  * S0774: single home for the main-window programs menu - item registration, count, click dispatch,
@@ -21,6 +24,7 @@ import com.sza.fastmediasorter.ui.streams.StreamsActivity
 class MainProgramsMenuCoordinator(
     private val activity: AppCompatActivity,
     private val miniGameMenuManager: MainMiniGameMenuManager,
+    private val wearCompanionMenuManager: MainWearCompanionMenuManager,
     private val streamsMenuManager: MainStreamsMenuManager,
     private val quickCaptureMenuManager: MainQuickCaptureMenuManager,
     private val linkDownloadMenuManager: MainLinkDownloadMenuManager,
@@ -56,6 +60,8 @@ class MainProgramsMenuCoordinator(
         val linkDownload: Boolean,
         val miniGame: Boolean,
         val screenRecording: Boolean,
+        val systemInfo: Boolean,
+        val wearCompanion: Boolean,
     )
 
     // S0757: the Quick Launch Panel entry is always present (no toggle), so the count starts at 1 and
@@ -64,6 +70,8 @@ class MainProgramsMenuCoordinator(
         1 + (if (gate.vrCinema) 1 else 0) + (if (gate.calculator) 1 else 0) +
             (if (gate.networkMonitor) 1 else 0) +
             (if (gate.cameraOcr) 1 else 0) +
+            (if (gate.systemInfo) 1 else 0) +
+            wearCompanionMenuManager.itemCount(gate.wearCompanion) +
             miniGameMenuManager.itemCount(gate.miniGame) +
             quickCaptureMenuManager.itemCount(gate.quickVoice, gate.quickCamera) +
             linkDownloadMenuManager.itemCount(gate.linkDownload) +
@@ -76,7 +84,9 @@ class MainProgramsMenuCoordinator(
         // S0758: each item's explicit order = its canonical position in the owner's programs menu order.
         // Sorted display order after S0962: Streams, VR Cinema [S0962], quick-launch panel [S0757],
         // quick-capture, calculator, Network Monitor, camera-OCR, screen recording [S0913 - right after
-        // camera-OCR], link download, mini-game. The panel mirrors this menu (single source of truth),
+        // camera-OCR], link download, mini-game, system information [S1733 - appended at the end of the
+        // group so no familiar position shifts], Wear companion [S1735 - appended after it for the same
+        // reason]. The panel mirrors this menu (single source of truth),
         // so the order carries there too.
         streamsMenuManager.populate(popup, !excludeStreams && gate.streams, MENU_ORDER_STREAMS)
         // S0962 (VR Cinema, Pillar 1): immersive-cinema program - shown only when XR is available and the
@@ -127,12 +137,22 @@ class MainProgramsMenuCoordinator(
         }
         linkDownloadMenuManager.populate(popup, gate.linkDownload, MENU_ORDER_LINK_DOWNLOAD)
         miniGameMenuManager.populate(popup, gate.miniGame, MENU_ORDER_MINI_GAME)
+        if (gate.systemInfo) {
+            popup.menu.add(
+                0,
+                MENU_ITEM_SYSTEM_INFO,
+                MENU_ORDER_SYSTEM_INFO,
+                R.string.settings_system_info_title,
+            ).setIcon(R.drawable.ic_info)
+        }
+        wearCompanionMenuManager.populate(popup, gate.wearCompanion, MENU_ORDER_WEAR_COMPANION)
         return popup.menu.size()
     }
 
     /** S0755: shared click routing for both the dropdown popup and the programs panel buttons. */
     fun handleMenuItem(itemId: Int): Boolean {
         val handledByManager = miniGameMenuManager.handleMenuItem(itemId) ||
+            wearCompanionMenuManager.handleMenuItem(itemId) ||
             streamsMenuManager.handleMenuItem(itemId) ||
             quickCaptureMenuManager.handleMenuItem(itemId) ||
             linkDownloadMenuManager.handleMenuItem(itemId) ||
@@ -161,6 +181,11 @@ class MainProgramsMenuCoordinator(
                 hostActions.onVrCinemaSelected()
                 true
             }
+            MENU_ITEM_SYSTEM_INFO -> {
+                Timber.d("S1733: programs menu opens system info")
+                activity.startActivity(SystemInfoActivity.createIntent(activity))
+                true
+            }
             else -> false
         }
     }
@@ -178,8 +203,11 @@ class MainProgramsMenuCoordinator(
             MENU_ITEM_NETWORK_MONITOR -> NetworkMonitorActivity.createIntent(activity)
             MENU_ITEM_CAMERA_OCR ->
                 com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(activity)
+            MENU_ITEM_SYSTEM_INFO -> SystemInfoActivity.createIntent(activity)
             MainMiniGameMenuManager.MENU_ITEM_GAME ->
                 com.sza.fastmediasorter.core.game.GameLaunchIntents.game(activity)
+            MainWearCompanionMenuManager.MENU_ITEM_WEAR_COMPANION ->
+                WearCompanionActivity.createIntent(activity)
             else -> null
         }
         return intent?.let { resolved -> { hostActions.launchInNewWindow(resolved) } }
@@ -212,6 +240,10 @@ class MainProgramsMenuCoordinator(
             removeProgramAction(R.string.game_menu_label) { it.copy(embeddedGameEnabled = false) }
         MainScreenRecordingMenuManager.MENU_ITEM_SCREEN_RECORDING ->
             removeProgramAction(R.string.screen_recording_menu_label) { it.copy(screenRecordingEnabled = false) }
+        MENU_ITEM_SYSTEM_INFO ->
+            removeProgramAction(R.string.settings_system_info_title) { it.copy(enableSystemInfo = false) }
+        MainWearCompanionMenuManager.MENU_ITEM_WEAR_COMPANION ->
+            removeProgramAction(R.string.wear_companion) { it.copy(enableWearCompanion = false) }
         else -> null
     }
 
@@ -226,6 +258,10 @@ class MainProgramsMenuCoordinator(
         const val MENU_ITEM_APP_LAUNCH_PANEL = 15
         const val MENU_ITEM_VR_CINEMA = 17
 
+        // S1733: 19 is the first free id - 1, 2, 9, 10, 12-18 are taken across six manager classes, and a
+        // collision would route one program's tap into another's branch.
+        const val MENU_ITEM_SYSTEM_INFO = 19
+
         private const val MENU_ORDER_STREAMS = 1
         private const val MENU_ORDER_VR_CINEMA = 2
         private const val MENU_ORDER_APP_LAUNCH_PANEL = 3
@@ -236,5 +272,10 @@ class MainProgramsMenuCoordinator(
         private const val MENU_ORDER_SCREEN_RECORDING = 8
         private const val MENU_ORDER_LINK_DOWNLOAD = 9
         private const val MENU_ORDER_MINI_GAME = 10
+        private const val MENU_ORDER_SYSTEM_INFO = 11
+
+        // S1735: appended after system information for the same reason S1733 appended itself - a new
+        // program at the end shifts no familiar position.
+        private const val MENU_ORDER_WEAR_COMPANION = 12
     }
 }

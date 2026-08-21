@@ -63,4 +63,22 @@
     <string name="widget_camera_quick_capture_mode_label">کیا پکڑنا ہے</string>
     <string name="widget_camera_quick_capture_mode_photo">تصویر</string>
     <string name="widget_camera_quick_capture_mode_video">ویڈیو</string>
+    <string name="widget_network_monitor_label">نیٹ ورک مانیٹر</string>
+    <string name="widget_network_monitor_description">آپ کی پسند کا ایک نیٹ ورک اشارہ</string>
+    <string name="widget_network_monitor_config_title">دکھانے کے لیے منتخب کریں</string>
+    <string name="widget_network_monitor_indicator_local_address">مقامی پتہ</string>
+    <string name="widget_network_monitor_indicator_radio_status">Wi-Fi، Bluetooth، SIM</string>
+    <string name="widget_network_monitor_indicator_signal_level">سگنل کی سطح</string>
+    <string name="widget_network_monitor_indicator_live_throughput">لائیو اسپیڈ</string>
+    <string name="widget_network_monitor_indicator_external_address">بیرونی پتہ</string>
+    <string name="widget_network_monitor_indicator_last_measurement">آخری اسپیڈ ٹیسٹ</string>
+    <string name="widget_network_monitor_indicator_resource_reachability">محفوظ کردہ وسیلہ</string>
+    <string name="widget_network_monitor_indicator_satellite_count">سیٹلائٹس</string>
+    <string name="widget_network_monitor_unavailable">ابھی تک کوئی ڈیٹا نہیں</string>
+    <string name="widget_network_monitor_tap_to_read">چیک کرنے کے لیے ٹیپ کریں</string>
+    <string name="widget_network_monitor_behind_nat_unknown_depth">NAT کے پیچھے - گہرائی نامعلوم</string>
+    <string name="widget_network_monitor_cgnat_likely">غالباً کیریئر NAT کے پیچھے</string>
+    <string name="widget_network_monitor_direct_connection">براہ راست کنکشن</string>
+    <string name="launcher_gadget_network_indicator">نیٹ ورک اشارہ</string>
+    <string name="launcher_gadget_network_indicator_pick_title">کون سا اشارہ دکھانا ہے</string>
 </resources>

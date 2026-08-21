@@ -10,8 +10,8 @@
     <string name="image_edit_contrast">مقابلة</string>
     <string name="image_edit_filters">الفلاتر</string>
     <string name="image_edit_flip">نقف</string>
-    <string name="image_edit_flip_horizontal">اقلب ↔</string>
-    <string name="image_edit_flip_vertical">اقلب ↕</string>
+    <string name="image_edit_flip_horizontal">قلب ↔</string>
+    <string name="image_edit_flip_vertical">قلب ↕</string>
     <string name="image_edit_grayscale">تدرج الرمادي</string>
     <string name="image_edit_negative">سلبي</string>
     <string name="image_edit_rotation">تناوب</string>
@@ -36,7 +36,7 @@
     <string name="gif_edit_first_frame_help">استخرج الإطار الأول من الرسوم المتحركة واحفظه كصورة PNG ثابتة في مجلد التنزيلات. اسم الملف: [original_name]_first_frame.png</string>
     <string name="gif_edit_save_first_frame">احفظ الإطار الأول كصورة</string>
     <string name="gif_edit_speed">سرعة الرسوم المتحركة</string>
-    <string name="gif_edit_speed_help">اضبط الفاصل الزمني بين الإطارات لتسريع أو إبطاء الحركة. سيتم استبدال الملف الأصلي بالسرعة الجديدة. النطاق: من 0.25x (أبطأ بأربع مرات) إلى 4x (أسرع بأربع مرات).</string>
+    <string name="gif_edit_speed_help">اضبط التأخير بين الإطارات لتسريع الرسوم المتحركة أو إبطائها. سيُستبدل الملف الأصلي بالسرعة الجديدة. النطاق: 0.25x (أبطأ 4×) إلى 4x (أسرع 4×).</string>
     <string name="gif_edit_speed_normal">السرعة: عادية (1.0x)</string>
     <string name="gif_edit_speed_value">السرعة: 0.1fx</string>
     <string name="gif_edit_title">محرر صور GIF</string>

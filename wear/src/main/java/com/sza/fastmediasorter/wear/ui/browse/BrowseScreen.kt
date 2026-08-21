@@ -218,6 +218,7 @@ private fun ErrorContent(
     message: String,
     onRetry: () -> Unit
 ) {
+    Timber.d("S1854: browse error retry chip shown")
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -239,7 +240,7 @@ private fun ErrorContent(
             )
             Chip(
                 onClick = onRetry,
-                label = { Text("Retry") },
+                label = { Text(text = stringResource(R.string.retry)) },
                 colors = ChipDefaults.primaryChipColors()
             )
         }

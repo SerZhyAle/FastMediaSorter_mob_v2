@@ -8,7 +8,7 @@
 #   Find-MissingNoProfile            -Sources <list>
 #   Find-AbolishedArtifactReference  -Sources <list>
 #   Find-OutdatedValidationRule      -Sources <list> -Canonical <string>
-#   Find-ConflictingRouteName        -Sources <list> -Canonical <string>
+#   Find-ConflictingRouteName        -Sources <list> -Canonical <string> [-KnownRoutes <list>]
 #
 # Depends on New-RulePromptRecord (RulePromptRecord.ps1) being dot-sourced first.
 # Detectors never invent a mismatchKind outside $script:RulePromptMismatchKinds.
@@ -41,7 +41,10 @@ function script:Get-SourceBody {
 # "Wrong:" demo with a "Right:" fix, or negate the token on the same line. They must not flag.
 $script:RulePromptNegationMarkers = @(
     'wrong', 'bad', 'avoid', 'never', "don't", 'do not', 'forbidden', 'prohibited',
-    'abolished', 'deprecated', 'instead of', 'no longer', 'not '
+    'abolished', 'deprecated', 'instead of', 'no longer', 'not ',
+    # S1849: a rule states its prohibition as "No `_spec_` segment in any path" or
+    # "Removing `_spec_` segment | ACCEPT" - the token is the thing being banned, not prescribed.
+    'no ', 'removing'
 )
 
 function script:Test-NegationLine {
@@ -51,6 +54,23 @@ function script:Test-NegationLine {
         if ($low.Contains($mark)) { return $true }
     }
     return $false
+}
+
+# A comment annotates an invocation; it never prescribes one. The trap warnings in the spec
+# commands ("# pwsh -File binds only its first element ..") name the wrong form precisely so a
+# reader avoids it, and reading them as prescriptions inverts their meaning (S1849). Markdown
+# headings share the leading '#' and are likewise never invocations.
+function script:Test-AnnotationLine {
+    param([Parameter(Mandatory)][AllowEmptyString()][string] $Line)
+    return ($Line.TrimStart().StartsWith('#'))
+}
+
+# The single question every detector asks before flagging a line: does this line prescribe the
+# thing it mentions, or does it forbid / annotate it?
+function script:Test-NonPrescriptiveLine {
+    param([Parameter(Mandatory)][AllowEmptyString()][string] $Line)
+    if (Test-AnnotationLine -Line $Line) { return $true }
+    return (Test-NegationLine -Line $Line)
 }
 
 # Self-owned audit files must not flag their own example tokens.
@@ -80,7 +100,10 @@ function Find-MissingDocumentedScript {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][AllowEmptyCollection()][object[]] $Sources,
-        [Parameter(Mandatory)][AllowEmptyCollection()][object[]] $Inventory
+        [Parameter(Mandatory)][AllowEmptyCollection()][object[]] $Inventory,
+        # S1850: paths a document legitimately cites although no such file is in this repository -
+        # today the plugin-provided hooks CLAUDE.md rules 24-28 name. Absent by design, not by drift.
+        [AllowEmptyCollection()][object[]] $KnownAbsentScripts = @()
     )
 
     # Present-on-disk lookup: by full repo-relative path AND by basename, so a narrative mention
@@ -92,6 +115,9 @@ function Find-MissingDocumentedScript {
         [void]$baseSet.Add([System.IO.Path]::GetFileName([string]$inv.relPath))
     }
 
+    $absentSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($k in $KnownAbsentScripts) { [void]$absentSet.Add([string]$k.script) }
+
     $records = @()
     foreach ($src in $Sources) {
         if (Test-SelfOwnedSource -Source $src) { continue }
@@ -99,7 +125,12 @@ function Find-MissingDocumentedScript {
         if ([string]::IsNullOrEmpty($body)) { continue }
 
         foreach ($line in (Split-IntoLines -Text $body)) {
-            $hits = [regex]::Matches($line, '[\w][\w./-]*\.(?:ps1|sh)')
+            # A prohibition cites its own counter-example path ("No .ps1 as a Bash command head
+            # (`scripts/foo.ps1`)") and asserts nothing about the file existing (S1849).
+            if (Test-NonPrescriptiveLine -Line $line) { continue }
+            # The leading dot is part of the path: without it the evidence names claude/hooks/x.ps1,
+            # a path that exists nowhere, and the exact-path lookup can never hit (S1849).
+            $hits = [regex]::Matches($line, '\.?[\w][\w./-]*\.(?:ps1|sh)')
             foreach ($h in $hits) {
                 $token = $h.Value.Trim('`', '"', "'", '(', ')', ',', ';')
                 if ([string]::IsNullOrWhiteSpace($token)) { continue }
@@ -112,6 +143,7 @@ function Find-MissingDocumentedScript {
                 if ($relSet.Contains($normalized)) { continue }
                 $base = [System.IO.Path]::GetFileName($normalized)
                 if ($baseSet.Contains($base)) { continue }
+                if ($absentSet.Contains($normalized)) { continue }
 
                 $records += New-RulePromptRecord `
                     -MismatchKind 'MissingDocumentedScript' `
@@ -147,7 +179,7 @@ function Find-MissingNoProfile {
             # self-consistent with the rule.
             if ($line -match '-NoProfile') { continue }
             # Teaching anti-pattern lines ("Wrong: pwsh -File ..") are demonstrations, not rules.
-            if (Test-NegationLine -Line $line) { continue }
+            if (Test-NonPrescriptiveLine -Line $line) { continue }
             # Only real invocations against a repo script or a -Command block.
             $isFileInvoke    = $line -match 'pwsh\s+.*-File\s+\S+\.ps1'
             $isCommandInvoke = $line -match 'pwsh\s+.*-Command'
@@ -220,7 +252,7 @@ function Find-AbolishedArtifactReference {
             $hit = Get-AbolishedHit -Line $line
             if ($null -eq $hit) { continue }
             # A line that prohibits / negates the token is a rule statement, not a prescription.
-            if (Test-NegationLine -Line $line) { continue }
+            if (Test-NonPrescriptiveLine -Line $line) { continue }
 
             $records += New-RulePromptRecord `
                 -MismatchKind 'AbolishedArtifactReference' `
@@ -259,7 +291,7 @@ function Find-OutdatedValidationRule {
             if ($line -notmatch '(?i)\b(validate|validation|closure|must run|required closure)\b') { continue }
             $hit = Get-AbolishedHit -Line $line
             if ($null -eq $hit) { continue }
-            if (Test-NegationLine -Line $line) { continue }
+            if (Test-NonPrescriptiveLine -Line $line) { continue }
 
             $records += New-RulePromptRecord `
                 -MismatchKind 'OutdatedValidationRule' `
@@ -281,7 +313,10 @@ function Find-ConflictingRouteName {
     param(
         [Parameter(Mandatory)][AllowEmptyCollection()][object[]] $Sources,
         [Parameter(Mandatory)][string] $Canonical,
-        [string] $RepoRoot = (Get-Location).Path
+        [string] $RepoRoot = (Get-Location).Path,
+        # Manifest-declared routes that legitimately have no command file (S1849). Data, not code:
+        # the exemption lives beside its reason in sources.psd1, per that manifest's own ADR-1.
+        [AllowEmptyCollection()][object[]] $KnownRoutes = @()
     )
 
     # Build the set of routes that physically exist as .claude/commands/<name>.md. This is an
@@ -293,6 +328,10 @@ function Find-ConflictingRouteName {
         foreach ($cmd in Get-ChildItem -LiteralPath $commandsDir -Filter '*.md' -File -ErrorAction SilentlyContinue) {
             [void]$routeSet.Add([System.IO.Path]::GetFileNameWithoutExtension($cmd.Name))
         }
+    }
+    foreach ($known in $KnownRoutes) {
+        $name = [string]$known.route
+        if (-not [string]::IsNullOrWhiteSpace($name)) { [void]$routeSet.Add($name.TrimStart('/')) }
     }
     # Also honor any skill surfaces passed in (manifest-declared), in case the commands dir
     # location differs from the default.

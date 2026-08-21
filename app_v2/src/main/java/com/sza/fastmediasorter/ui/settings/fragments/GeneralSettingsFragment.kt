@@ -26,7 +26,6 @@ import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
 import com.sza.fastmediasorter.domain.usecase.CredentialAuditor
 import com.sza.fastmediasorter.domain.usecase.DeleteUnusedCredentialsUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
-import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
@@ -40,6 +39,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsActionHelpers
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsBackupHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsCacheHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsCredentialHelper
+import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsGridCellSizeHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsHostContext
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsImportExportHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsLauncherHelper
@@ -50,6 +50,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsProfileHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsResetHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
 import com.sza.fastmediasorter.ui.settings.helpers.UnusedCredentialsHelper
+import com.sza.fastmediasorter.ui.systeminfo.helpers.SystemInfoDialogManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -71,7 +72,9 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     @Inject lateinit var deleteUnusedCredentialsUseCase: DeleteUnusedCredentialsUseCase
 
     @Inject lateinit var streamingCacheRepository: StreamingCacheRepository
-    @Inject lateinit var gatherSystemInfoUseCase: GatherSystemInfoUseCase
+
+    @Inject lateinit var systemInfoDialogManager: SystemInfoDialogManager
+
     @Inject lateinit var ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
     @Inject lateinit var saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
@@ -175,7 +178,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             binding = binding,
             fragment = this,
             saveLogsLauncher = saveLogsLauncher,
-            gatherSystemInfoUseCase = gatherSystemInfoUseCase,
+            systemInfoDialogManager = systemInfoDialogManager,
             getDestinationsUseCase = viewModel.getDestinationsUseCase,
             saveTextFileToResourceUseCase = saveTextFileToResourceUseCase,
         )
@@ -213,6 +216,9 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     }
     private val prefetchHelper by lazy {
         GeneralSettingsPrefetchHelper(binding, viewModel, this, streamingCacheRepository)
+    }
+    private val gridCellSizeHelper by lazy {
+        GeneralSettingsGridCellSizeHelper(binding, viewModel, this)
     }
     private val observersHelper by lazy {
         GeneralSettingsObserversHelper(
@@ -279,6 +285,8 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         profileHelper.setup()
         prefetchHelper.setup()
         collectOnLifecycle(viewModel.settings) { settings -> prefetchHelper.updateFromSettings(settings) }
+        gridCellSizeHelper.setup()
+        collectOnLifecycle(viewModel.settings) { settings -> gridCellSizeHelper.updateFromSettings(settings) }
         observersHelper.observeData()
         observersHelper.observeManualNetworkSyncState()
         observersHelper.refreshLastSyncStatus()

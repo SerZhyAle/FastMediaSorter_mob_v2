@@ -28,7 +28,6 @@
     <string name="slideshow_settings">Слайд-шоу</string>
     <string name="enable_slideshow">Включить слайд-шоу</string>
     <string name="slideshow_interval">Интервал: %dс</string>
-    <string name="wait_for_finish">Ждать завершения</string>
     <string name="download_album_art">Загружать обложки</string>
     <string name="about">О приложении</string>
     <string name="version">Версия: %s</string>
@@ -206,4 +205,28 @@
     <string name="wear_streams_updating">Обновление трансляций..</string>
     <string name="wear_streams_update_failed">Не удалось обновить трансляции. Проверьте соединение и попробуйте снова</string>
     <string name="base_path">Базовый путь</string>
+    <string name="system_info_title">Сведения о системе</string>
+    <string name="system_info_section_device">Устройство</string>
+    <string name="system_info_section_app">Приложение</string>
+    <string name="system_info_section_memory">Память</string>
+    <string name="system_info_section_storage">Хранилище</string>
+    <string name="system_info_section_phone">Телефон</string>
+    <string name="system_info_model">Модель</string>
+    <string name="system_info_os_version">Версия Wear OS</string>
+    <string name="system_info_api_level">Уровень API</string>
+    <string name="system_info_app_version">Версия</string>
+    <string name="system_info_build_number">Сборка</string>
+    <string name="system_info_free">Свободно</string>
+    <string name="system_info_total">Всего</string>
+    <string name="system_info_phone_link">Связь</string>
+    <string name="system_info_phone_connected">Подключён</string>
+    <string name="system_info_phone_not_connected">Не подключён</string>
+    <string name="system_info_loading">Читаем устройство..</string>
+    <string name="phone_resource_empty_filtered">Здесь ничего такого нет. Откройте другую папку или повторите.</string>
+    <string name="phone_resource_open_unsupported">На часах нет плеера для такого файла.</string>
+    <string name="phone_resource_opening">Забираю файл с телефона..</string>
+    <string name="wear_favourites_empty">Пока ничего не отмечено. Нажмите сердечко во время воспроизведения.</string>
+    <string name="wear_favourites_unmark">Убрать из избранного</string>
+    <string name="wear_favourites_unopenable">Эта отметка сделана до того, как часы научились её открывать.</string>
+    <string name="phone_resource_source_unavailable">Этот ресурс не отвечает. Телефон на связи - проверьте ресурс и повторите.</string>
 </resources>

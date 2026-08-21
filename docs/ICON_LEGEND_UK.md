@@ -52,6 +52,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Почати відеозапис |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Сховище |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Трансляції |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Відомості про систему |
 | <img src="icons/svg/ic_edit_20.svg" alt="ic_edit_20" width="24" height="24"> | Зробити фото і редагувати |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Зробити фото і OCR-переклад |
 | <img src="icons/svg/ic_camera_send_to.svg" alt="ic_camera_send_to" width="24" height="24"> | Зробити фото і надіслати до.. |
@@ -104,7 +105,9 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Увімкнути картинку в картинці |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Використовувати операції за розкладом |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Увімкнути трансляції |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Відомості про систему |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Увімкнути переклад |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Компаньйон годинника |
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Фронтальний ліхтарик |
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Оверлей жестів |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Увімкнути запис із мікрофона |

@@ -7,6 +7,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
@@ -14,6 +15,7 @@ import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
+import com.sza.fastmediasorter.wear.domain.model.favoriteSourceId
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -92,6 +94,20 @@ class AudioPlayerViewModel @Inject constructor(
                 stopProgressUpdates()
             }
             publishPlaybackState()
+        }
+
+        override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+            val title = mediaMetadata.title?.toString()?.takeIf { it.isNotBlank() }
+            val artist = mediaMetadata.artist?.toString()?.takeIf { it.isNotBlank() }
+            if (title != null || artist != null) {
+                Timber.d("S1866: metadata updated title=%s artist=%s", title, artist)
+                _uiState.update { state ->
+                    state.copy(
+                        trackTitle = title ?: state.trackTitle,
+                        artistName = artist ?: state.artistName
+                    )
+                }
+            }
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -219,7 +235,12 @@ class AudioPlayerViewModel @Inject constructor(
      * and its cover are published from separate call sites.
      */
     private fun AudioPlayerUiState.withMediaFile(file: WearMediaFile): AudioPlayerUiState =
-        copy(mediaFile = file, albumArtUrl = file.albumArt?.toString())
+        copy(
+            mediaFile = file,
+            albumArtUrl = file.albumArt?.toString(),
+            trackTitle = file.title?.takeIf { it.isNotBlank() },
+            artistName = file.artist?.takeIf { it.isNotBlank() }
+        )
 
     /**
      * S1689: the cover in the file wins; the network is asked only when there is none and the user
@@ -459,7 +480,9 @@ class AudioPlayerViewModel @Inject constructor(
 
     fun toggleFavorite() {
         val selected = selectedMediaManager.getSelectedFileById(fileId)
-        val sourceId = if (selected?.isNetworkSource == true) selected.file.uri.host ?: "network" else "local"
+        // S1846: one rule for the source id, shared with the image viewer - the host name this used to
+        // write was not resolvable back to a source, so a favourite could not be reopened from it.
+        val sourceId = favoriteSourceId(selected?.isNetworkSource == true, selected?.sourceId)
         val filePath = selected?.streamUri ?: _uiState.value.mediaFile?.uri?.toString() ?: return
         viewModelScope.launch {
             _isFavorite.value = toggleFavoriteUseCase.toggle(sourceId, filePath, _isFavorite.value)

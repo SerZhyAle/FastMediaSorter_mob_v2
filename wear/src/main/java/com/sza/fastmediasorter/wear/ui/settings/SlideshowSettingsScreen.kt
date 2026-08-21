@@ -95,20 +95,6 @@ fun SlideshowSettingsScreen(
                     onIntervalChanged = viewModel::setSlideshowInterval
                 )
             }
-            item {
-                ToggleChip(
-                    checked = uiState.slideshowWaitForFinish,
-                    onCheckedChange = { viewModel.toggleWaitForFinish() },
-                    label = { Text(stringResource(R.string.wait_for_finish)) },
-                    toggleControl = {
-                        androidx.wear.compose.material.Icon(
-                            imageVector = ToggleChipDefaults.switchIcon(uiState.slideshowWaitForFinish),
-                            contentDescription = null
-                        )
-                    },
-                    colors = ToggleChipDefaults.toggleChipColors()
-                )
-            }
         }
     }
 }

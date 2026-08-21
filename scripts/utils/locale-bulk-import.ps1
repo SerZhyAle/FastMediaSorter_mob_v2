@@ -236,7 +236,7 @@ if ($DryRun) {
         if ([string]::IsNullOrWhiteSpace($value)) { continue }
         if ((Get-FormatSignature $value) -ne [string]$record.formats) { continue }
         $set = if (($record.PSObject.Properties.Name -contains 'set') -and $record.set) { [string]$record.set } else { $SourceSet }
-        $unitId = if ($record.slot) { "$set|$($record.file)|$($record.key)|$($record.slot)" } else { "$set|$($record.file)|$($record.key)" }
+        $unitId = Get-LocaleUnitId -Module $Module -Set $set -File $record.file -Key $record.key -Slot ([string]$record.slot)
         $enHash = Get-EnglishStringFingerprint -Text ([string]$record.en)
         Update-LocaleSourceFingerprint -Fingerprints $fingerprints -Locale $Locale -Identity $unitId -Hash $enHash
     }

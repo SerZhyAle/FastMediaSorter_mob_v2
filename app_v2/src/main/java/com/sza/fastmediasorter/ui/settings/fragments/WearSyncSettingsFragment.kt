@@ -376,7 +376,6 @@ private class WatchSettingsState(watchSettings: WearSettingsPayload?) {
         imagesEnabled = imagesEnabled,
         slideshowEnabled = slideshowEnabled,
         slideshowIntervalSeconds = slideshowInterval.toInt(),
-        slideshowWaitForFinish = false,
         downloadAlbumArt = albumArtEnabled,
         viewMode = viewMode,
         keepScreenAwakeOutsidePlayers = keepScreenAwake,

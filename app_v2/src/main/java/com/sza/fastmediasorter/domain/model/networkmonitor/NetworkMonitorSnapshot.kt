@@ -70,9 +70,14 @@ data class ActiveLink(
  *
  * No BSSID field, by decision rather than omission: it is a location-sensitive identifier, and research
  * artifact 02 scopes the first release to the connected network's own signal and link facts.
+ *
+ * [ssidAvailability] exists because the platform withholds the name alone while answering every other field
+ * here (S1853). [ssid] is non-null if and only if this is [SectionAvailability.Available]; any other value
+ * is the reason the name is missing, which the section states instead of writing "unknown".
  */
 data class WifiEntry(
     val ssid: String?,
+    val ssidAvailability: SectionAvailability,
     val rssiDbm: Int?,
     val frequencyMhz: Int?,
     val linkSpeedMbps: Int?,

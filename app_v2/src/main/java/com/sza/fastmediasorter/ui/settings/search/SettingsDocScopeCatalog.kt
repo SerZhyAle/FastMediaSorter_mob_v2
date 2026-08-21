@@ -168,14 +168,6 @@ object SettingsDocScopeCatalog {
             titleUk = "Інтервал слайд-шоу"
         ),
         WearDocEntry(
-            key = "wearSlideshowWaitForFinish",
-            layout = "wear_slideshow_settings",
-            kind = "TOGGLE_ROW",
-            titleEn = "Wait for finish",
-            titleRu = "Ждать завершения",
-            titleUk = "Чекати завершення"
-        ),
-        WearDocEntry(
             key = "wearViewMode",
             layout = "wear_screen_settings",
             kind = "RADIO_GROUP",

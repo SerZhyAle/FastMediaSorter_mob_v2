@@ -80,6 +80,12 @@ fun SettingsScreen(
                     label = { Text(stringResource(R.string.about)) }
                 )
             }
+            item {
+                Chip(
+                    onClick = { navController.navigate(SettingsRoutes.SYSTEM_INFO) },
+                    label = { Text(stringResource(R.string.system_info_title)) }
+                )
+            }
         }
     }
 }

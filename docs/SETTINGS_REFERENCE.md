@@ -75,6 +75,7 @@ _Generated from the app. Do not edit by hand._
 | Make this app the home screen | Makes the app the device home screen, so the Home button opens your own desktop. |
 | System launcher settings | Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density. |
 | Statistics | Opens the usage statistics screen. |
+| Resource grid cell size | Sets how large the resource cells are in the main window grid: small fits more resources per row, large makes each one bigger. |
 | Show resource actions in menu ⋮ | Moves resource-level actions (add, edit, remove resource) into the overflow menu. |
 | Secure sensitive screens | Blocks screenshots and the Recents preview on screens that show passwords (add/edit resource, credentials in Settings, the login WebView, and the credential QR). On by default. |
 | Show hidden files | Shows files and folders whose names begin with a dot (hidden by convention). |
@@ -255,6 +256,8 @@ _Available in: Standard, Legacy, VR_
 | Network Monitor | Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself. |
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
 | Use scheduled operations | Activates the scheduler so configured operations run automatically at their set times. |
+| System information | Adds System information to the app's program menus and launcher surfaces, so the report is reachable without opening Settings. It is off by default and changes nothing about what the report contains. |
+| Wear companion | Adds the Wear companion to the app's program menus and panel, so the watch screen is reachable without opening Settings. It is off by default, and it appears at all only in builds that carry the watch bridge. |
 | Rotate screen with OS auto-rotate (except player) | When on, every app window except the player follows the OS auto-rotate setting; when off, they rotate by the device sensor regardless of the OS lock. |
 | Front flashlight | Adds the front flashlight to the programs list: the screen itself becomes a lamp. |
 | Gesture overlay | Enables the left-edge gesture overlay, allowing swipe shortcuts to trigger file operations. |
@@ -409,5 +412,4 @@ _Reached from Wear OS watch app -> Settings._
 | Files view | Chooses how file lists on the watch are laid out: a list, or a grid of two or three columns with real thumbnails. |
 | Keep screen on | Keeps the watch screen on outside the players; the audio, video and image players hold it on regardless. |
 | Slideshow interval | Sets the delay in seconds between slides during slideshow playback on Wear OS. |
-| Wait for finish | Waits for audio or video playback to complete before switching to the next slide on Wear OS. |
 | Screens view | Chooses how the watch navigation screens are laid out: a list, or a grid of two or three columns. |

@@ -88,7 +88,7 @@ Sanity-check chosen device (one call - model, Android release, SDK, density, siz
 pwsh -NoProfile -File scripts/devtest/adb.ps1 props -DeviceId <id> -Json
 ```
 
-One-off device chores outside mobile-mcp scenario loop (force-stop, ad-hoc screenshot, quick log tail): use same swiss-army instead of raw `adb`: `adb.ps1 stop` / `shot` / `log -Tail N -Grep <re>` / `logcat-clear` / `shell -Cmd "..."` (`.\a.ps1 adb <verb>`). Resetting app data is `wipe-data -Yes` and is one-way - it destroys settings, runtime grants and onboarding, so never reach for it to clear a log buffer (`logcat-clear` does that). The old `clear` verb is gone and refuses.
+One-off device chores outside mobile-mcp scenario loop (force-stop, ad-hoc screenshot, quick log tail): use same swiss-army instead of raw `adb`: `adb.ps1 stop` / `shot` / `log -Tail N -Grep <re>` / `logcat-clear` / `shell -Cmd "..."`. To drive the UI, `uidump` lists every label with its tap point and `tap-label -Label "<text or content-desc>"` taps it - both re-read the tree in the same call, so a list that scrolled since the last dump cannot send `tap -X -Y` into the neighbouring row (S1847); `clip-check` reports content leaving the display shape, which is the round-watch check (`.\a.ps1 adb <verb>`). Resetting app data is `wipe-data -Yes` and is one-way - it destroys settings, runtime grants and onboarding, so never reach for it to clear a log buffer (`logcat-clear` does that). The old `clear` verb is gone and refuses.
 
 Record device profile in scenario file header.
 

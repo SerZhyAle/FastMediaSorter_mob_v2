@@ -107,6 +107,11 @@ class LauncherGadgetRegistry @Inject constructor(
         // S1566: same contract - the key is what a cell's `target` column stores, so it is never renamed.
         const val KEY_SEARCH = "search"
 
+        // S1440: same contract - the key is what a cell's `target` column stores, so it is never
+        // renamed. Deliberately not "network": [KEY_NETWORK] above is S1178's fixed technical tile,
+        // and sharing one key would silently retarget every placed cell of either kind.
+        const val KEY_NETWORK_INDICATOR = "network_indicator"
+
         // S1755: YouTube and YouTube Music app gadgets.
         const val KEY_YOUTUBE = "youtube"
         const val KEY_YOUTUBE_MUSIC = "youtube_music"

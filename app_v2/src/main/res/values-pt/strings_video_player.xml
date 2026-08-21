@@ -5,7 +5,7 @@
     <string name="playback">Reprodução e classificação</string>
     <string name="playback_control_brightness_value">Brilho: %1$+d%%</string>
     <string name="playback_control_done">Feito</string>
-    <string name="playback_control_hue_value">MATIZ: %1$+d°</string>
+    <string name="playback_control_hue_value">Matiz: %1$+d°</string>
     <string name="playback_control_mute">Mudo</string>
     <string name="playback_control_mute_active">Silenciado</string>
     <string name="playback_control_mute_inactive">Som ligado</string>
@@ -28,8 +28,8 @@
     <string name="playback_order_shuffle">Embaralhar</string>
     <string name="playback_order_stopped">Reprodução interrompida (fim da lista)</string>
     <string name="playback_resumed_from">Retomado de %1$s</string>
-    <string name="playback_settings_3d_360_mono">Mono 360°</string>
-    <string name="playback_settings_3d_360_sbs">SBS 360°</string>
+    <string name="playback_settings_3d_360_mono">360° Mono</string>
+    <string name="playback_settings_3d_360_sbs">360° SBS</string>
     <string name="playback_settings_3d_auto">Detecção automática</string>
     <string name="playback_settings_3d_current">Formato atual: %s</string>
     <string name="playback_settings_3d_cylinder_180">Cilindro 180°</string>
@@ -55,11 +55,11 @@
     <string name="player_health_error_type_unknown">Tipo de erro: desconhecido</string>
     <string name="player_health_fallback_failed">Não foi possível reproduzir este arquivo com o reprodutor alternativo. %1$s</string>
     <string name="player_health_file_label">Arquivo: %1$s</string>
-    <string name="player_health_io_block">O que aconteceu: Erro de E/S - o arquivo pode estar corrompido, incompleto ou inacessível.\n\nO que você pode tentar:\n• Certifique-se de que o arquivo foi totalmente baixado\n• Verifique se o arquivo está corrompido\n• Para arquivos de rede, verifique a conexão</string>
-    <string name="player_health_malformed_block">O que aconteceu: o formato do arquivo está corrompido ou danificado.\n\nA estrutura do arquivo não corresponde à especificação da mídia.\n\nO que você pode tentar:\n• O arquivo pode estar danificado ou incompleto\n• Baixe ou recodifique o arquivo novamente\n• Certifique-se de que o arquivo foi transferido corretamente</string>
+    <string name="player_health_io_block">O que aconteceu: erro de E/S - o ficheiro pode estar corrompido, incompleto ou inacessível.\n\nO que pode tentar:\n• Confirme que o ficheiro está totalmente transferido\n• Verifique se o ficheiro está corrompido\n• Para ficheiros de rede, verifique a ligação</string>
+    <string name="player_health_malformed_block">O que aconteceu: o formato do ficheiro está malformado ou danificado.\n\nA estrutura do ficheiro não corresponde à especificação de multimédia.\n\nO que pode tentar:\n• O ficheiro pode estar danificado ou incompleto\n• Transfira ou recodifique novamente o ficheiro\n• Confirme que o ficheiro foi transferido corretamente</string>
     <string name="player_health_switching_to_fallback">A reprodução de áudio está apresentando problemas - alternando para o reprodutor alternativo.</string>
-    <string name="player_health_timeout_block">O que aconteceu: a operação expirou.\n\nO que você pode tentar:\n• Verifique a conexão de rede\n• Certifique-se de que o servidor esteja respondendo\n• Tente novamente mais tarde</string>
-    <string name="player_health_unsupported_block">O que aconteceu: este formato não é compatível.\n\nO reprodutor de backup não consegue reproduzir este formato ou codec.\n\nO que você pode tentar:\n• Abra o arquivo em um reprodutor de mídia externo\n• Converta-o para um formato padrão (MP4, H.264)</string>
+    <string name="player_health_timeout_block">O que aconteceu: a operação excedeu o tempo limite.\n\nO que pode tentar:\n• Verifique a ligação de rede\n• Confirme que o servidor está a responder\n• Tente novamente mais tarde</string>
+    <string name="player_health_unsupported_block">O que aconteceu: este formato não é suportado.\n\nO leitor de reserva não consegue processar este formato ou codec.\n\nO que pode tentar:\n• Abra o ficheiro num leitor de multimédia externo\n• Converta-o para um formato padrão (MP4, H.264)</string>
     <string name="player_media_files_load_failed">Não foi possível carregar a lista de arquivos. Tente novamente.</string>
     <string name="player_open_link_failed">Não consegui abrir esse link.</string>
     <string name="player_page_not_ready">Essa página ainda não está pronta. Tente novamente.</string>

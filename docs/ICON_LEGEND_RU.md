@@ -52,6 +52,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Начать видеозапись |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Хранилище |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Трансляции |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Сведения о системе |
 | <img src="icons/svg/ic_edit_20.svg" alt="ic_edit_20" width="24" height="24"> | Сделать фото и редактировать |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Сделать фото и OCR-перевод |
 | <img src="icons/svg/ic_camera_send_to.svg" alt="ic_camera_send_to" width="24" height="24"> | Сделать фото и отправить в.. |
@@ -104,7 +105,9 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Включить картинку в картинке |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Использовать операции по расписанию |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Включить трансляции |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Сведения о системе |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Включить перевод |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Компаньон часов |
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Фронтальный фонарик |
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Оверлей жестов |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Включить запись с микрофона |

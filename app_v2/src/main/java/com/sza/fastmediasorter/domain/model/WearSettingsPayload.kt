@@ -14,9 +14,8 @@ data class WearSettingsPayload(
     @SerializedName("imagesEnabled") val imagesEnabled: Boolean,
     @SerializedName("slideshowEnabled") val slideshowEnabled: Boolean,
     @SerializedName("slideshowIntervalSeconds") val slideshowIntervalSeconds: Int,
-    @SerializedName("slideshowWaitForFinish") val slideshowWaitForFinish: Boolean,
     @SerializedName("downloadAlbumArt") val downloadAlbumArt: Boolean,
-    // S1781: nullable with a null default, unlike the seven fields above - a phone that predates
+    // S1781: nullable with a null default, unlike the six fields above - a phone that predates
     // these keys omits them, and only a nullable field lets the watch tell "not sent" from "sent
     // as List/false" and leave its own stored value alone.
     @SerializedName("viewMode") val viewMode: String? = null,

@@ -20,3 +20,4 @@ installing or driving the `wear` module, or when publishing the watch app.
 - [Watch text input IS drivable](project_wear_text_input_is_drivable.md) - tap the field itself, then `input text`; the T9 window hides the value, read it with uiautomator dump
 - [The bezel IS drivable](project_wear_rotary_bezel_is_drivable.md) - `input rotaryencoder scroll --axis SCROLL,n` reaches Compose; sign inverted, 136 px per unit; `sendevent` refused by SELinux
 - [Emulator: black shots, dead ping](project_wear_emulator_capture_and_network_traps.md) - both false blockers; uiautomator still sees content
+- [No installed base -> no wire compat](project_wear_no_installed_base_no_wire_compat.md) - owner ruling: raise a watch-phone schema on both sides at once, skip negotiation

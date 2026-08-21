@@ -16,6 +16,15 @@ small files cannot flood the notification channel". The call site passed `forceP
 alongside its interval argument, so the gate was never armed and the guard below it was unreachable.
 Both documents had been written by someone who read the call and saw the reporter's name in it.
 
+**Your own parked draft counts as someone else's claim.** A `/spec-draft` §0 block is verbatim raw
+capture, so a few days (or minutes) later it reads like a finished finding while it is only what you
+believed while looking at something else. S1849 (2026-08-20): the §0 note said 8 records were
+mechanical reference fixes and 18 were route false positives. Re-deriving from the report's evidence
+lines gave 1 real defect, 27 false positives, and 10 route records - both numbers wrong, in both
+directions. Planning straight off §0 would have "fixed" seven correctly-written lines. Re-derive
+every count and every classification from the raw artifact before the plan, and write the corrected
+figures into §1/§6 so the next reader sees the derivation, not the guess.
+
 **How to apply:** When a doc or phase log states an invariant that matters to the change in hand,
 open the code path and confirm it. Two smells that this specific class of bug leaves behind: a
 throttle/interval argument passed next to a `force`/`skip` flag that overrides it, and a guard whose

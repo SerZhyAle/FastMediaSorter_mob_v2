@@ -1,0 +1,9 @@
+08-20 22:56:41.001  1600  1600 I ActivityManager: Start proc 2716:com.sza.fastmediasorter.debug/u0a263 for next-top-activity {com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity}
+08-20 22:56:42.310  2716  2716 D MainActivity: onCreate
+08-20 22:57:00.100  2716  2748 E ResourceScanUseCase: failed to open resource: /storage/emulated/0/DCIM/missing.jpg
+08-20 22:58:30.115  1435  1699 E A       : (REDACTED) Trace %s timed out after %d ms. Complete trace: %s
+08-20 22:58:30.115  1435  1699 E A       : com.google.apps.tiktok.tracing.gc:
+08-20 22:58:30.116  1435  1699 E A       : 	at tk_trace.OnOpNotedCallback#onAsyncNoted(Started After:0)
+08-20 22:58:30.117  1435  1718 E A       : (REDACTED) Trace %s timed out after %d ms. Complete trace: %s
+08-20 22:58:31.220  1435  1699 E GsaVoiceInteraction: interactor session teardown failed
+08-20 22:58:40.500  2716  2716 E SmbClient: WifiRequiredException: Wi-Fi required for SMB

@@ -34,6 +34,7 @@
       - assert-rule-digest-sync      (S1548 CLAUDE.md numbered rules vs the two full digests)
       - assert-gson-persistence-contract (S1639 a durable Gson model whose wire names nothing pins)
       - assert-stream-asset-revisions (S1828 a pinned stream-catalog asset that would stop being published)
+      - assert-migration-test-pairing (S1844 a Room migration with no instrumented migration test)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
@@ -98,6 +99,12 @@ $gates = [ordered]@{
     # EAP=Stop makes the following `exit N` unreachable, so a script's documented code
     # collapses to 1. Cheap (scans scripts/*.ps1 only) and the class has regrown 3 times.
     'assert-exit-contract.ps1'                  = @('-Quiet')
+    # S1844: a Room migration with no instrumented migration test. Nothing compiled androidTest and
+    # nothing checked the pairing, so a migration could ship untested while a plausible-looking test
+    # file sat beside it - AppDatabaseMigration50To51Test.kt referenced a constant it never declared
+    # and could not compile at all. Ratchet over two directory listings, no gradle daemon; the 12
+    # migrations that predate the habit are baselined so only a NEW gap fails.
+    'assert-migration-test-pairing.ps1'         = @()
     # S1075: dev/TECH_REQUIREMENTS.md pins vs Gradle truth. Static parse of build files
     # + one doc; no gradle daemon. Catches a dependency bump that forgot the doc.
     'assert-doc-pin-drift.ps1'                  = @('-Quiet')

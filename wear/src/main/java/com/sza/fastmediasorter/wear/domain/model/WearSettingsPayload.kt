@@ -10,7 +10,6 @@ data class WearSettingsPayload(
     val imagesEnabled: Boolean,
     val slideshowEnabled: Boolean,
     val slideshowIntervalSeconds: Int,
-    val slideshowWaitForFinish: Boolean,
     val downloadAlbumArt: Boolean,
     // S1781: nullable with a null default - an older phone omits these keys, and only a nullable
     // field lets the applying side leave the watch's own stored value untouched.

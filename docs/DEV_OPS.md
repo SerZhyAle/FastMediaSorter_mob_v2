@@ -81,9 +81,10 @@
 
 `scripts/devtest/adb.ps1` is the quick swiss-army for one-off work against a connected
 emulator / device - runs natively (~0 LLM tokens), auto-discovers adb (not on PATH),
-takes `-DeviceId` / `-Release` / `-Package` / `-Json`, and uses stable exit codes
+takes `-DeviceId` / `-Release` / `-Package` / `-OutDir` / `-Json`, and uses stable exit codes
 (0 ok / 1 no-adb-or-bad-args / 2 no-device / 3 multi-device / 4 pkg-not-installed /
-5 destructive verb refused / 7 adb-failed).
+5 destructive verb refused / 6 pull: no such remote path / 7 adb-failed / 8 tap-label: label not on
+screen / 9 clip-check: content off-glass).
 
 **Two verbs are one-way and both require `-Yes`: `wipe-data` and `uninstall`.** The verb that used to be
 called `clear` is gone - it was twice read as "clear the log" and wiped app data instead (S1167, S1572), so
@@ -101,8 +102,32 @@ called `clear` is gone - it was twice read as "clear the log" and wiped app data
 .\a.ps1 adb current                           # focused activity / package
 .\a.ps1 adb install -Flavor standard          # install -r -d newest debug APK (or -Apk <path>)
 .\a.ps1 adb tap -X 540 -Y 1000                # input tap / text -Text / key -Key
+.\a.ps1 adb swipe -X 900 -Y 1200 -X2 200 -Y2 1200   # scroll or page: -Duration ms (default 300)
+.\a.ps1 adb uidump -Grep "Settings|Media"     # labels, bounds and tap points from the node tree
+.\a.ps1 adb tap-label -Label "Media Types"    # tap by label; -Exact, -Index N; exit 8 if absent
+.\a.ps1 adb clip-check                        # content leaving the display shape; exit 9 on a defect
 .\a.ps1 adb shell -Cmd "getprop ro.product.cpu.abi"
 ```
+
+### Tapping by label, and what clip-check calls a defect (S1847)
+
+`tap -X -Y` needs a coordinate, and a coordinate goes stale the moment the list under it scrolls -
+in one wear sweep that put two taps on the row next to the intended one. `tap-label` takes the dump
+and the tap in the SAME call, so there is no window for the screen to move, and when the label is
+not on screen it exits **8** without tapping anything rather than guessing.
+
+`clip-check` reads the glass outline from the device (`mRoundedCorners` in `dumpsys window
+displays`), so the round watch (radius 240 on 480x480 - a circle) and the phone (radius 105 on
+1080x2340 - a rounded rectangle) are one rule with no hardcoded geometry. It classifies rather than
+alarms, because uiautomator reports bounds already clipped to the screen and the naive "did the box
+leave the circle" test fires on every list head and tail:
+
+- `EDGE` - the viewport cut it; this frame says nothing about the element's real extent.
+- `CLIPPED` - it has a scrollable ancestor and would fit at the vertical centre. Normal.
+- `OFF-GLASS` - no scroll position saves it. The only class with an exit code (**9**).
+
+Only leaf nodes are judged: a container's box is the extent of a group, not of anything visible, and
+the launcher's home-screen container was the first thing the verb called a defect on a normal phone.
 
 `log` picks lines by process id, so the app's own Timber output survives even though Timber tags
 a line with the class name and never with the package (S1332); the package-text arm remains, and is
@@ -193,10 +218,10 @@ Fallback path - abort the stalled invocation, then:
 
 ```powershell
 # 1. Clean only volatile kapt/kotlin/executionHistory dirs and retry once with --no-daemon.
-pwsh -File scripts/utils/recover-kapt-stall.ps1 -Task ":app_v2:testStandardDebugUnitTest"
+pwsh -NoProfile -File scripts/utils/recover-kapt-stall.ps1 -Task ":app_v2:testStandardDebugUnitTest"
 
 # 2. Or recover and retry manually (omit -Task to skip the auto-retry).
-pwsh -File scripts/utils/recover-kapt-stall.ps1
+pwsh -NoProfile -File scripts/utils/recover-kapt-stall.ps1
 .\gradlew.bat :app_v2:testStandardDebugUnitTest --no-daemon
 
 # 3. Last resort if the targeted retry stalls again - full wipe (forces a cold rebuild).
@@ -474,16 +499,16 @@ Usage:
 
 ```powershell
 # SINGLE-LOCALE UPDATE
-pwsh -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale en -Key "cloud_check_failed" -Value "Could not check the cloud connection. Try again."
+pwsh -NoProfile -File scripts/utils/set-android-string.ps1 -Module app_v2 -Locale en -Key "cloud_check_failed" -Value "Could not check the cloud connection. Try again."
 
 # EN/RU/UK UPDATE IN ONE CALL
-pwsh -File scripts/utils/set-android-strings.ps1 -Module app_v2 -Key "cloud_check_failed" -EnValue "Could not check the cloud connection. Try again." -RuValue "Не удалось проверить подключение к облаку. Попробуйте ещё раз." -UkValue "Не вдалося перевірити підключення до хмари. Спробуйте ще раз."
+pwsh -NoProfile -File scripts/utils/set-android-strings.ps1 -Module app_v2 -Key "cloud_check_failed" -EnValue "Could not check the cloud connection. Try again." -RuValue "Не удалось проверить подключение к облаку. Попробуйте ещё раз." -UkValue "Не вдалося перевірити підключення до хмари. Спробуйте ще раз."
 
 # OPTIONAL SAFETY GUARDS
-pwsh -File scripts/utils/set-android-strings.ps1 -Module app_v2 -Key "cloud_check_failed" -EnValue "Could not check the cloud connection. Try again." -RuValue "Не удалось проверить подключение к облаку. Попробуйте ещё раз." -UkValue "Не вдалося перевірити підключення до хмари. Спробуйте ще раз." -ExpectedOldEnValue "Could not check the cloud connection." -ExpectedOldRuValue "Не удалось проверить подключение к облаку." -ExpectedOldUkValue "Не вдалося перевірити підключення до хмари."
+pwsh -NoProfile -File scripts/utils/set-android-strings.ps1 -Module app_v2 -Key "cloud_check_failed" -EnValue "Could not check the cloud connection. Try again." -RuValue "Не удалось проверить подключение к облаку. Попробуйте ещё раз." -UkValue "Не вдалося перевірити підключення до хмари. Спробуйте ще раз." -ExpectedOldEnValue "Could not check the cloud connection." -ExpectedOldRuValue "Не удалось проверить подключение к облаку." -ExpectedOldUkValue "Не вдалося перевірити підключення до хмари."
 
 # LOCALE PARITY CHECK
-pwsh -File scripts/check_strings_localized.ps1 -Module app_v2 -KeyPrefix "cloud_check_failed"
+pwsh -NoProfile -File scripts/check_strings_localized.ps1 -Module app_v2 -KeyPrefix "cloud_check_failed"
 ```
 
 Use the string updater scripts for targeted `<string>` edits. Manual XML editing is still appropriate for structural resource changes such as `plurals`, `string-array`, comments, regrouping, or bulk rewrites.
@@ -551,8 +576,9 @@ Four facts a reader cannot derive from the commands:
 # WHAT DOES NOT YET REACH EVERY DECLARED LOCALE (0 clean, 3 non-empty, 1 unusable input)
 pwsh -NoProfile -File scripts/utils/list-new-lexemes.ps1
 
-# THE SAME SET AS A RELEASE BLOCKER (0 clean, 1 blocked, 2 cannot verify)
+# THE SAME SET AS A RELEASE BLOCKER (0 clean, 1 blocked, 2 cannot verify) - ONCE PER MODULE
 pwsh -NoProfile -File scripts/quality/assert-new-lexemes-translated.ps1
+pwsh -NoProfile -File scripts/quality/assert-new-lexemes-translated.ps1 -Module wear
 
 # THE BULK ROUND TRIP THAT CLEARS IT
 pwsh -NoProfile -File scripts/utils/locale-bulk-import.ps1 -TextPath <file returned by the translator>
@@ -564,11 +590,12 @@ The app declares thirteen interface locales in `app_v2/src/main/res/xml/locales_
 2. Closing a ticket that touched a strings file prints the `new-lexeme-count` advisory. Also not a refusal.
 3. The pre-release sweep runs step `0.8`, which **is** the refusal. `list-new-lexemes.ps1` writes `temp/S1627/new_lexemes_en.txt`; that file goes to the external translation service, each returned file comes back through `locale-bulk-import.ps1`, and the step is re-run until it is 0.
 
-Three facts a reader cannot derive from the commands:
+Four facts a reader cannot derive from the commands:
 
 - **The refusal sits at the release, not at the ticket, by owner decision (strategic ADR-2).** Nothing ships between releases, so translating each key the day it is written buys the user nothing while costing ten translations per ticket; one batch per release costs one round trip for all of them.
 - **A missing translation is an absent key, never an English copy (ADR-6, S1190).** Android falls back to English on its own, so a partial locale is a shippable state. This is why the producer asks each locale's resource file which keys it carries, rather than comparing values.
-- **`scripts/quality/locale-untranslated-baseline.txt` holds identities, not a count.** It froze the 19 keys already untranslated on 2026-08-14 - all of them `S1626`'s placeholder-misread phrasings - so a pre-existing gap cannot be reported as new. A count would let a new key slip in behind an old one cleared in the same release. Entries leave the file as `S1626` clears them, and the producer reports a cleared entry as stale; do not expect that soon, since `S1626` is `BlockExternal` - the rule that looked obvious (placeholder at a string edge) was measured over all 307 placeholder-bearing strings and does not discriminate, so the set clears through a probe in a future bulk round rather than through an edit anyone can make today.
+- **Provenance is tracked per module, and the gate runs once per module (S1858).** `scripts/quality/locale-source-fingerprints.json` addresses a unit as `module|set|file|key[|slot]`. It has to: `app_v2` and `wear` each ship `src/main/res/values/strings.xml` and share 14 key names, 6 of them with different English text, so an unqualified identity gave the two modules one slot with room for one hash. Whichever module imported last won it, and the gate then measured the other module's text against the wrong hash and called six translated keys untranslated - unfixable by re-importing, because re-importing only moved the red to the other module. A registry written before that split declares no schema version, reads as v1 and is refused with exit 2 until `scripts/quality/migrate-locale-fingerprints-module.ps1` rewrites it; a v1 store read as v2 would reproduce the same false report with nothing left to explain it.
+- **`scripts/quality/locale-untranslated-baseline.txt` holds identities, not a count.** It froze the keys already untranslated on 2026-08-14 - all of them `S1626`'s placeholder-misread phrasings - so a pre-existing gap cannot be reported as new. A count would let a new key slip in behind an old one cleared in the same release. Its entries are module-qualified for the same reason the registry's are. Entries leave the file as `S1626` clears them, and the producer reports a cleared entry as stale; do not expect that soon, since `S1626` is `BlockExternal` - the rule that looked obvious (placeholder at a string edge) was measured over all 307 placeholder-bearing strings and does not discriminate, so the set clears through a probe in a future bulk round rather than through an edit anyone can make today.
 
 ### Maestro oracle convention - S1612
 
@@ -925,7 +952,7 @@ Steps:
 5. Add an explicit `## Note: signing-key rotation` subsection to
    `docs/WHATS_NEW.md` for the release that rotates the key, with a
    one-line "users must reinstall via direct download" instruction.
-6. Run the publisher: `pwsh -File scripts/release/publish-github-release.ps1`
+6. Run the publisher: `pwsh -NoProfile -File scripts/release/publish-github-release.ps1`
    from the release worktree on `main`. The Assert-ExpectedFingerprint gate
    will now pass against the new pin.
 7. Append an ADR-style entry inside this section recording: rotation date,

@@ -130,8 +130,8 @@ $fingerprints = Get-LocaleSourceFingerprints -Path $FingerprintsPath
 
 $missingByIdentity = [ordered]@{}
 foreach ($record in $records) {
-    $identity = "$($record.set)|$($record.file)|$($record.key)"
-    $unitId = if ($record.slot) { "$($record.set)|$($record.file)|$($record.key)|$($record.slot)" } else { "$($record.set)|$($record.file)|$($record.key)" }
+    $identity = Get-LocaleUnitId -Module $Module -Set $record.set -File $record.file -Key $record.key
+    $unitId = Get-LocaleUnitId -Module $Module -Set $record.set -File $record.file -Key $record.key -Slot ([string]$record.slot)
     $enHash = Get-EnglishStringFingerprint -Text ([string]$record.en)
 
     $missingForThisRecord = [System.Collections.Generic.List[string]]::new()
@@ -168,7 +168,7 @@ if ($baselineFound) {
 $survivors = [System.Collections.Generic.List[object]]::new()
 $untranslated = [System.Collections.Generic.HashSet[string]]::new()
 foreach ($record in $records) {
-    $identity = "$($record.set)|$($record.file)|$($record.key)"
+    $identity = Get-LocaleUnitId -Module $Module -Set $record.set -File $record.file -Key $record.key
     if ($missingByIdentity[$identity].Count -eq 0) { continue }
     [void]$untranslated.Add($identity)
     if ($baselineIdentities.Contains($identity)) { continue }
@@ -203,7 +203,7 @@ $indexBody = if ($index.Count -gt 0) { ($index -join "`n") + "`n" } else { '' }
 [System.IO.File]::WriteAllText($textPath, $body, $utf8)
 [System.IO.File]::WriteAllText($indexPath, $indexBody, $utf8)
 
-$distinctKeys = @($survivors | ForEach-Object { "$($_.set)|$($_.file)|$($_.key)" } | Select-Object -Unique)
+$distinctKeys = @($survivors | ForEach-Object { Get-LocaleUnitId -Module $Module -Set $_.set -File $_.file -Key $_.key } | Select-Object -Unique)
 Write-Host "list-new-lexemes: new untranslated keys $($distinctKeys.Count) | lines $($lines.Count) | corpus $($records.Count) | baselined $($baselineIdentities.Count) | locales checked $($bestEffort.Count)"
 
 if (-not $Quiet) {

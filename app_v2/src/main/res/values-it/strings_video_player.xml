@@ -5,7 +5,7 @@
     <string name="playback">Riproduzione e ordinamento</string>
     <string name="playback_control_brightness_value">Luminosità: %1$+d%%</string>
     <string name="playback_control_done">Fatto</string>
-    <string name="playback_control_hue_value">TONO: %1$+d°</string>
+    <string name="playback_control_hue_value">TONALITÀ: %1$+d°</string>
     <string name="playback_control_mute">Silenzioso</string>
     <string name="playback_control_mute_active">Attenuato</string>
     <string name="playback_control_mute_inactive">Attiva l\'audio</string>
@@ -28,7 +28,7 @@
     <string name="playback_order_shuffle">Mescolare</string>
     <string name="playback_order_stopped">Riproduzione interrotta (fine elenco)</string>
     <string name="playback_resumed_from">Ripreso da %1$s</string>
-    <string name="playback_settings_3d_360_mono">Monocromatico a 360°</string>
+    <string name="playback_settings_3d_360_mono">360° Mono</string>
     <string name="playback_settings_3d_360_sbs">360° SBS</string>
     <string name="playback_settings_3d_auto">Rilevamento automatico</string>
     <string name="playback_settings_3d_current">Formato attuale: %s</string>
@@ -55,11 +55,11 @@
     <string name="player_health_error_type_unknown">Tipo di errore: sconosciuto</string>
     <string name="player_health_fallback_failed">Impossibile riprodurre questo file con il lettore di backup. %1$s</string>
     <string name="player_health_file_label">File: %1$s</string>
-    <string name="player_health_io_block">Cosa è successo: Errore di I/O: il file potrebbe essere danneggiato, incompleto o irraggiungibile.\n\nCosa puoi provare:\n• Assicurati che il file sia stato scaricato completamente\n• Verifica se il file è danneggiato\n• Per i file di rete, controlla la connessione</string>
-    <string name="player_health_malformed_block">Cosa è successo: il formato del file è danneggiato o non valido.\n\nLa struttura del file non corrisponde alle specifiche del supporto.\n\nCosa puoi provare:\n• Il file potrebbe essere danneggiato o incompleto\n• Scarica nuovamente o ricodifica il file\n• Assicurati che il file sia stato trasferito correttamente</string>
+    <string name="player_health_io_block">Cosa è successo: errore I/O - il file potrebbe essere danneggiato, incompleto o non raggiungibile.\n\nCosa puoi provare:\n• Assicurati che il file sia scaricato completamente\n• Verifica se il file è danneggiato\n• Per i file di rete, controlla la connessione</string>
+    <string name="player_health_malformed_block">Cosa è successo: il formato del file non è valido o è danneggiato.\n\nLa struttura del file non corrisponde alla specifica multimediale.\n\nCosa puoi provare:\n• Il file potrebbe essere danneggiato o incompleto\n• Riscarica o ricodifica il file\n• Assicurati che il file sia stato trasferito correttamente</string>
     <string name="player_health_switching_to_fallback">La riproduzione audio presenta problemi: si passa al lettore di backup.</string>
-    <string name="player_health_timeout_block">Cosa è successo: l\'operazione è andata in timeout.\n\nCosa puoi provare:\n• Controlla la connessione di rete\n• Assicurati che il server risponda\n• Riprova più tardi</string>
-    <string name="player_health_unsupported_block">Cosa è successo: questo formato non è supportato.\n\nIl lettore di backup non è in grado di gestire questo formato o codec.\n\nCosa puoi provare:\n• Apri il file con un lettore multimediale esterno\n• Convertilo in un formato standard (MP4, H.264)</string>
+    <string name="player_health_timeout_block">Cosa è successo: l\'operazione è scaduta.\n\nCosa puoi provare:\n• Controlla la connessione di rete\n• Assicurati che il server risponda\n• Riprova più tardi</string>
+    <string name="player_health_unsupported_block">Cosa è successo: questo formato non è supportato.\n\nIl lettore di riserva non può gestire questo formato o codec.\n\nCosa puoi provare:\n• Apri il file in un lettore multimediale esterno\n• Converti il file in un formato standard (MP4, H.264)</string>
     <string name="player_media_files_load_failed">Impossibile caricare l\'elenco dei file. Riprova.</string>
     <string name="player_open_link_failed">Impossibile aprire il link.</string>
     <string name="player_page_not_ready">La pagina non è ancora pronta. Riprova.</string>

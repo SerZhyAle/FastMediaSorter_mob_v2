@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
+import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
 import com.sza.fastmediasorter.widget.CameraLaunchActivity
 import com.sza.fastmediasorter.widget.CameraQuickCaptureActivity
 import com.sza.fastmediasorter.widget.CameraQuickCaptureLaunchManager
@@ -37,6 +38,13 @@ object AppLaunchPanelRouteIntents {
     fun calculator(context: Context): Intent =
         Intent(context, CalculatorActivity::class.java).withPanelFlags()
 
+    // S1856: the calculator's own toggle lives on the Operations tab, next to the network monitor's
+    // and the flashlight's - a disabled route opens its setting instead of dead-launching.
+    fun calculatorSettings(context: Context): Intent =
+        Intent(context, SettingsActivity::class.java)
+            .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
+            .withPanelFlags()
+
     fun networkMonitor(
         context: Context,
         section: NetworkMonitorSection = NetworkMonitorSection.Summary,
@@ -46,6 +54,16 @@ object AppLaunchPanelRouteIntents {
         networkMonitor(context, NetworkMonitorSection.fromKey(sectionKey))
 
     fun networkMonitorSettings(context: Context): Intent =
+        Intent(context, SettingsActivity::class.java)
+            .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
+            .withPanelFlags()
+
+    // S1733: a transparent host of ours, like the flashlight - there is no widget trampoline to reuse,
+    // because system information had no entry point outside the settings screen before this ticket.
+    fun systemInfo(context: Context): Intent =
+        SystemInfoActivity.createIntent(context).withPanelFlags()
+
+    fun systemInfoSettings(context: Context): Intent =
         Intent(context, SettingsActivity::class.java)
             .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
             .withPanelFlags()

@@ -11,22 +11,22 @@
     <string name="player_vr_overflow_open">वर्चुअल रियलिटी में खोलें</string>
     <string name="vr_cheatsheet_ctrl_a">ए (दाएं) - रोकें / चलाएं</string>
     <string name="vr_cheatsheet_ctrl_b">B (दाएं) - 2D पैनल पर जाने के लिए निकास</string>
-    <string name="vr_cheatsheet_ctrl_grip">पकड़ - हाथ को पकड़े रहें और हिलाएं = ज़ूम · दोनों हाथों को 1 सेकंड या उससे अधिक देर तक पकड़े रहने पर ज़ूम रीसेट हो जाएगा</string>
-    <string name="vr_cheatsheet_ctrl_menu">≡ (बाएं) - प्लेबैक नियंत्रण संवाद</string>
-    <string name="vr_cheatsheet_ctrl_stick_l">L स्टिक - ↑↓ वॉल्यूम · ←→ ±10 सेकंड आगे-पीछे करें · क्लिक करें: इमर्सिव ↔ फ्लैट</string>
-    <string name="vr_cheatsheet_ctrl_stick_r">R स्टिक - ↑↓ वॉल्यूम · ←→ पिछली/अगली फ़ाइल · क्लिक करें: रीसेंटर</string>
+    <string name="vr_cheatsheet_ctrl_grip">ग्रिप - पकड़ें + हाथ हिलाएं = ज़ूम · दोनों ग्रिप ≥ 1s = ज़ूम रीसेट</string>
+    <string name="vr_cheatsheet_ctrl_menu">≡ (बाएं) - प्लेबैक नियंत्रण डायलॉग</string>
+    <string name="vr_cheatsheet_ctrl_stick_l">L स्टिक - ↑↓ वॉल्यूम · ←→ सीक ±10s · क्लिक: इमर्सिव ↔ फ़्लैट</string>
+    <string name="vr_cheatsheet_ctrl_stick_r">R स्टिक - ↑↓ वॉल्यूम · ←→ पिछली/अगली फ़ाइल · क्लिक: रीसेंटर</string>
     <string name="vr_cheatsheet_ctrl_x">X (बाएं) - बाहर निकलें (डुप्लिकेट)</string>
     <string name="vr_cheatsheet_ctrl_y">Y (बाएँ) - फ़ाइल संचालन (छोटा प्रेस) / यह चीटशीट (लंबा प्रेस)</string>
-    <string name="vr_cheatsheet_footer">बंद करने के लिए कहीं भी टैप करें · दोबारा खोलने के लिए Y या F1 को देर तक दबाएं</string>
+    <string name="vr_cheatsheet_footer">बंद करने के लिए कहीं भी टैप करें · फिर से खोलने के लिए Y या F1 दबाए रखें</string>
     <string name="vr_cheatsheet_hands_double_pinch">दो बार दबाकर देखें - रोकें / चलाएं</string>
-    <string name="vr_cheatsheet_hands_ray">हाथ से इशारा करें - किरण को लक्ष्य पर ले जाएं · पिंच करें - क्लिक करें (UI)</string>
-    <string name="vr_cheatsheet_hands_swipe">अंगूठे से स्वाइप करें ←→ - आगे-पीछे करने के लिए ±10 सेकंड · ↑↓ - आवाज़ बढ़ाएं</string>
-    <string name="vr_cheatsheet_kb_arrows">← → - आगे-पीछे करने के लिए ±10 सेकंड · Shift+←→ - आगे-पीछे करने के लिए ±3 सेकंड · Ctrl+←→ - आगे-पीछे करने के लिए ±60 सेकंड · ↑↓ - आवाज़ बढ़ाने के लिए</string>
-    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R - नाम बदलें · Ctrl+C - कॉपी करें · Ctrl+X - स्थानांतरित करें · Ctrl+I - जानकारी · Ctrl+Y - फ़ाइल संचालन</string>
-    <string name="vr_cheatsheet_kb_fkeys">F1 - यह चीटशीट · F2 - नाम बदलें · F3 - के बारे में · F4 - सेटिंग्स · F5 - कॉपी करें · F6 - स्थानांतरित करें · F7 - फ़ाइल संचालन · F8 - हटाएं · F10 - बाहर निकलें</string>
-    <string name="vr_cheatsheet_kb_space">स्पेस / K - पॉज़ / प्ले · J / L - ±10 सेकंड · N / P - पिछला/अगला · M - म्यूट</string>
-    <string name="vr_cheatsheet_mouse_buttons">बायां पैर (LMB) - रोकें/चलाएं · दायां पैर (RMB) - सेटिंग्स · मध्य पैर (MMB) - रीसेंटर करें · बटन 4/5 - पिछली/अगली फ़ाइल</string>
-    <string name="vr_cheatsheet_mouse_wheel">व्हील - वॉल्यूम · शिफ्ट+व्हील - ±10 सेकंड आगे-पीछे</string>
+    <string name="vr_cheatsheet_hands_ray">हाथ इशारा करें - रे को निशाना बनाएं · पिंच - UI क्लिक करें</string>
+    <string name="vr_cheatsheet_hands_swipe">थंब स्वाइप ←→ - सीक ±10s · ↑↓ - वॉल्यूम</string>
+    <string name="vr_cheatsheet_kb_arrows">← → - सीक ±10s · Shift+←→ - ±3s · Ctrl+←→ - ±60s · ↑↓ - वॉल्यूम</string>
+    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R - रीनेम · Ctrl+C - कॉपी · Ctrl+X - मूव · Ctrl+I - जानकारी · Ctrl+Y - फ़ाइल ऑपरेशन</string>
+    <string name="vr_cheatsheet_kb_fkeys">F1 - यह चीटशीट · F2 - रीनेम · F3 - परिचय · F4 - सेटिंग्स · F5 - कॉपी · F6 - मूव · F7 - फ़ाइल ऑपरेशन · F8 - डिलीट · F10 - बाहर निकलें</string>
+    <string name="vr_cheatsheet_kb_space">Space / K - रोकें / चलाएं · J / L - ±10s · N / P - पिछला/अगला · M - म्यूट</string>
+    <string name="vr_cheatsheet_mouse_buttons">LMB - रोकें / चलाएं · RMB - सेटिंग्स · MMB - रीसेंटर · बटन 4/5 - पिछली/अगली फ़ाइल</string>
+    <string name="vr_cheatsheet_mouse_wheel">व्हील - वॉल्यूम · Shift+व्हील - सीक ±10s</string>
     <string name="vr_cheatsheet_section_controllers">टच कंट्रोलर (क्वेस्ट 2 / 3 / प्रो):</string>
     <string name="vr_cheatsheet_section_hands">हैंड ट्रैकिंग (कंट्रोलर अलग रखे गए):</string>
     <string name="vr_cheatsheet_section_keyboard">ब्लूटूथ कीबोर्ड:</string>
@@ -52,7 +52,7 @@
     <string name="vr_hud_copy_done">कॉपी किया गया</string>
     <string name="vr_hud_error_network">कोई नेटवर्क नहीं</string>
     <string name="vr_hud_first_file">पहली फ़ाइल</string>
-    <string name="vr_hud_first_run_cheat">पॉज़/प्ले · बाएँ स्टिक से आगे-पीछे करें · दाएँ स्टिक से वॉल्यूम/फ़ोल्ड करें · ग्रिप ज़ूम · मेनू सेटिंग्स</string>
+    <string name="vr_hud_first_run_cheat">A रोकें/चलाएं · L स्टिक सीक · R स्टिक फ़ाइल/वॉल्यूम · ग्रिप ज़ूम · Menu सेटिंग्स</string>
     <string name="vr_hud_guard_controls">इमर्सिव मोड में कंट्रोल डायलॉग उपलब्ध नहीं है। इसे खोलने के लिए इमर्सिव मोड से बाहर निकलें।</string>
     <string name="vr_hud_guard_file_ops">इमर्सिव मोड में फ़ाइल पैनल उपलब्ध नहीं है। इसका उपयोग करने के लिए इमर्सिव मोड से बाहर निकलें।</string>
     <string name="vr_hud_immersive_off">फ्लैट स्क्रीन</string>
@@ -99,7 +99,7 @@
     <string name="vr_save_frame_timeout">वीआर स्टीरियो स्नैपशॉट का समय समाप्त हो गया</string>
     <string name="vr_save_frame_unavailable">वीआर स्टीरियो स्नैपशॉट फिलहाल उपलब्ध नहीं है।</string>
     <string name="vr_settings_block_title">3डी-वीआर प्लेबैक और नियंत्रण</string>
-    <string name="vr_settings_test_immersive_content_description">इमर्सिव मोड में एक नमूना 360° छवि खोलें।</string>
+    <string name="vr_settings_test_immersive_content_description">इमर्सिव मोड में एक नमूना 360° छवि खोलें.</string>
     <string name="vr_settings_test_immersive_init_failure_toast">वीआर शुरू नहीं हो पा रहा है। कृपया सुनिश्चित करें कि आपका हेडसेट कनेक्टेड है।</string>
     <string name="vr_settings_test_immersive_label">टेस्ट इमर्सिव</string>
     <string name="vr_settings_test_immersive_runtime_loss_toast">वीआर सेशन अप्रत्याशित रूप से समाप्त हो गया।</string>

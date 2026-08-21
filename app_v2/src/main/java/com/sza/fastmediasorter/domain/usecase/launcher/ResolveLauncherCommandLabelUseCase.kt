@@ -133,6 +133,8 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
             when (command) {
                 is LauncherCellCommand.App -> appVisual(command.packageName)
                 is LauncherCellCommand.Feature -> featureVisual(command.routeKey, targetContext)
+                is LauncherCellCommand.FeatureSection ->
+                    featureVisual(command.routeKey, targetContext)
                 is LauncherCellCommand.Resource -> resourceVisual(command.resourceId)
                 is LauncherCellCommand.Stream -> streamVisual(command.identityKey)
                 is LauncherCellCommand.OsShortcut -> osVisual(command.targetKey, radioStates, targetContext)

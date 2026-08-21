@@ -77,6 +77,17 @@
                         app:str_helpTitle="@string/tooltip_compact_elements_title"
                         app:str_helpMessage="@string/tooltip_compact_elements_message" />
 
+                    <!-- S1285: cell size of the main-window resource grid. Sits next to the compact
+                         toggle because both scale the same screen, but they are independent axes -
+                         this one changes the cell, that one the icon and text inside it. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/rowResourceGridCellSize"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                        app:sdr_title="@string/pref_resource_grid_cell_size_title" />
+
                     <!-- Enable Favorites (Moved from Sleep/Favorites container) -->
                     <LinearLayout android:id="@+id/layoutEnableFavorites" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
 

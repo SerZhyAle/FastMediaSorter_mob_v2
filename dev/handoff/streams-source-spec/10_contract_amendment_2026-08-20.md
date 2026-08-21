@@ -156,12 +156,23 @@ height follows the tile count and is not fixed.** Derive the row count from the 
 - Index maths is unchanged: `col = index % 34`, `row = index / 34`, rect
   `(col * 240, row * 135, +240, +135)`.
 
-**The logo sheet: same rule, apply it now rather than later.** Its grid is `136 x 136` **square** tiles,
-`59` columns, `col = index % 59`, and today its height still happens to be fixed - the 2026-08-20 build
-is `8024 x 8160`, 3 540 tiles, 14 295 606 B. Do not rely on that. It is still on the old truncating
-behaviour the preview sheet was cured of: this build had **4 148 logos ready and dropped the last 608**
-to fit, with a warning, while the run reported success (S1843 is open against it). When that is fixed the
-logo sheet's height will start following its tile count exactly as the preview sheet's does. Derive both.
+**The logo sheet: the same rule now applies to it too, as of 2026-08-20 (S1841).** Its grid is `136 x 136`
+**square** tiles, `59` columns, `col = index % 59`. **Its height follows its tile count and is not fixed** -
+exactly like the preview sheet. Derive the row count from the image on both sheets; hardcode neither.
+
+- The sheet published on 2026-08-20, before the fix, was `8024 x 8160`: 3 540 tiles in 60 rows,
+  14 295 606 B, covering 3 875 channels. That was the self-imposed ceiling, not the format's.
+- It was silently dropping real artwork: the same build had **4 148 logos ready and dropped the last 608**,
+  reaching 1 593 channel addresses, with a warning while the run reported success. That is fixed: the
+  packer now **fails rather than truncating**, and its refusal names how many stations would go without.
+- Rebuilt on the same cache after the fix: **4 148 tiles in 71 rows, `8024 x 9656`, 16 779 262 B, covering
+  5 468 channels**, with 2 932 tiles of headroom left before the format ceiling. Expect the row count to
+  move with the bank on every rebuild from now on.
+- Two ceilings bound this sheet as well, and neither truncates: a side may not exceed `16383` px (the WebP
+  dimension limit, so 120 rows = 7 080 tiles at a 136 px tile), and the encoded file may not exceed 48 MiB.
+  The current build sits at a third of that.
+- A station now lacks a tile for one reason only: no artwork of at least 96 px on its longer side was
+  cached for it. Capacity is no longer a reason on either sheet.
 
 Two logo-sheet properties that are *not* changing and do matter: the tiles are square because a logo is
 fitted whole rather than cropped, so letterbox them into your cell; and the padding around each logo is
@@ -258,6 +269,6 @@ wrong picture inside it, and only a human eye on a cut tile separates them.
 - S1832 - channel identity survives removal and return, on the Android side (item D)
 - S1445 - the app moved from sheets to tile packs (item G2)
 - S1831 - the preview sheet ceiling removed; height now follows the tile count (item G)
-- S1843 - the logo sheet still truncates its overflow silently; open (item G)
+- S1841 / S1843 - the logo sheet ceiling removed; its height now follows the tile count too, and the packer refuses rather than truncating; closed 2026-08-20 (item G)
 - S1483 - `artwork-manifest.json` and stable artwork names (item F)
 - S0925 - publish refuses a favicon-indexed CSV with no atlas (item A)

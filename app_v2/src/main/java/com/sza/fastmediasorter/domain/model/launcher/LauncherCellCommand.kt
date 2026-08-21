@@ -162,6 +162,20 @@ sealed interface LauncherCellCommand {
     }
 
     /**
+     * S1440: an internal route opened at one of its sub-screens.
+     *
+     * Separate from [Feature] rather than an optional field on it because a route that names no
+     * sub-screen must keep encoding as `fn:<route>` - a placed cell outlives the release that wrote it,
+     * and widening [Feature]'s payload would strand every cell already stored in the old shape.
+     *
+     * [sectionKey] is the sub-screen's stable string, never an ordinal, and an unknown one resolves to
+     * the route's own default rather than failing the launch.
+     */
+    data class FeatureSection(val routeKey: String, val sectionKey: String) : LauncherCellCommand {
+        override fun encode(): String = "$PREFIX_FEATURE_SECTION$routeKey$SEPARATOR$sectionKey"
+    }
+
+    /**
      * S1428: a titled header owning every cell below it down to the next header.
      *
      * Carries [sectionKey] rather than the title text: strategic §5.3 requires a future user-created
@@ -175,6 +189,7 @@ sealed interface LauncherCellCommand {
     companion object {
         const val PREFIX_APP = "app:"
         const val PREFIX_FEATURE = "fn:"
+        const val PREFIX_FEATURE_SECTION = "fns:"
         const val PREFIX_RESOURCE = "res:"
         const val PREFIX_STREAM = "stream:"
         const val PREFIX_OS = "os:"
@@ -242,6 +257,7 @@ sealed interface LauncherCellCommand {
         // Field layout of a [Geographic] target. The three fields are a persistence format: append,
         // never reorder, and increase the count when a later version adds a field.
         private const val FIELD_GEOGRAPHIC_ACTION = 0
+        private const val FEATURE_SECTION_FIELD_COUNT = 2
         private const val FIELD_GEOGRAPHIC_QUERY = 1
         private const val FIELD_GEOGRAPHIC_LABEL = 2
         private const val GEOGRAPHIC_FIELD_COUNT = 3
@@ -283,6 +299,9 @@ sealed interface LauncherCellCommand {
         /** The prefixes whose payload carries a typed id or several joined fields. */
         private fun decodeMultiField(value: String): LauncherCellCommand? = when {
             value.startsWith(PREFIX_RESOURCE) -> decodeResource(value.removePrefix(PREFIX_RESOURCE))
+
+            value.startsWith(PREFIX_FEATURE_SECTION) ->
+                decodeFeatureSection(value.removePrefix(PREFIX_FEATURE_SECTION))
 
             value.startsWith(PREFIX_SCHEDULED_OP) ->
                 value.removePrefix(PREFIX_SCHEDULED_OP).toLongOrNull()?.let { ScheduledOp(it) }
@@ -383,6 +402,18 @@ sealed interface LauncherCellCommand {
 
         private fun decodeField(value: String): String =
             runCatching { URLDecoder.decode(value, Charsets.UTF_8.name()) }.getOrDefault("")
+
+        /** Both fields are required: a half-written payload opens the route's default sub-screen, not a wrong one. */
+        private fun decodeFeatureSection(payload: String): LauncherCellCommand? {
+            val parts = payload.split(SEPARATOR)
+            return if (parts.size == FEATURE_SECTION_FIELD_COUNT &&
+                parts[0].isNotEmpty() && parts[1].isNotEmpty()
+            ) {
+                FeatureSection(routeKey = parts[0], sectionKey = parts[1])
+            } else {
+                null
+            }
+        }
 
         private fun decodeResource(payload: String): Resource? {
             val separatorIndex = payload.indexOf(SEPARATOR)

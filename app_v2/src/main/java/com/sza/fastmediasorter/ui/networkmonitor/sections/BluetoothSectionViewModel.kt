@@ -13,10 +13,14 @@ import com.sza.fastmediasorter.domain.radio.RadioKind
 import com.sza.fastmediasorter.domain.repository.NetworkMonitorRepository
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ObserveBluetoothDevicesUseCase
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ObserveBluetoothRssiUseCase
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartWindowEvent
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartWindowResetManager
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.RadioToggleOutcome
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.RadioToggleState
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.appendSample
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.collectingSignalWindow
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.emptySignalWindow
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.withChartResets
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -51,9 +55,14 @@ data class BluetoothSectionUiState(
     val signal: MonitorSection<SignalSeries>,
 ) {
 
-    /** Only a connected device can be charted - a bonded but absent one has no connection to read. */
+    /**
+     * Only a GATT link can be charted, which is narrower than being connected.
+     *
+     * A bonded but absent device has no connection to read at all, and a headset connected over a classic
+     * profile has one that carries no RSSI - offering either would draw an empty chart (S1853).
+     */
     val chartableDevices: List<BluetoothDeviceEntry>
-        get() = devices.data.orEmpty().filter { it.isConnected }
+        get() = devices.data.orEmpty().filter { it.isChartable }
 
     companion object {
 
@@ -96,10 +105,21 @@ class BluetoothSectionViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), initialRadioState())
 
+    private val chartResets = ChartWindowResetManager()
+
+    // The reset is folded inside the per-device branch, not around it: the sampler holds the GATT connection
+    // for as long as its flow is collected, so resetting the selection instead would drop the radio link.
     @OptIn(ExperimentalCoroutinesApi::class)
     private val signal: Flow<MonitorSection<SignalSeries>> = selectedAddress
         .flatMapLatest { address ->
-            observeRssi(address).scan(emptySignalWindow()) { window, reading -> window.appendSample(reading) }
+            observeRssi(address)
+                .withChartResets(chartResets.resets)
+                .scan(emptySignalWindow()) { window, event ->
+                    when (event) {
+                        is ChartWindowEvent.Sample -> window.appendSample(event.reading)
+                        is ChartWindowEvent.Reset -> collectingSignalWindow()
+                    }
+                }
         }
 
     val uiState: StateFlow<BluetoothSectionUiState> = combine(
@@ -115,6 +135,11 @@ class BluetoothSectionViewModel @Inject constructor(
             signal = series,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), BluetoothSectionUiState.Empty)
+
+    /** Starts the selected device's window over without touching its GATT connection. */
+    fun onChartResetRequested() {
+        chartResets.reset(ChartWindowResetManager.SINGLE_CHART)
+    }
 
     /** Charts [address], or stops charting when it is null. */
     fun onDeviceSelected(address: String?) {

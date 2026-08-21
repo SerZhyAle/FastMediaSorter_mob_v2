@@ -110,6 +110,8 @@ $script:probeIdBySlug = @{
     'preview-tests-probe-relations'     = 'S9993'
     'preview-tests-probe-token'         = 'S9994'
     'preview-tests-probe-draft-blocker' = 'S9995'
+    'preview-tests-probe-blocker-bnut'  = 'S9996'
+    'preview-tests-probe-bnut'          = 'S9997'
 }
 
 # Insert a throwaway spec through the CLI and remember it for the finally block. Body is written
@@ -140,25 +142,28 @@ function New-Probe {
     return $id
 }
 
+. (Join-Path $PSScriptRoot '..\_status-sets.ps1')
+
 try {
     # --- A: no live BlockByOtherTask spec is offered while its blocker is still open, whatever names
-    # that blocker. A spec whose every named blocker has reached Verified/Archived IS offered on
-    # purpose - that is the documented conditional eligibility (.claude/reference/spec-next.md), and it
-    # is how a ticket returns to the queue once the thing it waited for lands. Asserting the blanket
-    # "never offered" made the suite red exactly when the mechanism worked (S1433 / S1463). ---
-    Write-Host 'A: a BlockByOtherTask spec is offered only once its blockers are closed' -ForegroundColor Yellow
+    # that blocker. A spec whose every named blocker is released (Implemented, Verified, BlockNeedUserTest,
+    # Archived - S1864) IS offered on purpose - that is the documented conditional eligibility
+    # (.claude/reference/spec-next.md), and it is how a ticket returns to the queue once the thing it
+    # waited for lands. Asserting the blanket "never offered" made the suite red exactly when the
+    # mechanism worked (S1433 / S1463). ---
+    Write-Host 'A: a BlockByOtherTask spec is offered only once its blockers are released' -ForegroundColor Yellow
     $blocked = @(& $pwshExe -NoProfile -File $searchPs1 -Status BlockByOtherTask -Format json | ConvertFrom-Json)
     Assert-That 'A0 the catalog still has BlockByOtherTask specs to check' ($blocked.Count -gt 0) 'none found'
     foreach ($b in $blocked) {
         $pv = Get-Preview $b.id
         $skip = if ($pv -and $pv.auto_skip) { $pv.auto_skip } else { 'null' }
         $deps = @($pv.depends_on)
-        $openDeps = @($deps | Where-Object { $_.status -ne 'Verified' -and $_.status -ne 'Archived' })
-        if ($deps.Count -gt 0 -and $openDeps.Count -eq 0) {
+        $unreleasedDeps = @($deps | Where-Object { -not (Test-BlockerReleasedStatus -Status ([string]$_.status)) })
+        if ($deps.Count -gt 0 -and $unreleasedDeps.Count -eq 0) {
             $named = ($deps | ForEach-Object { "$($_.id)($($_.status))" }) -join ','
-            Assert-That "A1 $($b.id) is released because its blockers closed [$named]" ($skip -eq 'null') "still skipped as '$skip'"
+            Assert-That "A1 $($b.id) is released because its blockers released [$named]" ($skip -eq 'null') "still skipped as '$skip'"
         } else {
-            Assert-That "A1 $($b.id) auto_skip is set (got '$skip')" ($skip -ne 'null') 'offered while a blocker is open'
+            Assert-That "A1 $($b.id) auto_skip is set (got '$skip')" ($skip -ne 'null') 'offered while a blocker is unreleased'
         }
     }
 
@@ -187,6 +192,7 @@ The blocker is recorded only in the catalog statusNote, which also mentions a se
             Assert-That 'B1 depends_on names exactly one blocker' ($ids.Count -eq 1) "got [$($ids -join ',')]"
             Assert-That "B2 that blocker is $tokenId" ($ids -contains $tokenId) "got [$($ids -join ',')]"
             Assert-That "B3 the passing sibling $passingId is not treated as a blocker" (-not ($ids -contains $passingId)) "got [$($ids -join ',')]"
+            # S1864 re-judged: B4 fixture blocker ($tokenId) is Approved (unreleased), so verdict remains blocker-not-verified.
             Assert-That 'B4 reason is blocker-not-verified' ($pvB.auto_skip -eq 'blocker-not-verified') "got '$($pvB.auto_skip)'"
         } else {
             Assert-That 'B0 statusNote probe previewable' $false 'preview returned nothing'
@@ -289,6 +295,7 @@ Temporary fixture written by scripts/spec_catalog/preview.tests/Run-Tests.ps1. D
             Assert-That 'F1 the token names exactly one blocker' ($idsF.Count -eq 1) "got [$($idsF -join ',')]"
             Assert-That "F2 that blocker is $blockerId" ($idsF -contains $blockerId) "got [$($idsF -join ',')]"
             Assert-That 'F3 the prose neighbour is not a blocker' (-not ($idsF -contains $neighbourId)) "got [$($idsF -join ',')]"
+            # S1864 re-judged: F4 fixture blocker ($blockerId) is Draft (unreleased), so verdict remains blocker-not-verified.
             Assert-That 'F4 verdict is blocker-not-verified' ($pvF.auto_skip -eq 'blocker-not-verified') "got '$($pvF.auto_skip)'"
         }
     } else {
@@ -312,10 +319,40 @@ Temporary fixture written by scripts/spec_catalog/preview.tests/Run-Tests.ps1. D
         $pvG = if ($probeG) { Get-Preview $probeG } else { $null }
         if ($pvG) {
             $skipG = if ($pvG.auto_skip) { $pvG.auto_skip } else { 'null' }
+            # S1864 re-judged: G1 fixture blocker ($blockerIdG) is Draft (unreleased), so verdict remains blocker-not-verified.
             Assert-That 'G1 Draft spec with unverified blocker has auto_skip = blocker-not-verified' ($skipG -eq 'blocker-not-verified') "got '$skipG'"
         }
     } else {
         Write-Host '  SKIP  G - fewer than two Draft specs to use as blocker fixtures' -ForegroundColor DarkGray
+    }
+
+    # --- H (S1864): a spec whose blocker is in BlockNeedUserTest gets auto_skip = null ---
+    Write-Host 'H (S1864): spec whose blocker is in BlockNeedUserTest is released' -ForegroundColor Yellow
+    if ($drafts.Count -ge 1) {
+        $blockerIdH = New-Probe -Slug 'preview-tests-probe-blocker-bnut' -Status 'BlockNeedUserTest' -Body @"
+# <ID> - preview.tests probe blocker in BlockNeedUserTest (S1864)
+
+**Status:** BlockNeedUserTest
+
+Temporary fixture written by scripts/spec_catalog/preview.tests/Run-Tests.ps1. Deleted by the same run.
+"@
+        $probeH = New-Probe -Slug 'preview-tests-probe-bnut' -Body @"
+# <ID> - preview.tests probe dependent on BlockNeedUserTest (S1864)
+
+**Status:** Draft
+
+Temporary fixture written by scripts/spec_catalog/preview.tests/Run-Tests.ps1. Deleted by the same run.
+
+**Depends on:** $blockerIdH
+"@
+        Assert-That 'H0 bnut probe inserted' ([bool]$probeH -and [bool]$blockerIdH) "insert.ps1 exit $LASTEXITCODE"
+        $pvH = if ($probeH) { Get-Preview $probeH } else { $null }
+        if ($pvH) {
+            $skipH = if ($pvH.auto_skip) { $pvH.auto_skip } else { 'null' }
+            Assert-That 'H1 spec dependent on BlockNeedUserTest blocker gets auto_skip = null' ($skipH -eq 'null') "got '$skipH'"
+        }
+    } else {
+        Write-Host '  SKIP  H - no Draft specs to use as fixtures' -ForegroundColor DarkGray
     }
 }
 finally {
@@ -358,7 +395,7 @@ finally {
         $found = if ($realRaw) { $realRaw | ConvertFrom-Json } else { $null }
         if (@($found).Count -gt 0) { $leaked += $reservedId }
     }
-    $archiveJunk = Select-String -Path $archiveJournal -Pattern 'preview-tests-probe' -ErrorAction SilentlyContinue
+    $archiveJunk = Select-String -Path $archiveJournal -Pattern '"name":"preview-tests-probe' -ErrorAction SilentlyContinue
     if (@($leaked).Count -gt 0 -or @($archiveJunk).Count -gt 0) {
         Write-Host "  FAIL  probes leaked into the REAL catalog - the sandbox did not hold" -ForegroundColor Red
         foreach ($leakedId in $leaked) { Write-Host "        reserved id $leakedId resolves against PLAN/" -ForegroundColor Red }

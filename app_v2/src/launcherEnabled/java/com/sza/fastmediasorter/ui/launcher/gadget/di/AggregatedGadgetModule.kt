@@ -45,5 +45,9 @@ object AggregatedGadgetModule {
         // S1754: the media windows come last - they are the only family that cannot be placed without
         // first picking a resource, so they sit after everything a tap can add outright.
         @MediaWindowGadgets mediaWindows: List<@JvmSuppressWildcards LauncherGadget>,
-    ): List<LauncherGadget> = homeWidgets + sensors + technical + textTools + mediaWindows
+        // S1440: the network indicator comes last for the same reason the media windows sit before it -
+        // it is the second family that cannot be placed without answering a question first, and the
+        // picker reads best with the outright-placeable tiles at the top.
+        @NetworkGadgets network: List<@JvmSuppressWildcards LauncherGadget>,
+    ): List<LauncherGadget> = homeWidgets + sensors + technical + textTools + mediaWindows + network
 }

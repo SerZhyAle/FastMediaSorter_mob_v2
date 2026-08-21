@@ -30,7 +30,6 @@ class PushWearSettingsUseCaseTest {
         imagesEnabled = true,
         slideshowEnabled = true,
         slideshowIntervalSeconds = 7,
-        slideshowWaitForFinish = false,
         downloadAlbumArt = true,
         appLanguage = "ru"
     )

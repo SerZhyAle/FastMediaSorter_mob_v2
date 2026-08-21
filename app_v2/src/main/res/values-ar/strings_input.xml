@@ -177,8 +177,8 @@
     <string name="kbm_help_player_playpause">تشغيل / إيقاف مؤقت</string>
     <string name="kbm_help_player_prev_next">الملف السابق / الملف التالي</string>
     <string name="kbm_help_player_save">حفظ لقطة / الحالية</string>
-    <string name="kbm_help_player_seek_10s">ابحث عن -10 ثوانٍ / +10 ثوانٍ</string>
-    <string name="kbm_help_player_seek_60s">ابحث عن -60 ثانية / +60 ثانية</string>
+    <string name="kbm_help_player_seek_10s">التقديم −10 ث / +10 ث</string>
+    <string name="kbm_help_player_seek_60s">التقديم −60 ث / +60 ث</string>
     <string name="kbm_help_player_volume">رفع / خفض مستوى الصوت</string>
     <string name="kbm_help_section_dialog">حوار</string>
     <string name="kbm_help_section_file_ops">عمليات الملفات</string>

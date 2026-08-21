@@ -63,4 +63,22 @@
     <string name="widget_camera_quick_capture_mode_label">কী ক্যাপচার করতে হবে</string>
     <string name="widget_camera_quick_capture_mode_photo">ছবি</string>
     <string name="widget_camera_quick_capture_mode_video">ভিডিও</string>
+    <string name="widget_network_monitor_label">নেটওয়ার্ক মনিটর</string>
+    <string name="widget_network_monitor_description">আপনার পছন্দের একটি নেটওয়ার্ক নির্দেশক</string>
+    <string name="widget_network_monitor_config_title">কী দেখাতে হবে তা নির্বাচন করুন</string>
+    <string name="widget_network_monitor_indicator_local_address">লোকাল ঠিকানা</string>
+    <string name="widget_network_monitor_indicator_radio_status">Wi-Fi, Bluetooth, SIM</string>
+    <string name="widget_network_monitor_indicator_signal_level">সিগন্যাল লেভেল</string>
+    <string name="widget_network_monitor_indicator_live_throughput">লাইভ গতি</string>
+    <string name="widget_network_monitor_indicator_external_address">বাহ্যিক ঠিকানা</string>
+    <string name="widget_network_monitor_indicator_last_measurement">সর্বশেষ স্পিড টেস্ট</string>
+    <string name="widget_network_monitor_indicator_resource_reachability">সংরক্ষিত রিসোর্স</string>
+    <string name="widget_network_monitor_indicator_satellite_count">স্যাটেলাইট</string>
+    <string name="widget_network_monitor_unavailable">এখনো কোনো ডেটা নেই</string>
+    <string name="widget_network_monitor_tap_to_read">পরীক্ষা করতে ট্যাপ করুন</string>
+    <string name="widget_network_monitor_behind_nat_unknown_depth">একটি NAT-এর পিছনে - গভীরতা অজানা</string>
+    <string name="widget_network_monitor_cgnat_likely">সম্ভবত ক্যারিয়ার NAT-এর পিছনে</string>
+    <string name="widget_network_monitor_direct_connection">সরাসরি সংযোগ</string>
+    <string name="launcher_gadget_network_indicator">নেটওয়ার্ক নির্দেশক</string>
+    <string name="launcher_gadget_network_indicator_pick_title">কোন নির্দেশক দেখাতে হবে</string>
 </resources>

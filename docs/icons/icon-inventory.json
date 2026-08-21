@@ -777,6 +777,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "system_info",
+    "feature": "settings_system_info_title",
+    "drawable": "ic_info",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "take_photo_edit",
     "feature": "screenshot_gesture_action_take_photo_edit",
     "drawable": "ic_edit_20",
@@ -1225,9 +1233,25 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowEnableSystemInfo",
+    "feature": "settings_enable_system_info",
+    "drawable": "ic_info",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowEnableTranslation",
     "feature": "enable_translation",
     "drawable": "ic_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnableWearCompanion",
+    "feature": "settings_enable_wear_companion",
+    "drawable": "ic_watch",
     "assetFormat": "vector",
     "public": true
   },

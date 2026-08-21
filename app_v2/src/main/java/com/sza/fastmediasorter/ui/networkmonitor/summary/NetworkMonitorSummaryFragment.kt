@@ -154,6 +154,7 @@ private fun SectionAvailability?.toStatusRes(): Int = when (this) {
     SectionAvailability.Available -> R.string.network_monitor_status_available
     SectionAvailability.NoHardware -> R.string.network_monitor_status_no_hardware
     is SectionAvailability.NoPermission -> R.string.network_monitor_status_no_permission
+    SectionAvailability.NoLocationService -> R.string.network_monitor_status_no_location_service
     SectionAvailability.NoNetwork -> R.string.network_monitor_status_no_network
     null -> R.string.network_monitor_status_unknown
 }

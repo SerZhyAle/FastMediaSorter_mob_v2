@@ -7,15 +7,15 @@ permalink: /docs/WEAR_OS_SMB_QUICK_REF.html
 
 > **Step-by-step guide:** See [Connect Smartwatch to NAS & PC Shares](howto/scenario-watch-network.md).
 
-## On Your Watch
-
-### Add Connection
+## Add a Connection (on your phone)
 
 ```
-Browse → Resources → "+ Add SMB Connection"
+Phone app → Resources → "+ Add Network Source" → fill in → Save
 ```
 
-### Fill in Details
+It syncs to the watch automatically. **On a Google Play build this is the only way to add one** - the
+watch does not ask for a username or password. Not there yet? On the watch: `Browse → Resources → Sync
+from Phone`.
 
 | Field | Example | Notes |
 |-------|---------|-------|
@@ -24,24 +24,21 @@ Browse → Resources → "+ Add SMB Connection"
 | **User** | admin | Leave empty for guest |
 | **Password** | secret | Leave empty if not needed |
 
-### Options
+## On Your Watch
 
-1. **Voice Input** ← *Easiest for watch*
-   - Long-press field → Speak value
-
-2. **Character Picker**
-   - Tap field → select letters/numbers
-
-3. **Use Phone App** ← *Recommended*
-   - Add on phone (easier typing)
-   - Syncs automatically to watch
-
-### Test & Save
+What the watch itself can do, on every build:
 
 ```
-Tap: Test Connection → Wait for ✓
-Tap: Save → Done!
+Browse → Resources → tap a connection   (browse and play)
+Browse → Resources → Sync from Phone    (pull the phone list now)
+Browse → Resources → tap ⋯ → Delete     (remove a connection)
 ```
+
+### Adding on the watch - development builds only
+
+A `+ Add SMB Connection` chip appears only in development builds. If you do not see it, that is expected;
+add the connection on the phone. In those builds the fields are the same as the table above, filled by
+voice input or the character picker, then `Test Connection` and `Save`.
 
 ### Check a Saved Connection
 

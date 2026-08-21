@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1440: which of the eight network indicators a new desktop cell shows. The rows are built at
+     runtime from the indicator table so the list cannot drift from it, which is why the container
+     below is empty here. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/padding_normal">
+
+    <TextView
+        android:id="@+id/tvNetworkIndicatorTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:text="@string/launcher_gadget_network_indicator_pick_title"
+        android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:overScrollMode="ifContentScrolls">
+
+        <LinearLayout
+            android:id="@+id/containerNetworkIndicatorOptions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+    </ScrollView>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNetworkIndicatorCancel"
+        style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginTop="@dimen/margin_small"
+        android:text="@string/cancel" />
+
+</LinearLayout>

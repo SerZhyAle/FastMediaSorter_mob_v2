@@ -168,6 +168,11 @@
         Fix   = 'Your changed set touches registered documents - read the named records and pass their ids back as -RegistryAck on the same run.'
     }
 
+    'androidtest-compile-gate' = @{
+        Repro = 'pwsh -NoProfile -File ./a.ps1 fa'
+        Fix   = 'The instrumented set (app_v2 src/androidTest) does not compile. No other check compiles it - fk/fkn build src/main, fu builds src/test - so a break here can only surface via this gate. Read the compiler error above and fix the test source; a migration test that cannot compile is indistinguishable from an absent one.'
+    }
+
     'catalog-sync' = @{
         Repro = 'pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module app_v2'
         Fix   = 'The class catalog could not be rebuilt - read the error above; the index is a gitignored artifact, so re-running after the fix is safe.'

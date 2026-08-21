@@ -268,6 +268,11 @@
 
         <!-- S1796: no orientation|screenSize in configChanges - the glow layout is orientation-agnostic,
              but absorbing the change would keep stale insets on the corner controls after a rotation. -->
+        <!-- S1733: a transparent host for the system-information report, so a launcher cell or a panel
+             tile can open it with no screen of ours behind it. Not exported: the report describes the
+             user's own device and is meant to be read here, not handed to another app. -->
+        <activity android:name=".ui.systeminfo.SystemInfoActivity" android:exported="false" android:label="@string/settings_system_info_title" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
         <activity android:name=".ui.flashlight.FrontFlashlightActivity" android:exported="false" android:label="@string/front_flashlight_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <!-- S1433: no orientation|screenSize in configChanges on purpose - the Summary screen has a
@@ -305,6 +310,12 @@
 
         <!-- S1781: full-screen picker of the resources that get transferred to the watch. -->
         <activity android:name=".ui.wearresources.WearResourceSelectionActivity" android:exported="false" android:label="@string/wear_resource_selection_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
+        <!-- S1735: the window the Wear companion opens in. Translucent because it hosts the existing
+             bottom sheet and has no content of its own; excluded from recents for the same reason.
+             Declared here rather than in the wearGms overlay, following its neighbour above: only the
+             GMS service needs the overlay, because only it references Play Services types that must not
+             reach a flavor without them. -->
+        <activity android:name=".ui.wear.WearCompanionActivity" android:exported="false" android:theme="@style/Theme.FMS.TransparentPanelHost" android:excludeFromRecents="true" />
 
         <activity android:name=".ui.addresource.AddResourceActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 

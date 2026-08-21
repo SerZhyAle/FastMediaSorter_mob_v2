@@ -39,6 +39,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
                 return failure(request, WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE)
             }
             .filter { it.isExposedToWatch() }
+            .filter { it.holdsAnyOf(request.mediaTypeFilter()) }
 
         return page(request, visible) { it.toRootItem() }
     }
@@ -69,7 +70,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             runCatching {
                 active.listDirectoryContents(
                     path = parent.resolveAgainst(resource),
-                    supportedTypes = resource.supportedMediaTypes,
+                    supportedTypes = resource.supportedMediaTypes.narrowedBy(request.mediaTypeFilter()),
                     credentialsId = resource.credentialsId,
                     showHiddenFiles = resource.showHiddenFiles
                 )
@@ -78,7 +79,9 @@ class ListPhoneResourcePageUseCase @Inject constructor(
 
         return when {
             scanner == null -> failure(request, WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA)
-            children == null -> failure(request, WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE)
+            // S1697: the scan failed, not the link. The phone took this request and is answering it,
+            // so blaming the watch connection would send the user to reconnect a phone already in hand.
+            children == null -> failure(request, WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE)
             else -> page(request, children.visibleTo(resource)) { it.toWireItem(parent) }
         }
     }
@@ -161,6 +164,33 @@ class ListPhoneResourcePageUseCase @Inject constructor(
      * item: the watch has no way to satisfy the PIN, and naming a protected resource already tells
      * the holder of the watch that it exists. Streams are excluded because they are not scannable.
      */
+    /**
+     * S1846: the media kinds one watch chip asks for, or null when it asks for everything.
+     *
+     * The strings are the watch route's vocabulary rather than a second enum: the value travels from the
+     * route through the request unchanged, so a mapping here is the only place the two spellings meet.
+     * An unknown string is treated as no filter, because refusing the page would turn a future chip into
+     * the dead end this ticket exists to remove.
+     */
+    private fun WearPhoneResourceRequest.mediaTypeFilter(): Set<MediaType>? = when (mediaType) {
+        FILTER_PHOTOS -> setOf(MediaType.IMAGE, MediaType.GIF)
+        FILTER_VIDEOS -> setOf(MediaType.VIDEO)
+        FILTER_MUSIC -> setOf(MediaType.AUDIO)
+        FILTER_DOCUMENTS -> setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT)
+        else -> null
+    }
+
+    /** A resource is worth listing under a chip only when it is configured to hold that kind at all. */
+    private fun MediaResource.holdsAnyOf(filter: Set<MediaType>?): Boolean =
+        filter == null || supportedMediaTypes.any { it in filter }
+
+    /**
+     * The chip narrows the resource's own configuration and never widens it: a resource that was never
+     * configured to show video must not start showing it because a watch asked for video.
+     */
+    private fun Set<MediaType>.narrowedBy(filter: Set<MediaType>?): Set<MediaType> =
+        if (filter == null) this else intersect(filter)
+
     private fun MediaResource.isExposedToWatch(): Boolean =
         isAvailable &&
             accessPin == null &&
@@ -189,6 +219,12 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     }
 
     companion object {
+        /** S1846: the watch route's media-kind vocabulary, mirrored from `WearRoutes.browsePhone`. */
+        private const val FILTER_PHOTOS = "photos"
+        private const val FILTER_VIDEOS = "videos"
+        private const val FILTER_MUSIC = "music"
+        private const val FILTER_DOCUMENTS = "documents"
+
         /** Upper bound of items in one watch-bound page. */
         const val PAGE_SIZE = 50
 

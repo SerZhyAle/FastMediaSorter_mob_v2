@@ -36,7 +36,7 @@
     <string name="gif_edit_first_frame_help">Extrae el primer fotograma de la animación y guárdalo como una imagen PNG estática en la carpeta Descargas. Nombre del archivo: [nombre_original]_primer_fotograma.png</string>
     <string name="gif_edit_save_first_frame">Guardar el primer fotograma como imagen</string>
     <string name="gif_edit_speed">Velocidad de animación</string>
-    <string name="gif_edit_speed_help">Ajusta el retardo entre fotogramas para acelerar o ralentizar la animación. El archivo original se sobrescribirá con la nueva velocidad. Rango: de 0,25x (4 veces más lento) a 4x (4 veces más rápido).</string>
+    <string name="gif_edit_speed_help">Ajusta el retardo entre fotogramas para acelerar o ralentizar la animación. El archivo original se sobrescribirá con la nueva velocidad. Rango: 0.25x (4× más lento) a 4x (4× más rápido).</string>
     <string name="gif_edit_speed_normal">Velocidad: Normal (1.0x)</string>
     <string name="gif_edit_speed_value">Velocidad: %1$.1fx</string>
     <string name="gif_edit_title">Editor de GIF</string>

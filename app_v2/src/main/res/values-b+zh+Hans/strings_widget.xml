@@ -63,4 +63,22 @@
     <string name="widget_camera_quick_capture_mode_label">要捕捉什么</string>
     <string name="widget_camera_quick_capture_mode_photo">照片</string>
     <string name="widget_camera_quick_capture_mode_video">视频</string>
+    <string name="widget_network_monitor_label">网络监视器</string>
+    <string name="widget_network_monitor_description">选择一个网络指示器</string>
+    <string name="widget_network_monitor_config_title">选择要显示的内容</string>
+    <string name="widget_network_monitor_indicator_local_address">本地地址</string>
+    <string name="widget_network_monitor_indicator_radio_status">Wi-Fi、蓝牙、SIM</string>
+    <string name="widget_network_monitor_indicator_signal_level">信号强度</string>
+    <string name="widget_network_monitor_indicator_live_throughput">实时速度</string>
+    <string name="widget_network_monitor_indicator_external_address">外部地址</string>
+    <string name="widget_network_monitor_indicator_last_measurement">上次测速</string>
+    <string name="widget_network_monitor_indicator_resource_reachability">已保存的资源</string>
+    <string name="widget_network_monitor_indicator_satellite_count">卫星</string>
+    <string name="widget_network_monitor_unavailable">暂无数据</string>
+    <string name="widget_network_monitor_tap_to_read">点击检查</string>
+    <string name="widget_network_monitor_behind_nat_unknown_depth">位于 NAT 之后 - 深度未知</string>
+    <string name="widget_network_monitor_cgnat_likely">可能位于运营商 NAT 之后</string>
+    <string name="widget_network_monitor_direct_connection">直接连接</string>
+    <string name="launcher_gadget_network_indicator">网络指示器</string>
+    <string name="launcher_gadget_network_indicator_pick_title">显示哪个指示器</string>
 </resources>

@@ -3,10 +3,10 @@
      Untranslated keys are absent on purpose - Android falls back to English (S1190, ADR-6). -->
 <resources>
     <string name="settings">الإعدادات</string>
-    <string name="settings_3d_vr_help_message">يوفّر وضع 3D VR تشغيلًا غامرًا للفيديو والصور على نظارات مثل Meta Quest 3 وAndroid XR. على الأجهزة التي لا تتوفر فيها بيئة XR يبقى المفتاح الرئيسي غير نشط. يكتشف التطبيق صيغة الفيديو (SBS وOU و360° وVR180) تلقائيًا، والاختيار اليدوي متاح في مربع حوار المشغّل.</string>
+    <string name="settings_3d_vr_help_message">يوفر 3D VR تشغيلًا غامرًا للفيديو والصور على سماعات الرأس مثل Meta Quest 3 و Android XR. على الأجهزة التي لا تملك بيئة تشغيل XR، يبقى المفتاح الرئيسي غير نشط. يكتشف التطبيق تنسيق الفيديو (SBS, OU, 360°, VR180) تلقائيًا؛ ويتوفر التجاوز اليدوي في مربع حوار المشغّل.</string>
     <string name="settings_3d_vr_help_title">عن وضع 3D VR</string>
     <string name="settings_accept_shared_files">قبول الملفات المشتركة</string>
-    <string name="settings_already_default_player">✓ معيّن افتراضيًا بالفعل</string>
+    <string name="settings_already_default_player">✓ مضبوط مسبقًا كافتراضي</string>
     <string name="settings_application_log_title">سجل التطبيق</string>
     <string name="settings_black_screen_button_desc">إظهار زر في شريط المشغّل يُطفئ الشاشة بينما يستمر الصوت أو الفيديو</string>
     <string name="settings_black_screen_button_title">إظهار زر \"شاشة سوداء\"</string>
@@ -154,7 +154,7 @@
     <string name="setting_enable_pip">تفعيل صورة داخل صورة</string>
     <string name="setting_enable_pip_desc">إظهار زر PiP في المشغّل والانتقال إليه تلقائيًا عند الضغط على الشاشة الرئيسية (Android 12+)</string>
     <string name="setting_enable_translation_desc">تفعيل ترجمة النص عبر التعرّف الضوئي</string>
-    <string name="setting_file_ops_in_overflow_menu_desc">جمع النسخ والنقل وإعادة التسمية والحذف في قائمة ⋮ لكل صف</string>
+    <string name="setting_file_ops_in_overflow_menu_desc">طيّ نسخ/نقل/إعادة تسمية/حذف في قائمة ⋮ لكل صف</string>
     <string name="setting_follow_system_rotation_summary">عند التفعيل تتبع كل نوافذ التطبيق - عدا المشغّل - إعداد التدوير التلقائي في النظام. وعند الإيقاف تتبع مستشعر الجهاز بغضّ النظر عن إعداد النظام.</string>
     <string name="setting_follow_system_rotation_title">تدوير الشاشة مع التدوير التلقائي للنظام (عدا المشغّل)</string>
     <string name="setting_follow_system_rotation_player_title">تدوير شاشة المشغّل مع التدوير التلقائي للنظام</string>
@@ -199,12 +199,12 @@
     <string name="pref_crop_images_fullscreen_title">اقتطاع الصور لملء الشاشة</string>
     <string name="pref_dynamic_background_summary">ملء \"الأشرطة السوداء\" بمدّ ألوان حافة الصورة (تأثير Ambilight)</string>
     <string name="pref_dynamic_background_title">توسيع الخلفية الديناميكي</string>
-    <string name="pref_file_ops_overflow_menu_desc">يجمع النسخ والنقل وإعادة التسمية والحذف في زر ⋮ على كل صف ملف. يبقى زر التشغيل منفصلًا دائمًا.</string>
+    <string name="pref_file_ops_overflow_menu_desc">يطوي النسخ والنقل وإعادة التسمية والحذف في زر ⋮ على كل صف ملف. يبقى زر التشغيل منفصلًا دائمًا.</string>
     <string name="pref_file_ops_overflow_menu_title">إجراءات الملفات في القائمة الإضافية</string>
     <string name="pref_panel_stereo_single_eye_summary">عند التفعيل، تُقتطع مقاطع الفيديو المجسّمة جنبًا إلى جنب أو فوق بعضها والصور بملء الشاشة إلى عين واحدة وتُمدّ إلى الشاشة كاملة - مريحة للمشاهدة دون نظارات ثلاثية الأبعاد. الافتراضي: مفعّل. يتجاوز العرض الغامر للواقع الافتراضي هذا الإعداد ويظهر الإطار المجسّم كاملًا.</string>
     <string name="pref_panel_stereo_single_eye_title">عرض المحتوى ثلاثي الأبعاد بعين واحدة</string>
     <string name="pref_prefetch_cache_auto">تلقائي</string>
-    <string name="pref_prefetch_cache_help_message">يحدّد مقدار الفيديو المتدفّق الذي يُخزَّن مسبقًا قبل موضع التشغيل.\n\n• أقل (0.5×) - أدنى تخزين مؤقت. يُخفى مؤشر التخزين المسبق وعرض \"حفظ الفيديو المخزّن\". يوفّر المساحة وحزمة البيانات؛ وقد يتقطّع التشغيل على شبكة بطيئة.\n• تلقائي - الحجم الافتراضي الذي يختاره المشغّل حسب الجهاز والشبكة الحالية.\n• أكثر (2×) - ذاكرة أكبر لتشغيل أكثر سلاسة على الشبكات غير المستقرة. يستهلك مساحة قرص أكبر.</string>
+    <string name="pref_prefetch_cache_help_message">يتحكم في مقدار الفيديو المتدفق الذي يُخزَّن مؤقتًا قبل رأس التشغيل.\n\n• أقل (0.5×) - أقل تخزين مؤقت. يتم إخفاء مؤشر تقدم التخزين المسبق وعرض \"حفظ الفيديو المخزَّن مؤقتًا\". يوفر مساحة القرص وسعة النطاق الترددي؛ وقد يتقطع التشغيل على شبكة بطيئة.\n• تلقائي - الحجم الافتراضي الذي يختاره المشغّل حسب الجهاز والشبكة الحالية.\n• أكثر (2×) - مخزن مؤقت أكبر لتشغيل أكثر سلاسة عبر الشبكات غير المستقرة. يستخدم مساحة قرص أكبر.</string>
     <string name="pref_prefetch_cache_help_title">حجم التخزين المسبق للفيديو</string>
     <string name="pref_prefetch_cache_less">أقل (0.5×)</string>
     <string name="pref_prefetch_cache_more">أكثر (2×)</string>
@@ -256,4 +256,10 @@
     <string name="settings_open_default_apps_dialog">التعيين كافتراضي</string>
     <string name="default_apps_dialog_title">التطبيق الافتراضي</string>
     <string name="language_download_failed">تعذّر تنزيل هذه اللغة. تحقّق من اتصالك بالإنترنت وحاول مرة أخرى - سيبقى التطبيق على اللغة التي يستخدمها الآن.</string>
+    <string name="pref_resource_grid_cell_size_title">حجم خلية شبكة الموارد</string>
+    <string name="pref_resource_grid_cell_size_small">صغير</string>
+    <string name="pref_resource_grid_cell_size_medium">متوسط</string>
+    <string name="pref_resource_grid_cell_size_large">كبير</string>
+    <string name="settings_enable_system_info">معلومات النظام</string>
+    <string name="settings_enable_system_info_summary">إظهار معلومات النظام في لوحة البرامج والقائمة</string>
 </resources>

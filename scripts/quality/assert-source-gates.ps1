@@ -168,6 +168,16 @@ if ($failed.Count -gt 0) {
         Write-Host ("assert-source-gates: FAIL ({0} rule(s) above baseline: {1})." -f $failed.Count, ($failed -join ', ')) -ForegroundColor Red
         exit 1
     }
+
+    # S1857: audit mode still returns 0 - that is the same contract every sibling gate keeps, and changing
+    # it would make each call without -Gate fail somebody else's run. What it must NOT do is claim the tree
+    # is clean. The old code fell through to the PASS line below, so a run with a rule ABOVE its baseline
+    # printed its own FAIL: two lines up and then "all rules at or below baseline" as its verdict. In a run
+    # of twenty rules the last line is the one that gets read and quoted as evidence, which turned a red
+    # measurement into a green step log.
+    Write-Host ("assert-source-gates: ADVISORY ({0} rule(s) above baseline: {1}) - audit mode, pass -Gate to refuse." -f
+        $failed.Count, ($failed -join ', ')) -ForegroundColor Yellow
+    exit 0
 }
 
 Write-Host 'assert-source-gates: PASS (all rules at or below baseline).' -ForegroundColor Green

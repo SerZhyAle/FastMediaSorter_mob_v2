@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.domain.repository
 
+import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import kotlinx.coroutines.flow.Flow
 
@@ -21,11 +22,9 @@ interface WearPreferencesRepository {
     // Slideshow settings
     val isSlideshowEnabled: Flow<Boolean>
     val slideshowIntervalSeconds: Flow<Int>
-    val slideshowWaitForFinish: Flow<Boolean>
     
     suspend fun setSlideshowEnabled(enabled: Boolean)
     suspend fun setSlideshowIntervalSeconds(seconds: Int)
-    suspend fun setSlideshowWaitForFinish(wait: Boolean)
     
     // Album art settings
     val downloadAlbumArt: Flow<Boolean>
@@ -47,9 +46,12 @@ interface WearPreferencesRepository {
     val keepScreenAwakeOutsidePlayers: Flow<Boolean>
     suspend fun setKeepScreenAwakeOutsidePlayers(enabled: Boolean)
 
-    /** S1781: name of the resource opened last; null means the history is empty and the section is hidden. */
-    val lastUsedResourceName: Flow<String?>
-    suspend fun setLastUsedResource(name: String)
+    /**
+     * S1781: the resource opened last. S1836: null means there is no shortcut - nothing has been
+     * opened yet, or the stored entry predates the identifier and cannot address a source.
+     */
+    val lastUsedResource: Flow<LastUsedResource?>
+    suspend fun setLastUsedResource(id: String, name: String)
     suspend fun clearLastUsedResource()
 
     /** S1781: the Streams section ships on and can be switched off from the Media types settings. */

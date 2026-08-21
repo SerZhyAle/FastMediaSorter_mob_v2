@@ -1,0 +1,6 @@
+num_lines=245
+line30_repr_first_char_codes=['0x72', '0x6f', '0x70', '0x62', '0x6f', '0x78', '0x2019', '0x73', '0x20', '0x9aa', '0x995', '0x9cd']
+before_count=1 after_count=0
+new_line_has_marker=True
+verify_has_marker=True
+verify_line_len=640

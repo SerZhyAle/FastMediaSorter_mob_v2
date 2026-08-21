@@ -8,6 +8,7 @@ import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearFavoritesDeltaPayload
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceItem
@@ -25,9 +26,6 @@ import com.sza.fastmediasorter.domain.usecase.PhoneResourceChannel
 import com.sza.fastmediasorter.domain.usecase.SendResourcesToWatchUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
@@ -55,10 +53,12 @@ class PhoneWearListenerService : WearableListenerService() {
 
     @Inject lateinit var gson: Gson
 
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    @Inject
+    @ApplicationScope
+    lateinit var applicationScope: CoroutineScope
 
     override fun onMessageReceived(event: MessageEvent) {
-        Timber.d("PhoneWearListenerService: message received ${event.path}")
+        Timber.d("S1860: PhoneWearListenerService message received ${event.path}")
         when (event.path) {
             PATH_REQUEST                       -> handleSyncRequest()
             PATH_ACK                           -> handleAck(event.data)
@@ -86,7 +86,7 @@ class PhoneWearListenerService : WearableListenerService() {
     }
 
     private fun handlePlaybackState(data: ByteArray) {
-        serviceScope.launch {
+        applicationScope.launch {
             try {
                 val envelope = gson.fromJson(data.decodeToString(), WearEventEnvelope::class.java)
                 val payload = gson.fromJson(
@@ -101,7 +101,7 @@ class PhoneWearListenerService : WearableListenerService() {
     }
 
     private fun handleSourcesExport(data: ByteArray) {
-        serviceScope.launch {
+        applicationScope.launch {
             try {
                 val envelope = gson.fromJson(data.decodeToString(), WearEventEnvelope::class.java)
                 val payload = gson.fromJson(
@@ -116,7 +116,7 @@ class PhoneWearListenerService : WearableListenerService() {
     }
 
     private fun handleFavoritesDelta(data: ByteArray) {
-        serviceScope.launch {
+        applicationScope.launch {
             try {
                 val envelope = gson.fromJson(data.decodeToString(), WearEventEnvelope::class.java)
                 val payload = gson.fromJson(
@@ -131,22 +131,20 @@ class PhoneWearListenerService : WearableListenerService() {
     }
 
     private fun handleLogReport(nodeId: String, data: ByteArray) {
-        serviceScope.launch {
+        applicationScope.launch {
             wearLogReportReceiver.handle(nodeId, data)
         }
     }
 
     private fun handlePhoneResourceBrowse(data: ByteArray) {
-        Timber.d("S1697: phone received a watch browse request")
-        serviceScope.launch {
+        applicationScope.launch {
             val request = parsePhoneResourceRequest(data) ?: return@launch
             sendPhoneResourcePage(listPhoneResourcePageUseCase(request))
         }
     }
 
     private fun handlePhoneResourceOpen(nodeId: String, data: ByteArray) {
-        Timber.d("S1697: phone received a watch open request")
-        serviceScope.launch {
+        applicationScope.launch {
             val request = parsePhoneResourceRequest(data) ?: return@launch
             when (val outcome = openPhoneResourceChannelUseCase(request)) {
                 is PhoneResourceChannel.Rejected -> sendPhoneResourcePage(
@@ -232,7 +230,7 @@ class PhoneWearListenerService : WearableListenerService() {
 
     private fun handleSyncRequest() {
         Timber.i("Watch requested sync - sending resources")
-        serviceScope.launch {
+        applicationScope.launch {
             sendResourcesToWatchUseCase().onFailure { e ->
                 Timber.e(e, "Failed to send resources on watch request")
             }
@@ -247,14 +245,9 @@ class PhoneWearListenerService : WearableListenerService() {
             .putLong(KEY_LAST_SYNC, System.currentTimeMillis())
             .apply()
         // Broadcast result to any active WearSyncViewModel via the companion object flow
-        serviceScope.launch {
+        applicationScope.launch {
             WearSyncEvents.emitAck(json)
         }
-    }
-
-    override fun onDestroy() {
-        serviceScope.cancel()
-        super.onDestroy()
     }
 
     companion object {

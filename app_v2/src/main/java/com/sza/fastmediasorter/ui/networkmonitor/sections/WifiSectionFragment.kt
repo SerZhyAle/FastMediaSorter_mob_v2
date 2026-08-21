@@ -11,6 +11,8 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorWifiBinding
 import com.sza.fastmediasorter.databinding.ViewNetworkMonitorLinkDetailsBinding
 import com.sza.fastmediasorter.domain.model.networkmonitor.ActiveLink
+import com.sza.fastmediasorter.domain.model.networkmonitor.SectionAvailability
+import com.sza.fastmediasorter.domain.model.networkmonitor.WifiEntry
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkMonitorPermissionManager
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.RadioToggleBinder
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.SignalChartBinder
@@ -38,6 +40,14 @@ class WifiSectionFragment : Fragment() {
     private var radioBinder: RadioToggleBinder? = null
     private var chartBinder: SignalChartBinder? = null
 
+    /**
+     * The reason last bound to the name row, so the snapshot's one-per-second tick does not rebind it.
+     *
+     * Binding costs a permission-registry lookup, a stored-marker read and two binder calls, all on the main
+     * thread - the same argument that keeps the Bluetooth picker from swapping its adapter every second.
+     */
+    private var boundNameReason: SectionAvailability? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -58,6 +68,8 @@ class WifiSectionFragment : Fragment() {
             chart = binding.wifiChart.chartSeries,
             summaryView = binding.wifiChart.chartSummary,
             emptyView = binding.wifiChart.chartEmpty,
+            resetTarget = binding.wifiChart.root,
+            onResetRequested = viewModel::onChartResetRequested,
         )
         collectOnLifecycle(viewModel.uiState) { render(it) }
         collectOnLifecycle(viewModel.radio) { radioBinder?.render(it) }
@@ -68,6 +80,7 @@ class WifiSectionFragment : Fragment() {
         super.onDestroyView()
         radioBinder = null
         chartBinder = null
+        boundNameReason = null
         _binding = null
     }
 
@@ -90,7 +103,7 @@ class WifiSectionFragment : Fragment() {
         if (!permissionManager.bind(binding.wifiAvailability, state.wifi.availability)) {
             binding.wifiAvailability.setText(state.wifi.availability.toReasonRes())
         }
-        binding.wifiNetworkValue.text = entry?.ssid ?: unknown()
+        renderNetworkName(entry)
         binding.wifiFrequencyValue.text = entry?.frequencyMhz?.let {
             getString(R.string.network_monitor_value_mhz, it)
         } ?: unknown()
@@ -98,6 +111,43 @@ class WifiSectionFragment : Fragment() {
             getString(R.string.network_monitor_value_mbps, it)
         } ?: unknown()
         binding.wifiStandardValue.text = entry?.standard ?: unknown()
+    }
+
+    /**
+     * The name row doubles as the recovery action while the platform withholds the name.
+     *
+     * Only this one field is redacted - the rows beside it keep their values - so the reason and the grant
+     * belong on the row itself rather than on a banner that would hide the whole section (S1853).
+     */
+    private fun renderNetworkName(entry: WifiEntry?) {
+        val name = entry?.ssid
+        if (name != null) {
+            boundNameReason = null
+            clearNameRowAction()
+            binding.wifiNetworkValue.contentDescription = null
+            binding.wifiNetworkValue.text = name
+            return
+        }
+        val reason = entry?.ssidAvailability ?: SectionAvailability.NoNetwork
+        if (reason == boundNameReason) {
+            return
+        }
+        boundNameReason = reason
+        if (!permissionManager.bind(binding.wifiNetworkValue, reason)) {
+            clearNameRowAction()
+            binding.wifiNetworkValue.setText(reason.toReasonRes())
+        }
+        binding.wifiNetworkValue.contentDescription = getString(
+            R.string.network_monitor_wifi_network_reason_description,
+            getString(R.string.network_monitor_wifi_network_label),
+            binding.wifiNetworkValue.text,
+        )
+    }
+
+    /** A row that stopped being an action stops behaving like one - the layout marks it clickable up front. */
+    private fun clearNameRowAction() {
+        binding.wifiNetworkValue.setOnClickListener(null)
+        binding.wifiNetworkValue.isClickable = false
     }
 
     private fun renderLink(link: ViewNetworkMonitorLinkDetailsBinding, state: WifiSectionUiState) {

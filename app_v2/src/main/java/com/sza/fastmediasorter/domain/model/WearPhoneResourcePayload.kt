@@ -2,7 +2,7 @@ package com.sza.fastmediasorter.domain.model
 
 import com.google.gson.annotations.SerializedName
 
-const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 2
+const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 3
 
 enum class WearPhoneResourceRequestKind {
     @SerializedName("ROOT")
@@ -25,6 +25,14 @@ enum class WearPhoneResourceResponseStatus {
     @SerializedName("PHONE_UNAVAILABLE")
     PHONE_UNAVAILABLE,
 
+    /**
+     * S1697: the phone answered, but the resource's own backing store did not. Distinct from
+     * [PHONE_UNAVAILABLE] because the two send the user after different things - a dead NAS is not
+     * a dead watch link, and telling someone to reconnect a phone that is replying wastes the trip.
+     */
+    @SerializedName("SOURCE_UNAVAILABLE")
+    SOURCE_UNAVAILABLE,
+
     @SerializedName("ACCESS_DENIED")
     ACCESS_DENIED,
 
@@ -44,7 +52,15 @@ data class WearPhoneResourceRequest(
     @SerializedName("kind") val kind: WearPhoneResourceRequestKind,
     @SerializedName("parentToken") val parentToken: String? = null,
     @SerializedName("pageToken") val pageToken: String? = null,
-    @SerializedName("itemToken") val itemToken: String? = null
+    @SerializedName("itemToken") val itemToken: String? = null,
+    /**
+     * S1846: which kind of file the watch is asking for, or null for "everything".
+     *
+     * The accepted values are the watch route's own vocabulary, so the two sides cannot drift apart on
+     * spelling: `photos`, `videos`, `music`, `documents`, `all`. `all` and null mean the same thing and
+     * both leave the phone's answer unnarrowed; the unfiltered `Phone` entrance sends null.
+     */
+    @SerializedName("mediaType") val mediaType: String? = null
 )
 
 data class WearPhoneResourceItem(

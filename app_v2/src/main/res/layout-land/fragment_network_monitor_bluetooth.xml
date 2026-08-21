@@ -151,7 +151,34 @@
                     style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
                     android:layout_marginStart="0dp"
                     android:layout_marginTop="0dp"
-                    android:text="@string/network_monitor_bluetooth_paired_heading"
+                    android:drawableStart="@drawable/ic_bluetooth"
+                    android:text="@string/network_monitor_bluetooth_connected_heading"
+                    android:textSize="@dimen/text_size_normal" />
+
+                <TextView
+                    android:id="@+id/bluetoothConnectedList"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:visibility="gone"
+                    tools:text="Galaxy Buds"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/bluetoothConnectedEmpty"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:text="@string/network_monitor_bluetooth_connected_empty" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FastMediaSorter.NetworkMonitor.Card">
+
+            <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.SectionHeading"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/network_monitor_bluetooth_paired_only_heading"
                     android:textSize="@dimen/text_size_normal" />
 
                 <TextView

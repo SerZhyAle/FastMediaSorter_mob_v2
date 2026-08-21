@@ -41,6 +41,7 @@ private const val DROP_PLAY_OUTCOME_TABLE = "DROP TABLE IF EXISTS `stream_play_o
 
 val MIGRATION_52_53 = object : Migration(SCHEMA_VERSION_FROM, SCHEMA_VERSION_TO) {
     override fun migrate(db: SupportSQLiteDatabase) {
+        Timber.d("S1832: migration 52 -> 53 entered - re-addressing launcher stream cells")
         val rewritten = rewriteStreamCellTargets(db)
         // Logged even at zero, because a device log otherwise cannot tell "no stream cells to rewrite"
         // apart from "the rewrite never ran" - and those two call for opposite investigations.

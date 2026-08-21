@@ -47,13 +47,17 @@ function Deny([string] $message, [int] $code) {
 }
 
 $registryPath = Join-Path $RepoRoot 'docs/STREAM_CATALOG_CONSUMERS.md'
-$publisherPath = Join-Path $RepoRoot 'scripts/streams/collect-stream-candidates.ps1'
+$publisherPaths = @(
+    Join-Path $RepoRoot 'scripts/streams/collect-stream-candidates.ps1'
+    Get-ChildItem -LiteralPath (Join-Path $RepoRoot 'scripts/streams/modules') -Filter '*.ps1' -File -ErrorAction SilentlyContinue |
+        Select-Object -ExpandProperty FullName
+)
 
 if (-not (Test-Path $registryPath)) { Deny "cannot run - $registryPath missing." 2 }
-if (-not (Test-Path $publisherPath)) { Deny "cannot run - $publisherPath missing." 2 }
+if (-not (Test-Path $publisherPaths[0])) { Deny "cannot run - $($publisherPaths[0]) missing." 2 }
 
 $registry = Get-Content $registryPath -Raw
-$publisher = Get-Content $publisherPath -Raw
+$publisher = ($publisherPaths | ForEach-Object { Get-Content $_ -Raw }) -join "`n"
 
 # The markers, not a heading: a renamed heading must not silently empty the pinned set.
 $blockMatch = [regex]::Match(
@@ -93,7 +97,7 @@ foreach ($m in $formatMatches) {
     $paramName = $m.Groups['param'].Value
     $defaultMatch = [regex]::Match($publisher, ('\$' + $paramName + "\s*=\s*'(?<value>[^']+)'"))
     if (-not $defaultMatch.Success) {
-        Deny "could not read the default of `$$paramName from $publisherPath." 2
+        Deny "could not read the default of `$$paramName from the publisher sources." 2
     }
     $produced[$m.Groups['base'].Value] = [pscustomobject]@{
         Extension = $m.Groups['ext'].Value
@@ -103,7 +107,7 @@ foreach ($m in $formatMatches) {
 }
 
 if ($produced.Count -eq 0) {
-    Deny "no revisioned asset format strings found in $publisherPath - the gate would pass vacuously." 2
+    Deny "no revisioned asset format strings found in the publisher sources - the gate would pass vacuously." 2
 }
 
 $lost = @()

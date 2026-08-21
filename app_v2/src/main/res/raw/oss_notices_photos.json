@@ -826,6 +826,81 @@
     "note": null
   },
   {
+    "coordinate": "androidx.media3:media3-exoplayer-dash",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "AndroidX Media3 ExoPlayer DASH",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.media3:media3-exoplayer-hls",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "AndroidX Media3 ExoPlayer HLS",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.media3:media3-exoplayer-rtsp",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "AndroidX Media3 ExoPlayer RTSP",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
     "coordinate": "androidx.media3:media3-session",
     "modules": [
       "app_v2"

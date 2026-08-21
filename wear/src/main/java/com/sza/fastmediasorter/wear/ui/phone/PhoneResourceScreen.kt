@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.phone
 
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -45,6 +47,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
@@ -60,6 +63,18 @@ fun PhoneResourceScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val fileListViewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
     val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
+
+    // S1846: the tap on a file ends here, once. Navigation is a side effect of an outcome, so it runs
+    // in an effect keyed to that outcome and the outcome is consumed straight after - recomposing the
+    // list must not push the player a second time.
+    val openOutcome by viewModel.openOutcome.collectAsStateWithLifecycle()
+    LaunchedEffect(openOutcome) {
+        val outcome = openOutcome
+        if (outcome is PhoneFileOpenOutcome.Ready) {
+            navController.navigate(playerRouteFor(outcome.fileId, outcome.mimeType))
+            viewModel.consumeOpenOutcome()
+        }
+    }
 
     // Back walks the folder trail first; only the root hands Back back to navigation.
     BackHandler(enabled = true) {
@@ -86,11 +101,21 @@ fun PhoneResourceScreen(
                 listState = listState,
                 viewMode = fileListViewMode,
                 thumbnails = thumbnails,
-                onFolderClick = viewModel::openFolder
+                titleRes = titleResFor(viewModel.mediaType),
+                openStatusRes = openOutcome.toStatusRes(),
+                onEntryClick = { entry ->
+                    if (entry.isDirectory) viewModel.openFolder(entry.token) else viewModel.openFile(entry)
+                }
             )
 
             is PhoneResourceUiState.Empty -> RetryMessage(
-                text = stringResource(R.string.phone_resource_empty),
+                // A filtered list that says "your phone has nothing to show" would blame the phone for
+                // a filter the user chose one screen earlier (S1846).
+                text = if (viewModel.mediaType == null) {
+                    stringResource(R.string.phone_resource_empty)
+                } else {
+                    stringResource(R.string.phone_resource_empty_filtered)
+                },
                 onRetry = viewModel::retry
             )
 
@@ -108,7 +133,9 @@ private fun PhoneResourceList(
     listState: ScalingLazyListState,
     viewMode: WearViewMode,
     thumbnails: Map<String, WearThumbnail>,
-    onFolderClick: (String) -> Unit
+    @StringRes titleRes: Int,
+    @StringRes openStatusRes: Int?,
+    onEntryClick: (WearPhoneResourceItem) -> Unit
 ) {
     // The column count comes from the width this composable actually gets, so this browser answers
     // the geometry question exactly as the general file list does.
@@ -122,7 +149,7 @@ private fun PhoneResourceList(
         ) {
             item {
                 Text(
-                    text = stringResource(R.string.phone_resource_title),
+                    text = stringResource(titleRes),
                     style = MaterialTheme.typography.title3,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -131,11 +158,27 @@ private fun PhoneResourceList(
                 )
             }
 
+            // S1846: a tap that could not open anything says so here and leaves the list in place -
+            // replacing the list with an error would lose the user's position for a per-file problem.
+            if (openStatusRes != null) {
+                item {
+                    Text(
+                        text = stringResource(openStatusRes),
+                        style = MaterialTheme.typography.caption2,
+                        color = MaterialTheme.colors.error,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
             entryItems(
                 items = items,
                 columns = columns,
                 thumbnails = thumbnails,
-                onFolderClick = onFolderClick
+                onEntryClick = onEntryClick
             )
         }
     }
@@ -146,11 +189,11 @@ private fun ScalingLazyListScope.entryItems(
     items: List<WearPhoneResourceItem>,
     columns: Int,
     thumbnails: Map<String, WearThumbnail>,
-    onFolderClick: (String) -> Unit
+    onEntryClick: (WearPhoneResourceItem) -> Unit
 ) {
     if (columns == SINGLE_COLUMN) {
         items(items) { entry ->
-            EntryChip(entry = entry, onFolderClick = onFolderClick)
+            EntryChip(entry = entry, onEntryClick = onEntryClick)
         }
     } else {
         items(items.chunked(columns)) { rowEntries ->
@@ -158,7 +201,7 @@ private fun ScalingLazyListScope.entryItems(
                 entries = rowEntries,
                 columns = columns,
                 thumbnails = thumbnails,
-                onFolderClick = onFolderClick
+                onEntryClick = onEntryClick
             )
         }
     }
@@ -170,7 +213,7 @@ private fun EntryRow(
     entries: List<WearPhoneResourceItem>,
     columns: Int,
     thumbnails: Map<String, WearThumbnail>,
-    onFolderClick: (String) -> Unit
+    onEntryClick: (WearPhoneResourceItem) -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -180,7 +223,7 @@ private fun EntryRow(
             ThumbnailCell(
                 thumbnail = thumbnails[entry.token] ?: WearThumbnail.Unavailable,
                 caption = entry.name,
-                onClick = { if (entry.isDirectory) onFolderClick(entry.token) },
+                onClick = { onEntryClick(entry) },
                 modifier = Modifier.weight(1f)
             ) {
                 EntryIcon(entry = entry)
@@ -195,10 +238,10 @@ private fun EntryRow(
 @Composable
 private fun EntryChip(
     entry: WearPhoneResourceItem,
-    onFolderClick: (String) -> Unit
+    onEntryClick: (WearPhoneResourceItem) -> Unit
 ) {
     Chip(
-        onClick = { if (entry.isDirectory) onFolderClick(entry.token) },
+        onClick = { onEntryClick(entry) },
         label = { Text(text = entry.name) },
         icon = { EntryIcon(entry = entry) },
         modifier = Modifier
@@ -279,7 +322,47 @@ private fun RetryMessage(text: String, onRetry: () -> Unit) {
  * A protocol status never reaches the user: each one is answered with the next step the person can
  * actually take, per `docs/COMMUNICATION_POLICY.md`.
  */
+/**
+ * S1846: the line shown above the list after a tap that did not reach a player, or null when there is
+ * nothing to say. `Ready` shows nothing because the screen is already leaving for the player.
+ */
+@StringRes
+private fun PhoneFileOpenOutcome?.toStatusRes(): Int? = when (this) {
+    PhoneFileOpenOutcome.Opening -> R.string.phone_resource_opening
+    PhoneFileOpenOutcome.Unsupported -> R.string.phone_resource_open_unsupported
+    is PhoneFileOpenOutcome.Failed -> reason.toMessageRes()
+    else -> null
+}
+
+/**
+ * S1846: which player renders a delivered phone file.
+ *
+ * Decided from the file's own mime type rather than from the chip that listed it: a folder reached under
+ * the `all` entrance mixes kinds, and the general browser already picks its player the same way. The three
+ * routes are the watch's existing player entrances - a fourth would duplicate them.
+ */
+private fun playerRouteFor(fileId: Long, mimeType: String): String = when {
+    mimeType.startsWith("image/") -> WearRoutes.imageViewer(fileId)
+    mimeType.startsWith("video/") -> WearRoutes.videoPlayer(fileId)
+    else -> WearRoutes.audioPlayer(fileId)
+}
+
+/**
+ * S1846: the screen is titled by the chip that opened it, so a filtered list is not labelled "Phone"
+ * like the unfiltered one. The labels are the chips' own strings rather than new keys - a second
+ * wording for the same word is how two screens start disagreeing about what they show.
+ */
+@StringRes
+private fun titleResFor(mediaType: String?): Int = when (mediaType) {
+    "photos" -> R.string.wear_phone_images
+    "videos" -> R.string.wear_phone_video
+    "music" -> R.string.wear_phone_audio
+    "documents" -> R.string.wear_phone_documents
+    else -> R.string.phone_resource_title
+}
+
 private fun WearPhoneResourceResponseStatus?.toMessageRes(): Int = when (this) {
+    WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE -> R.string.phone_resource_source_unavailable
     WearPhoneResourceResponseStatus.ACCESS_DENIED -> R.string.phone_resource_access_denied
     WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA -> R.string.phone_resource_unsupported
     WearPhoneResourceResponseStatus.TRANSFER_REJECTED -> R.string.phone_resource_transfer_rejected

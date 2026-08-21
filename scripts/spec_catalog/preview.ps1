@@ -70,6 +70,11 @@ $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
 # on every record without a note - on the /spec-next hot path, for every candidate.
 . (Join-Path $PSScriptRoot '_research-items.ps1')
 
+# S1864: same arrangement for the lifecycle-status sets, so the statuses that release a
+# blocked ticket here are the ones `_lib.ps1` uses to route a ticket between the two
+# release files - one definition instead of two that drifted apart.
+. (Join-Path $PSScriptRoot '_status-sets.ps1')
+
 # 1. Resolve catalog record
 $selectPath = Join-Path $PSScriptRoot 'select.ps1'
 $catJson = & $pwshExe -File $selectPath -Id $Id -Format json 2>$null
@@ -227,7 +232,7 @@ foreach ($p in $ownerGatePatterns) {
 $autoSkip = $null
 $autoSkipReason = $null
 $tierVal = if ($frontmatter['Tier']) { $frontmatter['Tier'] } else { '' }
-$unverifiedBlockers = @($dependsOn | Where-Object { $_.status -ne 'Verified' -and $_.status -ne 'Archived' })
+$unverifiedBlockers = @($dependsOn | Where-Object { -not (Test-BlockerReleasedStatus -Status ([string]$_.status)) })
 if ($tierVal -match '^\s*5') {
     $autoSkip = 'tier-5-epic'
     $autoSkipReason = 'Tier 5 epic-container, no code under its id'
@@ -237,8 +242,14 @@ elseif ($ownerGate) {
     $autoSkipReason = 'Spec explicitly forbids automatic handoff (§12 owner directive)'
 }
 elseif ($unverifiedBlockers.Count -gt 0) {
-    # S1775: directed spec link is truth. Any unverified blocker excludes the ticket from
-    # automatic selection regardless of lifecycle status; status remains descriptive.
+    # S1775: directed spec link is truth. A blocker that has not been released excludes the
+    # ticket from automatic selection regardless of the DEPENDENT's lifecycle status; that
+    # status remains descriptive.
+    # S1864 refines only which blocker statuses release: Implemented, Verified,
+    # BlockNeedUserTest, Archived - the release-ready set plus the archive, shared through
+    # _status-sets.ps1. S1775 itself named this predicate an extension point, having measured
+    # a ticket waiting on five blockers that were all merely awaiting a device pass. The
+    # reason string keeps its name so operators and the skip cache read the same token.
     $autoSkip = 'blocker-not-verified'
     $autoSkipReason = 'Depends on ' + (($unverifiedBlockers | ForEach-Object { "$($_.id)($($_.status))" }) -join ', ')
 }

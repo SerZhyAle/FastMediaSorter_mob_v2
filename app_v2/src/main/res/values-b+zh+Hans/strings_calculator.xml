@@ -28,7 +28,7 @@
     <string name="calculator_enable_prompt_title">计算器已关闭</string>
     <string name="calculator_error_division_by_zero">不能除以零。</string>
     <string name="calculator_error_math_domain">这个号码做不到。</string>
-    <string name="calculator_fn_cbrt">∛x（立方）</string>
+    <string name="calculator_fn_cbrt">∛x（立方根）</string>
     <string name="calculator_fn_cos">cos（余弦）</string>
     <string name="calculator_fn_cot">ctg（余切）</string>
     <string name="calculator_fn_div">除法（整数）</string>
@@ -36,10 +36,10 @@
     <string name="calculator_fn_ln">ln（自然对数）</string>
     <string name="calculator_fn_log10">log₁₀（对数）</string>
     <string name="calculator_fn_mod">mod（剩余）</string>
-    <string name="calculator_fn_power">xʸ（功率）</string>
+    <string name="calculator_fn_power">xʸ（幂）</string>
     <string name="calculator_fn_reciprocal">1/x（倒数）</string>
     <string name="calculator_fn_sin">正弦（sine）</string>
-    <string name="calculator_fn_sqrt">√x（根）</string>
+    <string name="calculator_fn_sqrt">√x（平方根）</string>
     <string name="calculator_fn_square">x²（平方）</string>
     <string name="calculator_fn_tan">tg（切线）</string>
     <string name="calculator_history_cleared">历史真相大白。</string>

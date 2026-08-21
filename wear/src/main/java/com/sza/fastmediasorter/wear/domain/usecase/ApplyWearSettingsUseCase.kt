@@ -14,12 +14,12 @@ class ApplyWearSettingsUseCase @Inject constructor(
     private val preferencesRepository: WearPreferencesRepository
 ) {
     suspend operator fun invoke(payload: WearSettingsPayload) {
+        Timber.d("S1839: applying wear settings payload, wait-for-finish field removed")
         preferencesRepository.setAudioEnabled(payload.audioEnabled)
         preferencesRepository.setVideoEnabled(payload.videoEnabled)
         preferencesRepository.setImagesEnabled(payload.imagesEnabled)
         preferencesRepository.setSlideshowEnabled(payload.slideshowEnabled)
         preferencesRepository.setSlideshowIntervalSeconds(payload.slideshowIntervalSeconds)
-        preferencesRepository.setSlideshowWaitForFinish(payload.slideshowWaitForFinish)
         preferencesRepository.setDownloadAlbumArt(payload.downloadAlbumArt)
         // S1781: absent means "the phone did not send this", never "reset it" - an older phone must
         // not silently undo a view mode or keep-awake choice made on the watch.

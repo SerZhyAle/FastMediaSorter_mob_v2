@@ -108,14 +108,14 @@ class ListPhoneResourcePageUseCaseTest {
     }
 
     @Test
-    fun `an unreachable resource maps to phone unavailable`() = runTest {
+    fun `an unreachable source maps to source unavailable, not to phone unavailable`() = runTest {
         coEvery { resourceRepository.getResourceById(1L) } returns resource(id = 1, name = "Photos")
         coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } throws
             IllegalStateException("host down")
 
         val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
-        assertEquals(WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE, page.status)
+        assertEquals(WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE, page.status)
         assertTrue("a failure carries no metadata", page.items.isEmpty())
     }
 
@@ -147,15 +147,64 @@ class ListPhoneResourcePageUseCaseTest {
         assertNotNull(page.status)
     }
 
+    @Test
+    fun `a request naming no media type lists every exposed resource`() = runTest {
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Photos", supportedMediaTypes = setOf(MediaType.IMAGE)),
+            resource(id = 2, name = "Podcasts", supportedMediaTypes = setOf(MediaType.AUDIO))
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT))
+
+        assertEquals(listOf("Photos", "Podcasts"), page.items.map { it.name })
+    }
+
+    @Test
+    fun `the images chip does not list an audio-only resource`() = runTest {
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Photos", supportedMediaTypes = setOf(MediaType.IMAGE)),
+            resource(id = 2, name = "Podcasts", supportedMediaTypes = setOf(MediaType.AUDIO))
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "photos"))
+
+        assertEquals(listOf("Photos"), page.items.map { it.name })
+    }
+
+    @Test
+    fun `the documents chip lists a resource holding documents`() = runTest {
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Papers", supportedMediaTypes = setOf(MediaType.PDF)),
+            resource(id = 2, name = "Photos", supportedMediaTypes = setOf(MediaType.IMAGE))
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "documents"))
+
+        assertEquals(listOf("Papers"), page.items.map { it.name })
+    }
+
+    @Test
+    fun `an unknown media type narrows nothing rather than emptying the list`() = runTest {
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Photos", supportedMediaTypes = setOf(MediaType.IMAGE))
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "sculptures"))
+
+        assertEquals(listOf("Photos"), page.items.map { it.name })
+    }
+
     private fun request(
         kind: WearPhoneResourceRequestKind,
         parentToken: String? = null,
-        pageToken: String? = null
+        pageToken: String? = null,
+        mediaType: String? = null
     ) = WearPhoneResourceRequest(
         requestId = "req-${kind.name.lowercase()}",
         kind = kind,
         parentToken = parentToken,
-        pageToken = pageToken
+        pageToken = pageToken,
+        mediaType = mediaType
     )
 
     private fun resource(
@@ -163,7 +212,8 @@ class ListPhoneResourcePageUseCaseTest {
         name: String,
         type: ResourceType = ResourceType.LOCAL,
         accessPin: String? = null,
-        isAvailable: Boolean = true
+        isAvailable: Boolean = true,
+        supportedMediaTypes: Set<MediaType> = setOf(MediaType.IMAGE, MediaType.VIDEO)
     ) = MediaResource(
         id = id,
         name = name,
@@ -171,7 +221,8 @@ class ListPhoneResourcePageUseCaseTest {
         type = type,
         sortMode = SortMode.NAME_ASC,
         accessPin = accessPin,
-        isAvailable = isAvailable
+        isAvailable = isAvailable,
+        supportedMediaTypes = supportedMediaTypes
     )
 
     private fun file(name: String, hidden: Boolean = false) = MediaFile(

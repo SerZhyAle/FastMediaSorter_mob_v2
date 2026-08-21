@@ -34,9 +34,9 @@
     <string name="calculator_fn_div">DIV (पूर्णांक)</string>
     <string name="calculator_fn_factorial">n! (फैक्टोरियल)</string>
     <string name="calculator_fn_ln">ln (nat. log)</string>
-    <string name="calculator_fn_log10">लॉग₁₀ (लॉग)</string>
+    <string name="calculator_fn_log10">log₁₀ (लॉग)</string>
     <string name="calculator_fn_mod">मॉड (शेष)</string>
-    <string name="calculator_fn_power">xʸ (शक्ति)</string>
+    <string name="calculator_fn_power">xʸ (घात)</string>
     <string name="calculator_fn_reciprocal">1/x (व्युत्क्रम)</string>
     <string name="calculator_fn_sin">साइन (sine)</string>
     <string name="calculator_fn_sqrt">√x (मूल)</string>

@@ -422,8 +422,19 @@ class LocalMediaScanner @Inject constructor(
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         Timber.d("LocalMediaScanner.listDirectoryContents: path='$path'")
 
-        // Virtual resources have no browsable directories
-        if (VirtualPathUtils.isVirtualPath(path)) return@withContext emptyList()
+        // Virtual resources delegate to scanFolder to produce their file list
+        if (VirtualPathUtils.isVirtualPath(path)) {
+            Timber.d("S1860: listDirectoryContents virtual path='$path'")
+            return@withContext scanFolder(
+                path = path,
+                supportedTypes = supportedTypes,
+                sizeFilter = sizeFilter,
+                credentialsId = credentialsId,
+                scanSubdirectories = false,
+                showHiddenFiles = showHiddenFiles,
+                onProgress = null
+            )
+        }
         
         // SAF handling
         if (path.startsWith("content://")) {

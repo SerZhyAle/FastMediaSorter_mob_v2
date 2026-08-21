@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.model
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.lang.reflect.Modifier
@@ -39,6 +40,30 @@ class WearPhoneResourcePayloadTest {
 
         assertEquals(request, restored)
         assertEquals(WEAR_PHONE_RESOURCE_SCHEMA_VERSION, restored.schemaVersion)
+    }
+
+    @Test
+    fun `a media type survives the round trip and its absence stays absent`() {
+        val filtered = WearPhoneResourceRequest(
+            requestId = "req-2",
+            kind = WearPhoneResourceRequestKind.CHILDREN,
+            parentToken = "folder-7",
+            mediaType = "documents"
+        )
+
+        val restored = gson.fromJson(gson.toJson(filtered), WearPhoneResourceRequest::class.java)
+
+        assertEquals("documents", restored.mediaType)
+
+        val unfiltered = WearPhoneResourceRequest(
+            requestId = "req-3",
+            kind = WearPhoneResourceRequestKind.ROOT
+        )
+
+        assertNull(
+            "an absent media type must stay absent - it is what the unfiltered entrance sends",
+            gson.fromJson(gson.toJson(unfiltered), WearPhoneResourceRequest::class.java).mediaType
+        )
     }
 
     @Test
@@ -82,6 +107,7 @@ class WearPhoneResourcePayloadTest {
     fun `failure mapping carries a status instead of exception text`() {
         val failures = listOf(
             WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE,
+            WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE,
             WearPhoneResourceResponseStatus.ACCESS_DENIED,
             WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA,
             WearPhoneResourceResponseStatus.TRANSFER_REJECTED,

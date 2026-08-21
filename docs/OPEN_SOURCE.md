@@ -51,10 +51,10 @@ FastMediaSorter is built on the open source components listed below. We are grat
 | AndroidX Media3 Decoder | `androidx.media3:media3-decoder` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |
 | AndroidX Media3 Effect | `androidx.media3:media3-effect` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |
 | AndroidX Media3 ExoPlayer | `androidx.media3:media3-exoplayer` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |
-| AndroidX Media3 ExoPlayer DASH | `androidx.media3:media3-exoplayer-dash` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | legacy, noLegal, standard, vr | [link](https://github.com/androidx/media) |
-| AndroidX Media3 ExoPlayer HLS | `androidx.media3:media3-exoplayer-hls` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | legacy, noLegal, standard, vr | [link](https://github.com/androidx/media) |
+| AndroidX Media3 ExoPlayer DASH | `androidx.media3:media3-exoplayer-dash` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |
+| AndroidX Media3 ExoPlayer HLS | `androidx.media3:media3-exoplayer-hls` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |
 | AndroidX Media3 ExoPlayer MIDI | `androidx.media3:media3-exoplayer-midi` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | legacy, lite, noLegal, standard, vr | [link](https://github.com/androidx/media) |
-| AndroidX Media3 ExoPlayer RTSP | `androidx.media3:media3-exoplayer-rtsp` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | legacy, noLegal, standard, vr | [link](https://github.com/androidx/media) |
+| AndroidX Media3 ExoPlayer RTSP | `androidx.media3:media3-exoplayer-rtsp` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |
 | AndroidX Media3 Session | `androidx.media3:media3-session` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |
 | AndroidX Media3 Transformer | `androidx.media3:media3-transformer` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |
 | AndroidX Media3 UI | `androidx.media3:media3-ui` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |

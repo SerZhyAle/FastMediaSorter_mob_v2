@@ -3132,8 +3132,6 @@
     <string name="network_monitor_bluetooth_state_off">Выключено</string>
     <string name="network_monitor_bluetooth_paired_heading">Сопряжённые устройства</string>
     <string name="network_monitor_bluetooth_paired_empty">С этим устройством ничего не сопряжено.</string>
-    <string name="network_monitor_bluetooth_device_connected">%1$s - подключено</string>
-    <string name="network_monitor_bluetooth_device_idle">%1$s - не подключено</string>
     <string name="network_monitor_bluetooth_picker_label">График подключённого устройства</string>
     <string name="network_monitor_bluetooth_picker_none">Не выбрано</string>
     <string name="network_monitor_bluetooth_picker_empty">Нет подключённых устройств для графика.</string>
@@ -3361,4 +3359,13 @@
     <string name="network_monitor_link_bandwidth_down_label">Оценка полосы, приём</string>
     <string name="network_monitor_link_bandwidth_up_label">Оценка полосы, передача</string>
     <string name="wear_settings_file_list_view">Вид файлов</string>
+    <string name="network_monitor_status_no_location_service">Геолокация выключена в настройках системы</string>
+    <string name="network_monitor_wifi_network_reason_description">%1$s: %2$s</string>
+    <string name="network_monitor_bluetooth_connected_heading">Подключены сейчас</string>
+    <string name="network_monitor_bluetooth_connected_empty">Сейчас ничего не подключено.</string>
+    <string name="network_monitor_bluetooth_paired_only_heading">Сопряжены, но не подключены</string>
+    <string name="network_monitor_chart_reset_action">Перезапустить график</string>
+    <string name="network_monitor_chart_reset_done">График перезапущен. Замер идёт заново.</string>
+    <string name="settings_enable_wear_companion">Компаньон часов</string>
+    <string name="settings_enable_wear_companion_summary">Показывать компаньон часов в панели и меню программ</string>
 </resources>

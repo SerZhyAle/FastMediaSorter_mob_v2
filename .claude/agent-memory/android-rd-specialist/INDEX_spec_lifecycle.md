@@ -30,5 +30,5 @@ Split out of `MEMORY.md` (S1731, 2026-08-17): memories specific to spec creation
 - [Long gap voids the round](feedback_long_gap_invalidates_round_state.md)
 - [Capability inventory](project_functionality_log.md) · [flavors from the gate](feedback_feature_record_flavors_from_gate.md) · [noLegal features](feedback_features_nolegal.md)
 - [Owner translates in bulk](project_owner_external_translation_route.md) - never hand-translate the ten
-- [Scan roots](project_catalog_scan_source_sets.md) · [Dedup: 1 word](feedback_spec_dedup_query_shape.md)
+- [Scan roots](project_catalog_scan_source_sets.md) · [Dedup: grep PLAN, search.ps1 reads only the name](feedback_spec_dedup_query_shape.md)
 - [set.ps1 stops](project_catalog_set_ps1_stops_on_error.md) · [-Search coverage](reference_catalog_search_coverage.md) · [Big-file decomposition](project_s0002_decomposition_toolkit.md)

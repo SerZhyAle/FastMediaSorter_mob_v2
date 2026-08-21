@@ -10,7 +10,11 @@
   (search-log.ps1 only parses `-v threadtime`). This audit closes that gap:
 
     - parses both `-v time` and `-v threadtime` logcat formats,
-    - keeps only app-process lines (by tag/package heuristics),
+    - keeps only app-process lines: the pid column decides, against the process ids the
+      capture itself announces in `Start proc <pid>:<package>` (S1859). Only when the capture
+      carries no such announcement does the tag heuristic below decide instead, and the report
+      then says so - a tag denylist is enumerative, so an unlisted tag (the one-character `A`
+      of Google's tiktok tracing framework) reaches the actionable list as if it were ours,
     - collapses Java/Kotlin stack-trace frames into their throwing cluster,
     - clusters E/ (and optionally W/) lines by tag + normalized message head,
     - classifies each cluster as BENIGN (known emulator/capability fallback) or ACTIONABLE,
@@ -31,6 +35,10 @@
 .PARAMETER LogFile
   Captured logcat for the run window (`-v time` or `-v threadtime`).
 
+.PARAMETER Package
+  Base application id used to recover the app's process ids from the capture. Prefix-matched,
+  so the release id, the `.debug` id and any `:sub` process are all recognised.
+
 .PARAMETER IncludeWarnings
   Also cluster W/ lines (off by default - E/ only).
 
@@ -43,6 +51,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$LogFile,
+    [string]$Package = 'com.sza.fastmediasorter',
     [switch]$IncludeWarnings,
     [switch]$Json
 )
@@ -53,6 +62,26 @@ if (-not (Test-Path $LogFile)) {
     if ($Json) { '{"ok":false,"exitCode":2,"error":"log file not found"}' } else { Write-Host 'log file not found' }
     exit 2
 }
+
+# S1859: process attribution, and the only authoritative one. Get-AppPidsFromLog owns the
+# "Start proc" parsing rule for the whole repo (S1332) - the Select-String pre-filter is what
+# keeps a 137 MB sweep capture out of memory, since that function takes an array.
+. (Join-Path $PSScriptRoot 'lib/adb-log-filter.ps1')
+
+$startProcLines = @(
+    Select-String -Path $LogFile -Pattern ('Start proc \d+:' + [regex]::Escape($Package)) -ErrorAction SilentlyContinue |
+        ForEach-Object { $_.Line }
+)
+$appPids = @(Get-AppPidsFromLog -Lines $startProcLines -BasePackage $Package)
+$appPidSet = @{}
+foreach ($appPid in $appPids) { $appPidSet[$appPid] = $true }
+$attribution = if ($appPidSet.Count -gt 0) { 'pid' } else { 'heuristic' }
+
+# The system process legitimately logs ABOUT the app: an ANR verdict and a crash header carry
+# our package in their text while running under system_server's pid. This arm exempts such a
+# line from the pid drop only - the tag denylists below still judge it, exactly as they did
+# before pid attribution existed.
+$appTextArm = '(ANR in|Process:)\s+' + [regex]::Escape($Package)
 
 # Known-benign clusters: expected emulator / device-capability fallbacks that legitimately
 # log at E/W on an emulator and must not be treated as release defects. Extend deliberately -
@@ -159,8 +188,8 @@ $toastPatterns = 'Toast|Snackbar|showError|showErrorMessage|notifyError|UiError|
 $systemTagHint = '^(SurfaceFlinger|Bluetooth\w*|Battery\w*|Kernel\w*|libc|memtrack|gralloc|EGL_emulation|OMXNodeInstance|InputDispatcher|android\.os\.Debug|SELinux|cutils|audio_hw\w*|Parcel|app_process|chatty|linker\w*|Typeface|StrictMode|HwBinder|ProfileSaver|zygote\w*|SpellCheckerSession|ActivityManager|WindowManager|SurfaceControl)'
 
 # One parsed record per non-stack-trace E/(W) line.
-$lineRegexThreadtime = '^\s*\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+\s+\d+\s+\d+\s+(?<lvl>[EW])\s+(?<tag>\S+?)\s*:\s*(?<msg>.*)$'
-$lineRegexTime       = '^\s*\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+\s+(?<lvl>[EW])/(?<tag>[^(]+?)\(\s*\d+\)\s*:\s*(?<msg>.*)$'
+$lineRegexThreadtime = '^\s*\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+\s+(?<pid>\d+)\s+\d+\s+(?<lvl>[EW])\s+(?<tag>\S+?)\s*:\s*(?<msg>.*)$'
+$lineRegexTime       = '^\s*\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+\s+(?<lvl>[EW])/(?<tag>[^(]+?)\(\s*(?<pid>\d+)\)\s*:\s*(?<msg>.*)$'
 
 $wantLevels = if ($IncludeWarnings) { @('E', 'W') } else { @('E') }
 
@@ -181,6 +210,14 @@ foreach ($raw in [System.IO.File]::ReadLines((Resolve-Path $LogFile))) {
 
     $tag = $m.Groups['tag'].Value.Trim()
     $msg = $m.Groups['msg'].Value.Trim()
+
+    # S1859: attribution first, and it decides on its own. A line from another process is not
+    # classified at all, whatever it says - the benign allowlists below silence a cluster by
+    # identity, which is a different question from whose process emitted it.
+    if ($attribution -eq 'pid') {
+        $linePid = [int]$m.Groups['pid'].Value
+        if (-not $appPidSet.ContainsKey($linePid) -and ("$tag $msg") -notmatch $appTextArm) { continue }
+    }
 
     if (Test-StackFrame $msg) { continue }            # stack frames fold into their cluster head
     if ($tag -match $systemTagHint) { continue }      # system/native noise, not the app
@@ -223,6 +260,8 @@ if ($Json) {
     [ordered]@{
         ok             = $true
         exitCode       = $exit
+        attribution    = $attribution
+        appPidCount    = $appPidSet.Count
         actionableCount= $actionable.Count
         benignCount    = $benign.Count
         toastCount     = $toastUnique.Count
@@ -231,6 +270,11 @@ if ($Json) {
     } | ConvertTo-Json -Depth 5 -Compress
 } else {
     Write-Host "Detailed log audit: $LogFile"
+    if ($attribution -eq 'pid') {
+        Write-Host ("  attribution: pid - {0} app process id(s) recovered from the capture" -f $appPidSet.Count)
+    } else {
+        Write-Host "  attribution: HEURISTIC - no 'Start proc $Package' announcement in this capture, so lines were kept by tag, not by process. Clusters below may belong to other processes." -ForegroundColor Yellow
+    }
     Write-Host ("  actionable clusters: {0}  |  benign: {1}  |  error toasts: {2}" -f $actionable.Count, $benign.Count, $toastUnique.Count)
     if ($actionable.Count) {
         Write-Host "`n  ACTIONABLE app-error clusters (spec-draft candidates):"

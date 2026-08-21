@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1440: the network-indicator desktop tile, on the technical tile's shape. Nothing sets a fixed
+     height; the desktop grid measures the cell. The icon is a tap target of its own because the two
+     tap-driven indicators cost a network round trip: the body opens the Monitor, only the icon asks
+     for a fresh reading. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:id="@+id/gadgetNetworkIndicatorBody"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/focus_button_background"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="@dimen/margin_small">
+
+        <ImageView
+            android:id="@+id/gadgetNetworkIndicatorIcon"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:background="@drawable/focus_button_background"
+            android:clickable="true"
+            android:contentDescription="@string/launcher_gadget_network_indicator"
+            android:focusable="true"
+            android:maxWidth="48dp"
+            android:tint="?attr/colorOnSurface"
+            tools:ignore="UseAppTint"
+            tools:src="@drawable/ic_network_monitor" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/gadgetNetworkIndicatorValue"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:autoSizeMaxTextSize="96sp"
+                android:autoSizeMinTextSize="12sp"
+                android:autoSizeTextType="uniform"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:maxLines="1"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold"
+                tools:ignore="UnusedAttribute"
+                tools:text="192.168.1.42" />
+
+            <TextView
+                android:id="@+id/gadgetNetworkIndicatorCaption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="11sp"
+                tools:text="Local address" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</merge>

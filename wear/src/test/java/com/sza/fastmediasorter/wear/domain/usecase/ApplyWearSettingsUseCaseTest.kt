@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
 import android.content.Context
+import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
@@ -25,7 +26,6 @@ class ApplyWearSettingsUseCaseTest {
             imagesEnabled = false,
             slideshowEnabled = true,
             slideshowIntervalSeconds = 17,
-            slideshowWaitForFinish = true,
             downloadAlbumArt = true
         )
 
@@ -36,7 +36,6 @@ class ApplyWearSettingsUseCaseTest {
         assertEquals(false, repository.imagesEnabled)
         assertEquals(true, repository.slideshowEnabled)
         assertEquals(17, repository.slideshowIntervalSecondsValue)
-        assertEquals(true, repository.slideshowWaitForFinishValue)
         assertEquals(true, repository.downloadAlbumArtValue)
     }
 
@@ -150,7 +149,6 @@ class ApplyWearSettingsUseCaseTest {
         imagesEnabled = true,
         slideshowEnabled = false,
         slideshowIntervalSeconds = 5,
-        slideshowWaitForFinish = false,
         downloadAlbumArt = false
     )
 }
@@ -161,13 +159,12 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var imagesEnabled = true
     var slideshowEnabled = false
     var slideshowIntervalSecondsValue = 5
-    var slideshowWaitForFinishValue = false
     var downloadAlbumArtValue = false
     var shuffleEnabledValue = false
     var viewModeValue = WearViewMode.LIST
     var keepScreenAwakeValue = false
     var fileListViewModeValue = WearViewMode.LIST
-    var lastUsedResourceNameValue: String? = null
+    var lastUsedResourceValue: LastUsedResource? = null
     var streamsSectionEnabledValue = true
     var calculatorHistoryValue: List<String> = emptyList()
     var calculatorMemoryValue: String? = null
@@ -179,13 +176,12 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val isImagesEnabled: Flow<Boolean> = MutableStateFlow(imagesEnabled)
     override val isSlideshowEnabled: Flow<Boolean> = MutableStateFlow(slideshowEnabled)
     override val slideshowIntervalSeconds: Flow<Int> = MutableStateFlow(slideshowIntervalSecondsValue)
-    override val slideshowWaitForFinish: Flow<Boolean> = MutableStateFlow(slideshowWaitForFinishValue)
     override val downloadAlbumArt: Flow<Boolean> = MutableStateFlow(downloadAlbumArtValue)
     override val isShuffleEnabled: Flow<Boolean> = MutableStateFlow(shuffleEnabledValue)
     override val viewMode: Flow<WearViewMode> = MutableStateFlow(viewModeValue)
     override val fileListViewMode: Flow<WearViewMode> = MutableStateFlow(fileListViewModeValue)
     override val keepScreenAwakeOutsidePlayers: Flow<Boolean> = MutableStateFlow(keepScreenAwakeValue)
-    override val lastUsedResourceName: Flow<String?> = MutableStateFlow(lastUsedResourceNameValue)
+    override val lastUsedResource: Flow<LastUsedResource?> = MutableStateFlow(lastUsedResourceValue)
     override val streamsSectionEnabled: Flow<Boolean> = MutableStateFlow(streamsSectionEnabledValue)
     override val calculatorHistory: Flow<List<String>> = MutableStateFlow(calculatorHistoryValue)
     override val calculatorMemory: Flow<String?> = MutableStateFlow(calculatorMemoryValue)
@@ -212,10 +208,6 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
         slideshowIntervalSecondsValue = seconds
     }
 
-    override suspend fun setSlideshowWaitForFinish(wait: Boolean) {
-        slideshowWaitForFinishValue = wait
-    }
-
     override suspend fun setDownloadAlbumArt(enabled: Boolean) {
         downloadAlbumArtValue = enabled
     }
@@ -236,12 +228,12 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
         keepScreenAwakeValue = enabled
     }
 
-    override suspend fun setLastUsedResource(name: String) {
-        lastUsedResourceNameValue = name
+    override suspend fun setLastUsedResource(id: String, name: String) {
+        lastUsedResourceValue = LastUsedResource(id, name)
     }
 
     override suspend fun clearLastUsedResource() {
-        lastUsedResourceNameValue = null
+        lastUsedResourceValue = null
     }
 
     override suspend fun setStreamsSectionEnabled(enabled: Boolean) {

@@ -54,7 +54,7 @@ function `description` are merged back as manual fields).
 ### scan.ps1 - structural refresh (create/update auto-fields, auto-remove deleted)
 
 ```powershell
-pwsh -File dev/CATALOG/scripts/scan.ps1 -Module app_v2
+pwsh -NoProfile -File dev/CATALOG/scripts/scan.ps1 -Module app_v2
 ```
 
 Creates new records for new files, drops records for deleted files, refreshes
@@ -67,21 +67,21 @@ preserved** by merging on `path + class` and function `name`.
 
 ```powershell
 # Set role + status in one call (fuzzy path match - substring must be unique)
-pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "AppShortcutsManager.kt" `
+pwsh -NoProfile -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "AppShortcutsManager.kt" `
     -Role "Refreshes recent-resource app shortcuts on Android launcher" `
     -Status tested
 
 # Mark a class as excluded from some flavors
-pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "CloudAuthManager.kt" `
+pwsh -NoProfile -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "CloudAuthManager.kt" `
     -NoFlavors "lite,photos"
 
 # Describe a specific function
-pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "MediaFilesCacheManager.kt" `
+pwsh -NoProfile -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "MediaFilesCacheManager.kt" `
     -Function "updateFile" `
     -Description "Replaces cache entry for a renamed/moved file within a resource"
 
 # Skip auto-re-render (rare - when batching many edits)
-pwsh -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "..." -Role "..." -NoRender
+pwsh -NoProfile -File dev/CATALOG/scripts/set.ps1 -Module app_v2 -Path "..." -Role "..." -NoRender
 ```
 
 Re-renders Markdown after each successful edit unless `-NoRender` is passed.
@@ -92,36 +92,36 @@ ambiguous fuzzy paths (shows all matches).
 
 ```powershell
 # Big data-layer classes that touch disk
-pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Layer data -SideEffect disk -MinLoc 500
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Layer data -SideEffect disk -MinLoc 500
 
 # Decomposition candidates
-pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -MinLoc 800
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -MinLoc 800
 
 # Records still missing a role description
-pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Missing role
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Missing role
 
 # What injects ResourceDao (@Inject constructor only)
-pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Injected ResourceDao
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Injected ResourceDao
 
 # What takes ResourceDao as a constructor parameter (superset of -Injected;
 # also catches non-Hilt / @Inject-free collaborators)
-pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -DependsOn ResourceDao
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -DependsOn ResourceDao
 
 # Search across class, path, role, dependencies, or functions
-pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Search "Welcome"
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Search "Welcome"
 
 # Named product sectors (S1344): list them, then map one across ui/domain/data
-pwsh -File dev/CATALOG/scripts/query.ps1 -Sectors
-pwsh -File dev/CATALOG/scripts/query.ps1 -Sector player
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Sectors
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Sector player
 
 # A sector composes with every other filter rather than replacing them
-pwsh -File dev/CATALOG/scripts/query.ps1 -Sector player -Layer ui
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Sector player -Layer ui
 
 # Recently touched data-layer code
-pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Layer data -TouchedSince 2026-04-01
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Layer data -TouchedSince 2026-04-01
 
 # Machine-readable output for further piping
-pwsh -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Layer ui -Coroutines -Json
+pwsh -NoProfile -File dev/CATALOG/scripts/query.ps1 -Module app_v2 -Layer ui -Coroutines -Json
 ```
 
 All filters are AND'd. Supported: `-Layer`, `-Status`, `-SideEffect`,
@@ -139,7 +139,7 @@ so it also finds non-Hilt and `@Inject`-free collaborators.
 ### remove.ps1 - drop a record manually
 
 ```powershell
-pwsh -File dev/CATALOG/scripts/remove.ps1 -Module app_v2 -Path "com/sza/.../Old.kt"
+pwsh -NoProfile -File dev/CATALOG/scripts/remove.ps1 -Module app_v2 -Path "com/sza/.../Old.kt"
 ```
 
 Rare - `scan.ps1` already removes records for deleted files. Use this only
@@ -156,11 +156,11 @@ empty, and across **every** record sharing a `path::class`.
 
 ```powershell
 # Draft roles for feature entry points (ViewModel/Manager/UseCase/... ); -IncludeAll for every class
-pwsh -File dev/CATALOG/scripts/generate-role-drafts.ps1 -Module app_v2 [-IncludeAll] [-Limit 30]
+pwsh -NoProfile -File dev/CATALOG/scripts/generate-role-drafts.ps1 -Module app_v2 [-IncludeAll] [-Limit 30]
 
 # Preview, then apply the reviewed TSV (re-renders Markdown)
-pwsh -File dev/CATALOG/scripts/apply-role-drafts.ps1 -Module app_v2 -DryRun
-pwsh -File dev/CATALOG/scripts/apply-role-drafts.ps1 -Module app_v2
+pwsh -NoProfile -File dev/CATALOG/scripts/apply-role-drafts.ps1 -Module app_v2 -DryRun
+pwsh -NoProfile -File dev/CATALOG/scripts/apply-role-drafts.ps1 -Module app_v2
 ```
 
 For a single record, `set.ps1 -Role` remains the direct path.

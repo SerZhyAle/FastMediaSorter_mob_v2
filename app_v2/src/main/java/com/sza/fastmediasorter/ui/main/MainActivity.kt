@@ -78,6 +78,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainStorageVolumeWatchManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsPanelManager
 import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
+import com.sza.fastmediasorter.ui.main.helpers.MainWearCompanionMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.main.helpers.StartupNoticeManager
@@ -122,6 +123,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var layoutChrome: MainLayoutChromeManager
     private lateinit var commandOverflowMenuManager: MainCommandOverflowMenuManager
     private lateinit var miniGameMenuManager: MainMiniGameMenuManager
+    private lateinit var wearCompanionMenuManager: MainWearCompanionMenuManager
     private lateinit var streamsMenuManager: MainStreamsMenuManager
     private lateinit var voiceCaptureManager: MainVoiceCaptureManager
     private lateinit var cameraCaptureManager: MainCameraCaptureManager
@@ -154,7 +156,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var startupFullyDrawnReported = false
     private var startupAprilFoolsPrankChecked = false
     private var isCalculatorEnabled = false
+
+    // S1285: last cell-size step handed to the layout chrome. The settings collector below compares
+    // against it, because that collector re-fires for every unrelated setting and rebuilding the
+    // layout manager each time would drop the grid's scroll position.
+    private var appliedResourceGridCellSize =
+        com.sza.fastmediasorter.domain.model.ResourceGridCellSize.DEFAULT
     private var isNetworkMonitorEnabled = false
+    private var isSystemInfoEnabled = false
+    private var isWearCompanionEnabled = false
     private var isEmbeddedGameEnabled = false
     private var isCameraOcrEnabled = false
     private var isQuickVoiceEnabled = false
@@ -394,6 +404,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             activity = this,
             binding = binding,
             isResourceGridMode = { viewModel.state.value.isResourceGridMode },
+            resourceGridCellSize = { appliedResourceGridCellSize },
             onControlBarFreeWidth = { freeWidthPx ->
                 controlBarFreeWidthPx = freeWidthPx
                 collapsedChipsPlacement.apply(freeWidthPx, isWideLayout())
@@ -764,6 +775,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         linkDownload = isLinkDownloadEnabled,
         miniGame = isEmbeddedGameEnabled,
         screenRecording = isScreenRecordingEnabled,
+        systemInfo = isSystemInfoEnabled,
+        wearCompanion = isWearCompanionEnabled,
     )
 
     private fun showMainWindowDropdownMenu() {
@@ -814,6 +827,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         storageVolumeWatchManager.attach()
         miniGameMenuManager = MainMiniGameMenuManager(this)
+        wearCompanionMenuManager = MainWearCompanionMenuManager(this)
         streamsMenuManager = MainStreamsMenuManager(this)
         voiceCaptureManager = MainVoiceCaptureManager(
             this, lifecycleScope, localDestinationClassifier, localDestinationWriter, statsSink,
@@ -863,6 +877,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         programsMenuCoordinator = MainProgramsMenuCoordinator(
             activity = this,
             miniGameMenuManager = miniGameMenuManager,
+            wearCompanionMenuManager = wearCompanionMenuManager,
             streamsMenuManager = streamsMenuManager,
             quickCaptureMenuManager = quickCaptureMenuManager,
             linkDownloadMenuManager = linkDownloadMenuManager,
@@ -934,7 +949,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 // S0783: add/remove the channel from the shared Favorites (feature-gated, label per state).
                 onToggleFavorite = { channel -> viewModel.toggleStreamFavorite(channel) },
                 isFavoritesEnabled = { latestSettings?.enableFavorites == true },
-                isChannelFavorite = { channel -> viewModel.favoriteStreamUrls.value.contains(channel.url) },
+                isChannelFavorite = { channel -> viewModel.isFavoriteChannel(channel) },
             ),
             // S0809: collapsed chip lives in the shared collapsed-panels row (activity layout).
             collapsedChip = binding.chipStreamsCollapsed,
@@ -1231,6 +1246,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             val networkMonitorNowEnabled =
                 settings.enableNetworkMonitor && networkMonitorContract.isAvailableInBuild
             val networkMonitorEnabledChanged = isNetworkMonitorEnabled != networkMonitorNowEnabled
+            val systemInfoEnabledChanged = isSystemInfoEnabled != settings.enableSystemInfo
+            // S1735 (ADR-1): the setting AND the build's watch bridge. The setting alone would offer the
+            // companion where no bridge exists; the capability alone would deny the user the switch.
+            val wearCompanionNowEnabled =
+                settings.enableWearCompanion && mediaCapabilities.supportsWearCompanion
+            val wearCompanionEnabledChanged = isWearCompanionEnabled != wearCompanionNowEnabled
+            Timber.d("S1735: companion gate=%s", wearCompanionNowEnabled)
             val embeddedGameEnabledChanged = isEmbeddedGameEnabled != settings.embeddedGameEnabled
             val cameraOcrEnabledChanged = isCameraOcrEnabled != settings.cameraOcrTranslationEnabled
             // S0523: the quick-capture menu entries reuse the existing capture toggles - no separate
@@ -1251,6 +1273,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             val screenRecordingEnabledChanged = isScreenRecordingEnabled != screenRecordingNowEnabled
             isCalculatorEnabled = settings.enableCalculator
             isNetworkMonitorEnabled = networkMonitorNowEnabled
+            isSystemInfoEnabled = settings.enableSystemInfo
+            isWearCompanionEnabled = wearCompanionNowEnabled
             isEmbeddedGameEnabled = settings.embeddedGameEnabled
             isCameraOcrEnabled = settings.cameraOcrTranslationEnabled
             isQuickVoiceEnabled = settings.micRecordingEnabled
@@ -1277,6 +1301,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             resourceAdapter.setOpenInVrCinemaVisible(resourceVrCinemaLaunchManager.isAvailable)
             layoutChrome.applyCompactToolbar(settings.useCompactElements)
             layoutChrome.refreshGridSpacing()
+            // S1285: this collector is the only one that sees a cell-size change, and until now it
+            // could not alter the span count - without this the new step would sit unapplied until
+            // the next rotation or state emission, reading to the user as a setting that did nothing.
+            if (appliedResourceGridCellSize != settings.resourceGridCellSize) {
+                appliedResourceGridCellSize = settings.resourceGridCellSize
+                layoutChrome.updateLayoutManagerForScreenSize()
+            }
             // S0759: the left-edge gesture overlay is a setting, not a service - feed its live value to
             // the exit button so the minimize/close mode (and icon) tracks it without an app restart.
             exitButtonManager.setGestureOverlayEnabled(settings.gestureOverlayEnabled)
@@ -1284,7 +1315,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             // (the programs panel mirrors the menu) and refreshes the three-dots button visibility.
             val panelInputsChanged = listOf(
                 calculatorEnabledChanged, embeddedGameEnabledChanged, cameraOcrEnabledChanged,
-                networkMonitorEnabledChanged,
+                networkMonitorEnabledChanged, systemInfoEnabledChanged,
+                wearCompanionEnabledChanged,
                 quickVoiceEnabledChanged, quickVideoEnabledChanged, quickPhotoEnabledChanged,
                 linkDownloadEnabledChanged, streamsEnabledChanged, programsPanelChanged, streamsPanelChanged,
                 screenRecordingEnabledChanged,

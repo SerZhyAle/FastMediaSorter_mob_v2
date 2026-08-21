@@ -250,4 +250,10 @@
     <string name="settings_open_default_apps_dialog">Set as default</string>
     <string name="default_apps_dialog_title">Default app</string>
     <string name="language_download_failed">Could not download this language. Check your internet connection and try again - the app keeps the language it is using now.</string>
+    <string name="pref_resource_grid_cell_size_title">Resource grid cell size</string>
+    <string name="pref_resource_grid_cell_size_small">Small</string>
+    <string name="pref_resource_grid_cell_size_medium">Medium</string>
+    <string name="pref_resource_grid_cell_size_large">Large</string>
+    <string name="settings_enable_system_info">System information</string>
+    <string name="settings_enable_system_info_summary">Show system information in the programs panel and menu</string>
 </resources>

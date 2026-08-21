@@ -15,6 +15,11 @@ $script:RepoRoot = $repoRoot
 # untouched by the move.
 . (Join-Path $libDir '_research-items.ps1')
 
+# S1864: the lifecycle-status sets live in their own leaf file for the same reason, so
+# preview.ps1's auto-skip verdict and this library's release-file routing answer from one
+# definition. Re-exported unchanged - Test-ReleaseReadyStatus keeps every caller it had.
+. (Join-Path $libDir '_status-sets.ps1')
+
 $script:CatalogPath = Join-Path $repoRoot 'PLAN\spec-catalog.jsonl'
 # Archived records live in a separate journal so the hot read path scans only
 # active tickets. See PLAN/S0454_spec-catalog-journal-compaction.md.
@@ -401,14 +406,8 @@ function Get-CurrentRelease {
     return $script:ReleaseQueueBacklog
 }
 
-function Test-ReleaseReadyStatus {
-    # Ready = the ticket's code is done as far as this release is concerned. Implemented and
-    # Verified are self-evident; BlockNeedUserTest counts too, because some flows are very hard
-    # to verify and the owner treats a long-pending device check as shipped - if it later turns
-    # out broken it simply comes back as fresh work in a later package.
-    param([Parameter(Mandatory)][string] $Status)
-    return $Status -in @('Implemented', 'Verified', 'BlockNeedUserTest')
-}
+# Test-ReleaseReadyStatus and Test-BlockerReleasedStatus now live in _status-sets.ps1,
+# dot-sourced above (S1864).
 
 function Sync-ReleaseQueue {
     # Reconcile BOTH release files against the catalog and move tickets between them by status.

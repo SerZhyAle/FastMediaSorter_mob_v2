@@ -1,6 +1,6 @@
 ---
 name: never-drive-a-device-an-agent-holds
-description: While a device-operator subagent is driving a phone, do not tap it yourself - two drivers create states neither one planned and the agent reports on a screen you moved
+description: Do not input to, or kill, a device another session is using - check SPEC-TICKET.LEASES and CODE.LOCK first, and never stop an emulator by process name
 metadata:
   type: feedback
 ---
@@ -28,3 +28,18 @@ sequence.
   scale factor is stated in the image note, but toolbar hit targets, overflow collapsing and the
   window insets can still put the real target elsewhere. Prefer the app's own affordance - a snackbar
   action, a `key back` - over a computed pixel.
+
+**The same rule covers whole devices, not only taps (S1847, 2026-08-20).** Two things went wrong in one
+session, both from treating a shared machine as mine:
+
+- I swiped a phone that showed the launcher; a minute later it was running FastMediaSorter, because a
+  parallel `/spec-all` session had it. `SPEC-TICKET.LEASES` and the `CODE.LOCK` holder name the live
+  siblings - read them BEFORE the first input, not after the screen starts moving on its own. A screen
+  that changes between two of your own calls is the tell; stop inputting the moment you see it.
+- I then killed a stuck emulator with `Get-Process -Name 'qemu-system-x86_64','emulator' |
+  Stop-Process -Force`. That matches by NAME, so it kills every emulator on the box including a
+  sibling's. Kill the instance you started: keep the PID from `Start-Process -PassThru`, or address
+  the serial with `adb -s emulator-5554 emu kill`. Never by process name.
+- And it was not even stuck: the background waiter's own output said `BOOTED after 3 polls`. I read
+  "offline" from an earlier poll and reported it as hung. Read the waiter's output file before
+  concluding anything about what it was waiting for ([[never-trust-a-background-task-exit-code]]).

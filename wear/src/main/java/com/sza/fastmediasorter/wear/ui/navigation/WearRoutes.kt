@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.navigation
 
+import timber.log.Timber
+
 /**
  * Every navigation address of the watch app, declared once.
  *
@@ -79,11 +81,17 @@ object WearRoutes {
 
     fun browsePhone(mediaType: String): String = "browse_phone/$mediaType"
 
-    fun browseSource(mediaType: String, sourceId: String, sourceName: String): String =
-        "browse/$mediaType?$ARG_SOURCE_ID=$sourceId&$ARG_SOURCE_NAME=$sourceName"
+    fun browseSource(mediaType: String, sourceId: String, sourceName: String): String {
+        val route = "browse/$mediaType?$ARG_SOURCE_ID=${encodeArg(sourceId)}&$ARG_SOURCE_NAME=${encodeArg(sourceName)}"
+        Timber.d("S1848: browseSource route=%s", route)
+        return route
+    }
 
-    fun sourceMediaType(sourceId: String, sourceName: String): String =
-        "source_media_type?$ARG_SOURCE_ID=$sourceId&$ARG_SOURCE_NAME=$sourceName"
+    fun sourceMediaType(sourceId: String, sourceName: String): String {
+        val route = "source_media_type?$ARG_SOURCE_ID=${encodeArg(sourceId)}&$ARG_SOURCE_NAME=${encodeArg(sourceName)}"
+        Timber.d("S1848: sourceMediaType route=%s", route)
+        return route
+    }
 
     fun syncResult(added: Int, updated: Int): String = "sync_result/$added/$updated"
 
@@ -92,4 +100,40 @@ object WearRoutes {
     fun videoPlayer(fileId: Long): String = "video_player/$fileId"
 
     fun imageViewer(fileId: Long): String = "image_viewer/$fileId"
+
+    /**
+     * S1848: percent-encodes one argument value before it is concatenated into a route.
+     *
+     * The builders below assemble a URI by hand and the graph parses it back as a URI, so any character
+     * that means something to a URI has to be escaped or the two ends disagree. A source named
+     * `Home & NAS` used to produce a second query pair - `sourceName=Home ` plus a stray ` NAS` - so the
+     * screen opened with a truncated name; a `/` or a `?` could miss the pattern entirely and the tap did
+     * nothing at all, with no error and no log. Names arrive from the phone (S1556), where `&` in a
+     * resource name is perfectly legal, so this is not a typo the user could avoid.
+     *
+     * Hand-rolled rather than android.net.Uri.encode because this module's unit tests run on the plain
+     * JVM with no Robolectric, where every android.net.Uri call returns a "not mocked" stub - the rule
+     * would ship untested. Not java.net.URLEncoder either: it encodes a space as `+`, which URI decoding
+     * on the receiving side does NOT turn back into a space, so a name with a space would arrive wrong.
+     *
+     * Escapes everything outside the RFC 3986 unreserved set, which is always safe to leave alone.
+     */
+    fun encodeArg(value: String): String = buildString {
+        for (byte in value.toByteArray(Charsets.UTF_8)) {
+            val c = byte.toInt().toChar()
+            if (c.isLetterOrDigit() && c.code < CHAR_LIMIT_ASCII || c in UNRESERVED_PUNCTUATION) {
+                append(c)
+            } else {
+                append('%')
+                append(HEX[(byte.toInt() shr NIBBLE_BITS) and LOW_NIBBLE_MASK])
+                append(HEX[byte.toInt() and LOW_NIBBLE_MASK])
+            }
+        }
+    }
+
+    private const val CHAR_LIMIT_ASCII = 128
+    private const val UNRESERVED_PUNCTUATION = "-_.~"
+    private const val HEX = "0123456789ABCDEF"
+    private const val NIBBLE_BITS = 4
+    private const val LOW_NIBBLE_MASK = 0x0F
 }

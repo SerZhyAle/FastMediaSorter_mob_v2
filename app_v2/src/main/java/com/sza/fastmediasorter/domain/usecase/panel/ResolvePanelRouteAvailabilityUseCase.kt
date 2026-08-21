@@ -12,6 +12,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -60,7 +61,13 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             // S1103: the quick-access panel exists in every launcher build and has no runtime toggle.
             InternalRouteCatalog.KEY_APP_LAUNCH_PANEL ->
                 Availability(availableInBuild = true, enabledAtRuntime = true)
-            InternalRouteCatalog.KEY_CALCULATOR -> Availability(availableInBuild = true, enabledAtRuntime = true)
+            // S1856: compiled into every flavor, but the user's own toggle decides whether it launches -
+            // the same shape the embedded game and the flashlight use. Hardcoding true here is what let a
+            // disabled calculator keep opening from a panel tile and a desktop cell.
+            InternalRouteCatalog.KEY_CALCULATOR -> {
+                Timber.d("S1856: calculator route toggle=%s", settings.enableCalculator)
+                Availability(availableInBuild = true, enabledAtRuntime = settings.enableCalculator)
+            }
             InternalRouteCatalog.KEY_NETWORK_MONITOR ->
                 Availability(
                     availableInBuild = networkMonitorContract.isAvailableInBuild,
@@ -68,6 +75,9 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 )
             InternalRouteCatalog.KEY_GAME ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.embeddedGameEnabled)
+            // S1733: the same pair the game uses - compiled into every flavor, gated only by its switch.
+            InternalRouteCatalog.KEY_SYSTEM_INFO ->
+                Availability(availableInBuild = true, enabledAtRuntime = settings.enableSystemInfo)
             InternalRouteCatalog.KEY_OCR -> Availability(capability.isOcrAvailable(context), enabledAtRuntime = true)
             InternalRouteCatalog.KEY_STREAMS -> Availability(capability.isStreamsAvailable(), enabledAtRuntime = true)
             InternalRouteCatalog.KEY_FAVORITES ->

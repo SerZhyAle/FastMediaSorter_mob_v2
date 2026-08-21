@@ -20,20 +20,20 @@ For the general class catalog (all ~700+ Kotlin classes) see `dev/CATALOG/`.
 
 ```powershell
 # Find Activities related to playback
-pwsh -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module app_v2 -Search "player"
+pwsh -NoProfile -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module app_v2 -Search "player"
 
 # Find all launcher Activities
-pwsh -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module all -Launcher
+pwsh -NoProfile -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module all -Launcher
 
 # Find Activities matching a Russian-language term
-pwsh -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module app_v2 -Search "плеер"
+pwsh -NoProfile -File dev/ACTIVITY_CATALOG/scripts/query.ps1 -Module app_v2 -Search "плеер"
 
 # Regenerate after adding a new Activity
-pwsh -File dev/ACTIVITY_CATALOG/scripts/scan.ps1 -Module app_v2
-pwsh -File dev/ACTIVITY_CATALOG/scripts/render.ps1 -Module app_v2
+pwsh -NoProfile -File dev/ACTIVITY_CATALOG/scripts/scan.ps1 -Module app_v2
+pwsh -NoProfile -File dev/ACTIVITY_CATALOG/scripts/render.ps1 -Module app_v2
 
 # Fill manual fields for a new Activity
-pwsh -File dev/ACTIVITY_CATALOG/scripts/set.ps1 -Module app_v2 -Class "NewActivity" `
+pwsh -NoProfile -File dev/ACTIVITY_CATALOG/scripts/set.ps1 -Module app_v2 -Class "NewActivity" `
     -Role "..." -RoleRu "..." -Tags "tag1,tag2" -Status new
 ```
 

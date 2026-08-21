@@ -554,7 +554,7 @@ function Invoke-Set {
         if ($enHit) {
             $enDecoded = ConvertFrom-XmlText $enHit.Raw
             $enHash = Get-EnglishStringFingerprint $enDecoded
-            $unitId = "main|$($enHit.File.Name)|$Key"
+            $unitId = Get-LocaleUnitId -Module $Module -Set main -File $enHit.File.Name -Key $Key
             $fps = Get-LocaleSourceFingerprints
             Update-LocaleSourceFingerprint -Fingerprints $fps -Locale $Locale -Identity $unitId -Hash $enHash
             Save-LocaleSourceFingerprints -Fingerprints $fps
@@ -646,8 +646,8 @@ function Move-OneKey([string]$key, [string]$targetFile) {
 
     $fps = Get-LocaleSourceFingerprints
     $oldBase = [System.IO.Path]::GetFileName($plan[0].Source)
-    $oldUnit = "main|$oldBase|$key"
-    $newUnit = "main|$targetFile|$key"
+    $oldUnit = Get-LocaleUnitId -Module $Module -Set main -File $oldBase -Key $key
+    $newUnit = Get-LocaleUnitId -Module $Module -Set main -File $targetFile -Key $key
     Rename-LocaleSourceFingerprint -Fingerprints $fps -OldIdentity $oldUnit -NewIdentity $newUnit
     Save-LocaleSourceFingerprints -Fingerprints $fps
 
@@ -788,7 +788,7 @@ switch ($Action) {
         }
         if (-not $DryRun -and $suppliedOptional.Count -gt 0) {
             $enHash = Get-EnglishStringFingerprint $En
-            $unitId = "main|$File|$Key"
+            $unitId = Get-LocaleUnitId -Module $Module -Set main -File $File -Key $Key
             $fps = Get-LocaleSourceFingerprints
             foreach ($loc in $suppliedOptional) {
                 Update-LocaleSourceFingerprint -Fingerprints $fps -Locale $loc.Code -Identity $unitId -Hash $enHash

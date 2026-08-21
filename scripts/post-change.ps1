@@ -1,4 +1,4 @@
-﻿# Combined post-change runner.
+# Combined post-change runner.
 # Chains the applicable mechanical post-change steps for a given change type.
 #
 # Usage:
@@ -461,6 +461,18 @@ $runsOrientationLayoutPairingGate = (Test-AnyChangedFile 'AndroidManifest\.xml$'
 # either half can break it alone - a new model, or a keep rule that stopped covering an old one. The
 # defect class reached users six times before anything tied the two facts together.
 $runsGsonContractGate = (Test-AnyChangedFile '\.kt$') -or (Test-AnyChangedFile 'proguard-.*\.pro$')
+# S1844: the instrumented set is compiled by NO other check. fk/fkn compile src/main, fc adds resources,
+# fu compiles and runs src/test - a different source set - and d/db build the app, not its tests. So a
+# test under src/androidTest could sit in the tree for months unable to compile at all, which is what
+# AppDatabaseMigration50To51Test.kt did: it referenced a TEST_DB constant it never declared. A test that
+# cannot compile is indistinguishable from an absent one, except that it looks present.
+#
+# Narrow trigger on purpose. This is the only gradle task the facade adds beyond detekt, so it fires only
+# when the change can actually break that set: a file under src/androidTest, or a Room schema file whose
+# entities the migration tests assert against. Measured 6.8 s on a warm daemon, well inside the
+# foreground threshold of CLAUDE.md section 6.
+$runsAndroidTestCompileGate = (Test-AnyChangedFile '(^|/)src/androidTest/') -or `
+    (Test-AnyChangedFile 'data/local/db/(Migration\d+To\d+|AppDatabase|.*Dao|.*Entity)\.kt$')
 # Script-cheatsheet drift gate. Fires when a repo PowerShell script (under the
 # cheatsheet's discovery roots scripts/ and dev/CATALOG/scripts/) or the generated
 # doc itself is touched - a changed param() block staleens docs/SCRIPT_CHEATSHEET.md
@@ -980,6 +992,17 @@ if ($runsGsonContractGate) {
 }
 else {
     Skip-Step "gson-persistence-contract-gate" "not applicable - no changed file is a Kotlin source or an obfuscation rules file"
+}
+
+# S1844: compiles app_v2's instrumented set. Routed through check-standard-fast.ps1 rather than gradlew
+# so BUILD.LOCK is acquired by the same helper every other build path uses (CLAUDE.md Rule 23).
+if ($runsAndroidTestCompileGate) {
+    Invoke-Gate "androidtest-compile-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/builders/check-standard-fast.ps1") -Mode AndroidTest -Module $Module
+    }
+}
+else {
+    Skip-Step "androidtest-compile-gate" "not applicable - no changed file is under src/androidTest or a Room schema source"
 }
 
 # S0848 Phase 02: join the detekt job started before the lexical gates. Preserves the old

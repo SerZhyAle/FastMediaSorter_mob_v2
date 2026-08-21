@@ -45,6 +45,7 @@ data class BackupPayload(
  */
 data class BackupSettings(
     val isResourceGridMode: Boolean = false,
+    val resourceGridCellSize: String = "MEDIUM",
     val language: String = "en",
     // S0406: global default network login carried for max portability (plaintext per ADR-2).
     val defaultUser: String = "",

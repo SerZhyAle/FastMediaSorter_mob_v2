@@ -17,6 +17,8 @@ object ProgramsSettingsStore {
 
     private val KEY_ENABLE_CALCULATOR = booleanPreferencesKey("enable_calculator")
     private val KEY_ENABLE_NETWORK_MONITOR = booleanPreferencesKey("enable_network_monitor")
+    private val KEY_ENABLE_SYSTEM_INFO = booleanPreferencesKey("enable_system_info")
+    private val KEY_ENABLE_WEAR_COMPANION = booleanPreferencesKey("enable_wear_companion")
     private val KEY_RECORD_GNSS_TRACK = booleanPreferencesKey("record_gnss_track")
     private val KEY_EMBEDDED_GAME_ENABLED = booleanPreferencesKey("embedded_game_enabled")
     private val KEY_FRONT_FLASHLIGHT_ENABLED = booleanPreferencesKey("front_flashlight_enabled")
@@ -28,6 +30,8 @@ object ProgramsSettingsStore {
     data class Values(
         val enableCalculator: Boolean,
         val enableNetworkMonitor: Boolean,
+        val enableSystemInfo: Boolean,
+        val enableWearCompanion: Boolean,
         val recordGnssTrack: Boolean,
         val embeddedGameEnabled: Boolean,
         val frontFlashlightEnabled: Boolean,
@@ -39,6 +43,8 @@ object ProgramsSettingsStore {
     fun read(preferences: Preferences): Values = Values(
         enableCalculator = preferences[KEY_ENABLE_CALCULATOR] ?: false,
         enableNetworkMonitor = preferences[KEY_ENABLE_NETWORK_MONITOR] ?: false,
+        enableSystemInfo = preferences[KEY_ENABLE_SYSTEM_INFO] ?: false,
+        enableWearCompanion = preferences[KEY_ENABLE_WEAR_COMPANION] ?: false,
         // S1433: recording a satellite track is a separate choice from opening the Monitor.
         recordGnssTrack = preferences[KEY_RECORD_GNSS_TRACK] ?: false,
         embeddedGameEnabled = preferences[KEY_EMBEDDED_GAME_ENABLED] ?: false,
@@ -53,6 +59,8 @@ object ProgramsSettingsStore {
     fun write(preferences: MutablePreferences, settings: AppSettings) {
         preferences[KEY_ENABLE_CALCULATOR] = settings.enableCalculator
         preferences[KEY_ENABLE_NETWORK_MONITOR] = settings.enableNetworkMonitor
+        preferences[KEY_ENABLE_SYSTEM_INFO] = settings.enableSystemInfo
+        preferences[KEY_ENABLE_WEAR_COMPANION] = settings.enableWearCompanion
         preferences[KEY_RECORD_GNSS_TRACK] = settings.recordGnssTrack
         preferences[KEY_EMBEDDED_GAME_ENABLED] = settings.embeddedGameEnabled
         preferences[KEY_FRONT_FLASHLIGHT_ENABLED] = settings.frontFlashlightEnabled

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.ContactsContract
+import com.sza.fastmediasorter.core.panel.AppLaunchPanelRouteIntents
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
@@ -43,6 +44,7 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
         val started = when (command) {
             is LauncherCellCommand.App -> launchPackage(command.packageName)
             is LauncherCellCommand.Feature -> launchFeature(command.routeKey)
+            is LauncherCellCommand.FeatureSection -> launchFeatureSection(command)
             is LauncherCellCommand.Resource -> launchResource(command)
             is LauncherCellCommand.Stream -> launchStream(command.identityKey)
             is LauncherCellCommand.OsShortcut -> launchOsShortcut(command.targetKey, screenOnly)
@@ -76,6 +78,24 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
             // Compiled in but switched off: open the setting that controls it rather than dead-launch.
             availability.availableInBuild ->
                 route.settingsIntent?.let { startIntent(it(context)) } ?: false
+            else -> false
+        }
+    }
+
+    /**
+     * S1440: the Monitor is the only route with addressable sub-screens today, so an unknown route here
+     * declines rather than opening something the caller did not ask for.
+     */
+    private suspend fun launchFeatureSection(command: LauncherCellCommand.FeatureSection): Boolean {
+        Timber.d("S1440: tile opens monitor section=%s", command.sectionKey)
+        val availability = resolveRouteAvailability(command.routeKey)
+        val isMonitor = command.routeKey == InternalRouteCatalog.KEY_NETWORK_MONITOR
+        return when {
+            !isMonitor -> false
+            availability.isLaunchable ->
+                startIntent(AppLaunchPanelRouteIntents.networkMonitor(context, command.sectionKey))
+            availability.availableInBuild ->
+                startIntent(AppLaunchPanelRouteIntents.networkMonitorSettings(context))
             else -> false
         }
     }

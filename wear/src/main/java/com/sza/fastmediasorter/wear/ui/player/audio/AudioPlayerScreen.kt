@@ -67,11 +67,11 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import timber.log.Timber
 
-/** Keeps white text readable over the animation, which is authored dark and never surprises us. */
-private const val ANIMATION_SCRIM_ALPHA = 0.55f
+/** Keeps white text readable over the animation, made 33% more visible per S1866. */
+private const val ANIMATION_SCRIM_ALPHA = 0.37f
 
-/** A cover is someone else's artwork and may be white, so it is dimmed harder than the animation. */
-private const val COVER_SCRIM_ALPHA = 0.7f
+/** A cover artwork made 33% more visible per S1866, keeping text readable. */
+private const val COVER_SCRIM_ALPHA = 0.47f
 
 /**
  * Wear OS asks for a 48.dp press target and these buttons were drawn at 36.dp, which is below it.
@@ -218,14 +218,7 @@ private fun AudioPlayerContent(
         state = listState
     ) {
         item {
-            Text(
-                text = uiState.mediaFile?.name ?: "Unknown",
-                style = MaterialTheme.typography.body1,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
+            TrackInfoSection(uiState = uiState)
         }
         // S1701: the volume readout, present only while the bezel is being turned and for a moment
         // after. It is its own item rather than an overlay so it cannot displace the control rows or
@@ -271,36 +264,58 @@ private fun AudioPlayerContent(
             SecondaryControls(
                 isFavorite = isFavorite,
                 positionText = uiState.positionText,
-                onToggleFavorite = actions.onToggleFavorite
+                onToggleFavorite = actions.onToggleFavorite,
+                onToggleDimmed = actions.onToggleDimmed
             )
-        }
-        item {
-            ScreenOffControl(onToggleDimmed = actions.onToggleDimmed)
         }
     }
 }
 
-/**
- * S1683: the screen-off button gets a row of its own. The placement contract says "the same row", but
- * that was written when the transport and paging buttons were one row; four buttons already span
- * 180.dp of a 226.dp screen, and a fifth reaches 224.dp measured across the diameter, while the chord
- * at the height of the row is shorter still. Owner ruling 2026-08-16, asked with the measurement in
- * hand: a separate row, rather than a clipped one or a touch target below what Wear OS asks for.
- */
 @Composable
-private fun ScreenOffControl(onToggleDimmed: () -> Unit) {
-    val screenOffDesc = stringResource(R.string.wear_screen_off)
-
-    Button(
-        onClick = onToggleDimmed,
-        modifier = Modifier.size(CONTROL_BUTTON_SIZE),
-        colors = ButtonDefaults.secondaryButtonColors()
+private fun TrackInfoSection(uiState: AudioPlayerUiState) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        val artist = uiState.artistName
+            ?: uiState.mediaFile?.artist?.takeIf { it.isNotBlank() && it != "<unknown>" }
+        if (!artist.isNullOrBlank()) {
+            Text(
+                text = artist,
+                style = MaterialTheme.typography.caption1,
+                color = MaterialTheme.colors.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        val title = uiState.trackTitle
+            ?: uiState.mediaFile?.title?.takeIf { it.isNotBlank() }
+            ?: uiState.mediaFile?.name
+            ?: "Unknown"
         Text(
-            text = "🌙",
-            style = MaterialTheme.typography.body2,
-            modifier = Modifier.semantics { contentDescription = screenOffDesc }
+            text = title,
+            style = MaterialTheme.typography.body1,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
         )
+        val fileName = uiState.mediaFile?.name
+        if (fileName != null && title != fileName) {
+            Text(
+                text = fileName,
+                style = MaterialTheme.typography.caption2,
+                color = Color.Gray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
@@ -495,7 +510,8 @@ private fun PlaybackControls(
 private fun SecondaryControls(
     isFavorite: Boolean,
     positionText: String,
-    onToggleFavorite: () -> Unit
+    onToggleFavorite: () -> Unit,
+    onToggleDimmed: () -> Unit
 ) {
     val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
 
@@ -510,10 +526,32 @@ private fun SecondaryControls(
             highlighted = isFavorite
         )
 
+        ScreenOffButton(onToggleDimmed = onToggleDimmed)
+
         Text(
             text = positionText,
             style = MaterialTheme.typography.caption3,
             color = Color.Gray
+        )
+    }
+}
+
+@Composable
+private fun ScreenOffButton(onToggleDimmed: () -> Unit) {
+    val screenOffDesc = stringResource(R.string.wear_screen_off)
+
+    Button(
+        onClick = {
+            Timber.d("S1865: screen-off action tapped from secondary controls")
+            onToggleDimmed()
+        },
+        modifier = Modifier.size(CONTROL_BUTTON_SIZE),
+        colors = ButtonDefaults.secondaryButtonColors()
+    ) {
+        Text(
+            text = "🌙",
+            style = MaterialTheme.typography.body2,
+            modifier = Modifier.semantics { contentDescription = screenOffDesc }
         )
     }
 }

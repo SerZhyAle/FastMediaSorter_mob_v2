@@ -36,7 +36,7 @@
     <string name="gif_edit_first_frame_help">Extrayez la première image de l\'animation et enregistrez-la comme image PNG statique dans le dossier Téléchargements. Nom du fichier : [nom_original]_première_image.png</string>
     <string name="gif_edit_save_first_frame">Enregistrer la première image</string>
     <string name="gif_edit_speed">Vitesse d\'animation</string>
-    <string name="gif_edit_speed_help">Ajustez le délai entre les images pour accélérer ou ralentir l\'animation. Le fichier original sera écrasé par la nouvelle vitesse. Plage : de 0,25x (4 fois plus lent) à 4x (4 fois plus rapide).</string>
+    <string name="gif_edit_speed_help">Ajustez le délai entre les images pour accélérer ou ralentir l\'animation. Le fichier original sera écrasé avec la nouvelle vitesse. Plage : 0.25x (4× plus lent) à 4x (4× plus rapide).</string>
     <string name="gif_edit_speed_normal">Vitesse : Normale (1,0x)</string>
     <string name="gif_edit_speed_value">Vitesse : %1$.1fx</string>
     <string name="gif_edit_title">Éditeur GIF</string>

@@ -33,6 +33,7 @@ import com.sza.fastmediasorter.wear.ui.apps.calculator.CalculatorScreen
 import com.sza.fastmediasorter.wear.ui.browse.BrowseScreen
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.NotYetHereScreen
+import com.sza.fastmediasorter.wear.ui.favourites.FavouritesScreen
 import com.sza.fastmediasorter.wear.ui.home.HomeScreen
 import com.sza.fastmediasorter.wear.ui.home.LocalHomeScreen
 import com.sza.fastmediasorter.wear.ui.home.PhoneHomeScreen
@@ -54,6 +55,7 @@ import com.sza.fastmediasorter.wear.ui.settings.ScreenSettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.SettingsRoutes
 import com.sza.fastmediasorter.wear.ui.settings.SettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.SlideshowSettingsScreen
+import com.sza.fastmediasorter.wear.ui.settings.SystemInfoSettingsScreen
 import com.sza.fastmediasorter.wear.ui.streams.StreamsScreen
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -285,17 +287,20 @@ fun MainNavigation(keepScreenAwakeOutsidePlayers: Flow<Boolean>) {
             PhoneHomeScreen(navController = navController)
         }
 
+        // S1846: the same browser the unfiltered Phone entrance opens. The media type is not passed
+        // as a parameter - the view model reads it off the route, so both entrances share one screen
+        // and one view model, and a chip differs from the unfiltered entrance only by its argument.
         composable(
             route = WearRoutes.PHONE_BROWSE_PATTERN,
             arguments = listOf(
                 navArgument(WearRoutes.ARG_MEDIA_TYPE) { type = NavType.StringType }
             )
         ) {
-            NotYetHereScreen(ownerTicket = "S1781")
+            PhoneResourceScreen(navController = navController)
         }
 
         composable(WearRoutes.FAVOURITES) {
-            NotYetHereScreen(ownerTicket = "S1781")
+            FavouritesScreen(navController = navController)
         }
 
         composable(WearRoutes.STREAMS) {
@@ -401,6 +406,10 @@ fun MainNavigation(keepScreenAwakeOutsidePlayers: Flow<Boolean>) {
 
         composable(SettingsRoutes.ABOUT) {
             AboutSettingsScreen()
+        }
+
+        composable(SettingsRoutes.SYSTEM_INFO) {
+            SystemInfoSettingsScreen()
         }
     }
 }

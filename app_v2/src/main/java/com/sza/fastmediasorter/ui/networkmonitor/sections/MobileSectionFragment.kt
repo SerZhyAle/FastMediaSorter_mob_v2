@@ -43,6 +43,13 @@ class MobileSectionFragment : Fragment() {
 
     private var chartBinders: List<SignalChartBinder> = emptyList()
 
+    /**
+     * Which SIM slot each chart currently draws, so a reset names the slot the user is looking at.
+     *
+     * The sampler omits a SIM that reports nothing, so the second chart does not always belong to slot 1.
+     */
+    private var chartSlots: List<Int> = emptyList()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -54,8 +61,14 @@ class MobileSectionFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        chartBinders = chartBindings().map { chart ->
-            SignalChartBinder(chart.chartSeries, chart.chartSummary, chart.chartEmpty)
+        chartBinders = chartBindings().mapIndexed { index, chart ->
+            SignalChartBinder(
+                chart = chart.chartSeries,
+                summaryView = chart.chartSummary,
+                emptyView = chart.chartEmpty,
+                resetTarget = chart.root,
+                onResetRequested = { viewModel.onChartResetRequested(chartSlots.getOrNull(index) ?: index) },
+            )
         }
         binding.btnMobileOpenSystem.setOnClickListener { openSystemNetworkSurface() }
         collectOnLifecycle(viewModel.uiState) { render(it) }
@@ -64,6 +77,7 @@ class MobileSectionFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         chartBinders = emptyList()
+        chartSlots = emptyList()
         _binding = null
     }
 
@@ -125,6 +139,7 @@ class MobileSectionFragment : Fragment() {
      */
     private fun renderCharts(state: MobileSectionUiState) {
         val windows = state.signals.data.orEmpty()
+        chartSlots = chartBindings().indices.map { index -> windows.getOrNull(index)?.slotIndex ?: index }
         chartBindings().forEachIndexed { index, chart ->
             val window = windows.getOrNull(index)
             chart.root.isVisible = window != null || index == 0

@@ -31,9 +31,22 @@ The app half and the offline packer half each hard-code the grid, and they must 
 | Tile width | 240 | 136 |
 | Tile height | 135 | 136 |
 | Columns | 34 | 59 |
-| Max rows | 60 | 60 |
-| Max tiles | 2040 | 3540 |
-| Max sheet | 8160 x 8100 | 8024 x 8160 |
+| Max rows | none - height follows the tile count | none - height follows the tile count |
+| Max tiles | 4114 (format-bound) | 7080 (format-bound) |
+| Max sheet | 8160 x 16383 (WebP limit) | 8024 x 16383 (WebP limit) |
+
+**The row maximum is retired on both sheets, and this is a breaking change for any reimplementation that
+hard-coded it.** Neither sheet has a fixed row count any more: the height follows the tile count, and the
+only ceiling is the format's - VP8 stores a dimension in 14 bits, so no WebP side may exceed 16383 px.
+The retired caps (60 rows = 2040 preview tiles, 60 rows = 3540 logo tiles) came from a self-imposed
+"one 8k x 8k sheet" budget that no consumer ever declared, and on both sheets that budget silently dropped
+real artwork: 877 video channels on the preview sheet (S1831), and 608 logos reaching 1593 channel urls on
+the logo sheet (S1841, measured 2026-08-20 - the packer lays out 4148 tiles covering 5468 channels where
+the published sheet stopped at 3540 covering 3875).
+
+A packer over the format limit now **refuses** rather than trimming: a run that cannot cover every channel
+is reported, never published partially. Read the row from the tile index (`row = index / COLS`) and take
+the sheet height from the image, never from a constant.
 | Sheet format | WebP, quality 80, **no alpha**, black-cleared | WebP, quality 90, **alpha preserved**, transparent-cleared |
 
 App side: `ChannelPreviewAtlasSlicer.kt:130-132` (`TILE_W=240`, `TILE_H=135`, `COLS=34`) and

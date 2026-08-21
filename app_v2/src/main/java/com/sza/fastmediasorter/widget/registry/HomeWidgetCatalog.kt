@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.widget.QuickAudioRecorderWidgetProvider
 import com.sza.fastmediasorter.widget.RandomMusicWidgetProvider
 import com.sza.fastmediasorter.widget.RandomPhotoFrameWidgetProvider
 import com.sza.fastmediasorter.widget.ScheduledTasksWidgetProvider
+import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorWidgetProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -122,6 +123,17 @@ class HomeWidgetCatalog @Inject constructor(
             iconRes = R.drawable.ic_game_kryvavitsa,
             descriptionRes = R.string.game_widget_description,
             settingGate = { it.embeddedGameEnabled },
+        ),
+        HomeWidgetEntry(
+            // S1440: declared only in src/networkMonitor/AndroidManifest.xml (standard + noLegal), so
+            // the installedProviders lookup above is the flavor gate - no settingGate, no flavor flag.
+            providerClass = NetworkMonitorWidgetProvider::class.java,
+            gadgetKey = "network_monitor",
+            gadgetSpanW = 2,
+            gadgetSpanH = 1,
+            labelRes = R.string.widget_network_monitor_label,
+            iconRes = R.drawable.ic_network_monitor,
+            descriptionRes = R.string.widget_network_monitor_description,
         ),
         HomeWidgetEntry(
             providerClass = RandomPhotoFrameWidgetProvider::class.java,

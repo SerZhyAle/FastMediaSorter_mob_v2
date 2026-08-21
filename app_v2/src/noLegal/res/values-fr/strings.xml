@@ -10,6 +10,10 @@
     <string name="s0183_apk_install_success">APK installé</string>
     <string name="s0183_apk_install_cancelled">Installation annulée</string>
     <string name="s0183_apk_install_failed">L\'installation a échoué</string>
+    <string name="s1686_apk_install_failed_downgrade">Échec de l\'installation : une version plus récente est déjà installée</string>
+    <string name="s1686_apk_install_failed_incompatible">Échec de l\'installation : cet APK est signé différemment de l\'application installée</string>
+    <string name="s1686_apk_install_failed_storage">Échec de l\'installation : espace libre insuffisant</string>
+    <string name="s1686_apk_install_failed_corrupt">Échec de l\'installation : le fichier APK est endommagé ou incomplet</string>
     <string name="setting_support_office_documents_desc">Ouvre les fichiers Word, tableur et présentation dans la visionneuse intégrée lorsqu\'elle est prise en charge.</string>
     <string name="nolegal_diag_section_os_security">Systèmes d\'exploitation et sécurité</string>
     <string name="nolegal_diag_section_permissions">Autorisations spéciales</string>

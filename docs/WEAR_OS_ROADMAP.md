@@ -103,8 +103,11 @@ Settings Screen
 
 2. **Auto-Advance Logic**
    - **Images**: Advance after configured interval (3s, 5s, 10s, 15s, 30s)
-   - **Audio**: Advance after track finishes (if "Wait for Finish" enabled)
-   - **Video**: Advance after video finishes (if "Wait for Finish" enabled)
+   - **Audio**: Advance after the track finishes, unconditionally (S1837)
+   - **Video**: Advance after the video finishes, while the slideshow is on (S1838)
+
+   The "Wait for Finish" toggle this section once planned as the gate was removed in S1839: both
+   players already play a file to its end, so the switch could never turn that off.
 
 3. **Slideshow Controls**
    - Pause/Resume button

@@ -580,11 +580,12 @@ Fast per-flavor Gradle check - compile, resources, unit tests or assemble. Defau
 scripts/builders/check-standard-fast.ps1
   Fast per-flavor Gradle check - compile, resources, unit tests or assemble. Defaults to app_v2; -Module wear checks the Wear OS module, which has no product flavors.
   Params:
-    -Mode           [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|AndroidTest|Assemble}
-    -Flavor         [String] = "Standard"  {Standard|NoLegal|Lite|Photos|Legacy|Vr}
-    -Module         [String] = "app_v2"  {app_v2|wear}
-    -Tests          [String]
-    -Quiet          [SwitchParameter]
+    -Mode                   [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|AndroidTest|Assemble}
+    -Flavor                 [String] = "Standard"  {Standard|NoLegal|Lite|Photos|Legacy|Vr}
+    -Module                 [String] = "app_v2"  {app_v2|wear}
+    -Tests                  [String]
+    -SystemProperty         [String[]]
+    -Quiet                  [SwitchParameter]
 ```
 
 ### clean-gradle-caches.ps1
@@ -684,12 +685,19 @@ scripts/devtest/adb.ps1
     -Flavor           [String] = 'standard'  {standard|lite|photos|legacy|noLegal}
     -X                [Int32]
     -Y                [Int32]
+    -X2               [Int32]
+    -Y2               [Int32]
+    -Duration         [Int32] = 300
     -Text             [String]
     -Key              [String]
     -Cmd              [String]
     -Remote           [String]
     -Local            [String]
     -Latest           [SwitchParameter]
+    -Label            [String]
+    -Exact            [SwitchParameter]
+    -Index            [Int32] = 1
+    -OutDir           [String]
     -Json             [SwitchParameter]
     -Yes              [SwitchParameter]
   Exit: 0 - OK; 1 - adb not found, or bad arguments; 2 - no online device; 3 - multiple online devices and -DeviceId not supplied (for verbs needing a device); 4 - target package not installed (for app verbs); 5 - a destructive verb was refused: `clear` (removed), or `wipe-data`/`uninstall` without -Yes.
@@ -745,6 +753,7 @@ scripts/devtest/prerelease-log-audit.ps1
   Pre-release sweep - detailed log audit (step 04.1).
   Params:
     -LogFile          (req)  [String]
+    -Package                 [String] = 'com.sza.fastmediasorter'
     -IncludeWarnings         [SwitchParameter]
     -Json                    [SwitchParameter]
   Exit: 0 - no actionable app-error clusters and no error toasts; 1 - actionable clusters and/or error toasts found (operator triage / spec-draft); 2 - infrastructure abort (LogFile missing / unreadable)
@@ -804,6 +813,16 @@ scripts/devtest/streams-perf-seed.ps1
   Exit: 0 - seeded and verified: the table holds the expected row count; 1 - bad arguments / adb or sqlite3 missing / catalog csv missing / package not installed; 2 - no device reachable; 11 - device reachable but the catalog did not reach the expected size
 ```
 
+## scripts\devtest\adb-clip-check.tests
+
+### Run-Tests.ps1
+
+```
+scripts/devtest/adb-clip-check.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 - every case passed; 1 - at least one case failed
+```
+
 ## scripts\devtest\adb-log-filter.tests
 
 ### Run-Tests.ps1
@@ -828,6 +847,23 @@ scripts/devtest/lib/adb-log-filter.ps1
 ```
 scripts/devtest/lib/find-adb.ps1
   (no param block)
+```
+
+### ui-tree.ps1
+
+```
+scripts/devtest/lib/ui-tree.ps1
+  (no param block)
+```
+
+## scripts\devtest\prerelease-log-audit.tests
+
+### Run-Tests.ps1
+
+```
+scripts/devtest/prerelease-log-audit.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\doc-drift
@@ -1766,6 +1802,17 @@ scripts/quality/assert-memory-budget.ps1
   Exit: 0 at or below MaxBytes, or a report-only run.; 1 -Gate and the index is above MaxBytes.; 2 cannot verify - the index or the memory directory does not exist.
 ```
 
+### assert-migration-test-pairing.ps1
+
+```
+scripts/quality/assert-migration-test-pairing.ps1
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+  Exit: 2 cannot verify (migration or test directory missing).
+```
+
 ### assert-module-version-parity.ps1
 
 ```
@@ -1790,12 +1837,13 @@ scripts/quality/assert-neuroslop.ps1
 ```
 scripts/quality/assert-new-lexemes-translated.ps1
   Params:
-    -Module               [String] = 'app_v2'
-    -SourceSet            [String[]] = @('main', 'vr', 'noLegal')
-    -BaselinePath         [String]
-    -OutDir               [String]
-    -Quiet                [SwitchParameter]
-  Exit: 0 - every string reaches all thirteen declared locales, or its gap predates the rule.; 1 - new untranslated strings exist; the release is blocked until they are translated.; 2 - the gate cannot verify: the producer or the baseline is missing.
+    -Module                   [String] = 'app_v2'
+    -SourceSet                [String[]] = @('main', 'vr', 'noLegal')
+    -BaselinePath             [String]
+    -FingerprintsPath         [String]
+    -OutDir                   [String]
+    -Quiet                    [SwitchParameter]
+  Exit: 0 - every string reaches all thirteen declared locales, or its gap predates the rule.; 1 - new untranslated strings exist; the release is blocked until they are translated.; 2 - the gate cannot verify: the producer is missing, the baseline is missing, or the
 ```
 
 ### assert-no-orphan-merged-resources.ps1
@@ -2311,6 +2359,19 @@ scripts/quality/measure-hotspots.ps1
   Params:
     -Floor         [Int32] = 600
     -Top           [Int32] = 15
+```
+
+### migrate-locale-fingerprints-module.ps1
+
+```
+scripts/quality/migrate-locale-fingerprints-module.ps1
+  Params:
+    -FingerprintsPath         [String]
+    -BaselinePath             [String]
+    -Modules                  [String[]] = @('app_v2', 'wear')
+    -CorpusDir                [String]
+    -DryRun                   [SwitchParameter]
+  Exit: 0 - migration completed, or -DryRun classified without writing.; 1 - a corpus export failed, so ownership could not be resolved; nothing was written.; 2 - the registry is already at the current schema version; nothing to do.
 ```
 
 ### reindex-settings.ps1
@@ -3330,6 +3391,7 @@ scripts/streams/collect-stream-candidates.ps1
     -FfmpegPath                       [String] = ''
     -MaxAtlasBytes                    [Int32] = 31457280
     -MaxPreviewAtlasBytes             [Int32] = 50331648
+    -MaxLogoAtlasBytes                [Int32] = 50331648
     -DeepSignal                       [SwitchParameter]
     -Limit                            [Int32] = 0
     -SignalBytes                      [Int32] = 16384
@@ -3352,6 +3414,73 @@ scripts/streams/collect-stream-candidates.ps1
     -LiveTvCategories                 [String[]] = @(
         'news', 'documentary', 'movies', 'sports', 'kids', 'music', 'science', 'general'
     )
+```
+
+## scripts\streams.tests
+
+### StreamPublisher.Artwork.Tests.ps1
+
+```
+scripts/streams.tests/StreamPublisher.Artwork.Tests.ps1
+  (no param block)
+```
+
+### StreamPublisher.Common.Tests.ps1
+
+```
+scripts/streams.tests/StreamPublisher.Common.Tests.ps1
+  (no param block)
+```
+
+### StreamPublisher.Delivery.Tests.ps1
+
+```
+scripts/streams.tests/StreamPublisher.Delivery.Tests.ps1
+  (no param block)
+```
+
+### StreamPublisher.Probes.Tests.ps1
+
+```
+scripts/streams.tests/StreamPublisher.Probes.Tests.ps1
+  (no param block)
+```
+
+## scripts\streams\modules
+
+### StreamPublisher.Artwork.ps1
+
+```
+scripts/streams/modules/StreamPublisher.Artwork.ps1
+  (no param block)
+```
+
+### StreamPublisher.Common.ps1
+
+```
+scripts/streams/modules/StreamPublisher.Common.ps1
+  (no param block)
+```
+
+### StreamPublisher.Delivery.ps1
+
+```
+scripts/streams/modules/StreamPublisher.Delivery.ps1
+  (no param block)
+```
+
+### StreamPublisher.Discovery.ps1
+
+```
+scripts/streams/modules/StreamPublisher.Discovery.ps1
+  (no param block)
+```
+
+### StreamPublisher.Probes.ps1
+
+```
+scripts/streams/modules/StreamPublisher.Probes.ps1
+  (no param block)
 ```
 
 ## scripts\utils

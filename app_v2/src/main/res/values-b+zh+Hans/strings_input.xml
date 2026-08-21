@@ -177,8 +177,8 @@
     <string name="kbm_help_player_playpause">播放/暂停</string>
     <string name="kbm_help_player_prev_next">上一个/下一个文件</string>
     <string name="kbm_help_player_save">保存快照/当前</string>
-    <string name="kbm_help_player_seek_10s">查找 -10 秒 / +10 秒</string>
-    <string name="kbm_help_player_seek_60s">查找 -60 秒 / +60 秒</string>
+    <string name="kbm_help_player_seek_10s">快进 −10秒 / +10秒</string>
+    <string name="kbm_help_player_seek_60s">快进 −60秒 / +60秒</string>
     <string name="kbm_help_player_volume">音量增大/减小</string>
     <string name="kbm_help_section_dialog">对话</string>
     <string name="kbm_help_section_file_ops">文件操作</string>

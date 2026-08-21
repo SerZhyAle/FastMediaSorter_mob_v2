@@ -88,7 +88,7 @@ One read-only call returns a single JSON blob with `ranked[]`, `skip_cache` / `s
 
 Preflight is read-only by contract; this skill performs writes it implies:
 
-1. **Persist auto-skips.** For each entry in `auto_skipped[]`, write to persistent cache and log one line `[auto-skip] <id> - <reason>`:
+1. **Persist auto-skips.** For each entry in `auto_skipped[]` except those with reason `blocker-not-verified` (which depends on another ticket's status and is re-derived live on every run), write to persistent cache and log one line `[auto-skip] <id> - <reason>`:
    ```powershell
    pwsh -NoProfile -File scripts/spec_catalog/skip-cache.ps1 -Action add -Id <id> -Reason "<reason>"
    ```

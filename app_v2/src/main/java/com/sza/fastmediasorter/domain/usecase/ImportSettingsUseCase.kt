@@ -169,6 +169,8 @@ class ImportSettingsUseCase @Inject constructor(
                                 currentResource?.let { data ->
                                         settings = AppSettings(
                                         isResourceGridMode = data["isResourceGridMode"]?.toBoolean() ?: false,
+                                        resourceGridCellSize = com.sza.fastmediasorter.domain.model
+                                            .ResourceGridCellSize.fromName(data["resourceGridCellSize"]),
                                         
                                         language = data["language"] ?: "en",
                                         preventSleep = data["preventSleep"]?.toBoolean() ?: true,

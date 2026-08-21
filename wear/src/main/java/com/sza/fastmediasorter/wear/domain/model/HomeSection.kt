@@ -29,10 +29,12 @@ data class HomeSection(
 /**
  * Everything the catalog needs to decide visibility, reduced to plain values so the catalog stays
  * free of repository dependencies and can be reasoned about without a coroutine in sight.
+ *
+ * S1836: a null [lastUsedResource] is the whole of "there is no shortcut" - a boolean and a caption
+ * held apart could disagree, and the row needs the identifier to address anything at all.
  */
 data class HomeSectionVisibility(
     val favouritesEnabled: Boolean,
-    val hasLastUsedResource: Boolean,
-    val lastUsedResourceLabel: String?,
+    val lastUsedResource: LastUsedResource?,
     val streamsEnabled: Boolean
 )

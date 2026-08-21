@@ -1,14 +1,10 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
-import android.Manifest
 import android.app.ActivityManager
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -18,14 +14,13 @@ import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.data.debug.ReleasedTicketsDataSource
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
-import com.sza.fastmediasorter.domain.usecase.GatherSystemInfoUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
-import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensSelectionReporter
 import com.sza.fastmediasorter.ui.common.support.SupportDestination
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.dialog.DestinationPickerDialog
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
+import com.sza.fastmediasorter.ui.systeminfo.helpers.SystemInfoDialogManager
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,14 +29,13 @@ import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 
 class GeneralSettingsLogHelper(
     private val binding: FragmentSettingsGeneralBinding,
     private val fragment: Fragment,
     private val saveLogsLauncher: ActivityResultLauncher<String>,
-    private val gatherSystemInfoUseCase: GatherSystemInfoUseCase,
+    private val systemInfoDialogManager: SystemInfoDialogManager,
     private val getDestinationsUseCase: GetDestinationsUseCase,
     private val saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase,
 ) {
@@ -88,66 +82,11 @@ class GeneralSettingsLogHelper(
 
     fun showSystemInfoDialog() {
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            // S1261: the app-side camera view is composed here (UI layer) because it needs the
-            // CameraX provider and a ui/cameracapture helper - the domain use case only renders it.
-            val appContext = fragment.requireContext().applicationContext
-            val report = withContext(Dispatchers.IO) {
-                gatherSystemInfoUseCase(buildCameraAppView(appContext))
-            }
-            if (!fragment.isAdded || fragment.view == null) return@launch
-            val title = fragment.getString(R.string.settings_system_info_title)
             val context = fragment.requireContext()
-            // Keep the default dialog copy/share/export paths on the masked report only.
-            // Full diagnostics remain behind a separate, confirmed action when sensitive fields exist.
-            ScrollableTextDialog.show(
-                context = context,
-                title = title,
-                message = report.maskedText,
-                inlineActionButtonText = if (report.hasSensitive) {
-                    fragment.getString(R.string.system_info_copy_full_report)
-                } else {
-                    null
-                },
-                onInlineActionClick = if (report.hasSensitive) {
-                    { confirmAndCopyFullReport(report.fullText) }
-                } else {
-                    null
-                }
-            )
+            val report = systemInfoDialogManager.gather(context)
+            if (!fragment.isAdded || fragment.view == null) return@launch
+            systemInfoDialogManager.show(fragment.requireContext(), report)
         }
-    }
-
-    /**
-     * S1261: what the capture screen derived from the platform camera tree, or why it could not.
-     * Values stay technical-English on purpose - the section is pasted back verbatim in reports.
-     * Never throws and never hangs: CameraX init gets a bounded wait and degrades to an error line.
-     */
-    private fun buildCameraAppView(context: Context): List<String> {
-        val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
-            PackageManager.PERMISSION_GRANTED
-        if (!granted) return listOf("camera permission not granted")
-        return runCatching {
-            val provider = ProcessCameraProvider.getInstance(context)
-                .get(CAMERA_APP_VIEW_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            CameraLensSelectionReporter().report(provider)
-        }.getOrElse { error ->
-            Timber.w(error, "System info: camera app view unavailable")
-            listOf("unavailable: ${error.javaClass.simpleName}")
-        }
-    }
-
-    private fun confirmAndCopyFullReport(fullText: String) {
-        val context = fragment.requireContext()
-        MaterialAlertDialogBuilder(context)
-            .setTitle(R.string.system_info_reveal_confirm_title)
-            .setMessage(R.string.system_info_reveal_confirm_message)
-            .setPositiveButton(R.string.system_info_copy_full_report) { _, _ ->
-                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("System info", fullText))
-                Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .showBoundTo(fragment)
     }
 
     fun shareLogs() {
@@ -341,10 +280,5 @@ class GeneralSettingsLogHelper(
         val stamp = SimpleDateFormat("yy-MM-dd_HH-mm-ss", Locale.US).format(Date())
         val prefix = if (fullLog) "app_log" else "session_log"
         return "${prefix}_$stamp.txt"
-    }
-
-    private companion object {
-        /** S1261: bounded wait for CameraX init on the report path - degrade, never hang the dialog. */
-        const val CAMERA_APP_VIEW_TIMEOUT_SECONDS = 3L
     }
 }

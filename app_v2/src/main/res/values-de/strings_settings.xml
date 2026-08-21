@@ -3,7 +3,7 @@
      Untranslated keys are absent on purpose - Android falls back to English (S1190, ADR-6). -->
 <resources>
     <string name="settings">Einstellungen</string>
-    <string name="settings_3d_vr_help_message">3D VR bietet immersive Video- und Fotowiedergabe auf Headsets wie Meta Quest 3 und Android XR. Auf Geräten ohne XR-Laufzeit bleibt der Hauptschalter inaktiv. Die App erkennt das Videoformat (SBS, OU, 360°, VR180) automatisch; eine manuelle Auswahl gibt es im Player-Dialog.</string>
+    <string name="settings_3d_vr_help_message">3D VR ermöglicht die immersive Wiedergabe von Video und Foto auf Headsets wie Meta Quest 3 und Android XR. Auf Geräten ohne XR-Laufzeitumgebung bleibt der Hauptschalter inaktiv. Die App erkennt das Videoformat (SBS, OU, 360°, VR180) automatisch; eine manuelle Überschreibung ist im Player-Dialog verfügbar.</string>
     <string name="settings_3d_vr_help_title">Über den 3D-VR-Modus</string>
     <string name="settings_accept_shared_files">Geteilte Dateien annehmen</string>
     <string name="settings_already_default_player">✓ Bereits als Standard festgelegt</string>
@@ -150,7 +150,7 @@
     <string name="setting_enable_pip">Bild-in-Bild aktivieren</string>
     <string name="setting_enable_pip_desc">PiP-Schaltfläche im Player zeigen und beim Drücken der Home-Taste automatisch in PiP wechseln (Android 12+)</string>
     <string name="setting_enable_translation_desc">Textübersetzung über OCR aktivieren</string>
-    <string name="setting_file_ops_in_overflow_menu_desc">Kopieren/Verschieben/Umbenennen/Löschen in ein ⋮-Menü je Zeile zusammenfassen</string>
+    <string name="setting_file_ops_in_overflow_menu_desc">Kopieren/Verschieben/Umbenennen/Löschen in ein ⋮-Menü pro Zeile zusammenfassen</string>
     <string name="setting_follow_system_rotation_summary">Wenn aktiv, folgen alle App-Fenster außer dem Player der automatischen Bildschirmdrehung des Systems. Wenn aus, folgen sie dem Gerätesensor unabhängig von der Systemeinstellung.</string>
     <string name="setting_follow_system_rotation_title">Bildschirm mit System-Autorotation drehen (außer Player)</string>
     <string name="setting_follow_system_rotation_player_title">Player-Bildschirm mit System-Autorotation drehen</string>
@@ -195,12 +195,12 @@
     <string name="pref_crop_images_fullscreen_title">Bilder bildschirmfüllend zuschneiden</string>
     <string name="pref_dynamic_background_summary">\"Schwarze Balken\" füllen, indem die Randfarben des Bildes fortgesetzt werden (Ambilight-Effekt)</string>
     <string name="pref_dynamic_background_title">Dynamische Hintergrunderweiterung</string>
-    <string name="pref_file_ops_overflow_menu_desc">Fasst Kopieren, Verschieben, Umbenennen und Löschen in einer ⋮-Schaltfläche je Dateizeile zusammen. Die Wiedergabe-Schaltfläche bleibt immer separat.</string>
+    <string name="pref_file_ops_overflow_menu_desc">Fasst Kopieren, Verschieben, Umbenennen und Löschen in einer ⋮-Schaltfläche auf jeder Dateizeile zusammen. Die Wiedergabetaste bleibt immer separat.</string>
     <string name="pref_file_ops_overflow_menu_title">Dateiaktionen im Überlaufmenü</string>
     <string name="pref_panel_stereo_single_eye_summary">Wenn EIN, werden Side-by-Side- und Over-Under-Stereovideos sowie Vollbildfotos auf ein Auge zugeschnitten und auf den ganzen Bildschirm gestreckt - bequem ohne 3D-Brille. Voreinstellung: EIN. Die immersive VR-Darstellung setzt diese Einstellung außer Kraft und zeigt das volle Stereobild.</string>
     <string name="pref_panel_stereo_single_eye_title">3D-Inhalte einäugig zeigen</string>
     <string name="pref_prefetch_cache_auto">Automatisch</string>
-    <string name="pref_prefetch_cache_help_message">Legt fest, wie viel eines gestreamten Videos im Voraus gepuffert wird.\n\n• Weniger (0,5×) - minimale Pufferung. Die Vorab-Cache-Anzeige und das Angebot \"zwischengespeichertes Video sichern\" werden ausgeblendet. Spart Speicher und Datenvolumen; in langsamen Netzen kann die Wiedergabe stocken.\n• Automatisch - vom Player anhand von Gerät und aktuellem Netz gewählte Größe.\n• Mehr (2×) - größerer Puffer für flüssigere Wiedergabe in instabilen Netzen. Braucht mehr Speicherplatz.</string>
+    <string name="pref_prefetch_cache_help_message">Legt fest, wie viel eines gestreamten Videos dem Wiedergabepunkt vorausgepuffert wird.\n\n• Weniger (0,5×) - minimale Pufferung. Die Vorab-Cache-Fortschrittsanzeige und das Angebot \"zwischengespeichertes Video speichern\" werden ausgeblendet. Spart Speicherplatz und Bandbreite; bei langsamem Netzwerk kann die Wiedergabe ruckeln.\n• Automatisch - vom Player anhand von Gerät und aktuellem Netzwerk gewählte Standardgröße.\n• Mehr (2×) - größerer Puffer für flüssigere Wiedergabe bei instabilen Netzwerken. Benötigt mehr Speicherplatz.</string>
     <string name="pref_prefetch_cache_help_title">Größe des Video-Vorab-Caches</string>
     <string name="pref_prefetch_cache_less">Weniger (0,5×)</string>
     <string name="pref_prefetch_cache_more">Mehr (2×)</string>
@@ -252,4 +252,10 @@
     <string name="settings_open_default_apps_dialog">Als Standard festlegen</string>
     <string name="default_apps_dialog_title">Standard-App</string>
     <string name="language_download_failed">Diese Sprache konnte nicht geladen werden. Prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut - die App bleibt bei der Sprache, die sie jetzt verwendet.</string>
+    <string name="pref_resource_grid_cell_size_title">Zellgröße des Ressourcenrasters</string>
+    <string name="pref_resource_grid_cell_size_small">Klein</string>
+    <string name="pref_resource_grid_cell_size_medium">Mittel</string>
+    <string name="pref_resource_grid_cell_size_large">Groß</string>
+    <string name="settings_enable_system_info">Systeminformationen</string>
+    <string name="settings_enable_system_info_summary">Systeminformationen im Programmpanel und Menü anzeigen</string>
 </resources>

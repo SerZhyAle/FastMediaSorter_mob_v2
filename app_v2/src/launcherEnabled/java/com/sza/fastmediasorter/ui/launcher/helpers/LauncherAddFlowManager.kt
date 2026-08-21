@@ -18,12 +18,15 @@ import com.sza.fastmediasorter.ui.applaunchpanel.edit.OsShortcutPickerDialogFrag
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.ResourcePickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
+import com.sza.fastmediasorter.ui.launcher.gadget.NetworkIndicatorGadget.Companion.PARAM_SEPARATOR
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherCellContentPickerDialogFragment
+import com.sza.fastmediasorter.ui.launcher.picker.LauncherNetworkIndicatorDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherResourceModePickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherScheduledOpPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherSectionNameDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
+import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorIndicator
 import timber.log.Timber
 
 /**
@@ -50,6 +53,10 @@ class LauncherAddFlowManager(
     private var pendingRow: Int = 0
     private var pendingCol: Int = 0
     private var pendingGadgetKey: String? = null
+
+    // S1440: held only while the resource picker is up - reachability is the one indicator whose param
+    // takes two dialogs to answer.
+    private var pendingIndicatorKey: String? = null
 
     /**
      * Wires the "put something on the desktop" chain. Each picker returns on its own key and dismisses
@@ -98,6 +105,7 @@ class LauncherAddFlowManager(
         }
         registerResourceListeners()
         registerWeatherLocationListener()
+        registerNetworkIndicatorListeners()
         registerSectionNameListener()
         // Taskbar pin flow is separate from the desktop add-flow: no grid coordinate, its own key so an
         // app pinned to the bar is never mistaken for an app dropped on a cell (both share the picker).
@@ -281,6 +289,12 @@ class LauncherAddFlowManager(
                 LauncherWeatherLocationDialogFragment.TAG,
             )
 
+            // S1440: same shape - the network cell's param is an indicator, not a registered resource.
+            gadgetKey == LauncherGadgetRegistry.KEY_NETWORK_INDICATOR -> openPicker(
+                LauncherNetworkIndicatorDialogFragment.newInstance(REQ_NETWORK_INDICATOR),
+                LauncherNetworkIndicatorDialogFragment.TAG,
+            )
+
             gadget.requiresResourceParam -> {
                 pendingGadgetKey = gadgetKey
                 val filter = if (gadgetKey == LauncherGadgetRegistry.KEY_PLAYLIST) MediaType.AUDIO else null
@@ -290,19 +304,24 @@ class LauncherAddFlowManager(
                 )
             }
 
-            else -> placeGadget(gadgetKey, resourceId = null)
+            else -> placeGadget(gadgetKey, param = null, resourceId = null)
         }
     }
 
-    private fun placeGadget(gadgetKey: String, resourceId: Long?) {
-        sensorPermissionManager.placeAfterAsking(gadgetKey) { placeGadgetNow(gadgetKey, resourceId) }
+    /**
+     * S1440: [param] is whatever the gadget stores in its `target` - a resource id for most of them, an
+     * indicator key for the network cell. [resourceId] stays separate because only a resource-backed
+     * gadget has a file list to remember (ADR-10).
+     */
+    private fun placeGadget(gadgetKey: String, param: String?, resourceId: Long?) {
+        sensorPermissionManager.placeAfterAsking(gadgetKey) { placeGadgetNow(gadgetKey, param, resourceId) }
     }
 
-    private fun placeGadgetNow(gadgetKey: String, resourceId: Long?) {
+    private fun placeGadgetNow(gadgetKey: String, param: String?, resourceId: Long?) {
         val gadget = gadgetRegistry.byKey(gadgetKey) ?: return
         placeAtPendingSlot(
             kind = LauncherCellKind.GADGET,
-            target = gadgetRegistry.encodeTarget(gadgetKey, resourceId?.toString()),
+            target = gadgetRegistry.encodeTarget(gadgetKey, param),
             spanW = gadget.defaultSpanW,
             spanH = gadget.defaultSpanH,
             rememberFileListResourceId = resourceId,
@@ -387,7 +406,8 @@ class LauncherAddFlowManager(
         }
         fragmentManager.setFragmentResultListener(REQ_RESOURCE_GADGET, lifecycleOwner) { _, bundle ->
             val resourceId = bundle.getLong(ResourcePickerDialogFragment.RESULT_RESOURCE_ID)
-            placeGadget(pendingGadgetKey ?: return@setFragmentResultListener, resourceId)
+            val gadgetKey = pendingGadgetKey ?: return@setFragmentResultListener
+            placeGadget(gadgetKey, resourceId.toString(), resourceId)
         }
     }
 
@@ -408,6 +428,31 @@ class LauncherAddFlowManager(
                     gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_WEATHER, encoded),
                 )
             }
+        }
+    }
+
+    /**
+     * S1440: reachability needs a resource on top of the indicator, so that one pick chains the shared
+     * picker on its own request key; every other indicator places the cell outright. No remembered file
+     * list either way - a reachability probe reads a resource's address, it never opens it.
+     */
+    private fun registerNetworkIndicatorListeners() {
+        fragmentManager.setFragmentResultListener(REQ_NETWORK_INDICATOR, lifecycleOwner) { _, bundle ->
+            val key = bundle.getString(LauncherNetworkIndicatorDialogFragment.RESULT_INDICATOR_KEY)
+                ?: return@setFragmentResultListener
+            if (key != NetworkMonitorIndicator.RESOURCE_REACHABILITY.key) {
+                placeGadget(LauncherGadgetRegistry.KEY_NETWORK_INDICATOR, key, resourceId = null)
+                return@setFragmentResultListener
+            }
+            pendingIndicatorKey = key
+            val picker = ResourcePickerDialogFragment.newInstance(REQ_RESOURCE_INDICATOR)
+            openPicker(picker, ResourcePickerDialogFragment.TAG)
+        }
+        fragmentManager.setFragmentResultListener(REQ_RESOURCE_INDICATOR, lifecycleOwner) { _, bundle ->
+            val key = pendingIndicatorKey ?: return@setFragmentResultListener
+            pendingIndicatorKey = null
+            val id = bundle.getLong(ResourcePickerDialogFragment.RESULT_RESOURCE_ID)
+            placeGadget(LauncherGadgetRegistry.KEY_NETWORK_INDICATOR, "$key$PARAM_SEPARATOR$id", null)
         }
     }
 
@@ -448,6 +493,11 @@ class LauncherAddFlowManager(
         const val REQ_PIN_APP = "launcher_pin_app"
         const val REQ_WEATHER_LOCATION = "launcher_weather_location"
         const val REQ_SECTION_NAME = "launcher_section_name"
+
+        // S1440: two keys - the network cell's second question reuses the shared resource picker, and a
+        // pick answered on REQ_RESOURCE_GADGET would complete some other gadget instead.
+        const val REQ_NETWORK_INDICATOR = "launcher_network_indicator"
+        const val REQ_RESOURCE_INDICATOR = "launcher_add_resource_indicator"
 
         /**
          * S1209: "no square was pointed at" travelling through the picker's row/col arguments. A

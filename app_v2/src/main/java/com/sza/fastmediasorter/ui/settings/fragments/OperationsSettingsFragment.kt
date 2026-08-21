@@ -457,6 +457,14 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableNetworkMonitor = isChecked))
         }
+        binding.rowEnableSystemInfo.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(enableSystemInfo = isChecked))
+        }
+        binding.rowEnableWearCompanion.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(enableWearCompanion = isChecked))
+        }
         binding.rowEmbeddedGame.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateEmbeddedGameEnabled(isChecked)
@@ -611,6 +619,18 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             binding.rowEnableNetworkMonitor.isVisible = networkMonitorContract.isAvailableInBuild
                             if (binding.rowEnableNetworkMonitor.isChecked != settings.enableNetworkMonitor) {
                                 binding.rowEnableNetworkMonitor.setCheckedSilently(settings.enableNetworkMonitor)
+                            }
+                            // No visibility line, unlike the Monitor above: system information is compiled
+                            // into every flavor, so the row is never absent from a build.
+                            if (binding.rowEnableSystemInfo.isChecked != settings.enableSystemInfo) {
+                                binding.rowEnableSystemInfo.setCheckedSilently(settings.enableSystemInfo)
+                            }
+                            // S1735: unlike system information above, the companion needs the watch bridge,
+                            // so the row is absent where the build carries none - the same rule the panel
+                            // applies, read from the same typed capability rather than a BuildConfig flag.
+                            binding.rowEnableWearCompanion.isVisible = mediaCapabilities.supportsWearCompanion
+                            if (binding.rowEnableWearCompanion.isChecked != settings.enableWearCompanion) {
+                                binding.rowEnableWearCompanion.setCheckedSilently(settings.enableWearCompanion)
                             }
                             if (binding.rowEmbeddedGame.isChecked != settings.embeddedGameEnabled) {
                                 binding.rowEmbeddedGame.setCheckedSilently(settings.embeddedGameEnabled)

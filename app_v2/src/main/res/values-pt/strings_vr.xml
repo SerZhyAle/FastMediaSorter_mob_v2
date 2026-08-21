@@ -11,22 +11,22 @@
     <string name="player_vr_overflow_open">Abrir em VR</string>
     <string name="vr_cheatsheet_ctrl_a">A (direita) - Pausar/Reproduzir</string>
     <string name="vr_cheatsheet_ctrl_b">B (direita) - Saída para o painel 2D</string>
-    <string name="vr_cheatsheet_ctrl_grip">Segurar + mover a mão = zoom · ambas as pegadas ≥ 1s = redefinir zoom</string>
-    <string name="vr_cheatsheet_ctrl_menu">≡ (esquerda) - Diálogo de controle de reprodução</string>
-    <string name="vr_cheatsheet_ctrl_stick_l">Analógico esquerdo - ↑↓ volume · ←→ buscar ±10s · clique: imersivo ↔ plano</string>
-    <string name="vr_cheatsheet_ctrl_stick_r">Alavanca R - ↑↓ volume · ←→ arquivo anterior/seguinte · clique: recentralizar</string>
+    <string name="vr_cheatsheet_ctrl_grip">Preensão - segure + mova a mão = zoom · ambas as preensões ≥ 1s = repor zoom</string>
+    <string name="vr_cheatsheet_ctrl_menu">≡ (esquerda) - Diálogo de controlo de reprodução</string>
+    <string name="vr_cheatsheet_ctrl_stick_l">Manípulo esquerdo - ↑↓ volume · ←→ avançar/recuar ±10s · clique: imersivo ↔ plano</string>
+    <string name="vr_cheatsheet_ctrl_stick_r">Manípulo direito - ↑↓ volume · ←→ ficheiro anterior/seguinte · clique: recentrar</string>
     <string name="vr_cheatsheet_ctrl_x">X (esquerda) - Sair (duplicado)</string>
     <string name="vr_cheatsheet_ctrl_y">Y (esquerda) - Operações de arquivo (pressione rapidamente) / este guia de referência (pressione e segure)</string>
-    <string name="vr_cheatsheet_footer">Toque em qualquer lugar para fechar · pressione e segure Y ou F1 para reabrir</string>
+    <string name="vr_cheatsheet_footer">Toque em qualquer lugar para fechar · mantenha premido Y ou F1 para reabrir</string>
     <string name="vr_cheatsheet_hands_double_pinch">Pinça dupla - Pausar/Reproduzir</string>
-    <string name="vr_cheatsheet_hands_ray">Apontar com a mão - mirar raio · pinçar - clicar na interface do usuário</string>
-    <string name="vr_cheatsheet_hands_swipe">Deslizar o polegar ←→ - buscar ±10s · ↑↓ - volume</string>
-    <string name="vr_cheatsheet_kb_arrows">← → - busca ±10s · Shift+←→ - ±3s · Ctrl+←→ - ±60s · ↑↓ - volume</string>
-    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R - renomear · Ctrl+C - copiar · Ctrl+X - mover · Ctrl+I - informações · Ctrl+Y - operações de arquivo</string>
-    <string name="vr_cheatsheet_kb_fkeys">F1 - este guia rápido · F2 - renomear · F3 - sobre · F4 - configurações · F5 - copiar · F6 - mover · F7 - operações de arquivo · F8 - excluir · F10 - sair</string>
-    <string name="vr_cheatsheet_kb_space">Espaço / K - Pausar / Reproduzir · J / L - ±10s · N / P - anterior/próximo · M - silenciar</string>
-    <string name="vr_cheatsheet_mouse_buttons">Botão esquerdo do mouse (LMB) - pausar/reproduzir · Botão direito do mouse (RMB) - configurações · Botão do meio do mouse (MMB) - recentralizar · Botão 4/5 - arquivo anterior/seguinte</string>
-    <string name="vr_cheatsheet_mouse_wheel">Roda - volume · Shift + roda - busca ±10s</string>
+    <string name="vr_cheatsheet_hands_ray">Aponte a mão - direcione o raio · beliscar - clicar na interface</string>
+    <string name="vr_cheatsheet_hands_swipe">Deslizar com o polegar ←→ - avançar/recuar ±10s · ↑↓ - volume</string>
+    <string name="vr_cheatsheet_kb_arrows">← → - avançar/recuar ±10s · Shift+←→ - ±3s · Ctrl+←→ - ±60s · ↑↓ - volume</string>
+    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R - renomear · Ctrl+C - copiar · Ctrl+X - mover · Ctrl+I - informação · Ctrl+Y - operações de ficheiro</string>
+    <string name="vr_cheatsheet_kb_fkeys">F1 - esta folha de referência · F2 - renomear · F3 - sobre · F4 - definições · F5 - copiar · F6 - mover · F7 - operações de ficheiro · F8 - eliminar · F10 - sair</string>
+    <string name="vr_cheatsheet_kb_space">Espaço / K - Pausa / Reproduzir · J / L - ±10s · N / P - anterior/seguinte · M - silenciar</string>
+    <string name="vr_cheatsheet_mouse_buttons">Botão esquerdo - pausa / reproduzir · Botão direito - definições · Botão do meio - recentrar · botão 4/5 - ficheiro anterior/seguinte</string>
+    <string name="vr_cheatsheet_mouse_wheel">Roda - volume · Shift+roda - avançar/recuar ±10s</string>
     <string name="vr_cheatsheet_section_controllers">Controladores Touch (Quest 2 / 3 / Pro):</string>
     <string name="vr_cheatsheet_section_hands">Rastreamento de mãos (controladores separados):</string>
     <string name="vr_cheatsheet_section_keyboard">Teclado Bluetooth:</string>
@@ -52,7 +52,7 @@
     <string name="vr_hud_copy_done">Copiado</string>
     <string name="vr_hud_error_network">Sem rede</string>
     <string name="vr_hud_first_file">Primeiro arquivo</string>
-    <string name="vr_hud_first_run_cheat">Pausar/Reproduzir · Analógico esquerdo: busca · Analógico direito: arquivo/volume · Zoom na pegada · Configurações do menu</string>
+    <string name="vr_hud_first_run_cheat">A pausa/reproduzir · manípulo esquerdo avançar/recuar · manípulo direito ficheiro/volume · preensão zoom · Menu definições</string>
     <string name="vr_hud_guard_controls">A caixa de diálogo de controle não está disponível no modo imersivo. Saia do modo imersivo para abri-la.</string>
     <string name="vr_hud_guard_file_ops">O painel de arquivos não está disponível no modo imersivo. Saia do modo imersivo para usá-lo.</string>
     <string name="vr_hud_immersive_off">Tela plana</string>
@@ -60,7 +60,7 @@
     <string name="vr_hud_move_done">Movido</string>
     <string name="vr_hud_paused">Em pausa</string>
     <string name="vr_hud_playing">Jogando</string>
-    <string name="vr_hud_prev_next_hint">← anterior / próximo →</string>
+    <string name="vr_hud_prev_next_hint">← anterior / seguinte →</string>
     <string name="vr_hud_recenter_done">Recentrado</string>
     <string name="vr_hud_seek_bwd">Buscar para trás</string>
     <string name="vr_hud_seek_fwd">Avançar</string>
@@ -99,7 +99,7 @@
     <string name="vr_save_frame_timeout">Captura de tela estéreo VR expirou</string>
     <string name="vr_save_frame_unavailable">A captura de imagem em estéreo VR não está disponível no momento.</string>
     <string name="vr_settings_block_title">Reprodução e controles de 3D-VR</string>
-    <string name="vr_settings_test_immersive_content_description">Abra uma imagem de exemplo em 360° no modo imersivo.</string>
+    <string name="vr_settings_test_immersive_content_description">Abrir uma imagem 360° de exemplo em modo imersivo.</string>
     <string name="vr_settings_test_immersive_init_failure_toast">Não foi possível iniciar a realidade virtual. Verifique se o seu headset está conectado.</string>
     <string name="vr_settings_test_immersive_label">Teste Imersivo</string>
     <string name="vr_settings_test_immersive_runtime_loss_toast">A sessão de realidade virtual terminou inesperadamente.</string>

@@ -135,6 +135,7 @@ object BackupMapper {
     fun toBackupSettings(settings: AppSettings): BackupSettings {
         return BackupSettings(
             isResourceGridMode = settings.isResourceGridMode,
+            resourceGridCellSize = settings.resourceGridCellSize.name,
             language = settings.language,
             defaultUser = settings.defaultUser,
             defaultPassword = settings.defaultPassword,
@@ -329,6 +330,8 @@ object BackupMapper {
     fun toAppSettings(backup: BackupSettings, current: AppSettings, payloadVersion: Int): AppSettings {
         return current.copy(
             isResourceGridMode = backup.isResourceGridMode,
+            resourceGridCellSize = com.sza.fastmediasorter.domain.model.ResourceGridCellSize
+                .fromName(backup.resourceGridCellSize),
             language = backup.language.gsonSafe(current.language),
             preventSleep = backup.preventSleep,
             keepScreenOnPlayer = backup.keepScreenOnPlayer,

@@ -18,6 +18,7 @@ import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
+import com.sza.fastmediasorter.domain.model.ResourceGridCellSize
 import com.sza.fastmediasorter.ui.main.MainState
 import timber.log.Timber
 
@@ -31,6 +32,9 @@ class MainLayoutChromeManager(
     private val activity: AppCompatActivity,
     private val binding: ActivityMainBinding,
     private val isResourceGridMode: () -> Boolean,
+    // S1285: supplied rather than injected so the helper keeps taking no repository - it reads the
+    // current step at the moment it recomputes the span, the same way it reads the grid mode.
+    private val resourceGridCellSize: () -> ResourceGridCellSize = { ResourceGridCellSize.DEFAULT },
     private val onControlBarFreeWidth: (Int) -> Unit = {},
     private val onOverflowChanged: () -> Unit = {}
 ) {
@@ -361,11 +365,15 @@ class MainLayoutChromeManager(
 
         if (gridMode) {
             // Compact Grid Mode - use resource-based column counts
-            val spanCount = if (isWideScreen) {
+            val baseSpan = if (isWideScreen) {
                 res.getInteger(R.integer.grid_column_count_landscape)
             } else {
                 res.getInteger(R.integer.grid_column_count)
             }
+            // S1285: the user's step scales the count the configuration already picked, so every width
+            // and orientation qualifier keeps working; MEDIUM is the identity and changes nothing.
+            val spanCount = resourceGridCellSize().spanFor(baseSpan)
+            Timber.d("S1285: span base=%d step=%s -> %d", baseSpan, resourceGridCellSize(), spanCount)
             val current = binding.rvResources.layoutManager
             if (current !is GridLayoutManager || current.spanCount != spanCount) {
                 binding.rvResources.layoutManager = GridLayoutManager(activity, spanCount)

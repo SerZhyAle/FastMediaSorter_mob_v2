@@ -85,6 +85,17 @@
                         app:str_helpTitle="@string/tooltip_compact_elements_title"
                         app:str_helpMessage="@string/tooltip_compact_elements_message" />
 
+                    <!-- S1285: cell size of the main-window resource grid. Orientation parity with
+                         portrait - kept full width rather than folded into a weighted pair, so it
+                         stays adjacent to the compact toggle it is most easily confused with. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/rowResourceGridCellSize"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                        app:sdr_title="@string/pref_resource_grid_cell_size_title" />
+
                     <!-- Row: Allow new windows (S0028) | Enable Favorites.
                          Two compact toggles share one landscape row to cut vertical scroll (S0618 R2).
                          S0911: the third toggle formerly here (Resource ops overflow) moved to the new

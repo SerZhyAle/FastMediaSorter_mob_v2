@@ -238,6 +238,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
         // Adaptive pre-cache strategy (spec §5)
         private val KEY_PREFETCH_CACHE_MULTIPLIER = stringPreferencesKey("prefetch_cache_multiplier")
+        private val KEY_RESOURCE_GRID_CELL_SIZE = stringPreferencesKey("resource_grid_cell_size")
         private val KEY_STREAMING_CACHE_CLEANUP_MODE = stringPreferencesKey("streaming_cache_cleanup_mode")
         private val KEY_STREAMING_CACHE_TTL_DAYS = intPreferencesKey("streaming_cache_ttl_days")
 
@@ -316,6 +317,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
                     enableCalculator = programs.enableCalculator,
                     enableNetworkMonitor = programs.enableNetworkMonitor,
+                    enableSystemInfo = programs.enableSystemInfo,
+                    enableWearCompanion = programs.enableWearCompanion,
                     recordGnssTrack = programs.recordGnssTrack,
                     embeddedGameEnabled = programs.embeddedGameEnabled,
                     frontFlashlightEnabled = programs.frontFlashlightEnabled,
@@ -329,6 +332,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     enabledShareTargets = preferences[KEY_ENABLED_SHARE_TARGETS] ?: emptySet(),
                     disabledShareTargets = preferences[KEY_DISABLED_SHARE_TARGETS] ?: emptySet(),
                     isResourceGridMode = preferences[KEY_IS_RESOURCE_GRID_MODE] ?: false,
+                    // fromName, not valueOf: a stored value from a renamed or corrupted entry has to
+                    // degrade to the default instead of throwing while settings load.
+                    resourceGridCellSize = com.sza.fastmediasorter.domain.model.ResourceGridCellSize
+                        .fromName(preferences[KEY_RESOURCE_GRID_CELL_SIZE]),
                     resourceOpsInOverflowMenu = preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] ?: isFreshInstall, // S0253: fresh install → ON; existing user → OFF
                     enableBackgroundSync = preferences[KEY_ENABLE_BACKGROUND_SYNC] ?: false,
                     backgroundSyncIntervalHours = preferences[KEY_BACKGROUND_SYNC_INTERVAL_HOURS] ?: 4,
@@ -760,6 +767,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_LAST_USED_RESOURCE_ID] = settings.lastUsedResourceId
             preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] = settings.defaultRememberFileList
             preferences[KEY_IS_RESOURCE_GRID_MODE] = settings.isResourceGridMode
+            preferences[KEY_RESOURCE_GRID_CELL_SIZE] = settings.resourceGridCellSize.name
             preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] = settings.resourceOpsInOverflowMenu
             preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] = settings.dynamicBackgroundExtension
             preferences[KEY_IS_PRIMARY_MEDIA_PLAYER] = settings.isPrimaryMediaPlayer

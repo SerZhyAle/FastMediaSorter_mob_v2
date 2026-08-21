@@ -11,7 +11,7 @@
     <string name="welcome_default_player_title">Lettore predefinito</string>
     <string name="welcome_description_1">Il tuo organizzatore multimediale tutto in uno.\nSfoglia, ordina e gestisci i file su memoria locale, di rete e nel cloud, tutto con gesti tattili intuitivi.</string>
     <string name="welcome_description_1_details">FastMediaSorter riunisce ogni tipo di contenuto in un unico posto. Apri foto, video, GIF e musica dal dispositivo, da una cartella condivisa in rete o dal cloud, e ordinali con tocchi rapidi invece che con i menu a pressione prolungata.\n\nTutto ciò che imposti qui si può cambiare più tardi nelle Impostazioni, quindi su questa schermata non esiste una scelta sbagliata: tocca Avanti per continuare.</string>
-    <string name="welcome_description_3" formatted="false">Il lettore usa 9 zone tattili (griglia 3×3) per le azioni rapide. Tocca le zone per navigare, copiare, spostare o eliminare file, oppure per aprire il pannello comandi. Vedi lo schema sopra per i dettagli.</string>
+    <string name="welcome_description_3" formatted="false">Il lettore usa 9 zone tattili (griglia 3×3) per azioni rapide. Tocca le zone per navigare, copiare, spostare, eliminare file o accedere al pannello dei comandi. Vedi lo schema sopra per i dettagli.</string>
     <string name="welcome_language_picker_hint">Scegli la lingua dell\'app</string>
     <string name="welcome_profile_audio_player_desc">Ideale per dispositivi solo audio o lettori MP3. Nasconde foto e video; ottimizza l\'audio in background e la schermata di riproduzione.</string>
     <string name="welcome_profile_audio_player_title">Lettore audio</string>
@@ -34,7 +34,7 @@
     <string name="welcome_profile_tv_media_box_title">TV / media box</string>
     <string name="welcome_profile_video_player_desc">Ideale per dispositivi solo video. Nasconde foto, musica e visualizzatori di documenti; privilegia la riproduzione rapida e le miniature.</string>
     <string name="welcome_profile_video_player_title">Lettore video</string>
-    <string name="welcome_profile_vr_headset_desc">Ideale per dispositivi di realtà virtuale. Preattiva i layout 3D/360° e i comandi immersivi sull\'hardware supportato.</string>
+    <string name="welcome_profile_vr_headset_desc">Ideale per dispositivi di realtà virtuale. Preattiva i layout 3D/360° e i controlli immersivi sulle varianti hardware supportate.</string>
     <string name="welcome_profile_vr_headset_title">Visore VR</string>
     <string name="welcome_recommended_badge">(Consigliato)</string>
     <string name="welcome_title_1">Benvenuto in FastMediaSorter!</string>

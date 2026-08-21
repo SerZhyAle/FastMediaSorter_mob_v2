@@ -19,11 +19,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,11 +32,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -83,6 +81,11 @@ class BeamAnimationDialog : DialogFragment() {
     }
 }
 
+private val DIALOG_WINDOW_MARGIN = 24.dp
+private val DIALOG_CORNER_RADIUS = 24.dp
+private val DIALOG_CONTENT_PADDING = 24.dp
+private val DIALOG_SHADOW_ELEVATION = 6.dp
+
 @Composable
 private fun BeamDialogContent(
     viewModel: WearSyncViewModel,
@@ -111,60 +114,79 @@ private fun BeamDialogContent(
         }
     }
 
-    Column(
+    // The dialog window is transparent so this card can round its own corners, which leaves the
+    // content responsible for painting the card. Without a Surface the text drew straight onto the
+    // settings screen behind it and kept the default content colour, unreadable in dark mode.
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(horizontal = DIALOG_WINDOW_MARGIN),
+        shape = RoundedCornerShape(DIALOG_CORNER_RADIUS),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = DIALOG_SHADOW_ELEVATION
     ) {
-        when (state) {
-            WearSyncUiState.Idle -> {
-                Text(stringResource(R.string.wear_sync_ready), style = MaterialTheme.typography.titleMedium)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(DIALOG_CONTENT_PADDING),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            BeamDialogBody(state = state, viewModel = viewModel, onDismiss = onDismiss)
+        }
+    }
+}
+
+@Composable
+private fun BeamDialogBody(
+    state: WearSyncUiState,
+    viewModel: WearSyncViewModel,
+    onDismiss: () -> Unit
+) {
+    when (state) {
+        WearSyncUiState.Idle -> {
+            Text(stringResource(R.string.wear_sync_ready), style = MaterialTheme.typography.titleMedium)
+        }
+        WearSyncUiState.Sending -> {
+            PulsingBeamAnimation()
+            Spacer(Modifier.height(16.dp))
+            Text(stringResource(R.string.wear_sync_sending), style = MaterialTheme.typography.bodyMedium)
+        }
+        is WearSyncUiState.Success -> {
+            Text("✓", style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(R.string.wear_sync_success, state.sent),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+        }
+        is WearSyncUiState.Error -> {
+            Text("✗", style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.error)
+            Spacer(Modifier.height(8.dp))
+            Text(state.message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+            Spacer(Modifier.height(12.dp))
+            Button(onClick = { viewModel.startPush() }) {
+                Text(stringResource(R.string.retry))
             }
-            WearSyncUiState.Sending -> {
-                PulsingBeamAnimation()
-                Spacer(Modifier.height(16.dp))
-                Text(stringResource(R.string.wear_sync_sending), style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(8.dp))
+            TextButton(onClick = { viewModel.reset(); onDismiss() }) {
+                Text(stringResource(R.string.cancel))
             }
-            is WearSyncUiState.Success -> {
-                val s = state as WearSyncUiState.Success
-                Text("✓", style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.primary)
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    stringResource(R.string.wear_sync_success, s.sent),
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
-                )
+        }
+        WearSyncUiState.NothingSelected -> {
+            Text(
+                stringResource(R.string.wear_sync_nothing_selected),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(12.dp))
+            TextButton(onClick = { viewModel.reset(); onDismiss() }) {
+                Text(stringResource(R.string.close))
             }
-            is WearSyncUiState.Error -> {
-                val e = state as WearSyncUiState.Error
-                Text("✗", style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.error)
-                Spacer(Modifier.height(8.dp))
-                Text(e.message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
-                Spacer(Modifier.height(12.dp))
-                Button(onClick = { viewModel.startPush() }) {
-                    Text(stringResource(R.string.retry))
-                }
-                Spacer(Modifier.height(8.dp))
-                TextButton(onClick = { viewModel.reset(); onDismiss() }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
-            WearSyncUiState.NothingSelected -> {
-                Text(
-                    stringResource(R.string.wear_sync_nothing_selected),
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(Modifier.height(12.dp))
-                TextButton(onClick = { viewModel.reset(); onDismiss() }) {
-                    Text(stringResource(R.string.close))
-                }
-            }
-            WearSyncUiState.SettingsPushed -> {
-                // Settings push completed - dialog auto-dismisses via LaunchedEffect above
-                Text("✓", style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.primary)
-            }
+        }
+        WearSyncUiState.SettingsPushed -> {
+            // Settings push completed - dialog auto-dismisses via LaunchedEffect above
+            Text("✓", style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.primary)
         }
     }
 }

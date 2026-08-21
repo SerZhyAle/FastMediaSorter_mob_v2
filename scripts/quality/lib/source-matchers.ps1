@@ -471,6 +471,12 @@ function Get-SourceRules {
             }
             FailMessage = 'new trivial comment introduced. Explain WHY, or delete the comment (CLAUDE.md Rule 9).'
         },
+        # S1694: the boundary is app_v2 = View, wear = Compose. Roots deliberately stop at
+        # app_v2/src/main, so the watch module - which is Compose end to end and has no XML layout at
+        # all - is never judged by this dimension.
+        (New-RegexRule -Name 'compose-island' `
+                -Pattern ([regex]'setContent\s*\{') `
+                -FailMessage 'new Compose island in app_v2 (CLAUDE.md Rule 32). app_v2 is View-based: build the screen in XML + ViewBinding. Removing an island lowers this baseline; raising it is a boundary decision, not a build fix.'),
         (New-RegexRule -Name 'empty-catch' `
                 -Pattern ([regex]'catch\s*\([^)]*\)\s*\{\s*(?:(?://[^\r\n]*)|(?:/\*[\s\S]*?\*/))?\s*\}') `
                 -FailMessage 'new empty catch block introduced. Recover, use a safe default, or log at the correct level.'),

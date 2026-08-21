@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -20,8 +21,8 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
- * S1433: the Bluetooth subscreen - adapter state, the radio switch, the paired list and one chart for a
- * device the user picked.
+ * S1433: the Bluetooth subscreen - adapter state, the radio switch, the connected and paired frames, and
+ * one chart for a device the user picked.
  *
  * There is no scan action anywhere on this screen and no discovery call behind it. Research artifact 02
  * permits RSSI only for an explicitly selected connected device, and strategic §2 lists background and
@@ -67,6 +68,8 @@ class BluetoothSectionFragment : Fragment() {
             chart = binding.bluetoothChart.chartSeries,
             summaryView = binding.bluetoothChart.chartSummary,
             emptyView = binding.bluetoothChart.chartEmpty,
+            resetTarget = binding.bluetoothChart.root,
+            onResetRequested = viewModel::onChartResetRequested,
         )
         binding.bluetoothChart.chartHeading.setText(R.string.network_monitor_bluetooth_signal_heading)
         binding.bluetoothDevicePicker.setOnItemClickListener { _, _, position, _ ->
@@ -88,7 +91,7 @@ class BluetoothSectionFragment : Fragment() {
 
     private fun render(state: BluetoothSectionUiState) {
         renderAdapter(state)
-        renderPairedList(state.devices)
+        renderDeviceFrames(state.devices)
         renderPicker(state)
         renderChart(state)
     }
@@ -109,32 +112,45 @@ class BluetoothSectionFragment : Fragment() {
     }
 
     /**
-     * One text block rather than a list of views: each line is a whole localized phrase, so joining them
-     * costs no grammar, and a handful of paired devices does not need a recycler or an item layout.
+     * Two frames, and no device in both: connected above, paired-but-absent below.
+     *
+     * One text block per frame rather than a list of views - each line is just a device name, and a handful
+     * of them does not need a recycler or an item layout. The frame heading carries the connection state, so
+     * the lines no longer repeat it and nothing is expressed by colour alone (S1853).
      */
-    private fun renderPairedList(devices: MonitorSection<List<BluetoothDeviceEntry>>) {
-        val entries = devices.data.orEmpty()
-        binding.bluetoothPairedList.isVisible = entries.isNotEmpty()
-        binding.bluetoothPairedEmpty.isVisible = entries.isEmpty()
+    private fun renderDeviceFrames(devices: MonitorSection<List<BluetoothDeviceEntry>>) {
+        val (connected, paired) = devices.data.orEmpty().partition { it.isConnected }
         if (devices.data == null) {
-            if (!permissionManager.bind(binding.bluetoothPairedEmpty, devices.availability)) {
-                binding.bluetoothPairedEmpty.setText(devices.availability.toReasonRes())
-            } else {
-                return
-            }
+            renderUnavailableFrame(binding.bluetoothConnectedList, binding.bluetoothConnectedEmpty, devices)
+            renderUnavailableFrame(binding.bluetoothPairedList, binding.bluetoothPairedEmpty, devices)
+            return
         }
+        binding.bluetoothConnectedEmpty.setText(R.string.network_monitor_bluetooth_connected_empty)
         binding.bluetoothPairedEmpty.setText(R.string.network_monitor_bluetooth_paired_empty)
-        binding.bluetoothPairedList.text = entries.joinToString(separator = "\n") { device -> describe(device) }
+        binding.bluetoothConnectedList.text = names(connected)
+        binding.bluetoothPairedList.text = names(paired)
+        binding.bluetoothConnectedList.isVisible = connected.isNotEmpty()
+        binding.bluetoothConnectedEmpty.isVisible = connected.isEmpty()
+        binding.bluetoothPairedList.isVisible = paired.isNotEmpty()
+        binding.bluetoothPairedEmpty.isVisible = paired.isEmpty()
     }
 
-    private fun describe(device: BluetoothDeviceEntry): String = getString(
-        if (device.isConnected) {
-            R.string.network_monitor_bluetooth_device_connected
-        } else {
-            R.string.network_monitor_bluetooth_device_idle
-        },
-        device.name ?: getString(R.string.network_monitor_value_unknown),
-    )
+    /** Each frame states the reason itself, so the recovery action is reachable wherever the user is looking. */
+    private fun renderUnavailableFrame(
+        list: TextView,
+        empty: TextView,
+        devices: MonitorSection<List<BluetoothDeviceEntry>>,
+    ) {
+        list.isVisible = false
+        empty.isVisible = true
+        if (!permissionManager.bind(empty, devices.availability)) {
+            empty.setText(devices.availability.toReasonRes())
+        }
+    }
+
+    private fun names(devices: List<BluetoothDeviceEntry>): String = devices.joinToString(separator = "\n") {
+        it.name ?: getString(R.string.network_monitor_value_unknown)
+    }
 
     /**
      * The adapter is rebuilt only when the offered set actually changes.

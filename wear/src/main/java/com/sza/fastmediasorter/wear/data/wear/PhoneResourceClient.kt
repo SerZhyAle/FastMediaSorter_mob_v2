@@ -36,8 +36,16 @@ class PhoneResourceClient @Inject constructor(
 
     /**
      * Asks the phone for one page. [parentToken] null requests the root list.
+     *
+     * S1846: [mediaType] narrows the answer to one kind of file and travels on every request of a browse
+     * session, not only the first - stepping into a folder with the type dropped would widen the list back
+     * to everything halfway through.
      */
-    suspend fun browse(parentToken: String?, pageToken: String? = null): PhoneResourceOutcome {
+    suspend fun browse(
+        parentToken: String?,
+        pageToken: String? = null,
+        mediaType: String? = null
+    ): PhoneResourceOutcome {
         val request = WearPhoneResourceRequest(
             requestId = UUID.randomUUID().toString(),
             kind = if (parentToken == null) {
@@ -46,7 +54,8 @@ class PhoneResourceClient @Inject constructor(
                 WearPhoneResourceRequestKind.CHILDREN
             },
             parentToken = parentToken,
-            pageToken = pageToken
+            pageToken = pageToken,
+            mediaType = mediaType
         )
 
         return request(request, WearDataLayerPaths.PHONE_RESOURCE_BROWSE_REQUEST)
@@ -74,7 +83,6 @@ class PhoneResourceClient @Inject constructor(
 
     private suspend fun request(request: WearPhoneResourceRequest, path: String): PhoneResourceOutcome {
         val nodeId = connectedPhoneId()
-        Timber.d("S1697: watch sending $path to node ${nodeId ?: "none"}")
         val sent = nodeId?.let { node ->
             runCatching {
                 Wearable.getMessageClient(context)
@@ -145,9 +153,10 @@ class PhoneResourceClient @Inject constructor(
      * Accepts the channel the phone opens after an approved open request and writes it to disk.
      */
     private suspend fun receiveTransfer(destination: File): PhoneResourceOutcome {
+        Timber.d("S1860: receiveTransfer for ${destination.name}")
         val channelClient = Wearable.getChannelClient(context)
         val channel = withTimeoutOrNull(TRANSFER_TIMEOUT_MS) { awaitChannel(channelClient) }
-            ?: return PhoneResourceOutcome.Rejected(WearPhoneResourceResponseStatus.TRANSFER_REJECTED)
+            ?: return PhoneResourceOutcome.PhoneUnavailable
 
         val copied = runCatching {
             channelClient.getInputStream(channel).await().use { input -> input.writeTo(destination) }
@@ -160,7 +169,7 @@ class PhoneResourceClient @Inject constructor(
             PhoneResourceOutcome.Transferred(destination)
         } else {
             destination.delete()
-            PhoneResourceOutcome.Rejected(WearPhoneResourceResponseStatus.TRANSFER_REJECTED)
+            PhoneResourceOutcome.PhoneUnavailable
         }
     }
 

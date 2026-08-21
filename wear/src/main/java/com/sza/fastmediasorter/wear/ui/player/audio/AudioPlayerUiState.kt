@@ -31,7 +31,11 @@ data class AudioPlayerUiState(
     val volumeLevel: Int = 0,
     val volumeMax: Int = 0,
     /** True only while the bezel is being turned, plus the short tail after it stops. */
-    val isVolumeVisible: Boolean = false
+    val isVolumeVisible: Boolean = false,
+    /** S1866: parsed track title from MediaStore or ExoPlayer ID3 tags. */
+    val trackTitle: String? = null,
+    /** S1866: parsed artist name from MediaStore or ExoPlayer ID3 tags. */
+    val artistName: String? = null
 ) {
     val positionText: String
         get() = if (setSize > 0) "${setIndex + 1}/$setSize" else ""

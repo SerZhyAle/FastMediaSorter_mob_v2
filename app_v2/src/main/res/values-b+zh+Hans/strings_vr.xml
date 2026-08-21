@@ -11,22 +11,22 @@
     <string name="player_vr_overflow_open">在VR中打开</string>
     <string name="vr_cheatsheet_ctrl_a">A（右）- 暂停/播放</string>
     <string name="vr_cheatsheet_ctrl_b">B（右）- 退出至 2D 面板</string>
-    <string name="vr_cheatsheet_ctrl_grip">握持 - 按住并移动手 = 缩放 · 双手握持 ≥ 1 秒 = 重置缩放</string>
+    <string name="vr_cheatsheet_ctrl_grip">握持键 - 按住并移动手部 = 缩放 · 双手握持键 ≥ 1秒 = 重置缩放</string>
     <string name="vr_cheatsheet_ctrl_menu">≡（左）- 播放控制对话框</string>
-    <string name="vr_cheatsheet_ctrl_stick_l">L 摇杆 - ↑↓ 音量 · ←→ 拖动 ±10 秒 · 点击：沉浸式 ↔ 平面</string>
+    <string name="vr_cheatsheet_ctrl_stick_l">左摇杆 - ↑↓ 音量 · ←→ 快进 ±10秒 · 点击：沉浸 ↔ 平面</string>
     <string name="vr_cheatsheet_ctrl_stick_r">右摇杆 - ↑↓ 音量 · ←→ 上一个/下一个文件 · 点击：重新居中</string>
     <string name="vr_cheatsheet_ctrl_x">X（左）- 退出（重复）</string>
     <string name="vr_cheatsheet_ctrl_y">Y（左）- 文件操作（短按）/ 此速查表（长按）</string>
-    <string name="vr_cheatsheet_footer">点击任意位置关闭；长按 Y 或 F1 键重新打开</string>
+    <string name="vr_cheatsheet_footer">点击任意位置关闭 · 长按 Y 或 F1 重新打开</string>
     <string name="vr_cheatsheet_hands_double_pinch">双指捏合 - 暂停/播放</string>
-    <string name="vr_cheatsheet_hands_ray">指向手势 - 瞄准光线 · 捏合 - 点击用户界面</string>
-    <string name="vr_cheatsheet_hands_swipe">拇指滑动 ←→ - 快进/快退 ±10 秒 · ↑↓ - 音量</string>
-    <string name="vr_cheatsheet_kb_arrows">← → - 查找 ±10 秒 · Shift+←→ - 查找 ±3 秒 · Ctrl+←→ - 查找 ±60 秒 · ↑↓ - 音量</string>
-    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R - 重命名 · Ctrl+C - 复制 · Ctrl+X - 移动 · Ctrl+I - 显示信息 · Ctrl+Y - 文件操作</string>
-    <string name="vr_cheatsheet_kb_fkeys">F1 - 打开此速查表 · F2 - 重命名 · F3 - 关于 · F4 - 设置 · F5 - 复制 · F6 - 移动 · F7 - 文件操作 · F8 - 删除 · F10 - 退出</string>
-    <string name="vr_cheatsheet_kb_space">空格键/K键 - 暂停/播放 · J键/L键 - 暂停/暂停±10秒 · N键/P键 - 上一首/下一首 · M键 - 静音</string>
-    <string name="vr_cheatsheet_mouse_buttons">鼠标左键 - 暂停/播放 · 鼠标右键 - 设置 · 鼠标中键 - 重新居中 · 按钮 4/5 - 上一个/下一个文件</string>
-    <string name="vr_cheatsheet_mouse_wheel">滚轮 - 音量；Shift+滚轮 - 指针±10秒</string>
+    <string name="vr_cheatsheet_hands_ray">手部指向 - 瞄准射线 · 捏合 - 点击界面</string>
+    <string name="vr_cheatsheet_hands_swipe">拇指滑动 ←→ - 快进 ±10秒 · ↑↓ - 音量</string>
+    <string name="vr_cheatsheet_kb_arrows">← → - 快进 ±10秒 · Shift+←→ - ±3秒 · Ctrl+←→ - ±60秒 · ↑↓ - 音量</string>
+    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R - 重命名 · Ctrl+C - 复制 · Ctrl+X - 移动 · Ctrl+I - 信息 · Ctrl+Y - 文件操作</string>
+    <string name="vr_cheatsheet_kb_fkeys">F1 - 本快捷键表 · F2 - 重命名 · F3 - 关于 · F4 - 设置 · F5 - 复制 · F6 - 移动 · F7 - 文件操作 · F8 - 删除 · F10 - 退出</string>
+    <string name="vr_cheatsheet_kb_space">Space / K - 暂停/播放 · J / L - ±10秒 · N / P - 上一个/下一个 · M - 静音</string>
+    <string name="vr_cheatsheet_mouse_buttons">左键 - 暂停/播放 · 右键 - 设置 · 中键 - 重新居中 · 按钮4/5 - 上一个/下一个文件</string>
+    <string name="vr_cheatsheet_mouse_wheel">滚轮 - 音量 · Shift+滚轮 - 快进 ±10秒</string>
     <string name="vr_cheatsheet_section_controllers">Touch 控制器（Quest 2 / 3 / Pro）：</string>
     <string name="vr_cheatsheet_section_hands">手部追踪（控制器除外）：</string>
     <string name="vr_cheatsheet_section_keyboard">蓝牙键盘：</string>
@@ -52,7 +52,7 @@
     <string name="vr_hud_copy_done">已复制</string>
     <string name="vr_hud_error_network">无网络</string>
     <string name="vr_hud_first_file">第一文件</string>
-    <string name="vr_hud_first_run_cheat">暂停/播放 · 左摇杆快进/快退 · 右摇杆文件/音量 · 握把缩放 · 菜单设置</string>
+    <string name="vr_hud_first_run_cheat">A 暂停/播放 · 左摇杆 快进 · 右摇杆 文件/音量 · 握持键 缩放 · Menu 设置</string>
     <string name="vr_hud_guard_controls">沉浸式模式下无法使用控制对话框。请退出沉浸式模式以打开它。</string>
     <string name="vr_hud_guard_file_ops">文件面板在沉浸式模式下不可用。请退出沉浸式模式以使用它。</string>
     <string name="vr_hud_immersive_off">平面屏幕</string>
@@ -60,7 +60,7 @@
     <string name="vr_hud_move_done">已搬迁</string>
     <string name="vr_hud_paused">暂停</string>
     <string name="vr_hud_playing">玩耍</string>
-    <string name="vr_hud_prev_next_hint">← 上一页 / 下一页 →</string>
+    <string name="vr_hud_prev_next_hint">← 上一个 / 下一个 →</string>
     <string name="vr_hud_recenter_done">重新居中</string>
     <string name="vr_hud_seek_bwd">向后看</string>
     <string name="vr_hud_seek_fwd">展望未来</string>
@@ -99,7 +99,7 @@
     <string name="vr_save_frame_timeout">VR立体快照超时</string>
     <string name="vr_save_frame_unavailable">目前无法提供VR立体快照。</string>
     <string name="vr_settings_block_title">3D-VR播放和控制</string>
-    <string name="vr_settings_test_immersive_content_description">以沉浸式模式打开 360° 全景图像示例。</string>
+    <string name="vr_settings_test_immersive_content_description">以沉浸模式打开示例 360° 图片。</string>
     <string name="vr_settings_test_immersive_init_failure_toast">无法启动VR。请检查您的头戴设备是否已连接。</string>
     <string name="vr_settings_test_immersive_label">沉浸式测试</string>
     <string name="vr_settings_test_immersive_runtime_loss_toast">VR体验意外结束。</string>

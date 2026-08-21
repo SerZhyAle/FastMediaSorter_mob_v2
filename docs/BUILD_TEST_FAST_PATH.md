@@ -69,7 +69,10 @@ Two caveats, recorded rather than smoothed over:
   one-file edit runs `fk` in **22-24 s**. Still foreground by a wide margin, and inside the ~44 s
   green compile-chain figure above, but the 14.1 s row is not reachable for an edit any more.
 
-Re-measure with `pwsh -NoProfile -File temp/S1338/measure-fast-path.ps1` on a green tree.
+Re-measure on a green tree by timing the targets themselves - `Measure-Command { pwsh -NoProfile -File ./a.ps1 fk }`
+and the same for `fc` and `fu`, once with no change and once after touching a single file. The harness this
+line used to name lived under `temp/`, which CLAUDE.md Rule 1 makes disposable; it is gone, and a document
+may not send a reader to a path that scratch cleanup is entitled to delete (S1850).
 
 ## Default command set
 

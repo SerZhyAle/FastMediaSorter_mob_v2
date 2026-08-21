@@ -661,6 +661,26 @@
       "titleUk": "Використовувати операції за розкладом"
     },
     {
+      "key": "rowEnableSystemInfo",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "System information",
+      "titleRu": "Сведения о системе",
+      "titleUk": "Відомості про систему"
+    },
+    {
+      "key": "rowEnableWearCompanion",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Wear companion",
+      "titleRu": "Компаньон часов",
+      "titleUk": "Компаньйон годинника"
+    },
+    {
       "key": "rowFollowSystemRotation",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -1529,6 +1549,16 @@
       "titleEn": "Statistics",
       "titleRu": "Статистика",
       "titleUk": "Статистика"
+    },
+    {
+      "key": "rowResourceGridCellSize",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Resource grid cell size",
+      "titleRu": "Размер ячеек сетки ресурсов",
+      "titleUk": "Розмір комірок сітки ресурсів"
     },
     {
       "key": "rowResourceOpsInOverflowMenu",
@@ -2999,16 +3029,6 @@
       "titleEn": "Slideshow interval",
       "titleRu": "Интервал слайд-шоу",
       "titleUk": "Інтервал слайд-шоу"
-    },
-    {
-      "key": "wearSlideshowWaitForFinish",
-      "sectionId": "wear",
-      "destination": "MEDIA",
-      "layout": "wear_slideshow_settings",
-      "kind": "TOGGLE_ROW",
-      "titleEn": "Wait for finish",
-      "titleRu": "Ждать завершения",
-      "titleUk": "Чекати завершення"
     },
     {
       "key": "wearViewMode",

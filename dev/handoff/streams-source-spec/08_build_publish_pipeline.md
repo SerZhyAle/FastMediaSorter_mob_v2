@@ -16,14 +16,17 @@ Origin tickets: **S0570** (catalog founding), **S0668** (favicon atlas + offline
 
 ## 1. Script identity
 
-- **One script**: `scripts/streams/collect-stream-candidates.ps1` - 167,720 bytes, 2,902 lines (measured
-  2026-08-19; the 2026-07-19 snapshot this file was originally written from measured 67,202 bytes / 1,271
-  lines - the script has grown substantially since).
+- **One CLI entry script**: `scripts/streams/collect-stream-candidates.ps1` - the operator-facing
+  parameter surface and mode dispatch. Shared implementation is dot-sourced from
+  `scripts/streams/modules/`, and each publisher source file remains below the 1,500-line project ceiling.
 - `#requires -Version 7` - PowerShell 7+ only (uses `ForEach-Object -Parallel`,
   `System.Net.Http.HttpClient` with `CancellationToken`, and `System.Drawing`/GDI+ imaging).
-- **No sibling scripts.** All candidate harvesting, liveness probing, favicon fetching, atlas packing, zip
-  assembly, and `gh` upload live as PowerShell functions inside this single file. There is no separate
-  "packer" script.
+- **Publisher modules.** Candidate harvesting and liveness live in `StreamPublisher.Discovery.ps1` and
+  `StreamPublisher.Probes.ps1`; artwork and delivery guards live in `StreamPublisher.Artwork.ps1` and
+  `StreamPublisher.Delivery.ps1`; shared schema/helpers live in `StreamPublisher.Common.ps1`. The entry
+  script remains the only CLI and loads these modules in dependency order.
+- **Offline tests.** Deterministic publisher rules are covered by `scripts/streams.tests/*.Tests.ps1` and
+  run with `Invoke-Pester`; tests do not call network services, ffmpeg, GDI+ or GitHub upload.
 - Outbound User-Agent for every HTTP call: `FastMediaSorter-catalog/1.0 (+stream-candidate-collector)`.
 - **Windows-only imaging dependency**: the atlas is built with GDI+ via `Add-Type -AssemblyName
   System.Drawing`. On Windows this is native and needs no setup; on Linux/macOS .NET, `System.Drawing.Common`

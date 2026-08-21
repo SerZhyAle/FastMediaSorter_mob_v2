@@ -41,4 +41,37 @@
         android:name="android.permission.BLUETOOTH_CONNECT"
         android:minSdkVersion="31" />
 
+    <!--
+        S1440: the Network Monitor home-screen widget and its configuration screen. Declared here and
+        nowhere else - this manifest is injected only for standard and noLegal, which is exactly the
+        SUPPORT_NETWORK_MONITOR set, so lite, photos, legacy and vr never merge either component and
+        HomeWidgetCatalog's installed-provider lookup hides the picker entry there with no code change.
+        That is why no BuildConfig flavor guard appears in src/main for this widget (CLAUDE.md Rule 14).
+    -->
+    <application>
+
+        <receiver
+            android:name="com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorWidgetProvider"
+            android:exported="true"
+            android:icon="@drawable/ic_network_monitor"
+            android:label="@string/widget_network_monitor_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_network_monitor_info" />
+        </receiver>
+
+        <activity
+            android:name="com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorWidgetConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.FastMediaSorter">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
 </manifest>

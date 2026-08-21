@@ -14,10 +14,14 @@ import com.sza.fastmediasorter.domain.radio.RadioControlContract
 import com.sza.fastmediasorter.domain.radio.RadioKind
 import com.sza.fastmediasorter.domain.repository.NetworkMonitorRepository
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ObserveWifiSignalUseCase
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartWindowEvent
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartWindowResetManager
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.RadioToggleOutcome
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.RadioToggleState
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.appendSample
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.collectingSignalWindow
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.emptySignalWindow
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.withChartResets
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -104,11 +108,25 @@ class WifiSectionViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), initialRadioState())
 
+    private val chartResets = ChartWindowResetManager()
+
     val uiState: StateFlow<WifiSectionUiState> = combine(
         repository.observeSnapshot(),
-        observeWifiSignal().scan(emptySignalWindow()) { window, reading -> window.appendSample(reading) },
+        observeWifiSignal()
+            .withChartResets(chartResets.resets)
+            .scan(emptySignalWindow()) { window, event ->
+                when (event) {
+                    is ChartWindowEvent.Sample -> window.appendSample(event.reading)
+                    is ChartWindowEvent.Reset -> collectingSignalWindow()
+                }
+            },
     ) { snapshot, signal -> snapshot.toUiState(signal) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), WifiSectionUiState.Empty)
+
+    /** Starts the signal window over; the sampler keeps ticking, so the chart refills from the next reading. */
+    fun onChartResetRequested() {
+        chartResets.reset(ChartWindowResetManager.SINGLE_CHART)
+    }
 
     /** Asks the platform to flip Wi-Fi and reports which of the three outcomes it was. */
     fun onRadioToggleRequested() {

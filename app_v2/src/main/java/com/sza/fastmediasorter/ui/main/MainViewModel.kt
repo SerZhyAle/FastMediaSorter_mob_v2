@@ -168,8 +168,16 @@ class MainViewModel @Inject constructor(
 
     // S0783: URLs of favorited channels, so the streams-panel per-channel menu can label its action add
     // vs remove. Eager so `.value` is current when the panel menu opens.
-    val favoriteStreamUrls: StateFlow<Set<String>> = favoritesUseCase.observeFavoriteStreamUrls()
+    val favoriteStreamIdentities: StateFlow<Set<String>> = favoritesUseCase.observeFavoriteStreamIdentities()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
+    /**
+     * S1842: whether this channel is favourited. Matching is by channel identity, so a catalog that
+     * re-published the channel under a cosmetically different address no longer darkens the star.
+     * Call sites ask this instead of comparing the raw URL themselves.
+     */
+    fun isFavoriteChannel(source: StreamSourceEntity): Boolean =
+        favoriteStreamIdentities.value.contains(favoritesUseCase.channelIdentity(source))
 
     /** S0756: pinned channels in pin order, for the main-window streams panel. */
     fun pinnedStreamSources(): Flow<List<StreamSourceEntity>> = observePinnedStreamSourcesUseCase()

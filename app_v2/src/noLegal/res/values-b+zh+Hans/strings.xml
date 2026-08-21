@@ -10,6 +10,10 @@
     <string name="s0183_apk_install_success">APK已安装</string>
     <string name="s0183_apk_install_cancelled">安装已取消</string>
     <string name="s0183_apk_install_failed">安装失败</string>
+    <string name="s1686_apk_install_failed_downgrade">安装失败：已安装更新的版本</string>
+    <string name="s1686_apk_install_failed_incompatible">安装失败：此 APK 的签名与已安装的应用不同</string>
+    <string name="s1686_apk_install_failed_storage">安装失败：可用空间不足</string>
+    <string name="s1686_apk_install_failed_corrupt">安装失败：APK 文件已损坏或不完整</string>
     <string name="setting_support_office_documents_desc">在支持的情况下，使用内置查看器打开 Word、电子表格和演示文稿文件。</string>
     <string name="nolegal_diag_section_os_security">操作系统与安全</string>
     <string name="nolegal_diag_section_permissions">特殊许可</string>

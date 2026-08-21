@@ -102,7 +102,7 @@
     <string name="file_info_copy_path">مسار النسخ</string>
     <string name="file_info_copy_path_done">تم نسخ المسار</string>
     <string name="file_info_directory_label">الدليل: %1$s</string>
-    <string name="file_info_extension_mime_label">التنسيق: %1$s · %2$s</string>
+    <string name="file_info_extension_mime_label">الصيغة: %1$s · %2$s</string>
     <string name="file_info_filename_label">الملف: %1$s</string>
     <string name="file_info_hidden_label">مختفي</string>
     <string name="file_info_host_label">المضيف: %1$s</string>
@@ -121,7 +121,7 @@
     <string name="file_not_found_title">لم يتم العثور على الملف</string>
     <string name="file_operation_progress_preparing">جارٍ التحضير..</string>
     <string name="file_ops_in_overflow_menu">عمليات الملفات في قائمة الخيارات الإضافية</string>
-    <string name="file_ops_moved_to_menu_hint">تم نقل إجراءات الملفات إلى قائمة ⋮ في كل ملف</string>
+    <string name="file_ops_moved_to_menu_hint">نُقلت إجراءات الملف إلى قائمة ⋮ على كل ملف</string>
     <string name="file_path_label">المسار: %1$s</string>
     <string name="file_renamed_successfully">تمت إعادة تسميته.</string>
     <string name="file_restored">تمت استعادة الملف: %1$s</string>

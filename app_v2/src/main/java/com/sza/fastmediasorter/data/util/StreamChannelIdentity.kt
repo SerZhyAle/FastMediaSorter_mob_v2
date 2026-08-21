@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.util
 
+import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import java.util.Locale
 
 /**
@@ -36,6 +37,17 @@ object StreamChannelIdentity {
             normalized
         }
     }
+
+    /**
+     * S1851: the identity of a catalog row. Prefers the key its write path already derived
+     * (StreamSourceRepository.withIdentity) and derives one only when that column is still empty - it
+     * defaults to "" and a row that never went through a write path would otherwise match nothing.
+     *
+     * Lives here rather than beside any one caller: both the favourites comparison (S1842) and the
+     * favourites title lookup (S1851) need the same answer, and two copies of it would drift.
+     */
+    fun ofSource(source: StreamSourceEntity): String =
+        source.identityKey.ifEmpty { of(source.url) }
 
     private const val SCHEME_SEPARATOR = "://"
     private const val WEB_SCHEME = "web"

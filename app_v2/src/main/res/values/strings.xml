@@ -3169,8 +3169,6 @@
     <string name="network_monitor_bluetooth_state_off">Off</string>
     <string name="network_monitor_bluetooth_paired_heading">Paired devices</string>
     <string name="network_monitor_bluetooth_paired_empty">Nothing is paired with this device.</string>
-    <string name="network_monitor_bluetooth_device_connected">%1$s - connected</string>
-    <string name="network_monitor_bluetooth_device_idle">%1$s - not connected</string>
     <string name="network_monitor_bluetooth_picker_label">Chart a connected device</string>
     <string name="network_monitor_bluetooth_picker_none">Not selected</string>
     <string name="network_monitor_bluetooth_picker_empty">No connected device to chart.</string>
@@ -3401,4 +3399,13 @@
     <string name="network_monitor_link_bandwidth_down_label">Bandwidth estimate, incoming</string>
     <string name="network_monitor_link_bandwidth_up_label">Bandwidth estimate, outgoing</string>
     <string name="wear_settings_file_list_view">Files view</string>
+    <string name="network_monitor_status_no_location_service">Location is switched off in system settings</string>
+    <string name="network_monitor_wifi_network_reason_description">%1$s: %2$s</string>
+    <string name="network_monitor_bluetooth_connected_heading">Connected now</string>
+    <string name="network_monitor_bluetooth_connected_empty">Nothing is connected right now.</string>
+    <string name="network_monitor_bluetooth_paired_only_heading">Paired, not connected</string>
+    <string name="network_monitor_chart_reset_action">Restart this chart</string>
+    <string name="network_monitor_chart_reset_done">Chart restarted. Collecting from now.</string>
+    <string name="settings_enable_wear_companion">Wear companion</string>
+    <string name="settings_enable_wear_companion_summary">Show the watch companion in the programs panel and menu</string>
 </resources>

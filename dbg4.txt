@@ -1,0 +1,8 @@
+pos=189 code=0x2019 context='টি Dropbox’s পক্ষ থে'
+pos=240 code=0x2014 context='ষ্ঠানিকতা — আপনার ইম'
+pos=374 code=0x2022 context='ম্মানিত:\\n• আমরা আপন'
+pos=427 code=0x2022 context='র করি না\\n• আমরা আপন'
+pos=476 code=0x2022 context='স করি না\\n• আপনার ইম'
+has_literal_2019=True
+has_literal_2014=True
+has_literal_2022=True

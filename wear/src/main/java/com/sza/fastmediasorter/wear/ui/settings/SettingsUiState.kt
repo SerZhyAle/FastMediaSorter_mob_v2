@@ -16,7 +16,6 @@ data class SettingsUiState(
     // Slideshow
     val isSlideshowEnabled: Boolean = false,
     val slideshowIntervalSeconds: Int = 5,
-    val slideshowWaitForFinish: Boolean = false,
     
     // Album art
     val downloadAlbumArt: Boolean = false,

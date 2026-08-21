@@ -29,13 +29,14 @@ import javax.inject.Singleton
 @Singleton
 class BluetoothDeviceDataSource @Inject constructor(
     @param:ApplicationContext private val context: Context,
+    private val profileConnections: BluetoothProfileConnectionReader,
 ) {
 
     private val bluetoothManager: BluetoothManager? =
         context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
 
     /** Reads the current device set, or why there is none to read. */
-    fun sample(): MonitorSection<List<BluetoothDeviceEntry>> {
+    suspend fun sample(): MonitorSection<List<BluetoothDeviceEntry>> {
         val adapter = bluetoothManager?.adapter
         return when {
             adapter == null -> MonitorSection.absent(SectionAvailability.NoHardware)
@@ -53,25 +54,33 @@ class BluetoothDeviceDataSource @Inject constructor(
      * low-energy peer can be connected without ever having been paired. A picker built from bonded devices
      * alone would therefore hide exactly the device that is chartable.
      *
+     * Connection is asked of every profile the platform will name, and chartability of GATT alone (S1853):
+     * a headset holds a live A2DP link with no GATT connection to read an RSSI from, so one answer serving
+     * both questions either hides the headset or offers a chart that stays empty.
+     *
      * The grant check above is not the last word: a manufacturer build can still refuse, and a diagnostic
      * screen must report that rather than die inside it.
      */
-    private fun readDevices(adapter: BluetoothAdapter): MonitorSection<List<BluetoothDeviceEntry>> = try {
-        val connected = connectedDevices()
-        val connectedAddresses = connected.mapTo(mutableSetOf()) { it.address }
-        val entries = (adapter.bondedDevices.orEmpty() + connected)
-            .distinctBy { it.address }
-            .map { device ->
-                BluetoothDeviceEntry(
-                    address = device.address,
-                    name = device.name?.takeIf { it.isNotBlank() },
-                    isConnected = device.address in connectedAddresses,
-                )
-            }
-        MonitorSection.available(entries.sortedWith(DISPLAY_ORDER))
-    } catch (security: SecurityException) {
-        Timber.w(security, "Bluetooth device list refused despite a granted permission")
-        MonitorSection.absent(SectionAvailability.NoPermission(requiredBluetoothPermission()))
+    private suspend fun readDevices(adapter: BluetoothAdapter): MonitorSection<List<BluetoothDeviceEntry>> {
+        val connectedAddresses = profileConnections.connectedAddresses()
+        return try {
+            val gattDevices = connectedDevices()
+            val chartableAddresses = gattDevices.mapTo(mutableSetOf()) { it.address }
+            val entries = (adapter.bondedDevices.orEmpty() + gattDevices)
+                .distinctBy { it.address }
+                .map { device ->
+                    BluetoothDeviceEntry(
+                        address = device.address,
+                        name = device.name?.takeIf { it.isNotBlank() },
+                        isConnected = device.address in connectedAddresses,
+                        isChartable = device.address in chartableAddresses,
+                    )
+                }
+            MonitorSection.available(entries.sortedWith(DISPLAY_ORDER))
+        } catch (security: SecurityException) {
+            Timber.w(security, "Bluetooth device list refused despite a granted permission")
+            MonitorSection.absent(SectionAvailability.NoPermission(requiredBluetoothPermission()))
+        }
     }
 
     private fun connectedDevices(): List<BluetoothDevice> =

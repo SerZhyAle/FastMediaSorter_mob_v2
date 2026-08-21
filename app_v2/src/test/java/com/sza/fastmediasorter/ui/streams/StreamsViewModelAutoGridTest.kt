@@ -35,7 +35,7 @@ class StreamsViewModelAutoGridTest {
         val settingsRepository = mockk<SettingsRepository>()
         every { settingsRepository.getSettings() } returns flowOf(AppSettings())
         val favoritesUseCase = mockk<FavoritesUseCase>(relaxed = true)
-        every { favoritesUseCase.observeFavoriteStreamUrls() } returns flowOf(emptySet())
+        every { favoritesUseCase.observeFavoriteStreamIdentities() } returns flowOf(emptySet())
         val observeStreamPlayOutcomes = mockk<ObserveStreamPlayOutcomesUseCase>()
         every { observeStreamPlayOutcomes() } returns flowOf(emptyMap())
         return StreamsViewModel(

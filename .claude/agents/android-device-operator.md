@@ -11,6 +11,7 @@ Device operator, FastMediaSorter v2. Drives a connected emulator/device and repo
 
 - No file edit/create/delete.
 - Prefer `pwsh -NoProfile -File scripts/devtest/adb.ps1 <verb>` over raw `adb` - it auto-discovers the adb path and has stable exit codes.
+- Tap by label, not by a coordinate you read earlier: `adb.ps1 tap-label -Label "<text or content-desc>"` dumps the tree and taps in one call, and exits 8 without tapping when the label is not on screen. A remembered coordinate goes stale the moment the list scrolls, and then `tap -X -Y` silently hits the next row instead - which is an observation you would report as if it were the intended one (S1847). `adb.ps1 uidump` shows what is on screen with each label's tap point.
 - Never run gradle, `.\a.ps1`, or any build command - hand build/verification needs back to the caller.
 - "Clear the log" is `adb.ps1 logcat-clear`. Never reach for a data-wiping verb to satisfy it: `wipe-data` and `uninstall` are one-way, destroy settings/grants/onboarding, and both refuse without `-Yes`. Being asked to clear a buffer is never authorisation to wipe an app (S1572 - this exact substitution has happened twice).
 - Stop and report after 10 tool calls if the task is not done - hand back to the caller rather than looping.

@@ -1432,10 +1432,13 @@ if (isNoLegalBuild) {
                     // Still on nightly - PyPI stable remains 2026.7.4, older than the pinned nightly
                     // date, so it does not supersede. Freshest nightly at ship time; needs an on-device
                     // link-download to verify extraction.
-                    install(
-                        "yt-dlp @ https://github.com/yt-dlp/yt-dlp-nightly-builds/" +
-                            "releases/download/2026.08.04.234419/yt-dlp.tar.gz",
-                    )
+                    // 2026-08-20 (pre-release refresh): back to the stable channel, 2026.08.04.234419
+                    // → 2026.8.19. PyPI stable finally moved past the pinned nightly date, which is the
+                    // documented condition for leaving nightly: stable carries the same Instagram
+                    // Rework lineage plus two weeks of maintenance, and is the better-tested of the two
+                    // for every other site. Needs an on-device link-download to verify extraction -
+                    // a pip resolve alone proves nothing.
+                    install("yt-dlp==2026.8.19")
                 }
             }
         }

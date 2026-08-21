@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import kotlinx.coroutines.flow.Flow
@@ -36,7 +37,6 @@ class WearPreferencesRepositoryImpl(
         
         val SLIDESHOW_ENABLED = booleanPreferencesKey("wear_slideshow_enabled")
         val SLIDESHOW_INTERVAL = intPreferencesKey("wear_slideshow_interval_seconds")
-        val SLIDESHOW_WAIT_FINISH = booleanPreferencesKey("wear_slideshow_wait_finish")
         
         val DOWNLOAD_ALBUM_ART = booleanPreferencesKey("wear_download_album_art")
 
@@ -46,6 +46,7 @@ class WearPreferencesRepositoryImpl(
         val FILE_LIST_VIEW_MODE = stringPreferencesKey("wear_file_list_view_mode")
         val KEEP_SCREEN_AWAKE = booleanPreferencesKey("wear_keep_screen_awake")
         val LAST_USED_RESOURCE = stringPreferencesKey("wear_last_used_resource")
+        val LAST_USED_RESOURCE_ID = stringPreferencesKey("wear_last_used_resource_id")
         val STREAMS_SECTION_ENABLED = booleanPreferencesKey("wear_streams_section_enabled")
 
         val CALCULATOR_HISTORY = stringPreferencesKey("wear_calculator_history")
@@ -94,10 +95,6 @@ class WearPreferencesRepositoryImpl(
         prefs[PreferencesKeys.SLIDESHOW_INTERVAL] ?: 5
     }
     
-    override val slideshowWaitForFinish: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[PreferencesKeys.SLIDESHOW_WAIT_FINISH] ?: false
-    }
-    
     override suspend fun setSlideshowEnabled(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.SLIDESHOW_ENABLED] = enabled
@@ -107,12 +104,6 @@ class WearPreferencesRepositoryImpl(
     override suspend fun setSlideshowIntervalSeconds(seconds: Int) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.SLIDESHOW_INTERVAL] = seconds
-        }
-    }
-    
-    override suspend fun setSlideshowWaitForFinish(wait: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[PreferencesKeys.SLIDESHOW_WAIT_FINISH] = wait
         }
     }
     
@@ -173,18 +164,24 @@ class WearPreferencesRepositoryImpl(
     }
 
     // Home section state
-    override val lastUsedResourceName: Flow<String?> = context.dataStore.data.map { prefs ->
-        prefs[PreferencesKeys.LAST_USED_RESOURCE]
+    // S1836: emitted only when both halves are stored. An install upgraded from a build that kept
+    // the name alone holds no identifier, and a caption that addresses nothing is not a shortcut.
+    override val lastUsedResource: Flow<LastUsedResource?> = context.dataStore.data.map { prefs ->
+        val id = prefs[PreferencesKeys.LAST_USED_RESOURCE_ID]
+        val name = prefs[PreferencesKeys.LAST_USED_RESOURCE]
+        if (id == null || name == null) null else LastUsedResource(id, name)
     }
 
-    override suspend fun setLastUsedResource(name: String) {
+    override suspend fun setLastUsedResource(id: String, name: String) {
         context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.LAST_USED_RESOURCE_ID] = id
             prefs[PreferencesKeys.LAST_USED_RESOURCE] = name
         }
     }
 
     override suspend fun clearLastUsedResource() {
         context.dataStore.edit { prefs ->
+            prefs.remove(PreferencesKeys.LAST_USED_RESOURCE_ID)
             prefs.remove(PreferencesKeys.LAST_USED_RESOURCE)
         }
     }

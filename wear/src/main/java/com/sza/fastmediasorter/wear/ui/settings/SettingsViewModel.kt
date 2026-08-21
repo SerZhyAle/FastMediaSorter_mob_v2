@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,13 +28,12 @@ private const val INDEX_VIDEO = 1
 private const val INDEX_IMAGES = 2
 private const val INDEX_SLIDESHOW = 3
 private const val INDEX_INTERVAL = 4
-private const val INDEX_WAIT_FOR_FINISH = 5
-private const val INDEX_ALBUM_ART = 6
-private const val INDEX_VIEW_MODE = 7
-private const val INDEX_STREAMS_SECTION = 8
-private const val INDEX_KEEP_AWAKE = 9
-private const val INDEX_FILE_LIST_VIEW_MODE = 10
-private const val INDEX_AUTO_ROTATION = 11
+private const val INDEX_ALBUM_ART = 5
+private const val INDEX_VIEW_MODE = 6
+private const val INDEX_STREAMS_SECTION = 7
+private const val INDEX_KEEP_AWAKE = 8
+private const val INDEX_FILE_LIST_VIEW_MODE = 9
+private const val INDEX_AUTO_ROTATION = 10
 
 /**
  * ViewModel for Settings screen.
@@ -75,14 +75,16 @@ class SettingsViewModel @Inject constructor(
     private fun loadSettings() {
         viewModelScope.launch {
             val hasAccelerometer = context.packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)
+            // listOf is typed: the sources are Boolean, Int and WearViewMode, and letting the
+            // compiler infer a reified intersection of those raises a warning that becomes an error
+            // in a future Kotlin release.
             combine(
-                listOf(
+                listOf<Flow<Any>>(
                     preferencesRepository.isAudioEnabled,
                     preferencesRepository.isVideoEnabled,
                     preferencesRepository.isImagesEnabled,
                     preferencesRepository.isSlideshowEnabled,
                     preferencesRepository.slideshowIntervalSeconds,
-                    preferencesRepository.slideshowWaitForFinish,
                     preferencesRepository.downloadAlbumArt,
                     preferencesRepository.viewMode,
                     preferencesRepository.streamsSectionEnabled,
@@ -96,7 +98,6 @@ class SettingsViewModel @Inject constructor(
                 val images = values[INDEX_IMAGES] as Boolean
                 val slideshow = values[INDEX_SLIDESHOW] as Boolean
                 val interval = values[INDEX_INTERVAL] as Int
-                val waitForFinish = values[INDEX_WAIT_FOR_FINISH] as Boolean
                 val albumArt = values[INDEX_ALBUM_ART] as Boolean
                 val viewMode = values[INDEX_VIEW_MODE] as WearViewMode
                 val streamsSection = values[INDEX_STREAMS_SECTION] as Boolean
@@ -109,7 +110,6 @@ class SettingsViewModel @Inject constructor(
                     isImagesEnabled = images,
                     isSlideshowEnabled = slideshow,
                     slideshowIntervalSeconds = interval,
-                    slideshowWaitForFinish = waitForFinish,
                     downloadAlbumArt = albumArt,
                     viewMode = viewMode,
                     streamsSectionEnabled = streamsSection,
@@ -152,12 +152,6 @@ class SettingsViewModel @Inject constructor(
     fun setSlideshowInterval(seconds: Int) {
         viewModelScope.launch {
             preferencesRepository.setSlideshowIntervalSeconds(seconds)
-        }
-    }
-
-    fun toggleWaitForFinish() {
-        viewModelScope.launch {
-            preferencesRepository.setSlideshowWaitForFinish(!_uiState.value.slideshowWaitForFinish)
         }
     }
 

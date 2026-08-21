@@ -252,6 +252,8 @@ pwsh -NoProfile -File scripts/devtest/prerelease-log-audit.ps1 -LogFile temp/S04
 
 Exit `0` = clean, `1` = actionable clusters and/or error toasts present (triage), `2` = log unreadable.
 
+Read the `attribution` field before the clusters: `pid` means each cluster was matched to the app's own process, `heuristic` means the capture carried no app `Start proc` line and the clusters may belong to other processes (S1859).
+
 Treat every **actionable cluster** and every **error toast** as a finding even when machine verdict is PASS. Fold audit's actionable clusters into report's verdict breakdown and into FAIL-branch `/spec-draft` triage below. Include audit JSON path in evidence pack. On exit `1`, read `.claude/reference/spec-prerelease.md` §"4.1 - What the log audit does" to tell a benign cluster from an actionable one before triaging.
 
 **On PASS:** only after audit is clean (or findings triaged/parked) print report path and propose `/skill-release` as next step. **Do not auto-run it** - release starts only on explicit owner confirmation (ADR-1). State this in final line.

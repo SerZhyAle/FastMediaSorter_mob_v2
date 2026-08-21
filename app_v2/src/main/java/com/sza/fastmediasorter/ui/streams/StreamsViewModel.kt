@@ -119,12 +119,20 @@ class StreamsViewModel @Inject constructor(
 
     // S0783: URLs of favorited channels, so the per-channel overflow can label its action add vs remove.
     // Eager so `.value` is current when the Activity pushes the state into the adapters.
-    val favoriteStreamUrls: StateFlow<Set<String>> = favoritesUseCase.observeFavoriteStreamUrls()
+    val favoriteStreamIdentities: StateFlow<Set<String>> = favoritesUseCase.observeFavoriteStreamIdentities()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
+    /**
+     * S1842: whether this channel is favourited. Matching is by channel identity, so a catalog that
+     * re-published the channel under a cosmetically different address no longer darkens the star.
+     * Call sites ask this instead of comparing the raw URL themselves.
+     */
+    fun isFavoriteChannel(source: StreamSourceEntity): Boolean =
+        favoriteStreamIdentities.value.contains(favoritesUseCase.channelIdentity(source))
 
     // S1502: play outcome per channel id. Deliberately NOT part of StreamsUiState - folding it into
     // the combined state would put a per-probe signal back on the per-keystroke catalog pass that
-    // Phases 02 and 03 just made cheap. Eager, mirroring favoriteStreamUrls above.
+    // Phases 02 and 03 just made cheap. Eager, mirroring favoriteStreamIdentities above.
     val playOutcomes: StateFlow<Map<String, String>> = observeStreamPlayOutcomes()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 

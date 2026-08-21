@@ -28,7 +28,6 @@
     <string name="slideshow_settings">Слайд-шоу</string>
     <string name="enable_slideshow">Увімкнути слайд-шоу</string>
     <string name="slideshow_interval">Інтервал: %dс</string>
-    <string name="wait_for_finish">Чекати завершення</string>
     <string name="download_album_art">Завантажувати обкладинки</string>
     <string name="about">Про застосунок</string>
     <string name="version">Версія: %s</string>
@@ -206,4 +205,28 @@
     <string name="wear_streams_updating">Оновлення трансляцій..</string>
     <string name="wear_streams_update_failed">Не вдалося оновити трансляції. Перевірте зʼєднання та спробуйте знову</string>
     <string name="base_path">Базовий шлях</string>
+    <string name="system_info_title">Відомості про систему</string>
+    <string name="system_info_section_device">Пристрій</string>
+    <string name="system_info_section_app">Програма</string>
+    <string name="system_info_section_memory">Памʼять</string>
+    <string name="system_info_section_storage">Сховище</string>
+    <string name="system_info_section_phone">Телефон</string>
+    <string name="system_info_model">Модель</string>
+    <string name="system_info_os_version">Версія Wear OS</string>
+    <string name="system_info_api_level">Рівень API</string>
+    <string name="system_info_app_version">Версія</string>
+    <string name="system_info_build_number">Збірка</string>
+    <string name="system_info_free">Вільно</string>
+    <string name="system_info_total">Усього</string>
+    <string name="system_info_phone_link">Звʼязок</string>
+    <string name="system_info_phone_connected">Підключено</string>
+    <string name="system_info_phone_not_connected">Не підключено</string>
+    <string name="system_info_loading">Читаємо пристрій..</string>
+    <string name="phone_resource_empty_filtered">Тут нічого такого немає. Відкрийте іншу теку або повторіть.</string>
+    <string name="phone_resource_open_unsupported">На годиннику немає програвача для такого файлу.</string>
+    <string name="phone_resource_opening">Забираю файл з телефона..</string>
+    <string name="wear_favourites_empty">Поки нічого не позначено. Натисніть сердечко під час відтворення.</string>
+    <string name="wear_favourites_unmark">Прибрати з обраного</string>
+    <string name="wear_favourites_unopenable">Ця позначка зроблена до того, як годинник навчився її відкривати.</string>
+    <string name="phone_resource_source_unavailable">Цей ресурс не відповідає. Телефон на зв\'язку - перевірте ресурс і повторіть.</string>
 </resources>

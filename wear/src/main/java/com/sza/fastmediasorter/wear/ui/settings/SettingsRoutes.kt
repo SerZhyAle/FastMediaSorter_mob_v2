@@ -6,4 +6,5 @@ object SettingsRoutes {
     const val SCREEN = "settings/screen"
     const val OTHER = "settings/other"
     const val ABOUT = "settings/about"
+    const val SYSTEM_INFO = "settings/system_info"
 }

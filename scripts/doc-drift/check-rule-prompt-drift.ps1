@@ -80,11 +80,12 @@ $inventory = Get-RulePromptScriptInventory -Manifest $manifest -RepoRoot $repoRo
 if ($null -eq $inventory) { $inventory = @() }
 
 $records = @()
-$records += Find-MissingDocumentedScript    -Sources $sources -Inventory $inventory
+$records += Find-MissingDocumentedScript    -Sources $sources -Inventory $inventory -KnownAbsentScripts @($manifest.KnownAbsentScripts)
 $records += Find-MissingNoProfile           -Sources $sources
 $records += Find-AbolishedArtifactReference -Sources $sources
 $records += Find-OutdatedValidationRule     -Sources $sources -Canonical $canonical
-$records += Find-ConflictingRouteName       -Sources $sources -Canonical $canonical
+$knownRoutes = @($manifest.KnownRoutes)
+$records += Find-ConflictingRouteName       -Sources $sources -Canonical $canonical -KnownRoutes $knownRoutes
 $records = @($records | Where-Object { $null -ne $_ -and $null -ne $_.mismatchKind })
 
 if ($Json) {

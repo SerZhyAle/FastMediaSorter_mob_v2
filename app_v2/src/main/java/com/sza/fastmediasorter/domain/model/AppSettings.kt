@@ -16,6 +16,9 @@ import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 data class AppSettings(
     // UI State settings (Persisted view modes)
     val isResourceGridMode: Boolean = false, // Resource list view mode (List/Grid)
+    // S1285: cell size step for the resource grid. Scales the configuration's span count; MEDIUM is
+    // the identity, so an absent stored value leaves the grid exactly as it was.
+    val resourceGridCellSize: ResourceGridCellSize = ResourceGridCellSize.MEDIUM,
     val resourceOpsInOverflowMenu: Boolean = true, // S0160: collapse resource action buttons into ⋮ overflow menu
 
     // S0328: app color theme override. AUTO = follow device night-mode (default, no behavior change),
@@ -40,6 +43,13 @@ data class AppSettings(
     // S1433: recording a GNSS track is a separate choice from opening the Monitor - on by default it
     // would change the Play Data Safety answer without the user ever acting.
     val recordGnssTrack: Boolean = false,
+    // S1733: system information becomes a program like its neighbours - off until the user asks for it,
+    // so an update never changes the composition of the programs panel on its own.
+    val enableSystemInfo: Boolean = false,
+    // S1735: the Wear companion becomes a program like its neighbours. Off by default so an update never
+    // adds an entry to the programs panel on its own; it is shown at all only where the build carries the
+    // watch bridge, which is a separate condition read from MediaCapabilities.
+    val enableWearCompanion: Boolean = false,
     // S0755: mirror the programs "three-dots" menu as a horizontal panel on the main window. Default
     // OFF (no behaviour change on upgrade); when ON the top three-dots button is hidden (panel replaces it).
     val showProgramsPanelInMainWindow: Boolean = false,

@@ -13,8 +13,12 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ObserveGnssStatusUseCase
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.RecordGnssTrackUseCase
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ShareGnssTrackUseCase
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartWindowEvent
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartWindowResetManager
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.appendSample
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.collectingSignalWindow
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.emptySignalWindow
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.withChartResets
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -87,9 +91,22 @@ class GnssSectionViewModel @Inject constructor(
     private val status: SharedFlow<MonitorSection<GnssSnapshot>> = observeGnssStatus()
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed(), replay = 1)
 
+    private val chartResets = ChartWindowResetManager()
+
     val uiState: StateFlow<GnssSectionUiState> = status
-        .scan(GnssSectionUiState.Empty) { previous, section -> previous.fold(section) }
+        .withChartResets(chartResets.resets)
+        .scan(GnssSectionUiState.Empty) { previous, event ->
+            when (event) {
+                is ChartWindowEvent.Sample -> previous.fold(event.reading)
+                is ChartWindowEvent.Reset -> previous.copy(signal = collectingSignalWindow())
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), GnssSectionUiState.Empty)
+
+    /** Starts the reception window over; the satellite list beside it is not a window and is left alone. */
+    fun onChartResetRequested() {
+        chartResets.reset(ChartWindowResetManager.SINGLE_CHART)
+    }
 
     /**
      * `distinctUntilChanged` because a satellite update re-emits the position the receiver already reported:

@@ -4,7 +4,8 @@ Who outside this repository reads our published stream-catalog artifacts, what e
 
 This document does **not** describe the catalog format. That description lives in `dev/handoff/streams-source-spec/`, and `01_delivery_contract.md` in particular; this file names the consumers and the obligations, and points at that set rather than repeating it.
 
-Everything published here is produced by one offline script, `scripts/streams/collect-stream-candidates.ps1`.
+Everything published here is produced by one offline CLI, `scripts/streams/collect-stream-candidates.ps1`,
+which loads the implementation modules under `scripts/streams/modules/`.
 
 ---
 
@@ -24,6 +25,17 @@ A rule that lives only in correspondence is not a rule. Most of the obligations 
 - **Behaviour when the atlas is over the ceiling:** the consumer discards the incoming atlas, keeps the previously installed sheet, and applies the new CSV indices to it. The result is not missing icons but wrong ones - a channel shows another station's logo, and the application looks healthy. Since 2026-08-19 the consumer logs `CATALOG ATLAS | bank_atlas=absent`, but shows the user nothing.
 - **Acceptance signal:** one line saying the upload happened is enough. The consumer then runs `dotnet run --project tools/StreamsPlayer.CatalogHarness -- artifacts/favicon-sample.png`, which downloads the live asset with the same limits the product uses and reports whether `streams.csv` is entry zero, how many rows parsed, the atlas byte count, the maximum tile index, and cuts a real tile to a file for visual inspection.
 - **Parser tolerance:** an unrecognised `access` token reads as "open", so restoring a producer for that column needs no release on the consumer's side.
+
+## Asset with no declared consumer: the stream-logo sheet
+
+- **Read by:** nobody outside this repository has declared themselves. In-app the readers are `StreamLogoAtlasSlicer` and `StreamLogoAtlasStore`, both here.
+- **Pinned numbers, consumer side:** none. The app declares tile width, tile height and column count and derives the row from the tile index. It declares no row count and no byte ceiling, so sheet height and tile count are ours to change without notice - which is why S1841 could retire the row cap without touching a contract.
+- **Producer-side ceiling, ours alone:** `$MaxLogoAtlasBytes = 50331648` (48 MiB), added 2026-08-20 by S1841. This is **not** a consumer contract and nothing outside is bound by it. It exists because until that date the logo sheet was checked against nothing at all: `Assert-AtlasBudget` has one call site and guards the favicon atlas, and `$MaxPreviewAtlasBytes` guards the preview sheet, so a logo sheet of any size reached publication unopposed. Treat it as a regression alarm, not a budget: the 2026-08-20 rebuild measures 16.0 MB at 4148 tiles, and even the format ceiling's 7080 tiles would cost only about 28.6 MB.
+- **Capacity, and what actually bounds it:** the WebP dimension limit of 16383 px, which at a 136 px tile is 120 rows = 7080 tiles. Before S1841 a self-imposed 60-row cap silently dropped everything past 3540 tiles; measured on the day it was found, 608 logos reaching 1593 channel urls were being dropped with their artwork already in the cache, and the run still exited clean.
+- **Behaviour over the ceiling:** the publisher now refuses. Over the format limit it throws before allocating the bitmap, naming the tile count, the rows needed, what fits and how many stations would go without; over the byte ceiling it throws after the encode, before anything is published. Neither case trims and publishes a partial sheet any more.
+- **When a consumer does appear:** it gets a row in the pinned-assets table below, and the 48 MiB above stops being ours to pick and becomes a number to agree on.
+
+---
 
 ### Pinned assets
 
@@ -64,7 +76,7 @@ The `Address` column is where the verdict is re-checked when someone returns to 
 
 | Invariant | Verdict | Address |
 |---|---|---|
-| `streams.csv` must be entry number zero in the ZIP, not merely present | checked | `Invoke-PublishCatalog` in `scripts/streams/collect-stream-candidates.ps1`, which reopens the archive after packing and throws `Compat invariant violated` |
+| `streams.csv` must be entry number zero in the ZIP, not merely present | checked | `Assert-CatalogZipEntries` in `scripts/streams/modules/StreamPublisher.Delivery.ps1`, called by the CLI after packing |
 | The favicon atlas must not exceed 30 MiB | checked | `Assert-AtlasBudget`, called from `Build-FaviconAtlas`; the number is also S1827's subject |
 | The atlas and the CSV must come from one build, because `favicon_index` is an offset into the sheet shipped in the same ZIP | by-construction | `Set-FaviconIndices` rewrites the indices and the PNG in a single call, so the two cannot diverge |
 | An absent icon must be written as an empty `favicon_index`, never as `0` | by-construction | The ternary in `Set-FaviconIndices`; `0` is assigned only to a real first tile |
@@ -73,7 +85,7 @@ The `Address` column is where the verdict is re-checked when someone returns to 
 | Published assets are never deleted, only overwritten in place | by-construction | No script in this repository calls `gh release delete-asset`; every publication uses `gh release upload --clobber` |
 | The artwork manifest always carries a sha256 for each entry | by-construction | `Publish-TilePacks`, which computes the hash on every run |
 | The archive must stay at or below 128 MB | checked | `Invoke-PublishCatalog` compares the packed archive against a declared ceiling and refuses before `gh release upload` (S1835) |
-| The atlas entry name in the ZIP must match exactly | checked | `Invoke-PublishCatalog`'s entry gate tests `streams.csv` and `favicon-atlas.png` by equality, not by suffix (S1835) |
+| The atlas entry name in the ZIP must match exactly | checked | `Assert-CatalogZipEntries` in `scripts/streams/modules/StreamPublisher.Delivery.ps1` tests `streams.csv` and `favicon-atlas.png` by equality, not by suffix (S1835) |
 | Rows with an empty `name` or `url` must not ship | checked | `Invoke-PublishCatalog` counts them before packing and refuses; it deliberately refuses rather than stripping, because stripping is a silent prune (S1835) |
 | The channel-preview sheet must not exceed 48 MiB | checked | `Build-ChannelPreviewAtlas` measures the encoded sheet against `$MaxPreviewAtlasBytes`, deletes it and refuses; checked where the sheet is made, not next to the upload (S1831) |
 | The channel-preview sheet's height follows the tile count and is never truncated to fit | checked | `Build-ChannelPreviewAtlas` throws when the sheet would exceed the 16383 px WebP dimension limit, naming how many channels would be left uncovered. Before S1831 it silently dropped the overflow with a `Write-Warning` and published a partial sheet - 877 of 2917 video channels had no tile for that reason alone |

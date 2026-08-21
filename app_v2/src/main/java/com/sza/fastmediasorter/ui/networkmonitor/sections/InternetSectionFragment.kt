@@ -69,6 +69,8 @@ class InternetSectionFragment : Fragment() {
             summaryView = binding.internetChart.chartSummary,
             emptyView = binding.internetChart.chartEmpty,
             unit = ChartValueUnit.BYTES_PER_SECOND,
+            resetTarget = binding.internetChart.root,
+            onResetRequested = viewModel::onChartResetRequested,
         )
         binding.internetChart.chartHeading.setText(R.string.network_monitor_traffic_heading)
         bindActions()

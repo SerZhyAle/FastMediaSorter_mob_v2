@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.networkmonitor.helpers
 
 import android.content.Context
 import android.text.format.Formatter
+import android.view.View
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
@@ -38,11 +39,41 @@ class SignalChartBinder(
     private val summaryView: TextView,
     private val emptyView: TextView,
     private val unit: ChartValueUnit = ChartValueUnit.DBM,
+    resetTarget: View? = null,
+    onResetRequested: (() -> Unit)? = null,
 ) {
 
     init {
         // A full-screen section has the room for the labelled axis a launcher gadget tile deliberately hides.
         chart.showValueAxis = true
+        bindReset(resetTarget, onResetRequested)
+    }
+
+    /**
+     * The card carries the tap, not the chart view.
+     *
+     * `SensorSeriesChartView` is shared with the launcher gadget (S1446) and must not become clickable
+     * there, and the card stays on screen while the chart is hidden in the collecting state - so the restart
+     * is reachable at the very moment the user most wants it (S1853).
+     */
+    private fun bindReset(resetTarget: View?, onResetRequested: (() -> Unit)?) {
+        if (resetTarget == null || onResetRequested == null) {
+            return
+        }
+        resetTarget.contentDescription =
+            resetTarget.context.getString(R.string.network_monitor_chart_reset_action)
+        resetTarget.setOnClickListener { target ->
+            onResetRequested()
+            announceReset(target)
+        }
+    }
+
+    // announceForAccessibility is deprecated from API 36 and has no AndroidX replacement: ViewCompat offers
+    // none, and the sanctioned alternative - a live region - would need a view whose text changes at the
+    // moment of the tap, which the restart deliberately does not have.
+    @Suppress("DEPRECATION")
+    private fun announceReset(target: View) {
+        target.announceForAccessibility(target.context.getString(R.string.network_monitor_chart_reset_done))
     }
 
     /** Draws [section], or states in words why there is nothing to draw. */
@@ -100,6 +131,15 @@ internal fun emptySignalWindow(): MonitorSection<SignalSeries> =
     MonitorSection.absent(SectionAvailability.NoNetwork)
 
 /**
+ * The empty window a chart starts from after the user restarted it.
+ *
+ * Available rather than absent, so the chart says "collecting" instead of naming a reason that is not true:
+ * nothing about the source changed when the user tapped, and the next reading is a second away (S1853).
+ */
+internal fun collectingSignalWindow(): MonitorSection<SignalSeries> =
+    MonitorSection.available(SignalSeries())
+
+/**
  * S1433: the "current / min / max / trend" line strategic §3.2 requires under every chart.
  *
  * Formatted here rather than in the chart view, which holds no strings at all: the sources of the first
@@ -152,6 +192,7 @@ internal fun SectionAvailability.toReasonRes(): Int = when (this) {
     SectionAvailability.Available -> R.string.network_monitor_status_available
     SectionAvailability.NoHardware -> R.string.network_monitor_status_no_hardware
     is SectionAvailability.NoPermission -> R.string.network_monitor_status_no_permission
+    SectionAvailability.NoLocationService -> R.string.network_monitor_status_no_location_service
     SectionAvailability.NoNetwork -> R.string.network_monitor_status_no_network
 }
 

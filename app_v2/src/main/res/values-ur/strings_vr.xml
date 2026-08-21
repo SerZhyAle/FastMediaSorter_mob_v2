@@ -11,22 +11,22 @@
     <string name="player_vr_overflow_open">VR میں کھولیں۔</string>
     <string name="vr_cheatsheet_ctrl_a">A (دائیں) - روکنا / کھیلنا</string>
     <string name="vr_cheatsheet_ctrl_b">B (دائیں) - 2D پینل پر نکلیں۔</string>
-    <string name="vr_cheatsheet_ctrl_grip">گرفت - پکڑیں ​​+ ہاتھ منتقل کریں = زوم · دونوں گرفت ≥ 1s = دوبارہ ترتیب دیں زوم</string>
+    <string name="vr_cheatsheet_ctrl_grip">گرپ - پکڑیں + ہاتھ حرکت دیں = زوم · دونوں گرپس ≥ 1s = زوم ری سیٹ</string>
     <string name="vr_cheatsheet_ctrl_menu">≡ (بائیں) - پلے بیک کنٹرول ڈائیلاگ</string>
-    <string name="vr_cheatsheet_ctrl_stick_l">L اسٹک - ↑↓ والیوم · ←→ سیک ±10s · کلک کریں: عمیق ↔ فلیٹ</string>
-    <string name="vr_cheatsheet_ctrl_stick_r">آر اسٹک - ↑↓ والیوم · ←→ پچھلی/اگلی فائل · کلک کریں: ریئنٹر</string>
+    <string name="vr_cheatsheet_ctrl_stick_l">L اسٹک - ↑↓ والیوم · ←→ سیک ±10s · کلک: عمیق ↔ فلیٹ</string>
+    <string name="vr_cheatsheet_ctrl_stick_r">R اسٹک - ↑↓ والیوم · ←→ پچھلی/اگلی فائل · کلک: دوبارہ مرکز میں</string>
     <string name="vr_cheatsheet_ctrl_x">X (بائیں) - باہر نکلیں (نقل)</string>
     <string name="vr_cheatsheet_ctrl_y">Y (بائیں) - فائل آپریشن (شارٹ پریس) / یہ چیٹ شیٹ (لمبی پریس)</string>
-    <string name="vr_cheatsheet_footer">بند کرنے کے لیے کہیں بھی تھپتھپائیں · دوبارہ کھولنے کے لیے Y یا F1 کو دیر تک دبائیں۔</string>
+    <string name="vr_cheatsheet_footer">بند کرنے کے لیے کہیں بھی ٹیپ کریں · دوبارہ کھولنے کے لیے Y یا F1 دبائے رکھیں</string>
     <string name="vr_cheatsheet_hands_double_pinch">ڈبل چٹکی - روکنا / کھیلنا</string>
-    <string name="vr_cheatsheet_hands_ray">پوائنٹ ہینڈ - مقصد رے · چوٹکی - UI پر کلک کریں۔</string>
-    <string name="vr_cheatsheet_hands_swipe">انگوٹھے کی سوائپ ←→ - ±10s · ↑↓ - حجم</string>
-    <string name="vr_cheatsheet_kb_arrows">← → - تلاش کریں ±10s · Shift+←→ - ±3s · Ctrl+←→ - ±60s · ↑↓ - والیوم</string>
-    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R - نام تبدیل کریں · Ctrl+C - کاپی · Ctrl+X - منتقل کریں · Ctrl+I - معلومات · Ctrl+Y - فائل آپریشن</string>
-    <string name="vr_cheatsheet_kb_fkeys">F1 - یہ چیٹ شیٹ · F2 - نام تبدیل کریں · F3 - کے بارے میں · F4 - ترتیبات · F5 - کاپی · F6 - منتقل کریں · F7 - فائل آپس · F8 - حذف کریں · F10 - باہر نکلیں</string>
-    <string name="vr_cheatsheet_kb_space">اسپیس / کے - توقف / چلائیں · J / L - ±10s · N / P - پہلے/اگلا · M - خاموش</string>
-    <string name="vr_cheatsheet_mouse_buttons">LMB - توقف / چلائیں · RMB - ترتیبات · MMB - Recenter · بٹن 4/5 - پچھلی/اگلی فائل</string>
-    <string name="vr_cheatsheet_mouse_wheel">وہیل - حجم · شفٹ + وہیل - ±10 سیکنڈ تلاش کریں۔</string>
+    <string name="vr_cheatsheet_hands_ray">ہاتھ سے اشارہ کریں - رے کا نشانہ لیں · پنچ - UI کلک کریں</string>
+    <string name="vr_cheatsheet_hands_swipe">انگوٹھے سے سوائپ ←→ - سیک ±10s · ↑↓ - والیوم</string>
+    <string name="vr_cheatsheet_kb_arrows">← → - سیک ±10s · Shift+←→ - ±3s · Ctrl+←→ - ±60s · ↑↓ - والیوم</string>
+    <string name="vr_cheatsheet_kb_ctrl">Ctrl+R - نام تبدیل کریں · Ctrl+C - کاپی · Ctrl+X - منتقل کریں · Ctrl+I - معلومات · Ctrl+Y - فائل آپریشنز</string>
+    <string name="vr_cheatsheet_kb_fkeys">F1 - یہ چیٹ شیٹ · F2 - نام تبدیل کریں · F3 - کے بارے میں · F4 - ترتیبات · F5 - کاپی · F6 - منتقل کریں · F7 - فائل آپریشنز · F8 - حذف کریں · F10 - باہر نکلیں</string>
+    <string name="vr_cheatsheet_kb_space">Space / K - روکیں / چلائیں · J / L - ±10s · N / P - پچھلا/اگلا · M - خاموش</string>
+    <string name="vr_cheatsheet_mouse_buttons">LMB - روکیں / چلائیں · RMB - ترتیبات · MMB - دوبارہ مرکز میں · بٹن 4/5 - پچھلی/اگلی فائل</string>
+    <string name="vr_cheatsheet_mouse_wheel">وہیل - والیوم · Shift+وہیل - سیک ±10s</string>
     <string name="vr_cheatsheet_section_controllers">ٹچ کنٹرولرز (کویسٹ 2/3 / پرو):</string>
     <string name="vr_cheatsheet_section_hands">ہینڈ ٹریکنگ (کنٹرولرز ایک طرف رکھے گئے):</string>
     <string name="vr_cheatsheet_section_keyboard">بلوٹوتھ کی بورڈ:</string>
@@ -52,7 +52,7 @@
     <string name="vr_hud_copy_done">کاپی</string>
     <string name="vr_hud_error_network">کوئی نیٹ ورک نہیں۔</string>
     <string name="vr_hud_first_file">پہلی فائل</string>
-    <string name="vr_hud_first_run_cheat">ایک وقفہ/پلے · L اسٹک سیک · R اسٹک فائل/ والیوم · گرفت زوم · مینو کی ترتیبات</string>
+    <string name="vr_hud_first_run_cheat">A روکیں/چلائیں · L اسٹک سیک · R اسٹک فائل/والیوم · گرپ زوم · مینو ترتیبات</string>
     <string name="vr_hud_guard_controls">عمیق میں کنٹرول ڈائیلاگ دستیاب نہیں ہے۔ اسے کھولنے کے لیے عمیق سے باہر نکلیں۔</string>
     <string name="vr_hud_guard_file_ops">عمیق میں فائل پینل دستیاب نہیں ہے۔ اسے استعمال کرنے کے لیے عمیق سے باہر نکلیں۔</string>
     <string name="vr_hud_immersive_off">فلیٹ اسکرین</string>
@@ -72,7 +72,7 @@
     <string name="vr_info_duration">دورانیہ:</string>
     <string name="vr_info_name">نام:</string>
     <string name="vr_info_path">راستہ:</string>
-    <string name="vr_info_resolution">ریزولیوشن: %1$d × %2$d</string>
+    <string name="vr_info_resolution">ریزولوشن: %1$d × %2$d</string>
     <string name="vr_info_size">سائز:</string>
     <string name="vr_info_title">فائل کے بارے میں</string>
     <string name="vr_info_video">ویڈیو کوڈیک:</string>

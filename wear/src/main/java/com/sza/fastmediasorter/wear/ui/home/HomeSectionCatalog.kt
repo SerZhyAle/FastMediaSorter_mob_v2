@@ -16,13 +16,15 @@ import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 object HomeSectionCatalog {
 
     fun sectionsFor(visibility: HomeSectionVisibility): List<HomeSection> = buildList {
-        if (visibility.hasLastUsedResource) {
+        // S1836: the same route builder a tap in the sources list uses, so the shortcut and the list
+        // cannot drift into two entrances to one resource.
+        visibility.lastUsedResource?.let { target ->
             add(
                 HomeSection(
                     id = HomeSectionId.LAST_USED_RESOURCE,
                     labelRes = R.string.wear_section_last_used,
-                    route = WearRoutes.NETWORK_SOURCES,
-                    dynamicLabel = visibility.lastUsedResourceLabel
+                    route = WearRoutes.sourceMediaType(target.id, target.name),
+                    dynamicLabel = target.name
                 )
             )
         }

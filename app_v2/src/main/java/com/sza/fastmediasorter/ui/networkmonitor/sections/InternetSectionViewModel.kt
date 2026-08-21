@@ -24,9 +24,13 @@ import com.sza.fastmediasorter.domain.usecase.networkmonitor.SubnetScanState
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.SubnetScanTarget
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ThroughputMode
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ThroughputState
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartWindowEvent
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartWindowResetManager
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.ExternalIpSessionStore
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.appendSample
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.collectingSignalWindow
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.emptySignalWindow
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.withChartResets
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -153,11 +157,30 @@ class InternetSectionViewModel @Inject constructor(
     private val snapshot: StateFlow<NetworkMonitorSnapshot?> = repository.observeSnapshot()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
 
+    private val chartResets = ChartWindowResetManager()
+
     val uiState: StateFlow<InternetSectionUiState> = combine(
         snapshot,
-        observeTrafficRate().scan(TrafficWindow.EMPTY) { window, section -> window.fold(section) },
+        observeTrafficRate()
+            .withChartResets(chartResets.resets)
+            .scan(TrafficWindow.EMPTY) { window, event ->
+                when (event) {
+                    is ChartWindowEvent.Sample -> window.fold(event.reading)
+                    is ChartWindowEvent.Reset -> TrafficWindow.RESTARTED
+                }
+            },
     ) { current, traffic -> current.toUiState(traffic) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), InternetSectionUiState.Empty)
+
+    /**
+     * Starts the traffic window over.
+     *
+     * The retained rate goes with it: a rate is a delta between two readings, and keeping the pre-reset one
+     * would make the first point after the restart a spike nobody measured (S1853).
+     */
+    fun onChartResetRequested() {
+        chartResets.reset(ChartWindowResetManager.SINGLE_CHART)
+    }
 
     val resources: StateFlow<List<InternetResource>> = resourceRepository.getAllResources()
         .map { saved -> saved.map { InternetResource(it.id, it.name) } }
@@ -405,6 +428,9 @@ private data class TrafficWindow(
     companion object {
 
         val EMPTY = TrafficWindow(emptySignalWindow(), null)
+
+        /** After a restart the source is unchanged, so the chart collects rather than naming a reason. */
+        val RESTARTED = TrafficWindow(collectingSignalWindow(), null)
     }
 }
 

@@ -185,10 +185,15 @@ class NetworkSourcesViewModel @Inject constructor(
         }
     }
 
-    /** S1781: the home screen's Last used section reads this, so it is written where a resource is opened. */
-    fun rememberLastUsedResource(name: String) {
+    /**
+     * S1781: the home screen's Last used section reads this, so it is written where a resource is
+     * opened. S1836: the identifier travels with the name, because the section addresses the source
+     * rather than merely captioning it.
+     */
+    fun rememberLastUsedResource(id: String, name: String) {
+        Timber.d("S1836: remembering resource $name ($id)")
         viewModelScope.launch {
-            preferencesRepository.setLastUsedResource(name)
+            preferencesRepository.setLastUsedResource(id, name)
         }
     }
 
