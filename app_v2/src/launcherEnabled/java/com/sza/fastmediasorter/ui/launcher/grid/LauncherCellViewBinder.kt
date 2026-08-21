@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.StringRes
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isVisible
@@ -22,6 +23,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import timber.log.Timber
+import kotlin.math.roundToInt
 
 /**
  * S0404: fills [LauncherDesktopLayout] with cell views. Shortcuts draw an icon + label here, gadgets
@@ -66,6 +68,7 @@ class LauncherCellViewBinder(
         val editMode: Boolean,
         val rows: Int,
         val collapsedSections: Set<String>,
+        val gadgetBackdropAlpha: Float,
     )
 
     private var lastKey: RenderKey? = null
@@ -87,6 +90,9 @@ class LauncherCellViewBinder(
         editMode: Boolean = false,
         viewportRows: Int = 0,
         collapsedSections: Set<String> = emptySet(),
+        // S1904: the setting's own default, so a caller that does not pass one renders what the model
+        // says rather than a second opinion about it.
+        gadgetBackdropAlpha: Float = DEFAULT_GADGET_BACKDROP_ALPHA,
     ) {
         // S1428: every section is drawn expanded while arranging. A drop maps a pixel row straight to a
         // stored row (LauncherEditModeManager -> LauncherDesktopLayout.cellAt -> moveCell), so folding
@@ -99,7 +105,7 @@ class LauncherCellViewBinder(
         // The row count joins the guard rather than [viewportRows] itself: a viewport that changed
         // without changing how many rows are drawn - a few pixels of inset, a rotation on a square
         // screen - must not tear down every gadget for an identical render.
-        val key = RenderKey(cells, columns, editMode, rows, foldedSections)
+        val key = RenderKey(cells, columns, editMode, rows, foldedSections, gadgetBackdropAlpha)
         if (lastKey == key) return
         lastKey = key
         container.removeAllViews()
@@ -114,7 +120,7 @@ class LauncherCellViewBinder(
                 LauncherCellKind.SECTION ->
                     bindSection(inflater, container, item, item.cell.target in foldedSections, editMode)
             }
-            applyCellSurface(view, item, editMode)
+            applyCellSurface(view, item, editMode, gadgetBackdropAlpha)
             if (editMode) decorateForEdit(inflater, view, item)
             container.addView(
                 view,
@@ -146,13 +152,22 @@ class LauncherCellViewBinder(
      * One switch owns the whole resting-versus-editing appearance on purpose: when the stroke lived here
      * and the background in the layout, the two could disagree about which mode the cell was in.
      *
-     * A gadget keeps its surface in both modes - it renders its own content, which needs something
-     * behind it (strategic §2 non-goals).
+     * S1904: a gadget's resting surface is the [gadgetBackdropAlpha] setting rather than the opaque
+     * one the layout inflates - at 0% the wallpaper shows through it exactly as it does through a
+     * shortcut, and nothing but the gadget's own content is drawn (owner, 2026-08-21). Edit mode is
+     * unchanged: the card comes back for both kinds, because the surface, stroke and elevation are what
+     * make cell boundaries and drop targets visible while arranging.
      */
-    private fun applyCellSurface(view: View, item: LauncherCellUi, editMode: Boolean) {
+    private fun applyCellSurface(
+        view: View,
+        item: LauncherCellUi,
+        editMode: Boolean,
+        gadgetBackdropAlpha: Float,
+    ) {
         val card = view as? MaterialCardView ?: return
         if (!editMode) {
             card.strokeWidth = 0
+            if (item.cell.kind == LauncherCellKind.GADGET) applyGadgetBackdrop(card, gadgetBackdropAlpha)
         } else if (item.cell.kind == LauncherCellKind.SHORTCUT) {
             // A gadget's own layout already carries the surface, stroke and lift in both modes, and the
             // inflated 1dp stroke is intact here because a mode change re-inflates every cell. So only a
@@ -162,6 +177,19 @@ class LauncherCellViewBinder(
             )
             card.cardElevation = card.resources.getDimension(R.dimen.launcher_cell_edit_elevation)
         }
+    }
+
+    /**
+     * S1904: the resting backdrop of one gadget cell. The elevation goes with the fill because a shadow
+     * is a frame too - a fully transparent card still outlines itself with the lift the layout inflates,
+     * which is the border the owner asked to be rid of at rest. Edit mode never reaches here, and a mode
+     * change re-inflates every cell, so the card look needs no restoring on the way back.
+     */
+    private fun applyGadgetBackdrop(card: MaterialCardView, alpha: Float) {
+        val surface = MaterialColors.getColor(card, com.google.android.material.R.attr.colorSurface)
+        val opacity = (alpha.coerceIn(0f, 1f) * OPAQUE_ALPHA).roundToInt()
+        card.setCardBackgroundColor(ColorUtils.setAlphaComponent(surface, opacity))
+        card.cardElevation = 0f
     }
 
     /**
@@ -585,6 +613,12 @@ class LauncherCellViewBinder(
          */
         private const val EXPANDED_CHEVRON_ROTATION = 0f
         private const val COLLAPSED_CHEVRON_ROTATION = -90f
+
+        /** S1904: mirrors `AppSettings.launcherWidgetBackdropAlpha`, the value the desktop actually renders. */
+        private const val DEFAULT_GADGET_BACKDROP_ALPHA = 0.85f
+
+        /** S1904: a fully opaque alpha channel, the scale [applyGadgetBackdrop] maps the setting onto. */
+        private const val OPAQUE_ALPHA = 255
 
         /** A 2x2 gadget is the largest footprint, so it covers at most this many squares - a capacity hint. */
         private const val MAX_FOOTPRINT_SQUARES = 4

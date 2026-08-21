@@ -106,6 +106,7 @@ FastMediaSorter is built on the open source components listed below. We are grat
 | jsoup | `org.jsoup:jsoup` | [MIT](https://raw.githubusercontent.com/jhy/jsoup/master/LICENSE) | all builds | [link](https://github.com/jhy/jsoup) |
 | OpenXR Loader for Android | `org.khronos.openxr:openxr_loader_for_android` | [Apache-2.0](https://raw.githubusercontent.com/KhronosGroup/OpenXR-SDK/main/LICENSE) | noLegal, vr | [link](https://github.com/KhronosGroup/OpenXR-SDK-Source) |
 | NanoHTTPD | `org.nanohttpd:nanohttpd` | [BSD-3-Clause](https://raw.githubusercontent.com/NanoHttpd/nanohttpd/master/LICENSE.md) | legacy, lite, noLegal, photos, standard | [link](https://github.com/NanoHttpd/nanohttpd) |
+| libVLC for Android | `org.videolan.android:libvlc-all` | [LGPL-2.1-or-later](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) | noLegal | [link](https://code.videolan.org/videolan/libvlcjni) |
 
 ## Components under vendor terms
 
@@ -137,6 +138,7 @@ These components are not open source. They are distributed under their vendor te
 - **Bouncy Castle Provider** (`MIT`) - Published as the "Bouncy Castle Licence"; the text is verbatim MIT with their copyright, so scanners report NOASSERTION and the identifier is set by hand.
 - **OpenXR Loader for Android** (`Apache-2.0`) - Loader sources carry Apache-2.0 OR MIT. The shipped native library statically links jsoncpp (MIT), jnipp (MIT) and android-jni-wrappers (BSL-1.0).
 - **NanoHTTPD** (`BSD-3-Clause`) - Licence inherited from the nanohttpd-project POM; the artifact declares no licences block of its own.
+- **libVLC for Android** (`LGPL-2.1-or-later`) - S1060: noLegal-only (sideload). Java bindings and the shipped native libvlc are LGPL-2.1-or-later; the app links dynamically and ships no modified sources.
 
 ---
 [Back to Terms](TERMS_OF_SERVICE.md) | [Back to Home](../index.html)

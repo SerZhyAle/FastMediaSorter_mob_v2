@@ -22,6 +22,9 @@ interface StreamingPipeline {
         manifest: StreamingManifest,
         fileName: String,
         quality: MediaQualityPreference,
+        // S1776: the account the request was made with; null falls back to the host's
+        // most-recently-used account (the pre-S1776 behaviour).
+        accountId: String? = null,
         onProgress: (downloadedBytes: Long, totalBytes: Long?) -> Unit,
     ): PipelineOutcome
 }

@@ -36,6 +36,28 @@ if ($facade -notmatch '(?s)if \(\$runsDocIconGate\) \{\s*Invoke-Gate "doc-icons-
     throw 'Document-icon gate is missing or not conditional.'
 }
 
+$helpOutput = & pwsh -NoProfile -File $facadePath -? 2>&1 | Out-String
+if ($LASTEXITCODE -ne 0 -or $helpOutput -notmatch '-Deleted') {
+    throw 'post-change help does not expose the declared-deletion parameter.'
+}
+
+$rejectedDeletion = & pwsh -NoProfile -File $facadePath `
+    -Deleted 'scripts/post-change.ps1' `
+    -Target 'post-change-tests' `
+    -Description 'reject an existing declared deletion' `
+    -ChangeType Script 2>&1 | Out-String
+if ($LASTEXITCODE -ne 2 -or $rejectedDeletion -notmatch 'named as deleted but still on disk') {
+    throw 'post-change did not reject an existing path declared as deleted.'
+}
+
+if ($facade -notmatch '\$deletedFiles = @\(' -or $facade -notmatch '\$deletedLogEntries = @\(') {
+    throw 'post-change does not route an accepted declared deletion into closure bookkeeping.'
+}
+
+if ($facade -notmatch '\$catalogChangedFiles = @\(\$changedFiles\) \+ @\(\$deletedFiles\)') {
+    throw 'Declared deletions are not included in catalog-sync input.'
+}
+
 $hints = Import-PowerShellDataFile -LiteralPath $hintsPath
 $labels = [regex]::Matches($facade, 'Invoke-Gate "([^"]+)"') |
     ForEach-Object { $_.Groups[1].Value } |

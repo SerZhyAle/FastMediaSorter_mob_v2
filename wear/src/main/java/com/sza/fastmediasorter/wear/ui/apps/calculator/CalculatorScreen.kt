@@ -1,20 +1,25 @@
 package com.sza.fastmediasorter.wear.ui.apps.calculator
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -32,7 +37,7 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 
-private val KEY_MIN_SIZE = 48.dp
+private val KEY_HEIGHT = 26.dp
 private val KEY_GAP = 2.dp
 private val KEYPAD_SIDE_PADDING = 6.dp
 private val DISPLAY_VERTICAL_PADDING = 8.dp
@@ -76,19 +81,24 @@ fun CalculatorScreen(
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        ScalingLazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            state = listState,
-            contentPadding = PaddingValues(horizontal = KEYPAD_SIDE_PADDING, vertical = KEY_GAP)
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            item {
-                CalculatorDisplay(uiState = uiState)
-            }
-            items(keypadRows()) { row ->
-                CalculatorKeyRow(
-                    keys = row,
-                    onKey = { key -> dispatch(key, viewModel) { menuOpen = true } }
-                )
+            CalculatorDisplay(uiState = uiState)
+            ScalingLazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                state = listState,
+                contentPadding = PaddingValues(horizontal = KEYPAD_SIDE_PADDING, vertical = KEY_GAP)
+            ) {
+                items(keypadRows()) { row ->
+                    CalculatorKeyRow(
+                        keys = row,
+                        onKey = { key -> dispatch(key, viewModel) { menuOpen = true } }
+                    )
+                }
             }
         }
 
@@ -127,13 +137,13 @@ private fun CalculatorDisplay(uiState: CalculatorUiState) {
     val text = if (uiState.isError) stringResource(R.string.wear_calc_error) else uiState.display
     Text(
         text = text,
-        style = MaterialTheme.typography.display3,
+        style = MaterialTheme.typography.title1,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        textAlign = TextAlign.End,
+        textAlign = TextAlign.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = DISPLAY_VERTICAL_PADDING)
+            .padding(start = KEYPAD_SIDE_PADDING, end = KEYPAD_SIDE_PADDING, top = 16.dp, bottom = 4.dp)
             .semantics { contentDescription = text }
     )
 }
@@ -154,15 +164,20 @@ private fun CalculatorKeyRow(
                 onClick = { onKey(key) },
                 modifier = Modifier
                     .weight(1f)
-                    .heightIn(min = KEY_MIN_SIZE)
+                    .height(KEY_HEIGHT)
                     .semantics { contentDescription = description },
+                shape = RoundedCornerShape(4.dp),
                 colors = if (key is CalculatorKey.Digit) {
                     ButtonDefaults.secondaryButtonColors()
                 } else {
                     ButtonDefaults.primaryButtonColors()
                 }
             ) {
-                Text(text = label, style = MaterialTheme.typography.button, maxLines = 1)
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.title2.copy(fontWeight = FontWeight.Bold),
+                    maxLines = 1
+                )
             }
         }
     }

@@ -34,4 +34,9 @@ abstract class ScreenCaptureModule {
     abstract fun bindGestureAccessibilityActions(
         impl: NoLegalGestureAccessibilityActions
     ): GestureAccessibilityActions
+    // S1881: noLegal accessibility service control binding.
+    @Binds
+    abstract fun bindAccessibilityServiceControl(
+        impl: com.sza.fastmediasorter.screencapture.NoLegalAccessibilityServiceControl
+    ): com.sza.fastmediasorter.core.screencapture.AccessibilityServiceControl
 }

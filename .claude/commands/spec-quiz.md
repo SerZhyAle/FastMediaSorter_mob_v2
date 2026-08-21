@@ -106,7 +106,7 @@ Per starting status:
   - Exit 0 → apply Draft→Approved hygiene to touched text (`..` not `...`, `ё`/`Ё`, lists over tables) and flip: `update.ps1 -Id <Sxxxx> -Status Approved` (rewrites file's first `**Status:**` line automatically).
   - Exit 1 → gate still reports blockers (e.g. a §3.3 bullet a question did not cover). List them, ask missing question(s) (back to Stage 2, one batch), retry gate once. Still failing → leave `Draft`, report residual blockers, stop.
 - **`BlockQuestions` → restore**: infer pre-block status from artifacts - tactical folder + checked phase tracking → `In Progress`; tactical folder, no progress → `Tactical`; §3.3 filled, no folder → `Approved`; otherwise `Draft`. If two equally plausible, add one MC question to confirm. Then `update.ps1 -Id <Sxxxx> -Status <restored>` (leaving Block* status auto-clears its note).
-- **`BlockByOtherTask` → restore**: only if dependency resolved to `Verified` (re-check via `select.ps1`) or owner chose a fallback that removes dependency. Otherwise keep block and report.
+- **`BlockByOtherTask` → restore**: only if the dependency reached the releasing set - `Implemented`, `Verified`, `BlockNeedUserTest` or `Archived` (re-check via `select.ps1`) - or the owner chose a fallback that removes the dependency. Otherwise keep block and report. `BlockNeedUserTest` releases because the blocker's code is already in the tree and only the owner's device pass is left (`PLAN/RELEASE_QUEUE.md`, owner ruling 2026-08-07); requiring `Verified` here would hold a dependent for a pass that is not its own (S1878).
 - **`Approved` → `Tactical`** (`--here`): record decisions, then hand to `/spec-tech <Sxxxx>`.
 - **`Tactical` / `In Progress`** (`--here`): record decisions only; status unchanged.
 

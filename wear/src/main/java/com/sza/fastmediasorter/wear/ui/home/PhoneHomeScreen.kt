@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.SelectAll
@@ -52,6 +53,7 @@ fun PhoneHomeScreen(navController: NavController) {
     val listState = rememberScalingLazyListState()
 
     val categories = listOf(
+        PhoneCategory(R.string.wear_phone_recents, "recents", Icons.Filled.History),
         PhoneCategory(R.string.wear_phone_video, "videos", Icons.Filled.VideoLibrary),
         PhoneCategory(R.string.wear_phone_audio, "music", Icons.Filled.MusicNote),
         PhoneCategory(R.string.wear_phone_images, "photos", Icons.Filled.Image),

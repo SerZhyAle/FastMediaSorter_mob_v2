@@ -4,6 +4,12 @@
     
     <!-- Network permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!--
+        S1728: asks the platform for a wide-band transport while a stream plays, and gives it back when
+        the stream ends. Only the request needs this; reading the current link needs nothing beyond
+        ACCESS_NETWORK_STATE, which already reaches this app through the merged manifest.
+    -->
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
     
     <!-- Storage permissions -->

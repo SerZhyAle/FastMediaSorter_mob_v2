@@ -338,7 +338,7 @@ class AudioStandaloneActivity :
         // S0612: the Copy/Move panels container is the bottom-most child, so the nav-bar inset moves
         // here. When the panels are GONE the 0-height container still reserves the nav gap, keeping the
         // ExoPlayer button row above the nav bar; when visible, the destination grids clear it too.
-        binding.root.findViewById<View>(R.id.bottomPanelsContainer)?.let { panels ->
+        binding.bottomPanelsContainer.root.let { panels ->
             ViewCompat.setOnApplyWindowInsetsListener(panels) { view, insets ->
                 val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
                 view.setPadding(0, 0, 0, nav.bottom)

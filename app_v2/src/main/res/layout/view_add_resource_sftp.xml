@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools" android:id="@+id/layoutSftpFolder" android:layout_width="@dimen/match_constraint" android:layout_height="0dp" android:visibility="gone" android:padding="@dimen/padding_large" app:layout_constraintTop_toBottomOf="@id/layoutResourceTypes" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+        <!-- S0991/S0992: companion import entry points relocated to the SFTP-form header, sharing labels with the type-screen entries. -->
+        <!-- baselineAligned=false + match_parent heights: keep both pills equal-height when one label wraps (landscape column). -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+
+            <!-- S0421: one-action import of a Windows-companion .fmscfg config -->
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpImportCompanion" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:text="@string/resource_import_from_file" app:icon="@drawable/ic_import" />
+
+            <!-- S0988: camera QR scan of the same companion config; hidden on camera-less/VR devices -->
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpScanCompanionQr" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="@string/resource_import_from_barcode" app:icon="@drawable/ic_qr_scan" />
+
+        </LinearLayout>
+
+        <!-- S0994: help link to the PC-side companion publish-folders guide; visibility mirrors the file-import button. -->
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpCompanionPublishHelp" style="@style/Widget.FastMediaSorter.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:text="@string/companion_publish_folders_guide" android:contentDescription="@string/companion_publish_folders_guide" app:icon="@drawable/ic_help_outline_24" app:iconGravity="textStart" />
+
+        <!-- Protocol Selection -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/protocol_selection" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+
+        <RadioGroup android:id="@+id/rgProtocol" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_16dp">
+
+            <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rbSftp" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/protocol_sftp" android:checked="true" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rbFtp" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/protocol_ftp" />
+
+        </RadioGroup>
+
+        <!-- Host and Port in one row -->
+        <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:ffp_ratio="two_one">
+
+            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpHost" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/sftp_host" app:helperText="@string/sftp_host_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+
+                <com.sza.fastmediasorter.ui.addresource.widgets.IpAddressEditText android:id="@+id/etSftpHost" android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPort" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/sftp_port">
+
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPort" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:imeOptions="flagNoExtractUi" android:text="" android:maxLines="1" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
+
+        <!-- Authentication Method Selection -->
+        <TextView android:id="@+id/tvSftpAuthMethodLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:labelFor="@id/rgSftpAuthMethod" android:text="@string/sftp_auth_method_label" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" android:layout_marginBottom="@dimen/resource_margin_4dp" />
+
+        <RadioGroup android:id="@+id/rgSftpAuthMethod" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_12dp">
+
+            <RadioButton android:id="@+id/rbSftpPassword" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/sftp_auth_password" android:checked="true"/>
+
+            <RadioButton android:id="@+id/rbSftpSshKey" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/sftp_auth_ssh_key"/>
+
+        </RadioGroup>
+
+        <!-- Username and Password in one row -->
+        <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:id="@+id/layoutSftpPasswordAuth" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="visible" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:ffp_ratio="one_one">
+
+            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpUsername" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/sftp_username">
+
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpUsername" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPassword" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/sftp_password" app:endIconMode="password_toggle">
+
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
+
+        <!-- SSH Key Authentication Section -->
+        <LinearLayout android:id="@+id/layoutSftpSshKeyAuth" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+
+            <!-- SSH Private Key Input with Load Button -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPrivateKey" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/sftp_private_key" app:helperText="@string/sftp_private_key_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText" android:layout_marginEnd="@dimen/margin_small">
+
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPrivateKey" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textMultiLine" android:imeOptions="flagNoExtractUi" android:minLines="3" android:maxLines="5" android:scrollbars="vertical" android:fontFamily="monospace" android:textSize="@dimen/text_size_small"/>
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpLoadKey" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/sftp_load_key" android:text="@string/sftp_load_key" app:icon="@drawable/ic_cloud_upload"/>
+
+            </LinearLayout>
+
+            <!-- SSH Key Passphrase (Optional) -->
+            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpKeyPassphrase" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sftp_key_passphrase" app:helperText="@string/sftp_key_passphrase_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText" app:endIconMode="password_toggle" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpKeyPassphrase" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+        <!-- Test Connection: primary action in the main flow, before optional security and path -->
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpTest" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/sftp_test_connection" app:icon="@drawable/ic_info" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+
+        <!-- S0046: host-key pinning (optional, collapsible, SFTP-only). Visibility toggled by protocol in AddResourceActivity. -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpServerVerification" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerSftpServerVerification"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="@string/sftp_server_verification_title"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/sftp_server_verification_title" />
+
+                <!-- Always-visible one-line hint so the optional-security nature is discoverable while collapsed -->
+                <TextView android:id="@+id/tvSftpServerVerificationSubtitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/margin_small" android:paddingTop="@dimen/resource_margin_2dp" android:paddingBottom="@dimen/resource_margin_2dp" android:text="@string/sftp_server_verification_subtitle" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+
+                <LinearLayout android:id="@+id/contentSftpServerVerification" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
+
+                    <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpHostKeyFingerprint" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/sftp_host_key_fingerprint_hint" app:helperText="@string/sftp_host_key_fingerprint_helper" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+
+                        <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpHostKeyFingerprint" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textNoSuggestions" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Remote Path and Resource Name in one row -->
+        <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_16dp" app:ffp_ratio="one_one">
+
+            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPath" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/sftp_remote_path" app:helperText="@string/sftp_remote_path_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+
+                <com.sza.fastmediasorter.ui.addresource.widgets.NetworkPathEditText android:id="@+id/etSftpPath" android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpResourceName" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_name" app:helperText="@string/resource_name_hint" app:helperTextEnabled="true" app:helperTextTextAppearance="@style/TextAppearance.FastMediaSorter.HelperText">
+
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpResourceName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
+
+        <!-- === GROUP B: CONDITIONS / SCANNING (collapsible) === -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                <!-- S0256 TODO: add csh_helpTitle/csh_helpMessage for SFTP scanning settings if product wants inline help here later. -->
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerSftpConditions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/label_scanning_settings" />
+                <LinearLayout android:id="@+id/contentSftpConditions" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
+
+                    <!-- Scan Subdirectories and All Files in one row -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_4dp">
+                        <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSftpScanSubdirectories" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" app:fcr_checked="true" app:fcr_title="@string/scan_subdirectories" app:fcr_subtitle="@string/cb_sftp_scan_subdirectories_desc" />
+                        <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSftpAllFiles" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" app:fcr_title="@string/all_files" app:fcr_subtitle="@string/cb_sftp_all_files_desc" />
+                    </LinearLayout>
+
+                    <!-- Show Subfolders Separately (option parity fix - was missing in create flow) -->
+                    <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSftpShowSubfoldersAsItems" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" app:fcr_title="@string/show_subfolders_as_items" app:fcr_subtitle="@string/show_subfolders_as_items_hint" />
+
+                    <!-- Disable Thumbnails -->
+                    <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSftpDisableThumbnails" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" app:fcr_title="@string/disable_thumbnails" app:fcr_subtitle="@string/cb_sftp_disable_thumbnails_desc" />
+
+                    <!-- Remember File List -->
+                    <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSftpRememberFileList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" app:fcr_title="@string/remember_file_list" app:fcr_subtitle="@string/cb_sftp_remember_file_list_desc" app:fcr_showHelp="true" app:fcr_helpTitle="@string/remember_file_list_help_title" app:fcr_helpMessage="@string/remember_file_list_help_message" />
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- === GROUP C: MEDIA TYPES (collapsible) === -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                <!-- S0256 TODO: add csh_helpTitle/csh_helpMessage for SFTP media types if product wants inline help here later. -->
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerSftpMediaTypes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/label_media_types" />
+                <LinearLayout android:id="@+id/contentSftpMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
+
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpProfilePreset" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/label_profile_none" android:textAllCaps="false" app:icon="@drawable/ic_settings" app:iconGravity="textStart" />
+
+                    <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" app:cardElevation="@dimen/resource_card_elevation_zero" app:cardBackgroundColor="?attr/colorSurfaceVariant" app:strokeWidth="@dimen/resource_stroke_width" app:strokeColor="?attr/colorOutlineVariant" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/padding_small">
+                            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportImage" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/images_i" />
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportVideo" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/videos_v" />
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportAudio" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/audio_a" />
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportGif" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/gifs_g" />
+                            </LinearLayout>
+                            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportText" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/text_t" />
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportPdf" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/pdf_p" />
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportEpub" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/epub_e" />
+                                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpSupportOffice" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/office_doc_d" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- === GROUP D: ADDITIONAL OPTIONS (collapsible) === -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                <!-- S0256 TODO: add csh_helpTitle/csh_helpMessage for SFTP additional options if product wants inline help here later. -->
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerSftpAdditional"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/label_additional_options" />
+                <LinearLayout android:id="@+id/contentSftpAdditional" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:visibility="gone">
+
+                    <!-- Destination and Read-Only checkboxes -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+                        <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSftpAddToDestinations" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" app:fcr_title="@string/register_as_destination" app:fcr_subtitle="@string/cb_sftp_add_to_destinations_desc" />
+                        <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow android:id="@+id/cbSftpReadOnlyMode" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" app:fcr_title="@string/read_only_mode" app:fcr_subtitle="@string/cb_sftp_read_only_mode_desc" />
+                    </LinearLayout>
+
+                    <!-- Comment and PIN Code in one row -->
+                    <com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:ffp_ratio="two_one">
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpComment" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_comment">
+                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpComment" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:imeOptions="flagNoExtractUi" android:maxLines="1" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSftpPinCode" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/resource_pin_code" app:endIconMode="password_toggle">
+                            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSftpPinCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberPassword" android:imeOptions="flagNoExtractUi" android:maxLength="6" android:maxLines="1" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </com.sza.fastmediasorter.ui.common.widget.FormFieldPairLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Add Resource button -->
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpAddResource" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginBottom="@dimen/resource_margin_4dp" android:text="@string/sftp_add_resource" app:icon="@drawable/ic_add" />
+
+    </LinearLayout>
+
+</ScrollView>

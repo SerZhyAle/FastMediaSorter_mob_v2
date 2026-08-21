@@ -203,6 +203,13 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
         }
     }
 
+    override fun setHudQuadDistance(distanceMeters: Float) {
+        if (!isNativeAvailable) return
+        runCatching { nativeSetHudQuadDistance(distanceMeters) }.onFailure {
+            Timber.w(it, "setHudQuadDistance: native call threw")
+        }
+    }
+
     override fun setHudVisible(visible: Boolean) {
         if (!isNativeAvailable) return
         runCatching { nativeSetHudVisible(visible) }.onFailure {
@@ -241,6 +248,7 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
         heightMeters: Float,
         verticalOffsetMeters: Float
     )
+    private external fun nativeSetHudQuadDistance(distanceMeters: Float)
     private external fun nativeSetHudVisible(visible: Boolean)
     private external fun nativeApplyHaptic(hand: Int, durationSeconds: Float, frequency: Float, amplitude: Float)
     private external fun nativeGetCurrentFps(): Float

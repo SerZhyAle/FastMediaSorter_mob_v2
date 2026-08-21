@@ -817,6 +817,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "wear_companion",
+    "feature": "wear_companion",
+    "drawable": "ic_watch",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "wifi",
     "feature": "app_launch_panel_os_wifi",
     "drawable": "ic_wifi",
@@ -1126,6 +1134,14 @@
     "drawable": "ic_vr_headset",
     "assetFormat": "vector",
     "public": false
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerWear",
+    "feature": "settings_wear_group_title",
+    "drawable": "ic_watch",
+    "assetFormat": "vector",
+    "public": true
   },
   {
     "surface": "settings-row",

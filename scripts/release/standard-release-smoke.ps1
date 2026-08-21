@@ -124,7 +124,11 @@ if ($ApkPath) {
         if (-not $keystore) { Write-Verdict 'smoke' $false @('release keystore absent (.secrets/keystore.properties) - cannot build standardRelease') 2 }
         Enter-BuildLockOrExit -Reason 'standard-release-smoke.ps1 (assembleStandardRelease)'
         Push-Location $repoRoot
-        try { & (Join-Path $repoRoot 'gradlew.bat') assembleStandardRelease '-Pchaquopy.enabled=false' | Out-Null }
+        try {
+            . (Join-Path $repoRoot 'scripts/utils/build-version-stamp.ps1')
+            $stamp = Get-BuildVersionStamp
+            & (Join-Path $repoRoot 'gradlew.bat') assembleStandardRelease '-Pchaquopy.enabled=false' "-Pfms.versionCode=$($stamp.AppVersionCode)" "-Pfms.versionName=$($stamp.VersionName)" | Out-Null
+        }
         finally {
             Pop-Location
             Exit-AgentLock -Name Build

@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.data.link.auth.AccountIdentityExtractor
 import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
 import com.sza.fastmediasorter.data.link.cookie.registrableDomainOrNull
 import com.sza.fastmediasorter.domain.repository.AuthAccountDomain
-import com.sza.fastmediasorter.domain.repository.AuthSessionDomain
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.RawAuthSession
 import kotlinx.coroutines.CoroutineScope
@@ -29,9 +28,6 @@ class AuthSessionRepositoryImpl @Inject constructor(
 
     private val accountFlow = MutableStateFlow<List<AuthAccountDomain>>(emptyList())
     private val accountFlowAll = MutableStateFlow<List<AuthAccountDomain>>(emptyList())
-
-    @Suppress("DEPRECATION")
-    private val legacyFlow = MutableStateFlow<List<AuthSessionDomain>>(emptyList())
 
     init {
         // S1153: the one-time legacy migration + initial flow snapshot both read the encrypted
@@ -246,29 +242,6 @@ class AuthSessionRepositoryImpl @Inject constructor(
             }
         }
 
-    @Suppress("DEPRECATION", "OverridingDeprecatedMember")
-    override fun observeDomains(): Flow<List<AuthSessionDomain>> = legacyFlow.asStateFlow()
-
-    @Suppress("DEPRECATION", "OverridingDeprecatedMember")
-    override suspend fun saveSession(domain: String, cookies: List<HttpCookie>) {
-        if (domain.isBlank() || cookies.isEmpty()) return
-        withContext(Dispatchers.IO) {
-            store.saveFor(domain, cookies)
-            refreshFlows()
-        }
-    }
-
-    @Suppress("DEPRECATION", "OverridingDeprecatedMember")
-    override suspend fun deleteSession(domain: String) {
-        withContext(Dispatchers.IO) {
-            store.deleteFor(domain)
-            refreshFlows()
-        }
-    }
-
-    @Suppress("DEPRECATION", "OverridingDeprecatedMember")
-    override suspend fun hasSession(domain: String): Boolean = hasAnySession(domain)
-
     private fun refreshFlows() {
         val all = store.listAllAccounts()
         val now = Instant.now()
@@ -287,19 +260,6 @@ class AuthSessionRepositoryImpl @Inject constructor(
             liveAccounts +
                 dismissed.map { (host, entry) -> entry.toDomain(host, now, isDismissed = true) }
         ).sortedWith(SETTINGS_ACCOUNT_ORDER)
-
-        @Suppress("DEPRECATION")
-        legacyFlow.value = live
-            .groupBy { (host, _) -> host }
-            .mapNotNull { (host, pairs) ->
-                val entry = pairs.maxByOrNull { (_, value) -> value.savedAt ?: Instant.MIN }?.second ?: return@mapNotNull null
-                AuthSessionDomain(
-                    host = host,
-                    cookieCount = entry.cookieCount,
-                    savedAt = entry.savedAt ?: now,
-                )
-            }
-            .sortedBy { it.host }
     }
 
     private fun EncryptedCookieStore.AccountEntry.toDomain(

@@ -11,7 +11,6 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.model.FavoritesConflictStrategy
 import com.sza.fastmediasorter.domain.model.FavoritesImportResult
@@ -23,7 +22,6 @@ import com.sza.fastmediasorter.ui.settings.FavoritesExportUiState
 import com.sza.fastmediasorter.ui.settings.FavoritesImportUiState
 import com.sza.fastmediasorter.ui.settings.ResourceShareExportUiState
 import com.sza.fastmediasorter.ui.settings.ResourceShareImportUiState
-import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import timber.log.Timber
@@ -38,35 +36,10 @@ class GeneralSettingsBackupHelper(
     private val binding: FragmentSettingsGeneralBinding,
     private val fragment: Fragment,
     private val backupViewModel: BackupRestoreViewModel,
-    private val mediaCapabilities: MediaCapabilities,
     private val importFavoritesLauncher: ActivityResultLauncher<Array<String>>,
     private val exportResourcesLauncher: ActivityResultLauncher<String>,
     private val importResourcesLauncher: ActivityResultLauncher<Array<String>>,
 ) {
-    /**
-     * S1735: the button opens the companion's own window instead of a sheet parented to this screen.
-     *
-     * Two surfaces now offer the companion - this button and the programs panel - and they must not
-     * disagree about whether it exists (strategic goal 4, and §7's second risk). Going through the same
-     * Intent the panel uses is what keeps them one behaviour rather than two that resemble each other.
-     */
-    fun setupWearCompanionButton() {
-        if (!mediaCapabilities.supportsWearCompanion) {
-            binding.containerWearCompanion?.visibility = View.GONE
-            return
-        }
-        binding.btnWearCompanion?.setOnClickListener {
-            fragment.startActivity(WearCompanionActivity.createIntent(fragment.requireContext()))
-        }
-        binding.iconHelpWearCompanion?.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
-                fragment.requireContext(),
-                R.string.tooltip_wear_companion_title,
-                R.string.tooltip_wear_companion_message
-            )
-        }
-    }
-
     fun setupBackupButtons() {
         binding.btnBackup.setOnClickListener { backupViewModel.startBackup() }
         binding.btnRestore.setOnClickListener { backupViewModel.startRestore() }

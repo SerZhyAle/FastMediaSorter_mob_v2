@@ -26,4 +26,19 @@ consequences rather than treating them as app defects:
   `adb -s <dev> shell cmd locale set-app-locales com.sza.fastmediasorter.debug --user current --locales ru`
   then force-stop and relaunch. All 6 smoke flows passed afterwards.
 
+**Check the locale before restating this as a live risk (2026-08-21).** The locale consequence is the
+one that gets misremembered, because it is easy to compress into "the missing file keeps the app in
+English" - which is false. The file's only consumer is `ui/settings/helpers/SzaResourcesImporter.kt`,
+which imports resources, network credentials and destinations and touches no locale at all; the language
+is an ordinary in-app setting. What actually happens is longer: the missing file kills
+`prerelease-configure.ps1` at `load-config`, so its later `set:Language` stage never runs. Once the
+locale has been applied by hand it stays applied, and the caveat is discharged for that device. One
+command settles it:
+
+    adb shell cmd locale get-app-locales com.sza.fastmediasorter.debug --user current
+
+If that already answers `[ru]`, a failing Russian selector is a regression, not this environment - do
+not write the caveat into a ticket as though it were still pending. Measured on the emulator that day:
+locales `[ru]`, and all 6 smoke flows passed.
+
 A sweep on the owner's own machine, where the file exists, is what actually covers the network paths.

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
 import android.graphics.Color
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -31,11 +32,23 @@ class BlackScreenOverlayManager(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
+            isClickable = true
+            isFocusable = true
+            isFocusableInTouchMode = true
             fitsSystemWindows = false
             setOnTouchListener { _, event ->
                 if (event.action == MotionEvent.ACTION_DOWN) hide()
                 true
             }
+            setOnKeyListener { _, _, event ->
+                if (event.action == KeyEvent.ACTION_DOWN) hide()
+                true
+            }
+            setOnGenericMotionListener { _, _ ->
+                hide()
+                true
+            }
+            requestFocus()
         }
         decorView.addView(view)
         overlayView = view

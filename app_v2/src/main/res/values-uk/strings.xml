@@ -1283,8 +1283,6 @@
     <string name="run_integration_tests">RUN INTEGRATION TESTS</string>
     <string name="search_counter_default">0/0</string>
 
-    <!-- OCR Engine and PaddleOCR Models (S0288) -->
-
     <!-- OCR Best Models Feature -->
     <string name="add_new_account">Додати новий акаунт</string>
     <string name="and_more_errors">і ще %d помилок</string>
@@ -1959,7 +1957,7 @@
     <string name="ext_status_failed">Помилка</string>
     <string name="ext_downloading_progress">Завантаження: %d%%</string>
     <string name="ext_ocr_engines_title">Модулі розпізнавання тексту</string>
-    <string name="ext_ocr_engines_desc">Включає бібліотеки Tesseract та PaddleOCR для офлайн-розпізнавання тексту на зображеннях та в документах.</string>
+    <string name="ext_ocr_engines_desc">Вмикає бібліотеку Tesseract для офлайн-розпізнавання тексту на зображеннях та в документах.</string>
     <string name="ext_translation_title">Модуль перекладу</string>
     <string name="ext_translation_desc">Включає перекладач ML Kit та ідентифікатор мови для офлайн-перекладу тексту між підтримуваними мовами.</string>
     <string name="ext_audio_viz_title">Аудіовізуалізація</string>
@@ -3353,4 +3351,39 @@
     <string name="network_monitor_chart_reset_done">Графік перезапущено. Замір іде наново.</string>
     <string name="settings_enable_wear_companion">Компаньйон годинника</string>
     <string name="settings_enable_wear_companion_summary">Показувати компаньйон годинника в панелі та меню програм</string>
+    <string name="wear_watch_resource_name"></string>
+    <string name="wear_watch_transfer_success"></string>
+    <string name="wear_watch_transfer_failed"></string>
+    <string name="stream_action_send_to_watch">Надіслати на годинник</string>
+    <string name="stream_send_to_watch_done">Трансляцію надіслано на годинник</string>
+    <string name="stream_send_to_watch_updated">Трансляцію оновлено на годиннику</string>
+    <string name="stream_send_to_watch_watch_unavailable">Годинник недоступний - трансляцію не надіслано</string>
+    <string name="stream_send_to_watch_no_reply">Годинник не підтвердив отримання - перевірте годинник</string>
+    <string name="stream_send_to_watch_failed">Годинник не зміг зберегти трансляцію</string>
+    <string name="vr_settings_title">Налаштування сеансу</string>
+    <string name="vr_settings_footer">Кнопка меню закриває цю панель</string>
+    <string name="vr_settings_layout">РОЗКЛАДКА</string>
+    <string name="vr_settings_projection">ПРОЄКЦІЯ</string>
+    <string name="vr_settings_distance">ВІДСТАНЬ ПАНЕЛІ</string>
+    <string name="vr_settings_size">РОЗМІР ПАНЕЛІ</string>
+    <string name="vr_settings_subtitles">СУБТИТРИ</string>
+    <string name="vr_settings_resume">ПРОДОВЖУВАТИ З ПОЗИЦІЇ</string>
+    <string name="vr_settings_value_auto">Авто</string>
+    <string name="vr_settings_value_mono">Моно</string>
+    <string name="vr_settings_value_sbs">Поруч</string>
+    <string name="vr_settings_value_over_under">Верх-низ</string>
+    <string name="vr_settings_value_flat">Пласко</string>
+    <string name="vr_settings_value_on">Увімк</string>
+    <string name="vr_settings_value_off">Вимк</string>
+    <string name="vr_legend_input_menu">Ліва кнопка меню</string>
+    <string name="vr_legend_action_settings">Відкрити або закрити налаштування сеансу</string>
+    <string name="accessibility_service_disable_now">Вимкнути доступність</string>
+    <string name="accessibility_service_status_active">Доступність: Активна</string>
+    <string name="accessibility_service_status_disabled">Доступність: Вимкнена</string>
+    <string name="qs_tile_accessibility">FMS Доступність</string>
+    <string name="dev_options_shortcut">Налаштування розробника</string>
+    <string name="usb_debugging_status">Налагодження USB: %s</string>
+    <string name="settings_wear_paired_watch_checking">Перевірка зв\'язку..</string>
+    <string name="settings_wear_paired_watch_connected">%1$s - на зв\'язку</string>
+    <string name="settings_wear_paired_watch_not_connected">Годинник не на зв\'язку</string>
 </resources>

@@ -102,7 +102,7 @@ expiry rule and the no-restatement rule are correctness measures.
 
 `mobile-mcp` results stay sticky in context for the rest of the session, so every walk has a lasting cost. Route by cheapest sufficient proof:
 
-- **`adb.ps1`** (`scripts/devtest/adb.ps1`, `.\a.ps1 adb <verb>`) for deterministic chores: launch, screenshot, prefs read/write, log tail/grep, fixed-coordinate tap/text, install. This is the default for one-off device work.
+- **`adb.ps1`** (`scripts/devtest/adb.ps1`, `.\a.ps1 adb <verb>`) for deterministic chores: launch, screenshot, prefs read/write, log tail/grep, tapping by resource-id (`tap-id`) or by label (`tap-label`), text, install. This is the default for one-off device work. Aim a tap by id first: a label is translated, so a label-aimed call passes only on the locale it was written on (S1879), and a remembered coordinate goes stale the moment the list scrolls (S1847).
 - **Maestro** (`scripts/devtest/maestro/`) for repeatable multi-step flows that will be re-run.
 - **`mobile-mcp` ONLY** for exploratory, agent-driven UI walks where element discovery or dynamic coordinates cannot be scripted up front.
 - Because MCP results are sticky, bound the mobile-mcp window and `/compact` immediately after the walk to flush the accumulated tool results.

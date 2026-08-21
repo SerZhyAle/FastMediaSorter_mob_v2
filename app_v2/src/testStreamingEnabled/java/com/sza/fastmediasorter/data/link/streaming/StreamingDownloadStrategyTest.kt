@@ -62,7 +62,7 @@ class StreamingDownloadStrategyTest {
     fun `returns DrmBlocked when manifest is DRM protected`() = runBlocking {
         coEvery { drmDetector.isDrmProtected(any()) } returns true
 
-        val outcome = strategy.fetchAndRemux(manifest, "out.mp4", quality) { _, _ -> }
+        val outcome = strategy.fetchAndRemux(manifest, "out.mp4", quality, null) { _, _ -> }
 
         assertEquals(PipelineOutcome.DrmBlocked, outcome)
     }
@@ -72,7 +72,7 @@ class StreamingDownloadStrategyTest {
         coEvery { drmDetector.isDrmProtected(any()) } returns false
         every { cacheCleaner.preflightCheck(any(), any()) } returns false
 
-        val outcome = strategy.fetchAndRemux(manifest, "out.mp4", quality) { _, _ -> }
+        val outcome = strategy.fetchAndRemux(manifest, "out.mp4", quality, null) { _, _ -> }
 
         assertTrue(outcome is PipelineOutcome.NetworkError)
     }
@@ -81,11 +81,11 @@ class StreamingDownloadStrategyTest {
     fun `returns Success when download and remux succeed`() = runBlocking {
         coEvery { drmDetector.isDrmProtected(any()) } returns false
         every { cacheCleaner.preflightCheck(any(), any()) } returns true
-        coEvery { segmentDownloader.downloadVariant(any(), any(), any(), any()) } returns bundle()
+        coEvery { segmentDownloader.downloadVariant(any(), any(), any(), any(), any()) } returns bundle()
         val outFile = File(cacheDir, "result.mp4")
         every { remuxer.remux(any(), any()) } returns RemuxResult.Success(outFile)
 
-        val outcome = strategy.fetchAndRemux(manifest, "out.mp4", quality) { _, _ -> }
+        val outcome = strategy.fetchAndRemux(manifest, "out.mp4", quality, null) { _, _ -> }
 
         assertTrue(outcome is PipelineOutcome.Success)
         assertEquals("video/mp4", (outcome as PipelineOutcome.Success).mime)
@@ -96,10 +96,10 @@ class StreamingDownloadStrategyTest {
     fun `maps RemuxResult MuxFailed to PipelineOutcome MuxFailed`() = runBlocking {
         coEvery { drmDetector.isDrmProtected(any()) } returns false
         every { cacheCleaner.preflightCheck(any(), any()) } returns true
-        coEvery { segmentDownloader.downloadVariant(any(), any(), any(), any()) } returns bundle()
+        coEvery { segmentDownloader.downloadVariant(any(), any(), any(), any(), any()) } returns bundle()
         every { remuxer.remux(any(), any()) } returns RemuxResult.MuxFailed("vp9")
 
-        val outcome = strategy.fetchAndRemux(manifest, "out.mp4", quality) { _, _ -> }
+        val outcome = strategy.fetchAndRemux(manifest, "out.mp4", quality, null) { _, _ -> }
 
         assertTrue(outcome is PipelineOutcome.MuxFailed)
         assertEquals("vp9", (outcome as PipelineOutcome.MuxFailed).codec)
@@ -109,10 +109,10 @@ class StreamingDownloadStrategyTest {
     fun `download error becomes NetworkError and triggers cleanup`() = runBlocking {
         coEvery { drmDetector.isDrmProtected(any()) } returns false
         every { cacheCleaner.preflightCheck(any(), any()) } returns true
-        coEvery { segmentDownloader.downloadVariant(any(), any(), any(), any()) } throws
+        coEvery { segmentDownloader.downloadVariant(any(), any(), any(), any(), any()) } throws
             StreamingDownloadException("segment 404")
 
-        val outcome = strategy.fetchAndRemux(manifest, "out.mp4", quality) { _, _ -> }
+        val outcome = strategy.fetchAndRemux(manifest, "out.mp4", quality, null) { _, _ -> }
 
         assertTrue(outcome is PipelineOutcome.NetworkError)
         coVerify { cacheCleaner.cleanupSession(cacheDir, "sess0001") }
@@ -122,11 +122,11 @@ class StreamingDownloadStrategyTest {
     fun `cancellation propagates and triggers cleanup`() {
         coEvery { drmDetector.isDrmProtected(any()) } returns false
         every { cacheCleaner.preflightCheck(any(), any()) } returns true
-        coEvery { segmentDownloader.downloadVariant(any(), any(), any(), any()) } throws
+        coEvery { segmentDownloader.downloadVariant(any(), any(), any(), any(), any()) } throws
             CancellationException("cancelled")
 
         val ex = runCatching {
-            runBlocking { strategy.fetchAndRemux(manifest, "out.mp4", quality) { _, _ -> } }
+            runBlocking { strategy.fetchAndRemux(manifest, "out.mp4", quality, null) { _, _ -> } }
         }.exceptionOrNull()
 
         assertTrue(ex is CancellationException)

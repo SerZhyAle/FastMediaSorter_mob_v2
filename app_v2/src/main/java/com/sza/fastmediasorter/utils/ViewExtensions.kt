@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.utils
 
 import android.content.res.Resources
+import android.graphics.Rect
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -76,9 +77,12 @@ fun WindowInsetsCompat.getStatusBarHeightSafe(resources: Resources): Int {
  * no longer there, so the removal looks like it did nothing. Pass false only when the caller controls
  * the bar's visibility itself.
  *
- * Call this ONCE per view: it captures the view's current padding as the base and adds insets on top,
- * so a second call would treat the already-inset padding as the base and compound it. To re-apply after
- * a bar changes visibility, request a fresh dispatch (`ViewCompat.requestApplyInsets`) instead.
+ * The base padding is captured on the FIRST call for a given view and reused by every later one, so
+ * re-applying with a different edge mask - a surface that hands the status area back and forth, say -
+ * recomputes from the bare view instead of stacking one inset on top of the one it added last time
+ * (S1766 regression: the launcher desktop lost a navigation bar's height on every foreground return).
+ * Re-applying only to pick up a changed inset still needs no call at all: the registered listener does
+ * it, and `ViewCompat.requestApplyInsets` asks for a fresh dispatch.
  */
 fun View.applySystemBarInsetPadding(
     applyLeft: Boolean = true,
@@ -88,10 +92,11 @@ fun View.applySystemBarInsetPadding(
     useStatusBarHeightFallback: Boolean = true,
     onApplied: ((left: Int, top: Int, right: Int, bottom: Int) -> Unit)? = null,
 ) {
-    val baseLeft = paddingLeft
-    val baseTop = paddingTop
-    val baseRight = paddingRight
-    val baseBottom = paddingBottom
+    val base = systemBarInsetBasePadding()
+    val baseLeft = base.left
+    val baseTop = base.top
+    val baseRight = base.right
+    val baseBottom = base.bottom
 
     fun apply(insets: WindowInsetsCompat) {
         val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -123,4 +128,20 @@ fun View.applySystemBarInsetPadding(
         insets
     }
     ViewCompat.getRootWindowInsets(this)?.let(::apply) ?: ViewCompat.requestApplyInsets(this)
+}
+
+/**
+ * The view's padding as it stood before any inset was added to it, remembered on the view itself.
+ *
+ * Read on every [applySystemBarInsetPadding] call and written only by the first one: the padding the
+ * later calls see is the previous call's own output, and measuring from that is what turns a repeated
+ * application into a compounding one.
+ */
+private fun View.systemBarInsetBasePadding(): Rect {
+    val remembered = getTag(R.id.systemBarInsetBasePadding) as? Rect
+    if (remembered != null) {
+        return remembered
+    }
+    return Rect(paddingLeft, paddingTop, paddingRight, paddingBottom)
+        .also { setTag(R.id.systemBarInsetBasePadding, it) }
 }

@@ -52,7 +52,9 @@ function Get-Findings {
     $path = Join-Path $PSScriptRoot "fixtures/$FixtureName"
     $tree = [xml](Get-Content -LiteralPath $path -Raw -Encoding UTF8)
     $out = @{ 'EDGE' = 0; 'CLIPPED' = 0; 'OFF-GLASS' = 0 }
-    foreach ($n in (@(Get-UiNodes $tree) | Where-Object { $_.leaf })) {
+    # Mirrors the clip-check verb's own filter, including the `labelled` half added by S1879 - a
+    # suite that selects a different set than the script proves nothing about the script.
+    foreach ($n in (@(Get-UiNodes $tree) | Where-Object { $_.leaf -and $_.labelled })) {
         $v = Get-ClipVerdict $n $watch
         if ($null -ne $v) { $out[$v.kind]++ }
     }

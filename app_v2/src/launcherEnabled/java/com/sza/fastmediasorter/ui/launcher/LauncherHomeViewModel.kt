@@ -115,6 +115,15 @@ class LauncherHomeViewModel @Inject constructor(
         .map { it.launcherDensityFactor }
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherDensityFactor)
 
+    /**
+     * S1904: how opaque a gadget's backdrop is drawn at rest. S1748 stored the setting and showed it in
+     * the launcher settings, but no renderer ever read it, so every value looked identical on screen.
+     */
+    val widgetBackdropAlpha: StateFlow<Float> = settingsRepository.getSettings()
+        .map { it.launcherWidgetBackdropAlpha }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherWidgetBackdropAlpha)
+
     val taskbarComposition: Flow<LauncherTaskbarComposition> = settingsRepository.getSettings()
         .map {
             LauncherTaskbarComposition(

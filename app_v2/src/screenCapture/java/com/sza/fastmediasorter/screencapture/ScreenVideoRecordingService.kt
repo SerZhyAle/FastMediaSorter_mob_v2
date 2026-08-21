@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.data.capture.LocalCaptureDestinationWriter
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
+import com.sza.fastmediasorter.util.CaptureFileNamer
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -44,9 +45,6 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -300,9 +298,11 @@ class ScreenVideoRecordingService : Service() {
     }
 
     private fun createTempFile(): File? = try {
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val dir = getExternalFilesDir(Environment.DIRECTORY_MOVIES) ?: filesDir
-        File(dir, "SCR_$timestamp.mp4").also { it.createNewFile() }
+        val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.SCREEN_VIDEO, ".mp4")
+        Timber.d("S1882: screen video output $fileName")
+        File(dir, fileName)
+            .also { it.createNewFile() }
     } catch (e: IOException) {
         Timber.e(e, "ScreenVideoRecordingService: temp file creation failed")
         null

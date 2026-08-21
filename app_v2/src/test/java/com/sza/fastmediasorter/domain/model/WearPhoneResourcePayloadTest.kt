@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.model
 
 import com.google.gson.Gson
 import com.google.gson.JsonParser
+import com.sza.fastmediasorter.domain.usecase.ListPhoneResourcePageUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -17,6 +18,7 @@ import java.lang.reflect.Modifier
 class WearPhoneResourcePayloadTest {
 
     private val gson = Gson()
+    private val envelopeCodec = WearEventEnvelopeCodec()
 
     /**
      * Anything whose name suggests a credential, a phone-local path, or raw exception text.
@@ -90,6 +92,33 @@ class WearPhoneResourcePayloadTest {
     }
 
     @Test
+    fun `full page thumbnail budget remains below data item limit when envelope encoded`() {
+        val page = WearPhoneResourcePage(
+            requestId = "req-thumbnail-budget",
+            status = WearPhoneResourceResponseStatus.OK,
+            items = listOf(
+                WearPhoneResourceItem(
+                    token = "t-thumbnail",
+                    name = "thumbnail.jpg",
+                    isDirectory = false,
+                    thumbnailBase64 = "x".repeat(
+                        ListPhoneResourcePageUseCase.MAX_PAGE_THUMBNAIL_CHARS
+                    )
+                )
+            )
+        )
+        val encoded = envelopeCodec.encode(
+            WearEventEnvelope(
+                eventType = "phone_resource_page",
+                sentAt = 1_700_000_000_000L,
+                data = gson.toJson(page).toByteArray(Charsets.UTF_8)
+            )
+        )
+
+        assertTrue(encoded.size <= MAX_DATA_ITEM_BYTES)
+    }
+
+    @Test
     fun `response correlation keeps the request id of its request`() {
         val request = WearPhoneResourceRequest(requestId = "req-3", kind = WearPhoneResourceRequestKind.ROOT)
         val page = WearPhoneResourcePage(
@@ -160,5 +189,9 @@ class WearPhoneResourcePayloadTest {
             .asJsonObject
 
         assertEquals(setOf("token", "name", "mimeType", "sizeBytes", "isDirectory"), json.keySet())
+    }
+
+    private companion object {
+        const val MAX_DATA_ITEM_BYTES = 100 * 1024
     }
 }

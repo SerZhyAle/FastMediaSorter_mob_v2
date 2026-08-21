@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
+import com.sza.fastmediasorter.wear.data.network.StreamNetworkHoldManager
+import com.sza.fastmediasorter.wear.data.network.WearNetworkChannelMonitorImpl
 import com.sza.fastmediasorter.wear.data.network.ftp.FtpConnectionTest
 import com.sza.fastmediasorter.wear.data.network.ftp.FtpDataSource
 import com.sza.fastmediasorter.wear.data.network.itunes.ITunesApiService
@@ -19,8 +21,10 @@ import com.sza.fastmediasorter.wear.data.repository.WearMediaRepositoryImpl
 import com.sza.fastmediasorter.wear.data.wear.AndroidWearSystemInfoDataSource
 import com.sza.fastmediasorter.wear.domain.repository.AlbumArtRepository
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import com.sza.fastmediasorter.wear.domain.repository.StreamNetworkHold
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearNetworkChannelMonitor
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearSystemInfoDataSource
 import dagger.Module
@@ -203,4 +207,14 @@ object WearAppModule {
     fun provideWearStreamChannelRepository(
         impl: com.sza.fastmediasorter.wear.data.repository.WearStreamChannelRepositoryImpl
     ): com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository = impl
+
+    @Provides
+    @Singleton
+    fun provideWearNetworkChannelMonitor(
+        impl: WearNetworkChannelMonitorImpl
+    ): WearNetworkChannelMonitor = impl
+
+    @Provides
+    @Singleton
+    fun provideStreamNetworkHold(impl: StreamNetworkHoldManager): StreamNetworkHold = impl
 }

@@ -477,15 +477,6 @@
                         app:str_title="@string/settings_secure_sensitive_screens_title"
                         app:str_subtitle="@string/settings_secure_sensitive_screens_summary" />
 
-                    <!-- Wear OS Companion (hidden when SUPPORT_WEAR_COMPANION=false). Width hugs the label per UI request. Help icon explains the feature. -->
-                    <LinearLayout android:id="@+id/containerWearCompanion" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnWearCompanion" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/wear_companion" app:icon="@drawable/ic_watch" app:iconGravity="start" />
-
-                        <ImageButton android:id="@+id/iconHelpWearCompanion" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_wear_companion_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
-
-                    </LinearLayout>
-
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

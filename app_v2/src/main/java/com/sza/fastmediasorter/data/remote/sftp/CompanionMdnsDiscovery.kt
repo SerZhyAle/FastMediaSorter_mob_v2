@@ -153,6 +153,12 @@ class CompanionMdnsDiscovery @Inject constructor(
         if (resolveInFlight) return
         val next = resolveQueue.pollFirst() ?: return
         resolveInFlight = true
+        // S1776 ADR-2: resolveService is deprecated in favour of registerServiceInfoCallback
+        // (API 34+), but that replacement is a CONTINUOUS callback with an explicit unregister -
+        // a structural rewrite of this one-shot resolve queue - and this file must keep the
+        // resolveService path for API 23-33 regardless. A second model in one file adds cost
+        // without user benefit, so the one-shot path stays, deliberately.
+        @Suppress("DEPRECATION")
         manager.resolveService(
             next,
             object : NsdManager.ResolveListener {

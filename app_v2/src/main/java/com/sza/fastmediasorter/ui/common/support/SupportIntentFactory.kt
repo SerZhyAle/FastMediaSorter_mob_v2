@@ -32,6 +32,12 @@ object SupportIntentFactory {
     private const val COMPANION_PUBLISH_GUIDE_URL =
         "https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html"
     private const val COMPANION_HOME_URL = "https://serzhyale.github.io/FastMediaSorter_Lite/"
+    private const val WEAR_INSTALL_EN =
+        "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/wear-install.html"
+    private const val WEAR_INSTALL_RU =
+        "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/wear-install-ru.html"
+    private const val WEAR_INSTALL_UK =
+        "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/wear-install-uk.html"
 
     /**
      * Resolve a canonical [SupportDestination] into a launchable [Intent].
@@ -62,6 +68,13 @@ object SupportIntentFactory {
 
     /** Landing page of the Windows companion ("Fast Media Sorter for Windows"). */
     fun companionHomeUrl(): String = COMPANION_HOME_URL
+
+    /** S1883: locale-aware URL for the "put FastMedia on your watch" guide. */
+    fun wearInstallGuideUrl(context: Context): String = when (LocaleHelper.getLanguage(context)) {
+        "ru" -> WEAR_INSTALL_RU
+        "uk" -> WEAR_INSTALL_UK
+        else -> WEAR_INSTALL_EN
+    }
 
     private fun openHelp(context: Context): Intent =
         Intent(Intent.ACTION_VIEW, Uri.parse(helpUrl(context)))

@@ -76,7 +76,6 @@
         @{ route = 'clear';   reason = 'built-in Claude Code CLI command - no repo command file exists' }
         @{ route = 'loop';    reason = 'plugin-provided skill, not a repo command file' }
         @{ route = 'run';     reason = 'plugin-provided skill, not a repo command file' }
-        @{ route = 'arc';     reason = 'chat alias for /spec-arc - CLAUDE.md section 3 states it has no command file' }
         @{ route = 'ns';      reason = 'retired command folded into /skill-fix (S1338 phase 07), cited historically' }
         @{ route = 'name';    reason = 'documentation metavariable - "every /name is .claude/commands/<name>.md"' }
         @{ route = 'proc';    reason = 'the Linux /proc filesystem, cited for VmHWM in docs/DEV_OPS.md - not a command route' }

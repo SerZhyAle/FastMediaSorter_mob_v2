@@ -148,10 +148,25 @@ internal class VideoPlayerErrorHandler(
         }
         // --- end Variant B ---
 
+        val isUnrecognizedInput = generateSequence<Throwable>(error) { it.cause }
+            .any { it.javaClass.simpleName == "UnrecognizedInputFormatException" }
+
         val isFormatError = error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED ||
             error.errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED ||
             error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ||
-            error.errorCode == PlaybackException.ERROR_CODE_DECODING_FAILED
+            error.errorCode == PlaybackException.ERROR_CODE_DECODING_FAILED ||
+            isUnrecognizedInput
+
+        if (isFormatError && manager.currentFilePath != null) {
+            val activity = manager.context as? com.sza.fastmediasorter.ui.player.PlayerActivity
+            val currentFile = activity?.viewModel?.state?.value?.currentFile
+            val uri = android.net.Uri.parse(manager.currentFilePath)
+            val pos = manager.lastPlaybackPosition
+            if (activity != null && currentFile != null && activity.tryAltEngineFallback(currentFile, uri, pos)) {
+                Timber.d("S1060: VideoPlayerErrorHandler: AltEngine fallback initiated for %s", currentFile.name)
+                return true
+            }
+        }
 
         // MediaPlayer cannot handle network protocols (smb://, sftp://, ftp://, etc.)
         // setDataSource() with such URIs fails immediately (what=1, extra=Integer.MIN_VALUE).

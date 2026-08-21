@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="browse_media_type_disabled">Ce type de média est désactivé dans les paramètres. Activez-le là-bas.</string>
+    <string name="browse_no_media_files">Aucun fichier multimédia trouvé. Essayez un autre dossier ou type de média.</string>
+    <string name="browse_network_source_not_found">Cette source réseau n\'est plus disponible. Revenez et choisissez-en une autre.</string>
+    <string name="browse_network_connection_failed">Impossible de se connecter à cette source. Vérifiez la connexion et réessayez.</string>
+    <string name="browse_load_failed">Impossible de charger les fichiers. Réessayez.</string>
+</resources>

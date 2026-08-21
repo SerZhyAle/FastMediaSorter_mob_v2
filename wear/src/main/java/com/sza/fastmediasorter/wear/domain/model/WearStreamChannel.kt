@@ -15,5 +15,13 @@ data class WearStreamChannel(
     @SerializedName("topic") val topic: String? = null,
     @SerializedName("language") val language: String? = null,
     @SerializedName("country") val country: String? = null,
-    @SerializedName("access") val access: String? = null
-)
+    @SerializedName("access") val access: String? = null,
+    // S1799: null = catalog row (every pre-existing stored file reads as null); ORIGIN_PHONE marks a
+    // row transferred from the phone. Gson fills absent JSON fields with null regardless of Kotlin
+    // defaults, so null-means-catalog is the only shape already-shipped channels.json files satisfy.
+    @SerializedName("origin") val origin: String? = null
+) {
+    companion object {
+        const val ORIGIN_PHONE = "PHONE"
+    }
+}

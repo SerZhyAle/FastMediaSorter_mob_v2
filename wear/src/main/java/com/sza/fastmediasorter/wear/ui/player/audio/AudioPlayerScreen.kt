@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.player.audio
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -61,6 +62,7 @@ import androidx.wear.compose.material.Text
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -220,6 +222,11 @@ private fun AudioPlayerContent(
         item {
             TrackInfoSection(uiState = uiState)
         }
+        uiState.channelReason?.let { reason ->
+            item {
+                StreamChannelNotice(reason = reason)
+            }
+        }
         // S1701: the volume readout, present only while the bezel is being turned and for a moment
         // after. It is its own item rather than an overlay so it cannot displace the control rows or
         // the progress bar, and nothing about it runs while it is hidden - strategic 3.2 protects the
@@ -317,6 +324,32 @@ private fun TrackInfoSection(uiState: AudioPlayerUiState) {
             )
         }
     }
+}
+
+@Composable
+private fun StreamChannelNotice(reason: StreamChannelReason) {
+    val messageRes = reason.toMessageRes() ?: return
+    val message = stringResource(messageRes)
+    Text(
+        text = message,
+        style = MaterialTheme.typography.caption2,
+        color = MaterialTheme.colors.primary,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colors.surface.copy(alpha = 0.85f))
+            .padding(6.dp)
+    )
+}
+
+@StringRes
+private fun StreamChannelReason.toMessageRes(): Int? = when (this) {
+    StreamChannelReason.NARROW_LINK -> R.string.wear_stream_channel_narrow
+    StreamChannelReason.NO_LINK -> R.string.wear_stream_channel_offline
+    StreamChannelReason.UNVALIDATED_LINK -> R.string.wear_stream_channel_unverified
+    StreamChannelReason.BANDWIDTH_UNKNOWN -> null
 }
 
 /**

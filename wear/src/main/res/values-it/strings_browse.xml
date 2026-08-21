@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="browse_media_type_disabled">Questo tipo di file multimediale è disattivato nelle impostazioni. Attivalo lì.</string>
+    <string name="browse_no_media_files">Nessun file multimediale trovato. Prova un\'altra cartella o un altro tipo di contenuto.</string>
+    <string name="browse_network_source_not_found">Questa sorgente di rete non è più disponibile. Torna indietro e scegli un\'altra sorgente.</string>
+    <string name="browse_network_connection_failed">Impossibile connettersi a questa sorgente. Controlla la connessione e riprova.</string>
+    <string name="browse_load_failed">Impossibile caricare i file. Riprova.</string>
+</resources>

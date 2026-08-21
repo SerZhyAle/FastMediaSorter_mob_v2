@@ -44,6 +44,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
@@ -101,10 +102,10 @@ fun PhoneResourceScreen(
                 listState = listState,
                 viewMode = fileListViewMode,
                 thumbnails = thumbnails,
-                titleRes = titleResFor(viewModel.mediaType),
+                title = current.title,
                 openStatusRes = openOutcome.toStatusRes(),
                 onEntryClick = { entry ->
-                    if (entry.isDirectory) viewModel.openFolder(entry.token) else viewModel.openFile(entry)
+                    if (entry.isDirectory) viewModel.openFolder(entry.token, entry.name) else viewModel.openFile(entry)
                 }
             )
 
@@ -133,7 +134,7 @@ private fun PhoneResourceList(
     listState: ScalingLazyListState,
     viewMode: WearViewMode,
     thumbnails: Map<String, WearThumbnail>,
-    @StringRes titleRes: Int,
+    title: ScreenTitle,
     @StringRes openStatusRes: Int?,
     onEntryClick: (WearPhoneResourceItem) -> Unit
 ) {
@@ -148,8 +149,12 @@ private fun PhoneResourceList(
             contentPadding = wearScreenInsets()
         ) {
             item {
+                val titleText = when (title) {
+                    is ScreenTitle.Text -> title.value
+                    is ScreenTitle.Resource -> stringResource(title.id)
+                }
                 Text(
-                    text = stringResource(titleRes),
+                    text = titleText,
                     style = MaterialTheme.typography.title3,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -345,20 +350,6 @@ private fun playerRouteFor(fileId: Long, mimeType: String): String = when {
     mimeType.startsWith("image/") -> WearRoutes.imageViewer(fileId)
     mimeType.startsWith("video/") -> WearRoutes.videoPlayer(fileId)
     else -> WearRoutes.audioPlayer(fileId)
-}
-
-/**
- * S1846: the screen is titled by the chip that opened it, so a filtered list is not labelled "Phone"
- * like the unfiltered one. The labels are the chips' own strings rather than new keys - a second
- * wording for the same word is how two screens start disagreeing about what they show.
- */
-@StringRes
-private fun titleResFor(mediaType: String?): Int = when (mediaType) {
-    "photos" -> R.string.wear_phone_images
-    "videos" -> R.string.wear_phone_video
-    "music" -> R.string.wear_phone_audio
-    "documents" -> R.string.wear_phone_documents
-    else -> R.string.phone_resource_title
 }
 
 private fun WearPhoneResourceResponseStatus?.toMessageRes(): Int = when (this) {

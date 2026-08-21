@@ -199,6 +199,12 @@ Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSet
 }
 
 JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSetHudQuadDistance(
+        JNIEnv* /*env*/, jobject /*thiz*/, jfloat distanceMeters) {
+    fms::xr::xr_session_set_hud_quad_distance(distanceMeters);
+}
+
+JNIEXPORT void JNICALL
 Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSetHudVisible(
         JNIEnv* /*env*/, jobject /*thiz*/, jboolean visible) {
     fms::xr::xr_session_set_hud_visible(visible == JNI_TRUE);

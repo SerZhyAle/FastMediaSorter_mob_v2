@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.player.audio
 
+import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 
 /**
@@ -35,7 +36,15 @@ data class AudioPlayerUiState(
     /** S1866: parsed track title from MediaStore or ExoPlayer ID3 tags. */
     val trackTitle: String? = null,
     /** S1866: parsed artist name from MediaStore or ExoPlayer ID3 tags. */
-    val artistName: String? = null
+    val artistName: String? = null,
+    /**
+     * S1728: why the network channel affected this stream, or null for "say nothing".
+     *
+     * Null is the normal case by design - the owner's ruling is that the player speaks only when the
+     * channel actually stopped or disturbed a stream. A reason rather than a message, because the
+     * screen owns the wording and the locale.
+     */
+    val channelReason: StreamChannelReason? = null
 ) {
     val positionText: String
         get() = if (setSize > 0) "${setIndex + 1}/$setSize" else ""

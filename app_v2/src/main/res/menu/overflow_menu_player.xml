@@ -97,7 +97,7 @@
         android:title="@string/google_lens"
         app:showAsAction="never" />
 
-    <!-- OCR (PDF) -->
+    <!-- OCR (PDF / EPUB / Office / image - see CommandPanelLayoutPlanner OCR_* entries) -->
     <item
         android:id="@+id/menu_ocr"
         android:icon="@drawable/ic_ocr"

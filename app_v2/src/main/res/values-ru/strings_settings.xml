@@ -258,4 +258,7 @@
     <string name="pref_resource_grid_cell_size_large">Большие</string>
     <string name="settings_enable_system_info">Сведения о системе</string>
     <string name="settings_enable_system_info_summary">Показывать сведения о системе в панели и меню программ</string>
+    <string name="settings_wear_group_title">Wear OS</string>
+    <string name="settings_wear_group_description">Включите, если у вас есть часы на Wear OS. Компаньон открывается отсюда и решает, чем этот телефон делится с часами.</string>
+    <string name="settings_wear_install_guide_button">Как поставить на часы</string>
 </resources>

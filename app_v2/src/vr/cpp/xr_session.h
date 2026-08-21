@@ -111,6 +111,9 @@ void xr_session_queue_subtitle(const uint8_t* rgba, int width, int height);
 // S1228: verticalOffsetMeters places it relative to the gaze ray (0 = centred, negative = below).
 void xr_session_set_hud_quad_size(float widthMeters, float heightMeters, float verticalOffsetMeters);
 
+// S1271: set the HUD quad's gaze distance in meters (settings-panel control).
+void xr_session_set_hud_quad_distance(float distanceMeters);
+
 // S1232: show or hide the HUD quad. While hidden the trigger summons the strip back instead of
 // acting as the ray click, and the press that summons is consumed rather than dispatched.
 void xr_session_set_hud_visible(bool visible);

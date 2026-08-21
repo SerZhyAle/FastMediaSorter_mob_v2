@@ -1,6 +1,12 @@
 package com.sza.fastmediasorter.wear.ui.player.video
 
+import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+
+enum class VideoScaleMode {
+    FIT,
+    CROP_PAN
+}
 
 /**
  * UI state for the video player screen.
@@ -17,7 +23,18 @@ data class VideoPlayerUiState(
     // S1683: position inside the browsed set. Paging wraps around, so without a visible marker an
     // endlessly looping folder loses every landmark the user could navigate by.
     val setIndex: Int = 0,
-    val setSize: Int = 0
+    val setSize: Int = 0,
+    val scaleMode: VideoScaleMode = VideoScaleMode.FIT,
+    val panOffsetX: Float = 0f,
+    val panOffsetY: Float = 0f,
+    /**
+     * S1728: why the network channel affected this stream, or null for "say nothing".
+     *
+     * Null is the normal case by design - the owner's ruling is that the player speaks only when the
+     * channel actually stopped or disturbed a stream. A reason rather than a message, because the
+     * screen owns the wording and the locale.
+     */
+    val channelReason: StreamChannelReason? = null
 ) {
     val positionText: String
         get() = if (setSize > 0) "${setIndex + 1}/$setSize" else ""

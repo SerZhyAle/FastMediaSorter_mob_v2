@@ -53,16 +53,11 @@ $gradleArgs = @(
     "-Pchaquopy.enabled=true",
     "--no-configuration-cache"
 )
+. "$PSScriptRoot\..\utils\build-version-stamp.ps1"
 if ($AutoVersion) {
-    $now = Get-Date
-    $yy  = $now.ToString("yy")
-    $mon = $now.ToString("MM")
-    $dd  = $now.ToString("dd")
-    $HH  = $now.ToString("HH")
-    $mm  = $now.ToString("mm")
-
-    $versionCodeInt = [Convert]::ToInt32($now.ToString("yyMMddHH") + $mm[0])
-    $versionName = "$($yy[0]).$($yy[1])$($mon[0]).$($mon[1])$dd$($HH[0]).$($HH[1])$mm"
+    $stamp = Get-BuildVersionStamp
+    $versionCodeInt = $stamp.AppVersionCode
+    $versionName = $stamp.VersionName
     Write-Host "Version override: $versionName (code: $versionCodeInt)" -ForegroundColor Green
     $gradleArgs += @(
         "-Pfms.versionCode=$versionCodeInt",
@@ -114,6 +109,18 @@ if (!(Test-Path -Path $downloadsDir)) {
     New-Item -ItemType Directory -Path $downloadsDir | Out-Null
 }
 $destName = "FastMediaSorter_nolegal_debug.apk"
+# Judge what was produced, not what was intended. A packaging path that lost its version
+# property still writes a fresh file - only the artifact's own metadata shows that the
+# version inside it belongs to an older build (S1873). Checked before the copy, because the
+# copy is what puts it in DOWNLOADS and on Google Drive.
+if ($AutoVersion) {
+    & (Join-Path $PSScriptRoot "..\quality\assert-artifact-version-fresh.ps1") -Path $apkDir
+    if ($LASTEXITCODE -eq 1) {
+        Write-Host "Refusing to distribute an artifact whose version is not its own." -ForegroundColor Red
+        exit 1
+    }
+}
+
 Copy-Item -Path $apkPath -Destination "$downloadsDir\$destName" -Force
 Write-Host "APK copied to $downloadsDir\$destName" -ForegroundColor Green
 

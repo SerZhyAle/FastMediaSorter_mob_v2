@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.DefaultDispatcher
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
@@ -20,6 +21,7 @@ import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
+import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ClearDownloadedStreamsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
@@ -54,6 +56,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -107,6 +110,11 @@ class StreamsViewModel @Inject constructor(
     // S1502: the catalog pass runs here, not on the main thread. Injected rather than hardcoded so
     // the dispatcher can be swapped for a deterministic one in a test.
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    // S1799: gates the per-channel "Send to watch" command on the build's watch bridge (Rule 14
+    // surface - BuildConfig is never read here).
+    private val mediaCapabilities: MediaCapabilities,
+    // S1799: Lazy - the send path is cold until the user actually invokes the command (Rule 18).
+    private val sendStreamToWatchUseCase: dagger.Lazy<SendStreamToWatchUseCase>,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -129,6 +137,34 @@ class StreamsViewModel @Inject constructor(
      */
     fun isFavoriteChannel(source: StreamSourceEntity): Boolean =
         favoriteStreamIdentities.value.contains(favoritesUseCase.channelIdentity(source))
+
+    /**
+     * S1799: the canonical companion gate - the user's setting AND the build's watch bridge
+     * (MainActivity ADR-1 shape). Either alone would offer a command that cannot run.
+     */
+    fun isWearSendAvailable(): Boolean =
+        settings.value.enableWearCompanion && mediaCapabilities.supportsWearCompanion
+
+    /** S1799: sends one channel to the watch and reports the outcome as a one-shot message. */
+    fun sendStreamToWatch(source: StreamSourceEntity) {
+        Timber.d("S1799: send to watch requested for ${source.url}")
+        viewModelScope.launch {
+            val outcome = sendStreamToWatchUseCase.get()(source.title, source.url, source.mediaKind)
+            _events.send(StreamsEvent.Message(outcome.toMessageRes()))
+        }
+    }
+
+    @StringRes
+    private fun SendStreamToWatchUseCase.Outcome.toMessageRes(): Int = when (this) {
+        is SendStreamToWatchUseCase.Outcome.Delivered ->
+            if (updated) R.string.stream_send_to_watch_updated else R.string.stream_send_to_watch_done
+
+        SendStreamToWatchUseCase.Outcome.WatchUnavailable ->
+            R.string.stream_send_to_watch_watch_unavailable
+
+        SendStreamToWatchUseCase.Outcome.NoReply -> R.string.stream_send_to_watch_no_reply
+        is SendStreamToWatchUseCase.Outcome.Error -> R.string.stream_send_to_watch_failed
+    }
 
     // S1502: play outcome per channel id. Deliberately NOT part of StreamsUiState - folding it into
     // the combined state would put a per-probe signal back on the per-keystroke catalog pass that

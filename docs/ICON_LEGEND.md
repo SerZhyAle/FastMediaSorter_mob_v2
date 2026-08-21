@@ -57,6 +57,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Take a photo and OCR-translate |
 | <img src="icons/svg/ic_camera_send_to.svg" alt="ic_camera_send_to" width="24" height="24"> | Take a photo and send to.. |
 | <img src="icons/svg/ic_lock.svg" alt="ic_lock" width="24" height="24"> | VPN |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear Companion |
 | <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Wi-Fi |
 | <img src="icons/svg/ic_wifi_tethering.svg" alt="ic_wifi_tethering" width="24" height="24"> | Wireless networks |
 
@@ -87,6 +88,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Operating system interaction |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Video and player settings |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Video recording |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear OS |
 
 ## Settings options
 

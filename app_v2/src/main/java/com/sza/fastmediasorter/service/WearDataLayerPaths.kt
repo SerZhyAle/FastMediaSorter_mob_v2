@@ -40,6 +40,12 @@ object WearDataLayerPaths {
     /** Message, phone → watch. Answers one log report - accepted, or refused with a reason. */
     const val LOG_REPORT_ACK = "/fms/phone/log_report_ack"
 
+    /** Message, phone → watch. Carries one stream channel description to store on the watch. */
+    const val STREAM_TRANSFER = "/fms/phone/stream_transfer"
+
+    /** Message, watch → phone. Carries the transfer outcome for one stream channel. */
+    const val STREAM_TRANSFER_ACK = "/fms/watch/stream_transfer_ack"
+
     // --- WearEventEnvelope.eventType constants ---
 
     /** eventType value for SETTINGS_PUSH envelopes. */
@@ -59,4 +65,7 @@ object WearDataLayerPaths {
 
     /** eventType value for PHONE_RESOURCE_PAGE envelopes. */
     const val EVENT_PHONE_RESOURCE_PAGE = "PHONE_RESOURCE_PAGE"
+
+    /** eventType value for STREAM_TRANSFER envelopes. */
+    const val EVENT_STREAM_TRANSFER = "STREAM_TRANSFER"
 }

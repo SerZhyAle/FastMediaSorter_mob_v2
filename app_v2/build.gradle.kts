@@ -1579,6 +1579,12 @@ dependencies {
     "noLegalImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
     "legacyImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
     "vrImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
+    // S1060: libVLC software decoding of patented codecs + DVD/BD ISO playback. noLegal ONLY -
+    // the flavor boundary is the ticket's legal premise (patents/DMCA), so this must never move
+    // to implementation(). Ships prebuilt .so per ABI; noLegal abiFilters govern which are packaged.
+    // 3.7.5, not the spec's 3.6.0 pin: 3.6.0's libvlc.so is 4 KB-aligned and fails the repo's
+    // 16 KB page-alignment rule; 3.7.5 ships 16 KB-aligned .so for arm64-v8a and x86_64 (measured).
+    "noLegalImplementation"("org.videolan.android:libvlc-all:3.7.5")
     // S0305: MIDI playback is available only in flavors that support audio.
     "standardImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
     "noLegalImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")

@@ -11,4 +11,10 @@ interface WearStreamChannelRepository {
     fun observeChannels(): Flow<List<WearStreamChannel>>
     suspend fun saveChannels(channels: List<WearStreamChannel>)
     suspend fun clear()
+
+    /**
+     * S1799: stores [channel], matching an existing row by `url` - the store is deduplicated by url.
+     * Returns true when the channel was added, false when the existing row was replaced.
+     */
+    suspend fun upsertChannel(channel: WearStreamChannel): Boolean
 }

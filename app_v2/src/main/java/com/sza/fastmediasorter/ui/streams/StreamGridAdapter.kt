@@ -65,6 +65,10 @@ class StreamGridAdapter(
     private val onToggleFavorite: (StreamSourceEntity) -> Unit = {},
     private val favoritesEnabled: () -> Boolean = { false },
     private val isFavorite: (StreamSourceEntity) -> Boolean = { false },
+    // S1799: send a manual channel to the watch (mirrors StreamSourceAdapter). The gate is a
+    // provider so the menu reflects the current Wear Companion setting without an adapter rebuild.
+    private val onSendToWatch: (StreamSourceEntity) -> Unit = {},
+    private val wearSendAvailable: () -> Boolean = { false },
     private val frameProvider: (url: String) -> Bitmap?,
     private val requestCapture: (url: String) -> Unit,
     private val faviconResolver: (String) -> Int? = { null },
@@ -399,7 +403,9 @@ class StreamGridAdapter(
         canRun: (StreamMenuAction) -> Boolean,
     ) {
         val pinnedRows = currentList.filter { it.pinned }
-        val facts = StreamMenuBinder.factsOf(source, pinnedRows, favoritesEnabled(), isFavorite(source))
+        val facts = StreamMenuBinder.factsOf(
+            source, pinnedRows, favoritesEnabled(), isFavorite(source), wearSendAvailable()
+        )
         StreamMenuBinder.build(menu, source, pinnedRows, facts, canRun)
     }
 
@@ -419,6 +425,7 @@ class StreamGridAdapter(
             StreamMenuAction.TOGGLE_FAVORITE -> onToggleFavorite(source)
             StreamMenuAction.ADD_SHORTCUT -> onAddShortcut(source)
             StreamMenuAction.EDIT -> onEdit(source)
+            StreamMenuAction.SEND_TO_WATCH -> onSendToWatch(source)
             StreamMenuAction.ABOUT_CHANNEL -> onAboutChannel(source)
             StreamMenuAction.SHARE_LINK -> onShareLink(source)
             StreamMenuAction.REMOVE -> onRemove(source)

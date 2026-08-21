@@ -215,48 +215,19 @@ class EncryptedCookieStore @Inject constructor(
         prefs.edit().putString(key, updated).apply()
     }
 
-    @Deprecated("Use loadForAccount(host, accountId)", level = DeprecationLevel.WARNING)
-    fun loadFor(domain: String): List<HttpCookie> = try {
-        val best = pickBestAccount(domain)
-        if (best != null) loadCookiesInternal(keyForAccount(domain, best.accountId), domain)
-        else emptyList()
+    /**
+     * S1776: account-aware read with the legacy best-account fallback. A caller that knows which
+     * account the request rode passes its id; null keeps the pre-S1776 behaviour of picking the
+     * host's most-recently-used account.
+     */
+    fun loadForHostAccountOrBest(host: String, accountId: String?): List<HttpCookie> = try {
+        val id = accountId ?: pickBestAccount(host)?.accountId
+        if (id != null) loadCookiesInternal(keyForAccount(host, id), host) else emptyList()
     } catch (throwable: Throwable) {
         if (throwable is kotlinx.coroutines.CancellationException) throw throwable
         LinkDownloadTrace.verbose("fallback=cookie-store-empty reason=${throwable::class.simpleName}")
         emptyList()
     }
-
-    @Deprecated("Use saveForAccount(host, accountId, displayName, cookies)", level = DeprecationLevel.WARNING)
-    fun saveFor(domain: String, cookies: List<HttpCookie>) {
-        if (domain.isBlank()) return
-        saveForAccount(domain, LEGACY_ACCOUNT_ID, "", cookies)
-    }
-
-    @Deprecated("Use deleteForAccount(host, accountId)", level = DeprecationLevel.WARNING)
-    fun deleteFor(domain: String) {
-        val prefix = "$ACCT_PREFIX$domain:"
-        val keys = prefs.all.keys.filter { it.startsWith(prefix) }
-        if (keys.isEmpty()) return
-        val editor = prefs.edit()
-        keys.forEach { editor.remove(it) }
-        editor.apply()
-        LinkDownloadTrace.verbose("encrypted-cookie-store delete-all domain=$domain count=${keys.size}")
-    }
-
-    @Deprecated("Use listAllAccounts()", level = DeprecationLevel.WARNING)
-    fun listDomains(): List<String> =
-        prefs.all.keys
-            .filter { it.startsWith(ACCT_PREFIX) }
-            .mapNotNull { key ->
-                val body = key.removePrefix(ACCT_PREFIX)
-                val separator = body.indexOf(':')
-                if (separator < 0) null else body.substring(0, separator)
-            }
-            .distinct()
-            .sorted()
-
-    @Deprecated("Use AccountEntry.savedAt", level = DeprecationLevel.WARNING)
-    fun savedAt(domain: String): Instant? = pickBestAccount(domain)?.savedAt
 
     private fun saveDismissedInternal(host: String, storageAccountId: String, displayName: String) {
         if (host.isBlank()) return

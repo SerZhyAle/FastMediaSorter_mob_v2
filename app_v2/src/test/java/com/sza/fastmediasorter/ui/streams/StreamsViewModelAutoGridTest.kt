@@ -65,6 +65,9 @@ class StreamsViewModelAutoGridTest {
             // state without waiting on a real background thread.
             defaultDispatcher = dispatcherRule.testDispatcher,
             clearDownloadedStreams = mockk(relaxed = true),
+            // S1799: wear-send gate and use case are inert in this grid-focused test.
+            mediaCapabilities = mockk(relaxed = true),
+            sendStreamToWatchUseCase = mockk(relaxed = true),
         )
     }
 

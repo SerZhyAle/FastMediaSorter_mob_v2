@@ -56,6 +56,7 @@ class LauncherDesktopGeometryManager(
             viewModel.editMode.value,
             currentViewportRows(),
             viewModel.sections.collapsed.value,
+            viewModel.widgetBackdropAlpha.value,
         )
     }
 

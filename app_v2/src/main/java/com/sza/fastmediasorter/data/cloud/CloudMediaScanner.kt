@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.data.cloud
 
 import android.content.Context
-import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -12,6 +11,7 @@ import com.sza.fastmediasorter.domain.usecase.MediaScanner
 import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -184,6 +184,12 @@ class CloudMediaScanner @Inject constructor(
                 compareBy<MediaFile> { !it.isDirectory }
                     .thenBy(String.CASE_INSENSITIVE_ORDER) { it.name }
             )
+        } catch (e: CancellationException) {
+            // First arm on purpose: CancellationException extends IllegalStateException, so the
+            // authentication arm below takes every cancellation and reports normal teardown as a
+            // failed scan - and hands back an empty folder as if it were the answer (S1889).
+            Timber.d("S1889: cloud scan cancelled - rethrowing instead of returning an empty folder")
+            throw e
         } catch (e: IllegalStateException) {
             // Re-throw authentication errors to be handled by ViewModel
             if (e.message?.contains("Interactive sign-in required", ignoreCase = true) == true ||
@@ -195,7 +201,6 @@ class CloudMediaScanner @Inject constructor(
                 emptyList()
             }
         } catch (e: Exception) {
-            e.rethrowIfCancellation()
             Timber.e(e, "Error scanning cloud folder")
             emptyList()
         }
@@ -232,6 +237,12 @@ class CloudMediaScanner @Inject constructor(
             val hasMore = end < allFiles.size
             
             MediaFilePage(pageFiles, hasMore)
+        } catch (e: CancellationException) {
+            // First arm on purpose: CancellationException extends IllegalStateException, so the
+            // authentication arm below takes every cancellation and reports normal teardown as a
+            // failed scan - and hands back an empty folder as if it were the answer (S1889).
+            Timber.d("S1889: cloud scan cancelled - rethrowing instead of returning an empty folder")
+            throw e
         } catch (e: IllegalStateException) {
             // Re-throw authentication errors to be handled by ViewModel
             if (e.message?.contains("Interactive sign-in required", ignoreCase = true) == true ||
@@ -243,7 +254,6 @@ class CloudMediaScanner @Inject constructor(
                 MediaFilePage(emptyList(), false)
             }
         } catch (e: Exception) {
-            e.rethrowIfCancellation()
             Timber.e(e, "Error scanning cloud folder paged")
             MediaFilePage(emptyList(), false)
         }

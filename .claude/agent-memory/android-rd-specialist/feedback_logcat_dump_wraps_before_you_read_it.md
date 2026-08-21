@@ -25,3 +25,12 @@ say in the verdict where the capture starts relative to the first action - a cap
 after the action under test is not evidence about it. When a count matches an expectation
 suspiciously well, check the capture's first timestamp before believing it. Related:
 [[feedback_avd_evidence_traps_width_and_logs]], [[feedback_am_start_refused_for_non_exported]].
+
+
+## The opposite mistake, same day (2026-08-21)
+
+Harvesting too EARLY produces the same symptom as wrapping - zero matches - and reads as "the code does not log".
+
+`am start` returns as soon as the intent is dispatched, not when the activity has run. Harvesting immediately after it captured a log whose **last line was timestamped four seconds before the first probe**. Two separate passes reported "0 matching lines" for probes that were present and correct; the third found all five.
+
+**How to apply:** after launching, give the app a few seconds before harvesting, and check the **timestamp of the last line in the capture file** against the moment you expect the log - not just the match count the verb prints. A capture that ends before your event started cannot contain it, and the count will not tell you that.

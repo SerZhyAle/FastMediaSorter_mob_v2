@@ -75,7 +75,6 @@ class StreamSourceRepository @Inject constructor(
                 atMillis = System.currentTimeMillis()
             )
             dao.pin(id, newSortIndex)
-            Timber.d("S1832: pin written identity=%s sortIndex=%d", identity, newSortIndex)
         }
 
     /** S0938: snapshot of the pinned set in display order, used to compute a reorder move. */
@@ -151,14 +150,7 @@ class StreamSourceRepository @Inject constructor(
      */
     suspend fun getByIdentityOrId(key: String): StreamSourceEntity? {
         val byIdentity = dao.getByIdentity(key)
-        val resolved = byIdentity ?: dao.getById(key)
-        val form = when {
-            byIdentity != null -> "identity"
-            resolved != null -> "legacy-id"
-            else -> "none"
-        }
-        Timber.d("S1832: launcher cell resolved key=%s form=%s", key, form)
-        return resolved
+        return byIdentity ?: dao.getById(key)
     }
 
     suspend fun markPlayed(id: String, atMillis: Long) = dao.markPlayed(id, atMillis)
@@ -283,9 +275,6 @@ class StreamSourceRepository @Inject constructor(
             // purpose; what is bounded is the part the user never asked for - an unpinned row carrying a
             // stale OK/FAIL bullet. A pinned row is never pruned, whatever its age.
             pruneStaleUserState()
-            val pinnedNow = dao.pinnedSnapshot().size
-            val counts = "added=$added updated=$updated pruned=${urlsToDelete.size} pinned=$pinnedNow"
-            Timber.d("S1832: merge done - %s", counts)
             CatalogMergeResult(added = added, updated = updated, removed = urlsToDelete.size)
         }
 

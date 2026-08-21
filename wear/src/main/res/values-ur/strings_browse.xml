@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="browse_media_type_disabled">یہ میڈیا قسم ترتیبات میں بند ہے۔ اسے ترتیبات میں فعال کریں۔</string>
+    <string name="browse_no_media_files">کوئی میڈیا فائل نہیں ملی۔ کوئی دوسرا فولڈر یا میڈیا قسم آزمائیں۔</string>
+    <string name="browse_network_source_not_found">یہ نیٹ ورک ماخذ اب دستیاب نہیں ہے۔ واپس جائیں اور کوئی دوسرا ماخذ منتخب کریں۔</string>
+    <string name="browse_network_connection_failed">اس ماخذ سے رابطہ نہیں ہو سکا۔ کنکشن چیک کریں اور دوبارہ کوشش کریں۔</string>
+    <string name="browse_load_failed">فائلیں لوڈ نہیں ہو سکیں۔ دوبارہ کوشش کریں۔</string>
+</resources>

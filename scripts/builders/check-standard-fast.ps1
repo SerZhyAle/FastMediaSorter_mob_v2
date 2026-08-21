@@ -89,6 +89,19 @@ foreach ($property in $SystemProperty) {
     $null = $gradleArgs.Add("-D$trimmed")
 }
 
+if ($Mode -eq "Assemble") {
+    # -Mode Assemble is the only mode here that packages a real, installable APK. Left unstamped it
+    # ships the checked-in constant, so the artifact reports the version of whatever release last
+    # touched build.gradle.kts - on 2026-08-21 that installed a watch build reading six days older
+    # than the one it replaced (S1873). Every compile-only mode keeps the frozen value on purpose.
+    . "$PSScriptRoot\..\utils\build-version-stamp.ps1"
+    $stamp = Get-BuildVersionStamp
+    $assembleVersionCode = if ($Module -eq 'wear') { $stamp.WearVersionCode } else { $stamp.AppVersionCode }
+    $null = $gradleArgs.Add("-Pfms.versionCode=$assembleVersionCode")
+    $null = $gradleArgs.Add("-Pfms.versionName=$($stamp.VersionName)")
+    Write-Host "Version override: $($stamp.VersionName) (code: $assembleVersionCode)" -ForegroundColor Green
+}
+
 if ($Tests) {
     if ($Mode -ne "Unit") {
         throw "-Tests is supported only with -Mode Unit"

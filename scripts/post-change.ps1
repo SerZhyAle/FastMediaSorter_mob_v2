@@ -52,12 +52,13 @@
 #   comes to certify nothing at all.
 
 param(
-    [Parameter(Mandatory = $true, ParameterSetName = 'Single')][string]$File,
+    [string]$File,
     # S1338: a closure spans 4.34 files on average and 62% of closures span more
     # than one, so scoping the gates to a single -File certified roughly a
     # quarter of the change. Pass the whole changed set here; -File stays for
     # every existing caller and is folded into the same set.
-    [Parameter(Mandatory = $true, ParameterSetName = 'Multi')][string[]]$Files,
+    [string[]]$Files,
+    [string[]]$Deleted,
     [Parameter(Mandatory = $true)][string]$Target,
     [Parameter(Mandatory = $true)][string]$Description,
     [ValidateSet('Doc', 'Script', 'Config', 'Tooling', 'Kotlin', 'Xml', 'Mixed')]
@@ -89,14 +90,30 @@ $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 # that have no changed-set parameter.
 # S1184: `pwsh -File` binds `-Files a.kt,b.kt` as ONE array element, so the set has to be
 # comma-split here or the validation below rejects the whole CSV as a single missing path.
-$rawFiles = if ($PSCmdlet.ParameterSetName -eq 'Multi') { @($Files) } else { @($File) }
+if (-not [string]::IsNullOrWhiteSpace($File) -and $Files.Count -gt 0) {
+    Write-Error 'post-change: use either -File or -Files, not both.' -ErrorAction Continue
+    exit 2
+}
+$rawFiles = if ($Files.Count -gt 0) { @($Files) } else { @($File) }
 $changedFiles = @(
     $rawFiles |
         ForEach-Object { ([string]$_) -split ',' } |
         ForEach-Object { $_.Trim() } |
         Where-Object { $_ }
 )
-if (-not $File) { $File = $changedFiles[0] }
+$deletedFiles = @(
+    $Deleted |
+        ForEach-Object { ([string]$_) -split ',' } |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { $_ }
+)
+if ($changedFiles.Count + $deletedFiles.Count -eq 0) {
+    Write-Error 'post-change: provide -File, -Files or -Deleted.' -ErrorAction Continue
+    exit 2
+}
+if (-not $File) {
+    $File = if ($changedFiles.Count -gt 0) { $changedFiles[0] } else { $deletedFiles[0] }
+}
 
 # S1338: an unexpanded shell variable used to reach the gates as a literal path
 # and every gate then found nothing to complain about, so the facade printed a
@@ -121,6 +138,21 @@ foreach ($candidate in $changedFiles) {
     }
     if (-not (Test-Path $probe)) {
         $badArgs += "$candidate (not found)"
+    }
+}
+foreach ($candidate in $deletedFiles) {
+    if ($candidate -match '[$%]') {
+        $badArgs += "$candidate (unexpanded shell variable)"
+        continue
+    }
+    $probe = if ([System.IO.Path]::IsPathRooted($candidate)) {
+        $candidate
+    }
+    else {
+        Join-Path $root $candidate
+    }
+    if (Test-Path $probe) {
+        $badArgs += "$candidate (named as deleted but still on disk)"
     }
 }
 if ($badArgs.Count -gt 0) {
@@ -350,7 +382,11 @@ $isResourceChange = ($resolvedChangeType -in @('Xml', 'Mixed')) -and $hasXmlReso
 # S1553: ChangeType describes the intended closure family, but the changed set decides whether
 # a source-specific gate has anything to inspect. This keeps Mixed valid for code-plus-strings
 # while making a build/config-plus-script set a cheap, honest closure.
-$runsCatalogSync = $isCodeChange
+$hasDeletedJvmSource = @($deletedFiles | Where-Object {
+        ($_ -replace '\\', '/') -match '(^|/)src/.*\.(kt|java)$'
+    }).Count -gt 0
+$catalogChangedFiles = @($changedFiles) + @($deletedFiles)
+$runsCatalogSync = $isCodeChange -or $hasDeletedJvmSource
 $runsStringsAudit = $isResourceChange -and $hasStringResource
 $runsStringFormatGate = $isResourceChange -and $hasStringResource
 $runsTicketLogAudit = $isCodeChange
@@ -1060,7 +1096,7 @@ if ($runsCatalogSync) {
     Invoke-Step "catalog-sync" {
         # S0848: incremental scan - only the changed file gets a fresh git last-touched;
         # the rest reuse their prior JSONL date, avoiding a per-file `git log` storm.
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/catalog_sync.ps1") -Module $Module -ChangedFiles ($changedFiles -join ',')
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/catalog_sync.ps1") -Module $Module -ChangedFiles ($catalogChangedFiles -join ',')
     }
 }
 else {
@@ -1080,12 +1116,18 @@ Invoke-Step "dev-log" {
     # on an unchanged tree 530 times in three weeks. Still ONE row per logical change (Rule 12
     # journalling granularity): the extra files go in the description, not in extra rows.
     $logDescription = $Description
-    if ($changedFiles.Count -gt 1) {
-        $others = @($changedFiles | Where-Object { $_ -ne $File })
+    $deletedLogEntries = @($deletedFiles | ForEach-Object { "$_ (deleted)" })
+    $logEntries = @($changedFiles) + $deletedLogEntries
+    $primaryLogEntry = if ($changedFiles.Count -gt 0) { $File } else { "$File (deleted)" }
+    if ($logEntries.Count -gt 1) {
+        $others = @($logEntries | Where-Object { $_ -ne $primaryLogEntry })
         # Cap the list: a 20-file close would otherwise write a row longer than the table it sits in.
         $shown = @($others | Select-Object -First 6)
         $suffix = if ($others.Count -gt $shown.Count) { ", +$($others.Count - $shown.Count) more" } else { '' }
-        $logDescription = "$Description [set of $($changedFiles.Count): $($shown -join ', ')$suffix]"
+        $logDescription = "$Description [set of $($logEntries.Count): $($shown -join ', ')$suffix]"
+    }
+    elseif ($deletedLogEntries.Count -gt 0) {
+        $logDescription = "$Description [deleted: $primaryLogEntry]"
     }
     & $pwsh -NoProfile -File (Join-Path $root "scripts/add_to_dev_log.ps1") $File $Target $logDescription
 }

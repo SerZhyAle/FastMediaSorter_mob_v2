@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.widget.registry
 
 import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProvider
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -191,6 +192,21 @@ class HomeWidgetCatalog @Inject constructor(
             descriptionRes = R.string.widget_scheduled_tasks_description,
             settingGate = { it.enableScheduledOperations },
         ),
+    ) + listOfNotNull(
+        runCatching {
+            val clsName = "com.sza.fastmediasorter.widget.NoLegalAccessibilityWidgetProvider"
+            Class.forName(clsName).asSubclass(AppWidgetProvider::class.java)
+        }.getOrNull()?.let { providerCls ->
+            HomeWidgetEntry(
+                providerClass = providerCls,
+                gadgetKey = "nolegal_accessibility_toggle",
+                gadgetSpanW = 1,
+                gadgetSpanH = 1,
+                labelRes = R.string.qs_tile_accessibility,
+                iconRes = R.drawable.ic_accessibility,
+                descriptionRes = R.string.qs_tile_accessibility,
+            )
+        }
     )
 
     /**

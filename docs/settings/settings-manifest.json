@@ -231,6 +231,16 @@
       "titleUk": "+ Додати"
     },
     {
+      "key": "btnDisableAccessibilityService",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Disable accessibility service",
+      "titleRu": "Отключить доступность",
+      "titleUk": "Вимкнути доступність"
+    },
+    {
       "key": "btnOpenAccessibilitySettings",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -249,6 +259,16 @@
       "titleEn": "Set as default",
       "titleRu": "Задать по-умолчанию",
       "titleUk": "Задати за замовчуванням"
+    },
+    {
+      "key": "btnOpenDevSettings",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Developer options",
+      "titleRu": "Настройки разработчика",
+      "titleUk": "Налаштування розробника"
     },
     {
       "key": "btnOpenEdgeGestureConfig",
@@ -319,6 +339,26 @@
       "titleEn": "Select resource..",
       "titleRu": "Выбрать ресурс..",
       "titleUk": "Вибрати ресурс.."
+    },
+    {
+      "key": "btnWearCompanion",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Wear Companion",
+      "titleRu": "Wear-компаньон",
+      "titleUk": "Wear-супутник"
+    },
+    {
+      "key": "btnWearInstallGuide",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "How to install on a watch",
+      "titleRu": "Как поставить на часы",
+      "titleUk": "Як встановити на годинник"
     },
     {
       "key": "buttonAddHomeWidget",
@@ -469,6 +509,16 @@
       "titleEn": "Video recording",
       "titleRu": "Видеосъёмка",
       "titleUk": "Відеозйомка"
+    },
+    {
+      "key": "headerWear",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Wear OS",
+      "titleRu": "Wear OS",
+      "titleUk": "Wear OS"
     },
     {
       "key": "rowCameraAskFilename",
@@ -1289,16 +1339,6 @@
       "titleEn": "User Guide",
       "titleRu": "Руководство пользователя",
       "titleUk": "Керівництво користувача"
-    },
-    {
-      "key": "btnWearCompanion",
-      "sectionId": "general",
-      "destination": "GENERAL",
-      "layout": "fragment_settings_general",
-      "kind": "BUTTON",
-      "titleEn": "Wear Companion",
-      "titleRu": "Wear-компаньон",
-      "titleUk": "Wear-супутник"
     },
     {
       "key": "etIconSize",

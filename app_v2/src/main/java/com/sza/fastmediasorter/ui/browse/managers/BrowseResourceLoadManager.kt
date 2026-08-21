@@ -531,13 +531,15 @@ class BrowseResourceLoadManager(
 
         val currentState = stateFlow.value
         loadingManager.loadFilesStandard(
-            resource = resource,
-            sortMode = currentState.sortMode,
-            sizeFilter = sizeFilter,
-            shouldStopScan = shouldStopScanRef,
-            showHiddenFiles = showHiddenFiles,
-            currentPath = currentState.currentPath,
-            isSubfolderMode = currentState.isSubfolderMode,
+            BrowseLoadingManager.StandardScanRequest(
+                resource = resource,
+                sortMode = currentState.sortMode,
+                sizeFilter = sizeFilter,
+                shouldStopScan = shouldStopScanRef,
+                showHiddenFiles = showHiddenFiles,
+                currentPath = currentState.currentPath,
+                isSubfolderMode = currentState.isSubfolderMode,
+            ),
             callbacks = callbacks
         )
     }

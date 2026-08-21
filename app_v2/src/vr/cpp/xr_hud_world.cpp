@@ -152,7 +152,7 @@ void xr_hud_init() {
     // S1228 (owner, in-headset 2026-07-27): that centring still holds for the diagnostic banner,
     // but the player panel must not sit on the film - it now asks for a negative offset via
     // xr_hud_set_quad_size. Default stays 0.0 so the banner placement is unchanged.
-    g_hudState.quad.center = {0.0f, g_hudState.overrideVerticalOffset, -1.5f};
+    g_hudState.quad.center = {0.0f, g_hudState.overrideVerticalOffset, -g_hudState.overrideDistance};
     g_hudState.quad.rot = {0.0f, 0.0f, 0.0f, 1.0f};
     
     g_hudState.targetCenter = g_hudState.quad.center;
@@ -181,6 +181,19 @@ void xr_hud_set_quad_size(float widthMeters, float heightMeters, float verticalO
     LOGD("xr_hud_set_quad_size: %.3fx%.3f m dy=%.3f", widthMeters, heightMeters, verticalOffsetMeters);
 }
 
+// S1271: requested from the JNI bridge (any thread). Same tear-safe contract as the size setter.
+// Clamped rather than rejected: a slider feeds this, and snapping to the nearest sane value is
+// the behaviour a drag past the end expects.
+void xr_hud_set_quad_distance(float distanceMeters) {
+    constexpr float kMinDistance = 0.8f;
+    constexpr float kMaxDistance = 3.0f;
+    const float clamped =
+        distanceMeters < kMinDistance ? kMinDistance
+        : (distanceMeters > kMaxDistance ? kMaxDistance : distanceMeters);
+    g_hudState.overrideDistance = clamped;
+    LOGD("xr_hud_set_quad_distance: %.2f m (requested %.2f)", clamped, distanceMeters);
+}
+
 // S1232: requested from the JNI bridge (any thread). A single bool is written whole; the render
 // thread picks it up next frame - same tear-safe contract as xr_hud_set_quad_size.
 void xr_hud_set_visible(bool visible) {
@@ -205,7 +218,7 @@ void xr_hud_update(const XrPosef& headPose, float deltaTime) {
     // vector so the strip stays below the gaze ray when the user looks up or down, rather than
     // hanging at a fixed world height.
     XrVector3f ergonomicOffset = rotate_vector(
-        headPose.orientation, {0.0f, g_hudState.overrideVerticalOffset, -1.5f});
+        headPose.orientation, {0.0f, g_hudState.overrideVerticalOffset, -g_hudState.overrideDistance});
     
     XrVector3f idealCenter{
         headPose.position.x + ergonomicOffset.x,

@@ -212,6 +212,105 @@ Assert-That 'U11 narrow catch -> 0' `
 
 Assert-That 'U12 empty text -> 0' ((Measure-SwallowedCancellationText '') -eq 0) 'expected 0'
 
+# S1889: kotlinx.coroutines.CancellationException is a typealias for java.util.concurrent's, which
+# extends IllegalStateException. An arm naming a supertype swallows cancellation without ever naming
+# it, and the shipped defect was U14's shape - a live guard rendered unreachable by the arm above it.
+# This rule read that file as clean for as long as both existed, so these cases exist to prove the
+# widened predicate fires rather than merely staying green.
+$supertypeAlone = @'
+class Foo {
+    suspend fun load() {
+        try {
+            fetch()
+        } catch (e: IllegalStateException) {
+            Timber.e(e, "failed")
+        }
+    }
+}
+'@
+Assert-That 'U13 lone IllegalStateException arm in a suspend fun -> 1' `
+    ((Measure-SwallowedCancellationText $supertypeAlone) -eq 1) "expected 1, got $(Measure-SwallowedCancellationText $supertypeAlone)"
+
+$guardBehindSupertype = @'
+class Foo {
+    suspend fun load() {
+        try {
+            fetch()
+        } catch (e: IllegalStateException) {
+            Timber.e(e, "failed")
+            emptyList()
+        } catch (e: Exception) {
+            e.rethrowIfCancellation()
+            Timber.e(e, "failed")
+            emptyList()
+        }
+    }
+}
+'@
+Assert-That 'U14 cured broad arm behind an uncured supertype arm -> 1' `
+    ((Measure-SwallowedCancellationText $guardBehindSupertype) -eq 1) "expected 1, got $(Measure-SwallowedCancellationText $guardBehindSupertype)"
+
+$supertypeCuredAtHead = @'
+class Foo {
+    suspend fun load() {
+        try {
+            fetch()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            Timber.e(e, "failed")
+        } catch (e: Exception) {
+            Timber.e(e, "failed")
+        }
+    }
+}
+'@
+Assert-That 'U15 supertype and broad arms under one head cure -> 0' `
+    ((Measure-SwallowedCancellationText $supertypeCuredAtHead) -eq 0) "expected 0, got $(Measure-SwallowedCancellationText $supertypeCuredAtHead)"
+
+$supertypeBlocking = @'
+class Foo {
+    fun parse() {
+        try {
+            decode()
+        } catch (e: IllegalStateException) {
+            Timber.e(e, "failed")
+        }
+    }
+}
+'@
+Assert-That 'U16 supertype arm in a blocking fun -> 0' `
+    ((Measure-SwallowedCancellationText $supertypeBlocking) -eq 0) "expected 0, got $(Measure-SwallowedCancellationText $supertypeBlocking)"
+
+$runtimeInCoroutine = @'
+class Foo {
+    suspend fun load() = withContext(Dispatchers.IO) {
+        try {
+            fetch()
+        } catch (exception: RuntimeException) {
+            Timber.e(exception, "failed")
+        }
+    }
+}
+'@
+Assert-That 'U17 RuntimeException arm inside withContext {} -> 1' `
+    ((Measure-SwallowedCancellationText $runtimeInCoroutine) -eq 1) "expected 1, got $(Measure-SwallowedCancellationText $runtimeInCoroutine)"
+
+$supertypeCuredByHelper = @'
+class Foo {
+    suspend fun load() {
+        try {
+            fetch()
+        } catch (e: IllegalStateException) {
+            e.rethrowIfCancellation()
+            Timber.e(e, "failed")
+        }
+    }
+}
+'@
+Assert-That 'U18 supertype arm opening with rethrowIfCancellation() -> 0' `
+    ((Measure-SwallowedCancellationText $supertypeCuredByHelper) -eq 0) "expected 0, got $(Measure-SwallowedCancellationText $supertypeCuredByHelper)"
+
 Write-Host ''
 Write-Host 'Live regression: the real tree stays at or under the committed baseline' -ForegroundColor Yellow
 

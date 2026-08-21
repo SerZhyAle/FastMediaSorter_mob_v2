@@ -45,6 +45,7 @@ object InternalRouteCatalog {
 
     // S1733: system information as a program of its own, reachable without going into settings.
     const val KEY_SYSTEM_INFO = "system_info"
+    const val KEY_WEAR_COMPANION = "wear_companion"
 
     // S0978: the camera/video gesture actions that already have a Context-generic trampoline, offered
     // as panel routes too (labels reused from the left-edge gesture picker so wording never drifts).
@@ -98,6 +99,15 @@ object InternalRouteCatalog {
             iconRes = R.drawable.ic_info,
             intent = AppLaunchPanelRouteIntents::systemInfo,
             settingsIntent = AppLaunchPanelRouteIntents::systemInfoSettings,
+        ),
+        // S1883: label reused from the button that has always opened the companion, for the same reason
+        // system information reuses its settings string - two wordings for one program drift apart.
+        Route(
+            key = KEY_WEAR_COMPANION,
+            labelRes = R.string.wear_companion,
+            iconRes = R.drawable.ic_watch,
+            intent = AppLaunchPanelRouteIntents::wearCompanion,
+            settingsIntent = AppLaunchPanelRouteIntents::wearCompanionSettings,
         ),
         Route(
             key = KEY_OCR,

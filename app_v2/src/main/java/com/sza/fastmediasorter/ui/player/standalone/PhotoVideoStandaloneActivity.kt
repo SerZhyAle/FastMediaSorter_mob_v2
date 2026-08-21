@@ -173,7 +173,7 @@ class PhotoVideoStandaloneActivity :
         drawSaveHelper ?: StandaloneDrawSaveHelper(
             activity = this,
             imageContainer = binding.mediaContentArea,
-            toolbarRoot = binding.root.findViewById(R.id.draw_overlay_toolbar_stub),
+            toolbarRoot = binding.drawOverlayToolbarStub.root,
             screenRotationManager = screenRotationManager,
             hasAccelerometer = hasAccelerometer,
             keepExportHelper = drawKeepExportHelper,
@@ -203,8 +203,8 @@ class PhotoVideoStandaloneActivity :
      */
     private fun setBottomPanelsHiddenForDraw(drawing: Boolean) {
         destinationPanelsSuppressed = drawing
-        val copyPanel = binding.root.findViewById<View>(R.id.copyToPanel)
-        val movePanel = binding.root.findViewById<View>(R.id.moveToPanel)
+        val copyPanel: View? = binding.bottomPanelsContainer.copyToPanel
+        val movePanel: View? = binding.bottomPanelsContainer.moveToPanel
         if (drawing) {
             copyPanelVisibleBeforeDraw = copyPanel?.isVisible == true
             movePanelVisibleBeforeDraw = movePanel?.isVisible == true
@@ -565,7 +565,7 @@ class PhotoVideoStandaloneActivity :
         // S0610: the Copy/Move panels container is the bottom-most child, so the nav-bar inset moves
         // here. When the panels are GONE the 0-height container still reserves the nav gap, keeping the
         // ExoPlayer button row above the nav bar; when visible, the destination grids clear it too.
-        binding.root.findViewById<View>(R.id.bottomPanelsContainer)?.let { panels ->
+        binding.bottomPanelsContainer.root.let { panels ->
             ViewCompat.setOnApplyWindowInsetsListener(panels) { view, insets ->
                 val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
                 view.setPadding(0, 0, 0, nav.bottom)

@@ -86,6 +86,9 @@ class LauncherEditModeManager(
      */
     private fun showQuickMenu() {
         val slot = desktop.slotAt(desktop.lastPressX, desktop.lastPressY)
+        // Each gesture builds a fresh menu, so the popup's own replace-on-show guard never sees the
+        // previous instance - closing it here is what keeps two modal windows off the desktop.
+        quickMenu?.dismiss()
         quickMenu = LauncherDesktopQuickMenu(
             onAddItem = {
                 if (slot == null) actions.addItem() else actions.addItemAtSlot(slot.row, slot.col)

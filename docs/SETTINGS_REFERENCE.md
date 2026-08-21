@@ -49,7 +49,6 @@ _Generated from the app. Do not edit by hand._
 | Screenshot test | Takes a screenshot of the app right away using the built-in capture flow. |
 | Unused credentials | Shows how many saved network passwords and keys no resource uses any more, and removes them after a confirmation that lists them. The row is hidden while there are none. |
 | User Guide | Opens the full user guide for the app. |
-| Wear Companion | Opens settings for the Wear OS companion app pairing and configuration. |
 | Icon size for grid (pixels) | Sets the thumbnail icon size in pixels for grid view. |
 | Backups, restore and settings export | Settings for backing up, restoring, and exporting app data and configuration. |
 | Authorization and accounts | Settings for linked accounts and authorization with cloud and remote services. |
@@ -213,8 +212,10 @@ _Available in: Standard, Legacy, VR_
 | Setting | What it does |
 |---|---|
 | + Add | Adds a new Quick Sort destination folder to the list. |
+| Disable accessibility service | Turns the app's accessibility service off from here, without going through the system settings. Shown only while that service is actually running. |
 | Open accessibility settings | Opens the Android accessibility settings, where you grant the service that powers silent screenshot capture via the edge gesture. Shown only where the silent-capture method is available. |
 | Set as default | Opens the Default app dialog, where you can register this app as the default handler for images, audio, video, and documents. |
+| Developer options | Opens the Android developer options screen. A shortcut only - the app changes nothing there. |
 | Configure gestures | Opens the edge-gesture configuration dialog: interactive zone map, per-zone tabs (directions + strip visibility), and general gesture settings. Enabled only while the gesture overlay is on. |
 | Reset Management settings | Restores all Management settings in this section to their factory defaults. |
 | Select resource.. | Selects the destination resource where camera photos are saved. |
@@ -222,6 +223,8 @@ _Available in: Standard, Legacy, VR_
 | Select resource.. | Selects the destination resource where microphone recordings are saved. |
 | Select resource.. | Selects the destination resource where screen recordings are saved. |
 | Select resource.. | Selects the destination resource where video recordings are saved. |
+| Wear Companion | Opens settings for the Wear OS companion app pairing and configuration. |
+| How to install on a watch | Opens the site page explaining how to install FastMedia Wear on a watch, in the interface language. |
 | Add widget to the Android home screen.. | Launches the widget picker so you can add an app widget to the home screen. |
 | Add a widget to the launcher desktop | Launches the same widget picker, but puts the chosen widget on the launcher's own desktop instead of the Android home screen. Shown only while launcher mode is on. |
 | Max recipients (1-30) | Sets the maximum number of recipients (1-30) when sharing files. |
@@ -237,6 +240,7 @@ _Available in: Standard, Legacy, VR_
 | Screen recording | Settings for recording video of the screen and choosing where recordings are saved. |
 | Operating system interaction | Settings that control how the app integrates with the Android operating system. |
 | Video recording | Settings for recording video with the in-app camera and choosing where recordings are saved. |
+| Wear OS | Groups everything about a Wear OS watch: the master switch for the companion, a short explanation, the install guide and the button that opens the companion window. |
 | Ask for each photo name | Prompts you to enter a name for each photo immediately after it is captured. |
 | Save photos to clipboard | Automatically copies each captured photo to the clipboard after saving. |
 | Geotag photos | Saves your GPS location in the EXIF of photos taken with the built-in camera. Needs location permission and is off by default. |
@@ -412,4 +416,4 @@ _Reached from Wear OS watch app -> Settings._
 | Files view | Chooses how file lists on the watch are laid out: a list, or a grid of two or three columns with real thumbnails. |
 | Keep screen on | Keeps the watch screen on outside the players; the audio, video and image players hold it on regardless. |
 | Slideshow interval | Sets the delay in seconds between slides during slideshow playback on Wear OS. |
-| Screens view | Chooses how the watch navigation screens are laid out: a list, or a grid of two or three columns. |
+| Screens view | Chooses how the watch navigation screens, including Settings, are laid out: a list, or a grid of two or three columns. |

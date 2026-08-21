@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="browse_media_type_disabled">Este tipo de multimédia está desativado nas definições. Ative-o lá.</string>
+    <string name="browse_no_media_files">Não foram encontrados ficheiros multimédia. Experimente outra pasta ou tipo de multimédia.</string>
+    <string name="browse_network_source_not_found">Esta fonte de rede já não está disponível. Volte atrás e escolha outra.</string>
+    <string name="browse_network_connection_failed">Não foi possível ligar a esta fonte. Verifique a ligação e tente novamente.</string>
+    <string name="browse_load_failed">Não foi possível carregar os ficheiros. Tente novamente.</string>
+</resources>

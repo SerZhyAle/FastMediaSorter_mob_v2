@@ -6,7 +6,7 @@ import android.provider.MediaStore
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.datasource.DataSource
-import androidx.media3.datasource.DefaultDataSourceFactory
+import androidx.media3.datasource.DefaultDataSource
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
@@ -95,7 +95,8 @@ internal suspend fun VideoPlayerManager.playLocalVideoInternal(path: String, pla
             // mediaSourceFactory override instead of being built by hand.
             val playerView = currentPlayerView
             if (playerView != null) {
-                val localFactory: DataSource.Factory = DefaultDataSourceFactory(context)
+                Timber.d("S1776: local BD-TS playback via DefaultDataSource.Factory")
+                val localFactory: DataSource.Factory = DefaultDataSource.Factory(context)
                 createPlayer(
                     playerView,
                     isAudio = isAudio,

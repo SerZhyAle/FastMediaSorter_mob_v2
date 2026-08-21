@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.util.MediaCacheEvictor
+import com.sza.fastmediasorter.wear.util.NetworkUriParser
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -71,8 +72,8 @@ class DownloadNetworkFileUseCase @Inject constructor(
         Timber.d("S1687: routing ${source.type} read for $streamUri")
         return when (source.type) {
             NetworkSourceType.SMB -> openSmbStream(source, streamUri)
-            NetworkSourceType.FTP -> ftpDataSource.getFileStream(source, remotePathOf(streamUri))
-            NetworkSourceType.SFTP -> sftpDataSource.getFileStream(source, remotePathOf(streamUri))
+            NetworkSourceType.FTP -> ftpDataSource.getFileStream(source, NetworkUriParser.remotePathOf(streamUri))
+            NetworkSourceType.SFTP -> sftpDataSource.getFileStream(source, NetworkUriParser.remotePathOf(streamUri))
             NetworkSourceType.GOOGLE_DRIVE -> Result.failure(
                 UnsupportedOperationException("Google Drive playback is not available on Wear")
             )
@@ -96,18 +97,7 @@ class DownloadNetworkFileUseCase @Inject constructor(
         return connected.mapCatching { smbDataSource.getFileStream(streamUri).getOrThrow() }
     }
 
-    /**
-     * FTP and SFTP files are addressed by a full URI, and the remote path is everything after the
-     * authority. Parsing by hand rather than through Uri keeps names containing '?' or '#' intact.
-     */
-    private fun remotePathOf(streamUri: String): String {
-        val afterScheme = streamUri.substringAfter("://", missingDelimiterValue = "")
-        return when {
-            afterScheme.isEmpty() -> streamUri
-            !afterScheme.contains('/') -> "/"
-            else -> "/" + afterScheme.substringAfter('/')
-        }
-    }
+
 
     private fun cacheStream(stream: InputStream, selected: SelectedMedia, kind: Kind): File {
         purgeLegacyCacheDirs()

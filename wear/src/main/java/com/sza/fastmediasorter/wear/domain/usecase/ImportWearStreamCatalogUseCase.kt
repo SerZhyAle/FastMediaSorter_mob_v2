@@ -88,7 +88,15 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
         }
 
         try {
-            repository.saveChannels(channels)
+            // S1799 ADR-1: the import owns only catalog content - rows transferred from the phone
+            // survive the refresh, or a user-sent stream silently vanishes on the next update.
+            val stored = repository.getAllChannels()
+            val merged = mergePreservingPhoneRows(channels, stored)
+            Timber.i(
+                "Wear stream catalog import: preserved %d phone-origin channel(s)",
+                merged.size - channels.size
+            )
+            repository.saveChannels(merged)
         } catch (e: Exception) {
             Timber.w(e, "Wear stream catalog import failed: save")
             return@withContext CatalogImportResult.Failure(e.message ?: "save error")
@@ -164,23 +172,40 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
         return out.toByteArray()
     }
 
-    private companion object {
-        const val CATALOG_URL =
+    companion object {
+
+        /**
+         * S1799: catalog import replaces catalog rows only. A stored row with
+         * [WearStreamChannel.ORIGIN_PHONE] whose url the fresh catalog does not carry is kept;
+         * one whose url has appeared in the catalog is superseded by the catalog row.
+         */
+        internal fun mergePreservingPhoneRows(
+            catalog: List<WearStreamChannel>,
+            stored: List<WearStreamChannel>
+        ): List<WearStreamChannel> {
+            val catalogUrls = catalog.mapTo(HashSet()) { it.url }
+            val preserved = stored.filter {
+                it.origin == WearStreamChannel.ORIGIN_PHONE && it.url !in catalogUrls
+            }
+            return catalog + preserved
+        }
+
+        private const val CATALOG_URL =
             "https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-catalog.zip"
-        const val READ_BUFFER_BYTES = 8 * 1024
-        const val BYTES_PER_MIB = 1024 * 1024
+        private const val READ_BUFFER_BYTES = 8 * 1024
+        private const val BYTES_PER_MIB = 1024 * 1024
 
         // S1820: raised from 8 MiB. Measured 2026-08-19, the published streams.csv is 5.83 MB across
         // 19534 rows, up from 2691 rows a month earlier - 1.4x headroom against sevenfold monthly
         // growth. The watch downloads the same archive as the phone, so both caps move together.
-        const val MAX_CSV_BYTES = 32 * BYTES_PER_MIB
-        const val MAX_ATLAS_BYTES = 30 * BYTES_PER_MIB
+        private const val MAX_CSV_BYTES = 32 * BYTES_PER_MIB
+        private const val MAX_ATLAS_BYTES = 30 * BYTES_PER_MIB
 
         // S1820: raised from 30 s. The published zip is 7.31 MB, which 30 s demanded be pulled at
         // ~250 KB/s with no dip - and a watch usually pulls it over a proxied phone link, which is
         // slower than the phone's own. 180 s drops the required floor to ~42 KB/s. Finite on purpose:
         // a host that trickles bytes resets the read timeout on every chunk and would otherwise hold
         // the import coroutine forever.
-        const val CATALOG_CALL_TIMEOUT_SECONDS = 180L
+        private const val CATALOG_CALL_TIMEOUT_SECONDS = 180L
     }
 }

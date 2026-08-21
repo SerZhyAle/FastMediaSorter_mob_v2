@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveBrowserAuthManager
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
-import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -35,12 +34,16 @@ import timber.log.Timber
 
 internal class AddResourceConnectionManager(
     private val activity: AddResourceActivity,
-    private val binding: ActivityAddResourceBinding,
     private val viewModel: AddResourceViewModel,
     private val unifiedAuthManager: UnifiedCloudAuthManager,
     private val dropboxClient: dagger.Lazy<DropboxClient>,
     private val oneDriveClient: dagger.Lazy<OneDriveRestClient>
 ) {
+
+    // S1519: lazy ViewStub-backed form bindings owned by the activity (inflate on first access).
+    private val smbForm get() = activity.forms.smb
+    private val sftpForm get() = activity.forms.sftp
+    private val cloudForm get() = activity.forms.cloud
 
     /** S0200 Phase 04b: email of the currently bound primary Google account via identity domain. */
     private var googleDriveAccountEmail: String? = null
@@ -126,8 +129,8 @@ internal class AddResourceConnectionManager(
         val boundEmail = (identityRepository.state.value as? PrimaryGoogleAccountState.Bound)?.account?.email
             ?: browserAuthManager.peekStoredAccountEmail()
         googleDriveAccountEmail = boundEmail
-        binding.tvGoogleDriveStatus.isVisible = true
-        binding.tvGoogleDriveStatus.text = if (boundEmail != null) {
+        cloudForm.tvGoogleDriveStatus.isVisible = true
+        cloudForm.tvGoogleDriveStatus.text = if (boundEmail != null) {
             activity.getString(R.string.connected_as, boundEmail)
         } else {
             activity.getString(R.string.not_connected)
@@ -136,7 +139,7 @@ internal class AddResourceConnectionManager(
         activity.lifecycleScope.launch {
             try {
                 val restored = dropboxClient.get().tryRestoreFromStorage()
-                binding.tvDropboxStatus.text = if (restored) {
+                cloudForm.tvDropboxStatus.text = if (restored) {
                     val testResult = dropboxClient.get().testConnection()
                     if (testResult is CloudResult.Success) {
                         val email = dropboxClient.get().getAccountEmail() ?: "Unknown"
@@ -150,13 +153,13 @@ internal class AddResourceConnectionManager(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to restore Dropbox connection")
-                binding.tvDropboxStatus.text = activity.getString(R.string.not_connected)
+                cloudForm.tvDropboxStatus.text = activity.getString(R.string.not_connected)
             }
         }
 
         activity.lifecycleScope.launch {
             try {
-                binding.tvOneDriveStatus.text = if (oneDriveClient.get().isAuthenticated()) {
+                cloudForm.tvOneDriveStatus.text = if (oneDriveClient.get().isAuthenticated()) {
                     val testResult = oneDriveClient.get().testConnection()
                     if (testResult is CloudResult.Success) {
                         val email = oneDriveClient.get().getAccountEmail() ?: "Unknown"
@@ -170,7 +173,7 @@ internal class AddResourceConnectionManager(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to check OneDrive connection")
-                binding.tvOneDriveStatus.text = activity.getString(R.string.not_connected)
+                cloudForm.tvOneDriveStatus.text = activity.getString(R.string.not_connected)
             }
         }
     }
@@ -349,10 +352,10 @@ internal class AddResourceConnectionManager(
     // ========== SMB / SFTP Connection Testing ==========
 
     fun testSmbConnection() {
-        val server = binding.etSmbServer.text.toString().trim().replace(',', '.')
-        if (!binding.etSmbServer.isValid()) {
+        val server = smbForm.etSmbServer.text.toString().trim().replace(',', '.')
+        if (!smbForm.etSmbServer.isValid()) {
             AppErrorNotifier.show(activity, activity.getString(R.string.invalid_server_address), ErrorSeverity.CRITICAL)
-            binding.etSmbServer.requestFocus()
+            smbForm.etSmbServer.requestFocus()
             return
         }
         if (server.isEmpty()) {
@@ -361,20 +364,20 @@ internal class AddResourceConnectionManager(
         }
         viewModel.testSmbConnection(
             server,
-            binding.etSmbShareName.text.toString().trim(),
-            binding.etSmbUsername.text.toString().trim(),
-            binding.etSmbPassword.text.toString().trim(),
-            binding.etSmbDomain.text.toString().trim(),
-            binding.etSmbPort.text.toString().trim().toIntOrNull() ?: 445
+            smbForm.etSmbShareName.text.toString().trim(),
+            smbForm.etSmbUsername.text.toString().trim(),
+            smbForm.etSmbPassword.text.toString().trim(),
+            smbForm.etSmbDomain.text.toString().trim(),
+            smbForm.etSmbPort.text.toString().trim().toIntOrNull() ?: 445
         )
     }
 
     fun testSftpConnection() {
         val protocolType = getSelectedProtocol()
-        val host = binding.etSftpHost.text.toString().trim()
-        if (!binding.etSftpHost.isValid()) {
+        val host = sftpForm.etSftpHost.text.toString().trim()
+        if (!sftpForm.etSftpHost.isValid()) {
             AppErrorNotifier.show(activity, activity.getString(R.string.invalid_host_address), ErrorSeverity.CRITICAL)
-            binding.etSftpHost.requestFocus()
+            sftpForm.etSftpHost.requestFocus()
             return
         }
         if (host.isEmpty()) {
@@ -382,30 +385,39 @@ internal class AddResourceConnectionManager(
             return
         }
         val defaultPort = if (protocolType == ResourceType.SFTP) 22 else 21
-        val port = binding.etSftpPort.text.toString().trim().toIntOrNull() ?: defaultPort
-        val username = binding.etSftpUsername.text.toString().trim()
-        val expectedFingerprint = binding.etSftpHostKeyFingerprint.text.toString().trim().ifEmpty { null }
+        val port = sftpForm.etSftpPort.text.toString().trim().toIntOrNull() ?: defaultPort
+        val username = sftpForm.etSftpUsername.text.toString().trim()
+        val expectedFingerprint = sftpForm.etSftpHostKeyFingerprint.text.toString().trim().ifEmpty { null }
 
-        if (protocolType == ResourceType.SFTP && binding.rbSftpSshKey.isChecked) {
-            val privateKey = binding.etSftpPrivateKey.text.toString().trim()
+        if (protocolType == ResourceType.SFTP && sftpForm.rbSftpSshKey.isChecked) {
+            val privateKey = sftpForm.etSftpPrivateKey.text.toString().trim()
             if (privateKey.isEmpty()) {
                 AppErrorNotifier.show(activity, activity.getString(R.string.ssh_key_required), ErrorSeverity.CRITICAL)
                 return
             }
             viewModel.testSftpConnectionWithKey(
-                host, port, username, privateKey,
-                binding.etSftpKeyPassphrase.text.toString().trim().ifEmpty { null },
+                host,
+                port,
+                username,
+                privateKey,
+                sftpForm.etSftpKeyPassphrase.text.toString().trim().ifEmpty { null },
                 expectedFingerprint
             )
         } else {
-            viewModel.testSftpFtpConnection(protocolType, host, port, username,
-                binding.etSftpPassword.text.toString().trim(), expectedFingerprint)
+            viewModel.testSftpFtpConnection(
+                protocolType,
+                host,
+                port,
+                username,
+                sftpForm.etSftpPassword.text.toString().trim(),
+                expectedFingerprint
+            )
         }
     }
 
-    private fun getSelectedProtocol(): ResourceType = when (binding.rgProtocol.checkedRadioButtonId) {
-        binding.rbSftp.id -> ResourceType.SFTP
-        binding.rbFtp.id -> ResourceType.FTP
+    private fun getSelectedProtocol(): ResourceType = when (sftpForm.rgProtocol.checkedRadioButtonId) {
+        sftpForm.rbSftp.id -> ResourceType.SFTP
+        sftpForm.rbFtp.id -> ResourceType.FTP
         else -> ResourceType.SFTP
     }
 
@@ -442,7 +454,7 @@ internal class AddResourceConnectionManager(
                     // User tapped "Enter manually" - show input dialog
                     showManualShareInputDialog(server)
                 } else {
-                    binding.etSmbShareName.setText(resolved)
+                    smbForm.etSmbShareName.setText(resolved)
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -471,7 +483,7 @@ internal class AddResourceConnectionManager(
             val padPx = (12 * activity.resources.displayMetrics.density).toInt()
             setPadding(padPx, padPx, padPx, padPx)
         }
-        val port = binding.etSmbPort.text?.toString()?.toIntOrNull() ?: 445
+        val port = smbForm.etSmbPort.text?.toString()?.toIntOrNull() ?: 445
 
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(activity.getString(R.string.smb_manual_share_dialog_title))
@@ -483,14 +495,14 @@ internal class AddResourceConnectionManager(
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val input = editText.text?.toString()?.trim().orEmpty()
-                // Client-side validation: SMB share names - letters, digits, spaces, hyphens, underscores; 1–80 chars
+                // Client-side validation: SMB share names - letters, digits, spaces, hyphens, underscores; 1-80 chars
                 val valid = input.isNotBlank() && input.length <= 80 &&
                     input.matches(Regex("[A-Za-z0-9][A-Za-z0-9 _\\-]{0,79}"))
                 if (!valid) {
                     editText.error = activity.getString(R.string.smb_share_name_invalid)
                     return@setOnClickListener
                 }
-                binding.etSmbShareName.setText(input)
+                smbForm.etSmbShareName.setText(input)
                 // Persist to history immediately - user confirmed intent; connection may still fail.
                 viewModel.rememberManualShareName(server, port, input)
                 dialog.dismiss()

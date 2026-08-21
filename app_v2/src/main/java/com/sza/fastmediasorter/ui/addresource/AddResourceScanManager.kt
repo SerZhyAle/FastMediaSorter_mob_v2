@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.core.compat.ChromeOsCompat
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
-import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.domain.model.StorageVolumeInfo
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
@@ -28,11 +27,14 @@ import timber.log.Timber
 
 internal class AddResourceScanManager(
     private val activity: AddResourceActivity,
-    private val binding: ActivityAddResourceBinding,
     private val viewModel: AddResourceViewModel,
     private val folderPickerLauncher: ActivityResultLauncher<Uri?>,
     private val mediaCapabilities: MediaCapabilities
 ) {
+
+    // S1519: lazy ViewStub-backed form bindings owned by the activity (inflate on first access).
+    private val localForm get() = activity.forms.local
+    private val sftpForm get() = activity.forms.sftp
 
     // S0535: folder-picker sections go through the unified orchestrator + consolidated store.
     private val sectionsManager by lazy { CollapsibleSectionsManager(activity) }
@@ -40,7 +42,7 @@ internal class AddResourceScanManager(
     fun loadSshKeyFromFile(uri: Uri) {
         try {
             activity.contentResolver.openInputStream(uri)?.use { inputStream ->
-                binding.etSftpPrivateKey.setText(inputStream.bufferedReader().use { it.readText() })
+                sftpForm.etSftpPrivateKey.setText(inputStream.bufferedReader().use { it.readText() })
                 Toast.makeText(activity, activity.getString(R.string.ssh_key_loaded), Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
@@ -64,7 +66,10 @@ internal class AddResourceScanManager(
         }
         val folderName = displayPath?.substringAfterLast("/") ?: uri.lastPathSegment ?: "Folder"
         Timber.d("Adding folder to resources list: name=$folderName, uri=$uri")
-        viewModel.addManualFolder(uri, binding.etLocalPinCode.text?.toString()?.trim().takeUnless { it.isNullOrBlank() })
+        viewModel.addManualFolder(
+            uri,
+            localForm.etLocalPinCode.text?.toString()?.trim().takeUnless { it.isNullOrBlank() }
+        )
     }
 
     // ========== Folder Selection Dialog ==========

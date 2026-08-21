@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.NoOpCacheEvictor
@@ -20,6 +21,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -58,15 +60,23 @@ class Media3SegmentDownloader @Inject constructor(
         manifest: StreamingManifest,
         quality: MediaQualityPreference,
         sessionDir: File,
+        accountId: String?,
         onProgress: (downloadedBytes: Long, totalBytes: Long?) -> Unit,
     ): SegmentBundle = withContext(Dispatchers.IO) {
         sessionDir.mkdirs()
-        val cache = SimpleCache(sessionDir, NoOpCacheEvictor())
+        // S1776: the three-arg constructor is the non-deprecated form. The DB index is as
+        // session-scoped as the old file index was - this cache roots at a per-download
+        // sessionDir and is released at the end of every call, so nothing persists to migrate.
+        val cache = SimpleCache(sessionDir, NoOpCacheEvictor(), StandaloneDatabaseProvider(context))
 
         // S0116 §5.1 pillar K: inject saved domain cookies into the Media3 HTTP source
         // so authenticated streams continue to work after Phase 05 WebView login.
         val host = Uri.parse(manifest.manifestUrl).host ?: ""
-        val cookieList = if (host.isNotBlank()) cookieStore.loadFor(host) else emptyList()
+        // S1776: cookies of the account the request actually carried; null keeps the previous
+        // most-recently-used-account behaviour.
+        val cookieList =
+            if (host.isNotBlank()) cookieStore.loadForHostAccountOrBest(host, accountId) else emptyList()
+        Timber.d("S1776: streaming cookies host=$host account=${accountId ?: "best"} count=${cookieList.size}")
         val cookieHeader = cookieList.joinToString("; ") { "${it.name}=${it.value}" }
 
         val httpFactory = DefaultHttpDataSource.Factory()

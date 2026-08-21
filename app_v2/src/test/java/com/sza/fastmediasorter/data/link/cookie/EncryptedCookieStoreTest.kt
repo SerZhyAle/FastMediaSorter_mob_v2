@@ -53,8 +53,8 @@ class EncryptedCookieStoreTest {
             secure = true
             isHttpOnly = true
         }
-        store.saveFor("example.com", listOf(cookie))
-        val loaded = store.loadFor("example.com")
+        store.saveForAccount("example.com", "acc", "", listOf(cookie))
+        val loaded = store.loadForAccount("example.com", "acc")
         assertEquals(1, loaded.size)
         val out = loaded.first()
         assertEquals("session", out.name)
@@ -78,29 +78,29 @@ class EncryptedCookieStoreTest {
         val zeroMaxAge = HttpCookie("zero", "z").apply {
             domain = "example.com"; path = "/"; maxAge = 0L
         }
-        store.saveFor("example.com", listOf(expired, zeroMaxAge))
-        val loaded = store.loadFor("example.com")
+        store.saveForAccount("example.com", "acc", "", listOf(expired, zeroMaxAge))
+        val loaded = store.loadForAccount("example.com", "acc")
         // Session cookie (maxAge -1) survives; the zero-maxAge cookie expires at savedAt+0 = now.
         assertFalse("zero-maxAge cookie should be filtered out", loaded.any { it.name == "zero" })
     }
 
     @Test
-    fun `listDomains returns saved domains in deterministic order`() {
-        store.saveFor("c.example.com", listOf(HttpCookie("k", "v")))
-        store.saveFor("a.example.com", listOf(HttpCookie("k", "v")))
-        store.saveFor("b.example.com", listOf(HttpCookie("k", "v")))
-        val domains = store.listDomains()
-        assertEquals(listOf("a.example.com", "b.example.com", "c.example.com"), domains)
-        assertNotNull(store.savedAt("b.example.com"))
+    fun `listAllAccounts returns saved hosts`() {
+        store.saveForAccount("c.example.com", "acc", "", listOf(HttpCookie("k", "v")))
+        store.saveForAccount("a.example.com", "acc", "", listOf(HttpCookie("k", "v")))
+        store.saveForAccount("b.example.com", "acc", "", listOf(HttpCookie("k", "v")))
+        val hosts = store.listAllAccounts().map { (host, _) -> host }.sorted()
+        assertEquals(listOf("a.example.com", "b.example.com", "c.example.com"), hosts)
+        assertNotNull(store.listAllAccounts().first { (host, _) -> host == "b.example.com" }.second.savedAt)
     }
 
     @Test
-    fun `deleteFor removes only the specified domain`() {
-        store.saveFor("keep.example.com", listOf(HttpCookie("k1", "v1")))
-        store.saveFor("drop.example.com", listOf(HttpCookie("k2", "v2")))
-        store.deleteFor("drop.example.com")
-        assertEquals(listOf("keep.example.com"), store.listDomains())
-        assertTrue(store.loadFor("drop.example.com").isEmpty())
-        assertEquals(1, store.loadFor("keep.example.com").size)
+    fun `deleteForAccount removes only the specified account`() {
+        store.saveForAccount("keep.example.com", "acc", "", listOf(HttpCookie("k1", "v1")))
+        store.saveForAccount("drop.example.com", "acc", "", listOf(HttpCookie("k2", "v2")))
+        store.deleteForAccount("drop.example.com", "acc")
+        assertEquals(listOf("keep.example.com"), store.listAllAccounts().map { (host, _) -> host })
+        assertTrue(store.loadForAccount("drop.example.com", "acc").isEmpty())
+        assertEquals(1, store.loadForAccount("keep.example.com", "acc").size)
     }
 }

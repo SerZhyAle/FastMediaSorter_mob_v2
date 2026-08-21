@@ -8,7 +8,7 @@ import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
-import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelope
+import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourcePage
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceRequestKind
@@ -34,6 +34,8 @@ class PhoneResourceClient @Inject constructor(
     private val gson: Gson
 ) {
 
+    private val envelopeCodec = WearEventEnvelopeCodec()
+
     /**
      * Asks the phone for one page. [parentToken] null requests the root list.
      *
@@ -44,7 +46,8 @@ class PhoneResourceClient @Inject constructor(
     suspend fun browse(
         parentToken: String?,
         pageToken: String? = null,
-        mediaType: String? = null
+        mediaType: String? = null,
+        isFlat: Boolean? = null
     ): PhoneResourceOutcome {
         val request = WearPhoneResourceRequest(
             requestId = UUID.randomUUID().toString(),
@@ -55,7 +58,8 @@ class PhoneResourceClient @Inject constructor(
             },
             parentToken = parentToken,
             pageToken = pageToken,
-            mediaType = mediaType
+            mediaType = mediaType,
+            isFlat = isFlat
         )
 
         return request(request, WearDataLayerPaths.PHONE_RESOURCE_BROWSE_REQUEST)
@@ -145,7 +149,7 @@ class PhoneResourceClient @Inject constructor(
         .firstOrNull { it.requestId == requestId }
 
     private fun decodePage(payload: ByteArray): WearPhoneResourcePage? = runCatching {
-        val envelope = gson.fromJson(payload.decodeToString(), WearEventEnvelope::class.java)
+        val envelope = envelopeCodec.decode(payload)
         gson.fromJson(envelope.data.decodeToString(), WearPhoneResourcePage::class.java)
     }.onFailure { Timber.w(it, "Unreadable phone resource page") }.getOrNull()
 

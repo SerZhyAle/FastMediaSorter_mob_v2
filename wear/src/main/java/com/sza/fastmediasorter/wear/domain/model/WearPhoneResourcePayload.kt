@@ -39,7 +39,8 @@ data class WearPhoneResourceRequest(
      * spelling: `photos`, `videos`, `music`, `documents`, `all`. `all` and null mean the same thing and
      * both leave the phone's answer unnarrowed; the unfiltered `Phone` entrance sends null.
      */
-    val mediaType: String? = null
+    val mediaType: String? = null,
+    val isFlat: Boolean? = null
 )
 
 data class WearPhoneResourceItem(

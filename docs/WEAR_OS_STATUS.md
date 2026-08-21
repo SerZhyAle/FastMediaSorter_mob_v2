@@ -286,6 +286,25 @@ wear/src/main/java/com/sza/fastmediasorter/wear/
 
 ---
 
+## 📡 Stream Transfer from the Phone (S1799)
+
+A manual stream from the phone's Streams list can be sent to the watch ("Send to watch" overflow
+command, gated on the Wear Companion option AND `MediaCapabilities.supportsWearCompanion`).
+
+- Message pair: phone → watch `/fms/phone/stream_transfer` (a `WearEventEnvelope` whose `data` is
+  `WearStreamTransferPayload {request_id, name, url, media_kind}`), watch → phone
+  `/fms/watch/stream_transfer_ack` (plain `WearStreamTransferAck {request_id, outcome, message}`,
+  no envelope). `request_id` correlates the ack with the request; the phone waits 15 s, and the
+  legacy `/fms/network_sources/ack` flow is untouched.
+- Watch side: `WatchWearListenerService` → `StoreTransferredStreamUseCase` → `upsertChannel`
+  (deduplicated by url) with `origin = "PHONE"` on `WearStreamChannel`. `origin = null` means a
+  catalog row - the only shape pre-existing `channels.json` files can satisfy.
+- Catalog refresh (`ImportWearStreamCatalogUseCase`) replaces catalog rows only: stored rows with
+  `origin = "PHONE"` survive unless the fresh catalog carries the same url, in which case the
+  catalog row supersedes.
+
+---
+
 ## 🛠️ Technical Details for Developers
 
 - **Install package (`applicationId`)**: `com.sza.fastmediasorter` - the phone app's identity, required for Data Layer delivery (S1681)

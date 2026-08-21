@@ -95,7 +95,7 @@ What it catches: `.claude/reference/spec-all.md` section 1 - read only if tempte
 | `Verified` | Print final report - already done |
 | `BlockNeedUserTest` | Add to manual items; delete this spec's `Timber.d("Sxxxx:` tags from `.kt` (status leaving `BlockNeedUserTest` - CLAUDE.md "Debug Verification Tags"); set status `Implemented`; jump to F5 |
 | `BlockQuestions` | Read §6 Open items; resolve any answerable from codebase; continue from last active stage; add unresolvable to manual list |
-| `BlockByOtherTask` | Read §10; if blocking spec `Verified` -> unblock and continue from last stage; else -> add to manual list, continue non-blocked work |
+| `BlockByOtherTask` | Read §10; if the blocking spec is release-ready (`Implemented` / `Verified` / `BlockNeedUserTest`) or `Archived` -> unblock and continue from last stage; else -> add to manual list, continue non-blocked work. The releasing set is the owner's, not this command's: a dependency releases the moment its blocker reaches `BlockNeedUserTest`, because the code is in the tree by then and only the device pass is left (`PLAN/RELEASE_QUEUE.md`, owner ruling 2026-08-07). Waiting for `Verified` here made the picker offer a ticket this table then refused, once per session, every session (S1878) |
 | `BlockExternal` | Add to manual items; continue non-blocked work from last stage |
 | `Archived` | Abort: spec archived; suggest new one. |
 

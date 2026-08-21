@@ -21,6 +21,7 @@ class NoOpStreamingPipeline @Inject constructor() : StreamingPipeline {
         manifest: StreamingManifest,
         fileName: String,
         quality: MediaQualityPreference,
+        accountId: String?,
         onProgress: (downloadedBytes: Long, totalBytes: Long?) -> Unit,
     ): PipelineOutcome = PipelineOutcome.Disabled
 }

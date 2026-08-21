@@ -25,6 +25,11 @@ class VrTextureDecoder(private val context: Context) {
     @Volatile private var reusableDirectBuffer: ByteBuffer? = null
 
     @Synchronized
+    // S1247: detekt is right that System.gc() is a smell and wrong that it should go here. This runs
+    // only AFTER allocateDirect has already thrown OutOfMemoryError, as the last reclaim before one
+    // retry on a headset where the alternative is failing the frame. Suppressed at the call site
+    // rather than in the generated baseline, so the next reader of this fallback sees the reason.
+    @Suppress("ExplicitGarbageCollectionCall")
     private fun getReusableDirectBuffer(size: Int): ByteBuffer {
         val current = reusableDirectBuffer
         if (current != null && current.capacity() >= size) {
@@ -155,8 +160,8 @@ class VrTextureDecoder(private val context: Context) {
         if (preflightSample > 1) {
             Timber.i(
                 "decodeFilePooled: ${file.name} bounds ${boundsOpts.outWidth}x${boundsOpts.outHeight}" +
-                    " exceeds ${MAX_DECODE_BYTES / (1024 * 1024)} MB budget;" +
-                    " preflight inSampleSize=$preflightSample -> ${sampledW}x${sampledH}"
+                    " exceeds ${MAX_DECODE_BYTES / BYTES_PER_MB} MB budget;" +
+                    " preflight inSampleSize=$preflightSample -> ${sampledW}x$sampledH"
             )
         }
 
@@ -214,15 +219,15 @@ class VrTextureDecoder(private val context: Context) {
 
     /**
      * Picks the smallest power-of-2 sample size such that the ARGB_8888 footprint of the
-     * resulting bitmap is at most [MAX_DECODE_BYTES]. Capped at 8 - beyond that the picture is
-     * below usable VR-quality anyway and we surface the failure.
+     * resulting bitmap is at most [MAX_DECODE_BYTES]. Capped at [MAX_SAMPLE_SIZE] - beyond that the
+     * picture is below usable VR-quality anyway and we surface the failure.
      */
     private fun pickSampleSizeForBudget(width: Int, height: Int): Int {
         var sample = 1
-        var bytes = width.toLong() * height.toLong() * 4L
-        while (bytes > MAX_DECODE_BYTES && sample < 8) {
+        var bytes = width.toLong() * height.toLong() * RGBA_BYTES_PER_PIXEL
+        while (bytes > MAX_DECODE_BYTES && sample < MAX_SAMPLE_SIZE) {
             sample *= 2
-            bytes /= 4
+            bytes /= SAMPLE_STEP_AREA_DIVISOR
         }
         return sample
     }
@@ -260,5 +265,17 @@ class VrTextureDecoder(private val context: Context) {
         // asset lands at inSampleSize=2 (4096x2048 = 32 MB), leaving headroom for ExoPlayer buffers
         // and OpenXR swapchain copies.
         private const val MAX_DECODE_BYTES = 96L * 1024L * 1024L
+
+        // Each doubling of inSampleSize quarters the decoded area, so the running byte estimate in
+        // pickSampleSizeForBudget divides by this on every step. A different four from
+        // RGBA_BYTES_PER_PIXEL above, four lines apart - which is what made both worth naming.
+        private const val SAMPLE_STEP_AREA_DIVISOR = 4L
+
+        // Beyond this the picture is below usable VR quality, so the decode surfaces the failure
+        // instead of returning a smear.
+        private const val MAX_SAMPLE_SIZE = 8
+
+        // Renders MAX_DECODE_BYTES as megabytes in the decode-budget log.
+        private const val BYTES_PER_MB = 1024L * 1024L
     }
 }

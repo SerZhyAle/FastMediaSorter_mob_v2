@@ -229,4 +229,24 @@
     <string name="wear_favourites_unmark">Remove from favourites</string>
     <string name="wear_favourites_unopenable">This one was saved before the watch started remembering how to open it.</string>
     <string name="phone_resource_source_unavailable">This resource is not responding. The phone is connected - check the resource, then retry.</string>
+    <string name="wear_phone_recents">Recents</string>
+    <string name="wear_video_scale_mode">Aspect ratio / zoom mode</string>
+    <string name="wear_streams_search">Search streams</string>
+    <string name="wear_streams_filter">Filter streams</string>
+    <string name="wear_streams_sort">Sort streams</string>
+    <string name="wear_streams_filter_all">All channels</string>
+    <string name="wear_streams_filter_audio">Audio only</string>
+    <string name="wear_streams_filter_video">Video only</string>
+    <string name="wear_streams_sort_default">Default order</string>
+    <string name="wear_streams_sort_name_asc">Name (A-Z)</string>
+    <string name="wear_streams_sort_name_desc">Name (Z-A)</string>
+    <string name="wear_streams_sort_kind">By media type</string>
+    <string name="wear_streams_search_hint">Search</string>
+    <string name="wear_streams_clear_search">Clear search</string>
+    <string name="wear_watch_resource_name"></string>
+    <string name="wear_watch_transfer_success"></string>
+    <string name="wear_watch_transfer_failed"></string>
+    <string name="wear_stream_channel_narrow">Connection too slow for this stream. Move closer to Wi-Fi and try again.</string>
+    <string name="wear_stream_channel_offline">Watch is offline. Reconnect, then try again.</string>
+    <string name="wear_stream_channel_unverified">Connection not verified yet. Playback may stop - try again if it does.</string>
 </resources>

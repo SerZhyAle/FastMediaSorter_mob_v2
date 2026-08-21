@@ -207,6 +207,7 @@ These sections are intentionally more varied than the core reference blocks belo
 - Switch the toolbar view toggle to **Grid** to see channels as tiles with their last captured frame - handy for browsing video streams at a glance. Your choice of list or grid is remembered next time you open Streams.
 - If a stream is cast-friendly and your phone is on Wi-Fi, tap **Cast** in the player to send it to a Chromecast on the same network. RTSP streams can't be cast.
 - ICY now-playing metadata (station name, current track) shows in the bottom mini-control.
+- A station you added yourself can be sent to your Wear OS watch: open the row's **⋮** menu and tap **Send to watch** (the command appears when the Wear Companion option is on). The transferred station stays on the watch through catalog refreshes; if the same address later appears in the online catalog, the catalog entry takes over.
 - Video and RTSP streams open in the fullscreen player; pressing Back returns to the Streams list with scroll position preserved.
 - Background audio behaviour follows **Settings > Playback > Background audio playback**: with it off, audio stops when you leave the screen and the app offers a Stop / Keep playing choice.
 
@@ -1367,6 +1368,10 @@ Photos from the in-app camera, screenshots, snapshots and auto-downloaded files 
 
 - Each of the four settings has its own destination - screenshots and camera photos can land in completely different places.
 - Pointing several of them at one folder is fine if you would rather have everything in a single spot.
+
+### Capture file names
+
+New captures use the `prefix_yyMMdd_HHmmss` pattern. The stable prefixes are `photo`, `screenshot`, `audio`, `video`, `screen_video`, and `video_frame`, so the filename identifies its source. If a name already exists in the destination folder, the app adds the ` (2)` suffix before the extension. A filename entered manually in the camera remains an override and is not changed.
 
 ---
 

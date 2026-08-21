@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
+import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,9 +27,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * S0523: host-neutral quick voice capture launched from the main-screen overflow menu. Records a
@@ -87,10 +85,12 @@ class MainVoiceCaptureManager(
     }
 
     private fun actuallyStart() {
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val tempFile = try {
             val dir = activity.getExternalFilesDir(Environment.DIRECTORY_MUSIC) ?: activity.filesDir
-            File(dir, "REC_$timestamp.m4a").also { it.createNewFile() }
+            val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.AUDIO, ".m4a")
+            Timber.d("S1882: main audio output $fileName")
+            File(dir, fileName)
+                .also { it.createNewFile() }
         } catch (e: Exception) {
             Timber.e(e, "quick voice: failed to create temp file")
             showSnackbar(R.string.mic_recording_error_save)

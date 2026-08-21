@@ -229,4 +229,24 @@
     <string name="wear_favourites_unmark">Прибрати з обраного</string>
     <string name="wear_favourites_unopenable">Ця позначка зроблена до того, як годинник навчився її відкривати.</string>
     <string name="phone_resource_source_unavailable">Цей ресурс не відповідає. Телефон на зв\'язку - перевірте ресурс і повторіть.</string>
+    <string name="wear_phone_recents">Нещодавні</string>
+    <string name="wear_video_scale_mode">Масштаб / заповнення кадру</string>
+    <string name="wear_streams_search">Пошук трансляцій</string>
+    <string name="wear_streams_filter">Фільтр трансляцій</string>
+    <string name="wear_streams_sort">Сортування трансляцій</string>
+    <string name="wear_streams_filter_all">Усі канали</string>
+    <string name="wear_streams_filter_audio">Тільки аудіо</string>
+    <string name="wear_streams_filter_video">Тільки відео</string>
+    <string name="wear_streams_sort_default">За замовчуванням</string>
+    <string name="wear_streams_sort_name_asc">Назва (А-Я)</string>
+    <string name="wear_streams_sort_name_desc">Назва (Я-А)</string>
+    <string name="wear_streams_sort_kind">За типом медіа</string>
+    <string name="wear_streams_search_hint">Пошук</string>
+    <string name="wear_streams_clear_search">Очистити пошук</string>
+    <string name="wear_watch_resource_name"></string>
+    <string name="wear_watch_transfer_success"></string>
+    <string name="wear_watch_transfer_failed"></string>
+    <string name="wear_stream_channel_narrow">Мережа надто повільна для цієї трансляції. Підійдіть ближче до Wi-Fi і повторіть.</string>
+    <string name="wear_stream_channel_offline">Годинник не в мережі. Відновіть підключення і повторіть.</string>
+    <string name="wear_stream_channel_unverified">Мережу ще не перевірено. Відтворення може перерватися - тоді повторіть.</string>
 </resources>

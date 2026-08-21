@@ -23,7 +23,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * S1708: ViewModel for the Wear OS streams list screen.
+ * S1708/S1871: ViewModel for the Wear OS streams list screen.
  */
 @HiltViewModel
 class StreamsViewModel @Inject constructor(
@@ -50,12 +50,53 @@ class StreamsViewModel @Inject constructor(
 
         viewModelScope.launch {
             repository.observeChannels().collect { channels ->
-                _uiState.update { it.copy(channels = channels) }
+                _uiState.update { state ->
+                    val display = computeDisplayChannels(
+                        channels = channels,
+                        query = state.searchQuery,
+                        filterKind = state.filterKind,
+                        sortOrder = state.sortOrder
+                    )
+                    state.copy(channels = channels, displayChannels = display)
+                }
                 if (channels.isEmpty() && !_uiState.value.isLoading && !_uiState.value.isRefreshing) {
                     refreshCatalog(isInitial = true)
                 }
             }
         }
+    }
+
+    fun setSearchQuery(query: String) {
+        _uiState.update { state ->
+            val display = computeDisplayChannels(state.channels, query, state.filterKind, state.sortOrder)
+            state.copy(searchQuery = query, displayChannels = display, showSearchDialog = false)
+        }
+    }
+
+    fun setFilterKind(kind: StreamFilterKind) {
+        _uiState.update { state ->
+            val display = computeDisplayChannels(state.channels, state.searchQuery, kind, state.sortOrder)
+            state.copy(filterKind = kind, displayChannels = display, showFilterDialog = false)
+        }
+    }
+
+    fun setSortOrder(order: StreamSortOrder) {
+        _uiState.update { state ->
+            val display = computeDisplayChannels(state.channels, state.searchQuery, state.filterKind, order)
+            state.copy(sortOrder = order, displayChannels = display, showSortDialog = false)
+        }
+    }
+
+    fun setShowSearchDialog(show: Boolean) {
+        _uiState.update { it.copy(showSearchDialog = show) }
+    }
+
+    fun setShowFilterDialog(show: Boolean) {
+        _uiState.update { it.copy(showFilterDialog = show) }
+    }
+
+    fun setShowSortDialog(show: Boolean) {
+        _uiState.update { it.copy(showSortDialog = show) }
     }
 
     fun refreshCatalog(isInitial: Boolean = false) {
@@ -117,7 +158,7 @@ class StreamsViewModel @Inject constructor(
             isDirectStream = true
         )
 
-        val channels = _uiState.value.channels
+        val channels = _uiState.value.displayChannels
         val matchingChannels = if (isVideo) {
             channels.filter { it.isVideoKind() }
         } else {
@@ -148,6 +189,40 @@ class StreamsViewModel @Inject constructor(
         val fileId: Long,
         val isVideo: Boolean
     )
+}
+
+private fun computeDisplayChannels(
+    channels: List<WearStreamChannel>,
+    query: String,
+    filterKind: StreamFilterKind,
+    sortOrder: StreamSortOrder
+): List<WearStreamChannel> {
+    var result = channels
+
+    if (query.isNotBlank()) {
+        val trimmed = query.trim()
+        result = result.filter { ch ->
+            ch.name.contains(trimmed, ignoreCase = true) ||
+                (ch.category?.contains(trimmed, ignoreCase = true) == true)
+        }
+    }
+
+    result = when (filterKind) {
+        StreamFilterKind.ALL -> result
+        StreamFilterKind.AUDIO_ONLY -> result.filter { !it.isVideoKind() }
+        StreamFilterKind.VIDEO_ONLY -> result.filter { it.isVideoKind() }
+    }
+
+    result = when (sortOrder) {
+        StreamSortOrder.DEFAULT -> result
+        StreamSortOrder.NAME_ASC -> result.sortedBy { it.name.lowercase() }
+        StreamSortOrder.NAME_DESC -> result.sortedByDescending { it.name.lowercase() }
+        StreamSortOrder.KIND -> result.sortedWith(
+            compareBy<WearStreamChannel> { !it.isVideoKind() }.thenBy { it.name.lowercase() }
+        )
+    }
+
+    return result
 }
 
 // A catalog row carries its kind as free text, so VIDEO and RTSP are both "play it in the video

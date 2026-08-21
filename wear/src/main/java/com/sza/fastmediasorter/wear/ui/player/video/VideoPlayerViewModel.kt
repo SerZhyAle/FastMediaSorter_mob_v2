@@ -18,8 +18,10 @@ import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.ClassifyWearStreamMediaKindUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
+import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -43,6 +45,8 @@ private const val SEEK_STEP_MS = 10_000L
  * ViewModel for the video player screen.
  * Manages ExoPlayer instance and playback state for video files.
  */
+// The collaborators remain visible to Hilt because each owns a distinct player concern.
+@Suppress("LongParameterList")
 @HiltViewModel
 class VideoPlayerViewModel @Inject constructor(
     private val mediaRepository: WearMediaRepository,
@@ -52,6 +56,7 @@ class VideoPlayerViewModel @Inject constructor(
     private val downloadNetworkFile: DownloadNetworkFileUseCase,
     private val exoPlayer: ExoPlayer,
     private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
+    private val streamPlaybackSessionFactory: StreamPlaybackSessionFactory,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -61,6 +66,7 @@ class VideoPlayerViewModel @Inject constructor(
 
     private val fileId: Long = savedStateHandle.get<Long>("fileId") ?: -1L
     private var progressUpdateJob: Job? = null
+
     private var controlsHideJob: Job? = null
 
     /**
@@ -84,6 +90,7 @@ class VideoPlayerViewModel @Inject constructor(
             if (isPlaying) {
                 startProgressUpdates()
                 scheduleHideControls()
+                streamPlaybackSession.withWideChannel()
             } else {
                 stopProgressUpdates()
                 showControls()
@@ -116,6 +123,7 @@ class VideoPlayerViewModel @Inject constructor(
                         Timber.d("S1838: video ended, advancing within the set of $setSize")
                         skipToNext()
                     } else {
+                        streamPlaybackSession.stop()
                         Timber.d("Player STATE_ENDED - video finished")
                         _uiState.update { it.copy(isPlaying = false, showControls = true) }
                         // S0902: pause before seeking - playWhenReady stays true otherwise and the
@@ -131,12 +139,14 @@ class VideoPlayerViewModel @Inject constructor(
                     _uiState.update { it.copy(isLoading = true) }
                 }
                 Player.STATE_IDLE -> {
+                    streamPlaybackSession.stop()
                     Timber.d("Player STATE_IDLE")
                 }
             }
         }
 
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+            streamPlaybackSession.stop()
             Timber.e(error, "ExoPlayer error: ${error.errorCodeName}")
             _uiState.update {
                 it.copy(
@@ -146,6 +156,11 @@ class VideoPlayerViewModel @Inject constructor(
             }
         }
     }
+
+    private val streamPlaybackSession = streamPlaybackSessionFactory.create(
+        scope = viewModelScope,
+        onChannelReason = { reason -> _uiState.update { it.copy(channelReason = reason) } }
+    )
 
     init {
         Timber.d("VideoPlayerViewModel initialized with fileId: $fileId")
@@ -175,7 +190,10 @@ class VideoPlayerViewModel @Inject constructor(
                     WearPlaybackCommand.PLAY_PAUSE -> togglePlayPause()
                     WearPlaybackCommand.NEXT       -> exoPlayer.seekToNextMediaItem()
                     WearPlaybackCommand.PREVIOUS   -> exoPlayer.seekToPreviousMediaItem()
-                    WearPlaybackCommand.STOP       -> exoPlayer.stop()
+                    WearPlaybackCommand.STOP       -> {
+                        exoPlayer.stop()
+                        streamPlaybackSession.stop()
+                    }
                 }
             }
         }
@@ -199,7 +217,9 @@ class VideoPlayerViewModel @Inject constructor(
         _uiState.update { it.copy(showBatteryWarning = false) }
         // S0902: loadMediaFile/loadNetworkVideo defer playWhenReady while the warning is showing -
         // without this, first-run video never auto-starts once the user dismisses it.
-        exoPlayer.play()
+        if (streamPlaybackSession.canStartCurrentStream()) {
+            exoPlayer.play()
+        }
     }
 
     /**
@@ -223,6 +243,7 @@ class VideoPlayerViewModel @Inject constructor(
      * drifting apart.
      */
     private fun playFile(file: WearMediaFile) {
+        streamPlaybackSession.clear()
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
         _uiState.update {
@@ -289,6 +310,11 @@ class VideoPlayerViewModel @Inject constructor(
     private suspend fun loadNetworkVideo(selected: SelectedMedia) {
         if (selected.isDirectStream) {
             Timber.d("S1708: direct video stream playback uri=${selected.streamUri}")
+            val mediaKind = ClassifyWearStreamMediaKindUseCase.VIDEO
+            if (!streamPlaybackSession.prepare(mediaKind)) {
+                _uiState.update { it.copy(isLoading = false) }
+                return
+            }
             _uiState.update { it.copy(isLoading = true) }
             val mediaItem = MediaItem.fromUri(Uri.parse(selected.streamUri))
             exoPlayer.setMediaItem(mediaItem)
@@ -327,8 +353,11 @@ class VideoPlayerViewModel @Inject constructor(
     fun togglePlayPause() {
         if (exoPlayer.isPlaying) {
             exoPlayer.pause()
+            streamPlaybackSession.stop()
         } else {
-            exoPlayer.play()
+            if (streamPlaybackSession.canStartCurrentStream()) {
+                exoPlayer.play()
+            }
         }
     }
 
@@ -339,6 +368,7 @@ class VideoPlayerViewModel @Inject constructor(
      */
     fun onHostStopped() {
         exoPlayer.pause()
+        streamPlaybackSession.stop()
     }
 
     fun onScreenTap() {
@@ -395,6 +425,26 @@ class VideoPlayerViewModel @Inject constructor(
         }
     }
 
+    fun toggleScaleMode() {
+        _uiState.update { current ->
+            val nextMode = if (current.scaleMode == VideoScaleMode.FIT) VideoScaleMode.CROP_PAN else VideoScaleMode.FIT
+            current.copy(scaleMode = nextMode, panOffsetX = 0f, panOffsetY = 0f)
+        }
+    }
+
+    fun onPanDelta(dx: Float, dy: Float) {
+        _uiState.update { current ->
+            if (current.scaleMode == VideoScaleMode.CROP_PAN) {
+                current.copy(
+                    panOffsetX = current.panOffsetX + dx,
+                    panOffsetY = current.panOffsetY + dy
+                )
+            } else {
+                current
+            }
+        }
+    }
+
     private fun stopProgressUpdates() {
         progressUpdateJob?.cancel()
         progressUpdateJob = null
@@ -424,6 +474,7 @@ class VideoPlayerViewModel @Inject constructor(
         Timber.d("VideoPlayerViewModel cleared")
         stopProgressUpdates()
         controlsHideJob?.cancel()
+        streamPlaybackSession.clear()
         exoPlayer.removeListener(playerListener)
         // S0725: this VM owns its ExoPlayer (no longer a process singleton) - release native resources
         // instead of just stop()+clearMediaItems(); pairs with PlayerView.player = null in the screen's

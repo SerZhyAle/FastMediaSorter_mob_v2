@@ -5,10 +5,12 @@ import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.PairedWatchStatus
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
+import com.sza.fastmediasorter.domain.usecase.GetPairedWatchStatusUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportWatchSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.PushWearSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.SendPlaybackCommandUseCase
@@ -42,8 +44,24 @@ class WearSyncViewModel @Inject constructor(
     private val sendResourcesToWatchUseCase: SendResourcesToWatchUseCase,
     private val pushWearSettingsUseCase: PushWearSettingsUseCase,
     private val importWatchSourcesUseCase: ImportWatchSourcesUseCase,
-    private val sendPlaybackCommandUseCase: SendPlaybackCommandUseCase
+    private val sendPlaybackCommandUseCase: SendPlaybackCommandUseCase,
+    private val getPairedWatchStatusUseCase: GetPairedWatchStatusUseCase
 ) : ViewModel() {
+
+    // S1885: seeded Unknown so the settings row starts neutral instead of claiming a watch is
+    // absent before the bridge has been asked.
+    private val _pairedWatchStatus = MutableStateFlow<PairedWatchStatus>(PairedWatchStatus.Unknown)
+    val pairedWatchStatus: StateFlow<PairedWatchStatus> = _pairedWatchStatus.asStateFlow()
+
+    /**
+     * S1885: asked when the Wear group becomes visible and when the companion switch flips, never on
+     * a timer - the bridge call costs a round trip and the row is read by someone looking at it.
+     */
+    fun refreshPairedWatchStatus() {
+        viewModelScope.launch {
+            _pairedWatchStatus.value = getPairedWatchStatusUseCase()
+        }
+    }
 
     private val _uiState = MutableStateFlow<WearSyncUiState>(WearSyncUiState.Idle)
     val uiState: StateFlow<WearSyncUiState> = _uiState.asStateFlow()

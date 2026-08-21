@@ -80,6 +80,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Thirteen interface languages** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: The interface speaks thirteen languages, picked per app without changing the whole device.
 - **See what the app connects to** `[Standard / noLegal]`: A network monitor lists the app's own connections, so a stalled transfer or stream is traceable instead of guesswork.
 - **Screen rotation switch on Wear OS** `[Wear OS]`: The watch app now has its own screen-rotation switch, so you can stop the watch screen from turning with your wrist without changing any system setting.
+- **Accessibility Service quick disable before banking** `[noLegal]`: 1-tap disabling of Accessibility Service from Settings, Android Quick Settings Tile, or 1x1 homescreen AppWidget for safe banking app execution.
 
 ## 9. Replace your home-screen launcher
 - **Use the app as your home screen** `[Standard / noLegal]`: Launcher mode turns FastMediaSorter into the device home screen, with resizable gadgets, a working clock, and a labeled scrollable app grid.

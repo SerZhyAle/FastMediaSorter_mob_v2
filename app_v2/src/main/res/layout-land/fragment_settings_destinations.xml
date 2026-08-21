@@ -981,6 +981,68 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- GROUP: Wear OS (S1883) - the watch half of the app in one place. The card carries its own id because the whole card is hidden in builds without the watch bridge: hiding only the header and the container would leave an empty elevated card on screen. Landscape: two equal-weight columns - left is the switch and its explanation, right is the link and the button that opens the companion. -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardWear" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerWear"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_watch"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/settings_wear_group_title" />
+
+                <LinearLayout android:id="@+id/containerWear" android:layout_width="match_parent" android:layout_height="wrap_content" android:baselineAligned="false" android:orientation="horizontal" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:orientation="vertical">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableWearCompanion"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            app:str_icon="@drawable/ic_watch"
+                            app:str_title="@string/settings_enable_wear_companion"
+                            app:str_subtitle="@string/settings_enable_wear_companion_summary" />
+
+                        <TextView
+                            android:id="@+id/textWearGroupDescription"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/settings_wear_group_description"
+                            android:textColor="@color/text_color_secondary"
+                            android:textSize="@dimen/toggler_title_text_size" />
+
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnWearInstallGuide" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_wear_install_guide_button" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_book" app:iconSize="@dimen/settings_icon_size" />
+
+                        <TextView
+                            android:id="@+id/textWearPairedWatch"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:text="@string/settings_wear_paired_watch_checking"
+                            android:textColor="@color/text_color_secondary"
+                            android:textSize="@dimen/toggler_title_text_size" />
+                        <LinearLayout android:id="@+id/containerWearCompanion" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:orientation="horizontal" android:gravity="center_vertical">
+
+                            <com.google.android.material.button.MaterialButton android:id="@+id/btnWearCompanion" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/wear_companion" app:icon="@drawable/ic_watch" app:iconGravity="start" />
+
+                            <ImageButton android:id="@+id/iconHelpWearCompanion" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_wear_companion_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- GROUP: Additional programs and scenarios (S0649) - moved from Other features. Landscape: two equal-weight columns (strategic S0649 §6.2). Left = Fast camera translation + nested Recognition only (kept together); right = Calculator + Mini-game. When OCR/translation is unavailable, the left column hides via applyFlavorRestrictions() and the right column keeps Calculator + Mini-game. -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
@@ -1055,14 +1117,6 @@
                             app:str_title="@string/settings_enable_system_info"
                             app:str_subtitle="@string/settings_enable_system_info_summary" />
 
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowEnableWearCompanion"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/margin_small"
-                            app:str_icon="@drawable/ic_watch"
-                            app:str_title="@string/settings_enable_wear_companion"
-                            app:str_subtitle="@string/settings_enable_wear_companion_summary" />
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowEmbeddedGame"
@@ -1294,6 +1348,29 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:text="@string/setting_screenshot_accessibility_shortcut_button"
+                        android:textAllCaps="false" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDisableAccessibilityService"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/accessibility_service_disable_now"
+                        android:textAllCaps="false"
+                        android:visibility="gone" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenDevSettings"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/dev_options_shortcut"
                         android:textAllCaps="false" />
 
                 </LinearLayout>

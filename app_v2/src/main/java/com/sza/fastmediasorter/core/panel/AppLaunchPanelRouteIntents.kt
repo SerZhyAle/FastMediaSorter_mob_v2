@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
+import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
 import com.sza.fastmediasorter.widget.CameraLaunchActivity
 import com.sza.fastmediasorter.widget.CameraQuickCaptureActivity
 import com.sza.fastmediasorter.widget.CameraQuickCaptureLaunchManager
@@ -66,6 +67,19 @@ object AppLaunchPanelRouteIntents {
     fun systemInfoSettings(context: Context): Intent =
         Intent(context, SettingsActivity::class.java)
             .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
+            .withPanelFlags()
+
+    // S1883: the same host window the settings button and the programs entry open, so all four
+    // surfaces are one behaviour rather than several that resemble each other.
+    fun wearCompanion(context: Context): Intent =
+        WearCompanionActivity.createIntent(context).withPanelFlags()
+
+    // Unlike the routes above, this one names its section: the companion's settings are a group on the
+    // Operations tab, and landing at the top of that tab would leave the user to hunt for it.
+    fun wearCompanionSettings(context: Context): Intent =
+        Intent(context, SettingsActivity::class.java)
+            .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
+            .putExtra(SettingsActivity.EXTRA_EXPAND_SECTION, SettingsActivity.SECTION_WEAR)
             .withPanelFlags()
 
     fun game(context: Context): Intent =

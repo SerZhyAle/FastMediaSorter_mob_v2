@@ -116,6 +116,7 @@ object FakeStreamingModule {
             manifest: StreamingManifest,
             fileName: String,
             quality: MediaQualityPreference,
+            accountId: String?,
             onProgress: (downloadedBytes: Long, totalBytes: Long?) -> Unit,
         ): PipelineOutcome = PipelineOutcome.NetworkError(IllegalStateException("forced failure"))
     }

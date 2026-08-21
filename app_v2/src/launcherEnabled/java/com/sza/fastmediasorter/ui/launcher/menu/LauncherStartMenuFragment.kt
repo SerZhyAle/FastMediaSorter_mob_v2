@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.ui.launcher.menu
 
 import android.app.Dialog
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.PowerManager
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -134,6 +136,8 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
             viewModel.setEditMode(true)
             dismiss()
         }
+        binding.rowReboot.setOnClickListener { confirmReboot() }
+        binding.rowShutdown.setOnClickListener { confirmShutdown() }
         binding.rowExitMode.setOnClickListener { confirmExit() }
 
         listenForPickedResource()
@@ -252,8 +256,11 @@ class LauncherStartMenuFragment : BottomSheetDialogFragment() {
     private fun performPowerAction(isReboot: Boolean) {
         val context = context?.applicationContext ?: return
         if (isReboot) {
-            val powerManager = context.getSystemService(android.content.Context.POWER_SERVICE) as? android.os.PowerManager
-            val success = runCatching { powerManager?.reboot(null) }.isSuccess
+            // Unsafe cast on purpose: an absent PowerManager has to reach the broadcast fallback,
+            // and runCatching turns it into the same failure a SecurityException produces.
+            val success = runCatching {
+                (context.getSystemService(Context.POWER_SERVICE) as PowerManager).reboot(null)
+            }.isSuccess
             if (!success) {
                 val intent = Intent(Intent.ACTION_REBOOT).apply {
                     putExtra("nowait", 1)

@@ -94,6 +94,31 @@ class StreamActionCatalogTest {
     }
 
     @Test
+    fun `send to watch needs a manual channel AND the wear gate`() {
+        // S1799: both facts on - offered.
+        assertTrue(
+            StreamActionCatalog.actionsFor(
+                MenuActionSurface.MAIN_WINDOW,
+                catalogChannel.copy(isManualOrigin = true, wearSendAvailable = true),
+            ).contains(StreamMenuAction.SEND_TO_WATCH),
+        )
+        // Catalog-origin channel - absent even with the gate on: catalog rows reach the watch themselves.
+        assertFalse(
+            StreamActionCatalog.actionsFor(
+                MenuActionSurface.MAIN_WINDOW,
+                catalogChannel.copy(wearSendAvailable = true),
+            ).contains(StreamMenuAction.SEND_TO_WATCH),
+        )
+        // Gate off - absent for a manual channel too.
+        assertFalse(
+            StreamActionCatalog.actionsFor(
+                MenuActionSurface.MAIN_WINDOW,
+                catalogChannel.copy(isManualOrigin = true),
+            ).contains(StreamMenuAction.SEND_TO_WATCH),
+        )
+    }
+
+    @Test
     fun `the two state-dependent captions flip with the channel`() {
         val pinnedFavorite = StreamActionCatalog.Facts(isPinned = true, isFavorite = true)
 

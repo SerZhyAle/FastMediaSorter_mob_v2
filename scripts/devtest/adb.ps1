@@ -38,11 +38,17 @@
     swipe                input swipe from -X,-Y to -X2,-Y2 over -Duration ms (default 300).
                          A scroll is a swipe: this is how a list moves under uidump/tap-label
     uidump               dump the uiautomator node tree, save the XML, and print every node that
-                         carries text or a content-description with its bounds and its tap point.
-                         -Grep <regex> filters by label (-Json: file, nodes[])
+                         carries text or a content-description with its resource-id, its bounds and
+                         its tap point. -Grep <regex> filters by label OR resource-id; -Ids also
+                         lists the nodes named by an id alone (-Json: file, nodes[])
+    tap-id               locate a node by its resource-id and tap the centre of its bounds:
+                         -ResourceId <short-or-full> [-Exact] [-Index N]. PREFER THIS over tap-label:
+                         a label is translated and an id is not, so a label-aimed call passes on the
+                         locale it was written on and returns 8 everywhere else (S1879)
     tap-label            find a node by its text or content-description and tap the centre of its
                          bounds: -Label <substring> [-Exact] [-Index N]. Tapping a label instead of
-                         a remembered coordinate is what survives a list that scrolled (S1847)
+                         a remembered coordinate is what survives a list that scrolled (S1847).
+                         Right where there is no id to aim at - most of Compose on the watch
     clip-check           report content that leaves the physical display shape. The shape is READ
                          FROM THE DEVICE (mRoundedCorners), so a round watch and a rounded-corner
                          phone use one rule and neither is hardcoded
@@ -113,9 +119,10 @@
     6 - `pull`: the remote path does not exist on the device. Distinct from 7 because "the file was
         never written" and "the transfer failed" call for different next moves
     7 - the underlying adb command returned non-zero
-    8 - `tap-label`: no visible node carried that label, so NOTHING was tapped. Distinct from 7
-        because "the screen does not show it" and "the tap failed" call for different next moves -
-        the first usually means an animation was still running, or the list needs scrolling
+    8 - `tap-label` / `tap-id`: no visible node carried that label or that resource-id, so NOTHING
+        was tapped. Distinct from 7 because "the screen does not show it" and "the tap failed" call
+        for different next moves - the first usually means an animation was still running, or the
+        list needs scrolling
     9 - `clip-check`: at least one node is OFF-GLASS. EDGE and CLIPPED never reach this code
 
   Human output: one verdict line per verb (plus the data the verb produces).
@@ -158,6 +165,11 @@
   See where the matching controls actually are before tapping anything.
 
 .EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 tap-id -ResourceId rowLauncherModeEnabled
+  Tap the settings row by the name its layout gives it. The same call works on a device in any
+  language, which the equivalent tap-label does not.
+
+.EXAMPLE
   pwsh -NoProfile -File scripts/devtest/adb.ps1 tap-label -Label "Media Types"
   Tap the entry by name, so a list that scrolled since the last dump cannot land the tap on its
   neighbour - the failure this verb exists to prevent.
@@ -198,7 +210,13 @@ param(
     # text-only search finds nothing on exactly the screens that need this verb most.
     [string]$Label,
     [switch]$Exact,
-    # tap-label: which match to take when the label is not unique (1-based, document order).
+    # tap-id: the resource-id to match. Accepts the short name a layout writes (`rowExport`) or the
+    # full package-qualified value; unlike a label it does not change with the app locale (S1879).
+    [string]$ResourceId,
+    # uidump: also list the nodes named ONLY by a resource-id. Off by default - a real screen carries
+    # dozens of them, and burying the labels is how this verb stops being readable.
+    [switch]$Ids,
+    # tap-label / tap-id: which match to take when the target is not unique (1-based, document order).
     [int]$Index = 1,
     # Destination directory for the file-producing verbs (shot, uidump, clip-check, prefs, pull).
     # Default stays temp/scratch/; point it at temp/Sxxxx/ to file the artifact with its ticket.
@@ -445,7 +463,7 @@ function Get-DisplayShape {
 switch ($Verb.ToLowerInvariant()) {
 
     'help' {
-        if ($Json) { Emit-Ok @{ verbs = 'help,devices,props,current,launch,stop,logcat-clear,wipe-data,install,uninstall,shot,uidump,clip-check,log,tap,tap-label,swipe,text,key,prefs,pull,push,shell' } }
+        if ($Json) { Emit-Ok @{ verbs = 'help,devices,props,current,launch,stop,logcat-clear,wipe-data,install,uninstall,shot,uidump,clip-check,log,tap,tap-id,tap-label,swipe,text,key,prefs,pull,push,shell' } }
         Write-Host "adb.ps1 - ad-hoc device swiss-army" -ForegroundColor Cyan
         Write-Host "Usage: pwsh -NoProfile -File scripts/devtest/adb.ps1 <verb> [options]" -ForegroundColor Gray
         Write-Host ""
@@ -460,7 +478,8 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "  uninstall  DESTRUCTIVE uninstall resolved package - needs -Yes" -ForegroundColor Yellow
         Write-Host "  shot       screenshot to temp/scratch/" -ForegroundColor White
         Write-Host "  log        logcat -d app tail (-Tail N, -Grep regex)" -ForegroundColor White
-        Write-Host "  uidump     dump the UI node tree: labels, bounds, tap points (-Grep regex)" -ForegroundColor White
+        Write-Host "  uidump     dump the UI node tree: labels, ids, bounds, tap points (-Grep regex, -Ids)" -ForegroundColor White
+        Write-Host "  tap-id     tap a node by its resource-id: -ResourceId <s> [-Exact] [-Index N] - preferred" -ForegroundColor White
         Write-Host "  tap-label  tap a node by its text/content-desc: -Label <s> [-Exact] [-Index N]" -ForegroundColor White
         Write-Host "  clip-check report content leaving the display shape (read from the device)" -ForegroundColor White
         Write-Host "  tap        input tap -X <x> -Y <y>" -ForegroundColor White
@@ -780,17 +799,48 @@ switch ($Verb.ToLowerInvariant()) {
         $script:result.device = $id
         $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
         $nodes = @(Get-UiNodes (Get-UiTree $id $file))
-        if ($Grep) { $nodes = @($nodes | Where-Object { $_.label -match $Grep }) }
+        if (-not $Ids) { $nodes = @($nodes | Where-Object { $_.labelled }) }
+        # -Grep spans the identifier too, so the same regex serves both ways of naming a target.
+        if ($Grep) { $nodes = @($nodes | Where-Object { $_.label -match $Grep -or $_.resId -match $Grep }) }
         if ($Json) { Emit-Ok @{ id = $id; file = $file; count = $nodes.Count; nodes = @($nodes) } }
         Write-Host "TREE $file" -ForegroundColor Green
         foreach ($n in $nodes) {
             # The label is the product of this verb, so it goes to the success stream and survives a
             # redirect; the file path and the count are decoration and stay on information (S1183).
-            Write-Output ("{0,-40} {1}  tap {2},{3}   bounds {4},{5}..{6},{7}" -f `
-                $n.label.Replace("`n", ' '), $n.source, $n.tapX, $n.tapY, $n.x1, $n.y1, $n.x2, $n.y2)
+            Write-Output ("{0,-40} {1,-4} {2,-28} tap {3},{4}   bounds {5},{6}..{7},{8}" -f `
+                $n.label.Replace("`n", ' '), $n.source, $n.resIdShort, $n.tapX, $n.tapY, $n.x1, $n.y1, $n.x2, $n.y2)
         }
         $filterNote = if ($Grep) { " matching '$Grep'" } else { '' }
-        Write-Host ("OK {0} labelled node(s){1}" -f $nodes.Count, $filterNote) -ForegroundColor Cyan
+        $kindNote   = if ($Ids) { 'named' } else { 'labelled' }
+        Write-Host ("OK {0} {1} node(s){2}" -f $nodes.Count, $kindNote, $filterNote) -ForegroundColor Cyan
+        if (-not $Ids) {
+            Write-Host "     -Ids also lists the nodes carrying only a resource-id (a switch, an icon)" -ForegroundColor Gray
+        }
+        exit 0
+    }
+
+    'tap-id' {
+        # Argument check BEFORE device selection: a call with no target is wrong whether or not a
+        # device is attached, and answering 2 ("no device") would send the caller after the wrong bug.
+        if (-not $ResourceId) { Fail 1 "tap-id needs -ResourceId <name-or-full-id> (add -Exact for a whole-value match)" }
+        $id = Select-Device
+        $script:result.device = $id
+        $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
+        $nodes = @(Get-UiNodes (Get-UiTree $id $file))
+        $hits  = @(Select-UiNodesById $nodes $ResourceId -Exact:$Exact)
+        if ($hits.Count -eq 0) {
+            Fail 8 "no visible node carries the resource-id '$ResourceId' - nothing was tapped. The tree is at $file; run 'uidump -Ids' against it, and remember a screen still animating or a list needing a scroll shows neither"
+        }
+        if ($Index -lt 1 -or $Index -gt $hits.Count) {
+            Fail 1 "-Index $Index is out of range: '$ResourceId' matches $($hits.Count) node(s)"
+        }
+        $hit = $hits[$Index - 1]
+        Invoke-Adb $id @('shell', 'input', 'tap', "$($hit.tapX)", "$($hit.tapY)") | Out-Null
+        if ($Json) { Emit-Ok @{ id = $id; resourceId = $hit.resId; label = $hit.label; x = $hit.tapX; y = $hit.tapY; matches = $hits.Count; file = $file } }
+        Write-Host ("TAP-ID '{0}' at {1},{2} on {3}" -f $hit.resId, $hit.tapX, $hit.tapY, $id) -ForegroundColor Green
+        if ($hits.Count -gt 1) {
+            Write-Host ("     {0} nodes match this id; tapped #{1}. Pass -Index to choose another, or -Exact so one name is not read as the start of another." -f $hits.Count, $Index) -ForegroundColor Yellow
+        }
         exit 0
     }
 
@@ -827,7 +877,10 @@ switch ($Verb.ToLowerInvariant()) {
         $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
         $nodes = @(Get-UiNodes (Get-UiTree $id $file))
         $findings = New-Object System.Collections.Generic.List[object]
-        $judged = @($nodes | Where-Object { $_.leaf })
+        # Labelled only: S1879 widened the tree to nodes named by a resource-id alone, and this
+        # classification is calibrated against five recorded dumps. Judging the new nodes would move
+        # counts that were measured, not chosen.
+        $judged = @($nodes | Where-Object { $_.leaf -and $_.labelled })
         foreach ($n in $judged) {
             $v = Get-ClipVerdict $n $shape
             if ($null -eq $v) { continue }

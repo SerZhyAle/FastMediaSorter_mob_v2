@@ -258,4 +258,7 @@
     <string name="pref_resource_grid_cell_size_large">Великі</string>
     <string name="settings_enable_system_info">Відомості про систему</string>
     <string name="settings_enable_system_info_summary">Показувати відомості про систему в панелі та меню програм</string>
+    <string name="settings_wear_group_title">Wear OS</string>
+    <string name="settings_wear_group_description">Увімкніть, якщо у вас є годинник на Wear OS. Компаньйон відкривається звідси й вирішує, чим цей телефон ділиться з годинником.</string>
+    <string name="settings_wear_install_guide_button">Як встановити на годинник</string>
 </resources>

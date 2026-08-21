@@ -160,6 +160,11 @@ function Find-WindowInsetsLines([string]$Text) {
 # hand during remote-log triage, which is what surfaced the class.
 $script:BroadCatchRx = [regex]'^\s*(?:\}\s*)?catch\s*\(\s*(?:@\w+(?:\([^)]*\))?\s+)?\w+\s*:\s*(?:[\w.]+\.)?(?:Exception|Throwable)\s*\)'
 $script:CancelCatchRx = [regex]'catch\s*\(\s*(?:@\w+(?:\([^)]*\))?\s+)?\w+\s*:\s*(?:[\w.]+\.)?CancellationException\s*\)'
+# S1889: CancellationException is a typealias for java.util.concurrent.CancellationException, which
+# extends IllegalStateException. An arm naming a supertype therefore takes the cancellation without
+# ever naming it and, being earlier in the chain, leaves a cured broad arm below it unreachable. The
+# guard existed and this rule still read the file as clean - which is how CloudMediaScanner shipped.
+$script:CancelSupertypeCatchRx = [regex]'^\s*(?:\}\s*)?catch\s*\(\s*(?:@\w+(?:\([^)]*\))?\s+)?\w+\s*:\s*(?:[\w.]+\.)?(?:IllegalStateException|RuntimeException)\s*\)'
 $script:TryOpenRx = [regex]'(?:^|\W)try\s*\{'
 $script:FunDeclRx = [regex]'\bfun\b'
 $script:SuspendFunRx = [regex]'\bsuspend\s+(?:inline\s+)?fun\b'
@@ -184,7 +189,8 @@ function Find-SwallowedCancellationLines([string]$Text) {
     $lines = $Text -split "`r?`n"
     $hits = @()
     for ($i = 0; $i -lt $lines.Count; $i++) {
-        if (-not $script:BroadCatchRx.IsMatch($lines[$i])) { continue }
+        $isCandidate = $script:BroadCatchRx.IsMatch($lines[$i]) -or $script:CancelSupertypeCatchRx.IsMatch($lines[$i])
+        if (-not $isCandidate) { continue }
         if ($script:CancelCatchRx.IsMatch($lines[$i])) { continue }
         $indent = Get-LineIndent $lines[$i]
 
@@ -477,6 +483,15 @@ function Get-SourceRules {
         (New-RegexRule -Name 'compose-island' `
                 -Pattern ([regex]'setContent\s*\{') `
                 -FailMessage 'new Compose island in app_v2 (CLAUDE.md Rule 32). app_v2 is View-based: build the screen in XML + ViewBinding. Removing an island lowers this baseline; raising it is a boundary decision, not a build fix.'),
+        # S1693: growth stop for findViewById, not a placement rule. Whether one call is legitimate
+        # (custom View, adapter, runtime-resolved layout, documented host-neutral helper) or legacy
+        # is NOT lexically decidable - both shapes look identical - so this rule counts growth only.
+        # Category-C files (raw-inflate, no binding) convert opportunistically when another ticket
+        # touches them, the Rule 32 model: each conversion lowers the baseline on the next green
+        # full run, and the baseline never rises without a boundary decision.
+        (New-RegexRule -Name 'findviewbyid' `
+                -Pattern ([regex]'\bfindViewById\s*[<(]') `
+                -FailMessage 'new findViewById in app_v2/src/main (S1693). Use the layout''s generated binding field; if this file is genuinely a legitimate shape (custom View, adapter, runtime-resolved layout, documented host-neutral helper), justify the growth in review instead of raising the baseline.'),
         (New-RegexRule -Name 'empty-catch' `
                 -Pattern ([regex]'catch\s*\([^)]*\)\s*\{\s*(?:(?://[^\r\n]*)|(?:/\*[\s\S]*?\*/))?\s*\}') `
                 -FailMessage 'new empty catch block introduced. Recover, use a safe default, or log at the correct level.'),
@@ -581,7 +596,7 @@ function Get-SourceRules {
             ExcludeNames = @()
             CountInText  = { param($t) Measure-SwallowedCancellationText $t }
             LocateInText = { param($t) Find-SwallowedCancellationLines $t }
-            FailMessage  = 'new broad catch in coroutine code that swallows CancellationException. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363).'
+            FailMessage  = 'new catch in coroutine code that swallows CancellationException - a broad arm, or an IllegalStateException/RuntimeException arm, both of which are its supertypes. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363/S1889).'
         },
         [pscustomobject]@{
             Name         = 'activity-logic'

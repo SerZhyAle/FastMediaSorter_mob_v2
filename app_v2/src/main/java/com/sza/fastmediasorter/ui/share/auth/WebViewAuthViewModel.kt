@@ -47,12 +47,4 @@ class WebViewAuthViewModel @Inject constructor(
         }
     }
 
-    @Deprecated("Use saveSession(host, accountId, displayName, cookies)", level = DeprecationLevel.WARNING)
-    fun saveSession(domain: String, cookies: List<HttpCookie>) {
-        if (domain.isBlank() || cookies.isEmpty()) return
-        viewModelScope.launch {
-            @Suppress("DEPRECATION")
-            repository.saveSession(domain, cookies)
-        }
-    }
 }

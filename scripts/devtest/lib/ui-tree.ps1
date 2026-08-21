@@ -9,6 +9,9 @@
   only dot-source these if they live outside a script that runs verbs on load. Same reason
   lib/find-adb.ps1 exists (S1341) and lib/adb-log-filter.ps1 exists (S1332).
 
+  The resource-id match rule used by `tap-id` is pinned the same way, by
+  scripts/devtest/adb-tap-id.tests/Run-Tests.ps1 (S1879).
+
   Sourced, never executed directly, so it declares no exit codes of its own.
 #>
 function Add-UiNodes {
@@ -20,14 +23,25 @@ function Add-UiNodes {
         if ($m.Success) {
             $nodeText = $child.GetAttribute('text')
             $nodeDesc = $child.GetAttribute('content-desc')
-            if ($nodeText -or $nodeDesc) {
+            # A node named ONLY by its resource-id is collected too (S1879). It is invisible to
+            # tap-label by construction, and it is exactly what a switch or an icon looks like.
+            $nodeId   = $child.GetAttribute('resource-id')
+            if ($nodeText -or $nodeDesc -or $nodeId) {
                 $x1 = [int]$m.Groups[1].Value; $y1 = [int]$m.Groups[2].Value
                 $x2 = [int]$m.Groups[3].Value; $y2 = [int]$m.Groups[4].Value
+                $idSep = $nodeId.IndexOf(':id/')
                 $Acc.Add([ordered]@{
-                    label  = if ($nodeText) { $nodeText } else { $nodeDesc }
-                    source = if ($nodeText) { 'text' } else { 'desc' }
+                    label  = if ($nodeText) { $nodeText } elseif ($nodeDesc) { $nodeDesc } else { '' }
+                    source = if ($nodeText) { 'text' } elseif ($nodeDesc) { 'desc' } else { 'id' }
+                    # Whether the node carries a HUMAN-READABLE name. clip-check judges only these,
+                    # so widening the collection above cannot move its calibrated verdicts.
+                    labelled = [bool]($nodeText -or $nodeDesc)
                     text   = $nodeText
                     desc   = $nodeDesc
+                    resId  = $nodeId
+                    # The part a layout actually writes. The full value carries the package, and the
+                    # debug build's package ends in .debug - a call pinned to it breaks on release.
+                    resIdShort = if ($idSep -ge 0) { $nodeId.Substring($idSep + 4) } else { '' }
                     class  = $child.GetAttribute('class')
                     # A node with element children is a container: its box is the group's extent,
                     # not the extent of anything the user can see. clip-check judges leaves only.
@@ -47,6 +61,32 @@ function Get-UiNodes {
     $acc = New-Object System.Collections.Generic.List[object]
     Add-UiNodes $Tree.DocumentElement $false $acc
     return $acc
+}
+
+# Nodes whose resource-id matches, in document order (S1879).
+#
+# Two forms are accepted because neither alone is usable. The full value is package-qualified, and
+# the debug package ends in .debug, so a call written against one build misses on the other; the
+# short form is what the layout writes and travels between builds. Default matching is a
+# case-insensitive substring - `rowExport` therefore also reaches `rowExportAll`, and -Exact is how
+# the caller says the two must not be confused. That confusion IS the failure tap-label exists to
+# prevent, so it is the caller's decision to make, not a default to guess at.
+#
+# Like Get-UiNodes above, the caller wraps the result in @() before reading .Count: a single match
+# returned bare is one hashtable, whose .Count is its field count, not 1.
+function Select-UiNodesById {
+    param($Nodes, [string]$Wanted, [switch]$Exact)
+    $hits = New-Object System.Collections.Generic.List[object]
+    foreach ($n in $Nodes) {
+        if (-not $n.resId) { continue }
+        $match = if ($Exact) {
+            $n.resId -eq $Wanted -or $n.resIdShort -eq $Wanted
+        } else {
+            $n.resId.IndexOf($Wanted, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
+        }
+        if ($match) { $hits.Add($n) | Out-Null }
+    }
+    return $hits
 }
 
 # How far outside its nearest corner circle a point sits. 0 means the point is not in any corner

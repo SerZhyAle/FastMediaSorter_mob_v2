@@ -23,6 +23,9 @@ enum class StreamMenuAction(@param:DrawableRes val iconRes: Int) {
     ADD_SHORTCUT(R.drawable.ic_widget_resource_launch),
     EDIT(R.drawable.ic_edit_20),
 
+    // S1799: sits by EDIT - both are manual-channel-only commands.
+    SEND_TO_WATCH(R.drawable.ic_watch),
+
     // S1474: sits with the other reading actions, above sharing and well clear of removal.
     ABOUT_CHANNEL(R.drawable.ic_info),
     SHARE_LINK(R.drawable.ic_share),
@@ -63,6 +66,9 @@ object StreamActionCatalog {
         val favoritesEnabled: Boolean = false,
         val isReorderable: Boolean = false,
         val isManualOrigin: Boolean = false,
+        // S1799: the Wear Companion option is on AND the build carries the watch bridge. The default
+        // keeps the command absent on surfaces that never learned the gate (launcher desktop).
+        val wearSendAvailable: Boolean = false,
     )
 
     /**
@@ -106,6 +112,7 @@ object StreamActionCatalog {
         StreamMenuAction.TOGGLE_FAVORITE -> favoriteLabelRes(facts)
         StreamMenuAction.ADD_SHORTCUT -> R.string.streams_add_to_home_screen
         StreamMenuAction.EDIT -> R.string.streams_edit
+        StreamMenuAction.SEND_TO_WATCH -> R.string.stream_action_send_to_watch
         StreamMenuAction.ABOUT_CHANNEL -> R.string.stream_info_menu_title
         StreamMenuAction.SHARE_LINK -> R.string.streams_send_link
         StreamMenuAction.REMOVE -> R.string.streams_remove
@@ -128,6 +135,8 @@ object StreamActionCatalog {
 
         StreamMenuAction.TOGGLE_FAVORITE -> facts.favoritesEnabled
         StreamMenuAction.EDIT -> facts.isManualOrigin
+        // S1799: only a manual channel can be sent - catalog rows reach the watch by themselves.
+        StreamMenuAction.SEND_TO_WATCH -> facts.isManualOrigin && facts.wearSendAvailable
         else -> true
     }
 }

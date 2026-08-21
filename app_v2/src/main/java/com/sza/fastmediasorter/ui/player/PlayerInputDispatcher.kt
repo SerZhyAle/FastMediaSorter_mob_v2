@@ -22,15 +22,10 @@ internal class PlayerInputDispatcher(private val activity: PlayerActivity) {
 
     fun dispatchKeyEvent(event: KeyEvent, superHandler: (KeyEvent) -> Boolean): Boolean {
         if (activity.blackScreenOverlayManager.isVisible) {
-            return when (event.keyCode) {
-                KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_MUTE,
-                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_MEDIA_NEXT,
-                KeyEvent.KEYCODE_MEDIA_PREVIOUS, KeyEvent.KEYCODE_MEDIA_STOP -> superHandler(event)
-                else -> {
-                    activity.blackScreenOverlayManager.hide()
-                    superHandler(event)
-                }
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                activity.blackScreenOverlayManager.hide()
             }
+            return true
         }
         // Gamepad buttons intercepted before onKeyDown so input routing stays in one place.
         // BT keyboard / remote keys fall through to super → onKeyDown → keyboardHandler.
@@ -40,6 +35,10 @@ internal class PlayerInputDispatcher(private val activity: PlayerActivity) {
     }
 
     fun dispatchGenericMotionEvent(event: MotionEvent, superHandler: (MotionEvent) -> Boolean): Boolean {
+        if (activity.blackScreenOverlayManager.isVisible) {
+            activity.blackScreenOverlayManager.hide()
+            return true
+        }
         // S0289 Phase 08: gamepad analog stays player-specific; pointer events fall through to the
         // bespoke player-mouse handler first, then to the shared BaseActivity foundation.
         if (event.isFromSource(InputDevice.SOURCE_JOYSTICK)) {

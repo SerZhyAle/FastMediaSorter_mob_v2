@@ -119,6 +119,26 @@ $gates = [ordered]@{
     # time, long after the build passed. The tree carried both modules on 260815161. Reads the two
     # checked-in constants; no gradle daemon.
     'assert-module-version-parity.ps1'          = @('-Quiet')
+    # S1872: a script nothing calls is invisible - the only way to find one was a hand sweep of the
+    # repository, which is an answer that is true once. Judges live wiring only: a mention in an
+    # archived spec or a changelog row remembers a script, it does not call one. Ratcheted against
+    # script-reference-baseline.txt; no gradle daemon.
+    'assert-script-references.ps1'              = @('-Quiet')
+    # S1872: the inventory is generated from script headers, so a script with no synopsis lands in
+    # it as a name and a parameter list and explains nothing. Two ratcheted counts, kept apart so
+    # neither hides behind the other: no synopsis, and exits without a documented contract.
+    # Baselines in script-described-baseline.txt; no gradle daemon.
+    'assert-script-described.ps1'               = @('-Quiet')
+    # S1270: Rule 2's 1500-line ceiling had no mechanical check of any kind - detekt carries
+    # LongMethod but no FileLength, and it never sees a .cpp at all. xr_session.cpp grew 2101 ->
+    # 2154 lines while a ticket about its size sat open. Ratcheted count over .kt/.java/.cpp/.h;
+    # no gradle daemon.
+    'assert-file-line-ceiling.ps1'              = @('-Quiet')
+    # S1356's gate existed and nothing ran it. Re-freezing a detekt baseline is the quietest way
+    # to make a file look clean while its debt grows, and five tickets were written about the same
+    # mechanism in five different files - S1186, S1198, S1247, S1269, S1311 - before anyone noticed
+    # the check was never in the batch. Reads the committed ID snapshot; no gradle daemon.
+    'assert-detekt-baseline-absorption.ps1'     = @()
     # S1706: ic_splash_app_brand.xml is generated per locale from the strings and one template, so a
     # hand edit to one variant compiles and renders while silently diverging from the other twelve.
     # Runs the generator in -Check mode for both modules; no gradle daemon.

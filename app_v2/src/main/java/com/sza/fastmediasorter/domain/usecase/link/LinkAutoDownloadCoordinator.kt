@@ -47,10 +47,8 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     // shared HTTP cookie bridge to mask misses.
     private fun resolveSessionHost(host: String, accountId: String?): String? {
         // Exact match - fastest path, backward compatible.
-        val exactCookies = when {
-            accountId != null -> cookieStore.loadForAccount(host, accountId)
-            else -> @Suppress("DEPRECATION") cookieStore.loadFor(host)
-        }
+        // S1776: one account-or-best read replaces the deprecated best-only branch.
+        val exactCookies = cookieStore.loadForHostAccountOrBest(host, accountId)
         if (exactCookies.isNotEmpty()) return host
 
         // eTLD+1 fallback - scan all accounts for a matching registrable domain.
@@ -78,10 +76,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     private fun applySessionContext(host: String, accountId: String?, audioOnly: Boolean = false): String? {
         val resolvedHost = resolveSessionHost(host, accountId)
         val cookies: List<HttpCookie> = if (resolvedHost != null) {
-            when {
-                accountId != null -> cookieStore.loadForAccount(resolvedHost, accountId)
-                else -> @Suppress("DEPRECATION") cookieStore.loadFor(resolvedHost)
-            }
+            cookieStore.loadForHostAccountOrBest(resolvedHost, accountId)
         } else {
             emptyList()
         }
@@ -303,7 +298,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                                 break
                             }
                             is OpenResult.Streaming -> {
-                                return runStreaming(opened, settings, callbacks, originalUrl, canonicalAudioOnly)
+                                return runStreaming(opened, settings, callbacks, originalUrl, canonicalAudioOnly, accountId)
                             }
                             is OpenResult.Batch -> return runBatch(opened, settings, callbacks)
                             is OpenResult.SocialPreviewOnly -> {
@@ -606,6 +601,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         callbacks: Callbacks,
         originalUrl: String,
         canonicalAudioOnly: Boolean,
+        accountId: String?,
     ): Result {
         val quality = MediaQualityPreference.fromSettings(
             maxResolution = settings.linkDownloadMaxResolution,

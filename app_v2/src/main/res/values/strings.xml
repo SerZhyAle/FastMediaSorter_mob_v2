@@ -1174,8 +1174,6 @@
     <string name="enable_ocr_summary">Extract text from images and PDF for copying</string>
     <string name="translation_downloading_wait">Waiting for translation result..</string>
 
-    <!-- OCR Engine and PaddleOCR Models (S0288) -->
-
     <!-- OCR Best Models Feature -->
 
     <!-- Media Settings Categories -->
@@ -2030,7 +2028,7 @@
     <string name="ext_status_failed">Failed</string>
     <string name="ext_downloading_progress">Downloading: %d%%</string>
     <string name="ext_ocr_engines_title">OCR Engines</string>
-    <string name="ext_ocr_engines_desc">Enables Tesseract and PaddleOCR native recognition libraries to parse text from image and document layouts offline.</string>
+    <string name="ext_ocr_engines_desc">Enables the Tesseract native recognition library to parse text from image and document layouts offline.</string>
     <string name="ext_translation_title">Translation Module</string>
     <string name="ext_translation_desc">Enables offline ML Kit translator and language identifier to translate text across supported languages.</string>
     <string name="ext_audio_viz_title">Audio Visualizations</string>
@@ -3408,4 +3406,39 @@
     <string name="network_monitor_chart_reset_done">Chart restarted. Collecting from now.</string>
     <string name="settings_enable_wear_companion">Wear companion</string>
     <string name="settings_enable_wear_companion_summary">Show the watch companion in the programs panel and menu</string>
+    <string name="wear_watch_resource_name"></string>
+    <string name="wear_watch_transfer_success"></string>
+    <string name="wear_watch_transfer_failed"></string>
+    <string name="stream_action_send_to_watch">Send to watch</string>
+    <string name="stream_send_to_watch_done">Stream sent to the watch</string>
+    <string name="stream_send_to_watch_updated">Stream updated on the watch</string>
+    <string name="stream_send_to_watch_watch_unavailable">Watch is not reachable - stream not sent</string>
+    <string name="stream_send_to_watch_no_reply">Watch did not confirm - check the watch</string>
+    <string name="stream_send_to_watch_failed">Watch could not store the stream</string>
+    <string name="vr_settings_title">Session settings</string>
+    <string name="vr_settings_footer">Menu button closes this panel</string>
+    <string name="vr_settings_layout">LAYOUT</string>
+    <string name="vr_settings_projection">PROJECTION</string>
+    <string name="vr_settings_distance">PANEL DISTANCE</string>
+    <string name="vr_settings_size">PANEL SIZE</string>
+    <string name="vr_settings_subtitles">SUBTITLES</string>
+    <string name="vr_settings_resume">RESUME POSITION</string>
+    <string name="vr_settings_value_auto">Auto</string>
+    <string name="vr_settings_value_mono">Mono</string>
+    <string name="vr_settings_value_sbs">Side by side</string>
+    <string name="vr_settings_value_over_under">Over-under</string>
+    <string name="vr_settings_value_flat">Flat</string>
+    <string name="vr_settings_value_on">On</string>
+    <string name="vr_settings_value_off">Off</string>
+    <string name="vr_legend_input_menu">Left menu button</string>
+    <string name="vr_legend_action_settings">Open or close session settings</string>
+    <string name="accessibility_service_disable_now">Disable accessibility service</string>
+    <string name="accessibility_service_status_active">Accessibility: Active</string>
+    <string name="accessibility_service_status_disabled">Accessibility: Disabled</string>
+    <string name="qs_tile_accessibility">FMS Accessibility</string>
+    <string name="dev_options_shortcut">Developer options</string>
+    <string name="usb_debugging_status">USB debugging: %s</string>
+    <string name="settings_wear_paired_watch_checking">Checking the link..</string>
+    <string name="settings_wear_paired_watch_connected">%1$s - connected</string>
+    <string name="settings_wear_paired_watch_not_connected">No watch on the link</string>
 </resources>

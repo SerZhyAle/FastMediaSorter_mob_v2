@@ -4,8 +4,8 @@ import android.content.Context
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
-import com.google.gson.Gson
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
+import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -27,8 +27,7 @@ class WearableDataLayerRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : WearableDataLayerRepository {
 
-    // Gson is instantiated locally - no project-wide @Provides binding exists for it
-    private val gson = Gson()
+    private val envelopeCodec = WearEventEnvelopeCodec()
 
     override suspend fun getConnectedNodes(): List<WearNode> = try {
         Wearable.getNodeClient(context).connectedNodes.await()
@@ -54,7 +53,7 @@ class WearableDataLayerRepositoryImpl @Inject constructor(
     }
 
     override suspend fun putEnvelopeDataItem(path: String, envelope: WearEventEnvelope) {
-        val bytes = gson.toJson(envelope).toByteArray(Charsets.UTF_8)
+        val bytes = envelopeCodec.encode(envelope)
         putDataItem(path, bytes)
     }
 }

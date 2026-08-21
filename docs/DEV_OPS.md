@@ -83,8 +83,8 @@
 emulator / device - runs natively (~0 LLM tokens), auto-discovers adb (not on PATH),
 takes `-DeviceId` / `-Release` / `-Package` / `-OutDir` / `-Json`, and uses stable exit codes
 (0 ok / 1 no-adb-or-bad-args / 2 no-device / 3 multi-device / 4 pkg-not-installed /
-5 destructive verb refused / 6 pull: no such remote path / 7 adb-failed / 8 tap-label: label not on
-screen / 9 clip-check: content off-glass).
+5 destructive verb refused / 6 pull: no such remote path / 7 adb-failed / 8 `tap-label` / `tap-id`:
+the target is not on screen and nothing was tapped / 9 clip-check: content off-glass).
 
 **Two verbs are one-way and both require `-Yes`: `wipe-data` and `uninstall`.** The verb that used to be
 called `clear` is gone - it was twice read as "clear the log" and wiped app data instead (S1167, S1572), so
@@ -103,7 +103,9 @@ called `clear` is gone - it was twice read as "clear the log" and wiped app data
 .\a.ps1 adb install -Flavor standard          # install -r -d newest debug APK (or -Apk <path>)
 .\a.ps1 adb tap -X 540 -Y 1000                # input tap / text -Text / key -Key
 .\a.ps1 adb swipe -X 900 -Y 1200 -X2 200 -Y2 1200   # scroll or page: -Duration ms (default 300)
-.\a.ps1 adb uidump -Grep "Settings|Media"     # labels, bounds and tap points from the node tree
+.\a.ps1 adb uidump -Grep "Settings|Media"     # labels, ids, bounds and tap points from the node tree
+.\a.ps1 adb uidump -Ids                       # also list the nodes that carry only a resource-id
+.\a.ps1 adb tap-id -ResourceId rowExport      # tap by resource-id; -Exact, -Index N; exit 8 if absent
 .\a.ps1 adb tap-label -Label "Media Types"    # tap by label; -Exact, -Index N; exit 8 if absent
 .\a.ps1 adb clip-check                        # content leaving the display shape; exit 9 on a defect
 .\a.ps1 adb shell -Cmd "getprop ro.product.cpu.abi"
@@ -115,6 +117,16 @@ called `clear` is gone - it was twice read as "clear the log" and wiped app data
 in one wear sweep that put two taps on the row next to the intended one. `tap-label` takes the dump
 and the tap in the SAME call, so there is no window for the screen to move, and when the label is
 not on screen it exits **8** without tapping anything rather than guessing.
+
+**Prefer `tap-id` when the element has a resource-id (S1879).** A label is translated and a
+`resource-id` is not, so a call written against the label works on the locale the dump was taken on
+and returns 8 on every other one - the same script, the same element, a different phone. `tap-id
+-ResourceId <name>` takes the short name straight from the layout (`-Exact` also accepts the full
+`<package>:id/<name>`, and matching is a case-insensitive substring by default, so `rowExport` also
+reaches `rowExportAll` - pass `-Exact` when one name is the beginning of another). `uidump` prints
+the identifier beside every label, and `uidump -Ids` additionally lists the nodes that carry no
+label at all - a switch or an icon with nothing but an id was invisible to the tool before S1879.
+`tap-label` stays correct where there is no id to aim at, which is most of Compose on the watch.
 
 `clip-check` reads the glass outline from the device (`mRoundedCorners` in `dumpsys window
 displays`), so the round watch (radius 240 on 480x480 - a circle) and the phone (radius 105 on
@@ -652,6 +664,48 @@ Two facts a reader cannot derive from the commands:
 
 - **Documentation prose carries no gate on purpose.** Measured 2026-08-14 (S1544): 134 of 137 files under `docs/` were clean without one, and the three that were not are the gitignored `FEATURES_noLegal*` showcases, which are never published. A gate would cost every run and defend a surface where nothing accumulates. S1340 §5 forbids growing the `assert-*` inventory for cosmetics, and this ticket shrank the script count by four rather than adding to it.
 - **The `ResourceValue` area skips values that are wholly machine-readable** - a URL, a path, a bare format placeholder - because a literal `...` inside an address is part of the address. That path test demands printable ASCII end to end: Chinese and Japanese set no spaces between words, so "no whitespace and contains a slash" on its own matched whole CJK sentences and left them unfixed.
+
+## SCRIPT HYGIENE (S1872)
+
+Three checks keep the repository's ~370 PowerShell scripts findable, described and alive. All three are ratcheted: their ceilings may fall, never rise, so existing debt never blocks an unrelated ticket while a new script must be correct on the day it is written.
+
+**`scripts/quality/assert-script-references.ps1`** - a script nothing references is either deleted or declares itself a hand-run tool.
+
+- Judges **live wiring only**. A mention in an archived spec, a `dev/CHANGELOG.md` row or a read-only zone remembers a script; it does not call one. The repository holds over 6000 such documents, enough to make every dead script look wired - with them in the corpus the check reported 0 orphans out of 340 and could not fail.
+- `docs/SCRIPT_CHEATSHEET.md` is excluded **by definition, not by setting**: it names every script by construction.
+- A Pester suite beside a `Run-Tests.ps1` is reached by discovery, not by name, and is excused automatically.
+- Escape hatch for a script you run by hand: put a line in its comment-based help reading `Manual tool: <why it exists and who runs it>`. An empty reason does not count.
+- `-Memory` mode checks the other direction: every `.ps1` path written in `.claude/agent-memory/**` must resolve, or carry a `Historical:` / `External:` marker on its line or the line above.
+- Baseline: `scripts/quality/script-reference-baseline.txt`. Exit 0 at or below it, 1 above, 2 when a root is missing.
+
+**`scripts/quality/assert-script-described.ps1`** - a script says what it does and which codes it returns.
+
+- Two counts, kept apart so neither hides behind the other: no `.SYNOPSIS`, and declares `exit N` while documenting no `Exit codes:` block. A library that never exits is not asked for a contract.
+- Baseline file carries **two lines**: undescribed count, then undocumented-exit count.
+- Exit 0 at or below both ceilings, 1 above either, 2 when a root or the baseline is missing.
+
+**`scripts/utils/script-help-text.ps1`** - the one reader both the gate and the cheatsheet generator use.
+
+- `GetHelpContent()` returns **nothing** when a `#requires` statement sits above the help block, and this repository puts `#requires -Version 7.0` on line 1 by convention. Every conforming script was therefore invisible to the generator: the cheatsheet carried a synopsis for **0 of 373** entries, which read as "nobody writes synopses" when in fact many do and none could be read. The helper tries the parser first, then reads the leading comment block literally. Repairing the reader beat moving `#requires` in 370 files.
+- Because the gate and `help.ps1` share this reader, the inventory and the gate can never disagree about whether a script is described.
+
+**`scripts/quality/assert-file-line-ceiling.ps1`** - Rule 2's 1500-line ceiling, measured for the first time (S1270).
+
+- Counts physical lines of `.kt`, `.java`, `.cpp` and `.h` under `app_v2/src` and `wear/src` - the same number `wc -l` gives, so a disagreement with the gate is always resolvable by hand.
+- Ratcheted on the **count** of files above the ceiling, not on a list of names: a list would pin offenders by name and then a rename would read as a new violation.
+- Baseline `scripts/quality/file-line-ceiling-baseline.txt`. Exit 0 at or below it, 1 above, 2 when a source root is missing.
+- Before this the ceiling was advice: no script measured file length, and detekt's config carries `LongMethod` but no `FileLength` - and detekt never sees a `.cpp` at all. `app_v2/src/vr/cpp/xr_session.cpp` grew from 2101 to 2154 lines while a ticket about its size sat open.
+
+**`scripts/quality/assert-detekt-baseline-absorption.ps1`** - existed since S1356 and was never wired into anything until 2026-08-21.
+
+- Refuses a detekt baseline that **absorbed** a finding absent from the committed ID snapshot. Its mirror, `audit-detekt-baseline-drift.ps1` (S1334), classifies entries that went dead.
+- Re-freezing a baseline is the quietest way to make a file look clean while its debt grows. Five tickets - S1186, S1198, S1247, S1269, S1311 - were written about that one mechanism in five different files before anyone noticed the check was written and never run.
+- Takes no `-Quiet`; the fast-gate batch calls it with no arguments.
+
+**One root set.** `help.ps1`, `assert-exit-contract.ps1` and both gates above scan `scripts/`, `dev/CATALOG/scripts/` and `dev/ACTIVITY_CATALOG/scripts/`. A population visible to one tool and invisible to another is the population nobody watches.
+
+**Retiring a script.** Delete it together with its references in the same change. Do not leave a forwarding wrapper: nine such wrappers accumulated in `scripts/quality/`, each header claiming it stayed on disk "so every existing caller keeps working unchanged" while having zero callers, and every one of their rules already ran through `assert-source-gates.ps1`.
+
 
 ## BUILD TYPES
 

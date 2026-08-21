@@ -23,8 +23,13 @@ private const val MAX_EDGE_PX = 128
  * Ceiling on the Base64 the page carries, per item. The page holds every item's picture, so a
  * folder of twenty files must stay in the low hundreds of kilobytes rather than the megabytes a
  * per-item ceiling of "whatever compressed to" would allow.
+ *
+ * S1860: lowered from 16 KB after the transport refused a real page. Gson writes the envelope's
+ * `ByteArray` as a JSON array of numbers, so every payload byte costs about four on the wire, and
+ * GMS caps one data item at 100 KB - a ceiling that let one picture eat two thirds of the page.
+ * Spreading the same allowance over more, smaller pictures beats shipping one large one.
  */
-internal const val MAX_ENCODED_CHARS = 16 * 1024
+internal const val MAX_ENCODED_CHARS = 4 * 1024
 
 private const val FIRST_QUALITY = 70
 private const val LOWEST_QUALITY = 40
@@ -78,16 +83,23 @@ class BuildWatchThumbnailUseCase @Inject constructor(
     /**
      * A file the retriever refuses is a normal outcome - a codec the device lacks, a track with no
      * cover - so the failure answers null and the page simply carries no picture for that item.
+     *
+     * S1860: the catch is deliberately as wide as the platform's own contract. `setDataSource`
+     * reports a file it cannot open by throwing a BARE `RuntimeException`
+     * ("setDataSource failed: status = 0xFFFFFFEA"), which the narrower arms this replaced did not
+     * catch - so on a real pair one unreadable track killed the app in the middle of building a
+     * watch page, and the watch, waiting for a page nobody would ever send, told the user the phone
+     * was out of reach. Every outcome here is the same "no picture for this item", so widening the
+     * arm loses no information the caller could have acted on.
      */
+    @Suppress("TooGenericExceptionCaught")
     private fun readMetadata(file: MediaFile, read: (MediaMetadataRetriever) -> Bitmap?): Bitmap? {
         val retriever = MediaMetadataRetriever()
         return try {
             file.contentUri?.let { retriever.setDataSource(context, Uri.parse(it)) }
                 ?: retriever.setDataSource(file.path)
             read(retriever)
-        } catch (e: IllegalArgumentException) {
-            declined(file, e)
-        } catch (e: IllegalStateException) {
+        } catch (e: RuntimeException) {
             declined(file, e)
         } catch (e: IOException) {
             declined(file, e)

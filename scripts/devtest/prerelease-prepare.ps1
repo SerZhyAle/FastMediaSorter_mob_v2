@@ -126,11 +126,14 @@ Add-Stage 'uninstall' 'OK' "removed $DebugPackage if present"
 # (build-standard-device.ps1) is unfit for an unattended sweep: it stamps build.gradle.kts,
 # uploads to Google Drive, 7-zips, and - fatally - spawns a never-terminating background
 # `adb logcat` whose inherited output handle deadlocks this parent process under `*> $null`
-# redirection. Build leanly via gradle, then install through adb.ps1 (no side effects).
+# redirection. Build leanly via gradle with an explicit artifact timestamp, then install through
+# adb.ps1 (no side effects).
 $gradlew = Join-Path $RepoRoot 'gradlew.bat'
+. (Join-Path $RepoRoot 'scripts/utils/build-version-stamp.ps1')
 Enter-BuildLockOrExit -Reason 'prerelease-prepare.ps1 (assembleStandardDebug)'
 try {
-    & $gradlew assembleStandardDebug '-Pchaquopy.enabled=false' --console=plain *> $null
+    $stamp = Get-BuildVersionStamp
+    & $gradlew assembleStandardDebug '-Pchaquopy.enabled=false' "-Pfms.versionCode=$($stamp.AppVersionCode)" "-Pfms.versionName=$($stamp.VersionName)" --console=plain *> $null
     if ($LASTEXITCODE -ne 0) {
         Add-Stage 'install' 'FAIL' "assembleStandardDebug exit $LASTEXITCODE"
         Complete-Run 10

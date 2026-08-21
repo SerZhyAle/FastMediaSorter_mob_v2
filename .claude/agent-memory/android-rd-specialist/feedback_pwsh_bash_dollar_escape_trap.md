@@ -34,3 +34,20 @@ The symptom is exactly what I hit in S0268 F2: chained `update.ps1 -Status Tacti
 3. **Native pwsh shell, no bash:** PowerShell as the parent shell has no quoting collision; the `& { script1; if ($LASTEXITCODE -ne 0) { ... }; script2 }` pattern works as documented in CLAUDE.md.
 
 Pattern to avoid going forward: `bash -c '... pwsh -Command "& { ... \$LASTEXITCODE ... }"'` or its `Bash` tool equivalent with backslash-escaped dollars. The harness `Bash` tool runs under MSYS bash on Windows, so this trap applies to every cross-shell batch.
+
+## The switch variant, and why it is worse (2026-08-21)
+
+The same expansion silently **inverts a PowerShell switch**. Running
+`pwsh -NoProfile -File script.ps1 -AutoVersion:$false` from the Bash tool, bash expands the unset
+variable `$false` to nothing, so PowerShell receives `-AutoVersion:` and the switch keeps its default
+of `$true`. Nothing errors. The script runs, prints its normal banner and produces the opposite of
+what was asked.
+
+This cost a wasted 45-second build during S1873: the run was meant to reproduce a frozen-version APK
+and instead produced a correctly stamped one, and the gate under test reported PASS - which read as
+"the gate is broken" rather than "the argument never arrived".
+
+**How to apply:** quote the whole argument so bash never sees the dollar - `'-AutoVersion:$false'`.
+When a switch-driven run produces the default behaviour, suspect the argument before suspecting the
+script, and check by having the script print which branch it took.
+

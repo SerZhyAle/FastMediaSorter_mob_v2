@@ -36,18 +36,21 @@
         android:paddingStart="@dimen/margin_tiny"
         android:paddingEnd="@dimen/margin_tiny"
         android:text="@string/launcher_taskbar_start"
+        android:textColor="@color/launcher_taskbar_btn_start_text"
         app:icon="@drawable/ic_launcher_mode"
         app:iconGravity="start"
-        app:iconPadding="@dimen/margin_tiny" />
+        app:iconPadding="@dimen/margin_tiny"
+        app:iconTint="@color/launcher_taskbar_btn_start_text" />
 
     <!-- S1401: opens the full-screen app list. Icon-only (owner, 2026-08-05) and deliberately OUTSIDE
          the weighted strip block below, so a long recents strip can never squeeze it away.
-         S1768: minWidth="0dp" and compact padding to keep start buttons narrow and leave room for recents/tray. -->
+         S1768: layout_marginStart and minWidth for comfortable touch target and separation from Start. -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAllApps"
         style="@style/Widget.FastMediaSorter.Button.Text"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/margin_small"
         android:clickable="true"
         android:contentDescription="@string/launcher_menu_all_apps"
         android:focusable="true"
@@ -56,16 +59,18 @@
         android:insetBottom="0dp"
         android:insetLeft="0dp"
         android:insetRight="0dp"
-        android:minWidth="0dp"
+        android:minWidth="@dimen/dialog_icon_button_min_width"
         android:minHeight="0dp"
         android:nextFocusUp="@id/launcherDesktop"
         android:nextFocusLeft="@id/btnStart"
         android:nextFocusRight="@id/taskbarRecents"
-        android:paddingStart="@dimen/margin_tiny"
-        android:paddingEnd="@dimen/margin_tiny"
+        android:paddingStart="@dimen/margin_small"
+        android:paddingEnd="@dimen/margin_small"
+        android:textColor="@color/launcher_taskbar_btn_all_apps_text"
         app:icon="@drawable/ic_view_grid"
         app:iconGravity="textStart"
-        app:iconPadding="0dp" />
+        app:iconPadding="0dp"
+        app:iconTint="@color/launcher_taskbar_btn_all_apps_text" />
 
     <!-- Both strips live inside one weighted block so they can only ever consume the slack left by the
          Start button and the tray. A wrap_content strip placed directly in the bar is measured against the

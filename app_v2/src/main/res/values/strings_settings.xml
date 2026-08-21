@@ -256,4 +256,7 @@
     <string name="pref_resource_grid_cell_size_large">Large</string>
     <string name="settings_enable_system_info">System information</string>
     <string name="settings_enable_system_info_summary">Show system information in the programs panel and menu</string>
+    <string name="settings_wear_group_title">Wear OS</string>
+    <string name="settings_wear_group_description">Turn this on if you have a Wear OS watch. The companion opens from here and decides what this phone shares with the watch.</string>
+    <string name="settings_wear_install_guide_button">How to install on a watch</string>
 </resources>

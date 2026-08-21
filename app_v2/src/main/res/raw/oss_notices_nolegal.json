@@ -2187,5 +2187,24 @@
     "via": null,
     "bundled": false,
     "note": "Licence inherited from the nanohttpd-project POM; the artifact declares no licences block of its own."
+  },
+  {
+    "coordinate": "org.videolan.android:libvlc-all",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "libVLC for Android",
+    "spdx": "LGPL-2.1-or-later",
+    "licenseUrl": "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html",
+    "sourceUrl": "https://code.videolan.org/videolan/libvlcjni",
+    "oss": true,
+    "shippedIn": [
+      "noLegal"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": "S1060: noLegal-only (sideload). Java bindings and the shipped native libvlc are LGPL-2.1-or-later; the app links dynamically and ships no modified sources."
   }
 ]

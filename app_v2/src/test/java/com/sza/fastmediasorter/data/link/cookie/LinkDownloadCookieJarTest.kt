@@ -42,7 +42,7 @@ class LinkDownloadCookieJarTest {
     @Test
     fun `falls back to store when session has none`() {
         every { context.cookiesFor("example.com") } returns null
-        every { store.loadFor("example.com") } returns listOf(httpCookie("auth", "fromStore", domain = ".example.com"))
+        every { store.loadForHostAccountOrBest("example.com", null) } returns listOf(httpCookie("auth", "fromStore", domain = ".example.com"))
 
         val cookies = jar.loadForRequest("https://example.com/x".toHttpUrl())
 
@@ -55,7 +55,7 @@ class LinkDownloadCookieJarTest {
     @Test
     fun `returns empty when neither source has cookies`() {
         every { context.cookiesFor(any()) } returns null
-        every { store.loadFor(any()) } returns emptyList()
+        every { store.loadForHostAccountOrBest(any(), any()) } returns emptyList()
         every { store.listAllAccounts() } returns emptyList()
 
         assertTrue(jar.loadForRequest("https://nowhere.test/x".toHttpUrl()).isEmpty())
@@ -76,6 +76,6 @@ class LinkDownloadCookieJarTest {
     fun `saveFromResponse is a no-op`() {
         // Must not touch the store - persistence only happens via the explicit WebView flow.
         jar.saveFromResponse("https://x.com/".toHttpUrl(), emptyList())
-        io.mockk.verify(exactly = 0) { store.loadFor(any()) }
+        io.mockk.verify(exactly = 0) { store.loadForHostAccountOrBest(any(), any()) }
     }
 }

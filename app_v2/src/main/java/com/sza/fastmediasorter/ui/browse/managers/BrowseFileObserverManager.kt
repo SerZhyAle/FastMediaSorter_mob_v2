@@ -278,6 +278,11 @@ class BrowseFileObserverManager(
 
             val fileIndex = currentList.indexOfFirst { it.name == oldName }
             if (fileIndex == -1) {
+                if (oldName.startsWith(".pending-")) {
+                    Timber.i("FileObserver.handleFileRename: pending file published - scheduling debounced reload")
+                    scheduleReload()
+                    return@launch
+                }
                 Timber.w("FileObserver.handleFileRename: '$oldName' not found - falling back to reload")
                 onReloadFiles()
                 return@launch

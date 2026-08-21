@@ -50,7 +50,10 @@ if ! adb shell pm list packages | grep -q "com.sza.fastmediasorter"; then
     
     # Build debug APK
     cd "$PROJECT_ROOT"
-    ./gradlew assembleStandardDebug
+    BUILD_DATE=$(date +%y%m%d%H%M)
+    VERSION_NAME="${BUILD_DATE:0:1}.${BUILD_DATE:1:2}.${BUILD_DATE:3:4}.${BUILD_DATE:7:3}"
+    APP_VERSION_CODE="${BUILD_DATE:0:8}${BUILD_DATE:8:1}"
+    ./gradlew assembleStandardDebug "-Pfms.versionCode=${APP_VERSION_CODE}" "-Pfms.versionName=${VERSION_NAME}"
     
     if [ $? -ne 0 ]; then
         echo "❌ Build failed!"

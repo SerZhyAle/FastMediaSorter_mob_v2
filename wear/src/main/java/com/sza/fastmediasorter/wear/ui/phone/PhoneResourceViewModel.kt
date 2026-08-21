@@ -4,9 +4,11 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
+import androidx.annotation.StringRes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
@@ -16,6 +18,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -71,13 +74,32 @@ internal fun WearPhoneResourceItem.toWearThumbnail(): WearThumbnail {
 }
 
 /** What the paired-phone screen is showing right now. */
+/**
+ * S1846: the screen is titled by the chip that opened it, so a filtered list is not labelled "Phone"
+ * like the unfiltered one. The labels are the chips' own strings rather than new keys - a second
+ * wording for the same word is how two screens start disagreeing about what they show.
+ */
+@StringRes
+private fun titleResFor(mediaType: String?): Int = when (mediaType) {
+    "recents" -> R.string.wear_phone_recents
+    "photos" -> R.string.wear_phone_images
+    "videos" -> R.string.wear_phone_video
+    "music" -> R.string.wear_phone_audio
+    "documents" -> R.string.wear_phone_documents
+    else -> R.string.phone_resource_title
+}
+
+/** One folder of the walked path: the token that reloads it, and the name the header titles it by. */
+private data class FolderLevel(val token: String, val name: String)
+
 sealed interface PhoneResourceUiState {
 
     data object Loading : PhoneResourceUiState
 
     data class Content(
         val items: List<WearPhoneResourceItem>,
-        val parentToken: String?
+        val parentToken: String?,
+        val title: ScreenTitle
     ) : PhoneResourceUiState
 
     /** The phone answered, and there is nothing here it is willing to show. */
@@ -140,8 +162,11 @@ class PhoneResourceViewModel @Inject constructor(
     private val _thumbnails = MutableStateFlow<Map<String, WearThumbnail>>(emptyMap())
     val thumbnails: StateFlow<Map<String, WearThumbnail>> = _thumbnails.asStateFlow()
 
-    /** Tokens of the folders walked into, so Back returns one level instead of leaving the screen. */
-    private val trail = ArrayDeque<String>()
+    /**
+     * The folders walked into, each beside the name it is titled by, so Back returns one level
+     * instead of leaving the screen and the header can name the level without reading the token.
+     */
+    private val trail = ArrayDeque<FolderLevel>()
 
     private var decodeJob: Job? = null
 
@@ -149,20 +174,20 @@ class PhoneResourceViewModel @Inject constructor(
         load(parentToken = null)
     }
 
-    fun openFolder(token: String) {
-        trail.addLast(token)
+    fun openFolder(token: String, name: String) {
+        trail.addLast(FolderLevel(token = token, name = name))
         load(token)
     }
 
     /** Returns false when the screen is already at the root and Back should leave it. */
     fun navigateUp(): Boolean {
         val leaving = trail.removeLastOrNull() == null
-        load(trail.lastOrNull())
+        load(trail.lastOrNull()?.token)
         return !leaving
     }
 
     fun retry() {
-        load(trail.lastOrNull())
+        load(trail.lastOrNull()?.token)
     }
 
     /**
@@ -216,8 +241,10 @@ class PhoneResourceViewModel @Inject constructor(
         // Tokens are per folder, so keeping the previous page's pictures would only hold bitmaps
         // no cell can ask for again.
         _thumbnails.value = emptyMap()
+        val isFlat = mediaType != null && mediaType != MEDIA_TYPE_ALL
         viewModelScope.launch {
-            val outcome = phoneResourceClient.browse(parentToken, mediaType = mediaType)
+            Timber.d("S1869: PhoneResourceViewModel loaded flat list for mediaType: $mediaType")
+            val outcome = phoneResourceClient.browse(parentToken, mediaType = mediaType, isFlat = isFlat)
             _uiState.value = when (outcome) {
                 is PhoneResourceOutcome.Page -> {
                     decodeThumbnails(outcome.page.items)
@@ -245,10 +272,24 @@ class PhoneResourceViewModel @Inject constructor(
         }
     }
 
+    /**
+     * The title of the level the screen stands on: the folder's own name inside the walk, and the name
+     * the opening chip gave the screen at the root, where no folder name exists.
+     */
+    private fun currentTitle(): ScreenTitle {
+        val level = trail.lastOrNull()
+        Timber.d("S1877: header depth=${trail.size} level=${level?.name}")
+        return if (level == null) {
+            ScreenTitle.Resource(titleResFor(mediaType))
+        } else {
+            ScreenTitle.Text(level.name)
+        }
+    }
+
     private fun List<WearPhoneResourceItem>.toState(parentToken: String?): PhoneResourceUiState =
         if (isEmpty()) {
             PhoneResourceUiState.Empty
         } else {
-            PhoneResourceUiState.Content(items = this, parentToken = parentToken)
+            PhoneResourceUiState.Content(items = this, parentToken = parentToken, title = currentTitle())
         }
 }

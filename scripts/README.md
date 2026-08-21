@@ -2,6 +2,19 @@
 
 Automation scripts for FastMediaSorter v2 development.
 
+## What a new script owes (S1872)
+
+Two things, on the day it is written:
+
+1. A `.SYNOPSIS` line saying what it does.
+2. An `Exit codes:` block in `.NOTES` listing every code it returns, if it exits at all.
+
+`scripts/quality/assert-script-described.ps1` counts what is missing and its two ceilings may only fall - the existing debt will not block you, a new gap will.
+
+A script nothing calls is reported by `scripts/quality/assert-script-references.ps1` until it is deleted or declares itself with a `Manual tool: <why it exists and who runs it>` line in its help. Retire a script by deleting it, not by leaving a forwarding wrapper.
+
+Full rules, including how the reference corpus is built and why the generated cheatsheet is excluded from it: `docs/DEV_OPS.md`, section "SCRIPT HYGIENE (S1872)".
+
 ## Structure
 
 ```

@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
-import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
@@ -19,6 +18,7 @@ import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearThumbnailRepository
+import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.util.MediaMimeTypes
 import com.sza.fastmediasorter.wear.util.WearThumbnailBudget
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,15 +37,6 @@ import timber.log.Timber
 import javax.inject.Inject
 
 private const val VIEW_MODE_SUBSCRIPTION_MS = 5_000L
-
-/**
- * A screen title the view model can name without holding a Context: either text that came from the
- * user's own data, or a resource the screen resolves.
- */
-sealed interface ScreenTitle {
-    data class Text(val value: String) : ScreenTitle
-    data class Resource(@param:StringRes val id: Int) : ScreenTitle
-}
 
 /**
  * ViewModel for the browse screen.
@@ -123,26 +114,26 @@ class BrowseViewModel @Inject constructor(
         }
         
         if (!isEnabled) {
-            _uiState.value = BrowseUiState.Empty("This media type is disabled in settings")
+            _uiState.value = BrowseUiState.Empty(ScreenTitle.Resource(R.string.browse_media_type_disabled))
             return
         }
         
         mediaRepository.getMediaFiles(mediaType)
             .catch { e ->
                 Timber.e(e, "Error loading local media files")
-                _uiState.value = BrowseUiState.Error(e.message ?: "Unknown error")
+                _uiState.value = BrowseUiState.Error(ScreenTitle.Resource(R.string.browse_load_failed))
             }
             .collect { result ->
                 result.fold(
                     onSuccess = { files ->
                         _uiState.value = if (files.isEmpty()) {
-                            BrowseUiState.Empty("No ${mediaType.name.lowercase()} files found")
+                            BrowseUiState.Empty(ScreenTitle.Resource(R.string.browse_no_media_files))
                         } else {
                             BrowseUiState.Success(files)
                         }
                     },
                     onFailure = { e ->
-                        _uiState.value = BrowseUiState.Error(e.message ?: "Unknown error")
+                        _uiState.value = BrowseUiState.Error(ScreenTitle.Resource(R.string.browse_load_failed))
                     }
                 )
             }
@@ -155,7 +146,9 @@ class BrowseViewModel @Inject constructor(
                 val source = networkSourceRepository.getSourceById(sourceId)
                 if (source == null) {
                     withContext(Dispatchers.Main) {
-                        _uiState.value = BrowseUiState.Error("Network source not found")
+                        _uiState.value = BrowseUiState.Error(
+                            ScreenTitle.Resource(R.string.browse_network_source_not_found)
+                        )
                     }
                     return@withContext
                 }
@@ -177,7 +170,9 @@ class BrowseViewModel @Inject constructor(
                             val error = connectResult.exceptionOrNull()?.message ?: "Connection failed"
                             Timber.e("Failed to connect to SMB: $error")
                             withContext(Dispatchers.Main) {
-                                _uiState.value = BrowseUiState.Error("Connection failed: $error")
+                                _uiState.value = BrowseUiState.Error(
+                                    ScreenTitle.Resource(R.string.browse_network_connection_failed)
+                                )
                             }
                             return@withContext
                         }
@@ -212,7 +207,7 @@ class BrowseViewModel @Inject constructor(
                 Timber.d("Loaded ${mediaFiles.size} media files from ${source.type}")
                 withContext(Dispatchers.Main) {
                     _uiState.value = if (mediaFiles.isEmpty()) {
-                        BrowseUiState.Empty("No media files found")
+                        BrowseUiState.Empty(ScreenTitle.Resource(R.string.browse_no_media_files))
                     } else {
                         BrowseUiState.Success(mediaFiles)
                     }
@@ -220,7 +215,7 @@ class BrowseViewModel @Inject constructor(
             } catch (e: Exception) {
                 Timber.e(e, "Exception loading network files")
                 withContext(Dispatchers.Main) {
-                    _uiState.value = BrowseUiState.Error(e.message ?: "Network error")
+                    _uiState.value = BrowseUiState.Error(ScreenTitle.Resource(R.string.browse_load_failed))
                 }
             }
         }

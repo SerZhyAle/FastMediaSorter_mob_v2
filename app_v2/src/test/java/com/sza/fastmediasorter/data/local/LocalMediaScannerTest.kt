@@ -98,6 +98,63 @@ class LocalMediaScannerTest {
         )
     }
 
+    @Test
+    fun `scanFolder folder branch rethrows CancellationException instead of escalating to legacy walk`() = runTest {
+        // S1890: a cancelled MediaStore query used to be caught by the generic catch, logged as
+        // "MediaStore scan failed" and answered with a full File API walk of the whole folder - the
+        // most expensive path in the scanner, started for a result already cancelled.
+        val supportedTypes = setOf(MediaType.IMAGE)
+
+        coEvery {
+            mediaStoreRepository.getFilesInFolder(any(), any(), any(), any())
+        } throws CancellationException("scan cancelled")
+
+        var propagated = false
+        try {
+            scanner.scanFolder(
+                path = "/storage/emulated/0/Pictures",
+                supportedTypes = supportedTypes,
+                sizeFilter = null,
+                credentialsId = null,
+                scanSubdirectories = false,
+                showHiddenFiles = false,
+                onProgress = null
+            )
+        } catch (e: CancellationException) {
+            propagated = true
+        }
+
+        assertTrue(
+            "CancellationException must be rethrown, not turned into a legacy folder walk",
+            propagated
+        )
+    }
+
+    @Test
+    fun `scanFolder folder branch still falls back to legacy walk on a real MediaStore failure`() = runTest {
+        // The guard above must not disable the fallback itself: a genuine MediaStore failure still
+        // has to degrade to the File API rather than propagate to the caller.
+        val supportedTypes = setOf(MediaType.IMAGE)
+
+        coEvery {
+            mediaStoreRepository.getFilesInFolder(any(), any(), any(), any())
+        } throws IllegalStateException("MediaStore unavailable")
+
+        val result = scanner.scanFolder(
+            path = "/storage/emulated/0/DefinitelyMissingFolderForTest",
+            supportedTypes = supportedTypes,
+            sizeFilter = null,
+            credentialsId = null,
+            scanSubdirectories = false,
+            showHiddenFiles = false,
+            onProgress = null
+        )
+
+        // The path does not exist, so the legacy walk finds nothing - the point is that it ran and
+        // returned instead of throwing.
+        assertTrue("A real failure must degrade to the legacy walk, not propagate", result.isEmpty())
+    }
+
     // ==================== Virtual Aggregate Paths ====================
 
     private fun makeAudioFile(name: String) = MediaFile(

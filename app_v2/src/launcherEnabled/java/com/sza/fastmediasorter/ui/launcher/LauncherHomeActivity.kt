@@ -409,6 +409,12 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         collectOnLifecycle(viewModel.screenBlackoutTimeoutSeconds) { timeout ->
             blackoutManager.updateTimeout(timeout)
         }
+        // S1904: the backdrop is part of what a cell looks like, so a new opacity is a re-render - the
+        // binder's render key carries it and skips the rebuild when the value did not actually change.
+        collectOnLifecycle(viewModel.widgetBackdropAlpha) {
+            Timber.d("S1904: gadget backdrop alpha applied to desktop render")
+            geometryManager.renderDesktop()
+        }
         // The density factor changes the column count, so re-derive the grid when it lands.
         collectOnLifecycle(viewModel.densityFactor) {
             geometryManager.applyGridGeometry()
@@ -579,6 +585,16 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // S1101: symmetric with onStart - an animated wallpaper must not keep drawing off-screen.
         if (::wallpaperManager.isInitialized) wallpaperManager.onStop()
         if (::blackoutManager.isInitialized) blackoutManager.onStop()
+    }
+
+    /**
+     * S1741: a dialog, a popup or the shade lives in its own window, and its input never reaches the
+     * dispatch* overrides below - so the blackout countdown has to pause on focus loss, or it fires
+     * behind that window and the desktop is already black by the time the user is back on it.
+     */
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (::blackoutManager.isInitialized) blackoutManager.onWindowFocusChanged(hasFocus)
     }
 
     /**

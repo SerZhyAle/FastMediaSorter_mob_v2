@@ -10,6 +10,7 @@ import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
+import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.domain.model.WearFavoritesDeltaPayload
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.domain.model.WearPhoneResourcePage
@@ -17,6 +18,7 @@ import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
+import com.sza.fastmediasorter.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.domain.usecase.ApplyWatchFavoritesDeltaUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportWatchSourcesUseCase
@@ -38,6 +40,8 @@ private const val KEY_LAST_SYNC = "last_sync_timestamp"
 
 @AndroidEntryPoint
 class PhoneWearListenerService : WearableListenerService() {
+
+    private val envelopeCodec = WearEventEnvelopeCodec()
 
     @Inject lateinit var sendResourcesToWatchUseCase: SendResourcesToWatchUseCase
     @Inject lateinit var importWatchSourcesUseCase: ImportWatchSourcesUseCase
@@ -69,6 +73,19 @@ class PhoneWearListenerService : WearableListenerService() {
                 handlePhoneResourceOpen(event.sourceNodeId, event.data)
             WearDataLayerPaths.LOG_REPORT_REQUEST ->
                 handleLogReport(event.sourceNodeId, event.data)
+            WearDataLayerPaths.STREAM_TRANSFER_ACK -> handleStreamTransferAck(event.data)
+        }
+    }
+
+    private fun handleStreamTransferAck(data: ByteArray) {
+        Timber.d("S1799: stream transfer ack received from watch")
+        applicationScope.launch {
+            try {
+                val ack = gson.fromJson(data.decodeToString(), WearStreamTransferAck::class.java)
+                WearSyncEvents.emitStreamTransferAck(ack)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to deserialize stream transfer ack")
+            }
         }
     }
 
@@ -88,7 +105,7 @@ class PhoneWearListenerService : WearableListenerService() {
     private fun handlePlaybackState(data: ByteArray) {
         applicationScope.launch {
             try {
-                val envelope = gson.fromJson(data.decodeToString(), WearEventEnvelope::class.java)
+                val envelope = envelopeCodec.decode(data)
                 val payload = gson.fromJson(
                     envelope.data.decodeToString(),
                     WearPlaybackStatePayload::class.java
@@ -103,7 +120,7 @@ class PhoneWearListenerService : WearableListenerService() {
     private fun handleSourcesExport(data: ByteArray) {
         applicationScope.launch {
             try {
-                val envelope = gson.fromJson(data.decodeToString(), WearEventEnvelope::class.java)
+                val envelope = envelopeCodec.decode(data)
                 val payload = gson.fromJson(
                     envelope.data.decodeToString(),
                     WearSourcesExportPayload::class.java
@@ -118,7 +135,7 @@ class PhoneWearListenerService : WearableListenerService() {
     private fun handleFavoritesDelta(data: ByteArray) {
         applicationScope.launch {
             try {
-                val envelope = gson.fromJson(data.decodeToString(), WearEventEnvelope::class.java)
+                val envelope = envelopeCodec.decode(data)
                 val payload = gson.fromJson(
                     envelope.data.decodeToString(),
                     WearFavoritesDeltaPayload::class.java
@@ -215,18 +232,45 @@ class PhoneWearListenerService : WearableListenerService() {
     }
 
     private suspend fun sendPhoneResourcePage(page: WearPhoneResourcePage) {
+        val envelopeBytes = withinWireLimit(page)
+        runCatching {
+            wearableDataLayerRepository.putDataItem(
+                WearDataLayerPaths.PHONE_RESOURCE_PAGE,
+                envelopeBytes
+            )
+        }.onFailure { Timber.e(it, "Failed to publish phone resource page") }
+    }
+
+    private fun encodePage(page: WearPhoneResourcePage): ByteArray {
         val envelope = WearEventEnvelope(
             eventType = WearDataLayerPaths.EVENT_PHONE_RESOURCE_PAGE,
             sentAt = System.currentTimeMillis(),
             data = gson.toJson(page).toByteArray(Charsets.UTF_8)
         )
-        runCatching {
-            wearableDataLayerRepository.putEnvelopeDataItem(
-                WearDataLayerPaths.PHONE_RESOURCE_PAGE,
-                envelope
-            )
-        }.onFailure { Timber.e(it, "Failed to publish phone resource page") }
+        return envelopeCodec.encode(envelope)
     }
+
+    /**
+     * S1860: last line of defence before the transport refuses the page outright.
+     *
+     * GMS caps one data item at 100 KB and answers anything larger with `DATA_ITEM_TOO_LARGE` - a
+     * refusal the watch cannot see, so it waits out its ten seconds and reports the phone as
+     * unreachable. The page's own picture budget aims well under that, but a folder of long names
+     * can still push a full page over, and the pictures are the only part worth dropping: a listing
+     * without them still lists, and an item with no picture is a state the watch already draws.
+     */
+    private fun withinWireLimit(page: WearPhoneResourcePage): ByteArray {
+        val withPictures = encodePage(page)
+        if (withPictures.size <= MAX_DATA_ITEM_BYTES) return withPictures
+
+        Timber.d(
+            "S1860: page about ${withPictures.size}B over the wire limit, dropping its pictures"
+        )
+        return encodePage(page.copy(items = page.items.map { it.withoutThumbnail() }))
+    }
+
+    private fun WearPhoneResourceItem.withoutThumbnail(): WearPhoneResourceItem =
+        if (thumbnailBase64 == null) this else copy(thumbnailBase64 = null)
 
     private fun handleSyncRequest() {
         Timber.i("Watch requested sync - sending resources")
@@ -253,5 +297,9 @@ class PhoneWearListenerService : WearableListenerService() {
     companion object {
         const val PREFS = PREFS_NAME
         const val LAST_SYNC = KEY_LAST_SYNC
+
+        /** S1860: what GMS accepts in one data item; anything larger comes back DATA_ITEM_TOO_LARGE. */
+        private const val MAX_DATA_ITEM_BYTES = 100 * 1024
+
     }
 }

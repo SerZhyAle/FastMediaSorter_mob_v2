@@ -53,9 +53,14 @@ if (-not $Root) {
 
 function Get-ScriptFiles {
     param([string] $RepoRoot)
+    # Three roots, matching assert-exit-contract.ps1 and the two S1872 gates. The activity
+    # catalogue's four scripts were judged by the exit-contract gate and invisible to this
+    # inventory - a population watched by one tool and unseen by the other is the population
+    # that drifts (S1872).
     $roots = @(
         (Join-Path $RepoRoot 'scripts'),
-        (Join-Path $RepoRoot 'dev\CATALOG\scripts')
+        (Join-Path $RepoRoot 'dev\CATALOG\scripts'),
+        (Join-Path $RepoRoot 'dev\ACTIVITY_CATALOG\scripts')
     ) | Where-Object { Test-Path $_ }
     $files = foreach ($r in $roots) {
         Get-ChildItem -Path $r -Recurse -Filter *.ps1 -File -ErrorAction SilentlyContinue |
@@ -148,13 +153,18 @@ function Get-ExitCodeLines {
     return $hit
 }
 
+. (Join-Path $PSScriptRoot 'script-help-text.ps1')
+
 function Get-Signature {
     param([System.IO.FileInfo] $File, [string] $RepoRoot)
     $errs = $null
     $ast = [System.Management.Automation.Language.Parser]::ParseFile($File.FullName, [ref]$null, [ref]$errs)
     $rel = $File.FullName.Substring($RepoRoot.Length).TrimStart('\','/') -replace '\\','/'
-    $synopsis = $null
-    try { $synopsis = $ast.GetHelpContent().Synopsis } catch { }
+    # GetHelpContent() returns nothing when a #requires line sits above the help block, and this
+    # repository puts #requires on line 1 by convention - so the parser alone reported a synopsis
+    # for zero of 371 scripts (S1872). Get-ScriptSynopsis tries the parser first, then reads the
+    # leading comment block literally.
+    $synopsis = Get-ScriptSynopsis -Path $File.FullName -Ast $ast
     $params = Get-ParamInfo -ParamBlock $ast.ParamBlock
     [pscustomobject]@{
         Rel = $rel; Synopsis = $synopsis; Params = $params

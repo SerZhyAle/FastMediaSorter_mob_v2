@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.data.local.db
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.sza.fastmediasorter.data.util.StreamChannelIdentity
-import timber.log.Timber
 
 /**
  * Migration from schema version 51 to 52.
@@ -65,7 +64,6 @@ private const val INSERT_USER_STATE =
 
 val MIGRATION_51_52 = object : Migration(SCHEMA_VERSION_FROM, SCHEMA_VERSION_TO) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        Timber.d("S1832: migration 51 -> 52 entered - backfilling identity, seeding stream_user_state")
         db.execSQL(ADD_IDENTITY_COLUMN)
         db.execSQL(CREATE_IDENTITY_INDEX)
         db.execSQL(CREATE_USER_STATE_TABLE)

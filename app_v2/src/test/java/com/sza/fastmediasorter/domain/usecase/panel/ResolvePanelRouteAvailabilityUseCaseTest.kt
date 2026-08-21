@@ -23,14 +23,19 @@ import org.junit.Test
  */
 class ResolvePanelRouteAvailabilityUseCaseTest {
 
-    private fun useCaseFor(settings: AppSettings): ResolvePanelRouteAvailabilityUseCase =
+    private fun useCaseFor(
+        settings: AppSettings,
+        wearBridge: Boolean = false,
+    ): ResolvePanelRouteAvailabilityUseCase =
         ResolvePanelRouteAvailabilityUseCase(
             context = mockk<Context>(relaxed = true),
             capability = CapabilityAvailability(emptySet()),
             settingsRepository = mockk<SettingsRepository> {
                 every { getSettings() } returns flowOf(settings)
             },
-            mediaCapabilities = mockk<MediaCapabilities>(relaxed = true),
+            mediaCapabilities = mockk<MediaCapabilities>(relaxed = true) {
+                every { supportsWearCompanion } returns wearBridge
+            },
             networkMonitorContract = mockk<NetworkMonitorContract>(relaxed = true),
             screenVideoRecordingControllers = emptySet(),
         )
@@ -53,6 +58,35 @@ class ResolvePanelRouteAvailabilityUseCaseTest {
         // The picker hides what is absent from the build and only flags what the user switched off,
         // so collapsing "off" into "not built" would remove the route from the picker entirely.
         assertTrue("the calculator ships in every flavor", disabled.availableInBuild)
+    }
+
+    @Test
+    fun `the wear companion needs both the watch bridge and its own switch`() = runBlocking {
+        val both = useCaseFor(AppSettings(enableWearCompanion = true), wearBridge = true)
+            .invoke(InternalRouteCatalog.KEY_WEAR_COMPANION)
+        assertTrue("bridge plus switch launches", both.isLaunchable)
+
+        val switchOff = useCaseFor(AppSettings(enableWearCompanion = false), wearBridge = true)
+            .invoke(InternalRouteCatalog.KEY_WEAR_COMPANION)
+        assertFalse("a switched-off companion must not launch", switchOff.isLaunchable)
+        assertTrue("the build still carries it, so the picker may offer it", switchOff.availableInBuild)
+    }
+
+    @Test
+    fun `a build without the watch bridge does not carry the companion at all`() = runBlocking {
+        val noBridge = useCaseFor(AppSettings(enableWearCompanion = true), wearBridge = false)
+            .invoke(InternalRouteCatalog.KEY_WEAR_COMPANION)
+        // A stored switch survives a move to lite, photos or vr, so reading it alone would offer a tile
+        // that nothing in the build can open.
+        assertFalse("no bridge means the route is absent from the build", noBridge.availableInBuild)
+        assertFalse("and it must not launch whatever the stored switch says", noBridge.isLaunchable)
+    }
+
+    @Test
+    fun `the wear companion route names the setting a disabled tile opens`() {
+        val route = InternalRouteCatalog.byKey(InternalRouteCatalog.KEY_WEAR_COMPANION)
+        assertNotNull("the wear companion route is missing from the catalog", route)
+        assertNotNull("a disabled route dead-ends unless it names its setting", route?.settingsIntent)
     }
 
     @Test

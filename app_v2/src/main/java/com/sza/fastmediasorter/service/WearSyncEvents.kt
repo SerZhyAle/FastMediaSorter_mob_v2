@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.service
 
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
+import com.sza.fastmediasorter.domain.model.WearStreamTransferAck
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -30,7 +31,15 @@ object WearSyncEvents {
     val watchPlaybackStateFlow: SharedFlow<WearPlaybackStatePayload?> =
         _watchPlaybackStateFlow.asSharedFlow()
 
+    // S1799: typed, request-correlated ack channel for single-stream transfers. Kept apart from the
+    // legacy untyped ackFlow, whose only discriminator is "a Sending state exists somewhere".
+    private val _streamTransferAckFlow =
+        MutableSharedFlow<WearStreamTransferAck>(extraBufferCapacity = 4)
+    val streamTransferAckFlow: SharedFlow<WearStreamTransferAck> = _streamTransferAckFlow.asSharedFlow()
+
     suspend fun emitAck(json: String) = _ackFlow.emit(json)
+
+    suspend fun emitStreamTransferAck(ack: WearStreamTransferAck) = _streamTransferAckFlow.emit(ack)
 
     suspend fun emitWatchSources(payload: WearSourcesExportPayload) =
         _watchSourcesReceivedFlow.emit(payload)

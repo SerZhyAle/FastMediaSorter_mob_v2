@@ -11,8 +11,13 @@ import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequestKind
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -26,6 +31,7 @@ import org.junit.Test
  * anything, so each case here stands for a way the watch could otherwise learn about content the
  * phone user hid, protected, or cannot currently reach.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class ListPhoneResourcePageUseCaseTest {
 
     private val resourceRepository: ResourceRepository = mockk()
@@ -42,7 +48,15 @@ class ListPhoneResourcePageUseCaseTest {
     fun setUp() {
         every { scannerFactory.getScanner(any()) } returns scanner
         coEvery { buildWatchThumbnail(any()) } returns null
-        useCase = ListPhoneResourcePageUseCase(resourceRepository, scannerFactory, buildWatchThumbnail)
+        useCase = ListPhoneResourcePageUseCase(
+            resourceRepository,
+            scannerFactory,
+            buildWatchThumbnail,
+            // S1860: the scan is started in this scope rather than in the caller's job. Its own
+            // scheduler is never advanced, so a stub that delays never finishes - which is exactly
+            // the blocking scanner the timeout exists for, expressed without a real wait.
+            CoroutineScope(UnconfinedTestDispatcher())
+        )
     }
 
     @Test
@@ -194,6 +208,48 @@ class ListPhoneResourcePageUseCaseTest {
         assertEquals(listOf("Photos"), page.items.map { it.name })
     }
 
+    /**
+     * S1860: the page's picture budget must be spent before the decode, not after it.
+     *
+     * Trimming afterwards cost a decode per item in the whole fifty-item window while only about
+     * four pictures could ever ship, which on a camera folder read tens of megabytes and answered
+     * nothing before the watch gave up. Counting the calls is the only way to see the difference:
+     * the resulting page looks identical either way.
+     */
+    @Test
+    fun `a page decodes only the pictures it can carry, not the whole window`() = runTest {
+        val affordable = ListPhoneResourcePageUseCase.MAX_PAGE_THUMBNAIL_CHARS / MAX_ENCODED_CHARS
+        coEvery { resourceRepository.getResourceById(1L) } returns resource(id = 1, name = "Photos")
+        coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } returns
+            (1..ListPhoneResourcePageUseCase.PAGE_SIZE).map { file(name = "shot$it.jpg") }
+        coEvery { buildWatchThumbnail(any()) } returns "x".repeat(MAX_ENCODED_CHARS)
+
+        val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
+
+        assertEquals(ListPhoneResourcePageUseCase.PAGE_SIZE, page.items.size)
+        assertEquals(affordable, page.items.count { it.thumbnailBase64 != null })
+        coVerify(exactly = affordable) { buildWatchThumbnail(any()) }
+    }
+
+    /**
+     * S1860: a source that never answers is the phone's problem to bound, because the watch bounds
+     * it at ten seconds and then blames the connection - sending the user to reconnect a phone that
+     * is working.
+     */
+    @Test
+    fun `a scan that outlives its allowance is answered as source unavailable`() = runTest {
+        coEvery { resourceRepository.getResourceById(1L) } returns resource(id = 1, name = "Photos")
+        coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } coAnswers {
+            delay(LONGER_THAN_ANY_BUDGET_MS)
+            listOf(file(name = "late.jpg"))
+        }
+
+        val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
+
+        assertEquals(WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE, page.status)
+        assertTrue("a timed-out scan carries no metadata", page.items.isEmpty())
+    }
+
     private fun request(
         kind: WearPhoneResourceRequestKind,
         parentToken: String? = null,
@@ -233,4 +289,9 @@ class ListPhoneResourcePageUseCaseTest {
         createdDate = 0L,
         attributes = if (hidden) FileAttributes(readOnly = false, hidden = true) else null
     )
+
+    private companion object {
+        /** Longer than any allowance the use case grants a scan, so the timeout is what decides. */
+        const val LONGER_THAN_ANY_BUDGET_MS = 60_000L
+    }
 }

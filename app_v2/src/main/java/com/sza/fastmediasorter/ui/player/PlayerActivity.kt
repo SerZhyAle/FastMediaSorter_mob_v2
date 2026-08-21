@@ -469,6 +469,11 @@ class PlayerActivity :
 
     @Inject internal lateinit var unifiedCacheLazy: Lazy<com.sza.fastmediasorter.core.cache.UnifiedFileCache>
 
+    // S1060: manages fallback to alternative playback engines (e.g. libVLC)
+    @Inject
+    internal lateinit var altEngineFallbackManager:
+        com.sza.fastmediasorter.ui.player.helpers.AltEngineFallbackManager
+
     @Inject lateinit var mediaFilesCacheManager: MediaFilesCacheManager
 
     @Inject lateinit var gamepadInputManager: GamepadInputManager
@@ -607,6 +612,7 @@ class PlayerActivity :
     private fun initializeManagers() {
         playerManagerInitializer = PlayerManagerInitializer(this)
         playerManagerInitializer.initialize()
+        altEngineFallbackManager.bindViewStub(binding.altEngineViewStub)
     }
 
     internal fun shouldUseAudioBackgroundManagers(state: PlayerViewModel.PlayerState): Boolean {
@@ -1101,6 +1107,9 @@ class PlayerActivity :
     override fun onPause() {
         super.onPause()
         if (isInPictureInPictureMode) return
+        if (::altEngineFallbackManager.isInitialized && altEngineFallbackManager.isFallbackActive) {
+            altEngineFallbackManager.pause()
+        }
         lifecycleBridge.onPause()
     }
 
@@ -1124,7 +1133,12 @@ class PlayerActivity :
     internal fun extractTextFromCurrentImage() =
         imageOcrManager.extractTextFromCurrentImage(viewModel.state.value.currentFile)
 
-    override fun onResumeWithViews() = lifecycleBridge.onResumeWithViews()
+    override fun onResumeWithViews() {
+        lifecycleBridge.onResumeWithViews()
+        if (::altEngineFallbackManager.isInitialized && altEngineFallbackManager.isFallbackActive) {
+            altEngineFallbackManager.resume()
+        }
+    }
 
     /** S0021: reconcile FPS overlay visibility against settings + current file type. Open: only visible when `playerShowFps` is on AND current file is VIDEO. */
     internal fun updatePlayerFpsOverlay() {
@@ -1163,8 +1177,50 @@ class PlayerActivity :
         }
         if (::eventHandler.isInitialized) eventHandler.onDestroy()
         if (isPlayerFileOperationQueueInitialized) playerFileOperationQueue.shutdown()
+        if (::altEngineFallbackManager.isInitialized) {
+            altEngineFallbackManager.release()
+        }
         lifecycleManager.onDestroy()
         super.onDestroy()
+    }
+
+    internal fun tryAltEngineFallback(
+        file: com.sza.fastmediasorter.domain.model.MediaFile,
+        uri: android.net.Uri,
+        startPositionMs: Long
+    ): Boolean {
+        val ready = ::altEngineFallbackManager.isInitialized && altEngineFallbackManager.canFallback(file)
+        if (!ready) return false
+
+        timber.log.Timber.d("S1060: PlayerActivity: attempting alt engine fallback for file=%s", file.name)
+        stopExoPlayerForAltEngineFallback()
+        binding.playerView.visibility = android.view.View.GONE
+
+        return altEngineFallbackManager.tryFallback(
+            file = file,
+            uri = uri,
+            startPositionMs = startPositionMs,
+            stubOverride = binding.altEngineViewStub,
+            onSuccess = {
+                timber.log.Timber.i("PlayerActivity: alt engine fallback started successfully")
+            },
+            onError = { msg ->
+                timber.log.Timber.e("PlayerActivity: alt engine fallback error: %s", msg)
+            }
+        )
+    }
+
+    private fun stopExoPlayerForAltEngineFallback() {
+        if (_videoPlayerManager != null) {
+            try {
+                videoPlayerManager.exoPlayer?.let { player ->
+                    player.stop()
+                    player.clearVideoSurface()
+                }
+            } catch (e: IllegalStateException) {
+                timber.log.Timber.e(e, "PlayerActivity: error stopping exoPlayer for fallback")
+            }
+        }
     }
 
     private fun setupGoogleLensButtons() = googleLensButtonsManager.setupButtons()

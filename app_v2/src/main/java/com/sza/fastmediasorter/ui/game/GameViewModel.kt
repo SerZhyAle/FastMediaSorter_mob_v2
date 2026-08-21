@@ -16,12 +16,13 @@ import com.sza.fastmediasorter.domain.game.GameStateSnapshot
 import com.sza.fastmediasorter.domain.game.GameStatus
 import com.sza.fastmediasorter.domain.game.GameTurnResult
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class GameViewModel @Inject constructor(
@@ -48,6 +49,11 @@ class GameViewModel @Inject constructor(
                 currentMode = gameStateRepository.loadMode()
                 val snapshot = gameStateRepository.loadOrCreate(defaultConfig())
                 _state.value = ensurePlayableOnResume(readyFromSnapshot(snapshot))
+            } catch (exception: CancellationException) {
+                // Leaving the screen cancels this load; painting an Error state on the way out would
+                // show a failure the user never caused, and log it at ERROR (S1889).
+                Timber.d("S1889: game load cancelled - rethrowing instead of painting an error state")
+                throw exception
             } catch (exception: RuntimeException) {
                 Timber.e(exception, "GameViewModel: failed to load game")
                 _state.value = GameUiState.Error(exception.message)

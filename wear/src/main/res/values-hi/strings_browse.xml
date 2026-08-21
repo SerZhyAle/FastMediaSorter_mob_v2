@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="browse_media_type_disabled">यह मीडिया प्रकार सेटिंग में बंद है। इसे सेटिंग में चालू करें।</string>
+    <string name="browse_no_media_files">कोई मीडिया फ़ाइल नहीं मिली। कोई दूसरा फ़ोल्डर या मीडिया प्रकार आज़माएँ।</string>
+    <string name="browse_network_source_not_found">यह नेटवर्क स्रोत अब उपलब्ध नहीं है। वापस जाएँ और दूसरा स्रोत चुनें।</string>
+    <string name="browse_network_connection_failed">इस स्रोत से कनेक्ट नहीं हो सका। कनेक्शन जाँचें और फिर से कोशिश करें।</string>
+    <string name="browse_load_failed">फ़ाइलें लोड नहीं हो सकीं। फिर से कोशिश करें।</string>
+</resources>

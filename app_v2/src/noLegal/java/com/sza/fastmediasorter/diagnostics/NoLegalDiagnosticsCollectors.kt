@@ -82,7 +82,6 @@ internal class NoLegalDiagnosticsCollectors(
         f("Python (Chaquopy)") { pythonStatus() },
         f("yt-dlp") { ytDlpStatus() },
         f("ffmpeg/ffprobe") { ffmpegStatus() },
-        f("PaddleOCR models") { paddleStatus() },
         f("Tesseract data") { tesseractStatus() },
         f("XR runtime") { xrRuntime() },
         f("Supported ABIs") { Build.SUPPORTED_ABIS.joinToString(", ") },
@@ -279,12 +278,6 @@ internal class NoLegalDiagnosticsCollectors(
         val names = nativeDir.listFiles()?.map { it.name.lowercase(Locale.US) } ?: return "n/a"
         val present = listOf("ffmpeg", "ffprobe").filter { bin -> names.any { it.contains(bin) } }
         return if (present.isEmpty()) "not bundled" else present.joinToString(", ")
-    }
-
-    private fun paddleStatus(): String {
-        val dirs = listOf(File(context.filesDir, "paddleocr"), File(context.filesDir, "paddle"))
-        val present = dirs.firstOrNull { it.exists() && (it.listFiles()?.isNotEmpty() == true) }
-        return if (present != null) "present (${present.name})" else "not loaded"
     }
 
     private fun tesseractStatus(): String {

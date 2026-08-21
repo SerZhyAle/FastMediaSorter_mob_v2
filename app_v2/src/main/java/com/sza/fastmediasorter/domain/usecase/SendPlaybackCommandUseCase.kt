@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
+import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.service.WearDataLayerPaths
@@ -11,6 +12,8 @@ class SendPlaybackCommandUseCase @Inject constructor(
     private val wearableRepository: WearableDataLayerRepository,
     private val gson: Gson
 ) {
+    private val envelopeCodec = WearEventEnvelopeCodec()
+
     suspend operator fun invoke(command: WearPlaybackCommand): Result<Unit> = runCatching {
         val nodes = wearableRepository.getConnectedNodes()
         if (nodes.isEmpty()) error("No watch connected")
@@ -22,7 +25,7 @@ class SendPlaybackCommandUseCase @Inject constructor(
             // WearPlaybackCommand - `name` would hand the watch whatever the field is called at runtime.
             data = gson.toJson(command).toByteArray()
         )
-        val envelopeBytes = gson.toJson(envelope).toByteArray()
+        val envelopeBytes = envelopeCodec.encode(envelope)
         for (node in nodes) {
             wearableRepository.sendMessage(node.id, WearDataLayerPaths.PLAYBACK_CMD, envelopeBytes)
         }

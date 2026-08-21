@@ -489,6 +489,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             binding.topCommandPanel.requestApplyInsets()
             Timber.d("StandalonePlayer: insets reapplied after orientation change")
         }
+        // S1693: stays findViewById - this player rebinds to trimmed layouts (S1549 family), where
+        // a generated binding field can go stale; the null-tolerant root lookup is the safe form.
         binding.root.findViewById<android.view.View?>(R.id.bottomPanelsContainer)?.also {
             it.post { it.requestApplyInsets() }
         }
@@ -645,6 +647,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
 
         // bottomPanelsContainer: pad for nav bar (bottom + sides) - only exists in landscape layout
+        // S1693: stays findViewById - same S1549 trimmed-layout rebinding reason as above.
         binding.root.findViewById<android.view.View?>(R.id.bottomPanelsContainer)?.also { container ->
             ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
                 val sys = insets.getInsets(WindowInsetsCompat.Type.systemBars())

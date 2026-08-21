@@ -21,3 +21,5 @@ Split out of `MEMORY.md` (S1731, 2026-08-17): memories specific to emulator setu
 - [Animator scale first](feedback_check_animator_scale_before_diagnosing.md) - AVDs run scale=0 · [Dialogs under wm](feedback_dialogs_invisible_under_wm_override.md)
 - [Quest panel not introspectable](reference_quest_panel_not_introspectable.md)
 - [Operator agents stop at ~10 calls](feedback_device_operator_tool_call_budget.md) - one ticket per brief; do preflight yourself
+- [OCR needs 3 GB RAM](project_ocr_hard_gated_at_3gb_ram.md) - the switch is disabled below it, so the default Pixel_9 AVD (2048 MB) can never reach Tesseract. The remedy is local, not the owner's phone: Pixel_6 is already defined at 4096 MB and Pixel_10_Pro_Fold at 8192 MB.
+- [Desktop never idles](project_launcher_desktop_never_idles.md) - uidump is unavailable on a populated launcher desktop; the live clock, not the wallpaper, and no setting fixes it - use screenshots and coordinates

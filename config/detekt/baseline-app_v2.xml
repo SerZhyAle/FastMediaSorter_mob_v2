@@ -288,9 +288,6 @@
     <ID>ArgumentListWrapping:BrowseLifecycleSetupManager.kt$BrowseLifecycleSetupManager$(context.getString(R.string.filter_label_name_short))</ID>
     <ID>ArgumentListWrapping:BrowseLifecycleSetupManager.kt$BrowseLifecycleSetupManager$(context.getString(R.string.msg_last_filter_restored, filterDesc))</ID>
     <ID>ArgumentListWrapping:BrowseLoadingAuxManager.kt$BrowseLoadingAuxManager$("BrowseLoadingAuxManager: cleared lastBrowseDate for cloud resource '${resource.name}' (auth error)")</ID>
-    <ID>ArgumentListWrapping:BrowseLoadingManager.kt$BrowseLoadingManager$("BrowseLoadingManager: START loading - resource='${resource.name}' (id=${resource.id}), type=${resource.type}, showHiddenFiles=$showHiddenFiles, currentPath=$currentPath, isSubfolderMode=$isSubfolderMode")</ID>
-    <ID>ArgumentListWrapping:BrowseLoadingManager.kt$BrowseLoadingManager$("BrowseLoadingManager: supportedTypes=${resource.supportedMediaTypes.map { it.name }}, sortMode=$sortMode")</ID>
-    <ID>ArgumentListWrapping:BrowseLoadingManager.kt$BrowseLoadingManager$(e, "BrowseLoadingManager: ERROR in flow - Exception (after ${System.currentTimeMillis() - flowStartTime}ms)")</ID>
     <ID>ArgumentListWrapping:BrowseManagerInitializer.kt$BrowseManagerInitializer$("SortButton", "BrowseActivity")</ID>
     <ID>ArgumentListWrapping:BrowseManagerInitializer.kt$BrowseManagerInitializer$(activity)</ID>
     <ID>ArgumentListWrapping:BrowseManagerInitializer.kt$BrowseManagerInitializer$(activity, R.string.error_read_only, Toast.LENGTH_SHORT)</ID>
@@ -2005,7 +2002,6 @@
     <ID>ChainWrapping:AudioMetadataLoader.kt$AudioMetadataLoader.AudioMetadata$||</ID>
     <ID>ChainWrapping:AudioPlaybackService.kt$AudioPlaybackService$||</ID>
     <ID>ChainWrapping:AudioPlaybackService.kt$AudioPlaybackService.&lt;no name provided&gt;$&amp;&amp;</ID>
-    <ID>ChainWrapping:BrowseLoadingManager.kt$BrowseLoadingManager$||</ID>
     <ID>ChainWrapping:BrowseStateUiUpdater.kt$BrowseStateUiUpdater$&amp;&amp;</ID>
     <ID>ChainWrapping:BuildSendToReceiverListUseCase.kt$BuildSendToReceiverListUseCase$&amp;&amp;</ID>
     <ID>ChainWrapping:GetMediaFilesUseCase.kt$GetMediaFilesUseCase$&amp;&amp;</ID>
@@ -2043,7 +2039,6 @@
     <ID>ComplexCondition:BrowseFileOperationsManager.kt$BrowseFileOperationsManager$path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://") || path.startsWith("cloud://")</ID>
     <ID>ComplexCondition:BrowseFileOverflowMenuManager.kt$BrowseFileOverflowMenuManager$(isImage &amp;&amp; isWritable) || isVideo || isPdf</ID>
     <ID>ComplexCondition:BrowseLoadingAuxManager.kt$BrowseLoadingAuxManager$e != null &amp;&amp; e !== file &amp;&amp; (e.artist != file.artist || e.title != file.title || e.album != file.album || e.duration != file.duration)</ID>
-    <ID>ComplexCondition:BrowseLoadingManager.kt$BrowseLoadingManager$parent.isNotBlank() &amp;&amp; parent != rootPath &amp;&amp; (rootPath.isBlank() || parent.startsWith("$rootPath/"))</ID>
     <ID>ComplexCondition:BrowseObserverManager.kt$BrowseObserverManager$currentResource != null &amp;&amp; currentResource.displayMode == DisplayMode.GRID &amp;&amp; !currentResource.isAudioOnly() &amp;&amp; (iconSizeChanged || compactChanged)</ID>
     <ID>ComplexCondition:BrowseResourceLoadManager.kt$BrowseResourceLoadManager$!skipAvailabilityCheck &amp;&amp; !isNetworkResource &amp;&amp; resource.fileCount == 0 &amp;&amp; !resource.isWritable</ID>
     <ID>ComplexCondition:BrowseShareOperationsHelper.kt$BrowseShareOperationsHelper$path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://") || path.startsWith("cloud://")</ID>
@@ -2367,8 +2362,6 @@
     <ID>ExplicitGarbageCollectionCall:FastMediaSorterApp.kt$FastMediaSorterApp$gc()</ID>
     <ID>ExplicitGarbageCollectionCall:ImageLoadingManager.kt$ImageLoadingManager$gc()</ID>
     <ID>ExplicitGarbageCollectionCall:VideoPlaybackPreflightHelper.kt$VideoPlaybackPreflightHelper$gc()</ID>
-    <ID>ExplicitGarbageCollectionCall:VrTextureDecoder.kt$VrTextureDecoder$gc()</ID>
-    <ID>ExplicitGarbageCollectionCall:VrTextureDecoder.kt$VrTextureDecoder$runFinalization()</ID>
     <ID>Filename:BrowseApkTileBadgeModule.kt$com.sza.fastmediasorter.di.BrowseApkTileBadgeModule.kt</ID>
     <ID>Filename:CommandPanelPermissions.kt$com.sza.fastmediasorter.ui.player.CommandPanelPermissions.kt</ID>
     <ID>Filename:FileTypeFilter.kt$com.sza.fastmediasorter.domain.model.FileTypeFilter.kt</ID>
@@ -2962,7 +2955,6 @@
     <ID>ImportOrdering:StatsSinkImpl.kt$import com.sza.fastmediasorter.core.di.ApplicationScope import com.sza.fastmediasorter.core.di.IoDispatcher import com.sza.fastmediasorter.data.local.preferences.StatsAggregateDataStore import com.sza.fastmediasorter.domain.repository.SettingsRepository import com.sza.fastmediasorter.domain.stats.MediaActionCounts import com.sza.fastmediasorter.domain.stats.StatsAggregateDelta import com.sza.fastmediasorter.domain.stats.StatsEvent import com.sza.fastmediasorter.domain.stats.StatsKey import com.sza.fastmediasorter.domain.stats.StatsMediaType import com.sza.fastmediasorter.domain.stats.StatsSink import com.sza.fastmediasorter.domain.stats.FileOpAction import com.sza.fastmediasorter.domain.stats.CaptureKind import com.sza.fastmediasorter.domain.stats.ViewKind import com.sza.fastmediasorter.domain.stats.EditKind import kotlinx.coroutines.CoroutineDispatcher import kotlinx.coroutines.CoroutineScope import kotlinx.coroutines.Job import kotlinx.coroutines.delay import kotlinx.coroutines.launch import kotlinx.coroutines.withContext import javax.inject.Inject import javax.inject.Singleton</ID>
     <ID>ImportOrdering:StereoDetectorTest.kt$import android.os.Bundle import androidx.media3.common.Format import com.sza.fastmediasorter.domain.model.StereoMode import org.junit.Assume.assumeTrue import org.junit.Assert.assertEquals import org.junit.Before import org.junit.Test import java.io.File import java.nio.ByteBuffer import java.nio.ByteOrder import kotlin.io.path.createTempDirectory</ID>
     <ID>ImportOrdering:StreamingManifestSniffer.kt$import com.sza.fastmediasorter.core.log.LinkDownloadTrace import com.sza.fastmediasorter.domain.model.link.StreamingManifest import okhttp3.HttpUrl.Companion.toHttpUrlOrNull import org.jsoup.Jsoup import org.jsoup.nodes.Document import org.json.JSONArray import org.json.JSONObject import javax.inject.Inject import javax.inject.Singleton</ID>
-    <ID>ImportOrdering:StreamsActivity.kt$import android.content.Context import android.content.Intent import android.content.res.ColorStateList import android.view.View import android.widget.Toast import androidx.activity.addCallback import androidx.activity.viewModels import androidx.appcompat.app.AlertDialog import androidx.core.view.MenuItemCompat import androidx.core.view.forEach import androidx.core.view.isVisible import androidx.core.widget.doAfterTextChanged import androidx.lifecycle.lifecycleScope import androidx.media3.common.util.UnstableApi import androidx.recyclerview.widget.LinearLayoutManager import androidx.recyclerview.widget.RecyclerView import com.google.android.material.color.MaterialColors import com.google.android.material.dialog.MaterialAlertDialogBuilder import com.google.android.material.snackbar.Snackbar import com.sza.fastmediasorter.BuildConfig import com.sza.fastmediasorter.R import com.sza.fastmediasorter.core.ui.BaseActivity import com.sza.fastmediasorter.data.local.db.StreamSourceEntity import com.sza.fastmediasorter.data.repository.streams.ChannelPreviewAtlasStore import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore import com.sza.fastmediasorter.data.repository.streams.StreamFrameCache import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore import com.sza.fastmediasorter.data.repository.streams.StreamLogoAtlasStore import com.sza.fastmediasorter.databinding.ActivityStreamsBinding import com.sza.fastmediasorter.databinding.DialogAddStreamBinding import com.sza.fastmediasorter.domain.delivery.DeliverableInventory import com.sza.fastmediasorter.domain.delivery.DeliverableSet import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior import com.sza.fastmediasorter.domain.model.DisplayMode import com.sza.fastmediasorter.domain.model.SyntheticResourceIds import com.sza.fastmediasorter.domain.model.StreamTrackLanguage import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate import com.sza.fastmediasorter.ui.player.PlayerActivity import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction import com.sza.fastmediasorter.ui.player.helpers.AudioExitBehaviorResolver import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController import com.sza.fastmediasorter.ui.player.helpers.BackgroundAudioExitDialog import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager import com.sza.fastmediasorter.ui.streams.helpers.StreamHealthProbeManager import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager import com.sza.fastmediasorter.ui.streams.helpers.StreamsSectionsManager import com.sza.fastmediasorter.utils.applySystemBarInsetPadding import com.sza.fastmediasorter.utils.collectOnLifecycle import dagger.hilt.android.AndroidEntryPoint import kotlinx.coroutines.launch import timber.log.Timber import javax.inject.Inject</ID>
     <ID>ImportOrdering:StreamsViewModel.kt$import androidx.annotation.StringRes import androidx.lifecycle.ViewModel import androidx.lifecycle.viewModelScope import com.sza.fastmediasorter.R import com.sza.fastmediasorter.core.di.ApplicationScope import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer import com.sza.fastmediasorter.data.local.db.StreamSourceEntity import com.sza.fastmediasorter.data.repository.settings.StreamsSessionStore import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore import com.sza.fastmediasorter.domain.model.AppSettings import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior import com.sza.fastmediasorter.domain.model.DisplayMode import com.sza.fastmediasorter.domain.model.StreamDefaultSort import com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter import com.sza.fastmediasorter.domain.model.StreamResumeState import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy import com.sza.fastmediasorter.domain.repository.SettingsRepository import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamPlaylistUseCase import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase import com.sza.fastmediasorter.domain.usecase.streams.PinStreamSourceUseCase import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase import com.sza.fastmediasorter.domain.usecase.streams.ReorderPinnedStreamUseCase import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase import dagger.hilt.android.lifecycle.HiltViewModel import kotlinx.coroutines.CoroutineScope import kotlinx.coroutines.channels.Channel import kotlinx.coroutines.flow.Flow import kotlinx.coroutines.flow.MutableStateFlow import kotlinx.coroutines.flow.SharingStarted import kotlinx.coroutines.flow.StateFlow import kotlinx.coroutines.flow.asStateFlow import kotlinx.coroutines.flow.combine import kotlinx.coroutines.flow.first import kotlinx.coroutines.flow.launchIn import kotlinx.coroutines.flow.onEach import kotlinx.coroutines.flow.receiveAsFlow import kotlinx.coroutines.flow.stateIn import kotlinx.coroutines.flow.update import kotlinx.coroutines.launch import javax.inject.Inject</ID>
     <ID>ImportOrdering:SubtitleCueController.kt$import android.graphics.Bitmap import android.graphics.Canvas import androidx.media3.common.text.CueGroup import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime import java.nio.ByteBuffer import timber.log.Timber</ID>
     <ID>ImportOrdering:SyncMediaStoreUseCase.kt$import android.content.Context import com.sza.fastmediasorter.domain.model.MediaResource import com.sza.fastmediasorter.domain.model.ResourceType import com.sza.fastmediasorter.utils.MediaStoreNotifier import dagger.hilt.android.qualifiers.ApplicationContext import kotlinx.coroutines.CancellationException import kotlinx.coroutines.Dispatchers import kotlinx.coroutines.ensureActive import kotlinx.coroutines.currentCoroutineContext import kotlinx.coroutines.withContext import timber.log.Timber import java.io.File import javax.inject.Inject</ID>
@@ -3000,7 +2992,6 @@
     <ID>Indentation:BrowseCloudAuthManager.kt$BrowseCloudAuthManager$ </ID>
     <ID>Indentation:BrowseDialogCallbacksImpl.kt$BrowseDialogCallbacksImpl$ </ID>
     <ID>Indentation:BrowseFilterDialogManager.kt$BrowseFilterDialogManager$ </ID>
-    <ID>Indentation:BrowseLoadingManager.kt$BrowseLoadingManager$ </ID>
     <ID>Indentation:BrowseMetadataManager.kt$BrowseMetadataManager$ </ID>
     <ID>Indentation:BrowseResourceLoadManager.kt$BrowseResourceLoadManager$ </ID>
     <ID>Indentation:BrowseStateUiUpdater.kt$BrowseStateUiUpdater$ </ID>
@@ -3222,7 +3213,6 @@
     <ID>LongMethod:BrowseEventHandler.kt$BrowseEventHandler$fun handleEvent(event: BrowseEvent)</ID>
     <ID>LongMethod:BrowseFileOperationsManager.kt$BrowseFileOperationsManager$fun executeOperationToPath( operationType: FileOperationType, sourceFiles: List&lt;File&gt;, destinationPath: String, sourceCredentialsId: String?, overwriteFiles: Boolean = false )</ID>
     <ID>LongMethod:BrowseFilterDialogManager.kt$BrowseFilterDialogManager$fun showFilterDialog(currentFilter: FileFilter?, allowedMediaTypes: Set&lt;MediaType&gt;? = null)</ID>
-    <ID>LongMethod:BrowseLoadingManager.kt$BrowseLoadingManager$suspend fun loadFilesStandard( resource: MediaResource, sortMode: SortMode, sizeFilter: SizeFilter, shouldStopScan: AtomicBoolean, showHiddenFiles: Boolean, currentPath: String? = null, isSubfolderMode: Boolean = false, callbacks: LoadingCallbacks )</ID>
     <ID>LongMethod:BrowseManagerInitializer.kt$BrowseManagerInitializer$fun initialize()</ID>
     <ID>LongMethod:BrowseRecyclerViewManager.kt$BrowseRecyclerViewManager$fun updateDisplayMode( mode: DisplayMode, iconSize: Int, showVideoThumbnails: Boolean, isCompactMode: Boolean = false, disableThumbnails: Boolean = false )</ID>
     <ID>LongMethod:BrowseRenameDialogManager.kt$BrowseRenameDialogManager$private fun showRenameMultipleDialog(mediaFiles: List&lt;MediaFile&gt;)</ID>
@@ -3346,7 +3336,6 @@
     <ID>LongMethod:SmbPlaybackHelper.kt$internal suspend fun VideoPlayerManager.playSmbVideo( path: String, credentialsId: String?, playWhenReady: Boolean )</ID>
     <ID>LongMethod:SmbShareDiscoveryHelper.kt$SmbShareDiscoveryHelper$suspend fun listShares( server: String, username: String = "", password: String = "", domain: String = "", port: Int = 445 ): SmbResult&lt;List&lt;String&gt;&gt;</ID>
     <ID>LongMethod:StatisticsViewModel.kt$StatisticsViewModel$private fun rowsFor(category: StatsCategory, snapshot: StatsSnapshot): List&lt;MetricRow&gt;</ID>
-    <ID>LongMethod:StreamsActivity.kt$StreamsActivity$override fun setupViews()</ID>
     <ID>LongMethod:StreamsSettingsFragment.kt$StreamsSettingsFragment$override fun onViewCreated(view: View, savedInstanceState: Bundle?)</ID>
     <ID>LongMethod:SzaResourcesImporter.kt$SzaResourcesImporter$private suspend fun importOne( parser: XmlPullParser, existingResources: List&lt;MediaResource&gt;, existingCredentials: List&lt;NetworkCredentialsEntity&gt;, ): Outcome</ID>
     <ID>LongMethod:TesseractModelManager.kt$TesseractModelManager$suspend fun downloadModel( language: String, onProgress: (percent: Int, bytes: Long, total: Long) -&gt; Unit ): Boolean</ID>
@@ -3377,8 +3366,6 @@
     <ID>LongParameterList:BrowseFileOpenManager.kt$BrowseFileOpenManager$( private val context: Context, private val updateResourceUseCase: UpdateResourceUseCase, private val mediaScannerFactory: MediaScannerFactory, private val cachedFileListRepository: CachedFileListRepository, private val scope: CoroutineScope, private val ioDispatcher: CoroutineDispatcher, private val stateFlow: StateFlow&lt;BrowseState&gt;, private val updateState: ((BrowseState) -&gt; BrowseState) -&gt; Unit, private val sendEvent: (BrowseEvent) -&gt; Unit, private val setLoading: (Boolean) -&gt; Unit, private val inlineStop: () -&gt; Unit, private val sortFiles: (files: List&lt;MediaFile&gt;, mode: SortMode, forceSort: Boolean) -&gt; List&lt;MediaFile&gt;, private val resourceId: Long )</ID>
     <ID>LongParameterList:BrowseLifecycleSetupManager.kt$BrowseLifecycleSetupManager$( private val context: Context, private val browseStateDataStore: BrowseStateDataStore, private val settingsRepository: SettingsRepository, private val unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache, private val selectionManager: BrowseSelectionManager, private val undoManager: BrowseUndoManager, private val getResumeStateUseCase: GetResumeStateUseCase, private val clearResumeStateUseCase: ClearResumeStateUseCase, private val windowIdProvider: () -&gt; String, private val scope: CoroutineScope, private val ioDispatcher: CoroutineDispatcher, private val exceptionHandler: CoroutineContext, private val stateFlow: StateFlow&lt;BrowseState&gt;, private val updateState: ((BrowseState) -&gt; BrowseState) -&gt; Unit, private val sendEvent: (BrowseEvent) -&gt; Unit, private val applyFilter: () -&gt; Unit, private val resourceId: Long )</ID>
     <ID>LongParameterList:BrowseLoadingAuxManager.kt$BrowseLoadingAuxManager$( private val context: Context, private val updateResourceUseCase: UpdateResourceUseCase, private val cachedMediaMetadataExtractor: CachedMediaMetadataExtractor, private val cachedFileListRepository: CachedFileListRepository, private val scope: CoroutineScope, private val ioDispatcher: CoroutineDispatcher, private val exceptionHandler: CoroutineContext, private val stateFlow: StateFlow&lt;BrowseState&gt;, private val updateState: ((BrowseState) -&gt; BrowseState) -&gt; Unit, private val sendEvent: (BrowseEvent) -&gt; Unit, private val setLoading: (Boolean) -&gt; Unit, private val getSettings: suspend () -&gt; AppSettings, private val resourceId: Long, private val onHandleError: (Throwable) -&gt; Unit )</ID>
-    <ID>LongParameterList:BrowseLoadingManager.kt$BrowseLoadingManager$( resource: MediaResource, sortMode: SortMode, sizeFilter: SizeFilter, shouldStopScan: AtomicBoolean, showHiddenFiles: Boolean, currentPath: String? = null, isSubfolderMode: Boolean = false, callbacks: LoadingCallbacks )</ID>
-    <ID>LongParameterList:BrowseManagerInitializer.kt$BrowseManagerInitializer$( private val activity: BrowseActivity, private val binding: ActivityBrowseBinding, private val viewModel: BrowseViewModel, private val lifecycleScope: LifecycleCoroutineScope, private val passwordManager: ResourcePasswordManager, private val fileOperationUseCase: FileOperationUseCase, private val getDestinationsUseCase: GetDestinationsUseCase, private val settingsRepository: SettingsRepository, private val smbClient: Lazy&lt;SmbClient&gt;, private val sftpClient: Lazy&lt;SftpClient&gt;, private val ftpClient: Lazy&lt;FtpClient&gt;, private val googleDriveClient: Lazy&lt;GoogleDriveRestClient&gt;, private val dropboxClient: Lazy&lt;DropboxClient&gt;, private val oneDriveClient: Lazy&lt;OneDriveRestClient&gt;, private val credentialsRepository: Lazy&lt;NetworkCredentialsRepository&gt;, private val unifiedFileOperationHandler: UnifiedFileOperationHandler, private val audioMetadataLoader: AudioMetadataLoader, private val unifiedFileCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache, private val resourceOpsMenuManager: ResourceOpsMenuManager, private val browseFileOverflowMenuManager: com.sza.fastmediasorter.ui.browse.helpers.BrowseFileOverflowMenuManager, private val launcherManager: BrowseLauncherManager, private val showVideoThumbnailsGetter: () -&gt; Boolean, private val showPdfThumbnailsGetter: () -&gt; Boolean, private val updateShowVideoThumbnails: (Boolean) -&gt; Unit, private val updateShowPdfThumbnails: (Boolean) -&gt; Unit, private val isSkipAvailabilityCheck: Boolean, private val passthroughProvider: BrowsePassthroughCaptureProvider? = null, // Flavor-specific bottom-sheet actions are injected as a set so market builds stay feature-agnostic. private val binaryFileMenuActions: Set&lt;@JvmSuppressWildcards BrowseBinaryFileMenuAction&gt; = emptySet(), private val browseApkTileBadgeBinder: BrowseApkTileBadgeBinder, // S0135 - Google Play In-App Review request after successful Move/Copy. private val reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager, private val browseTransferCoordinator: BrowseFileTransferCoordinator, private val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy, private val mediaCapabilities: MediaCapabilities, private val sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager, private val openInShareTargetHandler: com.sza.fastmediasorter.core.share.handlers.OpenInShareTargetHandler, // S0783: favicon sprite-atlas plumbing for STREAM favorites rows, sourced from BrowseActivity. No-op // defaults keep any other construction path (e.g. tests) unaffected. private val faviconResolver: (String) -&gt; Int? = { null }, private val faviconTileLoader: suspend (Int) -&gt; android.graphics.Bitmap? = { null }, )</ID>
     <ID>LongParameterList:BrowseNavigationManager.kt$BrowseNavigationManager$( private val context: Context, private val scope: CoroutineScope, private val ioDispatcher: CoroutineDispatcher, private val stateFlow: StateFlow&lt;BrowseState&gt;, private val updateState: ((BrowseState) -&gt; BrowseState) -&gt; Unit, private val sendEvent: (BrowseEvent) -&gt; Unit, private val setLoading: (Boolean) -&gt; Unit, private val mediaScannerFactory: MediaScannerFactory, /** Cancels any in-flight file-load job and sets shouldStopScan. */ private val cancelLoad: () -&gt; Unit, /** Triggers a full media-files re-scan (flat / recursive). */ private val onLoadMediaFiles: () -&gt; Unit, /** Triggers a full resource reload. */ private val onLoadResource: () -&gt; Unit )</ID>
     <ID>LongParameterList:BrowseObserverManager.kt$BrowseObserverManager$( private val lifecycleOwner: LifecycleOwner, private val activity: Activity, private val binding: ActivityBrowseBinding, private val viewModel: BrowseViewModel, private val adapter: MediaFileAdapter, private val onUpdateDisplayMode: suspend (DisplayMode) -&gt; Unit, private val onNotifyRangeChanged: (start: Int, count: Int, payload: Any, source: String) -&gt; Unit, private val getShowPdfThumbnails: () -&gt; Boolean, private val setShowVideoThumbnails: (Boolean) -&gt; Unit, private val setShowPdfThumbnails: (Boolean) -&gt; Unit )</ID>
     <ID>LongParameterList:BrowseRefreshManager.kt$BrowseRefreshManager$( private val syncMediaStoreUseCase: SyncMediaStoreUseCase, private val smbOperationsUseCase: SmbOperationsUseCase, private val cachedFileListRepository: CachedFileListRepository, // S0242 Phase 03 - pull-to-refresh clears pending journal entries so the Reconciler // does not re-apply stale mutations to the freshly-fetched listing on next onResume. private val mutationJournal: MutationJournal, private val resourceId: Long, private val scope: CoroutineScope, private val ioDispatcher: CoroutineDispatcher, private val stateFlow: StateFlow&lt;BrowseState&gt;, private val updateState: ((BrowseState) -&gt; BrowseState) -&gt; Unit, private val setLastEmittedMediaFilesNull: () -&gt; Unit, private val setIgnoringFileChanges: (Boolean) -&gt; Unit, private val loadResource: (Boolean) -&gt; Unit )</ID>
@@ -3750,10 +3737,6 @@
     <ID>MagicNumber:BrowseListSubmitManager.kt$BrowseListSubmitManager$85</ID>
     <ID>MagicNumber:BrowseLoadingAuxManager.kt$BrowseLoadingAuxManager$0.8</ID>
     <ID>MagicNumber:BrowseLoadingAuxManager.kt$BrowseLoadingAuxManager$300L</ID>
-    <ID>MagicNumber:BrowseLoadingManager.kt$BrowseLoadingManager$1_000</ID>
-    <ID>MagicNumber:BrowseLoadingManager.kt$BrowseLoadingManager$5_000L</ID>
-    <ID>MagicNumber:BrowseLoadingManager.kt$BrowseLoadingManager.&lt;no name provided&gt;$1000L</ID>
-    <ID>MagicNumber:BrowseLoadingManager.kt$BrowseLoadingManager.&lt;no name provided&gt;$50</ID>
     <ID>MagicNumber:BrowseManagerInitializer.kt$BrowseManagerInitializer$0.4f</ID>
     <ID>MagicNumber:BrowseManagerInitializer.kt$BrowseManagerInitializer$32</ID>
     <ID>MagicNumber:BrowseManagerInitializer.kt$BrowseManagerInitializer$48</ID>
@@ -5386,10 +5369,6 @@
     <ID>MagicNumber:VrHudBannerRenderer.kt$VrHudBannerRenderer$46f</ID>
     <ID>MagicNumber:VrHudBannerRenderer.kt$VrHudBannerRenderer$60</ID>
     <ID>MagicNumber:VrHudBannerRenderer.kt$VrHudBannerRenderer$8</ID>
-    <ID>MagicNumber:VrTextureDecoder.kt$VrTextureDecoder$1024</ID>
-    <ID>MagicNumber:VrTextureDecoder.kt$VrTextureDecoder$4</ID>
-    <ID>MagicNumber:VrTextureDecoder.kt$VrTextureDecoder$4L</ID>
-    <ID>MagicNumber:VrTextureDecoder.kt$VrTextureDecoder$8</ID>
     <ID>MagicNumber:WearSyncSettingsFragment.kt$5</ID>
     <ID>MagicNumber:WelcomeActivity.kt$WelcomeActivity$250</ID>
     <ID>MagicNumber:WelcomeActivity.kt$WelcomeActivity$3</ID>
@@ -5731,13 +5710,6 @@
     <ID>MaxLineLength:BrowseLifecycleSetupManager.kt$BrowseLifecycleSetupManager$sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.msg_last_filter_restored, filterDesc)))</ID>
     <ID>MaxLineLength:BrowseLoadingAuxManager.kt$BrowseLoadingAuxManager$Timber.d("BrowseLoadingAuxManager: ExoPlayer warmup start (videoRatio=${"%.2f".format(videoRatio)})")</ID>
     <ID>MaxLineLength:BrowseLoadingAuxManager.kt$BrowseLoadingAuxManager$Timber.d("BrowseLoadingAuxManager: cleared lastBrowseDate for cloud resource '${resource.name}' (auth error)")</ID>
-    <ID>MaxLineLength:BrowseLoadingManager.kt$BrowseLoadingManager$"BrowseLoadingManager: Batch favorites latency ${favoritesLookupDuration}ms exceeds target, two-phase fallback"</ID>
-    <ID>MaxLineLength:BrowseLoadingManager.kt$BrowseLoadingManager$"BrowseLoadingManager: Single-phase render (latency=${favoritesLookupDuration}ms, files=${finalFiles.size})"</ID>
-    <ID>MaxLineLength:BrowseLoadingManager.kt$BrowseLoadingManager$Timber.d("BrowseLoadingManager: START loading - resource='${resource.name}' (id=${resource.id}), type=${resource.type}, showHiddenFiles=$showHiddenFiles, currentPath=$currentPath, isSubfolderMode=$isSubfolderMode")</ID>
-    <ID>MaxLineLength:BrowseLoadingManager.kt$BrowseLoadingManager$Timber.d("BrowseLoadingManager: supportedTypes=${resource.supportedMediaTypes.map { it.name }}, sortMode=$sortMode")</ID>
-    <ID>MaxLineLength:BrowseLoadingManager.kt$BrowseLoadingManager$Timber.e(e, "BrowseLoadingManager: ERROR in flow - Exception (after ${System.currentTimeMillis() - flowStartTime}ms)")</ID>
-    <ID>MaxLineLength:BrowseLoadingManager.kt$BrowseLoadingManager$val shouldUseTwoPhaseFallback = favoritesLookupDuration &gt; FAVORITES_FIRST_FRAME_TARGET_MS &amp;&amp; sortedFiles.isNotEmpty()</ID>
-    <ID>MaxLineLength:BrowseLoadingManager.kt$BrowseLoadingManager.&lt;no name provided&gt;$"BrowseLoadingManager: Scan progress - $scannedCount files in ${elapsedMs}ms (~${filesPerSecond} files/s)"</ID>
     <ID>MaxLineLength:BrowseManagerInitializer.kt$BrowseManagerInitializer$/** Picks destination folder via ARCHIVE-mode picker, then delegates to archiveDialogManager for name prompt + operation. */</ID>
     <ID>MaxLineLength:BrowseManagerInitializer.kt$BrowseManagerInitializer$// S0266: cloud paths build CloudFileHandle so the display-name (e.g. "MyVideo.mp4") survives into the copy/move operation.</ID>
     <ID>MaxLineLength:BrowseManagerInitializer.kt$BrowseManagerInitializer$allowSeparateWindow = settings.allowSeparateWindow || MultiWindowCapabilityDetector.isMultiWindowActiveNow(activity)</ID>
@@ -7307,7 +7279,6 @@
     <ID>MaxLineLength:StreamingManifestSniffer.kt$StreamingManifestSniffer$tentativeMime = if (manifest is StreamingManifest.Hls) "application/vnd.apple.mpegurl" else "application/dash+xml"</ID>
     <ID>MaxLineLength:StreamingManifestSniffer.kt$StreamingManifestSniffer.Companion$private</ID>
     <ID>MaxLineLength:StreamingPipeline.kt$PipelineOutcome.Success$/** Pipeline succeeded; [file] is a standard MP4 ready for [com.sza.fastmediasorter.data.link.LinkDownloadWriter]. */</ID>
-    <ID>MaxLineLength:StreamsActivity.kt$StreamsActivity$/** S0577: background streaming uses the foreground service only when the user enabled it and the flavor supports it. */</ID>
     <ID>MaxLineLength:StreamsViewModel.kt$StreamsViewModel$.</ID>
     <ID>MaxLineLength:SzaResourcesImporter.kt$SzaResourcesImporter$Timber.w("Predefined SFTP resource '$name' declares keyPassphrase, which is not persisted; an encrypted key will fail to load")</ID>
     <ID>MaxLineLength:SzaResourcesImporter.kt$SzaResourcesImporter$if</ID>
@@ -7523,8 +7494,6 @@
     <ID>MaximumLineLength:BrowseLifecycleHelper.kt$BrowseLifecycleHelper$ </ID>
     <ID>MaximumLineLength:BrowseLifecycleSetupManager.kt$BrowseLifecycleSetupManager$ </ID>
     <ID>MaximumLineLength:BrowseLoadingAuxManager.kt$BrowseLoadingAuxManager$ </ID>
-    <ID>MaximumLineLength:BrowseLoadingManager.kt$BrowseLoadingManager$ </ID>
-    <ID>MaximumLineLength:BrowseLoadingManager.kt$BrowseLoadingManager.&lt;no name provided&gt;$ </ID>
     <ID>MaximumLineLength:BrowseManagerInitializer.kt$BrowseManagerInitializer$ </ID>
     <ID>MaximumLineLength:BrowseManagerInitializer.kt$BrowseManagerInitializer.&lt;no name provided&gt;$ </ID>
     <ID>MaximumLineLength:BrowseMetadataManager.kt$BrowseMetadataManager$ </ID>
@@ -8262,8 +8231,6 @@
     <ID>MultiLineIfElse:StreamOffloadOfferDialog.kt$StreamOffloadOfferDialog$ctx.getString(R.string.offload_not_enough)</ID>
     <ID>MultiLineIfElse:StreamPlaybackHelper.kt$&lt;no name provided&gt;$VideoPlayerManager.StreamWaitPhase.BUFFERING</ID>
     <ID>MultiLineIfElse:StreamPlaybackHelper.kt$&lt;no name provided&gt;$VideoPlayerManager.StreamWaitPhase.RECONNECTING</ID>
-    <ID>MultiLineIfElse:StreamsActivity.kt$StreamsActivity$inlineAudio.release()</ID>
-    <ID>MultiLineIfElse:StreamsActivity.kt$StreamsActivity$inlineAudio.releaseKeepingBackgroundService()</ID>
     <ID>MultiLineIfElse:SyncNetworkResourcesUseCase.kt$SyncNetworkResourcesUseCase$null</ID>
     <ID>MultiLineIfElse:SzaResourcesImporter.kt$SzaResourcesImporter$PreviewResult.Invalid("Not a resources file")</ID>
     <ID>MultiLineIfElse:SzaResourcesImporter.kt$SzaResourcesImporter$PreviewResult.Valid(toCreate, toUpdate, containsCredentials)</ID>
@@ -8865,8 +8832,6 @@
     <ID>NoTrailingSpaces:BrowseCloudAuthManager.kt$BrowseCloudAuthManager$ </ID>
     <ID>NoTrailingSpaces:BrowseFileListManager.kt$BrowseFileListManager$ </ID>
     <ID>NoTrailingSpaces:BrowseFileOperationsManager.kt$BrowseFileOperationsManager$ </ID>
-    <ID>NoTrailingSpaces:BrowseLoadingManager.kt$BrowseLoadingManager$ </ID>
-    <ID>NoTrailingSpaces:BrowseLoadingManager.kt$BrowseLoadingManager.&lt;no name provided&gt;$ </ID>
     <ID>NoTrailingSpaces:BrowseManagerInitializer.kt$BrowseManagerInitializer$ </ID>
     <ID>NoTrailingSpaces:BrowseMediaStoreObserver.kt$BrowseMediaStoreObserver$ </ID>
     <ID>NoTrailingSpaces:BrowseMetadataManager.kt$BrowseMetadataManager$ </ID>
@@ -9206,7 +9171,6 @@
     <ID>NoUnusedImports:BrowseCameraCaptureManager.kt$com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager.kt</ID>
     <ID>NoUnusedImports:BrowseErrorDisplayManager.kt$com.sza.fastmediasorter.ui.browse.managers.BrowseErrorDisplayManager.kt</ID>
     <ID>NoUnusedImports:BrowseEventHandler.kt$com.sza.fastmediasorter.ui.browse.managers.BrowseEventHandler.kt</ID>
-    <ID>NoUnusedImports:BrowseLoadingManager.kt$com.sza.fastmediasorter.ui.browse.loading.BrowseLoadingManager.kt</ID>
     <ID>NoUnusedImports:BrowseManagerInitializer.kt$com.sza.fastmediasorter.ui.browse.managers.BrowseManagerInitializer.kt</ID>
     <ID>NoUnusedImports:BrowseRefreshManager.kt$com.sza.fastmediasorter.ui.browse.managers.BrowseRefreshManager.kt</ID>
     <ID>NoUnusedImports:BrowseScrollButtonManager.kt$com.sza.fastmediasorter.ui.browse.managers.BrowseScrollButtonManager.kt</ID>
@@ -10212,9 +10176,6 @@
     <ID>ReturnCount:StreamTrackPreferenceUseCase.kt$StreamTrackPreferenceUseCase$suspend fun read(url: String): TrackPreference?</ID>
     <ID>ReturnCount:StreamingDownloadStrategy.kt$StreamingDownloadStrategy$override suspend fun fetchAndRemux( manifest: StreamingManifest, fileName: String, quality: MediaQualityPreference, onProgress: (downloadedBytes: Long, totalBytes: Long?) -&gt; Unit, ): PipelineOutcome</ID>
     <ID>ReturnCount:StreamingManifestSniffer.kt$StreamingManifestSniffer$private fun addIfManifest(out: MutableList&lt;HtmlMediaCandidate&gt;, raw: String?)</ID>
-    <ID>ReturnCount:StreamsActivity.kt$StreamsActivity$private fun onPlay(source: StreamSourceEntity)</ID>
-    <ID>ReturnCount:StreamsActivity.kt$StreamsActivity$private fun tryRestoreScroll(itemCount: Int)</ID>
-    <ID>ReturnCount:StreamsActivity.kt$StreamsActivity$private fun visibleInSection( recyclerView: RecyclerView, list: List&lt;StreamSourceEntity&gt;, ): List&lt;StreamSourceEntity&gt;</ID>
     <ID>ReturnCount:StructuredMediaSniffer.kt$StructuredMediaSniffer$fun sniffInstagramApiResponse(json: String, baseUri: String): List&lt;HtmlMediaCandidate&gt;</ID>
     <ID>ReturnCount:StructuredMediaSniffer.kt$StructuredMediaSniffer$private fun collectJsonObjects(payload: String): List&lt;JSONObject&gt;</ID>
     <ID>ReturnCount:StructuredMediaSniffer.kt$StructuredMediaSniffer$private fun firstUrl(candidates: JSONArray?): String?</ID>
@@ -10304,7 +10265,6 @@
     <ID>SerialVersionUIDInSerializableClass:VrLaunchContract.kt$VrMediaType : Serializable</ID>
     <ID>SerialVersionUIDInSerializableClass:VrLaunchContract.kt$VrPanelReturnTarget : Serializable</ID>
     <ID>SpacingAroundComma:DeviceProfileEntity.kt$DeviceProfileEntity$,</ID>
-    <ID>SpacingAroundCurly:BrowseLoadingManager.kt$BrowseLoadingManager${</ID>
     <ID>SpacingAroundCurly:ThumbnailCacheRepositoryImpl.kt$ThumbnailCacheRepositoryImpl$}</ID>
     <ID>SpacingAroundKeyword:AddResourceActivity.kt$AddResourceActivity$catch</ID>
     <ID>SpacingAroundKeyword:AudioCoverArtLoader.kt$AudioCoverArtLoader$catch</ID>
@@ -10846,7 +10806,6 @@
     <ID>StringTemplate:AudioSlideshowPhotoModeManager.kt$AudioSlideshowPhotoModeManager.&lt;no name provided&gt;$${imageHeight}</ID>
     <ID>StringTemplate:BrowseCacheManager.kt$BrowseCacheManager$${lastBrowseDate}</ID>
     <ID>StringTemplate:BrowseListSubmitManager.kt$BrowseListSubmitManager$${heapPct}</ID>
-    <ID>StringTemplate:BrowseLoadingManager.kt$BrowseLoadingManager.&lt;no name provided&gt;$${filesPerSecond}</ID>
     <ID>StringTemplate:CloudMediaScanner.kt$CloudMediaScanner$${actualFolderId}</ID>
     <ID>StringTemplate:CloudOperationStrategy.kt$CloudOperationStrategy$${fileName}</ID>
     <ID>StringTemplate:ConnectionThrottleManager.kt$ConnectionThrottleManager$${successes}</ID>
@@ -10901,7 +10860,6 @@
     <ID>StringTemplate:TranslationOverlayView.kt$TranslationOverlayView$${height}</ID>
     <ID>StringTemplate:TranslationOverlayView.kt$TranslationOverlayView$${originalImageHeight}</ID>
     <ID>StringTemplate:TranslationOverlayView.kt$TranslationOverlayView$${viewHeight}</ID>
-    <ID>StringTemplate:VrTextureDecoder.kt$VrTextureDecoder$${sampledH}</ID>
     <ID>SwallowedException:AddResourceActivity.kt$AddResourceActivity$e: IllegalArgumentException</ID>
     <ID>SwallowedException:AddResourceNetworkScanCoordinator.kt$AddResourceNetworkScanCoordinator$e: CancellationException</ID>
     <ID>SwallowedException:AddResourceVirtualCoordinator.kt$AddResourceVirtualCoordinator$e: TimeoutCancellationException</ID>
@@ -11909,7 +11867,6 @@
     <ID>Wrapping:BrowseFileListManager.kt$BrowseFileListManager$it.title?.lowercase() ?: ""</ID>
     <ID>Wrapping:BrowseLifecycleSetupManager.kt$BrowseLifecycleSetupManager$it.copy( useCompactElements = settings.useCompactElements )</ID>
     <ID>Wrapping:BrowseLoadingAuxManager.kt$BrowseLoadingAuxManager$(</ID>
-    <ID>Wrapping:BrowseLoadingManager.kt$BrowseLoadingManager$(</ID>
     <ID>Wrapping:BrowseManagerInitializer.kt$BrowseManagerInitializer$(</ID>
     <ID>Wrapping:BrowseManagerInitializer.kt$BrowseManagerInitializer$(activity, object : BrowseMediaStoreObserver.MediaStoreCallbacks { override fun onMediaStoreChanged() { if (!viewModel.isIgnoringFileChanges()) viewModel.reloadFiles(syncMediaStore = false) } })</ID>
     <ID>Wrapping:BrowseManagerInitializer.kt$BrowseManagerInitializer$-&gt;</ID>
@@ -12206,8 +12163,6 @@
     <ID>Wrapping:StreamOffloadUseCaseTest.kt$StreamOffloadUseCaseTest$;</ID>
     <ID>Wrapping:StreamSourceAdapter.kt$StreamSourceAdapter.VH$;</ID>
     <ID>Wrapping:StreamingManifestSniffer.kt$StreamingManifestSniffer$-&gt;</ID>
-    <ID>Wrapping:StreamsActivity.kt$StreamsActivity$;</ID>
-    <ID>Wrapping:StreamsActivity.kt$StreamsActivity$[</ID>
     <ID>Wrapping:StructuredMediaSnifferTest.kt$StructuredMediaSnifferTest$(</ID>
     <ID>Wrapping:SubtitleCueController.kt$SubtitleCueController$;</ID>
     <ID>Wrapping:SyncNetworkResourcesUseCase.kt$SyncNetworkResourcesUseCase$(</ID>

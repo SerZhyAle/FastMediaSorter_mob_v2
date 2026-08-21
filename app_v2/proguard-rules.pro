@@ -7,9 +7,13 @@
 
 # Keep Gson-serialized persistence models that lack @SerializedName: without this R8 renames
 # their fields, breaking cross-version JSON restore (Drive backup, trash metadata, game state) - S0737/S0719.
--keep class com.sza.fastmediasorter.domain.usecase.Backup** { *; }
+# S1157: narrowed from `-keep class .. { *; }` to the FIELD surface. Gson reflects over instance
+# fields and enum constants (static fields), never over methods - so <fields> preserves the wire
+# format while every method (mappers, use cases, data-class boilerplate) goes back to R8. The
+# serialized roots stay referenced from code (fromJson(X::class.java)), so the classes survive.
+-keepclassmembers class com.sza.fastmediasorter.domain.usecase.Backup** { <fields>; }
 -keep class com.sza.fastmediasorter.data.model.TrashMetadata { *; }
--keep class com.sza.fastmediasorter.domain.game.** { *; }
+-keepclassmembers class com.sza.fastmediasorter.domain.game.** { <fields>; }
 
 # Cached file lists persist MediaFile JSON across app updates. Keep its field names stable so a
 # release mapping change cannot turn an existing cache blob into an incomplete object.

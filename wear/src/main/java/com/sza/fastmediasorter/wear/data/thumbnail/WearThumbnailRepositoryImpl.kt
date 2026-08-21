@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearThumbnailRepository
+import com.sza.fastmediasorter.wear.util.NetworkUriParser
 import com.sza.fastmediasorter.wear.util.WearThumbnailBudget
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -103,7 +104,9 @@ class WearThumbnailRepositoryImpl(
     private suspend fun networkThumbnail(file: WearMediaFile, sourceId: String): Bitmap? =
         withContext(Dispatchers.IO) {
             val source = networkSourceRepository.getSourceById(sourceId)
-            val stream = source?.let { openStream(it, file.uri.toString()) }
+            val remotePath = NetworkUriParser.remotePathOf(file.uri.toString())
+            Timber.d("S1888: thumbnail remotePath=$remotePath from uri=${file.uri}")
+            val stream = source?.let { openStream(it, remotePath) }
             stream?.let { previewReader.read(it) }
         }
 

@@ -492,8 +492,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
             }
         } else {
             cookieDomainsFor(host).forEach { domain ->
-                @Suppress("DEPRECATION")
-                cookieStore.loadFor(domain).forEach { cookie ->
+                cookieStore.loadForHostAccountOrBest(domain, null).forEach { cookie ->
                     cookieManager.setCookie(url, buildCookieHeader(cookie, domain))
                 }
             }

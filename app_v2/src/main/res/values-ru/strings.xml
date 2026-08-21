@@ -1286,8 +1286,6 @@
     <string name="run_integration_tests">RUN INTEGRATION TESTS</string>
     <string name="search_counter_default">0/0</string>
 
-    <!-- OCR Engine and PaddleOCR Models (S0288) -->
-
     <!-- OCR Best Models Feature -->
     <string name="and_more_errors">и ещё %d ошибок</string>
     <string name="android_media_folder_added_warning">⚠️ Добавлена папка Android/media. Эти папки могут иметь ограниченный доступ даже при наличии разрешений. Если сканирование не удаётся, система может запрещать доступ к этой папке.</string>
@@ -1990,7 +1988,7 @@
     <string name="ext_status_failed">Ошибка</string>
     <string name="ext_downloading_progress">Загрузка: %d%%</string>
     <string name="ext_ocr_engines_title">Модули распознавания текста</string>
-    <string name="ext_ocr_engines_desc">Включает библиотеки Tesseract и PaddleOCR для офлайн-распознавания текста на изображениях и в документах.</string>
+    <string name="ext_ocr_engines_desc">Включает библиотеку Tesseract для офлайн-распознавания текста на изображениях и в документах.</string>
     <string name="ext_translation_title">Модуль перевода</string>
     <string name="ext_translation_desc">Включает переводчик ML Kit и идентификатор языка для офлайн-перевода текста между поддерживаемыми языками.</string>
     <string name="ext_audio_viz_title">Аудиовизуализация</string>
@@ -3368,4 +3366,39 @@
     <string name="network_monitor_chart_reset_done">График перезапущен. Замер идёт заново.</string>
     <string name="settings_enable_wear_companion">Компаньон часов</string>
     <string name="settings_enable_wear_companion_summary">Показывать компаньон часов в панели и меню программ</string>
+    <string name="wear_watch_resource_name"></string>
+    <string name="wear_watch_transfer_success"></string>
+    <string name="wear_watch_transfer_failed"></string>
+    <string name="stream_action_send_to_watch">Передать на часы</string>
+    <string name="stream_send_to_watch_done">Трансляция передана на часы</string>
+    <string name="stream_send_to_watch_updated">Трансляция обновлена на часах</string>
+    <string name="stream_send_to_watch_watch_unavailable">Часы недоступны - трансляция не передана</string>
+    <string name="stream_send_to_watch_no_reply">Часы не подтвердили получение - проверьте часы</string>
+    <string name="stream_send_to_watch_failed">Часы не смогли сохранить трансляцию</string>
+    <string name="vr_settings_title">Настройки сеанса</string>
+    <string name="vr_settings_footer">Кнопка меню закрывает эту панель</string>
+    <string name="vr_settings_layout">РАСКЛАДКА</string>
+    <string name="vr_settings_projection">ПРОЕКЦИЯ</string>
+    <string name="vr_settings_distance">РАССТОЯНИЕ ПАНЕЛИ</string>
+    <string name="vr_settings_size">РАЗМЕР ПАНЕЛИ</string>
+    <string name="vr_settings_subtitles">СУБТИТРЫ</string>
+    <string name="vr_settings_resume">ПРОДОЛЖАТЬ С ПОЗИЦИИ</string>
+    <string name="vr_settings_value_auto">Авто</string>
+    <string name="vr_settings_value_mono">Моно</string>
+    <string name="vr_settings_value_sbs">Бок о бок</string>
+    <string name="vr_settings_value_over_under">Верх-низ</string>
+    <string name="vr_settings_value_flat">Плоско</string>
+    <string name="vr_settings_value_on">Вкл</string>
+    <string name="vr_settings_value_off">Выкл</string>
+    <string name="vr_legend_input_menu">Левая кнопка меню</string>
+    <string name="vr_legend_action_settings">Открыть или закрыть настройки сеанса</string>
+    <string name="accessibility_service_disable_now">Отключить доступность</string>
+    <string name="accessibility_service_status_active">Доступность: Активна</string>
+    <string name="accessibility_service_status_disabled">Доступность: Отключена</string>
+    <string name="qs_tile_accessibility">FMS Доступность</string>
+    <string name="dev_options_shortcut">Настройки разработчика</string>
+    <string name="usb_debugging_status">Отладка по USB: %s</string>
+    <string name="settings_wear_paired_watch_checking">Проверка связи..</string>
+    <string name="settings_wear_paired_watch_connected">%1$s - на связи</string>
+    <string name="settings_wear_paired_watch_not_connected">Часы не на связи</string>
 </resources>

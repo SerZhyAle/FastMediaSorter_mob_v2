@@ -16,6 +16,15 @@ reason `/spec-do S1802 phase 03` while its ticket lease was gone, so preflight o
 free. `/spec-all` says this in one line - "Re-claim the lease at long-running phase boundaries to
 refresh its heartbeat" - and it is easy to read as optional. It is not.
 
+Third occurrence, 2026-08-21, and the most expensive so far: driving S1873 through three phases of
+`/spec-all` - research, spec, tactical plan, then live gradle measurements - outlived the lease
+without a single re-claim. Session `01a021cf` (`/spec-next`) claimed S1873 and began editing the phase
+files I had just authored, marking steps done, while I still had verified work uncommitted to the
+plan. Claiming again returned "already claimed by session .." and I had to hand the ticket over
+mid-implementation. The tell was not a lock or an error: it was **my own phase file changing on disk
+under me**. Treat an unexplained edit to a file you are the only author of as a lease check, not as a
+mystery.
+
 **How to apply:**
 
 - Claim again right after each `plan-tick ... -State Done` that closes a phase. It is one cheap call
@@ -26,3 +35,10 @@ refresh its heartbeat" - and it is easy to read as optional. It is not.
 - If your own lease is gone and a sibling holds it, do not race: land what is done through
   `post-change.ps1`, write the remaining work into the tactical `INDEX.md` as a handover, and record
   the round as `advanced`.
+- A long research or measurement step counts as a phase boundary too. Two gradle measurement runs and
+  a subagent report are enough wall-clock to lose the lease, and nothing about them looks like a
+  transition.
+- When the lease is already gone, do not race: write a handoff into the tactical `INDEX.md` Blockers
+  Log naming exactly what is already applied and verified, then stop touching that ticket. The
+  incoming session cannot see your evidence any other way, and it will otherwise re-apply or revert
+  work that was already proven.

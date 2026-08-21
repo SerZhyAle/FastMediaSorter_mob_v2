@@ -23,7 +23,6 @@ import com.sza.fastmediasorter.ui.player.helpers.LanguageCapability
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
-import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
 
 /**
@@ -32,7 +31,8 @@ import java.util.Locale
  * rebuilds a restored dialog with the no-arg constructor, so a field-held handler would be null and
  * the pick would be dropped without a trace.
  */
-@AndroidEntryPoint
+// S1703: @AndroidEntryPoint dropped - the dialog lost its only @Inject member with PaddleOCR's
+// withdrawal and injects nothing now (Rule 20).
 class SearchableLanguagePickerDialog : DialogFragment() {
 
     private var _binding: DialogSearchableLanguagePickerBinding? = null

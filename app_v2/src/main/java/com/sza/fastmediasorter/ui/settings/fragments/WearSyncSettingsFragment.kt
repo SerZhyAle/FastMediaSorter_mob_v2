@@ -73,8 +73,8 @@ class WearSyncSettingsFragment : BottomSheetDialogFragment() {
     private val viewModel: WearSyncViewModel by viewModels()
 
     // Defense in depth: the sheet itself is already unreachable when the flavor lacks the companion
-    // (GeneralSettingsBackupHelper.setupWearCompanionButton hides its entry point), so this gate is
-    // the second one rather than the only one.
+    // (S1883 - OperationsWearGroupManager hides the whole Wear OS settings group, which is where every
+    // entry point to this sheet now lives), so this gate is the second one rather than the only one.
     @Inject
     lateinit var mediaCapabilities: MediaCapabilities
 

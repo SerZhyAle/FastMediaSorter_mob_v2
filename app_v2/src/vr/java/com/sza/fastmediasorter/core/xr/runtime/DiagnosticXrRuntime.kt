@@ -82,6 +82,12 @@ interface DiagnosticXrRuntime {
     fun setHudQuadSize(widthMeters: Float, heightMeters: Float, verticalOffsetMeters: Float)
 
     /**
+     * S1271: thread-safe - set the HUD quad's gaze distance in meters (default 1.5, the S0290
+     * placement). Clamped natively to a sane reach; persists across sessions like the size.
+     */
+    fun setHudQuadDistance(distanceMeters: Float)
+
+    /**
      * Thread-safe: show or hide the HUD quad (S1232). Hidden means the quad, its laser lines and
      * its cursor stop drawing AND stop reacting - a hidden panel cannot be hit-tested or
      * grip-dragged. While hidden the controller trigger summons it back instead of clicking

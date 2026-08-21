@@ -45,12 +45,17 @@ import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.ui.browse.managers.BrowseApkTileBadgeBinder
 import com.sza.fastmediasorter.ui.browse.managers.BrowseBinaryFileMenuAction
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager
+import com.sza.fastmediasorter.ui.browse.managers.BrowseFlavorHooks
 import com.sza.fastmediasorter.ui.browse.managers.BrowseHostFactory
+import com.sza.fastmediasorter.ui.browse.managers.BrowseHostManagers
+import com.sza.fastmediasorter.ui.browse.managers.BrowseHostUi
 import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherCallbacks
 import com.sza.fastmediasorter.ui.browse.managers.BrowseLauncherManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowseManagerInitializer
 import com.sza.fastmediasorter.ui.browse.managers.BrowseMicRecordingManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowsePassthroughCaptureProvider
+import com.sza.fastmediasorter.ui.browse.managers.BrowseRemoteClients
+import com.sza.fastmediasorter.ui.browse.managers.BrowseUiHooks
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
@@ -384,40 +389,50 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         Timber.d("showVideoThumbnails initialized: $showVideoThumbnails")
 
         initializer = browseHostFactory.createManagerInitializer(
-            activity = this,
-            binding = binding,
-            viewModel = viewModel,
-            lifecycleScope = lifecycleScope,
-            passwordManager = passwordManager,
-            smbClient = smbClient,
-            sftpClient = sftpClient,
-            ftpClient = ftpClient,
-            googleDriveClient = googleDriveClient,
-            dropboxClient = dropboxClient,
-            oneDriveClient = oneDriveClient,
+            hostUi = BrowseHostUi(
+                activity = this,
+                binding = binding,
+                viewModel = viewModel,
+                lifecycleScope = lifecycleScope,
+            ),
+            remoteClients = BrowseRemoteClients(
+                smbClient = smbClient,
+                sftpClient = sftpClient,
+                ftpClient = ftpClient,
+                googleDriveClient = googleDriveClient,
+                dropboxClient = dropboxClient,
+                oneDriveClient = oneDriveClient,
+            ),
+            hostManagers = BrowseHostManagers(
+                passwordManager = passwordManager,
+                resourceOpsMenuManager = resourceOpsMenuManager,
+                browseFileOverflowMenuManager = browseFileOverflowMenuManager,
+                launcherManager = launcherManager,
+                browseApkTileBadgeBinder = browseApkTileBadgeBinder,
+                reviewRequestManager = reviewRequestManager,
+                browseTransferCoordinator = browseTransferCoordinator,
+                sendToMenuManager = sendToMenuManager,
+                openInShareTargetHandler = openInShareTargetHandler,
+            ),
+            uiHooks = BrowseUiHooks(
+                showVideoThumbnailsGetter = { showVideoThumbnails },
+                showPdfThumbnailsGetter = { showPdfThumbnails },
+                updateShowVideoThumbnails = { showVideoThumbnails = it },
+                updateShowPdfThumbnails = { showPdfThumbnails = it },
+                // S0783: STREAM favorites rows resolve their channel logo from the shared favicon atlas.
+                faviconResolver = { url -> faviconCoords[url] },
+                faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
+            ),
+            flavorHooks = BrowseFlavorHooks(
+                isSkipAvailabilityCheck = intent.getBooleanExtra(EXTRA_SKIP_AVAILABILITY_CHECK, false),
+                passthroughProvider = passthroughCaptureProvider.orElse(null),
+                binaryFileMenuActions = binaryFileMenuActions,
+            ),
             unifiedFileOperationHandler = unifiedFileOperationHandler,
             audioMetadataLoader = audioMetadataLoader,
             unifiedFileCache = unifiedFileCache,
-            resourceOpsMenuManager = resourceOpsMenuManager,
-            browseFileOverflowMenuManager = browseFileOverflowMenuManager,
-            launcherManager = launcherManager,
-            showVideoThumbnailsGetter = { showVideoThumbnails },
-            showPdfThumbnailsGetter = { showPdfThumbnails },
-            updateShowVideoThumbnails = { showVideoThumbnails = it },
-            updateShowPdfThumbnails = { showPdfThumbnails = it },
-            isSkipAvailabilityCheck = intent.getBooleanExtra(EXTRA_SKIP_AVAILABILITY_CHECK, false),
-            passthroughProvider = passthroughCaptureProvider.orElse(null),
-            binaryFileMenuActions = binaryFileMenuActions,
-            browseApkTileBadgeBinder = browseApkTileBadgeBinder,
-            reviewRequestManager = reviewRequestManager,
-            browseTransferCoordinator = browseTransferCoordinator,
             restrictedTreeTargetPolicy = restrictedTreeTargetPolicy,
             mediaCapabilities = mediaCapabilities,
-            sendToMenuManager = sendToMenuManager,
-            openInShareTargetHandler = openInShareTargetHandler,
-            // S0783: STREAM favorites rows resolve their channel logo from the shared favicon atlas.
-            faviconResolver = { url -> faviconCoords[url] },
-            faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
         )
 
         initializer.initialize()

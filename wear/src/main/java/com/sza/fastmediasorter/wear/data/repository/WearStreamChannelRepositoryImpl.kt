@@ -53,6 +53,19 @@ class WearStreamChannelRepositoryImpl @Inject constructor(
         Timber.d("WearStreamChannelRepository: Saved ${channels.size} channels")
     }
 
+    override suspend fun upsertChannel(channel: WearStreamChannel): Boolean {
+        val current = withContext(Dispatchers.IO) { readChannelsFromFile() }
+        val existingIndex = current.indexOfFirst { it.url == channel.url }
+        val added = existingIndex < 0
+        val updated = if (added) {
+            current + channel
+        } else {
+            current.toMutableList().also { it[existingIndex] = channel }
+        }
+        saveChannels(updated)
+        return added
+    }
+
     override suspend fun clear() = withContext(Dispatchers.IO) {
         if (channelsFile.exists()) {
             channelsFile.delete()

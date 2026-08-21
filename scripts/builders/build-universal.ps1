@@ -57,8 +57,11 @@ Write-Host "Features: $features" -ForegroundColor Yellow
 
 # Build the APK
 $taskName = "assemble" + $Flavor.Substring(0, 1).ToUpper() + $Flavor.Substring(1) + $BuildType.Substring(0, 1).ToUpper() + $BuildType.Substring(1)
+. "$PSScriptRoot\..\utils\build-version-stamp.ps1"
+$stamp = Get-BuildVersionStamp
 Write-Host "`nBuilding $Flavor $BuildType APK..." -ForegroundColor Cyan
-& $gradlew $taskName "-Pchaquopy.enabled=false" --configuration-cache
+Write-Host "Version override: $($stamp.VersionName) (code: $($stamp.AppVersionCode))" -ForegroundColor Green
+& $gradlew $taskName "-Pchaquopy.enabled=false" "-Pfms.versionCode=$($stamp.AppVersionCode)" "-Pfms.versionName=$($stamp.VersionName)" --configuration-cache
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red

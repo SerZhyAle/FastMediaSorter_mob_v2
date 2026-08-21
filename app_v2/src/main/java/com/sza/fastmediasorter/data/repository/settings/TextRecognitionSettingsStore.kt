@@ -9,7 +9,8 @@ import timber.log.Timber
 
 /**
  * Owns persistence of the text-recognition / translation feature settings: OCR
- * (engine, fonts, PaddleOCR model), in-image translation (source/target language,
+ * (engine, fonts, plus the retired PaddleOCR model key kept for stored-value
+ * compatibility - S1703), in-image translation (source/target language,
  * lens style), and the camera-OCR modes.
  *
  * Extracted from SettingsRepositoryImpl so this cohesive feature is a single named

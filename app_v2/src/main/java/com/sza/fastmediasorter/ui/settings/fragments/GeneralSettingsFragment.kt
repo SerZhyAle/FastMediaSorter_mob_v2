@@ -77,7 +77,6 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
     @Inject lateinit var ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
     @Inject lateinit var saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase
-    @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
 
     // S1088: gate + role plumbing for the System-launcher enable toggle relocated into General -> Interface.
     @Inject lateinit var launcherModeContract: LauncherModeContract
@@ -207,8 +206,12 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     }
     private val backupHelper by lazy {
         GeneralSettingsBackupHelper(
-            binding, this, backupViewModel, mediaCapabilities,
-            importFavoritesLauncher, exportResourcesLauncher, importResourcesLauncher,
+            binding,
+            this,
+            backupViewModel,
+            importFavoritesLauncher,
+            exportResourcesLauncher,
+            importResourcesLauncher,
         )
     }
     private val googleAccountHelper by lazy {
@@ -277,8 +280,10 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         setupGmsBanner()
         setupSavedAuthorizationsRow()
         logHelper.setupVersionInfo()
-        backupHelper.setupWearCompanionButton()
         // S0200 Phase 06: bind the new Google Account card after the layout is inflated.
+        // S1693: stays findViewById - the card is included TWICE in this layout (bare includes, no
+        // include-tag id), so no unambiguous binding field exists and the first-match lookup is the
+        // contract the re-parented tree relies on.
         view.findViewById<View>(R.id.cardGoogleAccount)?.let { googleAccountHelper.bind(it) }
         viewSetupHelper.setup()
         colorThemeHelper.setup()

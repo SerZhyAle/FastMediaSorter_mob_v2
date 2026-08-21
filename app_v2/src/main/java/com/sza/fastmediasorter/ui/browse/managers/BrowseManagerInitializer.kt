@@ -73,49 +73,57 @@ import timber.log.Timber
 import java.io.File
 import java.lang.ref.WeakReference
 
+/**
+ * S1269: the 37 host-supplied inputs arrive as six cohesive bundles (see `BrowseInitializerDependencies.kt`)
+ * so the constructor stays under the detekt LongParameterList threshold instead of re-freezing the finding
+ * in the baseline. Bundles are unpacked into private vals below; the class body is untouched by regrouping.
+ */
 class BrowseManagerInitializer(
-    private val activity: BrowseActivity,
-    private val binding: ActivityBrowseBinding,
-    private val viewModel: BrowseViewModel,
-    private val lifecycleScope: LifecycleCoroutineScope,
-    private val passwordManager: ResourcePasswordManager,
-    private val fileOperationUseCase: FileOperationUseCase,
-    private val getDestinationsUseCase: GetDestinationsUseCase,
-    private val settingsRepository: SettingsRepository,
-    private val smbClient: Lazy<SmbClient>,
-    private val sftpClient: Lazy<SftpClient>,
-    private val ftpClient: Lazy<FtpClient>,
-    private val googleDriveClient: Lazy<GoogleDriveRestClient>,
-    private val dropboxClient: Lazy<DropboxClient>,
-    private val oneDriveClient: Lazy<OneDriveRestClient>,
-    private val credentialsRepository: Lazy<NetworkCredentialsRepository>,
-    private val unifiedFileOperationHandler: UnifiedFileOperationHandler,
-    private val audioMetadataLoader: AudioMetadataLoader,
-    private val unifiedFileCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache,
-    private val resourceOpsMenuManager: ResourceOpsMenuManager,
-    private val browseFileOverflowMenuManager: com.sza.fastmediasorter.ui.browse.helpers.BrowseFileOverflowMenuManager,
-    private val launcherManager: BrowseLauncherManager,
-    private val showVideoThumbnailsGetter: () -> Boolean,
-    private val showPdfThumbnailsGetter: () -> Boolean,
-    private val updateShowVideoThumbnails: (Boolean) -> Unit,
-    private val updateShowPdfThumbnails: (Boolean) -> Unit,
-    private val isSkipAvailabilityCheck: Boolean,
-    private val passthroughProvider: BrowsePassthroughCaptureProvider? = null,
-    // Flavor-specific bottom-sheet actions are injected as a set so market builds stay feature-agnostic.
-    private val binaryFileMenuActions: Set<@JvmSuppressWildcards BrowseBinaryFileMenuAction> = emptySet(),
-    private val browseApkTileBadgeBinder: BrowseApkTileBadgeBinder,
-    // S0135 - Google Play In-App Review request after successful Move/Copy.
-    private val reviewRequestManager: com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager,
-    private val browseTransferCoordinator: BrowseFileTransferCoordinator,
-    private val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy,
-    private val mediaCapabilities: MediaCapabilities,
-    private val sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager,
-    private val openInShareTargetHandler: com.sza.fastmediasorter.core.share.handlers.OpenInShareTargetHandler,
-    // S0783: favicon sprite-atlas plumbing for STREAM favorites rows, sourced from BrowseActivity. No-op
-    // defaults keep any other construction path (e.g. tests) unaffected.
-    private val faviconResolver: (String) -> Int? = { null },
-    private val faviconTileLoader: suspend (Int) -> android.graphics.Bitmap? = { null },
+    hostUi: BrowseHostUi,
+    remoteClients: BrowseRemoteClients,
+    domainServices: BrowseDomainServices,
+    hostManagers: BrowseHostManagers,
+    uiHooks: BrowseUiHooks,
+    flavorHooks: BrowseFlavorHooks,
 ) {
+    private val activity: BrowseActivity = hostUi.activity
+    private val binding: ActivityBrowseBinding = hostUi.binding
+    private val viewModel: BrowseViewModel = hostUi.viewModel
+    private val lifecycleScope: LifecycleCoroutineScope = hostUi.lifecycleScope
+    private val passwordManager: ResourcePasswordManager = hostManagers.passwordManager
+    private val fileOperationUseCase: FileOperationUseCase = domainServices.fileOperationUseCase
+    private val getDestinationsUseCase: GetDestinationsUseCase = domainServices.getDestinationsUseCase
+    private val settingsRepository: SettingsRepository = domainServices.settingsRepository
+    private val smbClient: Lazy<SmbClient> = remoteClients.smbClient
+    private val sftpClient: Lazy<SftpClient> = remoteClients.sftpClient
+    private val ftpClient: Lazy<FtpClient> = remoteClients.ftpClient
+    private val googleDriveClient: Lazy<GoogleDriveRestClient> = remoteClients.googleDriveClient
+    private val dropboxClient: Lazy<DropboxClient> = remoteClients.dropboxClient
+    private val oneDriveClient: Lazy<OneDriveRestClient> = remoteClients.oneDriveClient
+    private val credentialsRepository: Lazy<NetworkCredentialsRepository> = domainServices.credentialsRepository
+    private val unifiedFileOperationHandler: UnifiedFileOperationHandler = domainServices.unifiedFileOperationHandler
+    private val audioMetadataLoader: AudioMetadataLoader = domainServices.audioMetadataLoader
+    private val unifiedFileCache = domainServices.unifiedFileCache
+    private val resourceOpsMenuManager: ResourceOpsMenuManager = hostManagers.resourceOpsMenuManager
+    private val browseFileOverflowMenuManager = hostManagers.browseFileOverflowMenuManager
+    private val launcherManager: BrowseLauncherManager = hostManagers.launcherManager
+    private val showVideoThumbnailsGetter: () -> Boolean = uiHooks.showVideoThumbnailsGetter
+    private val showPdfThumbnailsGetter: () -> Boolean = uiHooks.showPdfThumbnailsGetter
+    private val updateShowVideoThumbnails: (Boolean) -> Unit = uiHooks.updateShowVideoThumbnails
+    private val updateShowPdfThumbnails: (Boolean) -> Unit = uiHooks.updateShowPdfThumbnails
+    private val isSkipAvailabilityCheck: Boolean = flavorHooks.isSkipAvailabilityCheck
+    private val passthroughProvider: BrowsePassthroughCaptureProvider? = flavorHooks.passthroughProvider
+    private val binaryFileMenuActions: Set<BrowseBinaryFileMenuAction> = flavorHooks.binaryFileMenuActions
+    private val browseApkTileBadgeBinder: BrowseApkTileBadgeBinder = hostManagers.browseApkTileBadgeBinder
+    private val reviewRequestManager = hostManagers.reviewRequestManager
+    private val browseTransferCoordinator: BrowseFileTransferCoordinator = hostManagers.browseTransferCoordinator
+    private val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy = domainServices.restrictedTreeTargetPolicy
+    private val mediaCapabilities: MediaCapabilities = domainServices.mediaCapabilities
+    private val sendToMenuManager = hostManagers.sendToMenuManager
+    private val openInShareTargetHandler = hostManagers.openInShareTargetHandler
+    private val faviconResolver: (String) -> Int? = uiHooks.faviconResolver
+    private val faviconTileLoader: suspend (Int) -> android.graphics.Bitmap? = uiHooks.faviconTileLoader
+
     // Cached settings and destinations - populated via collectors in initialize().
     // Used synchronously in onOverflowMenuClick to avoid coroutine overhead on tap.
     private var latestSettings: AppSettings? = null
@@ -153,6 +161,7 @@ class BrowseManagerInitializer(
     private lateinit var buttonCallbacks: BrowseButtonSetupHelper.ButtonCallbacks
 
     fun initialize() {
+        Timber.d("S1269: browse composition root built from dependency bundles")
         dialogHelper = BrowseDialogHelper(
             activity = activity,
             callbacks = BrowseDialogCallbacksImpl(

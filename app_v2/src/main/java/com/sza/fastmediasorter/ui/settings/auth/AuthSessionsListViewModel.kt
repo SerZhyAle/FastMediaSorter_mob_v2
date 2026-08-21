@@ -49,15 +49,4 @@ class AuthSessionsListViewModel @Inject constructor(
         onLaunchWebView(loginUrl)
     }
 
-    @Deprecated("Use accountGroups", ReplaceWith("accountGroups"))
-    @Suppress("DEPRECATION") // Facade is deprecated; observeDomains() + the AuthSessionDomain it yields are deprecated too. Type is inferred to avoid an import-level warning that no narrow suppression can silence.
-    val sessions = repository.observeDomains()
-
-    @Deprecated("Use deleteAccount(host, accountId)")
-    fun delete(host: String) {
-        viewModelScope.launch {
-            @Suppress("DEPRECATION")
-            repository.deleteSession(host)
-        }
-    }
 }

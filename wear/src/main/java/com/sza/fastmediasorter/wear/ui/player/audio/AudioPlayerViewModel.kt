@@ -19,12 +19,17 @@ import com.sza.fastmediasorter.wear.domain.model.favoriteSourceId
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
+import com.sza.fastmediasorter.wear.domain.repository.StreamNetworkHold
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearNetworkChannelMonitor
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.ClassifyWearStreamMediaKindUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.EvaluateStreamStartUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveAlbumArtUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
+import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -63,6 +68,9 @@ class AudioPlayerViewModel @Inject constructor(
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     private val resolveAlbumArt: ResolveAlbumArtUseCase,
     private val preferencesRepository: WearPreferencesRepository,
+    private val evaluateStreamStart: EvaluateStreamStartUseCase,
+    private val streamNetworkHold: StreamNetworkHold,
+    private val networkChannelMonitor: WearNetworkChannelMonitor,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -90,6 +98,7 @@ class AudioPlayerViewModel @Inject constructor(
             _uiState.update { it.copy(isPlaying = isPlaying) }
             if (isPlaying) {
                 startProgressUpdates()
+                streamPlaybackSession.withWideChannel()
             } else {
                 stopProgressUpdates()
             }
@@ -133,6 +142,7 @@ class AudioPlayerViewModel @Inject constructor(
                         Timber.d("S1837: track ended, advancing within the set of $setSize")
                         skipToNext()
                     } else {
+                        streamPlaybackSession.stop()
                         _uiState.update { it.copy(isPlaying = false, currentPositionMs = 0) }
                         // S0902: pause before seeking - playWhenReady stays true otherwise and the
                         // track auto-restarts from 0, looping indefinitely (mirrors VideoPlayerViewModel).
@@ -144,10 +154,23 @@ class AudioPlayerViewModel @Inject constructor(
                 Player.STATE_BUFFERING -> {
                     _uiState.update { it.copy(isLoading = true) }
                 }
+                Player.STATE_IDLE -> streamPlaybackSession.stop()
                 else -> {}
             }
         }
+
+        override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+            streamPlaybackSession.stop()
+        }
     }
+
+    private val streamPlaybackSession = StreamPlaybackSessionManager(
+        scope = viewModelScope,
+        networkHold = streamNetworkHold,
+        channelMonitor = networkChannelMonitor,
+        evaluateStreamStart = evaluateStreamStart,
+        onChannelReason = { reason -> _uiState.update { it.copy(channelReason = reason) } }
+    )
 
     init {
         Timber.d("AudioPlayerViewModel initialized with fileId: $fileId")
@@ -179,7 +202,10 @@ class AudioPlayerViewModel @Inject constructor(
                     WearPlaybackCommand.PLAY_PAUSE -> togglePlayPause()
                     WearPlaybackCommand.NEXT       -> exoPlayer.seekToNextMediaItem()
                     WearPlaybackCommand.PREVIOUS   -> exoPlayer.seekToPreviousMediaItem()
-                    WearPlaybackCommand.STOP       -> exoPlayer.stop()
+                    WearPlaybackCommand.STOP       -> {
+                        exoPlayer.stop()
+                        streamPlaybackSession.stop()
+                    }
                 }
             }
         }
@@ -212,6 +238,7 @@ class AudioPlayerViewModel @Inject constructor(
      */
     private fun playFile(file: WearMediaFile) {
         Timber.d("S1683: paging to ${file.name} art=${file.albumArt != null}")
+        streamPlaybackSession.clear()
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
         _uiState.update {
@@ -314,6 +341,11 @@ class AudioPlayerViewModel @Inject constructor(
     private suspend fun loadNetworkAudio(selected: SelectedMedia) {
         if (selected.isDirectStream) {
             Timber.d("S1708: direct audio stream playback uri=${selected.streamUri}")
+            val mediaKind = ClassifyWearStreamMediaKindUseCase.AUDIO
+            if (!streamPlaybackSession.prepare(mediaKind)) {
+                _uiState.update { it.copy(isLoading = false) }
+                return
+            }
             _uiState.update { it.copy(isLoading = true) }
             val mediaItem = MediaItem.fromUri(Uri.parse(selected.streamUri))
             exoPlayer.setMediaItem(mediaItem)
@@ -344,8 +376,11 @@ class AudioPlayerViewModel @Inject constructor(
     fun togglePlayPause() {
         if (exoPlayer.isPlaying) {
             exoPlayer.pause()
+            streamPlaybackSession.stop()
         } else {
-            exoPlayer.play()
+            if (streamPlaybackSession.canStartCurrentStream()) {
+                exoPlayer.play()
+            }
         }
     }
 
@@ -380,6 +415,7 @@ class AudioPlayerViewModel @Inject constructor(
      */
     fun onHostStopped() {
         exoPlayer.pause()
+        streamPlaybackSession.stop()
     }
 
     /**
@@ -499,6 +535,7 @@ class AudioPlayerViewModel @Inject constructor(
         super.onCleared()
         Timber.d("AudioPlayerViewModel cleared")
         stopProgressUpdates()
+        streamPlaybackSession.clear()
         exoPlayer.removeListener(playerListener)
         // S0725: this VM owns its ExoPlayer (no longer a process singleton) - release native resources
         // (HandlerThread, AudioTrack/audio-focus, codecs) instead of just stop()+clearMediaItems().

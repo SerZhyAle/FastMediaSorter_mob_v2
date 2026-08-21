@@ -1,12 +1,8 @@
 package com.sza.fastmediasorter.ui.xr.helpers
 
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.Rect
 import android.graphics.RectF
-import android.graphics.Typeface
 
 /**
  * Model + Canvas painter of the immersive HUD panel.
@@ -40,9 +36,6 @@ class HudCanvasRenderer {
         const val HEIGHT = 360
 
         private const val MARGIN = 24f
-        private const val CORNER_RADIUS = 28f
-        private const val BUTTON_RADIUS = 18f
-        private const val SLIDER_RADIUS = 12f
 
         // Header line: filename + status, spanning the strip above the control row. S1232 removed
         // the fixed left anchor - the text starts after the exit button now.
@@ -119,34 +112,11 @@ class HudCanvasRenderer {
         private const val TEXT_SIZE = 48f
         private const val CAPTION_TEXT_SIZE = 40f
         private const val CURSOR_R = 16f
-
-        // Ellipsize: keep at least this many chars, dropping this many per step before "..".
-        private const val ELLIPSIZE_MIN_LEN = 4
-        private const val ELLIPSIZE_DROP = 3
-
-        private const val BG_ALPHA = 220
-        private const val BG_R = 15
-        private const val BG_G = 15
-        private const val BG_B = 25
-        private const val ACCENT_R = 66
-        private const val ACCENT_G = 165
-        private const val ACCENT_B = 245
-        private const val EXIT_R = 198
-        private const val EXIT_G = 82
-        private const val EXIT_B = 92
-        private const val TRACK_ALPHA = 100
-        private const val TRACK_GREY = 100
-        private const val TRACK_GREY_B = 120
-        private const val HEADER_GREY_RG = 230
-        private const val HEADER_GREY_B = 250
-        private const val STATUS_R = 129
-        private const val STATUS_G = 199
-        private const val STATUS_B = 132
-        private const val CURSOR_ALPHA = 160
-        private const val CURSOR_R_CHANNEL = 255
-        private const val CURSOR_G_CHANNEL = 64
-        private const val CURSOR_B_CHANNEL = 129
     }
+
+    // S1271: palette, paint recipes and shared painters live in the primitive now - the legend and
+    // the settings panel draw with the same instances, so the surfaces cannot drift apart.
+    private val primitives = HudRowPrimitives()
 
     // Interactive button rects (transport block)
     val prevRect = transportButtonRect(0)
@@ -300,73 +270,15 @@ class HudCanvasRenderer {
         }
     }
 
-    private val bgPaint = Paint().apply {
-        color = Color.argb(BG_ALPHA, BG_R, BG_G, BG_B)
-        style = Paint.Style.FILL
-        isAntiAlias = true
-    }
-
-    private val accentPaint = Paint().apply {
-        color = Color.rgb(ACCENT_R, ACCENT_G, ACCENT_B)
-        style = Paint.Style.FILL
-        isAntiAlias = true
-    }
-
-    private val exitPaint = Paint().apply {
-        color = Color.rgb(EXIT_R, EXIT_G, EXIT_B)
-        style = Paint.Style.FILL
-        isAntiAlias = true
-    }
-
-    private val trackPaint = Paint().apply {
-        color = Color.argb(TRACK_ALPHA, TRACK_GREY, TRACK_GREY, TRACK_GREY_B)
-        style = Paint.Style.FILL
-        isAntiAlias = true
-    }
-
-    private val textPaint = Paint().apply {
-        color = Color.WHITE
-        textSize = TEXT_SIZE
-        isAntiAlias = true
-        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-    }
-
-    private val captionPaint = Paint().apply {
-        color = Color.WHITE
-        textSize = CAPTION_TEXT_SIZE
-        isAntiAlias = true
-        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-    }
-
-    private val headerPaint = Paint().apply {
-        color = Color.rgb(HEADER_GREY_RG, HEADER_GREY_RG, HEADER_GREY_B)
-        textSize = HEADER_TEXT_SIZE
-        isAntiAlias = true
-        typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
-    }
-
-    private val statusPaint = Paint().apply {
-        color = Color.rgb(STATUS_R, STATUS_G, STATUS_B)
-        textSize = STATUS_TEXT_SIZE
-        isAntiAlias = true
-        typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
-    }
-
-    private val cursorPaint = Paint().apply {
-        color = Color.argb(CURSOR_ALPHA, CURSOR_R_CHANNEL, CURSOR_G_CHANNEL, CURSOR_B_CHANNEL)
-        style = Paint.Style.FILL
-        isAntiAlias = true
-    }
+    private val accentPaint: Paint get() = primitives.accentPaint
+    private val exitPaint: Paint get() = primitives.exitPaint
+    private val textPaint = primitives.whiteTextPaint(TEXT_SIZE)
+    private val captionPaint = primitives.whiteTextPaint(CAPTION_TEXT_SIZE)
+    private val headerPaint = primitives.headerTextPaint(HEADER_TEXT_SIZE)
+    private val statusPaint = primitives.statusTextPaint(STATUS_TEXT_SIZE)
 
     fun render(canvas: Canvas) {
-        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-
-        canvas.drawRoundRect(
-            RectF(MARGIN, MARGIN, WIDTH - MARGIN, HEIGHT - MARGIN),
-            CORNER_RADIUS,
-            CORNER_RADIUS,
-            bgPaint
-        )
+        primitives.drawPanelBackground(canvas, WIDTH, HEIGHT, MARGIN)
 
         drawHeaderLine(canvas)
 
@@ -419,15 +331,7 @@ class HudCanvasRenderer {
      * reserved zone instead of drifting towards the button.
      */
     private fun drawSeekBar(canvas: Canvas) {
-        canvas.drawRoundRect(seekTrackRect, SLIDER_RADIUS, SLIDER_RADIUS, trackPaint)
-        val fillRight = seekTrackRect.left + seekTrackRect.width() * seekProgress.coerceIn(0f, 1f)
-        canvas.drawRoundRect(
-            RectF(seekTrackRect.left, seekTrackRect.top, fillRight, seekTrackRect.bottom),
-            SLIDER_RADIUS,
-            SLIDER_RADIUS,
-            accentPaint
-        )
-        canvas.drawCircle(fillRight, seekTrackRect.centerY(), SEEK_KNOB_R, textPaint)
+        primitives.drawSliderTrack(canvas, seekTrackRect, seekProgress, SEEK_KNOB_R, textPaint)
         val labelWidth = statusPaint.measureText(timeLabel)
         canvas.drawText(timeLabel, helpRect.left - MARGIN - labelWidth, SEEK_TIME_BASELINE, statusPaint)
     }
@@ -454,42 +358,23 @@ class HudCanvasRenderer {
     private fun drawSlider(canvas: Canvas, caption: String, track: RectF, value: Float) {
         val shown = ellipsize(caption, captionPaint, track.width())
         canvas.drawText(shown, track.left, SLIDER_CAPTION_BASELINE, captionPaint)
-        canvas.drawRoundRect(track, SLIDER_RADIUS, SLIDER_RADIUS, trackPaint)
-        val fillRight = track.left + track.width() * value
-        canvas.drawRoundRect(
-            RectF(track.left, track.top, fillRight, track.bottom),
-            SLIDER_RADIUS,
-            SLIDER_RADIUS,
-            accentPaint
-        )
-        canvas.drawCircle(fillRight, track.centerY(), SLIDER_KNOB_R, textPaint)
+        primitives.drawSliderTrack(canvas, track, value, SLIDER_KNOB_R, textPaint)
     }
 
     private fun drawCursor(canvas: Canvas) {
         if (!hasHover) return
-        canvas.drawCircle(hoverX, hoverY, CURSOR_R, cursorPaint)
+        primitives.drawCursor(canvas, hoverX, hoverY, CURSOR_R)
     }
 
     private fun drawButton(canvas: Canvas, rect: RectF, text: String, paint: Paint) {
-        canvas.drawRoundRect(rect, BUTTON_RADIUS, BUTTON_RADIUS, paint)
-        val textBounds = Rect()
-        textPaint.getTextBounds(text, 0, text.length, textBounds)
-        canvas.drawText(text, rect.centerX() - textBounds.centerX(), rect.centerY() - textBounds.centerY(), textPaint)
+        primitives.drawButton(canvas, rect, text, paint, textPaint)
     }
 
-    /** Canvas has no TextUtils here, so trim manually until the string fits [maxWidth]. */
-    private fun ellipsize(text: String, paint: Paint, maxWidth: Float): String {
-        var shown = text
-        while (shown.length > ELLIPSIZE_MIN_LEN && paint.measureText(shown) > maxWidth) {
-            shown = shown.dropLast(ELLIPSIZE_DROP) + ".."
-        }
-        return shown
-    }
+    private fun ellipsize(text: String, paint: Paint, maxWidth: Float): String =
+        primitives.ellipsize(text, paint, maxWidth)
 
-    private fun transportButtonRect(index: Int): RectF {
-        val left = TRANSPORT_LEFT + index * (TRANSPORT_BTN_W + TRANSPORT_GAP)
-        return RectF(left, ROW_TOP, left + TRANSPORT_BTN_W, ROW_BOTTOM)
-    }
+    private fun transportButtonRect(index: Int): RectF =
+        primitives.runButtonRect(TRANSPORT_LEFT, index, TRANSPORT_BTN_W, TRANSPORT_GAP, ROW_TOP, ROW_BOTTOM)
 
-    private fun arrowRect(left: Float) = RectF(left, ROW_TOP, left + ARROW_W, ROW_BOTTOM)
+    private fun arrowRect(left: Float) = primitives.arrowRect(left, ROW_TOP, ROW_BOTTOM, ARROW_W)
 }

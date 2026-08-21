@@ -111,8 +111,8 @@ class LauncherStatusStripManager @Inject constructor(
             // place there is no freed space to draw in.
             this.binding?.root?.isVisible = replace
             // The inset the band must respect moves with the bar, so a stale one leaves either a gap or
-            // content under the cutout (Rule 17). Re-dispatch rather than re-applying the padding helper,
-            // which would compound onto the padding it already added.
+            // content under the cutout (Rule 17). A re-dispatch is all it takes - the listener the padding
+            // helper registered in bind() is still on this view and recomputes from the same base.
             this.binding?.root?.let(ViewCompat::requestApplyInsets)
         }
         lifecycleOwner.collectOnLifecycle(signalRegistry.observe()) { current ->

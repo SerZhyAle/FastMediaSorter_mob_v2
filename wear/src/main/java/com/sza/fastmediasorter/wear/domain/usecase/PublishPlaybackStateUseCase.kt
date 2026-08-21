@@ -6,6 +6,7 @@ import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.sza.fastmediasorter.wear.data.wear.WearDataLayerPaths
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelope
+import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
@@ -16,6 +17,8 @@ class PublishPlaybackStateUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val gson: Gson
 ) {
+    private val envelopeCodec = WearEventEnvelopeCodec()
+
     suspend operator fun invoke(state: WearPlaybackStatePayload) = runCatching {
         val stateBytes = gson.toJson(state).toByteArray()
         val envelope = WearEventEnvelope(
@@ -23,7 +26,7 @@ class PublishPlaybackStateUseCase @Inject constructor(
             sentAt = System.currentTimeMillis(),
             data = stateBytes
         )
-        val envelopeBytes = gson.toJson(envelope).toByteArray()
+        val envelopeBytes = envelopeCodec.encode(envelope)
         val request = PutDataMapRequest.create(WearDataLayerPaths.PLAYBACK_STATE).apply {
             dataMap.putByteArray("payload", envelopeBytes)
             setUrgent()

@@ -214,6 +214,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         onToggleFavorite = { viewModel.toggleStreamFavorite(it) },
         favoritesEnabled = { viewModel.settings.value.enableFavorites },
         isFavorite = { viewModel.isFavoriteChannel(it) },
+        onSendToWatch = { viewModel.sendStreamToWatch(it) },
+        wearSendAvailable = { viewModel.isWearSendAvailable() },
         faviconResolver = { url -> faviconCoords[url] },
         faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
         faviconScope = lifecycleScope,
@@ -235,6 +237,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         onToggleFavorite = { viewModel.toggleStreamFavorite(it) },
         favoritesEnabled = { viewModel.settings.value.enableFavorites },
         isFavorite = { viewModel.isFavoriteChannel(it) },
+        onSendToWatch = { viewModel.sendStreamToWatch(it) },
+        wearSendAvailable = { viewModel.isWearSendAvailable() },
         faviconResolver = { url -> faviconCoords[url] },
         faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
         faviconScope = lifecycleScope,
@@ -272,6 +276,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onToggleFavorite = { viewModel.toggleStreamFavorite(it) },
             favoritesEnabled = { viewModel.settings.value.enableFavorites },
             isFavorite = { viewModel.isFavoriteChannel(it) },
+            onSendToWatch = { viewModel.sendStreamToWatch(it) },
+            wearSendAvailable = { viewModel.isWearSendAvailable() },
             frameProvider = streamFrameCache::get,
             requestCapture = snapshotManager::request,
             faviconResolver = { url -> faviconCoords[url] },
@@ -312,6 +318,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onToggleFavorite = { viewModel.toggleStreamFavorite(it) },
             favoritesEnabled = { viewModel.settings.value.enableFavorites },
             isFavorite = { viewModel.isFavoriteChannel(it) },
+            onSendToWatch = { viewModel.sendStreamToWatch(it) },
+            wearSendAvailable = { viewModel.isWearSendAvailable() },
             frameProvider = streamFrameCache::get,
             requestCapture = pinnedSnapshotManager::request,
             faviconResolver = { url -> faviconCoords[url] },
@@ -397,7 +405,20 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     override fun getInitialFocusView(): View = binding.toolbar
 
+    // S1198: setupViews was a single 190-line method (LongMethod, threshold 80). Split into the
+    // cohesive wiring blocks below; order matters - sections need adapters, placement needs the
+    // media-kind trigger, and the entry actions run only after every manager is constructed.
     override fun setupViews() {
+        Timber.d("S1198: setupViews split - running six wiring blocks")
+        setupInlineAudio()
+        setupStreamSections()
+        setupToolbarCommands()
+        setupSearchAndFilters()
+        setupOrientationPlacement()
+        setupEntryActions()
+    }
+
+    private fun setupInlineAudio() {
         inlineAudio = StreamInlineAudioManager(
             lifecycleOwner = this,
             views = StreamInlineAudioViews(
@@ -412,8 +433,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 // adapters now also carry the active tile's now-playing track, so a new play/stop resets
                 // it there too.
                 onPlayingChanged = { id ->
-                    adapter.setPlayingId(id); pinnedAdapter.setPlayingId(id)
-                    gridAdapter.setNowPlaying(id, null); pinnedGridAdapter.setNowPlaying(id, null)
+                    adapter.setPlayingId(id)
+                    pinnedAdapter.setPlayingId(id)
+                    gridAdapter.setNowPlaying(id, null)
+                    pinnedGridAdapter.setNowPlaying(id, null)
                 },
                 onPlaybackStateChanged = { source, isPlaying ->
                     if (isPlaying) source?.let(::persistStreamResume) else clearStreamResume()
@@ -431,7 +454,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         )
         // S0778: keep the bottom mini-control above the navigation bar / side cutout under edge-to-edge.
         inlineAudio.applyWindowInsets()
+    }
 
+    private fun setupStreamSections() {
         binding.rvStreams.layoutManager = LinearLayoutManager(this)
         binding.rvStreams.adapter = adapter
 
@@ -491,7 +516,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             pinnedGridMode = pinnedGridModeManager,
             mainGridMode = gridModeManager,
         )
+    }
 
+    private fun setupToolbarCommands() {
         binding.toolbar.setNavigationOnClickListener { exitStreamsWithAudioCheck() }
         onBackPressedDispatcher.addCallback(this) { exitStreamsWithAudioCheck() }
         // S1473: the menu is cleared and re-inflated on every orientation change, so this listener
@@ -499,7 +526,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // present but inert command.
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
-                R.id.action_stream_add -> { showSourceDialog(isImport = false); true }
+                R.id.action_stream_add -> {
+                    showSourceDialog(isImport = false)
+                    true
+                }
                 R.id.action_stream_import_catalog -> {
                     cancelHealthProbe()
                     viewModel.onImportCatalog()
@@ -510,20 +540,38 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     showSourceDialog(isImport = true)
                     true
                 }
-                R.id.action_stream_display_toggle -> { cancelHealthProbe(); viewModel.onToggleDisplayMode(); true }
-                R.id.action_stream_refresh -> { startHealthProbe(); true }
-                R.id.action_stream_clear_downloaded -> { confirmClearDownloaded(); true }
+                R.id.action_stream_display_toggle -> {
+                    cancelHealthProbe()
+                    viewModel.onToggleDisplayMode()
+                    true
+                }
+                R.id.action_stream_refresh -> {
+                    startHealthProbe()
+                    true
+                }
+                R.id.action_stream_clear_downloaded -> {
+                    confirmClearDownloaded()
+                    true
+                }
                 else -> false
             }
         }
         tintToolbarMenuIcons()
+    }
 
+    private fun setupSearchAndFilters() {
         binding.etSearch.doAfterTextChanged {
             cancelHealthProbe()
             viewModel.onQueryChanged(it?.toString().orEmpty())
         }
-        binding.btnFilter.setOnClickListener { cancelHealthProbe(); showFilterDialog() }
-        binding.btnSort.setOnClickListener { cancelHealthProbe(); showSortDialog() }
+        binding.btnFilter.setOnClickListener {
+            cancelHealthProbe()
+            showFilterDialog()
+        }
+        binding.btnSort.setOnClickListener {
+            cancelHealthProbe()
+            showSortDialog()
+        }
 
         // S0940: in landscape the search/filter/sort group moves into the toolbar header to free
         // vertical space for the list/grid; place it for the launch orientation here, then keep it
@@ -539,7 +587,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             },
         )
         mediaKindTrigger.bind()
+    }
 
+    private fun setupOrientationPlacement() {
         controlsPlacement = StreamsControlsPlacementManager(
             controls = binding.streamControls,
             headerHost = binding.headerControlsHost,
@@ -566,7 +616,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         controlsPlacement.applyForOrientation(launchLandscape)
         commandLabels.applyForOrientation(launchLandscape)
+    }
 
+    private fun setupEntryActions() {
         // S0700: a user drag of the list aborts an in-flight reachability sweep (programmatic scrolls,
         // e.g. the S0699 position restore, settle without DRAGGING so they do not cancel it).
         binding.rvStreams.addOnScrollListener(streamScrollListener)
@@ -889,8 +941,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         val layoutManager = recyclerView.layoutManager as? LinearLayoutManager ?: return emptyList()
         val first = layoutManager.findFirstVisibleItemPosition()
         val last = layoutManager.findLastVisibleItemPosition()
-        if (first < 0 || last < 0) return emptyList()
-        return (first..last).mapNotNull { list.getOrNull(it) }
+        return if (first < 0 || last < 0) emptyList() else (first..last).mapNotNull { list.getOrNull(it) }
     }
 
     /** S0700: stop the reachability sweep so it never fights a user interaction or runs after the user moved on. */
@@ -931,26 +982,27 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun onPlay(source: StreamSourceEntity) {
         // S0700: selecting a stream aborts an in-flight reachability sweep.
         cancelHealthProbe()
-        // S0690: tapping the row/tile that is already playing inline toggles it off (stop), so the
-        // same gesture both starts and stops the inline radio without hunting for the mini-control.
-        // Stopping needs no network, so this toggle runs before the S0711 reachability gate below.
-        if (source.mediaKind == "AUDIO" && inlineAudio.playingId == source.id) {
-            inlineAudio.stop()
-            // S1152: an explicit user stop clears the resume record so the next launch does not re-play it.
-            clearStreamResume()
-            return
+        when {
+            // S0690: tapping the row/tile that is already playing inline toggles it off (stop), so the
+            // same gesture both starts and stops the inline radio without hunting for the mini-control.
+            // Stopping needs no network, so this toggle runs before the S0711 reachability gate below.
+            source.mediaKind == "AUDIO" && inlineAudio.playingId == source.id -> {
+                inlineAudio.stop()
+                // S1152: an explicit user stop clears the resume record so the next launch does not re-play it.
+                clearStreamResume()
+            }
+            // S0711: starting any stream needs at least one active transport. Refuse fast (no spinner, no
+            // connection-timeout) when fully offline. Covers tile taps and the playByUrl shortcut path,
+            // both of which funnel through onPlay.
+            !viewModel.hasNetworkForStream() ->
+                Toast.makeText(this, R.string.streams_error_no_network, Toast.LENGTH_SHORT).show()
+            source.mediaKind == "AUDIO" ->
+                inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
+            else -> launchFullscreenStream(source)
         }
-        // S0711: starting any stream needs at least one active transport. Refuse fast (no spinner, no
-        // connection-timeout) when fully offline. Covers tile taps and the playByUrl shortcut path,
-        // both of which funnel through onPlay.
-        if (!viewModel.hasNetworkForStream()) {
-            Toast.makeText(this, R.string.streams_error_no_network, Toast.LENGTH_SHORT).show()
-            return
-        }
-        if (source.mediaKind == "AUDIO") {
-            inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
-            return
-        }
+    }
+
+    private fun launchFullscreenStream(source: StreamSourceEntity) {
         // S1151: switching from inline radio to a video stream must fully stop the radio first. onStop
         // leaves ON-mode (background-service) playback alive by design, so without this the service player
         // keeps owning currentSource and the list keeps the animated "now playing" note next to the radio
@@ -1020,8 +1072,14 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             }
             AudioExitAction.ASK -> BackgroundAudioExitDialog.show(
                 context = this,
-                onStopThisTime = { inlineAudio.stop(); finish() },
-                onContinueThisTime = { keepBackgroundService = true; finish() },
+                onStopThisTime = {
+                    inlineAudio.stop()
+                    finish()
+                },
+                onContinueThisTime = {
+                    keepBackgroundService = true
+                    finish()
+                },
                 onAlwaysStop = {
                     viewModel.updateExitBehavior(BackgroundAudioExitBehavior.ALWAYS_STOP)
                     inlineAudio.stop()
@@ -1187,9 +1245,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * cleanly. A GridLayoutManager is a LinearLayoutManager, so list + grid + multi-column all work.
      */
     private fun tryRestoreScroll(itemCount: Int) {
-        if (scrollRestored) return
-        val target = pendingScrollTarget ?: return
-        if (itemCount <= 0) return
+        val target = pendingScrollTarget
+        if (scrollRestored || target == null || itemCount <= 0) return
         val clamped = target.coerceIn(0, itemCount - 1)
         scrollRestored = true
         pendingScrollTarget = null
@@ -1225,7 +1282,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         StreamsViewModel.SortMode.RECENT -> R.string.streams_sort_recent
     }
 
-    /** S0577: background streaming uses the foreground service only when the user enabled it and the flavor supports it. */
+    /**
+     * S0577: background streaming uses the foreground service only when the user enabled it and
+     * the flavor supports it.
+     */
     private fun isBackgroundAudioEnabled(): Boolean =
         viewModel.settings.value.enablePersistentAudioPlayback &&
             capabilityAvailability.isPersistentAudioPlaybackAvailable()
@@ -1313,8 +1373,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // setupViews() is deferred to a post{}; guard against destroy before it ran.
         if (::inlineAudio.isInitialized) {
             // S0577: on a background-continue exit, detach without stopping the service stream.
-            if (keepBackgroundService) inlineAudio.releaseKeepingBackgroundService()
-            else inlineAudio.release()
+            if (keepBackgroundService) {
+                inlineAudio.releaseKeepingBackgroundService()
+            } else {
+                inlineAudio.release()
+            }
         }
         super.onDestroy()
     }

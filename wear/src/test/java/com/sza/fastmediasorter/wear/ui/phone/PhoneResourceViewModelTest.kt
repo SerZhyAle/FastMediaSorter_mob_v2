@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.phone
 
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
+import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceItem
@@ -10,6 +11,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -63,7 +65,7 @@ class PhoneResourceViewModelTest {
 
     @Test
     fun `a page becomes content`() = runTest {
-        coEvery { client.browse(any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
 
         val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
         advanceUntilIdle()
@@ -75,7 +77,7 @@ class PhoneResourceViewModelTest {
 
     @Test
     fun `an answered but empty folder is not an error`() = runTest {
-        coEvery { client.browse(any(), any()) } returns PhoneResourceOutcome.Page(page())
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page())
 
         val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
         advanceUntilIdle()
@@ -85,7 +87,7 @@ class PhoneResourceViewModelTest {
 
     @Test
     fun `a disconnected phone becomes unavailable with no reason to show`() = runTest {
-        coEvery { client.browse(any(), any()) } returns PhoneResourceOutcome.PhoneUnavailable
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.PhoneUnavailable
 
         val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
         advanceUntilIdle()
@@ -95,7 +97,7 @@ class PhoneResourceViewModelTest {
 
     @Test
     fun `a refusal keeps its status so the screen can phrase it`() = runTest {
-        coEvery { client.browse(any(), any()) } returns
+        coEvery { client.browse(any(), any(), any(), any()) } returns
             PhoneResourceOutcome.Rejected(WearPhoneResourceResponseStatus.ACCESS_DENIED)
 
         val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
@@ -109,13 +111,13 @@ class PhoneResourceViewModelTest {
 
     @Test
     fun `retry after a disconnect recovers the content`() = runTest {
-        coEvery { client.browse(any(), any()) } returns PhoneResourceOutcome.PhoneUnavailable
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.PhoneUnavailable
 
         val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
         advanceUntilIdle()
         assertEquals(PhoneResourceUiState.Unavailable(null), viewModel.uiState.value)
 
-        coEvery { client.browse(any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
         viewModel.retry()
         advanceUntilIdle()
 
@@ -124,18 +126,78 @@ class PhoneResourceViewModelTest {
 
     @Test
     fun `walking into a folder and back keeps the screen on the trail`() = runTest {
-        coEvery { client.browse(any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
 
         val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
         advanceUntilIdle()
 
-        viewModel.openFolder("1:Camera")
+        viewModel.openFolder("1:Camera", "Camera")
         advanceUntilIdle()
 
         assertTrue("back from a folder stays on the screen", viewModel.navigateUp())
         advanceUntilIdle()
         assertTrue("back at the root leaves the screen", !viewModel.navigateUp())
     }
+
+    @Test
+    fun `the root is titled by the chip that opened the screen`() = runTest {
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
+
+        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        advanceUntilIdle()
+
+        assertEquals(ScreenTitle.Resource(R.string.phone_resource_title), viewModel.contentTitle())
+    }
+
+    @Test
+    fun `a folder titles the screen with its own name`() = runTest {
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
+
+        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        advanceUntilIdle()
+
+        viewModel.openFolder("1:Camera", "Camera")
+        advanceUntilIdle()
+
+        assertEquals(ScreenTitle.Text("Camera"), viewModel.contentTitle())
+    }
+
+    @Test
+    fun `the second level names the second folder and back names the first again`() = runTest {
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
+
+        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        advanceUntilIdle()
+
+        viewModel.openFolder("1:Camera", "Camera")
+        advanceUntilIdle()
+        viewModel.openFolder("2:DCIM", "DCIM")
+        advanceUntilIdle()
+        assertEquals(ScreenTitle.Text("DCIM"), viewModel.contentTitle())
+
+        viewModel.navigateUp()
+        advanceUntilIdle()
+
+        assertEquals(ScreenTitle.Text("Camera"), viewModel.contentTitle())
+    }
+
+    @Test
+    fun `back from the first folder restores the chip title`() = runTest {
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page(item("Camera")))
+
+        val viewModel = PhoneResourceViewModel(client, selectedMedia, context, preferences, SavedStateHandle())
+        advanceUntilIdle()
+
+        viewModel.openFolder("1:Camera", "Camera")
+        advanceUntilIdle()
+        viewModel.navigateUp()
+        advanceUntilIdle()
+
+        assertEquals(ScreenTitle.Resource(R.string.phone_resource_title), viewModel.contentTitle())
+    }
+
+    private fun PhoneResourceViewModel.contentTitle(): ScreenTitle =
+        (uiState.value as PhoneResourceUiState.Content).title
 
     private fun page(vararg items: WearPhoneResourceItem) = WearPhoneResourcePage(
         requestId = "req-1",

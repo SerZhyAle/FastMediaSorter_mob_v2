@@ -78,6 +78,13 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             // S1733: the same pair the game uses - compiled into every flavor, gated only by its switch.
             InternalRouteCatalog.KEY_SYSTEM_INFO ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableSystemInfo)
+            // S1883: unlike system information, the companion needs the watch bridge, so it declares the
+            // same capability-and-switch pair the quick voice route uses rather than a hardcoded true.
+            InternalRouteCatalog.KEY_WEAR_COMPANION ->
+                Availability(
+                    availableInBuild = mediaCapabilities.supportsWearCompanion,
+                    enabledAtRuntime = settings.enableWearCompanion,
+                )
             InternalRouteCatalog.KEY_OCR -> Availability(capability.isOcrAvailable(context), enabledAtRuntime = true)
             InternalRouteCatalog.KEY_STREAMS -> Availability(capability.isStreamsAvailable(), enabledAtRuntime = true)
             InternalRouteCatalog.KEY_FAVORITES ->
@@ -105,9 +112,23 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             // is the same shape the embedded game uses: always built in, gated by the user's toggle.
             InternalRouteCatalog.KEY_FRONT_FLASHLIGHT ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.frontFlashlightEnabled)
-            // S0978: photo-capture routes gate exactly like KEY_QUICK_CAMERA (images capability + the
-            // global camera-capture toggle); the OCR-translate variant additionally needs the translation
-            // capability compiled in, and the video route gates on the video capability + video toggle.
+            else -> resolveCaptureRoute(routeKey, settings)
+        }
+
+    /**
+     * S0978: the four capture routes - two photo shortcuts, the OCR-translate variant and the video one.
+     *
+     * Split out of [resolve] for the same reason [resolveWidgetMirrorRoute] was (S1883 pushed the chain
+     * back to detekt's cyclomatic ceiling when the Wear companion joined it). The closed-set contract is
+     * unchanged: this function ends in the widget-mirror chain, which ends in the same "an unknown route
+     * is unavailable" default the single chain used to hold.
+     *
+     * All four gate on the global camera-capture toggle rather than a per-route one; the OCR-translate
+     * variant additionally needs the translation capability compiled in, and the video route reads the
+     * video capability and the video toggle instead of their photo counterparts.
+     */
+    private fun resolveCaptureRoute(routeKey: String, settings: AppSettings): Availability =
+        when (routeKey) {
             InternalRouteCatalog.KEY_TAKE_PHOTO_SEND_TO,
             InternalRouteCatalog.KEY_TAKE_PHOTO_EDIT ->
                 Availability(

@@ -131,6 +131,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         /** S0780: deep-link section ids consumed by the tab fragments' checkAndExpandSectionFromIntent. */
         const val SECTION_STREAMS = "streams"
         const val SECTION_ADDITIONAL_PROGRAMS = "additional_programs"
+
+        /** S1883: the Wear OS group on the Operations tab - the settings target of the companion route. */
+        const val SECTION_WEAR = "wear"
         private const val PREFS_NAME = "settings_state"
         private const val KEY_LAST_TAB_POSITION = "last_tab_position"
 
@@ -469,7 +472,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             } else {
                 resources.getDimensionPixelSize(R.dimen.settings_tabs_height)
             }
-            binding.root.findViewById<View>(R.id.titleRow)?.let { titleRow ->
+            // S1693: titleRow exists only in the portrait layout, so the generated field is nullable.
+            binding.titleRow?.let { titleRow ->
                 titleRow.layoutParams.height = titleH
                 titleRow.requestLayout()
             }

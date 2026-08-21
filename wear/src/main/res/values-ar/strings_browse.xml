@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="browse_media_type_disabled">نوع الوسائط هذا معطل. فعّله في الإعدادات.</string>
+    <string name="browse_no_media_files">لم يتم العثور على ملفات وسائط. جرّب مجلداً أو نوع وسائط آخر.</string>
+    <string name="browse_network_source_not_found">مصدر الشبكة هذا لم يعد متاحاً. ارجع واختر مصدراً آخر.</string>
+    <string name="browse_network_connection_failed">تعذر الاتصال بهذا المصدر. تحقق من الاتصال ثم حاول مرة أخرى.</string>
+    <string name="browse_load_failed">تعذر تحميل الملفات. حاول مرة أخرى.</string>
+</resources>

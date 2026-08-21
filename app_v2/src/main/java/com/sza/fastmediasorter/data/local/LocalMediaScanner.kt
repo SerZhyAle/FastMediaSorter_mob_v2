@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -13,8 +14,8 @@ import com.sza.fastmediasorter.domain.usecase.MediaFilePage
 import com.sza.fastmediasorter.domain.usecase.MediaScanner
 import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
-import com.sza.fastmediasorter.utils.SafHelper
 import com.sza.fastmediasorter.util.VirtualPathUtils
+import com.sza.fastmediasorter.utils.SafHelper
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -98,7 +99,7 @@ class LocalMediaScanner @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                Timber.w(e, "MediaStore scan failed for Camera folder")
+                e.warnUnlessCancellation("MediaStore scan failed for Camera folder")
             }
             return@withContext scanFolderLegacy(cameraPath, supportedTypes, sizeFilter, scanSubdirectories, showHiddenFiles, onProgress)
         }
@@ -127,7 +128,9 @@ class LocalMediaScanner @Inject constructor(
                 Timber.d("LocalMediaScanner: MediaStore returned empty list, falling back to legacy File API")
             }
         } catch (e: Exception) {
-            Timber.w(e, "MediaStore scan failed, falling back to legacy File API")
+            // S1890: a cancelled query is not "MediaStore unavailable" - without the rethrow inside
+            // warnUnlessCancellation the legacy walk below starts for a result already cancelled.
+            e.warnUnlessCancellation("MediaStore scan failed, falling back to legacy File API")
         }
 
         // Fallback to File API

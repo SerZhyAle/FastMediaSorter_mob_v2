@@ -59,6 +59,11 @@
     "ru": "Открывает PC-инструкцию по публикации папок для Android через SFTP (companion-импорт / скан QR).",
     "uk": "Відкриває PC-інструкцію з публікації тек для Android через SFTP (companion-імпорт / скан QR)."
   },
+  "btnDisableAccessibilityService": {
+    "en": "Turns the app's accessibility service off from here, without going through the system settings. Shown only while that service is actually running.",
+    "ru": "Выключает службу специальных возможностей приложения прямо отсюда, не заходя в системные настройки. Показывается, только пока эта служба работает.",
+    "uk": "Вимикає службу спеціальних можливостей застосунку просто звідси, не заходячи в системні налаштування. Показується, лише поки ця служба працює."
+  },
   "btnDownloadableExtensions": {
     "en": "Opens the downloadable extensions manager where you can install optional feature modules.",
     "ru": "Открывает менеджер загружаемых расширений для установки дополнительных модулей.",
@@ -133,6 +138,11 @@
     "en": "Opens the Default app dialog, where you can register this app as the default handler for images, audio, video, and documents.",
     "ru": "Открывает диалог «Приложение по умолчанию», где можно назначить это приложение обработчиком изображений, аудио, видео и документов по умолчанию.",
     "uk": "Відкриває діалог «Застосунок за замовчуванням», де можна призначити цей застосунок обробником зображень, аудіо, відео та документів за замовчуванням."
+  },
+  "btnOpenDevSettings": {
+    "en": "Opens the Android developer options screen. A shortcut only - the app changes nothing there.",
+    "ru": "Открывает экран параметров разработчика Android. Только переход - приложение там ничего не меняет.",
+    "uk": "Відкриває екран параметрів розробника Android. Лише перехід - застосунок там нічого не змінює."
   },
   "btnOpenEdgeGestureConfig": {
     "en": "Opens the edge-gesture configuration dialog: interactive zone map, per-zone tabs (directions + strip visibility), and general gesture settings. Enabled only while the gesture overlay is on.",
@@ -349,6 +359,11 @@
     "ru": "Открывает настройки сопряжения и конфигурации Wear OS-компаньона.",
     "uk": "Відкриває налаштування з'єднання та конфігурації Wear OS-супутника."
   },
+  "btnWearInstallGuide": {
+    "en": "Opens the site page explaining how to install FastMedia Wear on a watch, in the interface language.",
+    "ru": "Открывает страницу сайта о том, как поставить FastMedia Wear на часы, на языке интерфейса.",
+    "uk": "Відкриває сторінку сайту про те, як встановити FastMedia Wear на годинник, мовою інтерфейсу."
+  },
   "buttonAddHomeWidget": {
     "en": "Launches the widget picker so you can add an app widget to the home screen.",
     "ru": "Открывает выбор виджетов для добавления виджета приложения на домашний экран.",
@@ -533,6 +548,11 @@
     "en": "Settings for recording video with the in-app camera and choosing where recordings are saved.",
     "ru": "Настройки записи видео встроенной камерой и выбора папки для сохранения записей.",
     "uk": "Налаштування запису відео вбудованою камерою та вибору теки для збереження записів."
+  },
+  "headerWear": {
+    "en": "Groups everything about a Wear OS watch: the master switch for the companion, a short explanation, the install guide and the button that opens the companion window.",
+    "ru": "Собирает всё, что относится к часам на Wear OS: главную галочку компаньона, короткое пояснение, ссылку на инструкцию по установке и кнопку открытия окна компаньона.",
+    "uk": "Збирає все, що стосується годинника на Wear OS: головну галочку компаньйона, коротке пояснення, посилання на інструкцію зі встановлення та кнопку відкриття вікна компаньйона."
   },
   "layoutExtensionsManager": {
     "en": "Manages downloadable OCR and translation components.",
@@ -1510,8 +1530,8 @@
     "uk": "Задає затримку в секундах між слайдами під час відтворення слайд-шоу на Wear OS."
   },
   "wearViewMode": {
-    "en": "Chooses how the watch navigation screens are laid out: a list, or a grid of two or three columns.",
-    "ru": "Выбирает раскладку навигационных экранов часов: список либо сетка из двух или трёх колонок.",
-    "uk": "Обирає розкладку навігаційних екранів годинника: список або сітка з двох чи трьох колонок."
+    "en": "Chooses how the watch navigation screens, including Settings, are laid out: a list, or a grid of two or three columns.",
+    "ru": "Выбирает раскладку навигационных экранов часов, включая Настройки: список либо сетка из двух или трёх колонок.",
+    "uk": "Обирає розкладку навігаційних екранів годинника, зокрема Налаштування: список або сітка з двох чи трьох колонок."
   }
 }

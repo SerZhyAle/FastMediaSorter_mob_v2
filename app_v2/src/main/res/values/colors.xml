@@ -437,6 +437,11 @@
     <!-- S1706: splash slogan - deeper than the logo blue to stay readable on the light splash background. -->
     <color name="splash_slogan">#FF1565C0</color>
 
+    <!-- S0404 / S1768: Launcher taskbar Start ("Пуск") and All Apps ("Программы") button colors.
+         Light blue for Start and light slate-blue for All Apps to separate them visually on dark theme surfaces. -->
+    <color name="launcher_taskbar_btn_start_text">#FF64B5F6</color>
+    <color name="launcher_taskbar_btn_all_apps_text">#FF90A4AE</color>
+
     <!-- S1549: portrait keeps the pressed/focused accent of the shared player selector; the landscape
          scroll buttons are flat white (see values-land/values-w600dp). An alias rather than a copied
          selector, so the portrait state list stays defined in exactly one place. -->

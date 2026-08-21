@@ -34,6 +34,7 @@ import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
@@ -79,10 +80,7 @@ fun BrowseScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val fileListViewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
     val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
-    val title = when (val screenTitle = viewModel.getScreenTitle()) {
-        is ScreenTitle.Text -> screenTitle.value
-        is ScreenTitle.Resource -> stringResource(screenTitle.id)
-    }
+    val title = viewModel.getScreenTitle().resolveText()
     
     Timber.d("BrowseScreen composing with state: $uiState")
     
@@ -120,16 +118,22 @@ fun BrowseScreen(
                 )
             }
             is BrowseUiState.Empty -> {
-                EmptyContent(message = state.message)
+                EmptyContent(message = state.message.resolveText())
             }
             is BrowseUiState.Error -> {
                 ErrorContent(
-                    message = state.message,
+                    message = state.message.resolveText(),
                     onRetry = { viewModel.loadMediaFiles() }
                 )
             }
         }
     }
+}
+
+@Composable
+private fun ScreenTitle.resolveText(): String = when (this) {
+    is ScreenTitle.Text -> value
+    is ScreenTitle.Resource -> stringResource(id)
 }
 
 @Composable

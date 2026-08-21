@@ -7,12 +7,11 @@ import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraRuntimeCapabilities
 import com.sza.fastmediasorter.ui.cameracapture.model.PhotoProfile
+import com.sza.fastmediasorter.util.CaptureFileNamer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * Owns the host-level decisions for [com.sza.fastmediasorter.ui.cameracapture.CameraCaptureActivity]
@@ -164,8 +163,6 @@ class CameraCaptureFlowManager(
         private set
 
     /** S0566: monotonically increasing per-capture suffix so a multi-capture session never overwrites a file. */
-    private var captureSequence = 0
-
     /** Scratch dir + extension-less base name when the host owns the output file (switchable mode). */
     private val outputDir: String? = CameraCaptureContract.readOutputDir(intent)
     private val outputBaseName: String? = CameraCaptureContract.readOutputBaseName(intent)
@@ -240,9 +237,14 @@ class CameraCaptureFlowManager(
     fun nextOutputFile(): File? {
         val dir = outputDir
         if (!multiCapture || dir == null) return currentOutputFile()
-        captureSequence++
-        val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        return File(dir, "CAP_${stamp}_$captureSequence${extensionFor(mode)}")
+        val kind = if (mode == CameraCaptureMode.VIDEO) {
+            CaptureFileNamer.CaptureKind.VIDEO
+        } else {
+            CaptureFileNamer.CaptureKind.PHOTO
+        }
+        val fileName = CaptureFileNamer.shared.allocate(kind, extensionFor(mode))
+        Timber.d("S1882: camera session output $fileName")
+        return File(dir, fileName)
     }
 
     private fun extensionFor(activeMode: CameraCaptureMode): String =

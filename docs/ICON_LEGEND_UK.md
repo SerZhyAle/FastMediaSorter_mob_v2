@@ -57,6 +57,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Зробити фото і OCR-переклад |
 | <img src="icons/svg/ic_camera_send_to.svg" alt="ic_camera_send_to" width="24" height="24"> | Зробити фото і надіслати до.. |
 | <img src="icons/svg/ic_lock.svg" alt="ic_lock" width="24" height="24"> | VPN |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear-супутник |
 | <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Wi-Fi |
 | <img src="icons/svg/ic_wifi_tethering.svg" alt="ic_wifi_tethering" width="24" height="24"> | Бездротові мережі |
 
@@ -87,6 +88,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Взаємодія з операційною системою |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Відео, налаштування програвача |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Відеозйомка |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear OS |
 
 ## Параметри налаштувань
 

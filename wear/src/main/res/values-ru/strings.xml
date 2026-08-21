@@ -229,4 +229,24 @@
     <string name="wear_favourites_unmark">Убрать из избранного</string>
     <string name="wear_favourites_unopenable">Эта отметка сделана до того, как часы научились её открывать.</string>
     <string name="phone_resource_source_unavailable">Этот ресурс не отвечает. Телефон на связи - проверьте ресурс и повторите.</string>
+    <string name="wear_phone_recents">Недавние</string>
+    <string name="wear_video_scale_mode">Масштаб / заполнение кадра</string>
+    <string name="wear_streams_search">Поиск трансляций</string>
+    <string name="wear_streams_filter">Фильтр трансляций</string>
+    <string name="wear_streams_sort">Сортировка трансляций</string>
+    <string name="wear_streams_filter_all">Все каналы</string>
+    <string name="wear_streams_filter_audio">Только аудио</string>
+    <string name="wear_streams_filter_video">Только видео</string>
+    <string name="wear_streams_sort_default">По умолчанию</string>
+    <string name="wear_streams_sort_name_asc">Название (А-Я)</string>
+    <string name="wear_streams_sort_name_desc">Название (Я-А)</string>
+    <string name="wear_streams_sort_kind">По типу медиа</string>
+    <string name="wear_streams_search_hint">Поиск</string>
+    <string name="wear_streams_clear_search">Сбросить поиск</string>
+    <string name="wear_watch_resource_name"></string>
+    <string name="wear_watch_transfer_success"></string>
+    <string name="wear_watch_transfer_failed"></string>
+    <string name="wear_stream_channel_narrow">Связь слишком медленная для этой трансляции. Подойдите ближе к Wi-Fi и повторите.</string>
+    <string name="wear_stream_channel_offline">Часы не в сети. Восстановите связь и повторите.</string>
+    <string name="wear_stream_channel_unverified">Связь ещё не проверена. Воспроизведение может прерваться - тогда повторите.</string>
 </resources>
