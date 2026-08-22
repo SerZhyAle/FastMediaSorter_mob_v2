@@ -6,7 +6,53 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.8151.948** (August 2026)
+**Current release: 2.60.8222.348** (August 2026)
+
+> Changes since version 2.60.8151.948
+
+---
+
+## What's New
+
+- **Wear OS companion** - browse, play and sort your phone's media from the watch.
+- **Watch mini-programs** - calculator, network monitor and a game, on your wrist.
+- **Watch players** - audio and video with shuffle, bezel volume and screen-off mode.
+- **Streams on the watch** - open, manage and receive channels sent from the phone.
+- **Launcher desktop gadgets** - media windows, now-playing art, translator and scroll thumb.
+- **Launcher notifications** - other apps' alerts in the top bar, dismissible from the panel.
+- **Widget backdrop opacity** - desktop cells from fully transparent to an opaque card.
+- **Network Monitor** - home-screen widget, launcher tile and Bluetooth device list.
+- **Stream home-screen widget** - start a channel straight from your home screen.
+- **Channel previews** - see every live video channel before you commit.
+- **Station logo pack** - cached artwork for every station in the catalog.
+- **Front flashlight** - turns the screen itself into an adjustable lamp.
+- **System information** - a device report reachable as its own program.
+- **Resource grid cell size** - pick how large the browse tiles are.
+- **Branded startup splash** - a consistent opening on phone and watch.
+- **Immersive HUD settings** - tune the VR heads-up display from its own panel.
+- **Calculator long-press** - a second action on every key.
+- **Unified capture filenames** - one naming scheme for everything the app saves.
+- **Credential cleanup** - remove saved logins no resource still uses.
+
+## What's Fixed
+
+- Saved photo now matches what the viewfinder showed.
+- Player opens reliably instead of occasionally failing to start.
+- Rotating the screen no longer blanks the standalone player.
+- Settings search now opens the target section directly.
+- Start button and Start panel are readable in both themes.
+- Channels keep their pin and history across catalog drops.
+- Channel favourites survive a cosmetic address change.
+- The watch honours the SFTP host key pinned on phone.
+- Watch network browsing shows the media type you asked for.
+- Album art downloads now work on the watch.
+- FTP connection testing now works on the watch.
+- Wear screens no longer clip content on round displays.
+- Widget placement makes room, and explains a refusal.
+
+---
+
+## Previous Release: 2.60.8151.948 (August 2026)
 
 > Changes since version 2.60.8122.034
 

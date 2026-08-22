@@ -58,13 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.8151.948 (August 2026)
+## What's New in v2.60.8222.348 (August 2026)
 
 **New:**
-Immersive VR browser with ray navigation, single-eye Cast for stereo video, subtitle styling in the panel player, viewfinder aspect selection, per-lens camera memory, command bar overflow menu, edge swipe for the player controls, send cloud and web files to other apps, adaptive stream quality with per-channel memory, taskbar on either edge, compact launcher section headers.
+Wear OS companion that browses, plays and sorts the phone's media from the watch, watch mini-programs (calculator, network monitor, game), watch audio and video players with shuffle, bezel volume and screen-off mode, streams opened and managed on the watch, launcher desktop gadgets for media windows, now-playing art and the translator, other apps' notifications in the launcher top bar, widget backdrop opacity, Network Monitor widget, launcher tile and Bluetooth device list, stream home-screen widget, channel previews, station logo pack, front flashlight, System information as its own program, resource grid cell size, branded startup splash, immersive HUD settings panel, calculator long-press actions, unified capture filenames, credential cleanup.
 
 **Fixed:**
-Pinned shortcuts survive a launcher reset, resource-type tabs always fit the screen, the settings search button stays reachable in landscape, settings and transfers survive app updates, the Google account stays connected after an update, an unreachable SFTP server is not retried on every thumbnail, startup no longer blocks on preferences or image setup, rotating while saving an account no longer crashes.
+Saved photo matches the viewfinder, the player opens reliably, rotation no longer blanks the standalone player, settings search opens the target section directly, the Start button and panel are readable in both themes, channels keep their pin and history across catalog drops, channel favourites survive a cosmetic address change, the watch honours the SFTP host key pinned on phone, watch network browsing shows the media type you asked for, album art downloads and FTP connection testing work on the watch, Wear screens no longer clip content on round displays, widget placement makes room and explains a refusal.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
